@@ -15,4 +15,8 @@ public interface WorldGenerator {
     default GenerationDescriptor describeForSave() {
         return GenerationDescriptor.unknown();
     }
+
+    default boolean generatesStructures() {
+        return true;
+    }
 }

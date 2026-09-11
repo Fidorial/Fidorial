@@ -49,7 +49,9 @@ public record ServerConfig(
         boolean enableCodeOfConduct,
         Path codeOfConductPath,
         boolean sparkEnabled,
-        Path sparkPath
+        Path sparkPath,
+        boolean generateStructures,
+        @Nullable Long levelSeed
 ) {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerConfig.class);
@@ -126,7 +128,9 @@ public record ServerConfig(
                 false,
                 Path.of(CodeOfConductManager.DEFAULT_FOLDER),
                 true,
-                Path.of("spark"));
+                Path.of("spark"),
+                true,
+                null);
     }
 
     public static ServerConfig load() throws IOException {
@@ -180,7 +184,9 @@ public record ServerConfig(
                 Path.of(props.getProperty(
                         "code-of-conduct-path", defaults.codeOfConductPath().toString())),
                 readBool(props, "spark-enabled", defaults.sparkEnabled()),
-                Path.of(props.getProperty("spark-path", defaults.sparkPath().toString())));
+                Path.of(props.getProperty("spark-path", defaults.sparkPath().toString())),
+                readBool(props, "generate-structures", defaults.generateStructures()),
+                readSeed(props, "level-seed"));
         LOGGER.info("Configuration loaded from {}", file);
         return config;
     }
@@ -288,6 +294,19 @@ public record ServerConfig(
         return mode;
     }
 
+    private static @Nullable Long readSeed(final Properties props, final String key) {
+        final String raw = props.getProperty(key);
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        final String value = raw.strip();
+        try {
+            return Long.parseLong(value);
+        } catch (final NumberFormatException notANumber) {
+            return (long) value.hashCode();
+        }
+    }
+
     private static boolean readBool(final Properties props, final String key, final boolean fallback) {
         final String raw = props.getProperty(key);
         return raw == null || raw.isBlank() ? fallback : Boolean.parseBoolean(raw.strip());
@@ -328,6 +347,8 @@ public record ServerConfig(
         props.setProperty("code-of-conduct-path", codeOfConductPath.toString());
         props.setProperty("spark-enabled", Boolean.toString(sparkEnabled));
         props.setProperty("spark-path", sparkPath.toString());
+        props.setProperty("generate-structures", Boolean.toString(generateStructures));
+        props.setProperty("level-seed", levelSeed == null ? "" : Long.toString(levelSeed));
         try (final OutputStream out = Files.newOutputStream(file)) {
             props.store(out, "Configuration Fidorial");
         }

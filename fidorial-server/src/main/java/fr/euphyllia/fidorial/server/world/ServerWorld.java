@@ -306,6 +306,15 @@ public final class ServerWorld implements World {
         return column;
     }
 
+    public void relightChunk(final int chunkX, final int chunkZ) {
+        final ChunkColumn column = loadedColumn(chunkX, chunkZ);
+        if (column == null) {
+            return;
+        }
+        column.setLightPopulated(false);
+        ensureLight(column, chunkX, chunkZ);
+    }
+
     private void ensureLight(final ChunkColumn column, final int chunkX, final int chunkZ) {
         if (column.lightPopulated()) {
             return;

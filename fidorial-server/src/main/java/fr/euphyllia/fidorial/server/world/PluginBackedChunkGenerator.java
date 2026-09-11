@@ -56,4 +56,9 @@ public final class PluginBackedChunkGenerator implements ChunkGenerator {
     public DimensionTypeDefinition dimensionType() {
         return dimensionType;
     }
+
+    @Override
+    public boolean generatesStructures() {
+        return generator.generatesStructures();
+    }
 }

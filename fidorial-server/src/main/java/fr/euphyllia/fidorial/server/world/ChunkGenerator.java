@@ -10,4 +10,8 @@ public interface ChunkGenerator {
     ChunkGeneratorConfig describeForSave();
 
     DimensionTypeDefinition dimensionType();
+
+    default boolean generatesStructures() {
+        return true;
+    }
 }

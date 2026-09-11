@@ -49,11 +49,20 @@ public class PluginGeneratedChunk implements GeneratedChunk {
     }
 
     @Override
-    public void setBlock(final int x, final int y, final int z, final Key block) {
+    public void setBlock(final int x, final int y, final int z, final Key block, final Map<String, String> properties) {
         checkLocal(x, z);
         checkY(y);
-        final BlockState state = BLOCK_CACHE.computeIfAbsent(block, BlockState::of);
+        final BlockState state = properties.isEmpty()
+                ? BLOCK_CACHE.computeIfAbsent(block, BlockState::of)
+                : BlockState.of(block, properties);
         column.setBlock(x, y, z, state);
+    }
+
+    @Override
+    public Key blockAt(final int x, final int y, final int z) {
+        checkLocal(x, z);
+        checkY(y);
+        return column.getBlock(x, y, z).name();
     }
 
     @Override

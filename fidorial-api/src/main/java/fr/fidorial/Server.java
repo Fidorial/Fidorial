@@ -20,6 +20,7 @@ import fr.fidorial.world.WorldBuilder;
 import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.dimension.DimensionTypeRegistry;
 import fr.fidorial.world.generation.WorldGenerator;
+import fr.fidorial.world.structure.StructureManager;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -203,6 +204,15 @@ public interface Server extends ForwardingAudience {
     ItemRegistry items();
 
     Collection<? extends World> worlds();
+
+    /**
+     * Datapack structures: packs of {@code <world>/datapacks}, templates, jigsaw structures, placement and
+     * {@code /locate}-style search.
+     *
+     * @return the structure manager of the server
+     * @since 0.1.0
+     */
+    StructureManager structures();
 
     Optional<? extends World> world(Key key);
 

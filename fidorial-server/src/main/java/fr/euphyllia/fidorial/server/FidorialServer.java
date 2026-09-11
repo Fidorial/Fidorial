@@ -64,6 +64,8 @@ import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
+import fr.euphyllia.fidorial.server.world.structure.StructureService;
+import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.Server;
 import fr.fidorial.combat.CombatService;
@@ -96,6 +98,7 @@ import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import fr.fidorial.world.fluid.FluidManager;
+import fr.fidorial.world.structure.StructureManager;
 import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
@@ -172,7 +175,9 @@ public final class FidorialServer implements Server {
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
             new NbtPlayerEnderChestStorage(config.worldPath().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
-    private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer);
+    private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer, config.levelSeed());
+    private final StructureService structureService = new StructureService(
+            config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
     private final FluidEngine fluidEngine =
             new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
     private final WeatherEngine weatherEngine = new WeatherEngine(worldManager.levelData(), this::broadcast);
@@ -326,6 +331,7 @@ public final class FidorialServer implements Server {
         closeQuietly("ai", aiWorker::shutdown);
         closeQuietly("regions", regionizer::shutdown);
         closeQuietly("chunks", chunkWorker::shutdown);
+        closeQuietly("structures", structureService::shutdown);
         closeQuietly("weather", weatherEngine::close);
         closeQuietly("profiles", offlinePlayers::close);
         closeQuietly("worlds", worldManager::close);
@@ -357,6 +363,8 @@ public final class FidorialServer implements Server {
     }
 
     private void openWorlds() {
+        structureService.load();
+        worldManager.setStructureService(structureService);
         worldManager.setChunkLoader(chunkWorker);
         worldManager.setLightDispatcher(lightDispatcher);
         fluidEngine.setLightHook(lightDispatcher::queueBlockChange);
@@ -401,6 +409,7 @@ public final class FidorialServer implements Server {
         services.register(BanManager.class, fidorialBanManager, this, ServicePriority.LOWEST);
         services.register(WhitelistManager.class, fidorialWhitelist, this, ServicePriority.LOWEST);
         services.register(MobRegistry.class, mobRegistry, this, ServicePriority.LOWEST);
+        services.register(StructureManager.class, structureService, this, ServicePriority.LOWEST);
     }
 
     private void enableSpark() {
@@ -465,6 +474,11 @@ public final class FidorialServer implements Server {
             this.adventure$audiences = audiences;
         }
         return audiences;
+    }
+
+    @Override
+    public StructureService structures() {
+        return structureService;
     }
 
     @Override

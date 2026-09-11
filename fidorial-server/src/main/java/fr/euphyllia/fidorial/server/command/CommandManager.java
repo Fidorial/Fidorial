@@ -18,11 +18,14 @@ import fr.euphyllia.fidorial.server.command.defaults.BanCommand;
 import fr.euphyllia.fidorial.server.command.defaults.BanIpCommand;
 import fr.euphyllia.fidorial.server.command.defaults.BanListCommand;
 import fr.euphyllia.fidorial.server.command.defaults.BossBarCommand;
+import fr.euphyllia.fidorial.server.command.defaults.DatapackCommand;
 import fr.euphyllia.fidorial.server.command.defaults.FillBiomeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.GameModeCommand;
+import fr.euphyllia.fidorial.server.command.defaults.LocateCommand;
 import fr.euphyllia.fidorial.server.command.defaults.OpCommand;
 import fr.euphyllia.fidorial.server.command.defaults.PardonCommand;
 import fr.euphyllia.fidorial.server.command.defaults.PardonIpCommand;
+import fr.euphyllia.fidorial.server.command.defaults.PlaceCommand;
 import fr.euphyllia.fidorial.server.command.defaults.RespawnCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SpawnPointCommand;
 import fr.euphyllia.fidorial.server.command.defaults.StopCommand;
@@ -97,6 +100,9 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(SpawnPointCommand.create());
         registerInternal(RespawnCommand.create());
         registerInternal(FillBiomeCommand.create());
+        registerInternal(PlaceCommand.create());
+        registerInternal(LocateCommand.create());
+        registerInternal(DatapackCommand.create());
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command) {
@@ -113,7 +119,7 @@ public final class CommandManager implements CommandRegistry {
     public void register(final String namespace, final LiteralCommandNode<CommandSource> command, final Set<String> aliases) {
         Preconditions.checkNotNull(namespace, "namespace");
         Preconditions.checkArgument(!namespace.isBlank(), "namespace must not be blank");
-        for (char c : namespace.toCharArray()) {
+        for (final char c : namespace.toCharArray()) {
             Preconditions.checkArgument(Key.allowedInNamespace(c), "namespace contains illegal characters");
         }
         Preconditions.checkArgument(

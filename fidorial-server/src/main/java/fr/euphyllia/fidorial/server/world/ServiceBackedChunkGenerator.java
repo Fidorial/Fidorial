@@ -68,4 +68,10 @@ public class ServiceBackedChunkGenerator implements ChunkGenerator {
 
         return custom.dimensionType();
     }
+
+    @Override
+    public boolean generatesStructures() {
+        final WorldGenerator custom = services.find(WorldGenerator.class).orElse(null);
+        return custom == null ? fallback.generatesStructures() : custom.generatesStructures();
+    }
 }

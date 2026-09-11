@@ -14,6 +14,7 @@ import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
+import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
@@ -25,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +51,7 @@ public final class WorldManager implements AutoCloseable {
     private volatile @Nullable AsyncChunkLoader chunkLoader;
     private volatile @Nullable IntSupplier entityIdSupplier;
     private volatile @Nullable EntitySpawnBridge entityBridge;
+    private volatile @Nullable StructureService structures;
 
     private WorldManager(
             final WorldPaths paths,
@@ -69,6 +72,11 @@ public final class WorldManager implements AutoCloseable {
     }
 
     public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler) throws IOException {
+        return openOrCreate(worldRoot, blockStates, scheduler, null);
+    }
+
+    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
+                                            final @Nullable Long newWorldSeed) throws IOException {
         final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
 
         final LevelData levelData;
@@ -77,6 +85,7 @@ public final class WorldManager implements AutoCloseable {
             LOGGER.info("Monde chargé : {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
         } else {
             levelData = new LevelData();
+            levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
             levelData.write(paths.dataDir(), paths.levelDat());
             LOGGER.info("Nouveau monde créé dans {}", worldRoot);
         }
@@ -91,8 +100,16 @@ public final class WorldManager implements AutoCloseable {
     }
 
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator) {
+        return registerDimension(dim, generator, levelData.seed);
+    }
+
+    public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
         return worlds.computeIfAbsent(dim.id(), _ -> {
-            final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, generator, blockStates, scheduler);
+            final StructureService structureService = structures;
+            final ChunkGenerator effective = structureService == null
+                    ? generator
+                    : structureService.wrap(dim.id(), generator, seed);
+            final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler);
             if (chunkLoader != null) {
                 world.setChunkLoader(chunkLoader);
             }
@@ -149,6 +166,10 @@ public final class WorldManager implements AutoCloseable {
         }
     }
 
+    public void setStructureService(final StructureService structures) {
+        this.structures = structures;
+    }
+
     public void setDefaultGenerator(final ChunkGenerator generator) {
         this.defaultGenerator = generator;
     }
@@ -173,7 +194,7 @@ public final class WorldManager implements AutoCloseable {
         final Dimension dim = Dimension.datapack(key, chunkGenerator.dimensionType().key());
 
         final boolean existed = worlds.containsKey(dim.id());
-        final ServerWorld world = registerDimension(dim, chunkGenerator);
+        final ServerWorld world = registerDimension(dim, chunkGenerator, seed);
         if (!existed) {
             LOGGER.info(
                     "World '{}' created (seed={}, generator={})",
@@ -219,8 +240,11 @@ public final class WorldManager implements AutoCloseable {
             world.saveAll();
         }
         worlds.remove(key);
+        final StructureService structureService = structures;
+        if (structureService != null) {
+            structureService.forget(key);
+        }
         LOGGER.debug("Removing world '{}' from manager (save={})", key, save);
-        // resend worlds
         FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
 
         return world;
