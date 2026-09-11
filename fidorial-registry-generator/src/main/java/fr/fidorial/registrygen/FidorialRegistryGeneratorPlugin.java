@@ -189,7 +189,6 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                     .flatMap(_ -> prismarineTask.flatMap(DownloadPrismarineDataTask::getDataDirectory))
                     .map(dir -> dir.file("blocks.json")));
 
-            task.getGeneratedPackage().set(extension.getGeneratedPackage());
             task.getRegistryDataPackage().set(extension.getRegistryDataPackage());
             task.getBlockTypeKeysPackage().convention(extension.getRegistryKeysPackage());
             task.getBlockPackage().convention(extension.getGeneratedPackage().map(p -> p + ".world.block"));

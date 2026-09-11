@@ -32,9 +32,6 @@ public abstract class GenerateBlockStatesTask extends DefaultTask {
     public abstract RegularFileProperty getPrismarineBlocksReport();
 
     @Input
-    public abstract Property<String> getGeneratedPackage();
-
-    @Input
     public abstract Property<String> getRegistryDataPackage();
 
     @Input
@@ -62,7 +59,6 @@ public abstract class GenerateBlockStatesTask extends DefaultTask {
                     prismarineBlocksReport,
                     getGeneratedSourcesDirectory().get().getAsFile().toPath(),
                     getBlockPackage().get(),
-                    getGeneratedPackage().get(),
                     getRegistryDataPackage().get(),
                     getBlockTypeKeysPackage().get());
         } catch (final IOException e) {

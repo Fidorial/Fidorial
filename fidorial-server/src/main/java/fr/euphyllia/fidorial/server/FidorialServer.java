@@ -62,7 +62,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
-import fr.euphyllia.fidorial.server.world.chunk.BlockStateProperties;
+import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.Server;
@@ -259,7 +259,7 @@ public final class FidorialServer implements Server {
     private static FidorialBlockRegistry bootstrapBlocks() {
         final FidorialBlockRegistry registry = new FidorialBlockRegistry();
         BlockStateIds.registerAll(registry);
-        BlockStateProperties.bootstrap();
+        BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
         Blocks.bootstrap(registry);
         LOGGER.info("{} blocks defined in code", registry.definedCount());

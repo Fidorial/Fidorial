@@ -273,7 +273,6 @@ public final class RegistryGenerator {
      * @param outputDirectory      generated Java source root
      * @param blockPackage         package holding the {@code BlockType}, {@code BlockProperty}, and
      *                             {@code BlockRegistry} classes
-     * @param generatedPackage     root package; {@code BlockState} resolves to {@code <generatedPackage>.world.chunk}
      * @param registryDataPackage  package for {@code BlockStateIds}/{@code BlockStateProperties}/
      *                             {@code BlockStateLightProperties}
      * @param blockTypeKeysPackage package holding the typed {@code BlockType} keys class (e.g. {@code BlockTypeKeys})
@@ -283,7 +282,6 @@ public final class RegistryGenerator {
                                     final Path prismarineBlocksJson,
                                     final Path outputDirectory,
                                     final String blockPackage,
-                                    final String generatedPackage,
                                     final String registryDataPackage,
                                     final String blockTypeKeysPackage) throws IOException {
 
@@ -293,7 +291,7 @@ public final class RegistryGenerator {
                 ? prismarineBlockReportParser.parse(prismarineBlocksJson)
                 : Map.of();
 
-        blockStateGenerator.generate(blocks, lighting, blockPackage, generatedPackage, registryDataPackage, blockTypeKeysPackage, outputDirectory);
+        blockStateGenerator.generate(blocks, lighting, blockPackage, registryDataPackage, blockTypeKeysPackage, outputDirectory);
     }
 
     /**
