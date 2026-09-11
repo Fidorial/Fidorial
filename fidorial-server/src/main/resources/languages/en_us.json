@@ -215,5 +215,20 @@
   "commands.whitelist.list": "There are <arg:0> whitelisted player(s): <arg:1>",
   "commands.whitelist.none": "There are no whitelisted players",
   "commands.whitelist.reloaded": "Whitelist reloaded",
-  "commands.whitelist.kicked": "Disconnected <arg:0> player(s) the whitelist no longer allows"
+  "commands.whitelist.kicked": "Disconnected <arg:0> player(s) the whitelist no longer allows",
+
+  "commands.forceload.added.single": "Marked chunk <arg:0> in <arg:1> to be force loaded",
+  "commands.forceload.added.multiple": "Marked <arg:0> chunks in <arg:1> from <arg:2> to <arg:3> to be force loaded",
+  "commands.forceload.added.failure": "<red>No chunks were marked for force loading",
+  "commands.forceload.added.none": "<red>No force loaded chunks were found in <arg:0>",
+  "commands.forceload.removed.single": "Unmarked chunk <arg:0> in <arg:1> for force loading",
+  "commands.forceload.removed.multiple": "Unmarked <arg:0> chunks in <arg:1> from <arg:2> to <arg:3> for force loading",
+  "commands.forceload.removed.failure": "<red>No chunks were removed from force loading",
+  "commands.forceload.removed.all": "Unmarked all force loaded chunks in <arg:0>",
+  "commands.forceload.list.single": "A force loaded chunk was found in <arg:0> at: <arg:1>",
+  "commands.forceload.list.multiple": "<arg:0> force loaded chunks were found in <arg:1> at: <arg:2>",
+  "commands.forceload.query.success": "Chunk at <arg:0> in <arg:1> is marked for force loading",
+  "commands.forceload.query.failure": "<red>Chunk at <arg:0> in <arg:1> is not marked for force loading",
+  "commands.forceload.toobig": "<red>Too many chunks in the specified area (maximum <arg:0>, specified <arg:1>)",
+  "argument.pos.outofworld": "<red>That position is out of this world!"
 }

@@ -51,6 +51,11 @@ public class WorldPaths {
         return worldRoot.resolve("data");
     }
 
+    public Path dimensionDataDir(final Dimension dim) {
+        final Path base = writeLayout == Layout.MODERN ? modernDimensionRoot(dim) : legacyDimensionRoot(dim);
+        return base.resolve("data");
+    }
+
     public Path poiDir(final Dimension dim) {
         final Path base = writeLayout == Layout.MODERN ? modernDimensionRoot(dim) : legacyDimensionRoot(dim);
         return base.resolve("poi");

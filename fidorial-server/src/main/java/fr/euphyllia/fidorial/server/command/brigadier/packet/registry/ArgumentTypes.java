@@ -14,6 +14,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.item.ItemPredicat
 import fr.euphyllia.fidorial.server.command.brigadier.argument.item.component.SwingAnimationTypeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.AngleArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.BlockPositionArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.location.ColumnPosArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.DimensionArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.Vec3Argument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.nbt.NbtDataArgument;
@@ -46,6 +47,7 @@ public final class ArgumentTypes {
         register(new EntityArgument.Info(), ArgumentTypeIds.ENTITY_ARGUMENT_ID);
         register(new PlayerProfileArgument.Info(), ArgumentTypeIds.GAME_PROFILE_ARGUMENT_ID);
         register(new BlockPositionArgument.Info(), ArgumentTypeIds.BLOCK_POS_ARGUMENT_ID);
+        register(new ColumnPosArgument.Info(), ArgumentTypeIds.COLUMN_POS_ARGUMENT_ID);
         register(new Vec3Argument.Info(), ArgumentTypeIds.VEC3_ARGUMENT_ID);
         register(new ItemArgument.Info(), ArgumentTypeIds.ITEM_STACK_ARGUMENT_ID);
         register(new ItemPredicateArgument.Info(), ArgumentTypeIds.ITEM_PREDICATE_ARGUMENT_ID);

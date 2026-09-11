@@ -215,5 +215,20 @@
   "commands.whitelist.list": "<arg:0> joueur(s) dans la whitelist : <arg:1>",
   "commands.whitelist.none": "Aucun joueur dans la whitelist",
   "commands.whitelist.reloaded": "Whitelist rechargée",
-  "commands.whitelist.kicked": "<arg:0> joueur(s) déconnecté(s), la whitelist ne les autorise plus"
+  "commands.whitelist.kicked": "<arg:0> joueur(s) déconnecté(s), la whitelist ne les autorise plus",
+
+  "commands.forceload.added.single": "Le chunk <arg:0> de <arg:1> sera chargé de force",
+  "commands.forceload.added.multiple": "<arg:0> chunks de <arg:1>, de <arg:2> à <arg:3>, seront chargés de force",
+  "commands.forceload.added.failure": "<red>Aucun chunk n'a été marqué pour le chargement forcé",
+  "commands.forceload.added.none": "<red>Aucun chunk chargé de force dans <arg:0>",
+  "commands.forceload.removed.single": "Le chunk <arg:0> de <arg:1> n'est plus chargé de force",
+  "commands.forceload.removed.multiple": "<arg:0> chunks de <arg:1>, de <arg:2> à <arg:3>, ne sont plus chargés de force",
+  "commands.forceload.removed.failure": "<red>Aucun chunk n'a été retiré du chargement forcé",
+  "commands.forceload.removed.all": "Plus aucun chunk n'est chargé de force dans <arg:0>",
+  "commands.forceload.list.single": "Un chunk chargé de force dans <arg:0> : <arg:1>",
+  "commands.forceload.list.multiple": "<arg:0> chunks chargés de force dans <arg:1> : <arg:2>",
+  "commands.forceload.query.success": "Le chunk <arg:0> de <arg:1> est chargé de force",
+  "commands.forceload.query.failure": "<red>Le chunk <arg:0> de <arg:1> n'est pas chargé de force",
+  "commands.forceload.toobig": "<red>Trop de chunks dans la zone (maximum <arg:0>, demandé <arg:1>)",
+  "argument.pos.outofworld": "<red>Cette position est hors du monde !"
 }

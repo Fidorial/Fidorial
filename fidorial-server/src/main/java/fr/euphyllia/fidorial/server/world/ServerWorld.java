@@ -43,6 +43,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -51,12 +52,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 
 public final class ServerWorld implements World {
+
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerWorld.class);
 
     private final Dimension dimension;
     private final ChunkStorage storage;
@@ -73,6 +77,7 @@ public final class ServerWorld implements World {
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
+    private final ForcedChunks forcedChunks;
 
     private final ConcurrentChainedLong2ReferenceHashTable<ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
@@ -109,6 +114,7 @@ public final class ServerWorld implements World {
         this.lightManager = new WorldLightManager(new WorldLightAccess());
         this.fallbackEngine = new FloodFillLightEngine(minY, height);
         this.scheduler = scheduler;
+        this.forcedChunks = new ForcedChunks(dimension.id(), scheduler);
     }
 
     public void setEntityBridge(final IntSupplier entityIdSupplier, final EntitySpawnBridge entityBridge) {
@@ -304,6 +310,48 @@ public final class ServerWorld implements World {
         ensureEntitiesLoaded(chunkX, chunkZ);
         ensureLight(column, chunkX, chunkZ);
         return column;
+    }
+
+    public ForcedChunks forcedChunks() {
+        return forcedChunks;
+    }
+
+    @Override
+    public boolean isChunkForceLoaded(final int chunkX, final int chunkZ) {
+        return forcedChunks.contains(chunkX, chunkZ);
+    }
+
+    @Override
+    public Set<ChunkPos> forceLoadedChunks() {
+        final LongSet keys = forcedChunks.snapshot();
+        final List<ChunkPos> positions = new ArrayList<>(keys.size());
+        for (final long key : keys) {
+            positions.add(new ChunkPos((int) (key >> 32), (int) key));
+        }
+        return Set.copyOf(positions);
+    }
+
+    @Override
+    public boolean setChunkForceLoaded(final int chunkX, final int chunkZ, final boolean forced) {
+        if (!forced) {
+            return forcedChunks.remove(chunkX, chunkZ);
+        }
+        if (!forcedChunks.add(chunkX, chunkZ)) {
+            return false;
+        }
+        loadForcedChunk(chunkX, chunkZ);
+        return true;
+    }
+
+    public void loadForcedChunks() {
+        forcedChunks.forEach(key -> loadForcedChunk((int) (key >> 32), (int) key));
+    }
+
+    private void loadForcedChunk(final int chunkX, final int chunkZ) {
+        getChunkAsync(chunkX, chunkZ).exceptionally(failure -> {
+            LOGGER.warn("Unable to load the force-loaded chunk {},{} in {}", chunkX, chunkZ, key(), failure);
+            return null;
+        });
     }
 
     public void relightChunk(final int chunkX, final int chunkZ) {
@@ -532,7 +580,7 @@ public final class ServerWorld implements World {
         final BaseLongIterator loadedKeys = loaded.keyIterator();
         while (loadedKeys.hasNext()) {
             final long k = loadedKeys.nextLong();
-            if (!wanted.contains(k) && !dirty.contains(k)) {
+            if (!wanted.contains(k) && !dirty.contains(k) && !forcedChunks.contains(k)) {
                 toUnload.add(k);
             }
         }
@@ -543,6 +591,9 @@ public final class ServerWorld implements World {
 
         int unloaded = 0;
         for (final long k : toUnload) {
+            if (forcedChunks.contains(k)) {
+                continue; // forced while the light was being flushed
+            }
             if (loaded.remove(k) != null) {
                 unloaded++;
                 final int cx = (int) (k >> 32);
@@ -595,7 +646,7 @@ public final class ServerWorld implements World {
     @Override
     public CompletableFuture<Boolean> unloadChunkAsync(final int chunkX, final int chunkZ) {
         final long k = ChunkPos.chunkKey(chunkX, chunkZ);
-        if (!loaded.containsKey(k)) {
+        if (!loaded.containsKey(k) || forcedChunks.contains(k)) {
             return CompletableFuture.completedFuture(false);
         }
 

@@ -23,6 +23,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.scheduler.RegionTps;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
@@ -99,6 +100,7 @@ public final class ApiTestCommand {
                 .then(literal("info").executes(ctx -> info(plugin, ctx)))
                 .then(literal("tps").executes(ctx -> tps(plugin, ctx)))
                 .then(literal("worlds").executes(ctx -> worlds(plugin, ctx)))
+                .then(literal("forceload").executes(ApiTestCommand::forceLoad))
                 .then(literal("players").executes(ctx -> players(plugin, ctx)))
                 .then(literal("service").executes(ctx -> service(plugin, ctx)))
                 .then(literal("schedule").executes(ctx -> schedule(plugin, ctx)))
@@ -443,6 +445,27 @@ public final class ApiTestCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+
+    private static int forceLoad(final CommandContext<CommandSource> ctx) {
+        final CommandSender sender = ctx.getSource().sender();
+        if (!(sender instanceof final Player player)) {
+            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+            return Command.SINGLE_SUCCESS;
+        }
+
+        final World world = player.world();
+        final ChunkPos pos = player.chunk();
+        final boolean forced = world.isChunkForceLoaded(pos);
+        final boolean chunkForced = world.getChunkIfLoaded(pos.x(), pos.z())
+                .map(Chunk::isForceLoaded)
+                .orElse(false);
+
+        plugin.msg(player, "[TestPlugin] Chunk " + pos.x() + ", " + pos.z()
+                + " force-loaded: " + forced
+                + " (Chunk#isForceLoaded: " + chunkForced + ") | "
+                + world.forceLoadedChunks().size() + " force-loaded chunk(s) in " + world.key().asString());
+        return Command.SINGLE_SUCCESS;
+    }
 
     private static int tp(final CommandContext<CommandSource> ctx) {
         final CommandSender sender = ctx.getSource().sender();

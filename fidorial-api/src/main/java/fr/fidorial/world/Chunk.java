@@ -14,6 +14,17 @@ public interface Chunk extends SchedulerSource {
         return new ChunkPos(chunkX(), chunkZ());
     }
 
+    /**
+     * Whether this chunk is force-loaded.
+     *
+     * @return {@code true} if this chunk is force-loaded
+     * @see World#isChunkForceLoaded(int, int)
+     * @since 0.1.0
+     */
+    default boolean isForceLoaded() {
+        return world().isChunkForceLoaded(chunkX(), chunkZ());
+    }
+
     int minY();
 
     int height();

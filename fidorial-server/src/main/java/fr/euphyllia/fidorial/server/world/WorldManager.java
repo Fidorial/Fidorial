@@ -104,24 +104,48 @@ public final class WorldManager implements AutoCloseable {
     }
 
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
-        return worlds.computeIfAbsent(dim.id(), _ -> {
-            final StructureService structureService = structures;
-            final ChunkGenerator effective = structureService == null
-                    ? generator
-                    : structureService.wrap(dim.id(), generator, seed);
-            final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler);
-            if (chunkLoader != null) {
-                world.setChunkLoader(chunkLoader);
+        final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));
+        restoreForcedChunks(world);
+        return world;
+    }
+
+    private ServerWorld newWorld(final Dimension dim, final ChunkGenerator generator, final long seed) {
+        final StructureService structureService = structures;
+        final ChunkGenerator effective = structureService == null
+                ? generator
+                : structureService.wrap(dim.id(), generator, seed);
+        final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler);
+        if (chunkLoader != null) {
+            world.setChunkLoader(chunkLoader);
+        }
+        if (entityIdSupplier != null && entityBridge != null) {
+            world.setEntityBridge(entityIdSupplier, entityBridge);
+        }
+        if (lightDispatcher != null) {
+            world.setLightDispatcher(lightDispatcher);
+        }
+        restoreTime(world);
+        return world;
+    }
+
+    private Path forcedChunksFile(final ServerWorld world) {
+        return paths.dimensionDataDir(world.dimension()).resolve(Key.MINECRAFT_NAMESPACE).resolve(ForcedChunks.FILE_NAME);
+    }
+
+    private void restoreForcedChunks(final ServerWorld world) {
+        try {
+            final int restored = world.forcedChunks().restore(forcedChunksFile(world));
+            if (restored > 0) {
+                LOGGER.info("{} force-loaded chunk(s) restored in {}", restored, world.key());
+                world.loadForcedChunks();
             }
-            if (entityIdSupplier != null && entityBridge != null) {
-                world.setEntityBridge(entityIdSupplier, entityBridge);
-            }
-            if (lightDispatcher != null) {
-                world.setLightDispatcher(lightDispatcher);
-            }
-            restoreTime(world);
-            return world;
-        });
+        } catch (final IOException e) {
+            LOGGER.error("Unable to read the force-loaded chunks of {}", world.key(), e);
+        }
+    }
+
+    private void saveForcedChunks(final ServerWorld world) throws IOException {
+        world.forcedChunks().saveIfDirty(forcedChunksFile(world));
     }
 
     private void restoreTime(final ServerWorld world) {
@@ -238,7 +262,9 @@ public final class WorldManager implements AutoCloseable {
             levelData.setWorldTime(world.dimension().id(), cycle.worldAge(), cycle.time(), cycle.doDaylightCycle());
             levelData.write(paths.dataDir(), paths.levelDat());
             world.saveAll();
+            saveForcedChunks(world);
         }
+        world.forcedChunks().releaseTickets();
         worlds.remove(key);
         final StructureService structureService = structures;
         if (structureService != null) {
@@ -271,6 +297,7 @@ public final class WorldManager implements AutoCloseable {
         levelData.write(paths.dataDir(), paths.levelDat());
         for (final ServerWorld w : worlds.values()) {
             w.saveAll();
+            saveForcedChunks(w);
         }
         LOGGER.info("World saved ({} dimension(s))", worlds.size());
     }
@@ -286,6 +313,7 @@ public final class WorldManager implements AutoCloseable {
     public void saveDirty() throws IOException {
         for (final ServerWorld w : worlds.values()) {
             w.saveDirty();
+            saveForcedChunks(w);
         }
     }
 
