@@ -151,7 +151,7 @@ public class ServerboundPackets {
     }
 
     private static void register(final ConnectionState state, final Key name, final Reader reader) {
-        READERS.computeIfAbsent(state, s -> new HashMap<>()).put(name, reader);
+        READERS.computeIfAbsent(state, _ -> new HashMap<>()).put(name, reader);
     }
 
     public static @Nullable ServerboundPacket decode(final ConnectionState state, final Key name, final PacketBuffer buf) {

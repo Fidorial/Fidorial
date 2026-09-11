@@ -162,6 +162,14 @@ public final class BlockType {
         return map;
     }
 
+    public int defaultOrdinal() {
+        return defaultOrdinal;
+    }
+
+    public Map<String, @Nullable String> propertyValuesAt(final int ordinal) {
+        return valuesOf(ordinal);
+    }
+
     @Override
     public boolean equals(final Object other) {
         return other instanceof final BlockType type && type.key.equals(key);
