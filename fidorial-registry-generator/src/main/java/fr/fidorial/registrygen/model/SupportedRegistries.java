@@ -25,7 +25,7 @@ public final class SupportedRegistries {
 
     public static final RegistryTypeDefinition ARGUMENT_TYPE = registry("minecraft:command_argument_type", "ArgumentType");
 
-    public static final RegistryTypeDefinition BLOCK = registry("minecraft:block", "BlockType");
+    public static final RegistryTypeDefinition BLOCK = registry("minecraft:block", "BlockType", RegistrySync.FROZEN);
 
     public static final RegistryTypeDefinition DIMENSION_TYPE = registry("minecraft:dimension_type", "DimensionType", RegistrySync.DYNAMIC);
 
