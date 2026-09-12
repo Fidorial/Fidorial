@@ -11,7 +11,6 @@ import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegi
 import net.kyori.adventure.key.Key;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.ToIntFunction;
@@ -23,15 +22,6 @@ public record ClientboundUpdateTagsPacket(
         FidorialDimensionTypeRegistry dimensionTypes
 ) implements ClientboundPacket {
 
-    private static final Key BLOCK_REGISTRY = Key.key("block");
-    private static final int NETHERRACK_ID = 334;
-    private static final int MAGMA_BLOCK_ID = 729;
-    private static final int BEDROCK_ID = 36;
-
-    private record Payload(Key registry, Map<Key, List<Integer>> tags) {
-
-    }
-
     @Override
     public Key name() {
         return ConfigurationClientboundPackets.UPDATE_TAGS;
@@ -39,28 +29,7 @@ public record ClientboundUpdateTagsPacket(
 
     @Override
     public void write(final PacketBuffer buf) {
-        final List<Payload> payloads = collect();
-
-        buf.writeVarInt(payloads.size());
-
-        for (final Payload payload : payloads) {
-            buf.writeKey(payload.registry());
-            buf.writeVarInt(payload.tags().size());
-
-            for (final Map.Entry<Key, List<Integer>> tag : payload.tags().entrySet()) {
-                buf.writeKey(tag.getKey());
-                buf.writeVarInt(tag.getValue().size());
-
-                for (final int id : tag.getValue()) {
-                    buf.writeVarInt(id);
-                }
-            }
-        }
-    }
-
-    private List<Payload> collect() {
-        final List<Payload> payloads = new ArrayList<>(network.size() + 1);
-        boolean blockSeen = false;
+        buf.writeVarInt(network.size());
 
         for (final Registry reg : network.all()) {
             final Map<Key, List<Key>> tags;
@@ -81,44 +50,25 @@ public record ClientboundUpdateTagsPacket(
                 networkId = entries::indexOf;
             }
 
-            blockSeen |= reg.name().equals(BLOCK_REGISTRY);
-            payloads.add(new Payload(reg.name(), resolve(tags, networkId)));
-        }
+            buf.writeKey(reg.name());
+            buf.writeVarInt(tags.size());
 
-        if (!blockSeen) {
-            payloads.add(infiniburnPayload());
-        }
+            for (final Map.Entry<Key, List<Key>> tag : tags.entrySet()) {
+                final List<Integer> ids = new ArrayList<>(tag.getValue().size());
 
-        return payloads;
-    }
+                for (final Key entry : tag.getValue()) {
+                    final int id = networkId.applyAsInt(entry);
+                    if (id >= 0) {
+                        ids.add(id);
+                    }
+                }
 
-    private static Map<Key, List<Integer>> resolve(
-            final Map<Key, List<Key>> tags,
-            final ToIntFunction<Key> networkId
-    ) {
-        final Map<Key, List<Integer>> resolved = new LinkedHashMap<>(tags.size());
-
-        for (final Map.Entry<Key, List<Key>> tag : tags.entrySet()) {
-            final List<Integer> ids = new ArrayList<>(tag.getValue().size());
-
-            for (final Key entry : tag.getValue()) {
-                final int id = networkId.applyAsInt(entry);
-                if (id >= 0) {
-                    ids.add(id);
+                buf.writeKey(tag.getKey());
+                buf.writeVarInt(ids.size());
+                for (final int id : ids) {
+                    buf.writeVarInt(id);
                 }
             }
-
-            resolved.put(tag.getKey(), ids);
         }
-
-        return resolved;
-    }
-
-    private static Payload infiniburnPayload() {
-        final Map<Key, List<Integer>> tags = new LinkedHashMap<>(3);
-        tags.put(Key.key("infiniburn_overworld"), List.of(NETHERRACK_ID, MAGMA_BLOCK_ID));
-        tags.put(Key.key("infiniburn_nether"), List.of(NETHERRACK_ID, MAGMA_BLOCK_ID));
-        tags.put(Key.key("infiniburn_end"), List.of(NETHERRACK_ID, MAGMA_BLOCK_ID, BEDROCK_ID));
-        return new Payload(BLOCK_REGISTRY, tags);
     }
 }

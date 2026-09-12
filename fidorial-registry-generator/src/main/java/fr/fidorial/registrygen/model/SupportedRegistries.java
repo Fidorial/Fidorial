@@ -51,6 +51,7 @@ public final class SupportedRegistries {
             DIMENSION_TYPE,
             registry("minecraft:enchantment", "Enchantment", RegistrySync.DYNAMIC),
             registry("minecraft:frog_variant", "FrogVariant", RegistrySync.DYNAMIC),
+            registry("minecraft:fluid", "Fluid", RegistrySync.FROZEN),
             registry("minecraft:game_event", "GameEvent"),
             registry("minecraft:game_rule", "GameRule"),
             registry("minecraft:instrument", "Instrument", RegistrySync.DYNAMIC),

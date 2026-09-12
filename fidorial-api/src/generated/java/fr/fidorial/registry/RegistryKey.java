@@ -19,6 +19,7 @@ import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Dialog;
 import fr.fidorial.registry.data.DimensionType;
 import fr.fidorial.registry.data.Enchantment;
+import fr.fidorial.registry.data.Fluid;
 import fr.fidorial.registry.data.FrogVariant;
 import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.data.GameRule;
@@ -146,6 +147,11 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:frog_variant}.
      */
     public static final RegistryKey<FrogVariant> FROG_VARIANT = of("frog_variant");
+
+    /**
+     * Registry key for {@code minecraft:fluid}.
+     */
+    public static final RegistryKey<Fluid> FLUID = of("fluid");
 
     /**
      * Registry key for {@code minecraft:game_event}.
