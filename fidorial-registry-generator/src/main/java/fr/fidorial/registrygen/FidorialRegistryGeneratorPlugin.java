@@ -7,6 +7,9 @@ import fr.fidorial.registrygen.task.GenerateFrozenRegistriesTask;
 import fr.fidorial.registrygen.task.GenerateItemPropertiesTask;
 import fr.fidorial.registrygen.task.GeneratePacketsTask;
 import fr.fidorial.registrygen.task.GenerateRegistriesTask;
+import fr.fidorial.registrygen.model.RegistrySync;
+import fr.fidorial.registrygen.model.RegistryTypeDefinition;
+import fr.fidorial.registrygen.model.SupportedRegistries;
 import fr.fidorial.registrygen.task.GenerateReportsTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -68,7 +71,11 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         extension.getRegistryDataPackage().convention(extension.getGeneratedPackage().map(p -> p + ".data"));
         extension.getRegistryKeysPackage().convention(extension.getGeneratedPackage().map(p -> p + ".keys"));
         extension.getRegistries().convention(Map.of());
-        extension.getFrozenRegistries().convention(List.of());
+
+        extension.getFrozenRegistries().convention(SupportedRegistries.ALL.stream()
+                .filter(type -> type.sync() == RegistrySync.FROZEN)
+                .map(RegistryTypeDefinition::identifier)
+                .toList());
         extension.getDataGeneratorArguments().convention(List.of("--reports"));
         extension.getPrismarineDataRepository().convention("PrismarineJS/minecraft-data");
         extension.getPrismarineDataRef().convention("master");
@@ -236,6 +243,9 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
 
             task.getRegistriesReport().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
                     .map(dir -> dir.file("generated/reports/registries.json")));
+
+            task.getVanillaDataDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/data")));
 
             task.getFrozenRegistries().set(extension.getFrozenRegistries());
             task.getRegistryDataPackage().set(extension.getRegistryDataPackage());

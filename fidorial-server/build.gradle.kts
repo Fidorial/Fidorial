@@ -248,15 +248,6 @@ fidorialRegistryGenerator {
         ),
     )
 
-    frozenRegistries.set(
-        listOf(
-            "minecraft:item",
-            "minecraft:data_component_type",
-            "minecraft:menu",
-            "minecraft:attribute",
-        ),
-    )
-
     generateRegistryKey = false
     generatePacketCatalogs = true
     generateBlockStates = true

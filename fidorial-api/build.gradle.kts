@@ -95,7 +95,7 @@ val verifyRegistryDataset =
                 .get()
                 .output.resourcesDir!!
                 .resolve("fidorial-data")
-        val expected = listOf("registries_frozen.json", "registries_dynamic.json")
+        val expected = listOf("registries_dynamic.json")
 
         doLast {
             val missing = expected.filter { datasetDirectory.resolve(it).length() <= 2 }
@@ -129,4 +129,7 @@ fidorialRegistryGenerator {
             "src/generated/resources/fidorial-data",
         ),
     )
+
+    // FrozenRegistries is generated once, in fidorial-server, where the runtime reads it.
+    frozenRegistries.set(emptyList())
 }

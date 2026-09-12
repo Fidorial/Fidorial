@@ -340,15 +340,25 @@ public final class RegistryGenerator {
     }
 
     /**
-     * Generates {@code FrozenRegistries} from Mojang's registry report.
+     * Generates {@code FrozenRegistries} from Mojang's registry report and tag files.
      *
-     * @param registriesJson      path to Mojang's {@code registries.json}
-     * @param outputDirectory     generated Java source root
-     * @param registryDataPackage package the class is written into
-     * @param frozenRegistries    namespaced identifiers of the registries to emit
+     * <p>Tags are resolved here rather than left to the runtime dataset: a frozen
+     * registry is never sent in {@code registry_data}, so {@code FrozenRegistries} is
+     * the only place the server can learn about it.</p>
+     *
+     * @param registriesJson       path to Mojang's {@code registries.json}
+     * @param vanillaDataDirectory root of the vanilla data dump produced by the
+     *                             {@code --server} data generator flag (the directory
+     *                             directly containing {@code minecraft/}). May be
+     *                             {@code null} or non-existent, in which case every
+     *                             frozen registry is emitted with no tags.
+     * @param outputDirectory      generated Java source root
+     * @param registryDataPackage  package the class is written into
+     * @param frozenRegistries     namespaced identifiers of the registries to emit
      * @throws IOException if a registry is missing, or if generation fails
      */
     public void generateFrozenRegistries(final Path registriesJson,
+                                         final Path vanillaDataDirectory,
                                          final Path outputDirectory,
                                          final String registryDataPackage,
                                          final List<String> frozenRegistries) throws IOException {
@@ -362,16 +372,43 @@ public final class RegistryGenerator {
 
         final RegistriesHolder registries = parser.parse(registriesJson);
         final List<RegistryDefinition> resolved = new ArrayList<>();
+        final Map<String, List<RegistryTagDefinition>> tags = new LinkedHashMap<>();
 
         for (final String identifier : frozenRegistries) {
-            resolved.add(registries.registry(identifier).orElseThrow(() -> new IOException(
+
+            final RegistryDefinition registry = registries.registry(identifier).orElseThrow(() -> new IOException(
                     "Registry '" + identifier + "' is absent from " + registriesJson
-                            + "; it cannot be emitted as a frozen registry.")));
+                            + "; it cannot be emitted as a frozen registry."));
+
+            resolved.add(registry);
+
+            final Set<String> knownEntryIdentifiers = registry.entries().stream()
+                    .map(RegistryEntryDefinition::identifier)
+                    .map(RegistryGenerator::namespaced)
+                    .collect(Collectors.toUnmodifiableSet());
+
+            tags.put(identifier, tagReportParser.parse(vanillaDataDirectory, registryPath(identifier), knownEntryIdentifiers));
         }
 
         Files.createDirectories(outputDirectory);
 
-        frozenRegistriesGenerator.generate(resolved, registryDataPackage, outputDirectory);
+        frozenRegistriesGenerator.generate(resolved, tags, registryDataPackage, outputDirectory);
+    }
+
+    /**
+     * Strips the namespace off a registry identifier, e.g. {@code minecraft:worldgen/biome}
+     * &rarr; {@code worldgen/biome}, which is how the tag directories are laid out.
+     */
+    private static String registryPath(final String identifier) {
+        final int separator = identifier.indexOf(':');
+        return separator < 0 ? identifier : identifier.substring(separator + 1);
+    }
+
+    /**
+     * Expands a bare identifier into its explicit {@code minecraft} form.
+     */
+    private static String namespaced(final String identifier) {
+        return identifier.indexOf(':') < 0 ? "minecraft:" + identifier : identifier;
     }
 
     /**

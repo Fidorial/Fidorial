@@ -16,28 +16,21 @@ import java.util.Map;
 
 public class RegistryDataLoader {
 
-    private static final String FROZEN_RESOURCE = "/fidorial-data/registries_frozen.json";
     private static final String DYNAMIC_RESOURCE = "/fidorial-data/registries_dynamic.json";
 
     private final Map<Key, Registry> dynamic = new LinkedHashMap<>();
-    private final Map<Key, Registry> frozen = new LinkedHashMap<>();
 
     private RegistryDataLoader() {
     }
 
     static RegistryDataLoader load() {
         final RegistryDataLoader loader = new RegistryDataLoader();
-        loader.read(FROZEN_RESOURCE, loader.frozen);
         loader.read(DYNAMIC_RESOURCE, loader.dynamic);
         return loader;
     }
 
     Map<Key, Registry> dynamic() {
         return dynamic;
-    }
-
-    Map<Key, Registry> frozen() {
-        return frozen;
     }
 
     private void read(final String resource, final Map<Key, Registry> target) {

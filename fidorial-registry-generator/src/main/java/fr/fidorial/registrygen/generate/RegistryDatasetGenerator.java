@@ -19,20 +19,17 @@ import java.util.Objects;
 
 /**
  * Writes the runtime registry dataset consumed by the server's
- * {@code RegistryDataLoader}: for every registry that reaches the client, its
- * protocol-ordered entries and its tags.
+ * {@code RegistryDataLoader}: for every registry sent during the configuration
+ * phase, its protocol-ordered entries and its tags.
  *
  * <p>Registries declared {@link RegistrySync#NONE} are skipped: they exist only to
- * give the server typed keys and are never sent.</p>
+ * give the server typed keys and are never sent. Registries declared
+ * {@link RegistrySync#FROZEN} are skipped too: they are emitted as Java source by
+ * {@code FrozenRegistriesGenerator}, which is the sole source of truth for them.</p>
  *
  * @since 0.1.0
  */
 public final class RegistryDatasetGenerator {
-
-    /**
-     * File holding the client-side registries.
-     */
-    public static final String FROZEN_FILE_NAME = "registries_frozen.json";
 
     /**
      * File holding the configuration-phase registries.
@@ -42,13 +39,13 @@ public final class RegistryDatasetGenerator {
     private static final String MINECRAFT_NAMESPACE = "minecraft";
 
     /**
-     * Writes both dataset files.
+     * Writes the dataset file.
      *
      * @param registries parsed registry definitions, keyed by namespaced identifier
      * @param tags       resolved tags, keyed by namespaced registry identifier
      * @param types      the generated registry types, carrying their {@link RegistrySync}
-     * @param directory  directory to write both files to, created if missing
-     * @throws IOException if a file cannot be written
+     * @param directory  directory to write the file to, created if missing
+     * @throws IOException if the file cannot be written
      */
     public void generate(final Map<String, RegistryDefinition> registries,
                          final Map<String, List<RegistryTagDefinition>> tags,
@@ -62,7 +59,6 @@ public final class RegistryDatasetGenerator {
 
         Files.createDirectories(directory);
 
-        write(directory.resolve(FROZEN_FILE_NAME), RegistrySync.FROZEN, registries, tags, types);
         write(directory.resolve(DYNAMIC_FILE_NAME), RegistrySync.DYNAMIC, registries, tags, types);
     }
 

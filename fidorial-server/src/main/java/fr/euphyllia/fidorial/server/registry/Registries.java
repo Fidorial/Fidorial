@@ -88,6 +88,7 @@ import fr.fidorial.registry.keys.ZombieNautilusVariantKeys;
 import net.kyori.adventure.key.Key;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -170,13 +171,16 @@ public final class Registries {
         registries.put(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, simple(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusVariant.class, ZombieNautilusVariantKeys.values()));
         registries.put(RegistryKey.ENTITY_TYPE, new EntityTypeRegistry());
 
-        return new Registries(dynamic, loadFrozen(data), registries, biomes, dialogs, dimensionTypes);
+        return new Registries(dynamic, loadFrozen(), registries, biomes, dialogs, dimensionTypes);
     }
 
-    private static RegistryHolder loadFrozen(final RegistryDataLoader data) {
-        final Map<Key, fr.euphyllia.fidorial.server.registry.Registry> frozen = new LinkedHashMap<>(data.frozen());
+    private static RegistryHolder loadFrozen() {
+        final Map<Key, fr.euphyllia.fidorial.server.registry.Registry> frozen = new LinkedHashMap<>();
+        final Map<Key, Map<Key, List<Key>>> tags = FrozenRegistries.tags();
+
         FrozenRegistries.entries().forEach((name, entries) ->
-                frozen.putIfAbsent(name, fr.euphyllia.fidorial.server.registry.Registry.of(name, entries)));
+                frozen.put(name, new fr.euphyllia.fidorial.server.registry.Registry(
+                        name, entries, tags.getOrDefault(name, Map.of()))));
 
         return RegistryHolder.of(frozen);
     }

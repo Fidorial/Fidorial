@@ -32,7 +32,7 @@ public final class SupportedRegistries {
     public static final RegistryTypeDefinition ITEM = registry("minecraft:item", "Item", RegistrySync.FROZEN);
 
     public static final List<RegistryTypeDefinition> ALL = List.of(
-            registry("minecraft:attribute", "Attribute"),
+            registry("minecraft:attribute", "Attribute", RegistrySync.FROZEN),
             registry("minecraft:banner_pattern", "BannerPattern", RegistrySync.DYNAMIC),
             registry("minecraft:worldgen/biome", "Biome", RegistrySync.DYNAMIC),
             registry("minecraft:block_transformer", "BlockTransformer", RegistrySync.DYNAMIC),
@@ -45,7 +45,7 @@ public final class SupportedRegistries {
             registry("minecraft:cow_sound_variant", "CowSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cow_variant", "CowVariant", RegistrySync.DYNAMIC),
             registry("minecraft:damage_type", "DamageType", RegistrySync.DYNAMIC),
-            registry("minecraft:data_component_type", "DataComponentType"),
+            registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN),
             registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC),
             registry("minecraft:decorated_pot_pattern", "DecoratedPotPattern", RegistrySync.DYNAMIC),
             DIMENSION_TYPE,
@@ -58,7 +58,7 @@ public final class SupportedRegistries {
             ITEM,
             registry("minecraft:jukebox_song", "JukeboxSong", RegistrySync.DYNAMIC),
             registry("minecraft:map_decoration_type", "MapDecorationType"),
-            registry("minecraft:menu", "MenuType"),
+            registry("minecraft:menu", "MenuType", RegistrySync.FROZEN),
             registry("minecraft:mob_effect", "MobEffect"),
             registry("minecraft:painting_variant", "PaintingVariant", RegistrySync.DYNAMIC),
             registry("minecraft:pig_sound_variant", "PigSoundVariant", RegistrySync.DYNAMIC),
