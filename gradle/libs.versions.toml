@@ -18,7 +18,7 @@ shadow = "9.5.1"
 dfu = "10.0.21"
 adventure-nbt-dfu = "0.1.2"
 diffpatch = "2.1.0.43"
-spark = "1.10.181-SNAPSHOT"
+spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
 leafpile = "1.2.0"
 
