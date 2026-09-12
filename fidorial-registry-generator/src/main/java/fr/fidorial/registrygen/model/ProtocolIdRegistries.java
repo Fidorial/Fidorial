@@ -39,7 +39,19 @@ public final class ProtocolIdRegistries {
             "Network IDs for entries in the {@code minecraft:block_entity_type} registry.\n",
             "Generated from Mojang's registry report; do not edit.");
 
-    public static final List<ProtocolIdTarget> ALL = List.of(ARGUMENT_TYPE, BLOCK_ENTITY_TYPE);
+    /**
+     * {@code minecraft:entity_type} &rarr; {@code EntityTypeIds}.
+     */
+    public static final ProtocolIdTarget ENTITY_TYPE = new ProtocolIdTarget(
+            "minecraft:entity_type",
+            SERVER_DATA_PACKAGE,
+            "EntityTypeIds",
+            "_ENTITY_ID",
+            ProtocolIdValueKind.PROTOCOL_ID,
+            "Network IDs for entries in the {@code minecraft:entity_type} registry.\n",
+            "Generated from Mojang's registry report; do not edit.");
+
+    public static final List<ProtocolIdTarget> ALL = List.of(ARGUMENT_TYPE, BLOCK_ENTITY_TYPE, ENTITY_TYPE);
 
     private ProtocolIdRegistries() {
         throw new UnsupportedOperationException();

@@ -245,6 +245,7 @@ fidorialRegistryGenerator {
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",
             "minecraft:block_entity_type" to "BlockEntityType",
+            "minecraft:entity_type" to "EntityType",
         ),
     )
 

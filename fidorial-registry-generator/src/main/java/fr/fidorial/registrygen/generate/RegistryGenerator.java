@@ -3,6 +3,7 @@ package fr.fidorial.registrygen.generate;
 import fr.fidorial.registrygen.model.BlockReportDefinition;
 import fr.fidorial.registrygen.model.PacketCatalogs;
 import fr.fidorial.registrygen.model.PrismarineBlockLightPropertiesDefinition;
+import fr.fidorial.registrygen.model.PrismarineEntityDefinition;
 import fr.fidorial.registrygen.model.PrismarineItemDefinition;
 import fr.fidorial.registrygen.model.ProtocolIdRegistries;
 import fr.fidorial.registrygen.model.ProtocolIdTarget;
@@ -48,6 +49,9 @@ public final class RegistryGenerator {
     private final DimensionTypesGenerator dimensionTypesGenerator;
     private final PrismarineItemReportParser prismarineItemReportParser;
     private final ItemPropertiesGenerator itemPropertiesGenerator;
+    private final PrismarineEntityReportParser prismarineEntityReportParser;
+    private final EntityTypesGenerator entityTypesGenerator;
+    private final EntityPropertiesGenerator entityPropertiesGenerator;
     private final FrozenRegistriesGenerator frozenRegistriesGenerator;
 
     /**
@@ -116,6 +120,9 @@ public final class RegistryGenerator {
         this.dimensionTypesGenerator = Objects.requireNonNull(dimensionTypesGenerator, "dimensionTypesGenerator");
         this.prismarineItemReportParser = new PrismarineItemReportParser();
         this.itemPropertiesGenerator = new ItemPropertiesGenerator();
+        this.prismarineEntityReportParser = new PrismarineEntityReportParser();
+        this.entityTypesGenerator = new EntityTypesGenerator();
+        this.entityPropertiesGenerator = new EntityPropertiesGenerator();
         this.frozenRegistriesGenerator = new FrozenRegistriesGenerator();
     }
 
@@ -336,6 +343,91 @@ public final class RegistryGenerator {
                 prismarineItems,
                 registryDataPackage,
                 itemKeysPackage,
+                outputDirectory);
+    }
+
+    /**
+     * Generates the {@code EntityTypes} class from Mojang's entity registry and
+     * Prismarine's entities report.
+     *
+     * @param registriesJson         path to Mojang's {@code registries.json}
+     * @param prismarineEntitiesJson path to Prismarine's {@code entities.json}
+     * @param outputDirectory        generated Java source root
+     * @param entityPackage          package the class is written into
+     *
+     * @throws IOException if parsing or source generation fails, or if the entity
+     *                     registry is absent from the report
+     */
+    public void generateEntityTypes(final Path registriesJson,
+                                    final Path prismarineEntitiesJson,
+                                    final Path outputDirectory,
+                                    final String entityPackage) throws IOException {
+
+        Objects.requireNonNull(registriesJson, "registriesJson");
+        Objects.requireNonNull(prismarineEntitiesJson, "prismarineEntitiesJson");
+        Objects.requireNonNull(outputDirectory, "outputDirectory");
+        Objects.requireNonNull(entityPackage, "entityPackage");
+
+        validateInput(registriesJson);
+
+        final RegistriesHolder registries = parser.parse(registriesJson);
+        final Optional<RegistryDefinition> entities =
+                registries.registry(SupportedRegistries.ENTITY_TYPE.identifier());
+
+        if (entities.isEmpty()) {
+            throw new IOException("Registry '" + SupportedRegistries.ENTITY_TYPE.identifier()
+                    + "' is absent from " + registriesJson + "; EntityTypes cannot be generated.");
+        }
+
+        final Map<String, PrismarineEntityDefinition> prismarineEntities =
+                prismarineEntityReportParser.parse(prismarineEntitiesJson);
+
+        Files.createDirectories(outputDirectory);
+
+        entityTypesGenerator.generate(entities.get().entries(), prismarineEntities, entityPackage, outputDirectory);
+    }
+
+    /**
+     * Generates {@code EntityProperties} from Mojang's entity registry and Prismarine's
+     * entities report.
+     *
+     * @param registriesJson         path to Mojang's {@code registries.json}
+     * @param prismarineEntitiesJson path to Prismarine's {@code entities.json}
+     * @param outputDirectory        generated Java source root
+     * @param registryDataPackage    package the generated class is written into
+     *
+     * @throws IOException if parsing or source generation fails
+     */
+    public void generateEntityProperties(final Path registriesJson,
+                                         final Path prismarineEntitiesJson,
+                                         final Path outputDirectory,
+                                         final String registryDataPackage) throws IOException {
+
+        Objects.requireNonNull(registriesJson, "registriesJson");
+        Objects.requireNonNull(prismarineEntitiesJson, "prismarineEntitiesJson");
+        Objects.requireNonNull(outputDirectory, "outputDirectory");
+        Objects.requireNonNull(registryDataPackage, "registryDataPackage");
+
+        validateInput(registriesJson);
+
+        final RegistriesHolder registries = parser.parse(registriesJson);
+        final Optional<RegistryDefinition> entities =
+                registries.registry(SupportedRegistries.ENTITY_TYPE.identifier());
+
+        if (entities.isEmpty()) {
+            System.out.println("Registry missing from report: " + SupportedRegistries.ENTITY_TYPE.identifier());
+            return;
+        }
+
+        final Map<String, PrismarineEntityDefinition> prismarineEntities =
+                prismarineEntityReportParser.parse(prismarineEntitiesJson);
+
+        Files.createDirectories(outputDirectory);
+
+        entityPropertiesGenerator.generate(
+                entities.get().entries(),
+                prismarineEntities,
+                registryDataPackage,
                 outputDirectory);
     }
 
