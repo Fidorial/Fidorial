@@ -62,6 +62,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractions;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
@@ -175,6 +176,7 @@ public final class FidorialServer implements Server {
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
             new NbtPlayerEnderChestStorage(config.worldPath().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
+    private final FidorialBlockInteractions blockInteractions = FidorialBlockInteractions.createDefault();
     private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer, config.levelSeed());
     private final StructureService structureService = new StructureService(
             config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
@@ -712,6 +714,11 @@ public final class FidorialServer implements Server {
 
     public ChestViewerTracker chestViewers() {
         return chestViewers;
+    }
+
+    @Override
+    public FidorialBlockInteractions blockInteractions() {
+        return blockInteractions;
     }
 
     public PlayerEnderChestStorage playerEnderChestStorage() {

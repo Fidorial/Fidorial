@@ -18,6 +18,7 @@ import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
 import fr.fidorial.world.biome.BiomeRegistry;
+import fr.fidorial.world.block.interaction.BlockInteractionRegistry;
 import fr.fidorial.world.dimension.DimensionTypeRegistry;
 import fr.fidorial.world.generation.WorldGenerator;
 import fr.fidorial.world.structure.StructureManager;
@@ -202,6 +203,18 @@ public interface Server extends ForwardingAudience {
      */
     @Contract(pure = true)
     ItemRegistry items();
+
+    /**
+     * Gets the server-wide block interaction registry.
+     *
+     * <p>Where plugins {@linkplain BlockInteractionRegistry#register attach} their own
+     * behaviour to right-clicks on a block, alongside the built-in ones.</p>
+     *
+     * @return the block interaction registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    BlockInteractionRegistry blockInteractions();
 
     Collection<? extends World> worlds();
 

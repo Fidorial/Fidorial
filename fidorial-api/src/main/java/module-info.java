@@ -59,6 +59,7 @@ module fr.fidorial {
     exports fr.fidorial.translation;
     exports fr.fidorial.world.block.data.type;
     exports fr.fidorial.world.block.data;
+    exports fr.fidorial.world.block.interaction;
     exports fr.fidorial.world.block;
     exports fr.fidorial.world.fluid;
     exports fr.fidorial.world.generation;
