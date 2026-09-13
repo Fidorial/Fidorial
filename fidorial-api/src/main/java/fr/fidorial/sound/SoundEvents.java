@@ -66,6 +66,14 @@ public class SoundEvents {
     public static final Sound.Type PLAYER_HURT = of("entity.player.hurt");
     public static final Sound.Type PLAYER_DEATH = of("entity.player.death");
 
+    // --- Blocks ---
+    public static final Sound.Type ENDER_CHEST_OPEN = of("block.ender_chest.open");
+    public static final Sound.Type ENDER_CHEST_CLOSE = of("block.ender_chest.close");
+
+    // --- Items ---
+    public static final Sound.Type HOE_TILL = of("item.hoe.till");
+    public static final Sound.Type CROP_PLANT = of("item.crop.plant");
+
     private SoundEvents() {
     }
 
