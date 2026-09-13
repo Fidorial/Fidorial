@@ -316,11 +316,23 @@ public class LightUpdateDispatcher {
     }
 
     private void scheduleBlocks(final Key world) {
-        if (scheduledBlocks.add(world)) lightExecutor.queueTask(() -> drainBlocks(world), Priority.HIGH);
+        if (scheduledBlocks.add(world)) {
+            try {
+                lightExecutor.queueTask(() -> drainBlocks(world), Priority.HIGH);
+            } catch (final IllegalStateException e) {
+                drainBlocks(world);
+            }
+        }
     }
 
     private void scheduleChunks(final Key world) {
-        if (scheduledChunks.add(world)) lightExecutor.queueTask(() -> drainChunks(world), Priority.HIGH);
+        if (scheduledChunks.add(world)) {
+            try {
+                lightExecutor.queueTask(() -> drainChunks(world), Priority.HIGH);
+            } catch (final IllegalStateException e) {
+                drainChunks(world);
+            }
+        }
     }
 
     private WorldLightState stateFor(final Key world) {

@@ -26,9 +26,9 @@ public final class ScenarioTestInfo {
     private @Nullable ScenarioTestSequence sequence;
     private boolean sequenceBuilderCreated;
 
-    public ScenarioTestInfo(final ScenarioTestInstance instance, final World world) {
+    public ScenarioTestInfo(final ScenarioTestInstance instance, final World world, final ScenarioTestPlayerFactory playerFactory) {
         this.instance = instance;
-        this.helper = new ScenarioTestHelper(world, this);
+        this.helper = new ScenarioTestHelper(world, playerFactory, this);
     }
 
     public int tick() {
@@ -54,6 +54,7 @@ public final class ScenarioTestInfo {
     void succeed() {
         if (state == State.RUNNING) {
             state = State.PASSED;
+            helper.despawnPlayers();
         }
     }
 
@@ -82,7 +83,12 @@ public final class ScenarioTestInfo {
                 succeed();
             }
             if (state == State.RUNNING && currentTick >= instance.timeoutTicks()) {
-                fail(new ScenarioAssertionException("Timed out after " + instance.timeoutTicks() + " ticks", currentTick));
+                final ScenarioAssertionException timeout = new ScenarioAssertionException("Timed out after " + instance.timeoutTicks() + " ticks", currentTick);
+                final Throwable lastFailure = sequence != null ? sequence.lastFailure() : null;
+                if (lastFailure != null) {
+                    timeout.initCause(lastFailure);
+                }
+                fail(timeout);
             }
         } catch (final ReflectiveOperationException e) {
             fail(e.getCause() != null ? e.getCause() : e);
@@ -94,5 +100,6 @@ public final class ScenarioTestInfo {
     private void fail(final Throwable t) {
         this.state = State.FAILED;
         this.error = t;
+        helper.despawnPlayers();
     }
 }
