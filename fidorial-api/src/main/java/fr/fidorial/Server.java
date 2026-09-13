@@ -18,6 +18,7 @@ import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
 import fr.fidorial.world.biome.BiomeRegistry;
+import fr.fidorial.world.block.crop.CropRegistry;
 import fr.fidorial.world.block.interaction.BlockInteractionRegistry;
 import fr.fidorial.world.dimension.DimensionTypeRegistry;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -215,6 +216,18 @@ public interface Server extends ForwardingAudience {
      */
     @Contract(pure = true)
     BlockInteractionRegistry blockInteractions();
+
+    /**
+     * Gets the server-wide crop registry.
+     *
+     * <p>Where plugins {@linkplain CropRegistry#register declare} crops of their own,
+     * alongside the built-in ones.</p>
+     *
+     * @return the crop registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    CropRegistry crops();
 
     Collection<? extends World> worlds();
 

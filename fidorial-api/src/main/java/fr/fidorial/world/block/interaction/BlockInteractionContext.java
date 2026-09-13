@@ -101,13 +101,43 @@ public interface BlockInteractionContext {
     }
 
     /**
+     * Replaces any block in this world and tells nearby clients about it.
+     *
+     * @param position the position to write to
+     * @param data     the state to write
+     * @return {@code true} when the write went through
+     * @since 0.1.0
+     */
+    boolean setBlock(BlockPos position, BlockData data);
+
+    /**
      * Replaces the clicked block and tells nearby clients about it.
      *
      * @param data the state to write
      * @return {@code true} when the write went through
      * @since 0.1.0
      */
-    boolean setBlock(BlockData data);
+    default boolean setBlock(final BlockData data) {
+        return setBlock(pos(), data);
+    }
+
+    /**
+     * Takes items out of the stack the player interacted with, and pushes the new
+     * inventory to their client.
+     *
+     * @param amount how many to take; {@code 0} or less is a no-op
+     * @since 0.1.0
+     */
+    void consumeHeldItem(int amount);
+
+    /**
+     * Takes one item out of the stack the player interacted with.
+     *
+     * @since 0.1.0
+     */
+    default void consumeHeldItem() {
+        consumeHeldItem(1);
+    }
 
     /**
      * Plays a sound at the centre of the clicked block, for everyone nearby.

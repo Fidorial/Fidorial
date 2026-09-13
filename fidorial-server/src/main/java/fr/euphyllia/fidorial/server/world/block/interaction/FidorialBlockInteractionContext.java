@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.entity.GameMode;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
@@ -23,6 +24,8 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialBlockInteractionContext.class);
 
+    private static final int OFFHAND_SLOT = 40;
+
     private final FidorialServer server;
     private final ServerWorld world;
     private final ServerPlayer player;
@@ -37,9 +40,9 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
     private final boolean insideBlock;
 
     public FidorialBlockInteractionContext(final FidorialServer server, final ServerWorld world, final ServerPlayer player, final BlockPos pos,
-                                             final BlockState state, final BlockFace face, final InteractionHand hand,
-                                             final ItemStack heldItem, final float cursorX, final float cursorY,
-                                             final float cursorZ, final boolean insideBlock) {
+                                           final BlockState state, final BlockFace face, final InteractionHand hand,
+                                           final ItemStack heldItem, final float cursorX, final float cursorY,
+                                           final float cursorZ, final boolean insideBlock) {
         this.server = server;
         this.world = world;
         this.player = player;
@@ -64,6 +67,14 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
 
     public boolean setBlock(final BlockState newState) {
         return server.blockEdits().set(world, pos, newState);
+    }
+
+    public boolean setBlockAt(final BlockPos position, final BlockState newState) {
+        return server.blockEdits().set(world, position, newState);
+    }
+
+    public boolean setBlockAt(final int dx, final int dy, final int dz, final BlockState newState) {
+        return setBlockAt(pos.offset(dx, dy, dz), newState);
     }
 
     public BlockState stateAt(final int dx, final int dy, final int dz) {
@@ -131,8 +142,22 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
     }
 
     @Override
-    public boolean setBlock(final BlockData data) {
-        return setBlock(server.blockStateRegistry().toBlockState(data));
+    public boolean setBlock(final BlockPos position, final BlockData data) {
+        return setBlockAt(position, server.blockStateRegistry().toBlockState(data));
+    }
+
+    @Override
+    public void consumeHeldItem(final int amount) {
+        if (amount <= 0 || player.gameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        final int slot = hand == InteractionHand.OFF_HAND ? OFFHAND_SLOT : player.selectedSlot();
+        final ItemStack current = player.inventory().get(slot);
+        if (current.isEmpty()) {
+            return;
+        }
+        player.inventory().set(slot, current.plus(-amount));
+        player.updateInventory();
     }
 
     @Override

@@ -62,6 +62,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.crop.CropGrowth;
+import fr.euphyllia.fidorial.server.world.block.crop.FidorialCropRegistry;
 import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractions;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
@@ -177,6 +179,7 @@ public final class FidorialServer implements Server {
             new NbtPlayerEnderChestStorage(config.worldPath().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
     private final FidorialBlockInteractions blockInteractions = FidorialBlockInteractions.createDefault();
+    private final FidorialCropRegistry cropRegistry = FidorialCropRegistry.createDefault(blockInteractions);
     private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer, config.levelSeed());
     private final StructureService structureService = new StructureService(
             config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
@@ -286,6 +289,7 @@ public final class FidorialServer implements Server {
             loadPlugins();
             openWorlds();
             regionizer.registerTickHandler(new EntityTickHandler(worldManager, this));
+            regionizer.registerTickHandler(new CropGrowth(worldManager, cropRegistry, blockEdits));
             syncServerStatusToRegistries(true);
             if (!headless) {
                 network.bind();
@@ -719,6 +723,11 @@ public final class FidorialServer implements Server {
     @Override
     public FidorialBlockInteractions blockInteractions() {
         return blockInteractions;
+    }
+
+    @Override
+    public FidorialCropRegistry crops() {
+        return cropRegistry;
     }
 
     public PlayerEnderChestStorage playerEnderChestStorage() {

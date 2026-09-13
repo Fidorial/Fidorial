@@ -72,6 +72,7 @@ public class SoundEvents {
 
     // --- Items ---
     public static final Sound.Type HOE_TILL = of("item.hoe.till");
+    public static final Sound.Type CROP_PLANT = of("item.crop.plant");
 
     private SoundEvents() {
     }
