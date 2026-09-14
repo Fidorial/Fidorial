@@ -231,6 +231,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     public void handleClientInformation(final ServerboundClientInformationPacket packet) {
         connection.setLocale(Locale.forLanguageTag(packet.language().replace('_', '-')));
         connection.setDisplayedSkinParts(packet.displayedSkinParts());
+        connection.setViewDistance(packet.viewDistance());
         synchronized (codeOfConductLock) {
             clientInformationReceived = true;
         }
