@@ -10,6 +10,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
+@SuppressWarnings("unused")
 public final class BlockStateTests {
 
     private static final Key STONE = Key.key("stone");

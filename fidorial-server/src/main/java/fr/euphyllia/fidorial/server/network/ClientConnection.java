@@ -26,6 +26,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
@@ -37,6 +38,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.embedded.EmbeddedChannel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.resource.ResourcePackCallback;
@@ -138,7 +140,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             case STATUS -> new StatusPacketHandler(this);
             case LOGIN -> new LoginPacketHandler(this);
             case CONFIGURATION -> new ConfigurationPacketHandler(this);
-            case PLAY -> new PlayPacketHandler(this);
+            case PLAY, MOCK_PLAY -> new PlayPacketHandler(this);
         };
     }
 
@@ -173,7 +175,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     private @Nullable ChannelFuture write(final ClientboundPacket packet) {
-        if (!isActive()) {
+        if (!isActive() || state == ConnectionState.MOCK_PLAY) {
             return null;
         }
 
@@ -428,6 +430,41 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         this.player = player;
     }
 
+    private boolean isInPlayState() {
+        return state == ConnectionState.PLAY || state == ConnectionState.MOCK_PLAY;
+    }
+
+    /**
+     * Creates a mock connection; used by scenario tests
+     * @param server the server
+     * @return the mock connection
+     */
+    public static ClientConnection mock(final FidorialServer server) {
+        final ClientConnection connection = new ClientConnection(server);
+        final ConnectionState state = ConnectionState.MOCK_PLAY;
+        new EmbeddedChannel(connection);
+        connection.state = state;
+        connection.listener = connection.createListener(state);
+        return connection;
+    }
+
+    /**
+     * Attaches a built player to the mock connection; used by scenario tests
+     * @param player the player to attach
+     */
+    public void bindMockPlayer(final ServerPlayer player) {
+        if (listener instanceof final PlayPacketHandler play) {
+            setUsername(player.profile().name());
+            play.bindPlayer(player);
+            play.openChunkView((ServerWorld) player.world(), player.chunk());
+            server.events().post(new PlayerJoinEvent(player));
+        }
+    }
+
+    public void mockDisconnect() {
+        listener.onDisconnect();
+    }
+
     public boolean teleport(final ServerWorld target, final Location location) {
         if (listener instanceof final PlayPacketHandler play) {
             return play.teleport(target, location);
@@ -447,10 +484,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     @Override
     public void sendResourcePacks(final ResourcePackRequest request) {
         LOGGER.info("ClientConnection.sendResourcePacks called for {} (packs={})", username, request.packs().size());
-        if (state != ConnectionState.CONFIGURATION && state != ConnectionState.PLAY) {
+        if (state != ConnectionState.CONFIGURATION && !isInPlayState()) {
             return;
         }
-        final Key pushName = state == ConnectionState.PLAY
+        final Key pushName = isInPlayState()
                 ? PlayClientboundPackets.RESOURCE_PACK_PUSH
                 : ConfigurationClientboundPackets.RESOURCE_PACK_PUSH;
 
@@ -482,7 +519,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     private void popPack(final @Nullable UUID id) {
-        final Key popName = state == ConnectionState.PLAY
+        final Key popName = isInPlayState()
                 ? PlayClientboundPackets.RESOURCE_PACK_POP
                 : ConfigurationClientboundPackets.RESOURCE_PACK_POP;
         send(new ClientboundResourcePackPopPacket(popName, id));
@@ -501,7 +538,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     @Override
     public void sendMessage(final Component message) {
-        if (state == ConnectionState.PLAY && this.player != null) {
+        if (isInPlayState() && this.player != null) {
             this.player.sendMessage(message);
             return;
         }

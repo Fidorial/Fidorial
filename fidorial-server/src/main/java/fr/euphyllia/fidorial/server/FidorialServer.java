@@ -605,7 +605,7 @@ public final class FidorialServer implements Server {
 
     @Override
     public World createWorld(final WorldBuilder spec) {
-        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null));
+        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), false);
     }
 
     @Override
@@ -848,6 +848,10 @@ public final class FidorialServer implements Server {
     @Override
     public TranslationStore translationStore() {
         return TranslationStore.current();
+    }
+
+    public World createWorldSilent(final WorldBuilder spec) {
+        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), true);
     }
 
     @FunctionalInterface

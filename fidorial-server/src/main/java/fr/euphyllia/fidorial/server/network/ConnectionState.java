@@ -5,5 +5,6 @@ public enum ConnectionState {
     STATUS,
     LOGIN,
     CONFIGURATION,
-    PLAY
+    PLAY,
+    MOCK_PLAY
 }

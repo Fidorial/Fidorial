@@ -1,21 +1,48 @@
 package fr.fidorial.testing;
 
+import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.Player;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ScenarioTestHelper {
 
     private final World world;
+    private final ScenarioTestPlayerFactory playerFactory;
     private final ScenarioTestInfo info;
+    private final List<Player> summonedPlayers = new ArrayList<>();
 
-    ScenarioTestHelper(final World world, final ScenarioTestInfo info) {
+    ScenarioTestHelper(final World world, final ScenarioTestPlayerFactory playerFactory, final ScenarioTestInfo info) {
         this.world = world;
+        this.playerFactory = playerFactory;
         this.info = info;
     }
 
     public World world() {
         return world;
+    }
+
+    /**
+     * Summons a mock player into {@link #world()}.
+     * @apiNote the player is automatically despawned upon test completion, regardless of its result.
+     */
+    public Player summonPlayer(final String name, final Location location, final GameMode gameMode) {
+        return summonPlayer(name, world, location, gameMode);
+    }
+
+    /**
+     * Summons a mock player into the specified world.
+     * @apiNote the player is automatically despawned upon test completion, regardless of its result.
+     */
+    public Player summonPlayer(final String name, final World world, final Location location, final GameMode gameMode) {
+        final Player player = playerFactory.spawn(name, world, location, gameMode);
+        summonedPlayers.add(player);
+        return player;
     }
 
     public void fail(final String reason) {
@@ -29,7 +56,7 @@ public final class ScenarioTestHelper {
     }
 
     public void assertBlockAt(final BlockPos pos, final Key expected) {
-        final Key actual = world.blockKeyAt(pos).orElse(Key.key("minecraft", "air"));
+        final Key actual = world.blockKeyAt(pos).orElse(Key.key("air"));
         assertTrue(expected.equals(actual),
                 "Expected " + expected + " at " + pos + " but found " + actual);
     }
@@ -40,5 +67,12 @@ public final class ScenarioTestHelper {
     public ScenarioTestSequence.Builder sequence() {
         info.sequenceBuilderCreated();
         return new ScenarioTestSequence.Builder(info);
+    }
+
+    void despawnPlayers() {
+        for (final Player player : summonedPlayers) {
+            playerFactory.despawn(player);
+        }
+        summonedPlayers.clear();
     }
 }

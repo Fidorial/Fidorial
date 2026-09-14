@@ -91,6 +91,7 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.Location;
+import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockPlaceContext;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -102,6 +103,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class PlayPacketHandler implements PlayPacketListener {
 
@@ -130,7 +132,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
 
-        this.player = createPlayer();
+        bindPlayer(createPlayer());
         final ServerWorld world = (ServerWorld) player.world();
         final Location spawn = player.location();
 
@@ -140,7 +142,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             world.addEntity(player);
 
             sendLoginSequence();
-            openChunkView(world, dynamic, spawn.chunk());
+            openChunkView(world, spawn.chunk());
             spawnPlayer(spawn);
 
             connection.flushPendingMessages();
@@ -170,20 +172,31 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (player != null) {
             closeOpenMenu(false);
             server.events().post(new PlayerQuitEvent(player));
-
-            final ServerPlayer leaving = player;
-            final ServerWorld world = serverWorld();
-            world.scheduler().execute(world.key(), leaving.chunk(), () -> {
-                world.removeEntity(leaving);
-                leaving.permissions().revokeAll();
-                leaving.remove();
-                server.entityTracker().untrack(leaving);
-                for (final ServerPlayer other : server.players()) {
-                    if (other == leaving) continue;
-                    other.connection().send(new ClientboundPlayerInfoRemovePacket(leaving.uuid()));
-                }
-            });
+            schedulePlayerRemoval(player);
         }
+    }
+
+    private void schedulePlayerRemoval(final ServerPlayer leaving) {
+        final World targetWorld = leaving.world();
+        final ChunkPos targetChunk = leaving.chunk();
+
+        leaving.execute(() -> {
+            if (leaving.world() != targetWorld || !leaving.chunk().equals(targetChunk)) {
+                // we moved since the execute call, so reschedule
+                schedulePlayerRemoval(leaving);
+                return;
+            }
+
+            final ServerWorld world = (ServerWorld) leaving.world();
+            world.removeEntity(leaving);
+            leaving.permissions().revokeAll();
+            leaving.remove();
+            server.entityTracker().untrack(leaving);
+            for (final ServerPlayer other : server.players()) {
+                if (other == leaving) continue;
+                other.connection().send(new ClientboundPlayerInfoRemovePacket(leaving.uuid()));
+            }
+        });
     }
 
     private ServerPlayer createPlayer() {
@@ -299,7 +312,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         server.bossBarRegistry().syncTo(player);
     }
 
-    private void openChunkView(final ServerWorld world, final RegistryHolder dynamic, final ChunkPos spawnChunk) {
+    public void openChunkView(final ServerWorld world, final ChunkPos spawnChunk) {
         this.chunkView = new ChunkViewTracker(
                 connection,
                 server.chunkWorker(),
@@ -720,7 +733,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (from == target) {
             final Location previous = teleporting.location();
             final ChunkPos fromChunk = previous.chunk();
-            from.scheduler().execute(from.key(), fromChunk, () -> {
+            return from.scheduler().execute(from.key(), fromChunk, () -> {
                 teleporting.setLocation(location);
                 from.entityMoved(teleporting, fromChunk, destChunk);
                 connection.send(new ClientboundPlayerPositionPacket(
@@ -744,19 +757,30 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 }
                 server.entityTracker().update(teleporting, server.players());
             });
-            return true;
         }
-        return teleportCrossWorld(from, target, location, destChunk);
+
+        final CrossWorldTeleport attempt = teleportCrossWorld(from, target, location, destChunk);
+        attempt.arrival().thenAccept(succeeded -> {
+            if (!succeeded) {
+                LOGGER.warn("{} did not fully complete a cross-world teleport into {}", teleporting.name(), target.key());
+            }
+        });
+        return attempt.departureScheduled();
     }
 
-    private boolean teleportCrossWorld(final ServerWorld from, final ServerWorld target, final Location location, final ChunkPos destChunk) {
+    private record CrossWorldTeleport(boolean departureScheduled, CompletableFuture<Boolean> arrival) {
+    }
+
+    private CrossWorldTeleport teleportCrossWorld(final ServerWorld from, final ServerWorld target, final Location location, final ChunkPos destChunk) {
         if (player == null) {
             throw new RuntimeException("Attempt to teleport a player who does not exist!");
         }
 
         final ServerPlayer teleporting = player;
         final ChunkPos fromChunk = teleporting.chunk();
-        from.scheduler().execute(from.key(), fromChunk, () -> {
+        final CompletableFuture<Boolean> arrival = new CompletableFuture<>();
+
+        final boolean departureScheduled = from.scheduler().execute(from.key(), fromChunk, () -> {
             if (chunkView != null) {
                 chunkView.close();
                 from.removeViewer(chunkView);
@@ -768,12 +792,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
             }
             from.removeEntity(teleporting);
             server.entityTracker().untrack(teleporting);
-            target.scheduler().execute(target.key(), destChunk, () -> {
+
+            final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
                 teleporting.setWorld(target);
                 teleporting.setLocation(location);
                 target.addEntity(teleporting);
 
-                final RegistryHolder dynamic = server.dynamicRegistries();
                 final int dimensionType = server.dimensionTypes().networkId(target.generator.dimensionType().key());
                 connection.send(new ClientboundRespawnPacket(
                         target.dimension().id(),
@@ -785,7 +809,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         describeGenerator(target) instanceof ChunkGeneratorConfig.Flat));
                 connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(teleporting.gameMode()));
                 connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
-                openChunkView(target, dynamic, destChunk);
+                openChunkView(target, destChunk);
                 connection.send(new ClientboundPlayerPositionPacket(
                         teleporting.nextTeleportId(),
                         new PositionData.PositionMoveRotationData(
@@ -794,9 +818,22 @@ public final class PlayPacketHandler implements PlayPacketListener {
                                 LocationPositionData.floatRotation(location))));
                 server.dayNightEngine().syncTo(target, connection::send);
                 server.entityTracker().update(teleporting, server.players());
+                server.regionizer().addTicket(target.dimension().id(), destChunk);
+                arrival.complete(true);
             });
+
+            if (!arrivalScheduled) {
+                LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}",
+                        teleporting.name(), from.key(), target.key());
+                arrival.complete(false);
+            }
         });
-        return true;
+
+        if (!departureScheduled) {
+            arrival.complete(false);
+        }
+
+        return new CrossWorldTeleport(departureScheduled, arrival);
     }
 
     @Override
@@ -967,7 +1004,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 respawning.setWorld(world);
                 respawning.setLocation(spawn);
                 world.addEntity(respawning);
-                openChunkView(world, server.dynamicRegistries(), destination);
+                openChunkView(world, destination);
             });
         });
     }
@@ -994,6 +1031,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
             player.setFallDistance(player.fallDistance() - dy);
             player.setFalling(true);
         }
+    }
+
+    public void bindPlayer(final ServerPlayer player) {
+        this.player = player;
     }
 
     private Key worldId() {
