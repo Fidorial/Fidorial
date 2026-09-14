@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configur
 import fr.euphyllia.fidorial.server.registry.Registry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
+import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
 import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -164,7 +165,8 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             }
             if (reg.name().equals(FidorialBiomeRegistry.REGISTRY_NAME)
                     || reg.name().equals(FidorialDialogRegistry.REGISTRY_NAME)
-                    || reg.name().equals(FidorialDimensionTypeRegistry.REGISTRY_NAME)) {
+                    || reg.name().equals(FidorialDimensionTypeRegistry.REGISTRY_NAME)
+                    || reg.name().equals(FidorialChatTypeRegistry.REGISTRY_NAME)) {
                 continue;
             }
             connection.send(ClientboundRegistryDataPacket.knownOnly(reg.name(), reg.entries()));
@@ -181,11 +183,15 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialDimensionTypeRegistry.REGISTRY_NAME,
                 server.dimensionTypes().networkEntries()));
+
+        connection.send(new ClientboundRegistryDataPacket(
+                FidorialChatTypeRegistry.REGISTRY_NAME,
+                server.registries().chatTypes().networkEntries()));
     }
 
     private void sendTags() {
         connection.send(new ClientboundUpdateTagsPacket(
-                server.registries().network(), server.biomeRegistry(), server.dialogs(), server.dimensionTypes()));
+                server.registries().network(), server.biomeRegistry(), server.dialogs(), server.dimensionTypes(), server.chatTypes()));
     }
 
     private boolean sendResourcePackIfConfigured() {

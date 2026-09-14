@@ -238,6 +238,15 @@ public final class PacketBuffer {
         return VarInts.readByteArray(buf, maxLength);
     }
 
+    public byte @Nullable [] readOptionalFixedByteArray(final int length) {
+        if (!readBoolean()) {
+            return null;
+        }
+        final byte[] data = new byte[length];
+        buf.readBytes(data);
+        return data;
+    }
+
     public byte[] readRemainingBytes() {
         final byte[] data = new byte[buf.readableBytes()];
         buf.readBytes(data);

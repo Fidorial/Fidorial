@@ -1,5 +1,6 @@
 package fr.fidorial;
 
+import fr.fidorial.chat.ChatTypeRegistry;
 import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.entity.OfflinePlayers;
@@ -156,7 +157,7 @@ public interface Server extends ForwardingAudience {
     /**
      * Gets the server-wide biome registry.
      *
-     * <p>Biomes registered there are sent to every client joining afterwards, and may be referenced
+     * <p>Biomes registered there are sent to every client, and may be referenced
      * by {@link fr.fidorial.world.generation.WorldGenerator generators} through
      * {@link fr.fidorial.world.generation.GeneratedChunk#setBiome(int, int, int, Key)}.</p>
      *
@@ -169,7 +170,7 @@ public interface Server extends ForwardingAudience {
     /**
      * Gets the server-wide dimension type registry.
      *
-     * <p>Dimension types registered there are sent to every client joining afterwards, and may be referenced
+     * <p>Dimension types registered there are sent to every client, and may be referenced
      * by {@link fr.fidorial.world.generation.WorldGenerator generators} through
      * {@link fr.fidorial.world.generation.GeneratedChunk#setBiome(int, int, int, Key)}.</p>
      *
@@ -190,6 +191,15 @@ public interface Server extends ForwardingAudience {
      */
     @Contract(pure = true)
     MobRegistry mobs();
+
+    /**
+     * Gets the server-wide chat type registry.
+     *
+     * @return the chat type registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    ChatTypeRegistry chatTypes();
 
     /**
      * Gets the server-wide item registry.

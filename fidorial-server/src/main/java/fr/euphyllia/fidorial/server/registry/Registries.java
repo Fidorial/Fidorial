@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.registry;
 
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
+import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
 import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
 import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
@@ -15,7 +16,6 @@ import fr.fidorial.registry.data.BlockTransformer;
 import fr.fidorial.registry.data.BlockType;
 import fr.fidorial.registry.data.CatSoundVariant;
 import fr.fidorial.registry.data.CatVariant;
-import fr.fidorial.registry.data.ChatType;
 import fr.fidorial.registry.data.ChickenSoundVariant;
 import fr.fidorial.registry.data.ChickenVariant;
 import fr.fidorial.registry.data.CowSoundVariant;
@@ -53,7 +53,6 @@ import fr.fidorial.registry.keys.BlockTransformerKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.CatSoundVariantKeys;
 import fr.fidorial.registry.keys.CatVariantKeys;
-import fr.fidorial.registry.keys.ChatTypeKeys;
 import fr.fidorial.registry.keys.ChickenSoundVariantKeys;
 import fr.fidorial.registry.keys.ChickenVariantKeys;
 import fr.fidorial.registry.keys.CowSoundVariantKeys;
@@ -103,6 +102,7 @@ public final class Registries {
     private final FidorialBiomeRegistry biomes;
     private final FidorialDialogRegistry dialogs;
     private final FidorialDimensionTypeRegistry dimensionTypes;
+    private final FidorialChatTypeRegistry chatTypes;
 
     private Registries(
             final RegistryHolder dynamic,
@@ -110,7 +110,8 @@ public final class Registries {
             final Map<RegistryKey<?>, Registry<?>> typedRegistries,
             final FidorialBiomeRegistry biomes,
             final FidorialDialogRegistry dialogs,
-            final FidorialDimensionTypeRegistry dimensionTypes
+            final FidorialDimensionTypeRegistry dimensionTypes,
+            final FidorialChatTypeRegistry chatTypes
     ) {
         this.dynamic = dynamic;
         this.frozen = frozen;
@@ -119,6 +120,7 @@ public final class Registries {
         this.biomes = biomes;
         this.dialogs = dialogs;
         this.dimensionTypes = dimensionTypes;
+        this.chatTypes = chatTypes;
     }
 
     public static Registries load() {
@@ -128,6 +130,7 @@ public final class Registries {
         final FidorialBiomeRegistry biomes = FidorialBiomeRegistry.bootstrap(dynamic, FALLBACK_BIOME);
         final FidorialDialogRegistry dialogs = FidorialDialogRegistry.bootstrap(dynamic);
         final FidorialDimensionTypeRegistry dimensionTypes = FidorialDimensionTypeRegistry.bootstrap(dynamic);
+        final FidorialChatTypeRegistry chatTypes = FidorialChatTypeRegistry.bootstrap(dynamic);
 
         // bootstrap our API registries
         registries.put(RegistryKey.ATTRIBUTE, simple(RegistryKey.ATTRIBUTE, Attribute.class, AttributeKeys.values()));
@@ -137,7 +140,6 @@ public final class Registries {
         registries.put(RegistryKey.BLOCK_TRANSFORMER, simple(RegistryKey.BLOCK_TRANSFORMER, BlockTransformer.class, BlockTransformerKeys.values()));
         registries.put(RegistryKey.CAT_SOUND_VARIANT, simple(RegistryKey.CAT_SOUND_VARIANT, CatSoundVariant.class, CatSoundVariantKeys.values()));
         registries.put(RegistryKey.CAT_VARIANT, simple(RegistryKey.CAT_VARIANT, CatVariant.class, CatVariantKeys.values()));
-        registries.put(RegistryKey.CHAT_TYPE, simple(RegistryKey.CHAT_TYPE, ChatType.class, ChatTypeKeys.values()));
         registries.put(RegistryKey.CHICKEN_SOUND_VARIANT, simple(RegistryKey.CHICKEN_SOUND_VARIANT, ChickenSoundVariant.class, ChickenSoundVariantKeys.values()));
         registries.put(RegistryKey.CHICKEN_VARIANT, simple(RegistryKey.CHICKEN_VARIANT, ChickenVariant.class, ChickenVariantKeys.values()));
         registries.put(RegistryKey.COW_SOUND_VARIANT, simple(RegistryKey.COW_SOUND_VARIANT, CowSoundVariant.class, CowSoundVariantKeys.values()));
@@ -171,7 +173,7 @@ public final class Registries {
         registries.put(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, simple(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusVariant.class, ZombieNautilusVariantKeys.values()));
         registries.put(RegistryKey.ENTITY_TYPE, new EntityTypeRegistry());
 
-        return new Registries(dynamic, loadFrozen(), registries, biomes, dialogs, dimensionTypes);
+        return new Registries(dynamic, loadFrozen(), registries, biomes, dialogs, dimensionTypes, chatTypes);
     }
 
     private static RegistryHolder loadFrozen() {
@@ -203,6 +205,10 @@ public final class Registries {
 
     public FidorialDimensionTypeRegistry dimensionTypes() {
         return dimensionTypes;
+    }
+
+    public FidorialChatTypeRegistry chatTypes() {
+        return chatTypes;
     }
 
     public RegistryHolder dynamic() {

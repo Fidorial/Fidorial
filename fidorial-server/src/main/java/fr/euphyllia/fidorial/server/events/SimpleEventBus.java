@@ -27,7 +27,7 @@ public final class SimpleEventBus implements EventBus {
     @Override
     public <E extends Event> Subscription subscribe(final Class<E> type, final EventPriority priority, final Consumer<E> listener) {
         final Registration<E> registration = new Registration<>(type, priority, listener, owner.get());
-        byType.computeIfAbsent(type, t -> new CopyOnWriteArrayList<>()).add(registration);
+        byType.computeIfAbsent(type, _ -> new CopyOnWriteArrayList<>()).add(registration);
         resolved.clear();
         return registration;
     }
