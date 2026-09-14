@@ -63,6 +63,7 @@ import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.crop.CropGrowth;
+import fr.euphyllia.fidorial.server.world.block.crop.CropHarvest;
 import fr.euphyllia.fidorial.server.world.block.crop.FidorialCropRegistry;
 import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractions;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
@@ -196,6 +197,7 @@ public final class FidorialServer implements Server {
             (pos, stateId) -> broadcast(new ClientboundBlockUpdatePacket(pos, stateId)),
             fluidEngine::notifyBlockChanged,
             lightDispatcher::queueBlockChange);
+    private final CropHarvest cropHarvest = new CropHarvest(cropRegistry, blockEdits);
     private final FidorialPermissionRegistry permissionRegistry = new FidorialPermissionRegistry();
     private final FidorialItemRegistry itemRegistry = new FidorialItemRegistry();
     private final FidorialMobRegistry mobRegistry = new FidorialMobRegistry();
@@ -728,6 +730,10 @@ public final class FidorialServer implements Server {
     @Override
     public FidorialCropRegistry crops() {
         return cropRegistry;
+    }
+
+    public CropHarvest cropHarvest() {
+        return cropHarvest;
     }
 
     public PlayerEnderChestStorage playerEnderChestStorage() {

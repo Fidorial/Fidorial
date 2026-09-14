@@ -4,6 +4,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -25,6 +26,8 @@ public final class CropType {
     private final boolean requiresMoistSoil;
     private final int averageTicksPerStage;
     private final int minLight;
+    private final List<CropDrop> ripeDrops;
+    private final List<CropDrop> immatureDrops;
 
     private CropType(final Builder builder) {
         this.seed = builder.seed;
@@ -35,6 +38,8 @@ public final class CropType {
         this.requiresMoistSoil = builder.requiresMoistSoil;
         this.averageTicksPerStage = builder.averageTicksPerStage;
         this.minLight = builder.minLight;
+        this.ripeDrops = List.copyOf(builder.ripeDrops);
+        this.immatureDrops = List.copyOf(builder.immatureDrops);
     }
 
     /**
@@ -114,6 +119,31 @@ public final class CropType {
     }
 
     /**
+     * @return what breaking this crop gives back once it is ripe
+     * @since 0.1.0
+     */
+    public List<CropDrop> ripeDrops() {
+        return ripeDrops;
+    }
+
+    /**
+     * @return what breaking this crop gives back before it is ripe
+     * @since 0.1.0
+     */
+    public List<CropDrop> immatureDrops() {
+        return immatureDrops;
+    }
+
+    /**
+     * @param age the growth stage the crop was broken at
+     * @return the drops that apply at that stage
+     * @since 0.1.0
+     */
+    public List<CropDrop> dropsAt(final int age) {
+        return age >= maxAge ? ripeDrops : immatureDrops;
+    }
+
+    /**
      * @param soil a block identifier
      * @return {@code true} when this crop accepts that block as soil
      * @since 0.1.0
@@ -154,6 +184,8 @@ public final class CropType {
         private boolean requiresMoistSoil = true;
         private int averageTicksPerStage = 600;
         private int minLight = 0;
+        private List<CropDrop> ripeDrops;
+        private List<CropDrop> immatureDrops;
 
         private Builder(final Key seed, final Key block) {
             this.seed = Objects.requireNonNull(seed, "seed");
@@ -234,10 +266,36 @@ public final class CropType {
         }
 
         /**
+         * @param ripeDrops what breaking the ripe crop gives back
+         * @return this builder
+         * @since 0.1.0
+         */
+        public Builder ripeDrops(final List<CropDrop> ripeDrops) {
+            this.ripeDrops = List.copyOf(ripeDrops);
+            return this;
+        }
+
+        /**
+         * @param immatureDrops what breaking the crop early gives back
+         * @return this builder
+         * @since 0.1.0
+         */
+        public Builder immatureDrops(final List<CropDrop> immatureDrops) {
+            this.immatureDrops = List.copyOf(immatureDrops);
+            return this;
+        }
+
+        /**
          * @return the crop
          * @since 0.1.0
          */
         public CropType build() {
+            if (ripeDrops == null) {
+                ripeDrops = List.of(CropDrop.of(seed, 1));
+            }
+            if (immatureDrops == null) {
+                immatureDrops = List.of(CropDrop.of(seed, 1));
+            }
             return new CropType(this);
         }
     }

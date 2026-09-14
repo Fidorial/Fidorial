@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.world.block.crop;
 
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
+import fr.fidorial.world.block.crop.CropDrop;
 import fr.fidorial.world.block.crop.CropRegistry;
 import fr.fidorial.world.block.crop.CropType;
 import fr.fidorial.world.block.interaction.BlockInteractionHandler;
@@ -45,6 +46,10 @@ public final class FidorialCropRegistry implements CropRegistry {
                 .averageTicksPerStage(600)
                 .minLight(8)
                 .requiresMoistSoil(true)
+                .ripeDrops(List.of(
+                        CropDrop.of(ItemKeys.WHEAT.key(), 1),
+                        CropDrop.of(ItemKeys.WHEAT_SEEDS.key(), 0, 3)))
+                .immatureDrops(List.of(CropDrop.of(ItemKeys.WHEAT_SEEDS.key(), 1)))
                 .build();
     }
 

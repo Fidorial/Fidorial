@@ -58,6 +58,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
 import fr.euphyllia.fidorial.server.network.session.ChunkViewTracker;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -65,6 +66,7 @@ import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractionContext;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.PlayerProfile;
@@ -621,9 +623,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final boolean breaking =
                 switch (acting.gameMode()) {
                     case CREATIVE -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK;
-                    case SURVIVAL ->
-                            status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK && instantMine(packet.position())
-                                    || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
+                    case SURVIVAL -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK
+                            || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
                     case ADVENTURE, SPECTATOR -> false;
                 };
         if (!breaking) {
@@ -635,9 +636,17 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos chunkPos = ChunkPos.fromBlock(packet.position().x(), packet.position().z());
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
+            if (acting.gameMode() == GameMode.SURVIVAL
+                    && status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK
+                    && !instantMine(world, packet.position())) {
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
                 onBlockDestroyed(packet.position());
+                server.cropHarvest().onBlockBroken(world, acting, packet.position());
                 server.blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
@@ -681,8 +690,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
     }
 
-    private boolean instantMine(final BlockPos position) {
-        return false;
+    @NeedsToBeRevisited("Only crops are known to give way at once; this wants a real block hardness table.")
+    private boolean instantMine(final ServerWorld world, final BlockPos position) {
+        final ChunkColumn column = world.loadedColumn(position.chunkX(), position.chunkZ());
+        if (column == null) {
+            return false;
+        }
+        final BlockState state = column.getBlock(position.x() & 15, position.y(), position.z() & 15);
+        return server.crops().byBlock(state.name()) != null;
     }
 
     @Override
