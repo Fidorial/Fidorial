@@ -87,6 +87,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private @Nullable PlayerProfile profile;
     private @Nullable ServerPlayer player;
     private int displayedSkinParts = 0x7F; // toutes les couches activees par defaut
+    private int viewDistance = 2; // minimum
     private @Nullable String forwardedAddress;
     private Locale locale = TranslationStore.defaultLocale();
     private @Nullable ScheduledFuture<?> keepAliveTask;
@@ -387,6 +388,20 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     public void setProfile(final PlayerProfile profile) {
         this.profile = profile;
+    }
+
+    public int viewDistance() {
+        return viewDistance;
+    }
+
+    public void setViewDistance(final int viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+
+    public int effectiveViewDistance() {
+        final int serverMax = server.config().sendDistance();
+        final int client = viewDistance;
+        return Math.clamp(client, 2, serverMax);
     }
 
     public int displayedSkinParts() {

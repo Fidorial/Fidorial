@@ -3,8 +3,11 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import net.kyori.adventure.key.Key;
 
+// https://minecraft.wiki/w/Java_Edition_protocol/Packets#Respawn
+@NeedsToBeRevisited("Sends stubs for some fields")
 public record ClientboundRespawnPacket(Key dimensionKey, int dimensionTypeId, long hashedSeed, int gameMode, int dataToKeep, boolean isDebug, boolean isFlat)
         implements ClientboundPacket {
 

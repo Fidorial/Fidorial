@@ -281,6 +281,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 dimensionType,
                 worldManager().levelData().hashedSeed(),
                 config.viewDistance(),
+                config.viewDistance(),
                 player.gameMode().id(),
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
@@ -304,8 +305,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 server.chunkWorker(),
                 world,
                 new ChunkNetworkSerializer(server.blockStateRegistry(), server.biomeRegistry()),
-                config.sendDistance(),
-                config.viewDistance());
+                connection.effectiveViewDistance()
+        );
         this.ticket = spawnChunk;
         world.addViewer(chunkView);
         server.regionizer().addTicket(worldId(), ticket);
@@ -358,11 +359,15 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handleClientInformation(final ServerboundClientInformationPacket packet) {
         connection.setLocale(Locale.forLanguageTag(packet.language().replace('_', '-')));
         connection.setDisplayedSkinParts(packet.displayedSkinParts());
+        connection.setViewDistance(packet.viewDistance());
         if (player != null) {
             player.setLocale(packet.language());
             connection.send(ClientboundSetEntityMetadataPacket.of(
                     player.entityId(),
                     Entry.ofByte(ServerPlayer.MD_DISPLAYED_SKIN_PARTS, packet.displayedSkinParts())));
+        }
+        if (chunkView != null) {
+            chunkView.updateViewDistance(connection.effectiveViewDistance());
         }
     }
 

@@ -7,15 +7,15 @@ import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
 
-public record ServerboundClientInformationPacket(String language, int displayedSkinParts) implements ServerboundPacket {
+public record ServerboundClientInformationPacket(String language, int viewDistance, int displayedSkinParts) implements ServerboundPacket {
 
     public static ServerboundClientInformationPacket read(final PacketBuffer buf) {
         final String language = buf.readString(16);
-        buf.readByte();
+        final int viewDistance = buf.readByte();
         buf.readVarInt();
         buf.readBoolean();
         final int skinParts = buf.readUByte();
-        return new ServerboundClientInformationPacket(language, skinParts);
+        return new ServerboundClientInformationPacket(language, viewDistance, skinParts);
     }
 
     @Override

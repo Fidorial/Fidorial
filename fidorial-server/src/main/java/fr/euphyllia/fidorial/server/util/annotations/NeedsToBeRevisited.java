@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @since 0.1.0
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 public @interface NeedsToBeRevisited {
     /**
      * The reason for why this needs to be revisited

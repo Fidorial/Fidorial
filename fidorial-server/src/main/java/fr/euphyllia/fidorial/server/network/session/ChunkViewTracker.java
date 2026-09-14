@@ -27,8 +27,8 @@ public final class ChunkViewTracker implements ChunkViewSource {
     private final ThreadedChunkWorker chunkWorker;
     private final ServerWorld world;
     private final ChunkNetworkSerializer serializer;
-    private final int radius;
-    private final int forgetRadius;
+    private volatile int radius;
+    private volatile int forgetRadius;
     private volatile boolean closed;
 
     private final Object lock = new Object();
@@ -43,15 +43,14 @@ public final class ChunkViewTracker implements ChunkViewSource {
             final ThreadedChunkWorker chunkWorker,
             final ServerWorld world,
             final ChunkNetworkSerializer serializer,
-            final int radius,
-            final int forgetRadius
+            final int radius
     ) {
         this.connection = connection;
         this.chunkWorker = chunkWorker;
         this.world = world;
         this.serializer = serializer;
         this.radius = radius;
-        this.forgetRadius = Math.max(radius, forgetRadius);
+        this.forgetRadius = radius;
     }
 
     public void init(final ChunkPos center) {
@@ -209,6 +208,21 @@ public final class ChunkViewTracker implements ChunkViewSource {
         synchronized (lock) {
             return sent.size();
         }
+    }
+
+    public void updateViewDistance(final int newRadius) {
+        final int clamped = Math.max(2, newRadius);
+        final int cx, cz;
+        synchronized (lock) {
+            if (closed || clamped == this.radius) {
+                return;
+            }
+            this.radius = clamped;
+            this.forgetRadius = clamped;
+            cx = centerX;
+            cz = centerZ;
+        }
+        stream(cx, cz);
     }
 
     public void close() {
