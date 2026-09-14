@@ -1,5 +1,0 @@
-package fr.euphyllia.fidorial.gradle.patcher.util
-
-object LibraryVersions {
-    const val DIFF_PATCH: String = "{{ diffpatch_version }}"
-}
