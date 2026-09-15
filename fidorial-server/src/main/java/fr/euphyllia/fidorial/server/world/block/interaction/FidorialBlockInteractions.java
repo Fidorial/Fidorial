@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.world.block.interaction;
 
+import fr.euphyllia.fidorial.server.plugin.BuiltInPlugin;
 import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FarmlandBlock;
+import fr.fidorial.plugin.Plugin;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
 import fr.fidorial.world.block.interaction.BlockInteractionHandler;
 import fr.fidorial.world.block.interaction.BlockInteractionRegistry;
@@ -21,7 +23,7 @@ public final class FidorialBlockInteractions implements BlockInteractionRegistry
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialBlockInteractions.class);
 
-    public static final Object BUILT_IN = new Object();
+    public static final Plugin BUILT_IN = BuiltInPlugin.INSTANCE;
 
     private final Map<Key, List<Entry>> handlers = new ConcurrentHashMap<>();
 
@@ -33,12 +35,12 @@ public final class FidorialBlockInteractions implements BlockInteractionRegistry
     }
 
     @Override
-    public void register(final Key blockType, final BlockInteractionHandler handler, final Object owner) {
+    public void register(final Key blockType, final BlockInteractionHandler handler, final Plugin owner) {
         handlers.computeIfAbsent(blockType, _ -> new CopyOnWriteArrayList<>()).add(new Entry(handler, owner));
     }
 
     @Override
-    public boolean unregister(final Key blockType, final Object owner) {
+    public boolean unregister(final Key blockType, final Plugin owner) {
         final List<Entry> entries = handlers.get(blockType);
         if (entries == null) {
             return false;
@@ -51,7 +53,7 @@ public final class FidorialBlockInteractions implements BlockInteractionRegistry
     }
 
     @Override
-    public void unregisterAll(final Object owner) {
+    public void unregisterAll(final Plugin owner) {
         for (final Key blockType : Set.copyOf(handlers.keySet())) {
             unregister(blockType, owner);
         }
@@ -103,6 +105,6 @@ public final class FidorialBlockInteractions implements BlockInteractionRegistry
         return context.block().key();
     }
 
-    private record Entry(BlockInteractionHandler handler, Object owner) {
+    private record Entry(BlockInteractionHandler handler, Plugin owner) {
     }
 }

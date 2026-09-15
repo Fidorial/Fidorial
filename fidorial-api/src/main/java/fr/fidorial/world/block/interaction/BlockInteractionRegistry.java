@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.interaction;
 
+import fr.fidorial.plugin.Plugin;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -22,7 +23,7 @@ public interface BlockInteractionRegistry {
      * @param owner     the plugin attaching it
      * @since 0.1.0
      */
-    void register(Key blockType, BlockInteractionHandler handler, Object owner);
+    void register(Key blockType, BlockInteractionHandler handler, Plugin owner);
 
     /**
      * Attaches the same behaviour to several blocks.
@@ -32,7 +33,7 @@ public interface BlockInteractionRegistry {
      * @param owner      the plugin attaching it
      * @since 0.1.0
      */
-    default void registerAll(final Collection<Key> blockTypes, final BlockInteractionHandler handler, final Object owner) {
+    default void registerAll(final Collection<Key> blockTypes, final BlockInteractionHandler handler, final Plugin owner) {
         for (final Key blockType : blockTypes) {
             register(blockType, handler, owner);
         }
@@ -46,7 +47,7 @@ public interface BlockInteractionRegistry {
      * @return {@code true} if at least one handler was dropped
      * @since 0.1.0
      */
-    boolean unregister(Key blockType, Object owner);
+    boolean unregister(Key blockType, Plugin owner);
 
     /**
      * Drops every behaviour an owner attached, on every block.
@@ -54,7 +55,7 @@ public interface BlockInteractionRegistry {
      * @param owner the plugin to clean up after
      * @since 0.1.0
      */
-    void unregisterAll(Object owner);
+    void unregisterAll(Plugin owner);
 
     /**
      * @param blockType the block to look up

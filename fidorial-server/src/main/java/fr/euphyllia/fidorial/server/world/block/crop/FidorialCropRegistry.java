@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.crop;
 
+import fr.euphyllia.fidorial.server.plugin.BuiltInPlugin;
+import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.block.crop.CropDrop;
@@ -20,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class FidorialCropRegistry implements CropRegistry {
 
-    public static final Object BUILT_IN = new Object();
+    public static final Plugin BUILT_IN = BuiltInPlugin.INSTANCE;
 
     private final BlockInteractionRegistry interactions;
     private final BlockInteractionHandler plantHandler;
@@ -54,7 +56,7 @@ public final class FidorialCropRegistry implements CropRegistry {
     }
 
     @Override
-    public void register(final CropType crop, final Object owner) {
+    public void register(final CropType crop, final Plugin owner) {
         final Entry previous = bySeed.put(crop.seed(), new Entry(crop, owner, bySeed.get(crop.seed())));
         if (previous != null) {
             byBlock.remove(previous.crop().block(), previous.crop());
@@ -64,7 +66,7 @@ public final class FidorialCropRegistry implements CropRegistry {
     }
 
     @Override
-    public boolean unregister(final Key seed, final Object owner) {
+    public boolean unregister(final Key seed, final Plugin owner) {
         final Entry entry = bySeed.get(seed);
         if (entry == null || entry.owner() != owner) {
             return false;
@@ -82,7 +84,7 @@ public final class FidorialCropRegistry implements CropRegistry {
         return true;
     }
 
-    private static @Nullable Entry firstNotOwnedBy(final @Nullable Entry entry, final Object owner) {
+    private static @Nullable Entry firstNotOwnedBy(final @Nullable Entry entry, final Plugin owner) {
         Entry candidate = entry;
         while (candidate != null && candidate.owner() == owner) {
             candidate = candidate.previous();
@@ -91,7 +93,7 @@ public final class FidorialCropRegistry implements CropRegistry {
     }
 
     @Override
-    public void unregisterAll(final Object owner) {
+    public void unregisterAll(final Plugin owner) {
         for (final Key seed : Set.copyOf(bySeed.keySet())) {
             unregister(seed, owner);
         }
@@ -134,6 +136,6 @@ public final class FidorialCropRegistry implements CropRegistry {
         }
     }
 
-    private record Entry(CropType crop, Object owner, @Nullable Entry previous) {
+    private record Entry(CropType crop, Plugin owner, @Nullable Entry previous) {
     }
 }

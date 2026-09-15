@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.crop;
 
+import fr.fidorial.plugin.Plugin;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -16,17 +17,11 @@ public interface CropRegistry {
     /**
      * Declares a crop.
      *
-     * <p>Registering under a {@linkplain CropType#seed() seed} that already carries
-     * a crop shadows that crop rather than destroying it: the one declared last
-     * wins, and dropping it brings the previous one back. A plugin that only wants
-     * to retune the built-in wheat can therefore register over it and let the
-     * server restore the original on unload.</p>
-     *
      * @param crop  the crop to declare
      * @param owner the plugin declaring it
      * @since 0.1.0
      */
-    void register(CropType crop, Object owner);
+    void register(CropType crop, Plugin owner);
 
     /**
      * Drops the crop one owner declared under a seed, bringing back whatever that
@@ -37,7 +32,7 @@ public interface CropRegistry {
      * @return {@code true} when a crop was dropped
      * @since 0.1.0
      */
-    boolean unregister(Key seed, Object owner);
+    boolean unregister(Key seed, Plugin owner);
 
     /**
      * Drops every crop an owner declared.
@@ -45,7 +40,7 @@ public interface CropRegistry {
      * @param owner the plugin to clean up after
      * @since 0.1.0
      */
-    void unregisterAll(Object owner);
+    void unregisterAll(Plugin owner);
 
     /**
      * @param seed an item identifier
