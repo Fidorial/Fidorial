@@ -38,6 +38,7 @@ public record ServerConfig(
         String motd,
         int maxPlayers,
         boolean pvp,
+        boolean enforcesSecureChat,
         ProxyMode proxyMode,
         @Nullable String velocitySecret,
         boolean useIoUring,
@@ -117,6 +118,7 @@ public record ServerConfig(
                 "",
                 100,
                 true,
+                true,
                 ProxyMode.NONE,
                 "",
                 false,
@@ -172,6 +174,7 @@ public record ServerConfig(
                 readString(props, "motd", "<red>Fidorial <white>| <blue>Alternative Minecraft Server"),
                 readInt(props, "max-players", defaults.maxPlayers()),
                 readBool(props, "pvp", defaults.pvp()),
+                readBool(props, "enforce-secure-chat", defaults.enforcesSecureChat()),
                 readProxyMode(props, "proxy-mode", defaults.proxyMode()),
                 readString(props, "velocity-secret", "").strip(),
                 readBool(props, "use-io-uring", false),
@@ -335,6 +338,7 @@ public record ServerConfig(
         props.setProperty("motd", motd);
         props.setProperty("max-players", Integer.toString(maxPlayers));
         props.setProperty("pvp", Boolean.toString(pvp));
+        props.setProperty("enforce-secure-chat", Boolean.toString(enforcesSecureChat));
         props.setProperty("proxy-mode", proxyMode.name().toLowerCase(Locale.ROOT));
         props.setProperty("velocity-secret", velocitySecret == null ? "" : velocitySecret);
         props.setProperty("use-io-uring", Boolean.toString(useIoUring));

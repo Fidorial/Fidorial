@@ -20,7 +20,8 @@ public record ClientboundLoginPacket(
         int gameMode,
         boolean isDebug,
         boolean isFlat,
-        boolean onlineMode
+        boolean onlineMode,
+        boolean enforcesSecureChat
 ) implements ClientboundPacket {
 
     @Override
@@ -50,6 +51,6 @@ public record ClientboundLoginPacket(
         buf.writeVarInt(0); // portalCooldown
         buf.writeVarInt(63); // seaLevel
         buf.writeBoolean(onlineMode);
-        buf.writeBoolean(false);
+        buf.writeBoolean(enforcesSecureChat);
     }
 }

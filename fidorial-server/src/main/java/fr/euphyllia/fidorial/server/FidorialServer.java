@@ -4,6 +4,7 @@ import com.google.common.collect.Iterables;
 import dev.faststats.ErrorTracker;
 import dev.faststats.Metrics;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
+import fr.euphyllia.fidorial.auth.MojangChatSigningKeys;
 import fr.euphyllia.fidorial.auth.MojangSessionService;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.combat.CombatEngine;
@@ -145,6 +146,7 @@ public final class FidorialServer implements Server {
 
     private final KeyPair keyPair = EncryptionUtils.generateServerKeyPair();
     private final MojangSessionService sessionService = new MojangSessionService();
+    private final MojangChatSigningKeys chatSigningKeys = new MojangChatSigningKeys();
     private final FidorialBlockRegistry blockRegistry = bootstrapBlocks();
     private final BlockStateRegistry blockStateRegistry = new BlockStateRegistry(blockRegistry);
     private final EntityIdAllocator entityIds = new EntityIdAllocator();
@@ -662,6 +664,10 @@ public final class FidorialServer implements Server {
 
     public MojangSessionService sessionService() {
         return sessionService;
+    }
+
+    public MojangChatSigningKeys chatSigningKeys() {
+        return chatSigningKeys;
     }
 
     public ProtocolMap protocolMap() {

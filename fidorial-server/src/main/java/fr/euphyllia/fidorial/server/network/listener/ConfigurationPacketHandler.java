@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configur
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundFinishConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundRegistryDataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundSelectKnownPacksPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundUpdateEnabledFeaturesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundUpdateTagsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.ConfigurationPacketListener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
@@ -25,6 +26,7 @@ import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
 import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
 import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -32,6 +34,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;
 
@@ -72,6 +75,11 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
 
     private void proceedToKnownPacks() {
         connection.send(new ClientboundSelectKnownPacksPacket("minecraft", "core", MINECRAFT_VERSION_ID));
+        proceedToEnabledFeatures();
+    }
+
+    private void proceedToEnabledFeatures() {
+        connection.send(new ClientboundUpdateEnabledFeaturesPacket(Stream.of(Key.key("vanilla")).toArray(Key[]::new)));
     }
 
     private void proceedToCodeOfConduct() {

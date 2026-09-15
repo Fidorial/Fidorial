@@ -6,17 +6,17 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketL
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
-public record ServerboundAcceptTeleportationPacket(int teleportId, PositionData.Vec3D position, PositionData.FloatRotation rotation) implements ServerboundPacket {
+public record ServerboundMovePlayerRotPacket(PositionData.FloatRotation rotation, int flags)
+        implements ServerboundPacket {
 
-    public static ServerboundAcceptTeleportationPacket read(final PacketBuffer buf) {
-        final int teleportId = buf.readVarInt();
-        final PositionData.Vec3D position = PositionData.Vec3D.readFrom(buf);
+    public static ServerboundMovePlayerRotPacket read(final PacketBuffer buf) {
         final PositionData.FloatRotation rotation = PositionData.FloatRotation.readFrom(buf);
-        return new ServerboundAcceptTeleportationPacket(teleportId, position, rotation);
+        final int flags = buf.readUByte();
+        return new ServerboundMovePlayerRotPacket(rotation, flags);
     }
 
     @Override
     public void handle(final PacketListener listener) {
-        ((PlayPacketListener) listener).handleAcceptTeleportation(this);
+        ((PlayPacketListener) listener).handleMovePlayerRot(this);
     }
 }

@@ -51,12 +51,14 @@ import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.object.ObjectContents;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.UnmodifiableView;
 import org.jspecify.annotations.Nullable;
 
@@ -427,17 +429,22 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void sendMessage(final Component message) {
-        final Component resolved = ComponentResolver.resolve(message, this);
-        connection.send(new ClientboundSystemChatPacket(TranslationStore.render(resolved, locale()), false));
+        connection.send(new ClientboundSystemChatPacket(prepareMessageForSend(message), false));
     }
 
     @Override
     public void sendMessage(final Component message, final ChatType.Bound chatType) {
-        final Component resolvedMessage = TranslationStore.render(ComponentResolver.resolve(message, this), locale());
-        final Component resolvedName = TranslationStore.render(ComponentResolver.resolve(chatType.name(), this), locale());
-        Component resolvedTarget = null;
-        if (chatType.target() != null) resolvedTarget = TranslationStore.render(ComponentResolver.resolve(chatType.target(), this), locale());
-        connection.send(new ClientboundDisguisedChatPacket(resolvedMessage, chatType.type(), resolvedName, resolvedTarget));
+        connection.send(new ClientboundDisguisedChatPacket(prepareMessageForSend(message), chatType, this));
+    }
+
+    @Override
+    public void sendMessage(final SignedMessage signedMessage, final ChatType.Bound chatType) {
+        connection.sendSignedMessage(signedMessage, chatType);
+    }
+
+    @Override
+    public void deleteMessage(final SignedMessage.Signature signature) {
+        connection.deleteSignedMessage(signature);
     }
 
     @Override
@@ -700,6 +707,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public ObjectContents asObjectContents() {
         return this.profile().asObjectContents();
+    }
+
+    @Contract("null -> null; !null -> new")
+    public @Nullable Component prepareMessageForSend(final @Nullable Component message) {
+        if (message == null) {
+            return null;
+        }
+        final Component resolved = ComponentResolver.resolve(message, this);
+        return TranslationStore.render(resolved, locale());
     }
 
     private record BossBarEntry(UUID id, BossBar.Listener listener) {
