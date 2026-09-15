@@ -265,6 +265,11 @@ public final class FidorialServer implements Server {
             public int maxDamage(final Key item) {
                 return ItemProperties.maxDamage(item);
             }
+
+            @Override
+            public @Nullable Key blockTransformer(final Key item) {
+                return ItemProperties.blockTransformer(item);
+            }
         });
     }
 

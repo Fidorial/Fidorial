@@ -3,6 +3,7 @@ package fr.fidorial.item;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
@@ -52,6 +53,10 @@ public final class ItemDefaults {
          * @return total durability, or {@code 0} when the item cannot break
          */
         int maxDamage(Key item);
+
+        default @Nullable Key blockTransformer(final Key item) {
+            return null;
+        }
     }
 
     private static final int DEFAULT_STACK_SIZE = 64;
@@ -163,5 +168,23 @@ public final class ItemDefaults {
     public static int maxDamage(final Key item, final DataComponentHolder patch) {
         final Integer patched = patch.get(DataComponentTypes.MAX_DAMAGE);
         return patched != null ? patched : maxDamage(item);
+    }
+
+    /**
+     * Resolves which block transformer an item applies: nothing when {@code patch}
+     * removes the component, what {@code patch} says when it sets one, and failing
+     * that the item's own default.
+     *
+     * @param item  namespaced item identifier
+     * @param patch the stack's components
+     * @return the {@code minecraft:block_transformer} entry, or {@code null}
+     * @since 0.1.0
+     */
+    public static @Nullable Key blockTransformer(final Key item, final DataComponentHolder patch) {
+        if (patch.components().isRemoved(DataComponentTypes.BLOCK_TRANSFORMER)) {
+            return null;
+        }
+        final Key patched = patch.get(DataComponentTypes.BLOCK_TRANSFORMER);
+        return patched != null ? patched : source.blockTransformer(item);
     }
 }

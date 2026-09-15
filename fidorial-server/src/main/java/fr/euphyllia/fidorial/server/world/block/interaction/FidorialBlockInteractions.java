@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.world.block.interaction;
 
 import fr.euphyllia.fidorial.server.plugin.BuiltInPlugin;
 import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
-import fr.euphyllia.fidorial.server.world.block.FarmlandBlock;
+import fr.euphyllia.fidorial.server.world.block.transform.BlockTransformers;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
 import fr.fidorial.world.block.interaction.BlockInteractionHandler;
@@ -30,7 +30,7 @@ public final class FidorialBlockInteractions implements BlockInteractionRegistry
     public static FidorialBlockInteractions createDefault() {
         final FidorialBlockInteractions interactions = new FidorialBlockInteractions();
         interactions.register(EnderChestBlock.KEY, EnderChestBlock::open, BUILT_IN);
-        interactions.registerAll(FarmlandBlock.tillableBlocks(), FarmlandBlock::till, BUILT_IN);
+        interactions.registerAll(BlockTransformers.transformableBlocks(), BlockTransformers::use, BUILT_IN);
         return interactions;
     }
 
