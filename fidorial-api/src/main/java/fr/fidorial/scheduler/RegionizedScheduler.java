@@ -22,9 +22,10 @@ public interface RegionizedScheduler {
      * @param worldName the key of the world the position belongs to
      * @param pos       the chunk position identifying the target region
      * @param task      the task to run
+     * @return {@code false} if the task failed to be scheduled
      * @since 0.1.0
      */
-    void execute(Key worldName, ChunkPos pos, Runnable task);
+    boolean execute(Key worldName, ChunkPos pos, Runnable task);
 
     /**
      * Schedules {@code task} to run on the region thread owning {@code pos}, after at least
@@ -34,9 +35,10 @@ public interface RegionizedScheduler {
      * @param pos        the chunk position identifying the target region
      * @param task       the task to run
      * @param delayTicks the minimum number of ticks to wait before running the task
+     * @return {@code false} if the task failed to be scheduled
      * @since 0.1.0
      */
-    void executeDelayed(Key worldName, ChunkPos pos, Runnable task, long delayTicks);
+    boolean executeDelayed(Key worldName, ChunkPos pos, Runnable task, long delayTicks);
 
     /**
      * @param worldName the key of the world the position belongs to

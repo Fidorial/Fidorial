@@ -14,10 +14,9 @@ jline = "4.4.0"
 spotless = "8.10.2"
 spotless-lib = "4.8.0"
 classgraph = "4.8.180"
-shadow = "9.5.1"
+shadow = "9.6.1"
 dfu = "10.0.21"
 adventure-nbt-dfu = "0.1.2"
-diffpatch = "2.1.0.43"
 spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
 leafpile = "1.2.0"
@@ -54,7 +53,6 @@ spotless-lib-extra = { module = "com.diffplug.spotless:spotless-lib-extra", vers
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 dfu = { module = "com.mojang:datafixerupper", version.ref = "dfu" }
-diffpatch = { module = "io.codechicken:DiffPatch", version.ref = "diffpatch" }
 spark-common = { module = "me.lucko:spark-common", version.ref = "spark" }
 spark-api = { module = "me.lucko:spark-api", version.ref = "spark-api" }
 leafpile = { module = "ca.spottedleaf:leafpile", version.ref = "leafpile" }

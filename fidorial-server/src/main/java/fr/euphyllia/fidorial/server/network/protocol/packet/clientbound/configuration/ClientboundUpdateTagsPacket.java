@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.registry.Registry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
+import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
 import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
 import net.kyori.adventure.key.Key;
@@ -19,7 +20,8 @@ public record ClientboundUpdateTagsPacket(
         RegistryHolder network,
         FidorialBiomeRegistry biomes,
         FidorialDialogRegistry dialogs,
-        FidorialDimensionTypeRegistry dimensionTypes
+        FidorialDimensionTypeRegistry dimensionTypes,
+        FidorialChatTypeRegistry chatTypes
 ) implements ClientboundPacket {
 
     @Override
@@ -44,6 +46,9 @@ public record ClientboundUpdateTagsPacket(
             } else if (reg.name().equals(FidorialDimensionTypeRegistry.REGISTRY_NAME)) {
                 tags = reg.tags();
                 networkId = dimensionTypes::networkId;
+            } else if (reg.name().equals(FidorialChatTypeRegistry.REGISTRY_NAME)) {
+                tags = reg.tags();
+                networkId = chatTypes::networkId;
             } else {
                 tags = reg.tags();
                 final List<Key> entries = reg.entries();

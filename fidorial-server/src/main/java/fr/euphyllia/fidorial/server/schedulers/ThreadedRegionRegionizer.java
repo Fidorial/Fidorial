@@ -86,13 +86,13 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     }
 
     @Override
-    public void execute(final Key worldName, final ChunkPos pos, final Runnable task) {
-        enqueue(worldName, pos, task, 0L);
+    public boolean execute(final Key worldName, final ChunkPos pos, final Runnable task) {
+        return enqueue(worldName, pos, task, 0L);
     }
 
     @Override
-    public void executeDelayed(final Key worldName, final ChunkPos pos, final Runnable task, final long delayTicks) {
-        enqueue(worldName, pos, task, Math.max(0L, delayTicks));
+    public boolean executeDelayed(final Key worldName, final ChunkPos pos, final Runnable task, final long delayTicks) {
+        return enqueue(worldName, pos, task, Math.max(0L, delayTicks));
     }
 
     @Override
@@ -143,8 +143,8 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         removeTicket(worldName, from);
     }
 
-    private void enqueue(final Key worldName, final ChunkPos pos, final Runnable task, final long delayTicks) {
-        if (shutdown) return;
+    private boolean enqueue(final Key worldName, final ChunkPos pos, final Runnable task, final long delayTicks) {
+        if (shutdown) return false;
 
         final RegionKey key = RegionKey.of(worldName, pos);
         final Region[] fresh = new Region[1];
@@ -159,16 +159,19 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         });
 
         if (fresh[0] != null) {
-            schedule(fresh[0]);
+            return schedule(fresh[0]);
         } else if (region != null) {
             scheduler.notifyTasks(region);
+            return true;
         }
+        return false;
     }
 
-    private void schedule(final Region region) {
+    private boolean schedule(final Region region) {
         region.initScheduledStart(System.nanoTime());
         scheduler.schedule(region);
         LOGGER.debug("Region created: {}", region.key);
+        return true;
     }
 
     private boolean tryRetire(final Region region) {

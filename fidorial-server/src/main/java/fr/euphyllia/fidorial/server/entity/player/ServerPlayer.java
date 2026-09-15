@@ -12,6 +12,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerClosePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisguisedChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundOpenScreenPacket;
@@ -49,6 +50,7 @@ import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.sound.Sound;
@@ -427,6 +429,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public void sendMessage(final Component message) {
         final Component resolved = ComponentResolver.resolve(message, this);
         connection.send(new ClientboundSystemChatPacket(TranslationStore.render(resolved, locale()), false));
+    }
+
+    @Override
+    public void sendMessage(final Component message, final ChatType.Bound chatType) {
+        final Component resolvedMessage = TranslationStore.render(ComponentResolver.resolve(message, this), locale());
+        final Component resolvedName = TranslationStore.render(ComponentResolver.resolve(chatType.name(), this), locale());
+        Component resolvedTarget = null;
+        if (chatType.target() != null) resolvedTarget = TranslationStore.render(ComponentResolver.resolve(chatType.target(), this), locale());
+        connection.send(new ClientboundDisguisedChatPacket(resolvedMessage, chatType.type(), resolvedName, resolvedTarget));
     }
 
     @Override

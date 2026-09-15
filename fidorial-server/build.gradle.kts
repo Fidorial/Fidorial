@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.blossom)
     id("fidorial-spotless")
     id("fidorial-build-conventions")
-    id("fr.fidorial.dependency-patcher")
+    id("fr.fidorial.dependency-patcher") version "1.0.0"
     id("fr.fidorial.registry-generator")
 }
 
@@ -215,7 +215,7 @@ tasks.withType<GenerateItemPropertiesTask>().configureEach {
 
 fidorialRegistryGenerator {
     minecraftVersion.set(providers.gradleProperty("minecraftVersion"))
-    prismarineMinecraftData.set("26.3-rc-3")
+    prismarineMinecraftData.set("26.3")
     prismarineDataRepository.set("Fidorial/minecraft-data") // PrismarineJS/minecraft-data
     prismarineDataRef.set("ver/26.3") // master
 

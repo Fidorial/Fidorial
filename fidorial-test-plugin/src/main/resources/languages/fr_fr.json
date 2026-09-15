@@ -1,5 +1,9 @@
 {
   "fidorial.baguette.unknown": "<red>Type de baguette inconnu : '<arg:0>'</red>",
   "console.fidorial.baguette.unknown": "<red>Type de baguette inconnu : '<arg:0>'</red>",
-  "fidorial.bed.sleep.not_allowed": "<red>Vous ne pouvez pas dormir dans cette dimension. Vous ne pouvez définir votre point de réapparition que la nuit."
+  "fidorial.bed.sleep.not_allowed": "<red>Vous ne pouvez pas dormir dans cette dimension. Vous ne pouvez définir votre point de réapparition que la nuit.",
+  "fidorial.chat.arrival": "<green><italic><arg:0> a rejoint le serveur</italic></green>",
+  "fidorial.chat.arrival.narrate": "<arg:0> a rejoint le serveur",
+  "fidorial.chat.departure": "<yellow><italic><arg:0> a quitté le serveur</italic></yellow>",
+  "fidorial.chat.departure.narrate": "<arg:0> a quitté le serveur"
 }

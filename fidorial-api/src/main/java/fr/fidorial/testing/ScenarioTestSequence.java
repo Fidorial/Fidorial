@@ -1,7 +1,10 @@
 package fr.fidorial.testing;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.function.BooleanSupplier;
 
 /**
  * A sequence of steps executed one tick at a time.
@@ -13,6 +16,7 @@ public final class ScenarioTestSequence {
     }
 
     private final Deque<Step> steps;
+    private @Nullable ScenarioAssertionException lastFailure;
 
     private ScenarioTestSequence(final Deque<Step> steps) {
         this.steps = steps;
@@ -25,6 +29,7 @@ public final class ScenarioTestSequence {
                 step.action().run();
             } catch (final ScenarioAssertionException e) {
                 if (step.retryable()) {
+                    lastFailure = e;
                     return false; // retry next tick
                 }
                 throw e;
@@ -32,6 +37,10 @@ public final class ScenarioTestSequence {
             steps.pollFirst();
         }
         return true;
+    }
+
+    @Nullable ScenarioAssertionException lastFailure() {
+        return lastFailure;
     }
 
     /**
@@ -64,6 +73,20 @@ public final class ScenarioTestSequence {
         public Builder waitUntil(final Runnable assertion) {
             checkNotBuilt();
             steps.addLast(new Step(assertion, true));
+            return this;
+        }
+
+        /**
+         * Retries {@code condition} every tick until it returns {@code true}, throwing
+         * {@link ScenarioAssertionException} with {@code messageIfFalse} on each failed attempt.
+         */
+        public Builder waitUntil(final BooleanSupplier condition, final String messageIfFalse) {
+            checkNotBuilt();
+            steps.addLast(new Step(() -> {
+                if (!condition.getAsBoolean()) {
+                    throw new ScenarioAssertionException(messageIfFalse, info.tick());
+                }
+            }, true));
             return this;
         }
 
