@@ -68,7 +68,12 @@ public final class PrismarineItemReportParser {
                 }
             }
 
-            items.put(name, new PrismarineItemDefinition(name, displayName, protocolId, stackSize, maxDurability, repairWith));
+            final String blockTransformer = itemObject.has("blockTransformer")
+                    ? itemObject.get("blockTransformer").getAsString()
+                    : null;
+
+            items.put(name, new PrismarineItemDefinition(
+                    name, displayName, protocolId, stackSize, maxDurability, repairWith, blockTransformer));
         }
 
         return Map.copyOf(items);

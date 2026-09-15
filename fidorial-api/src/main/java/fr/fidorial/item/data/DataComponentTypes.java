@@ -74,6 +74,14 @@ public class DataComponentTypes {
     public static final DataComponentType<SwingAnimation> INTERACT_ANIMATION =
             register(DataComponentTypeKeys.INTERACT_ANIMATION.key(), SwingAnimation.class);
 
+
+    /**
+     * The {@code minecraft:block_transformer} registry entry this item applies when
+     * used on a block.
+     */
+    public static final DataComponentType<Key> BLOCK_TRANSFORMER =
+            register(DataComponentTypeKeys.BLOCK_TRANSFORMER.key(), Key.class);
+
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");
     }
