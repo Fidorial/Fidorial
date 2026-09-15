@@ -35,6 +35,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 module fr.fidorial {
     exports fr.fidorial.attribute;
+    exports fr.fidorial.chat;
     exports fr.fidorial.combat;
     exports fr.fidorial.command;
     exports fr.fidorial.dialog;

@@ -1,4 +1,8 @@
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven("https://repo.euphyllia.moe/repository/maven-public/")
+    }
     includeBuild("build-logic")
     includeBuild("fidorial-registry-generator")
 }

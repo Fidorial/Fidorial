@@ -6,12 +6,14 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class ChunkRegionScheduler {
 
+    private final ComponentLogger LOGGER = ComponentLogger.logger(ChunkRegionScheduler.class);
     private final LongOpenHashSet locked = new LongOpenHashSet();
     private final Long2ObjectOpenHashMap<List<PendingTask>> waitingOn = new Long2ObjectOpenHashMap<>();
     private final PrioritisedExecutor executor;
@@ -49,13 +51,21 @@ public final class ChunkRegionScheduler {
 
     private void lockAndRun(final PendingTask pending) {
         locked.addAll(pending.keys);
-        executor.queueTask(() -> {
+        try {
+            executor.queueTask(() -> {
+                try {
+                    pending.task.run();
+                } finally {
+                    release(pending);
+                }
+            }, pending.priority);
+        } catch (final IllegalStateException e) {
             try {
                 pending.task.run();
             } finally {
                 release(pending);
             }
-        }, pending.priority);
+        }
     }
 
     private synchronized void release(final PendingTask finished) {
@@ -77,7 +87,11 @@ public final class ChunkRegionScheduler {
         if (ready == null) return;
 
         for (final PendingTask p : ready) {
-            tryStart(p);
+            try {
+                tryStart(p);
+            } catch (final RuntimeException e) {
+                LOGGER.error("Failed to start a pending region task during release", e);
+            }
         }
     }
 

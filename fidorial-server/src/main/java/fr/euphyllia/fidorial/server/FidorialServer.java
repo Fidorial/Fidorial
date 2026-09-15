@@ -40,6 +40,7 @@ import fr.euphyllia.fidorial.server.plugin.JavaPluginManager;
 import fr.euphyllia.fidorial.server.registry.Registries;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
+import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
@@ -306,6 +307,7 @@ public final class FidorialServer implements Server {
     private void syncServerStatusToRegistries(final boolean started) {
         biomeRegistry().started.getAndSet(started);
         dimensionTypes().started.getAndSet(started);
+        chatTypes().started.getAndSet(started);
     }
 
     @Override
@@ -581,6 +583,11 @@ public final class FidorialServer implements Server {
     }
 
     @Override
+    public FidorialChatTypeRegistry chatTypes() {
+        return registries.chatTypes();
+    }
+
+    @Override
     public FidorialItemRegistry items() {
         return itemRegistry;
     }
@@ -605,7 +612,7 @@ public final class FidorialServer implements Server {
 
     @Override
     public World createWorld(final WorldBuilder spec) {
-        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null));
+        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), false);
     }
 
     @Override
@@ -848,6 +855,10 @@ public final class FidorialServer implements Server {
     @Override
     public TranslationStore translationStore() {
         return TranslationStore.current();
+    }
+
+    public World createWorldSilent(final WorldBuilder spec) {
+        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), true);
     }
 
     @FunctionalInterface

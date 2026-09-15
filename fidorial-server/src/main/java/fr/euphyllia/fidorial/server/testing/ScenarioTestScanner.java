@@ -18,8 +18,7 @@ final class ScenarioTestScanner {
     private ScenarioTestScanner() {
     }
 
-    public static List<ScenarioTestInstance> scanPackages(
-            final Collection<ClassLoader> loaders, final String... packages) {
+    static List<ScenarioTestInstance> scanPackages(final Collection<ClassLoader> loaders, final String... packages) {
         final List<ScenarioTestInstance> result = new ArrayList<>();
         try (final ScanResult scan = new ClassGraph()
                 .enableMethodInfo()

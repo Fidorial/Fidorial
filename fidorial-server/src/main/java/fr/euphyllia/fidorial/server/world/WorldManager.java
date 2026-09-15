@@ -209,7 +209,7 @@ public final class WorldManager implements AutoCloseable {
         return Collections.unmodifiableCollection(worlds.values());
     }
 
-    public ServerWorld createWorld(final Key key, final long seed, final @Nullable WorldGenerator generator) {
+    public ServerWorld createWorld(final Key key, final long seed, final @Nullable WorldGenerator generator, final boolean silent) {
         final ChunkGenerator chunkGenerator = generator != null
                 ? new PluginBackedChunkGenerator(
                 generator, FlatChunkGenerator.cobblestone(generator.dimensionType()))
@@ -219,7 +219,7 @@ public final class WorldManager implements AutoCloseable {
 
         final boolean existed = worlds.containsKey(dim.id());
         final ServerWorld world = registerDimension(dim, chunkGenerator, seed);
-        if (!existed) {
+        if (!existed && !silent) {
             LOGGER.info(
                     "World '{}' created (seed={}, generator={})",
                     key,

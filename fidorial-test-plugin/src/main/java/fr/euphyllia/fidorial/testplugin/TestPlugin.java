@@ -12,6 +12,7 @@ import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
+import fr.euphyllia.fidorial.testplugin.terrain.TestChatTypes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestDimensionTypes;
 import fr.euphyllia.fidorial.testplugin.worldgen.GeneratorSettings;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
@@ -112,6 +113,8 @@ public final class TestPlugin implements Plugin {
 
         TestDimensionTypes.registerAll(context.server().dimensionTypes(), context.logger());
 
+        TestChatTypes.registerAll(context.server().chatTypes(), context.logger());
+
 //        BullMobs.attachToCows(context.server().mobs(), this, context.logger());
        BullMobs.registerBull(context.server().mobs(), this, context.logger());
         CompanionMobs.register(context.server().mobs(), this, context.logger());
@@ -162,6 +165,7 @@ public final class TestPlugin implements Plugin {
         TestBiomes.unregisterAll(server.biomes());
         TestDialogs.unregisterAll(server.dialogs());
         TestDimensionTypes.unregisterAll(context.server().dimensionTypes());
+        TestChatTypes.unregisterAll(server.chatTypes());
         BullMobs.unregisterAll(server.mobs(), this);
         server.mobs().unregisterAll(this);
         TestPluginTranslations.unregister();
@@ -197,45 +201,91 @@ public final class TestPlugin implements Plugin {
     private void registerEvents() {
         final var events = context.events();
 
-        events.subscribe(ServerStatusRequestEvent.class, event -> {
-            event.status(event.status().toBuilder()
-                    .description(Component.text("HELLO!!!"))
-                    .enforceSecureChat(true)
-                    .samplePlayer(new ServerStatus.SamplePlayer("test", UUID.randomUUID()))
-                    .maxPlayers(-999)
-                    .players(999)
-                    .version(new ServerStatus.Version(
-                            "§aIDK §cXOXO",
-                            event.status().version().protocolVersion()
-                    ))
-                    .build());
-        });
+        events.subscribe(ServerStatusRequestEvent.class, event -> event.status(event.status().toBuilder()
+                .description(Component.text("HELLO!!!"))
+                .enforceSecureChat(true)
+                .samplePlayer(new ServerStatus.SamplePlayer("test", UUID.randomUUID()))
+                .maxPlayers(-999)
+                .players(999)
+                .version(new ServerStatus.Version(
+                        "§aIDK §cXOXO",
+                        event.status().version().protocolVersion()
+                ))
+                .build()));
 
         events.subscribe(ServerStartedEvent.class, e ->
                 logger.info("[TestPlugin][event] ServerStartedEvent received, MC version {}",
                         e.server().minecraftVersion()));
 
-        events.subscribe(ServerStoppingEvent.class, e -> logger.info("[TestPlugin][event] ServerStoppingEvent received"));
+        events.subscribe(ServerStoppingEvent.class, _ -> logger.info("[TestPlugin][event] ServerStoppingEvent received"));
 
         events.subscribe(PlayerJoinEvent.class, e -> {
             eventCount.incrementAndGet();
             logger.info("[TestPlugin][event] PlayerJoin: {}", e.player().name());
             msg(e.player(), "[TestPlugin] Welcome " + e.player().name() + "! Type /apitest to test the API.");
+
+            final var chatType = TestChatTypes.ARRIVAL.bind(e.player().displayName());
+            server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text("Hi!"), chatType));
         });
 
         events.subscribe(PlayerQuitEvent.class, e -> {
             eventCount.incrementAndGet();
             logger.info("[TestPlugin][event] PlayerQuit de {}", e.player().name());
+
+            final var chatType = TestChatTypes.DEPARTURE.bind(e.player().displayName());
+            server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text("Bye!"), chatType));
         });
 
         events.subscribe(PlayerChatEvent.class, EventPriority.HIGH, e -> {
             eventCount.incrementAndGet();
             final String raw = PLAIN.serialize(e.message());
+
             if (raw.equalsIgnoreCase("!cancel")) {
                 e.setCancelled(true);
                 msg(e.player(), "[TestPlugin] Message cancelled (Cancellable test OK).");
-            } else if (raw.startsWith("!upper ")) {
+                return;
+            }
+
+            if (raw.startsWith("!upper ")) {
                 e.setMessage(Component.text(raw.substring(7).toUpperCase(Locale.ROOT)));
+                return;
+            }
+
+            if (raw.startsWith("!me ")) {
+                e.setCancelled(true);
+                final String content = raw.substring(4);
+                final var chatType = TestChatTypes.EMOTE.bind(Component.text(e.player().name()));
+                server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
+                return;
+            }
+
+            if (raw.startsWith("!shout ")) {
+                e.setCancelled(true);
+                final String content = raw.substring(7);
+                final var chatType = TestChatTypes.ANNOUNCEMENT.bind(Component.text(e.player().name()));
+                server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
+                return;
+            }
+
+            if (raw.startsWith("!whisper ")) {
+                e.setCancelled(true);
+                final String rest = raw.substring(9);
+                final int space = rest.indexOf(' ');
+                if (space < 0) {
+                    msg(e.player(), "[TestPlugin] Usage: !whisper <player> <message>");
+                    return;
+                }
+                final String targetName = rest.substring(0, space);
+                final String content = rest.substring(space + 1);
+                final Player target = server.player(targetName).orElse(null);
+                if (target == null) {
+                    msg(e.player(), "[TestPlugin] No player named '" + targetName + "' online.");
+                    return;
+                }
+                final var chatType = TestChatTypes.SERVER_WHISPER
+                        .bind(Component.text(e.player().name()), Component.text(target.name()));
+                target.sendMessage(Component.text(content), chatType);
+                e.player().sendMessage(Component.text(content), chatType);
             }
         });
 
