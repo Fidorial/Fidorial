@@ -26,7 +26,7 @@ public record ServerboundChatPacket(
         final Component message = Component.text(rawMessage);
         final long timestamp = buf.readLong();
         final long salt = buf.readLong();
-        final byte[] sig = buf.readOptionalByteArray(MAX_LENGTH);
+        final byte[] sig = buf.readOptionalFixedByteArray(MAX_LENGTH);
         final int count = buf.readVarInt();
         final BitSet acknowledged = buf.readFixedBitSet(20);
         final byte checksum = buf.readByte();

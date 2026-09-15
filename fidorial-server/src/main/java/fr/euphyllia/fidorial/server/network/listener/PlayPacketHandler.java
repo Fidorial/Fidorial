@@ -434,15 +434,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
 
-        final Component formatted = Component.text("\\<" + player.name() + "> ").append(message);
-
-        final PlayerChatEvent event = server.events().post(new PlayerChatEvent(player, formatted));
+        final PlayerChatEvent event = server.events().post(new PlayerChatEvent(player, message));
         if (event.isCancelled()) {
             return;
         }
 
-        LOGGER.debug(Component.text("<" + player.name() + ">").appendSpace().append(event.message()));
-        server.broadcast(new ClientboundSystemChatPacket(event.message(), false));
+        final Component formatted = Component.text("<" + player.name() + "> ").append(event.message());
+        LOGGER.debug(formatted);
+        server.broadcast(new ClientboundSystemChatPacket(formatted, false));
     }
 
     @Override
