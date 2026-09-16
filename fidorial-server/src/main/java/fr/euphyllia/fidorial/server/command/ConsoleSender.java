@@ -11,6 +11,10 @@ import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.Location;
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.permission.PermissionChecker;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -21,6 +25,11 @@ import java.util.Locale;
 public class ConsoleSender implements CommandSender, PermissionStateHolder, CommandSource {
 
     public static final ComponentLogger LOGGER = ComponentLogger.logger("Console");
+    private static final PointersSupplier<ConsoleSender> pointers = PointersSupplier.<ConsoleSender>builder()
+            .resolving(Identity.NAME, ConsoleSender::name)
+            .resolving(Identity.LOCALE, ConsoleSender::locale)
+            .resolving(PermissionChecker.POINTER, sender -> sender::permissionState)
+            .build();
 
     private final PermissionState permissions;
     private Locale locale = Locale.US;
@@ -45,6 +54,11 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
 
     public Locale locale() {
         return this.locale;
+    }
+
+    @Override
+    public Pointers pointers() {
+        return pointers.view(this);
     }
 
     @Override

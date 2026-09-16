@@ -6,10 +6,9 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
-import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundShowDialogPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundClearTitlesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerClosePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisguisedChatPacket;
@@ -20,8 +19,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoGameModePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoUpdatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetActionBarTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetSubtitleTextPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTitleTextPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTitlesAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStopSoundPacket;
@@ -31,8 +34,6 @@ import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.command.CommandSender;
-import fr.fidorial.dialog.DialogDefinition;
-import fr.fidorial.dialog.DialogReference;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
@@ -53,16 +54,23 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.dialog.DialogLike;
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.permission.PermissionChecker;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.sound.SoundStop;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.object.ObjectContents;
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.title.TitlePart;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.UnmodifiableView;
 import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -94,6 +102,13 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private static final float REGENERATION_AMOUNT = 1.0f;
     private static final double SAFE_FALL_DISTANCE = 3.0;
     private static final float SMALL_FALL_THRESHOLD = 4.0f;
+    private static final PointersSupplier<ServerPlayer> pointers = PointersSupplier.<ServerPlayer>builder()
+            .resolving(Identity.DISPLAY_NAME, ServerPlayer::displayName)
+            .resolving(Identity.NAME, ServerPlayer::name)
+            .resolving(Identity.UUID, ServerPlayer::uuid)
+            .resolving(Identity.LOCALE, ServerPlayer::locale)
+            .resolving(PermissionChecker.POINTER, player -> player::permissionState)
+            .build();
     private final PlayerProfile profile;
     private final PlayerInventory inventory;
     private final EnderChestInventory enderChest;
@@ -428,6 +443,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
+    public Pointers pointers() {
+        return pointers.view(this);
+    }
+
+    @Override
     public void sendMessage(final Component message) {
         connection.send(new ClientboundSystemChatPacket(prepareMessageForSend(message), false));
     }
@@ -448,8 +468,52 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
+    public void sendActionBar(final Component message) {
+        connection.send(new ClientboundSetActionBarTextPacket(prepareMessageForSend(message)));
+    }
+
+    @Override
     public void sendPlayerListHeaderAndFooter(final Component header, final Component footer) {
         connection.send(new ClientboundTabListPacket(header, footer));
+    }
+
+    @Override
+    public void showTitle(final Title title) {
+        final Title.Times titleTimes = title.times();
+        if (titleTimes != null) connection.send(new ClientboundSetTitlesAnimationPacket(
+                convertDurationToTicks(titleTimes.fadeIn()),
+                convertDurationToTicks(titleTimes.stay()),
+                convertDurationToTicks(titleTimes.fadeOut())));
+        connection.send(new ClientboundSetTitleTextPacket(prepareMessageForSend(title.title())));
+        connection.send(new ClientboundSetSubtitleTextPacket(prepareMessageForSend(title.subtitle())));
+    }
+
+    @Override
+    public <T> void sendTitlePart(final TitlePart<T> titlePart, final T value) {
+        switch (value) {
+            case Component message -> connection.send(titlePart == TitlePart.TITLE
+                    ? new ClientboundSetTitleTextPacket(prepareMessageForSend(message))
+                    : new ClientboundSetSubtitleTextPacket(prepareMessageForSend(message)));
+            case Title.Times times -> connection.send(new ClientboundSetTitlesAnimationPacket(
+                    convertDurationToTicks(times.fadeIn()),
+                    convertDurationToTicks(times.stay()),
+                    convertDurationToTicks(times.fadeOut())));
+            default -> throw new IllegalStateException("Unexpected value: " + value);
+        }
+    }
+
+    @Override
+    public void clearTitle() {
+        connection.send(new ClientboundClearTitlesPacket(false));
+    }
+
+    @Override
+    public void resetTitle() {
+        connection.send(new ClientboundClearTitlesPacket(true));
+    }
+
+    private int convertDurationToTicks(final Duration duration) {
+        return (int) (duration.toMillis() / 50L);
     }
 
     @Override
@@ -562,24 +626,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void showDialog(final DialogLike dialog) {
-        switch (dialog) {
-            case final DialogDefinition definition ->
-                    connection.send(ClientboundShowDialogPacket.inline(PlayClientboundPackets.SHOW_DIALOG, definition));
-            case final DialogReference reference -> {
-                final int id = connection.server().dialogs().networkId(reference.key());
-                if (id < 0) {
-                    LOGGER.warn(
-                            "{} cannot be shown dialog {}: nothing is registered under that key.",
-                            name(), reference.key().asString());
-                    return;
-                }
-                connection.send(ClientboundShowDialogPacket.reference(
-                        PlayClientboundPackets.SHOW_DIALOG, reference, id));
-            }
-            default -> LOGGER.warn(
-                    "{} cannot be shown a dialog of foreign type {}; build it with fr.fidorial.dialog.Dialog.",
-                    name(), dialog.getClass().getName());
-        }
+        connection.showDialog(dialog);
+    }
+
+    @Override
+    public void closeDialog() {
+        connection.closeDialog();
     }
 
     @Override

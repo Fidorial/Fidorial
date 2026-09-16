@@ -23,8 +23,10 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClient
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundClearDialogPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundShowDialogPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundResetChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginDisconnectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDeleteMessagePacket;
@@ -32,6 +34,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerChatPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.dialog.DialogDefinition;
+import fr.fidorial.dialog.DialogReference;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.PlayerJoinEvent;
@@ -50,7 +54,11 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
+import net.kyori.adventure.dialog.DialogLike;
+import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.resource.ResourcePackCallback;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
@@ -78,7 +86,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// implement pointers and dialog methods in the future from audience
 public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf> implements Audience {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ClientConnection.class);
@@ -87,6 +94,12 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     private static final int KEEP_ALIVE_INTERVAL_SECONDS = 10;
     private static final int LATENCY_SMOOTHING = 3;
+
+    private static final PointersSupplier<ClientConnection> pointers = PointersSupplier.<ClientConnection>builder()
+            .resolving(Identity.NAME, connection -> connection.profile() != null ? connection.profile().name() : "<unknown>")
+            .resolving(Identity.UUID, connection -> connection.profile() != null ? connection.profile().uuid() : new UUID(0L, 0L))
+            .resolving(Identity.LOCALE, ClientConnection::locale)
+            .build();
 
     private final FidorialServer server;
     private final ProtocolMap protocol;
@@ -601,6 +614,11 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         return false;
     }
 
+    @Override
+    public Pointers pointers() {
+        return pointers.view(this);
+    }
+
     private final Map<UUID, ResourcePackCallback> pendingResourcePacks = new ConcurrentHashMap<>();
 
     @Override
@@ -654,6 +672,35 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         if (callback != null) {
             callback.packEventReceived(id, status, this.player != null ? this.player : this);
         }
+    }
+
+    @Override
+    public void showDialog(final DialogLike dialog) {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.SHOW_DIALOG : ConfigurationClientboundPackets.SHOW_DIALOG;
+        switch (dialog) {
+            case final DialogDefinition definition -> send(ClientboundShowDialogPacket.inline(packetKey, definition));
+            case final DialogReference reference -> {
+                final int id = server.dialogs().networkId(reference.key());
+                if (id < 0) {
+                    LOGGER.warn(
+                            "{} cannot be shown dialog {}: nothing is registered under that key.",
+                            username, reference.key().asString());
+                    return;
+                }
+                send(ClientboundShowDialogPacket.reference(packetKey, reference, id));
+            }
+            default -> LOGGER.warn(
+                    "{} cannot be shown a dialog of foreign type {}; build it with fr.fidorial.dialog.Dialog.",
+                    username, dialog.getClass().getName());
+        }
+    }
+
+    @Override
+    public void closeDialog() {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.CLEAR_DIALOG : ConfigurationClientboundPackets.CLEAR_DIALOG;
+        send(new ClientboundClearDialogPacket(packetKey));
     }
 
     private final List<Component> pendingMessages = new ArrayList<>();
