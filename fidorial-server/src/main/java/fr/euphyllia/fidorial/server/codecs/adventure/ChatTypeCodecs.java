@@ -1,4 +1,4 @@
-package fr.euphyllia.fidorial.server.codecs.world;
+package fr.euphyllia.fidorial.server.codecs.adventure;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;

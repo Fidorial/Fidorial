@@ -46,7 +46,7 @@ public final class ProtocolMap {
     }
 
     private void put(final ConnectionState state, final boolean clientbound, final Map<Key, Integer> byName) {
-        table.computeIfAbsent(state, s -> new HashMap<>()).put(clientbound, Direction.of(byName));
+        table.computeIfAbsent(state, _ -> new HashMap<>()).put(clientbound, Direction.of(byName));
     }
 
     public boolean isAvailable() {

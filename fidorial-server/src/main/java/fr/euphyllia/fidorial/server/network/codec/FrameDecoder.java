@@ -30,7 +30,7 @@ public final class FrameDecoder extends ByteToMessageDecoder {
                     in.resetReaderIndex();
                     return;
                 }
-                out.add(in.readRetainedSlice(length));
+                out.add(in.readBytes(length));
                 return;
             }
         }

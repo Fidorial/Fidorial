@@ -105,6 +105,7 @@ public class DayNightThread implements AutoCloseable {
         for (int i = 0, size = players.size(); i < size; i++) {
             final ServerPlayer player = players.get(i);
             if (player.world() == world) {
+                if (!player.connection().isInPlayState()) continue;
                 player.connection().send(packet);
             }
         }

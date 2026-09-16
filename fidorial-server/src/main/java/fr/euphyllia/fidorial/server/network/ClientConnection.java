@@ -3,6 +3,11 @@ package fr.euphyllia.fidorial.server.network;
 import com.google.common.net.InetAddresses;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.chat.FilterType;
+import fr.euphyllia.fidorial.server.chat.IdentifiedSignedMessage;
+import fr.euphyllia.fidorial.server.chat.LastSeenMessages;
+import fr.euphyllia.fidorial.server.chat.SignedChatSession;
+import fr.euphyllia.fidorial.server.chat.SignedMessageChain;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.codec.CipherDecoder;
 import fr.euphyllia.fidorial.server.network.codec.CipherEncoder;
@@ -20,9 +25,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundResetChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginDisconnectPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDeleteMessagePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisconnectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundKeepAlivePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerChatPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
@@ -40,6 +48,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.embedded.EmbeddedChannel;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.chat.ChatType;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.resource.ResourcePackCallback;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -66,6 +76,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 // implement pointers and dialog methods in the future from audience
 public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf> implements Audience {
@@ -83,6 +94,8 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private ChannelHandlerContext ctx;
     private ConnectionState state;
     private PacketListener listener;
+    private @Nullable ConnectionState rejectedState;
+    private @Nullable List<Class<? extends ServerboundPacket>> exemptPackets;
 
     private int clientProtocol;
     private @Nullable String username;
@@ -93,6 +106,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private @Nullable String forwardedAddress;
     private Locale locale = TranslationStore.defaultLocale();
     private @Nullable ScheduledFuture<?> keepAliveTask;
+    private volatile @Nullable SignedChatSession chatSession;
+    private volatile @Nullable SignedMessageChain chatChain;
+    private final LastSeenMessages lastSeenMessages = new LastSeenMessages();
+    private final AtomicInteger nextGlobalChatIndex = new AtomicInteger();
 
     private volatile long pendingKeepAliveId;
     private volatile int latencyMillis;
@@ -121,7 +138,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             return;
         }
         final ServerboundPacket packet = ServerboundPackets.decode(state, name, buf);
-        if (packet == null) {
+        if (packet == null || isRejected(packet.getClass())) {
             LOGGER.trace("{}: {} received (unmanaged, ignored)", state, name);
             return;
         }
@@ -130,6 +147,8 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     public void setState(final ConnectionState newState) {
         this.state = newState;
+        this.rejectedState = null;
+        this.exemptPackets = null;
         this.listener = createListener(newState);
         this.listener.onEnter();
     }
@@ -145,14 +164,30 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public void send(final ClientboundPacket packet) {
-        final ChannelFuture future = write(packet);
+        this.send(packet, false);
+    }
+
+    public void send(final ClientboundPacket packet, final boolean bypassRejection) {
+        if (ctx.channel().eventLoop().inEventLoop()) {
+            sendNow(packet, bypassRejection);
+        } else {
+            execute(() -> sendNow(packet, bypassRejection));
+        }
+    }
+
+    private void sendNow(final ClientboundPacket packet, final boolean bypassRejection) {
+        final ChannelFuture future = write(packet, bypassRejection);
         if (future != null) {
             future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
         }
     }
 
     public void sendAndClose(final ClientboundPacket packet) {
-        final ChannelFuture future = write(packet);
+        this.sendAndClose(packet, false);
+    }
+
+    public void sendAndClose(final ClientboundPacket packet, final boolean bypassRejection) {
+        final ChannelFuture future = write(packet, bypassRejection);
         if (future != null) {
             future.addListener(ChannelFutureListener.CLOSE);
         } else {
@@ -174,9 +209,15 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         }
     }
 
-    private @Nullable ChannelFuture write(final ClientboundPacket packet) {
+    private @Nullable ChannelFuture write(final ClientboundPacket packet, final boolean bypassRejection) {
         if (!isActive() || state == ConnectionState.MOCK_PLAY) {
             return null;
+        }
+
+        if (this.rejectedState != null && this.rejectedState == this.state) {
+            if (!bypassRejection) {
+                return null;
+            }
         }
 
         final ByteBuf out = ctx.alloc().buffer();
@@ -202,6 +243,14 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
      */
     public boolean isActive() {
         return ctx != null && ctx.channel().isActive();
+    }
+
+    public boolean isRejected(final Class<? extends ServerboundPacket> packet) {
+        final boolean hasExemptions = this.exemptPackets != null;
+        if (hasExemptions) {
+            return this.state.equals(this.rejectedState) && !this.exemptPackets.contains(packet);
+        }
+        return this.state.equals(this.rejectedState);
     }
 
     public void execute(final Runnable task) {
@@ -264,6 +313,79 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     public int ping() {
         return latencyMillis;
+    }
+
+    public @Nullable SignedChatSession chatSession() {
+        return chatSession;
+    }
+
+    public void setChatSession(final SignedChatSession session) {
+        this.chatSession = session;
+        final PlayerProfile p = this.profile;
+        this.chatChain = p != null ? new SignedMessageChain(p.uuid()) : null;
+    }
+
+    public void resetChatSession() {
+        this.chatSession = null;
+        this.chatChain = null;
+        this.lastSeenMessages.clear();
+        nextGlobalChatIndex.set(0);
+        send(new ClientboundResetChatPacket());
+    }
+
+    public @Nullable SignedMessageChain chatChain() {
+        return chatChain;
+    }
+
+    public LastSeenMessages lastSeen() {
+        return lastSeenMessages;
+    }
+
+    public void sendSignedMessage(final SignedMessage message, final ChatType.Bound chatType) {
+        final int globalIndex = nextGlobalChatIndex.getAndIncrement();
+        final SignedMessage.Signature ownSignature = message.signature();
+
+        final List<ClientboundPlayerChatPacket.PackedSignature> lastSeen;
+        final int index;
+        if (message instanceof final IdentifiedSignedMessage verified) {
+            lastSeen = packLastSeen(verified.lastSeen());
+            index = verified.index();
+        } else {
+            lastSeen = List.of();
+            index = globalIndex;
+        }
+
+        if (player() != null) {
+            send(new ClientboundPlayerChatPacket(
+                    globalIndex,
+                    message.identity().uuid(),
+                    index,
+                    ownSignature != null ? ownSignature.bytes() : null,
+                    message.message(),
+                    message.timestamp(),
+                    message.salt(),
+                    lastSeen,
+                    player().prepareMessageForSend(message.unsignedContent()),
+                    FilterType.PASS_THROUGH,
+                    chatType,
+                    player()));
+
+            if (ownSignature != null) {
+                lastSeenMessages.push(ownSignature);
+            }
+        }
+    }
+
+    private List<ClientboundPlayerChatPacket.PackedSignature> packLastSeen(final List<SignedMessage.Signature> lastSeen) {
+        final List<ClientboundPlayerChatPacket.PackedSignature> packed = new ArrayList<>(lastSeen.size());
+        for (final SignedMessage.Signature signature : lastSeen) {
+            packed.add(ClientboundPlayerChatPacket.PackedSignature.full(signature.bytes()));
+        }
+        return packed;
+    }
+
+    public void deleteSignedMessage(final SignedMessage.Signature signature) {
+        send(ClientboundDeleteMessagePacket.full(signature.bytes()));
     }
 
     @Override
@@ -430,7 +552,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         this.player = player;
     }
 
-    private boolean isInPlayState() {
+    public boolean isInPlayState() {
         return state == ConnectionState.PLAY || state == ConnectionState.MOCK_PLAY;
     }
 
@@ -555,5 +677,26 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         for (final Component message : queued) {
             sendMessage(message);
         }
+    }
+
+    /**
+     * Sets the {@link ConnectionState} for which packets shouldn't be read.
+     * This gets reset on each {@link setState} call.
+     *
+     * @param state the state to reject packets
+     */
+    public void setRejectedState(final ConnectionState state) {
+        this.rejectedState = state;
+    }
+
+    /**
+     * Adds a packet to the list of packets that should be exempt from rejection.
+     * @param packet the packet to add
+     */
+    public void addExemptPacket(final Class<? extends ServerboundPacket> packet) {
+        if (this.exemptPackets == null) {
+            this.exemptPackets = new ArrayList<>();
+        }
+        this.exemptPackets.add(packet);
     }
 }
