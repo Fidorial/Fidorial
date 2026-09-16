@@ -4,13 +4,12 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
-import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
 
 public record ServerboundChatPacket(
-        Component message,
+        String message,
         long timestamp,
         long salt,
         byte @Nullable [] signature,
@@ -22,8 +21,7 @@ public record ServerboundChatPacket(
     private static final int MAX_LENGTH = 256;
 
     public static ServerboundChatPacket read(final PacketBuffer buf) {
-        final String rawMessage = buf.readString(MAX_LENGTH);
-        final Component message = Component.text(rawMessage);
+        final String message = buf.readString(MAX_LENGTH);
         final long timestamp = buf.readLong();
         final long salt = buf.readLong();
         final byte[] sig = buf.readOptionalFixedByteArray(MAX_LENGTH);

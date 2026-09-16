@@ -88,7 +88,7 @@ final class SimpleServerStatus implements ServerStatus {
         private @Nullable Favicon favicon = null;
         private Component description = Component.empty();
         private Version version = new Version("", -1);
-        private boolean enforceSecureChat = false;
+        private boolean enforceSecureChat = true;
         private int maxPlayers = 0;
         private int players = 0;
 

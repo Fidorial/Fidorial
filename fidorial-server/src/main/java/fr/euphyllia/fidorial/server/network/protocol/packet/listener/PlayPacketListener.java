@@ -4,9 +4,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.S
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcceptTeleportationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcknowledgeConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAttackPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatAckPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatCommandPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatSessionUpdatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundClientCommandPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundClientTickEndPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCommandSuggestionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClosePacket;
@@ -15,6 +18,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosRotPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerInputPacket;
@@ -59,6 +63,8 @@ public interface PlayPacketListener extends PacketListener {
 
     void handleClientInformation(ServerboundClientInformationPacket packet);
 
+    void handleChatSessionUpdate(ServerboundChatSessionUpdatePacket packet);
+
     void handleChatCommand(ServerboundChatCommandPacket packet);
 
     void handleChat(ServerboundChatPacket packet);
@@ -74,4 +80,10 @@ public interface PlayPacketListener extends PacketListener {
     void handleResourcePackResponse(ServerboundResourcePackPacket packet);
 
     void handlePlayerInput(ServerboundPlayerInputPacket packet);
+
+    void handleChatAck(ServerboundChatAckPacket packet);
+
+    void handleClientTickEnd(ServerboundClientTickEndPacket packet);
+
+    void handleMovePlayerRot(ServerboundMovePlayerRotPacket packet);
 }

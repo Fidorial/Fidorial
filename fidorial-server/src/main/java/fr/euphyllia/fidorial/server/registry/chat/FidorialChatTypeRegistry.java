@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.registry.chat;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.codecs.world.ChatTypeCodecs;
+import fr.euphyllia.fidorial.server.codecs.adventure.ChatTypeCodecs;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.registry.RegistryEntry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;

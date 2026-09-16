@@ -28,6 +28,7 @@ import fr.fidorial.event.player.PlayerDialogActionEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerLoginAttemptEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
+import fr.fidorial.event.player.PlayerSignedChatEvent;
 import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStatusRequestEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
@@ -36,8 +37,11 @@ import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
 import fr.fidorial.world.generation.WorldGenerator;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -287,6 +291,31 @@ public final class TestPlugin implements Plugin {
                 target.sendMessage(Component.text(content), chatType);
                 e.player().sendMessage(Component.text(content), chatType);
             }
+        });
+
+        events.subscribe(PlayerSignedChatEvent.class, EventPriority.HIGH, e -> {
+            final String raw = PLAIN.serialize(e.message());
+            if (!raw.startsWith("!deletable")) {
+                return;
+            }
+
+            final SignedMessage.Signature signature = e.signedMessage().signature();
+            if (signature == null) {
+                return;
+            }
+
+            final String rest = raw.length() > "!deletable".length()
+                    ? raw.substring("!deletable".length()).trim()
+                    : "";
+
+            final Component deleteCross = Component.textOfChildren(
+                            Component.text("[", NamedTextColor.DARK_GRAY),
+                            Component.text("X", NamedTextColor.DARK_RED, TextDecoration.BOLD),
+                            Component.text("]", NamedTextColor.DARK_GRAY))
+                    .hoverEvent(Component.text("Click to delete your message!", NamedTextColor.RED))
+                    .clickEvent(ClickEvent.callback(_ -> server.deleteMessage(signature)));
+
+            e.setMessage(Component.text(rest).appendSpace().append(deleteCross));
         });
 
         events.subscribe(BlockBreakEvent.class, e -> {

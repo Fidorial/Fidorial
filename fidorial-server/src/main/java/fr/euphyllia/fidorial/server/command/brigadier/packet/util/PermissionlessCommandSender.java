@@ -4,6 +4,10 @@ import fr.fidorial.command.CommandSender;
 import fr.fidorial.permission.PermissionGrant;
 import fr.fidorial.permission.PermissionNode;
 import fr.fidorial.plugin.Plugin;
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.permission.PermissionChecker;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.util.TriState;
 
 import java.util.Map;
@@ -18,6 +22,10 @@ import java.util.Map;
 public final class PermissionlessCommandSender implements CommandSender {
 
     static final PermissionlessCommandSender INSTANCE = new PermissionlessCommandSender();
+    private static final PointersSupplier<PermissionlessCommandSender> pointers = PointersSupplier.<PermissionlessCommandSender>builder()
+            .resolving(Identity.NAME, PermissionlessCommandSender::name)
+            .resolving(PermissionChecker.POINTER, sender -> sender::permissionState)
+            .build();
 
     private PermissionlessCommandSender() {
     }
@@ -45,6 +53,11 @@ public final class PermissionlessCommandSender implements CommandSender {
     @Override
     public String name() {
         return "Permissionless";
+    }
+
+    @Override
+    public Pointers pointers() {
+        return pointers.view(this);
     }
 
     @Override

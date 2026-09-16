@@ -49,6 +49,24 @@ public final class PacketBuffer {
         return this;
     }
 
+    public PacketBuffer writeBitSet(final BitSet bitSet) {
+        final long[] words = bitSet.toLongArray();
+        writeVarInt(words.length);
+        for (final long word : words) {
+            writeLong(word);
+        }
+        return this;
+    }
+
+    public BitSet readBitSet() {
+        final int length = readVarInt();
+        final long[] words = new long[length];
+        for (int i = 0; i < length; i++) {
+            words[i] = readLong();
+        }
+        return BitSet.valueOf(words);
+    }
+
     public BitSet readFixedBitSet(final int bits) {
         final int bytes = (bits + 7) / 8;
 

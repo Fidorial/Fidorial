@@ -18,10 +18,14 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.Se
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundLoginAcknowledgedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcceptTeleportationPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcknowledgeConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAttackPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatAckPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatCommandPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundChatSessionUpdatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundClientCommandPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundClientTickEndPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCommandSuggestionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClosePacket;
@@ -30,6 +34,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosRotPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerInputPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerLoadedPacket;
@@ -46,6 +51,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+
+import static fr.euphyllia.fidorial.server.FidorialServer.LOGGER;
 
 public class ServerboundPackets {
 
@@ -113,8 +120,15 @@ public class ServerboundPackets {
                 ServerboundMovePlayerPosRotPacket::read);
         register(
                 ConnectionState.PLAY,
+                PlayServerboundPackets.MOVE_PLAYER_ROT,
+                ServerboundMovePlayerRotPacket::read);
+        register(
+                ConnectionState.PLAY,
                 PlayServerboundPackets.CLIENT_INFORMATION,
                 ServerboundClientInformationPacket::read);
+        register(ConnectionState.PLAY, PlayServerboundPackets.CLIENT_TICK_END, ServerboundClientTickEndPacket::read);
+        register(ConnectionState.PLAY, PlayServerboundPackets.CHAT_ACK, ServerboundChatAckPacket::read);
+        register(ConnectionState.PLAY, PlayServerboundPackets.CHAT_SESSION_UPDATE, ServerboundChatSessionUpdatePacket::read);
         register(ConnectionState.PLAY, PlayServerboundPackets.CHAT_COMMAND, ServerboundChatCommandPacket::read);
         register(ConnectionState.PLAY, PlayServerboundPackets.CHAT, ServerboundChatPacket::read);
         register(
@@ -145,6 +159,10 @@ public class ServerboundPackets {
                 PlayServerboundPackets.CLIENT_COMMAND,
                 ServerboundClientCommandPacket::read);
         register(ConnectionState.PLAY, PlayServerboundPackets.PLAYER_INPUT, ServerboundPlayerInputPacket::read);
+        register(
+                ConnectionState.PLAY,
+                PlayServerboundPackets.CONFIGURATION_ACKNOWLEDGED,
+                ServerboundAcknowledgeConfigurationPacket::read);
     }
 
     private ServerboundPackets() {
@@ -156,7 +174,12 @@ public class ServerboundPackets {
 
     public static @Nullable ServerboundPacket decode(final ConnectionState state, final Key name, final PacketBuffer buf) {
         final Reader reader = READERS.getOrDefault(state, Map.of()).get(name);
-        return reader == null ? null : reader.read(buf);
+        final ServerboundPacket read = reader == null ? null : reader.read(buf);
+        if (buf.nettyBuf().isReadable() && read != null) {
+            LOGGER.warn("Packet {} left {} unread bytes (state={})",
+                    read.getClass().getSimpleName(), buf.readableBytes(), state);
+        }
+        return read;
     }
 
     @FunctionalInterface

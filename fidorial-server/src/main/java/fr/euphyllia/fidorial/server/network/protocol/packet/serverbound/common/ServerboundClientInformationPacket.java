@@ -12,9 +12,13 @@ public record ServerboundClientInformationPacket(String language, int viewDistan
     public static ServerboundClientInformationPacket read(final PacketBuffer buf) {
         final String language = buf.readString(16);
         final int viewDistance = buf.readByte();
-        buf.readVarInt();
-        buf.readBoolean();
+        final int chatMode = buf.readVarInt();
+        final boolean chatColors = buf.readBoolean();
         final int skinParts = buf.readUByte();
+        final int mainHand = buf.readVarInt();
+        final boolean enableTextFiltering = buf.readBoolean();
+        final boolean allowServerListings = buf.readBoolean();
+        final int particleStatus = buf.readVarInt();
         return new ServerboundClientInformationPacket(language, viewDistance, skinParts);
     }
 
