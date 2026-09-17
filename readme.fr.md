@@ -1,7 +1,10 @@
 <div align="center">
   <h1>Fidorial</h1>
 
-  <p><em>Un serveur Minecraft écrit de zéro en Java — aucun code Mojang, aucun fork.</em></p>
+  <p>
+    <em>Un serveur Minecraft écrit de zéro en Java — aucun code Mojang, aucun fork.</em><br/>
+    <em>Fidorial est un projet indépendant, non affilié, associé ou approuvé par Mojang Studios ou Microsoft. Minecraft est une marque de Mojang Studios, propriété de Microsoft.</em>
+</p>
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
@@ -27,7 +30,7 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Protocole & réseau**
 
-- Implémentation maison de Minecraft **26.2** (protocole **776**) : handshake, status, login, configuration, play
+- Implémentation maison de Minecraft **26.3** (protocole **777**) : handshake, status, login, configuration, play
 - Authentification Mojang, chiffrement et compression des paquets ; mode hors-ligne pour les tests
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
 - Netty avec transports epoll, kqueue et io_uring optionnel

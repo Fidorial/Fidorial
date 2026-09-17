@@ -1,7 +1,10 @@
 <div align="center">
   <h1>Fidorial</h1>
 
-  <p><em>A Minecraft server written from scratch in Java — no Mojang code, no fork.</em></p>
+  <p>
+    <em>A Minecraft server written from scratch in Java — no Mojang code, no fork.</em><br/>
+    <em>Fidorial is an independent project, not affiliated with, associated with, or endorsed by Mojang Studios or Microsoft. Minecraft is a trademark of Mojang Studios, owned by Microsoft.</em>
+  </p>
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
@@ -27,7 +30,7 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 **Protocol & network**
 
-- Hand-written implementation of Minecraft **26.2** (protocol **776**): handshake, status, login, configuration, play
+- Hand-written implementation of Minecraft **26.3** (protocol **777**): handshake, status, login, configuration, play
 - Mojang authentication, packet encryption and compression; offline mode for testing
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
 - Netty with epoll, kqueue and optional io_uring transports
