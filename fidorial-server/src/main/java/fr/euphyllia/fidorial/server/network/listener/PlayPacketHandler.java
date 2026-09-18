@@ -18,7 +18,6 @@ import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockChangedAckPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundCommandSuggestionsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
@@ -34,7 +33,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket.Entry;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStartConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
@@ -71,12 +69,15 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
 import fr.euphyllia.fidorial.server.network.session.ChunkViewTracker;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
-import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
+import fr.euphyllia.fidorial.server.world.block.ChestBlocks;
+import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractionContext;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.PlayerProfile;
@@ -85,8 +86,8 @@ import fr.fidorial.event.player.BlockBreakEvent;
 import fr.fidorial.event.player.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
+import fr.fidorial.event.player.PlayerInteractBlockEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
-import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
@@ -98,6 +99,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
@@ -105,11 +107,12 @@ import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.interaction.InteractionHand;
+import fr.fidorial.world.block.interaction.InteractionResult;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -126,6 +129,8 @@ import java.util.concurrent.CompletableFuture;
 public final class PlayPacketHandler implements PlayPacketListener {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(PlayPacketHandler.class);
+
+    private static final int OFFHAND_SLOT = 40;
 
     private final ClientConnection connection;
     private final FidorialServer server;
@@ -600,15 +605,47 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos chunkPos = ChunkPos.fromBlock(clicked.x(), clicked.z());
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
-            if (interactWithBlock(clicked)) {
+            final BlockFace clickedFace = BlockFace.byId(packet.face());
+            final ItemStack held = acting.inventory().get(acting.selectedSlot());
+            final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
+
+            final FidorialBlockInteractionContext context = interactionContext(acting, world, clicked, clickedFace, packet);
+            if (context == null) {
                 connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
                 return;
             }
-            final BlockFace clickedFace = BlockFace.byId(packet.face());
+
+            final PlayerInteractBlockEvent interactEvent = server.events().post(new PlayerInteractBlockEvent(
+                    acting,
+                    world,
+                    clicked,
+                    context.block(),
+                    clickedFace,
+                    context.hand(),
+                    context.heldItem(),
+                    packet.cursorX(),
+                    packet.cursorY(),
+                    packet.cursorZ(),
+                    packet.insideBlock()));
+
+            if (interactEvent.useInteractedBlock()) {
+                final InteractionResult interaction = server.blockInteractions().use(context);
+                if (interaction.handled()) {
+                    if (interaction.shouldSwing()) {
+                        acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
+                    }
+                    connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                    return;
+                }
+            }
+
+            if (!interactEvent.useItemInHand()) {
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+
             final BlockPos target = clicked.relative(clickedFace);
-            final ItemStack held = acting.inventory().get(acting.selectedSlot());
             final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
-            final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
 
             if (state != null) {
                 final BlockPlaceEvent event = server.events()
@@ -634,47 +671,38 @@ public final class PlayPacketHandler implements PlayPacketListener {
         return server.blockStateRegistry().placementState(state, context);
     }
 
-    private boolean interactWithBlock(final BlockPos pos) {
+    private @Nullable FidorialBlockInteractionContext interactionContext(
+            final ServerPlayer acting,
+            final ServerWorld world,
+            final BlockPos pos,
+            final BlockFace clickedFace,
+            final ServerboundUseItemOnPacket packet) {
         final BlockState state;
         try {
-            state = serverWorld().getBlock(pos.x(), pos.y(), pos.z());
+            state = world.getBlock(pos.x(), pos.y(), pos.z());
         } catch (final IOException e) {
             LOGGER.debug("Lecture du bloc {} impossible", pos, e);
-            return false;
+            return null;
         }
-        if (!EnderChestBlock.is(state)) {
-            return false;
-        }
-        openEnderChest(pos);
-        return true;
+
+        return new FidorialBlockInteractionContext(
+                server,
+                world,
+                acting,
+                pos,
+                state,
+                clickedFace,
+                InteractionHand.byId(packet.hand()),
+                heldItem(acting, packet.hand()),
+                packet.cursorX(),
+                packet.cursorY(),
+                packet.cursorZ(),
+                packet.insideBlock());
     }
 
-    private void openEnderChest(final BlockPos pos) {
-        if (EnderChestBlock.isBlockedAbove(serverWorld(), pos)) {
-            return;
-        }
-
-        final PlayerOpenEnderChestEvent event =
-                server.events().post(new PlayerOpenEnderChestEvent(player, pos, player.enderChest()));
-        if (event.isCancelled()) {
-            return;
-        }
-
-        final EnderChestMenu menu = new EnderChestMenu(player, player.allocateWindowId(), pos);
-        player.openMenu(menu);
-
-        server.chestViewers().open(pos, this::broadcastLid);
-        broadcastChestSound(pos, "block.ender_chest.open");
-    }
-
-    private void broadcastLid(final BlockPos pos, final int viewers) {
-        server.broadcast(ClientboundBlockEventPacket.chestViewers(pos, viewers));
-    }
-
-    @SuppressWarnings("PatternValidation")
-    private void broadcastChestSound(final BlockPos pos, final String soundId) {
-        final Sound sound = Sound.sound(Key.key(soundId), Sound.Source.BLOCK, 0.5f, 1.0f);
-        server.broadcast(new ClientboundSoundPacket(sound, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));
+    private ItemStack heldItem(final ServerPlayer acting, final int hand) {
+        final int slot = hand == 0 ? acting.selectedSlot() : OFFHAND_SLOT;
+        return acting.inventory().get(slot);
     }
 
     private void closeOpenMenu(final boolean notifyClient) {
@@ -685,8 +713,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
         player.closeMenu(notifyClient);
 
         if (menu instanceof final EnderChestMenu enderChest) {
-            server.chestViewers().close(enderChest.position(), this::broadcastLid);
-            broadcastChestSound(enderChest.position(), "block.ender_chest.close");
+            final ServerWorld world = serverWorld();
+            final BlockPos position = enderChest.position();
+            server.chestViewers().close(
+                    position, (closed, viewers) -> ChestBlocks.broadcastLid(server, world, closed, viewers));
+            ChestBlocks.broadcastSound(server, world, position, SoundEvents.ENDER_CHEST_CLOSE);
         }
         connection.send(ClientboundContainerSetContentPacket.ofPlayerInventory(
                 player.inventory(), 0, ItemStack.EMPTY, server.registries().frozen()));
@@ -749,9 +780,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final boolean breaking =
                 switch (acting.gameMode()) {
                     case CREATIVE -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK;
-                    case SURVIVAL ->
-                            status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK && instantMine(packet.position())
-                                    || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
+                    case SURVIVAL -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK
+                            || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
                     case ADVENTURE, SPECTATOR -> false;
                 };
         if (!breaking) {
@@ -763,9 +793,17 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos chunkPos = ChunkPos.fromBlock(packet.position().x(), packet.position().z());
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
+            if (acting.gameMode() == GameMode.SURVIVAL
+                    && status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK
+                    && !instantMine(world, packet.position())) {
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
                 onBlockDestroyed(packet.position());
+                server.cropHarvest().onBlockBroken(world, acting, packet.position());
                 server.blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
@@ -809,8 +847,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
     }
 
-    private boolean instantMine(final BlockPos position) {
-        return false;
+    @NeedsToBeRevisited("Only crops are known to give way at once; this wants a real block hardness table.")
+    private boolean instantMine(final ServerWorld world, final BlockPos position) {
+        final ChunkColumn column = world.loadedColumn(position.chunkX(), position.chunkZ());
+        if (column == null) {
+            return false;
+        }
+        final BlockState state = column.getBlock(position.x() & 15, position.y(), position.z() & 15);
+        return server.crops().byBlock(state.name()) != null;
     }
 
     @Override

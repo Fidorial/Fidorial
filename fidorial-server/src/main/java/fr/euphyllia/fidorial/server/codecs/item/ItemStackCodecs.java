@@ -69,6 +69,7 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.LORE, LORE_CODEC);
         register(DataComponentTypes.ATTACK_ANIMATION, SWING_ANIMATION_CODEC);
         register(DataComponentTypes.INTERACT_ANIMATION, SWING_ANIMATION_CODEC);
+        register(DataComponentTypes.BLOCK_TRANSFORMER, KEY_CODEC);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {

@@ -1,5 +1,6 @@
 package fr.fidorial.registrygen.generate;
 
+import com.palantir.javapoet.AnnotationSpec;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.FieldSpec;
@@ -44,6 +45,8 @@ public final class ItemPropertiesGenerator {
     private static final int ITEMS_PER_METHOD = 200;
 
     private static final ClassName LIST = ClassName.get(List.class);
+    private static final AnnotationSpec NULLABLE =
+            AnnotationSpec.builder(ClassName.get("org.jspecify.annotations", "Nullable")).build();
     private static final ClassName OBJECT_2_INT_OPEN_HASH_MAP =
             ClassName.get("it.unimi.dsi.fastutil.objects", "Object2IntOpenHashMap");
     private static final ClassName OBJECT_2_OBJECT_OPEN_HASH_MAP =
@@ -83,13 +86,16 @@ public final class ItemPropertiesGenerator {
         final ParameterizedTypeName repairMapType =
                 ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), keyListType);
 
+        final ParameterizedTypeName keyMapType = ParameterizedTypeName.get(
+                OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), ClassName.get(Key.class));
+
         final TypeSpec.Builder type = TypeSpec.classBuilder(CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addJavadoc("Per-item stack size, durability and repair materials.\n\n")
+                .addJavadoc("Per-item stack size, durability, repair materials and block transformer.\n\n")
                 .addJavadoc("<p>Joined from Mojang's item registry report and PrismarineJS's\n")
                 .addJavadoc("{@code minecraft-data} items report; do not edit.</p>\n\n")
                 .addJavadoc("<p>These are the item's <em>defaults</em>. A stack that patches\n")
-                .addJavadoc("{@code max_stack_size} or {@code max_damage} overrides them — read\n")
+                .addJavadoc("{@code max_stack_size}, {@code max_damage} or {@code block_transformer} overrides them — read\n")
                 .addJavadoc("{@code ItemStack#maxStackSize()} rather than this class when you have\n")
                 .addJavadoc("a stack in hand.</p>\n")
                 .addField(FieldSpec.builder(intMapType, "STACK_SIZE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
@@ -99,6 +105,9 @@ public final class ItemPropertiesGenerator {
                         .initializer("new $T<>()", OBJECT_2_INT_OPEN_HASH_MAP)
                         .build())
                 .addField(FieldSpec.builder(repairMapType, "REPAIR_MATERIALS", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("new $T<>()", OBJECT_2_OBJECT_OPEN_HASH_MAP)
+                        .build())
+                .addField(FieldSpec.builder(keyMapType, "BLOCK_TRANSFORMER", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("new $T<>()", OBJECT_2_OBJECT_OPEN_HASH_MAP)
                         .build())
                 .addStaticBlock(CodeBlock.builder()
@@ -112,6 +121,7 @@ public final class ItemPropertiesGenerator {
                         "total durability, or {@code 0} when the item cannot break"))
                 .addMethod(damageablePredicate())
                 .addMethod(repairMaterialsAccessor(keyListType))
+                .addMethod(blockTransformerAccessor())
                 .addMethod(registerHelper(keyListType));
 
         addRegistrationMethods(type, items, prismarineItems, itemKeys);
@@ -170,6 +180,18 @@ public final class ItemPropertiesGenerator {
                 .build();
     }
 
+    private static MethodSpec blockTransformerAccessor() {
+        return MethodSpec.methodBuilder("blockTransformer")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(ClassName.get(Key.class).annotated(NULLABLE))
+                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
+                .addJavadoc("@param item namespaced item identifier\n")
+                .addJavadoc("@return the {@code minecraft:block_transformer} entry this item carries by default, "
+                        + "or {@code null} when it transforms nothing\n")
+                .addStatement("return BLOCK_TRANSFORMER.get($N)", "item")
+                .build();
+    }
+
     private static MethodSpec registerHelper(final ParameterizedTypeName keyListType) {
         return MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
@@ -217,6 +239,14 @@ public final class ItemPropertiesGenerator {
                     prismarine.stackSize(),
                     prismarine.maxDurability(),
                     repairMaterialsLiteral(prismarine, itemKeys));
+
+            if (prismarine.blockTransformer() != null) {
+                current.addStatement("BLOCK_TRANSFORMER.put($T.$L.key(), $T.key($S))",
+                        itemKeys,
+                        GenerationUtils.constantName(item.identifier()),
+                        Key.class,
+                        prismarine.blockTransformer());
+            }
 
             if (++inCurrent >= ITEMS_PER_METHOD) {
                 methods.add(current.build());
