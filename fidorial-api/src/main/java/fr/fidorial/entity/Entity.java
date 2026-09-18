@@ -1,5 +1,6 @@
 package fr.fidorial.entity;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.scheduler.SchedulerSource;
 import fr.fidorial.world.ChunkPos;
@@ -22,6 +23,7 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
 
     EntityType type();
 
+    @ThreadContract("get -> any; modify -> owner")
     World world();
 
     Location location();
@@ -42,6 +44,7 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * because the entity has been {@linkplain #isRemoved() removed})
      * @since 0.1.0
      */
+    @ThreadContract("owner")
     boolean teleport(Location location);
 
     /**
@@ -57,6 +60,7 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * @return {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
+    @ThreadContract("call -> owner")
     boolean teleport(World world, Location location);
 
     /**
@@ -66,6 +70,7 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * @return {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
+    @ThreadContract("call -> owner")
     default boolean teleport(final double x, final double y, final double z) {
         final Location current = location();
         return teleport(new Location(x, y, z, current.yaw(), current.pitch()));
@@ -76,6 +81,7 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * @return {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
+    @ThreadContract("call -> owner")
     default boolean teleport(final Entity target) {
         return teleport(target.world(), target.location());
     }

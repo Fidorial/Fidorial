@@ -1,5 +1,6 @@
 package fr.fidorial.world;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
@@ -85,6 +86,7 @@ public interface World extends Keyed, ForwardingAudience {
 
     int getBlockStateId(BlockPos pos);
 
+    @ThreadContract("set -> owner")
     boolean setBlockStateId(BlockPos pos, int stateId);
 
     int blockLight(BlockPos pos);
@@ -95,8 +97,10 @@ public interface World extends Keyed, ForwardingAudience {
 
     Collection<? extends Entity> entities();
 
+    @ThreadContract("get -> any; modify -> owner")
     Entity entity(UUID uuid);
 
+    @ThreadContract("get -> any; modify -> owner")
     Entity entity(int entityId);
 
     /**

@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * <pre>{@code
  *  contract ::= (clause ';')* clause | role
  *  clause ::= op '->' role
- *  op ::= 'get' | 'set' | 'modify'
+ *  op ::= 'get' | 'set' | 'modify' | 'call'
  *  role ::= 'any' | 'owner'}</pre> <p>
  *
  * The operations denote the following:<br>
@@ -23,6 +23,10 @@ import java.lang.annotation.Target;
  * <li> get - read the field/reference, or invoke a non-mutating accessor
  * <li> set - reassign what the field/reference points to
  * <li> modify - invoke a mutating operation on the referenced object itself, without reassigning the reference
+ * <li> call - the method invocation itself requires the given role, independent of any specific field being
+ * read, reassigned, or mutated (e.g. the entire method body assumes it is running on the owning thread).
+ * Used on methods that aren't simple accessors/mutators; mixing {@code call} with {@code get}/{@code set}/
+ * {@code modify} in the same contract is redundant and should be avoided
  * </ul>
  * <p>
  * The roles denote the following:<br>
@@ -34,7 +38,8 @@ import java.lang.annotation.Target;
  * Examples:<p>
  * {@code @ThreadContract("get -> any; set -> owner")} - readable from any thread, but only the owning region thread may reassign it<br>
  * {@code @ThreadContract("get -> any; modify -> owner")} - the reference may be obtained from any thread, but the referenced object must only be mutated from the owning region thread<br>
- * {@code @ThreadContract("owner")} - get, set, and modify are all confined to the owning region thread<br>
+ * {@code @ThreadContract("call -> owner")} - the referenced method must only be called from the owning region thread<br>
+ * {@code @ThreadContract("owner")} - get, set, modify and call are all confined to the owning region thread<br>
  *
  * @apiNote When not present, the thread contract is implicitly assumed to be {@code any}
  * @since 0.1.0
