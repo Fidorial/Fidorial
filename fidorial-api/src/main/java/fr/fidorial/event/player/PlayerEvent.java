@@ -6,6 +6,6 @@ import fr.fidorial.event.Event;
 
 public interface PlayerEvent extends Event {
 
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     Player player();
 }

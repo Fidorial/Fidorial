@@ -40,12 +40,12 @@ public final class PlayerAttackEntityEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public Player player() {
         return player;
     }
 
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public Entity target() {
         return target;
     }

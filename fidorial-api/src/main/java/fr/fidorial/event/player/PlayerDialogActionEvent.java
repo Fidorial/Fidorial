@@ -35,7 +35,7 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
     }
 
     @Override
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public Player player() {
         return player;
     }

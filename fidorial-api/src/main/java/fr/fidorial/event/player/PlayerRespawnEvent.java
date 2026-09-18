@@ -34,7 +34,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     }
 
     @Contract(pure = true)
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     @Override
     public Player player() {
         return player;
@@ -44,7 +44,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @return the world the player is about to respawn in
      */
     @Contract(pure = true)
-    @ThreadContract("get -> any; set -> owner; modify -> owner")
+    @ThreadContract("get -> any; modify -> owner")
     public World world() {
         return world;
     }
@@ -53,7 +53,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @return the position the player is about to respawn at
      */
     @Contract(pure = true)
-    @ThreadContract("get -> any; set -> owner")
+    @ThreadContract("get -> any")
     public Location location() {
         return location;
     }

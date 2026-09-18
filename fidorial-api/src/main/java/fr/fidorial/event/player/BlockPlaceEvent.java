@@ -1,5 +1,6 @@
 package fr.fidorial.event.player;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.world.BlockPos;
@@ -18,10 +19,12 @@ public final class BlockPlaceEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
+    @ThreadContract(value = "get -> any; modify -> any", transitive = true)
     public Player player() {
         return player;
     }
 
+    @ThreadContract("get -> any")
     public BlockPos position() {
         return position;
     }

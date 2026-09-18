@@ -30,7 +30,7 @@ public class EntityDamageEvent implements Event, Cancellable {
         this.knockback = knockback;
     }
 
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public LivingEntity entity() {
         return entity;
     }
@@ -38,6 +38,7 @@ public class EntityDamageEvent implements Event, Cancellable {
     /**
      * @return the origin of the hit, carrying the damage type and the entities involved
      */
+    @ThreadContract("get -> any")
     public DamageSource source() {
         return source;
     }
@@ -45,7 +46,7 @@ public class EntityDamageEvent implements Event, Cancellable {
     /**
      * @return the entity that caused the damage, or {@code null} for environmental damage
      */
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public @Nullable Entity damager() {
         return source.causingEntity();
     }

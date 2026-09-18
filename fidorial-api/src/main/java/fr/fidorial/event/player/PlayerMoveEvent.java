@@ -19,7 +19,7 @@ public final class PlayerMoveEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public Player player() {
         return player;
     }

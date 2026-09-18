@@ -21,7 +21,7 @@ public class EntityDeathEvent implements Event {
     /**
      * @return the entity credited with the kill, or {@code null} for environmental deaths
      */
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public @Nullable Entity killer() {
         return killer;
     }
@@ -29,7 +29,7 @@ public class EntityDeathEvent implements Event {
     /**
      * @return the entity that died
      */
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     public Entity entity() {
         return entity;
     }

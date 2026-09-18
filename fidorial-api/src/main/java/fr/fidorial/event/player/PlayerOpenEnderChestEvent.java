@@ -1,5 +1,6 @@
 package fr.fidorial.event.player;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -22,6 +23,7 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
     }
 
     @Override
+    @ThreadContract(value = "any", transitive = true)
     public Player player() {
         return player;
     }
@@ -29,6 +31,7 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
     /**
      * Position of the opened block.
      */
+    @ThreadContract("any")
     public BlockPos position() {
         return position;
     }
@@ -36,6 +39,7 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
     /**
      * The container about to be displayed, mutable.
      */
+    @ThreadContract("any")
     public EnderChestInventory enderChest() {
         return enderChest;
     }

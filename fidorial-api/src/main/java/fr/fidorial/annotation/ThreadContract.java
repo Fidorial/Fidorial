@@ -1,5 +1,6 @@
 package fr.fidorial.annotation;
 
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -54,4 +55,17 @@ public @interface ThreadContract {
      * each operation on the annotated element.
      */
     String value();
+
+    /**
+     * Whether this contract overrides the per-member contracts of whatever it's applied to,
+     * rather than only constraining direct get/set/modify/call access to this element itself.
+     * <p>
+     * Set this only when the surrounding context already guarantees the stated role for every
+     * operation reachable through this reference — e.g. a field on an event that is only ever
+     * posted from within a scheduled, owner-thread callback, where nothing downstream can violate
+     * a stricter contract declared elsewhere because the whole call chain is already confined to
+     * that thread. Misapplying this on an unscheduled context silently masks real violations that
+     * the per-member contracts would otherwise catch.
+     */
+    boolean transitive() default false;
 }

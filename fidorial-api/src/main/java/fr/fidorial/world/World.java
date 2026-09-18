@@ -97,10 +97,10 @@ public interface World extends Keyed, ForwardingAudience {
 
     Collection<? extends Entity> entities();
 
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     Entity entity(UUID uuid);
 
-    @ThreadContract("get -> any; modify -> owner")
+    @ThreadContract("get -> any")
     Entity entity(int entityId);
 
     /**
