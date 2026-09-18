@@ -1,5 +1,6 @@
 package fr.fidorial.event.player;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import net.kyori.adventure.text.Component;
@@ -16,6 +17,7 @@ public class PlayerChatEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
+    @ThreadContract("get -> any; modify -> owner")
     public Player player() {
         return player;
     }

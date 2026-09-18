@@ -1,5 +1,6 @@
 package fr.fidorial.event.player;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.world.Location;
@@ -19,7 +20,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     private World world;
     private Location location;
 
-
     public PlayerRespawnEvent(
             final Player player,
             final World world,
@@ -34,6 +34,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     }
 
     @Contract(pure = true)
+    @ThreadContract("get -> any; modify -> owner")
     @Override
     public Player player() {
         return player;
@@ -43,6 +44,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @return the world the player is about to respawn in
      */
     @Contract(pure = true)
+    @ThreadContract("get -> any; set -> owner; modify -> owner")
     public World world() {
         return world;
     }
@@ -51,6 +53,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @return the position the player is about to respawn at
      */
     @Contract(pure = true)
+    @ThreadContract("get -> any; set -> owner")
     public Location location() {
         return location;
     }
@@ -76,6 +79,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @param world    the world to respawn in instead
      * @param location the position to respawn at instead
      */
+    @ThreadContract("set -> owner")
     public void setRespawnLocation(final World world, final Location location) {
         this.world = world;
         this.location = location;
@@ -84,6 +88,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     /**
      * @param location the position to respawn at instead, in the same world
      */
+    @ThreadContract("set -> owner")
     public void setRespawnLocation(final Location location) {
         this.location = location;
     }
@@ -92,6 +97,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @param point the point to respawn at instead
      * @since 0.1.0
      */
+    @ThreadContract("set -> owner")
     public void setRespawnLocation(final RespawnPoint point) {
         this.world = point.world();
         this.location = point.location();

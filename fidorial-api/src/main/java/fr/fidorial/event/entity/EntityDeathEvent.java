@@ -1,5 +1,6 @@
 package fr.fidorial.event.entity;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.event.Event;
 import org.jspecify.annotations.Nullable;
@@ -20,6 +21,7 @@ public class EntityDeathEvent implements Event {
     /**
      * @return the entity credited with the kill, or {@code null} for environmental deaths
      */
+    @ThreadContract("get -> any; modify -> owner")
     public @Nullable Entity killer() {
         return killer;
     }
@@ -27,6 +29,7 @@ public class EntityDeathEvent implements Event {
     /**
      * @return the entity that died
      */
+    @ThreadContract("get -> any; modify -> owner")
     public Entity entity() {
         return entity;
     }

@@ -113,7 +113,10 @@ public final class ForceLoadCommand {
     private static int removeAll(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
         for (final ChunkPos pos : world.forceLoadedChunks()) {
-            world.setChunkForceLoaded(pos.x(), pos.z(), false);
+            if (!world.scheduler().execute(world.key(), pos, () -> world.setChunkForceLoaded(pos.x(), pos.z(), false))) {
+                context.getSource().sender().sendMessage(Component.translatable("commands.forceload.removed.failure"));
+                return 0;
+            }
         }
         context.getSource().sender().sendMessage(
                 Component.translatable("commands.forceload.removed.all", dimension(world)));

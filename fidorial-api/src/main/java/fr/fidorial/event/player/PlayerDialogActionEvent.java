@@ -1,5 +1,6 @@
 package fr.fidorial.event.player;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.Player;
@@ -34,6 +35,7 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
     }
 
     @Override
+    @ThreadContract("get -> any; modify -> owner")
     public Player player() {
         return player;
     }

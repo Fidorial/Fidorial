@@ -1,5 +1,6 @@
 package fr.fidorial.event.entity;
 
+import fr.fidorial.annotation.ThreadContract;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
@@ -29,6 +30,7 @@ public class EntityDamageEvent implements Event, Cancellable {
         this.knockback = knockback;
     }
 
+    @ThreadContract("get -> any; modify -> owner")
     public LivingEntity entity() {
         return entity;
     }
@@ -43,6 +45,7 @@ public class EntityDamageEvent implements Event, Cancellable {
     /**
      * @return the entity that caused the damage, or {@code null} for environmental damage
      */
+    @ThreadContract("get -> any; modify -> owner")
     public @Nullable Entity damager() {
         return source.causingEntity();
     }
