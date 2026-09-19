@@ -439,17 +439,31 @@ public final class FidorialServer implements Server {
         pluginManager.loadAll();
     }
 
+    private final AtomicBoolean autoSaveInProgress = new AtomicBoolean(false);
+
     private void startAutoSave() {
         autoSave.scheduleAtFixedRate(
                 () -> {
+                    if (!autoSaveInProgress.compareAndSet(false, true)) {
+                        LOGGER.debug("Skipping automatic save tick, previous one is still running");
+                        return;
+                    }
                     try {
                         worldManager.saveDirty();
                         offlinePlayers.maintain();
                         fidorialBanManager.purgeExpired();
-                        final int n = worldManager.unloadUnusedChunks();
-                        if (n > 0) LOGGER.debug("{} unloaded chunks", n);
+                        worldManager.unloadUnusedChunks()
+                                .whenComplete((n, t) -> {
+                                    if (t != null) {
+                                        LOGGER.error("An error occurred while unloading chunks during the automatic save:", t);
+                                    } else if (n > 0) {
+                                        LOGGER.debug("{} unloaded chunks", n);
+                                    }
+                                    autoSaveInProgress.set(false);
+                                });
                     } catch (final Throwable t) {
                         LOGGER.error("An error occurred during the automatic save:", t);
+                        autoSaveInProgress.set(false);
                     }
                 },
                 config.autoSaveSeconds(),

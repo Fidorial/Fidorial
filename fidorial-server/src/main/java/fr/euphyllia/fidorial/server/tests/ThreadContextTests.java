@@ -27,7 +27,8 @@ public final class ThreadContextTests {
         final ChunkPos toChunk = new ChunkPos(fromChunk.x() + 1, fromChunk.z());
 
         helper.sequence()
-                .execute(() -> helper.assertTrue((runOnForeignThread(() -> world.entityMoved(player, fromChunk, toChunk))), "Expected a thread violation exception to be thrown"))
+                .waitUntil(() -> helper.assertTrue((runOnForeignThread(() -> world.entityMoved(player, fromChunk, toChunk))), "Expected a thread violation exception to be thrown"))
+                .execute(() -> helper.assertTrue(!(runOnForeignThread(() -> player.teleport(10000, 0, 10000))), "Expected teleport not to throw a thread violation exception"))
                 .build();
     }
 

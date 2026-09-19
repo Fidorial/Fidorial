@@ -10,6 +10,9 @@ import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
 import net.kyori.adventure.key.Key;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
 @SuppressWarnings("unused")
 public final class PlayerTests {
 
@@ -19,8 +22,11 @@ public final class PlayerTests {
         final Player player = helper.summonPlayer("Teleporting", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final Location destination = new Location(5.5, 70, 5.5, 0f, 0f);
 
+        final AtomicReference<CompletableFuture<Boolean>> teleportFuture = new AtomicReference<>();
         helper.sequence()
-                .waitUntil(() -> helper.assertTrue(player.teleport(destinationWorld, destination), "Expected teleport to succeed"))
+                .execute(() -> teleportFuture.set(player.teleport(destinationWorld, destination)))
+                .waitUntil(() -> teleportFuture.get().isDone(), "Expected teleport to complete")
+                .execute(() -> helper.assertTrue(teleportFuture.get().join(), "Expected teleport to succeed"))
                 .waitUntil(() -> player.world() == destinationWorld,
                         "Expected the player's world to have switched to the destination")
                 .waitUntil(() -> player.location().equals(destination),
@@ -35,10 +41,13 @@ public final class PlayerTests {
         final Location point = new Location(1.5, 70, 1.5, 0f, 0f);
 
         player.setRespawnPoint(destinationWorld, point);
+        final AtomicReference<CompletableFuture<Boolean>> respawnFuture = new AtomicReference<>();
 
         helper.sequence()
                 .execute(() -> player.kill(player))
-                .waitUntil(player::respawn, "Expected respawn to succeed")
+                .execute(() -> respawnFuture.set(player.respawn()))
+                .waitUntil(() -> respawnFuture.get().isDone(), "Expected respawn to complete")
+                .execute(() -> helper.assertTrue(respawnFuture.get().join(), "Expected respawn to succeed"))
                 .waitUntil(() -> player.world() == destinationWorld,
                         "Expected the player to be respawned in the explicitly given world, not the default one")
                 .waitUntil(() -> player.location().equals(point),

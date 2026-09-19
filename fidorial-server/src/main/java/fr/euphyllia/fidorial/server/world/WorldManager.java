@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntSupplier;
 
@@ -302,10 +303,10 @@ public final class WorldManager implements AutoCloseable {
         LOGGER.info("World saved ({} dimension(s))", worlds.size());
     }
 
-    public int unloadUnusedChunks() {
-        int total = 0;
+    public CompletableFuture<Integer> unloadUnusedChunks() {
+        CompletableFuture<Integer> total = CompletableFuture.completedFuture(0);
         for (final ServerWorld w : worlds.values()) {
-            total += w.unloadUnusedChunks();
+            total = total.thenCombine(w.unloadUnusedChunks(), Integer::sum);
         }
         return total;
     }

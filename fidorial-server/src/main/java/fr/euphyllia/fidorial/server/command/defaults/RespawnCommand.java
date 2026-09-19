@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.command.defaults;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
@@ -41,21 +42,18 @@ public final class RespawnCommand {
     }
 
     private static int respawn(final CommandContext<CommandSource> context, final List<Player> targets) {
-        for (final Player target : targets) {
-            if (!target.respawn()) {
-                context.getSource()
-                        .sender()
-                        .sendMessage(Component.translatable(
-                                "command.respawn.alive", Component.text(target.name())));
-                continue;
-            }
+        final CommandSender sender = context.getSource().sender();
 
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sender()
-                        .sendMessage(Component.translatable(
-                                "command.respawn.done", Component.text(target.name())));
-            }
+        for (final Player target : targets) {
+            target.respawn().whenComplete((succeeded, _) -> {
+                if (!Boolean.TRUE.equals(succeeded)) {
+                    sender.sendMessage(Component.translatable("command.respawn.alive", Component.text(target.name())));
+                    return;
+                }
+                if (sender != target) {
+                    sender.sendMessage(Component.translatable("command.respawn.done", Component.text(target.name())));
+                }
+            });
         }
 
         return targets.size();

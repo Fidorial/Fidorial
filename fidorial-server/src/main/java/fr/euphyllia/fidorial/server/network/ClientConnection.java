@@ -600,18 +600,18 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         listener.onDisconnect();
     }
 
-    public boolean teleport(final ServerWorld target, final Location location) {
+    public CompletableFuture<Boolean> teleport(final ServerWorld target, final Location location) {
         if (listener instanceof final PlayPacketHandler play) {
             return play.teleport(target, location);
         }
-        return false;
+        return CompletableFuture.completedFuture(false);
     }
 
-    public boolean respawn(final PlayerRespawnEvent.Cause cause) {
+    public CompletableFuture<Boolean> respawn(final PlayerRespawnEvent.Cause cause) {
         if (listener instanceof final PlayPacketHandler play) {
             return play.respawn(cause);
         }
-        return false;
+        return CompletableFuture.completedFuture(false);
     }
 
     @Override

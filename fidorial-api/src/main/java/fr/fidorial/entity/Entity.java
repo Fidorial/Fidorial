@@ -11,6 +11,7 @@ import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowEntity>, Sound.Emitter, Sound.Source.Provider, SchedulerSource {
 
@@ -38,45 +39,46 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * Teleports this entity to the given location within its current {@linkplain #world() world}.
      *
      * @param location the destination position and orientation
-     * @return {@code true} if the teleport happened, {@code false} if it was refused (for example
-     * because the entity has been {@linkplain #isRemoved() removed})
+     * @return a future completing with {@code true} if the teleport happened, {@code false} if it was
+     * refused (for example because the entity has been {@linkplain #isRemoved() removed})
      * @since 0.1.0
      */
-    boolean teleport(Location location);
+    CompletableFuture<Boolean> teleport(Location location);
 
     /**
      * Teleports this entity to the given location, moving it to {@code world} when that differs from
      * its current world.
      *
      * <p>Cross-world teleports relocate the entity between worlds and, for players, trigger the
-     * client-side dimension change. The call is refused, returning {@code false}, when the entity is
-     * removed or the destination world cannot host it.</p>
+     * client-side dimension change. The call is refused, completing with {@code false}, when the entity
+     * is removed or the destination world cannot host it.</p>
      *
      * @param world    the destination world
      * @param location the destination position and orientation
-     * @return {@code true} if the teleport happened, {@code false} if it was refused
+     * @return a future completing with {@code true} if the teleport happened, {@code false} if it was
+     * refused
      * @since 0.1.0
      */
-    boolean teleport(World world, Location location);
+    CompletableFuture<Boolean> teleport(World world, Location location);
 
     /**
      * @param x the destination x coordinate
      * @param y the destination y coordinate
      * @param z the destination z coordinate
-     * @return {@code true} if the teleport happened, {@code false} if it was refused
+     * @return a future completing with {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
-    default boolean teleport(final double x, final double y, final double z) {
+    default CompletableFuture<Boolean> teleport(final double x, final double y, final double z) {
         final Location current = location();
         return teleport(new Location(x, y, z, current.yaw(), current.pitch()));
     }
 
     /**
      * @param target the entity to teleport to
-     * @return {@code true} if the teleport happened, {@code false} if it was refused
+     * @return a future completing with {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
-    default boolean teleport(final Entity target) {
+    default CompletableFuture<Boolean> teleport(final Entity target) {
         return teleport(target.world(), target.location());
     }
 }
