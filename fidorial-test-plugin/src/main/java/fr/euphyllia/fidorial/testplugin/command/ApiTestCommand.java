@@ -478,8 +478,8 @@ public final class ApiTestCommand {
         final double y = ctx.getArgument("y", Double.class);
         final double z = ctx.getArgument("z", Double.class);
 
-        final boolean ok = player.teleport(x, y, z);
-        plugin.msg(player, "[TestPlugin] Teleportation " + (ok ? "OK" : "refusee") + " vers " + x + ", " + y + ", " + z);
+        player.teleport(x, y, z).whenComplete((ok, _) ->
+                plugin.msg(player, "[TestPlugin] Teleportation " + (ok ? "OK" : "refusee") + " vers " + x + ", " + y + ", " + z));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -506,8 +506,8 @@ public final class ApiTestCommand {
         }
 
         final Location destination = new Location(8.5, 100.0, 8.5, 0f, 0f);
-        final boolean ok = player.teleport(target, destination);
-        plugin.msg(player, "[TestPlugin] Teleportation inter-monde " + (ok ? "OK" : "refusee") + " vers " + key);
+        player.teleport(target, destination).whenComplete((ok, _) ->
+                plugin.msg(player, "[TestPlugin] Teleportation inter-monde " + (ok ? "OK" : "refusee") + " vers " + key));
         return Command.SINGLE_SUCCESS;
     }
 

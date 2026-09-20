@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.world;
 
-import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.World;
+
+import java.util.concurrent.CompletableFuture;
 
 public final class ServerChunk implements Chunk {
 
@@ -53,15 +54,20 @@ public final class ServerChunk implements Chunk {
     }
 
     @Override
-    public boolean setBlockStateId(final int localX, final int worldY, final int localZ, final int stateId) {
-        ThreadContexts.checkOwnedByCurrentThread(this, "setBlockStateId");
-        if (worldY < column.minY() || worldY >= column.minY() + column.height()) {
-            return false;
-        }
-        final BlockState state = blockStates.byId(stateId);
-        column.setBlock(localX & 15, worldY, localZ & 15, state);
-        world.markDirty(column.chunkX(), column.chunkZ());
-        return true;
+    public CompletableFuture<Boolean> setBlockStateId(final int localX, final int worldY, final int localZ, final int stateId) {
+        final CompletableFuture<Boolean> future = new CompletableFuture<>();
+        final boolean scheduled = this.execute(() -> {
+            if (worldY < column.minY() || worldY >= column.minY() + column.height()) {
+                future.complete(false);
+                return;
+            }
+            final BlockState state = blockStates.byId(stateId);
+            column.setBlock(localX & 15, worldY, localZ & 15, state);
+            world.markDirty(column.chunkX(), column.chunkZ());
+            future.complete(true);
+        });
+        if (!scheduled) future.complete(false);
+        return future;
     }
 
     @Override

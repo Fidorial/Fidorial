@@ -13,6 +13,7 @@ import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.scheduler.RegionizedScheduler;
+import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
@@ -21,6 +22,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.UnaryOperator;
 
@@ -142,53 +144,78 @@ public abstract class AbstractEntity implements Entity {
     }
 
     @Override
-    public boolean teleport(final Location location) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
         return teleport(world(), location);
     }
 
     @Override
-    public boolean teleport(final World destination, final Location location) {
+    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
         if (isRemoved() || !(destination instanceof final ServerWorld target)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
 
         final World from = world();
         final Location previous = location();
 
         if (from == target) {
-            try {
-                setLocation(location);
-                target.entityMoved(this, previous.chunk(), location.chunk());
-                finishTeleport(location);
-                return true;
-            } catch (final Exception exception) {
-                LOGGER.error("An error occurred while teleporting the player : ", exception);
-                return false;
-            }
+            final ChunkPos fromChunk = previous.chunk();
+            final CompletableFuture<Boolean> result = new CompletableFuture<>();
+            final boolean scheduled = target.scheduler().execute(target.key(), fromChunk, () -> {
+                try {
+                    setLocation(location);
+                    target.entityMoved(this, fromChunk, location.chunk());
+                    finishTeleport(location);
+                    result.complete(true);
+                } catch (final Exception exception) {
+                    LOGGER.error("An error occurred while teleporting the player : ", exception);
+                    result.complete(false);
+                }
+            });
+            if (!scheduled) result.complete(false);
+            return result;
         }
 
-        if (from instanceof final ServerWorld old) {
+        if (!(from instanceof final ServerWorld old)) {
+            return CompletableFuture.completedFuture(false);
+        }
+
+        final ChunkPos fromChunk = previous.chunk();
+        final ChunkPos destChunk = location.chunk();
+        final CompletableFuture<Boolean> result = new CompletableFuture<>();
+
+        final boolean departureScheduled = old.scheduler().execute(old.key(), fromChunk, () -> {
             old.removeEntity(this);
             if (this instanceof AbstractMob) {
-                server().regionizer().removeTicket(old.key(), previous.chunk());
+                server().regionizer().removeTicket(old.key(), fromChunk);
             }
-        }
 
-        target.scheduler().execute(target.key(), location.chunk(), () -> {
-            try {
-                setWorld(target);
-                setLocation(location);
-                target.addEntity(this);
-                if (this instanceof AbstractMob) {
-                    server().regionizer().addTicket(target.key(), location.chunk());
+            final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
+                try {
+                    setWorld(target);
+                    setLocation(location);
+                    target.addEntity(this);
+                    if (this instanceof AbstractMob) {
+                        server().regionizer().addTicket(target.key(), destChunk);
+                    }
+                    finishTeleport(location);
+                    result.complete(true);
+                } catch (final Exception exception) {
+                    LOGGER.error("An error occurred while teleporting the entity : ", exception);
+                    result.complete(false);
                 }
-                finishTeleport(location);
-            } catch (final Exception exception) {
-                LOGGER.error("An error occurred while teleporting the player : ", exception);
+            });
+
+            if (!arrivalScheduled) {
+                LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}", this, old.key(), target.key());
+                result.complete(false);
             }
         });
 
-        return true;
+        if (!departureScheduled) {
+            result.complete(false);
+        }
+
+        return result;
     }
 
     private void finishTeleport(final Location location) {

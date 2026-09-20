@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a player currently connected to the server.
@@ -139,11 +140,12 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * The player comes back at their {@linkplain #respawnPoint() respawn point}, or at the world
      * spawn when they have none, and a {@code PlayerRespawnEvent} is fired as usual.</p>
      *
-     * @return {@code true} if the respawn was queued, {@code false} when the player is not waiting
-     * to respawn or has left the server
+     * @return a future completing with {@code true} once the player has actually been moved to
+     * their respawn point, or {@code false} if the respawn was refused (the player is not waiting to
+     * respawn or has left the server) or the move to the respawn point failed
      * @since 0.1.0
      */
-    boolean respawn();
+    CompletableFuture<Boolean> respawn();
 
     /**
      * @return where this player respawns, or {@code null} when they use the world spawn

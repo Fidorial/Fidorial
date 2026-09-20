@@ -104,9 +104,10 @@ public class FloodFillLightEngine implements LightEngine {
         increase.reset();
 
         final int oldLevel = data.get(type, x, y, z);
+        final long chunkKey = ChunkPos.chunkKey(x >> 4, z >> 4);
         if (oldLevel > 0) {
             data.set(type, x, y, z, 0);
-            dirtyChunks.add(ChunkPos.chunkKey(x >> 4, z >> 4));
+            dirtyChunks.add(chunkKey);
             decrease.push(x, y, z, oldLevel);
         }
 
@@ -116,7 +117,7 @@ public class FloodFillLightEngine implements LightEngine {
         final int newSourceLevel = sourceLevel(type, x, y, z, centerState, access);
         if (newSourceLevel > 0) {
             data.set(type, x, y, z, newSourceLevel);
-            dirtyChunks.add(ChunkPos.chunkKey(x >> 4, z >> 4));
+            dirtyChunks.add(chunkKey);
             increase.push(x, y, z, newSourceLevel);
         }
 

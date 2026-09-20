@@ -77,6 +77,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToDoubleFunction;
@@ -367,14 +368,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public boolean respawn() {
+    public CompletableFuture<Boolean> respawn() {
         if (isRemoved() || (!isDead() && !awaitingRespawn)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
-        FidorialServer.getInstance()
-                .regionizer()
-                .execute(world().key(), chunk(), () -> connection.respawn(PlayerRespawnEvent.Cause.API));
-        return true;
+        return connection.respawn(PlayerRespawnEvent.Cause.API);
     }
 
     @Override
@@ -707,9 +705,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public boolean teleport(final World destination, final Location location) {
+    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
         if (isRemoved() || !(destination instanceof final ServerWorld target)) {
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
         return connection.teleport(target, location);
     }

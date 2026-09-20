@@ -2,6 +2,8 @@ package fr.fidorial.world;
 
 import fr.fidorial.scheduler.SchedulerSource;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface Chunk extends SchedulerSource {
 
     World world();
@@ -31,7 +33,7 @@ public interface Chunk extends SchedulerSource {
 
     int getBlockStateId(int localX, int worldY, int localZ);
 
-    boolean setBlockStateId(int localX, int worldY, int localZ, int stateId);
+    CompletableFuture<Boolean> setBlockStateId(int localX, int worldY, int localZ, int stateId);
 
     int blockLight(int localX, int worldY, int localZ);
 

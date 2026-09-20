@@ -85,7 +85,7 @@ public interface World extends Keyed, ForwardingAudience {
 
     int getBlockStateId(BlockPos pos);
 
-    boolean setBlockStateId(BlockPos pos, int stateId);
+    CompletableFuture<Boolean> setBlockStateId(BlockPos pos, int stateId);
 
     int blockLight(BlockPos pos);
 

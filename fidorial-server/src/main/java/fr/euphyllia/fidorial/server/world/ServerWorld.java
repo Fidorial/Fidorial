@@ -79,7 +79,7 @@ public final class ServerWorld implements World {
     private final ThreadedRegionRegionizer scheduler;
     private final ForcedChunks forcedChunks;
 
-    private final ConcurrentChainedLong2ReferenceHashTable<ChunkColumn> loaded =
+    private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
 
     private final ConcurrentLongSet dirty = new ConcurrentLongSet();
@@ -214,13 +214,17 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public boolean setBlockStateId(final BlockPos pos, final int stateId) {
-        ThreadContexts.checkOwnedByCurrentThread(this, pos, "setBlockStateId");
-        try {
-            return setBlock(pos.x(), pos.y(), pos.z(), blockStates.byId(stateId));
-        } catch (final IOException e) {
-            throw new UncheckedIOException("Ecriture du bloc " + pos + " impossible", e);
-        }
+    public CompletableFuture<Boolean> setBlockStateId(final BlockPos pos, final int stateId) {
+        final CompletableFuture<Boolean> future = new CompletableFuture<>();
+        final boolean scheduled = this.scheduler().execute(dimension.id(), pos.chunk(), () -> {
+            try {
+                future.complete(setBlock(pos.x(), pos.y(), pos.z(), blockStates.byId(stateId)));
+            } catch (final IOException e) {
+                future.completeExceptionally(new UncheckedIOException("Ecriture du bloc " + pos + " impossible", e));
+            }
+        });
+        if (!scheduled) future.complete(false);
+        return future;
     }
 
     @Override
@@ -504,32 +508,42 @@ public final class ServerWorld implements World {
         return column.getBiome(x & 15, y, z & 15);
     }
 
-    public void saveDirty() throws IOException {
+    public void saveDirty() {
         final LongSet snapshot = dirty.snapshot();
-        lightFlushFuture(snapshot).join();
-        for (final long k : snapshot) {
-            final ChunkColumn chunk = loaded.get(k);
-            if (chunk != null) {
-                storage.save(dimension, chunk);
+        lightFlushFuture(snapshot).whenComplete((_, _) -> {
+            try {
+                for (final long k : snapshot) {
+                    final ChunkColumn chunk = loaded.get(k);
+                    if (chunk != null) {
+                        storage.save(dimension, chunk);
+                    }
+                    dirty.remove(k);
+                }
+                saveLoadedEntities();
+            } catch (final IOException e) {
+                LOGGER.error("Failed to save dirty chunks/entities for {}", key(), e);
             }
-            dirty.remove(k);
-        }
-        saveLoadedEntities();
+        });
     }
 
-    public void saveAll() throws IOException {
+    public void saveAll() {
         final LongSet keys = new LongOpenHashSet(loaded.size());
         final BaseLongIterator loadedKeys = loaded.keyIterator();
         while (loadedKeys.hasNext()) {
             keys.add(loadedKeys.nextLong());
         }
-        lightFlushFuture(keys).join();
-        final BaseObjectIterator<ChunkColumn> columns = loaded.valueIterator();
-        while (columns.hasNext()) {
-            storage.save(dimension, columns.next());
-        }
-        dirty.clear();
-        saveLoadedEntities();
+        lightFlushFuture(keys).whenComplete((_, _) -> {
+            try {
+                final BaseObjectIterator<ChunkColumn> columns = loaded.valueIterator();
+                while (columns.hasNext()) {
+                    storage.save(dimension, columns.next());
+                }
+                dirty.clear();
+                saveLoadedEntities();
+            } catch (final IOException e) {
+                LOGGER.error("Failed to save all chunks/entities for {}", key(), e);
+            }
+        });
     }
 
     public void markEntitiesDirty(final int chunkX, final int chunkZ) {
@@ -567,9 +581,9 @@ public final class ServerWorld implements World {
         viewers.remove(viewer);
     }
 
-    public int unloadUnusedChunks() {
+    public CompletableFuture<Integer> unloadUnusedChunks() {
         if (loaded.isEmpty()) {
-            return 0;
+            return CompletableFuture.completedFuture(0);
         }
         final LongSet wanted = new LongOpenHashSet();
         for (final ChunkViewSource viewer : viewers.getArray()) {
@@ -585,45 +599,52 @@ public final class ServerWorld implements World {
             }
         }
         if (toUnload.isEmpty()) {
-            return 0;
+            return CompletableFuture.completedFuture(0);
         }
-        lightFlushFuture(toUnload).join();
 
-        int unloaded = 0;
-        for (final long k : toUnload) {
-            if (forcedChunks.contains(k)) {
-                continue; // forced while the light was being flushed
-            }
-            if (loaded.remove(k) != null) {
-                unloaded++;
-                final int cx = (int) (k >> 32);
-                final int cz = (int) k;
-                lightManager.forgetChunk(cx, cz);
-                try {
-                    unloadChunkEntities(cx, cz);
-                } catch (final IOException exception) {
-                    throw new UncheckedIOException(
-                            "Unloading entities from chunk " + cx + "," + cz + "failed.", exception);
+        return lightFlushFuture(toUnload).thenApply(_ -> {
+            int unloaded = 0;
+            for (final long k : toUnload) {
+                if (forcedChunks.contains(k)) {
+                    continue; // forced while the light was being flushed
+                }
+                if (loaded.remove(k) != null) {
+                    unloaded++;
+                    final int cx = (int) (k >> 32);
+                    final int cz = (int) k;
+                    lightManager.forgetChunk(cx, cz);
+                    try {
+                        unloadChunkEntities(cx, cz);
+                    } catch (final IOException exception) {
+                        throw new UncheckedIOException(
+                                "Unloading entities from chunk " + cx + "," + cz + "failed.", exception);
+                    }
                 }
             }
-        }
-        return unloaded;
+            return unloaded;
+        });
     }
 
-    public void unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) throws IOException {
-        if (flushLight) {
-            lightFlushFuture(LongSet.of(ChunkPos.chunkKey(chunkX, chunkZ))).join();
-        }
-        final long k = ChunkPos.chunkKey(chunkX, chunkZ);
-        if (dirty.remove(k)) {
-            final ChunkColumn chunk = loaded.get(k);
-            if (chunk != null) {
-                storage.save(dimension, chunk);
+    public CompletableFuture<Void> unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) {
+        final CompletableFuture<Void> flush = flushLight
+                ? lightFlushFuture(LongSet.of(ChunkPos.chunkKey(chunkX, chunkZ)))
+                : CompletableFuture.completedFuture(null);
+        return flush.whenComplete((_, _) -> {
+            try {
+                final long k = ChunkPos.chunkKey(chunkX, chunkZ);
+                if (dirty.remove(k)) {
+                    final ChunkColumn chunk = loaded.get(k);
+                    if (chunk != null) {
+                        storage.save(dimension, chunk);
+                    }
+                }
+                unloadChunkEntities(chunkX, chunkZ);
+                loaded.remove(k);
+                lightManager.forgetChunk(chunkX, chunkZ);
+            } catch (final IOException e) {
+                LOGGER.error("Failed to unload chunk {},{} in {}", chunkX, chunkZ, key(), e);
             }
-        }
-        unloadChunkEntities(chunkX, chunkZ);
-        loaded.remove(k);
-        lightManager.forgetChunk(chunkX, chunkZ);
+        });
     }
 
     private void invalidateAudiences() {
@@ -658,14 +679,9 @@ public final class ServerWorld implements World {
             return CompletableFuture.completedFuture(false);
         }
 
-        return lightFlushFuture(LongSet.of(k)).thenApplyAsync(_ -> {
-            try {
-                unloadChunk(chunkX, chunkZ, false);
-                return true;
-            } catch (final IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
+        return lightFlushFuture(LongSet.of(k))
+                .thenComposeAsync(_ -> unloadChunk(chunkX, chunkZ, false))
+                .thenApply(_ -> true);
     }
 
     public LongSet collectAllViewedChunks() {
