@@ -7,7 +7,7 @@ import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -128,22 +128,21 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public Optional<Mob> spawn(final Key mobType, final World world, final Location location) {
+    public Optional<Mob> spawn(final Key mobType, final Location location) {
         final EntityType type = EntityTypes.get(mobType);
         if (type == null || !isMob(mobType)) {
             return Optional.empty();
         }
         final FidorialServer server = FidorialServer.getInstance();
-        final AbstractMob mob = MobFactories.create(type, server.entityIds().allocate(), world, location);
+        final AbstractMob mob = MobFactories.create(type, server.entityIds().allocate(), location);
         server.spawnEntity(mob);
         return mob instanceof final Mob handle ? Optional.of(handle) : Optional.empty();
     }
 
 
-    public @Nullable PluginMob createDefined(final EntityType type, final int entityId, final World world,
-                                             final Location location) {
+    public @Nullable PluginMob createDefined(final EntityType type, final int entityId, final Location location) {
         final MobDefinition definition = definitions.get(type.key());
-        return definition == null ? null : new PluginMob(definition, type, entityId, world, location);
+        return definition == null ? null : new PluginMob(definition, type, entityId, location);
     }
 
     public void applyBehaviours(final AbstractMob mob) {

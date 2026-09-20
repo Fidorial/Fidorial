@@ -4,8 +4,7 @@ import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,9 +25,8 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private double stepDistance;
 
-    protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type, final World world,
-                                    final Location location, final float maxHealth) {
-        super(entityId, uuid, type, world, location, maxHealth);
+    protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth) {
+        super(entityId, uuid, type, location, maxHealth);
         this.navigation = new Navigation(serverWorld());
     }
 
@@ -246,7 +244,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
         if (newX != x || newY != y || newZ != z
                 || yaw != current.yaw() || pitch != current.pitch()) {
-            setLocation(new Location(newX, newY, newZ, yaw, pitch));
+            setLocation(Location.of(world(), newX, newY, newZ, yaw, pitch));
         }
     }
 

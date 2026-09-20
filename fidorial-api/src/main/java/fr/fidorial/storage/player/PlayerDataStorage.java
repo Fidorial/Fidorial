@@ -1,8 +1,7 @@
 package fr.fidorial.storage.player;
 
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.world.Location;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -36,23 +35,21 @@ public interface PlayerDataStorage {
      * @param location        the position the player was last at, or {@code null} if never saved
      */
     record PlayerData(GameMode gameMode,
-                      @Nullable Key respawnWorld,
                       @Nullable Location respawnLocation,
-                      @Nullable Key world,
                       @Nullable Location location) {
 
         /**
          * @return {@code true} when a custom respawn point was saved
          */
         public boolean hasRespawnPoint() {
-            return respawnWorld != null && respawnLocation != null;
+            return respawnLocation != null;
         }
 
         /**
          * @return {@code true} when a last-played position was saved
          */
         public boolean hasLastLocation() {
-            return world != null && location != null;
+            return location != null;
         }
     }
 }

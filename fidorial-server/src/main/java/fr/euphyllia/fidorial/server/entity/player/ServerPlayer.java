@@ -38,18 +38,16 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
-import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
@@ -128,7 +126,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile int lastTeleportId;
     private volatile boolean onGround;
     private volatile @Nullable ContainerMenu openMenu;
-    private volatile @Nullable RespawnPoint respawnPoint;
+    private volatile @Nullable Location respawnPoint;
     private int nextWindowId = 1;
     private Locale locale;
 
@@ -139,10 +137,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             final EnderChestInventory enderChest,
             final GameMode gameMode,
             final ClientConnection connection,
-            final World world,
             final Location location
     ) {
-        super(entityId, profile.uuid(), EntityTypes.PLAYER, world, location, MAX_HEALTH);
+        super(entityId, profile.uuid(), EntityTypes.PLAYER, location, MAX_HEALTH);
         this.profile = profile;
         this.inventory = inventory;
         this.enderChest = enderChest;
@@ -358,12 +355,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public @Nullable RespawnPoint respawnPoint() {
+    public @Nullable Location respawnPoint() {
         return respawnPoint;
     }
 
     @Override
-    public void setRespawnPoint(final @Nullable RespawnPoint point) {
+    public void setRespawnPoint(@Nullable final Location point) {
         this.respawnPoint = point;
     }
 
@@ -489,10 +486,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public <T> void sendTitlePart(final TitlePart<T> titlePart, final T value) {
         switch (value) {
-            case Component message -> connection.send(titlePart == TitlePart.TITLE
+            case final Component message -> connection.send(titlePart == TitlePart.TITLE
                     ? new ClientboundSetTitleTextPacket(prepareMessageForSend(message))
                     : new ClientboundSetSubtitleTextPacket(prepareMessageForSend(message)));
-            case Title.Times times -> connection.send(new ClientboundSetTitlesAnimationPacket(
+            case final Title.Times times -> connection.send(new ClientboundSetTitlesAnimationPacket(
                     convertDurationToTicks(times.fadeIn()),
                     convertDurationToTicks(times.stay()),
                     convertDurationToTicks(times.fadeOut())));
@@ -705,11 +702,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
-        if (isRemoved() || !(destination instanceof final ServerWorld target)) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
+        if (isRemoved()) {
             return CompletableFuture.completedFuture(false);
         }
-        return connection.teleport(target, location);
+        return connection.teleport(location);
     }
 
     @Override

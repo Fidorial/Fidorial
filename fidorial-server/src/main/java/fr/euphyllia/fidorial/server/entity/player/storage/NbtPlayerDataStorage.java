@@ -2,8 +2,9 @@ package fr.euphyllia.fidorial.server.entity.player.storage;
 
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.storage.player.PlayerDataStorage;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -95,7 +96,6 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
             }
         }
 
-        Key respawnWorld = defaults.respawnWorld();
         Location respawnLocation = defaults.respawnLocation();
         if (root.contains(SPAWN_DIMENSION) && root.contains(SPAWN_X)) {
             final Key parsed = Key.parseable(root.getString(SPAWN_DIMENSION))
@@ -105,7 +105,8 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
                 LOGGER.warn("Invalid respawn dimension for {}, respawn point dropped", uuid);
             } else {
                 respawnWorld = parsed;
-                respawnLocation = new Location(
+                respawnLocation = Location.of(
+                        null,
                         root.getDouble(SPAWN_X),
                         root.getDouble(SPAWN_Y),
                         root.getDouble(SPAWN_Z),
@@ -145,10 +146,9 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
         root.putInt("DataVersion", VersionConstants.DATA_VERSION);
         root.putInt("playerGameModeId", data.gameMode().id());
 
-        final Key respawnWorld = data.respawnWorld();
         final Location respawnLocation = data.respawnLocation();
-        if (respawnWorld != null && respawnLocation != null) {
-            root.putString(SPAWN_DIMENSION, respawnWorld.asString());
+        if (respawnLocation != null) {
+            root.putString(SPAWN_DIMENSION, respawnLocation.world().key().asString());
             root.putDouble(SPAWN_X, respawnLocation.x());
             root.putDouble(SPAWN_Y, respawnLocation.y());
             root.putDouble(SPAWN_Z, respawnLocation.z());
@@ -156,10 +156,9 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
             root.putFloat(SPAWN_PITCH, respawnLocation.pitch());
         }
 
-        final Key world = data.world();
         final Location location = data.location();
-        if (world != null && location != null) {
-            root.putString(DIMENSION, world.asString());
+        if (location != null) {
+            root.putString(DIMENSION, location.world().key().asString());
             root.put(POS, doubleList(location.x(), location.y(), location.z()));
             root.put(ROTATION, floatList(location.yaw(), location.pitch()));
         }

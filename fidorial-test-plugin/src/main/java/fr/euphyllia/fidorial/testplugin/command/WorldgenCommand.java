@@ -11,9 +11,9 @@ import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Biome;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 
 import static fr.fidorial.command.Commands.argument;

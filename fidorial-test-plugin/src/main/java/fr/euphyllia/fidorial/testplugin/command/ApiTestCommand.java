@@ -19,13 +19,13 @@ import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.command.argument.resolvers.NbtPathResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.scheduler.RegionTps;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -505,8 +505,8 @@ public final class ApiTestCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        final Location destination = new Location(8.5, 100.0, 8.5, 0f, 0f);
-        player.teleport(target, destination).whenComplete((ok, _) ->
+        final Location destination = Location.of(target, 8.5, 100.0, 8.5, 0f, 0f);
+        player.teleport(destination).whenComplete((ok, _) ->
                 plugin.msg(player, "[TestPlugin] Teleportation inter-monde " + (ok ? "OK" : "refusee") + " vers " + key));
         return Command.SINGLE_SUCCESS;
     }

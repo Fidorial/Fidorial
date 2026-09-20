@@ -1,9 +1,9 @@
 package fr.fidorial.entity;
 
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.SchedulerSource;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -46,31 +46,15 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
     CompletableFuture<Boolean> teleport(Location location);
 
     /**
-     * Teleports this entity to the given location, moving it to {@code world} when that differs from
-     * its current world.
-     *
-     * <p>Cross-world teleports relocate the entity between worlds and, for players, trigger the
-     * client-side dimension change. The call is refused, completing with {@code false}, when the entity
-     * is removed or the destination world cannot host it.</p>
-     *
-     * @param world    the destination world
-     * @param location the destination position and orientation
-     * @return a future completing with {@code true} if the teleport happened, {@code false} if it was
-     * refused
-     * @since 0.1.0
-     */
-    CompletableFuture<Boolean> teleport(World world, Location location);
-
-    /**
      * @param x the destination x coordinate
      * @param y the destination y coordinate
      * @param z the destination z coordinate
      * @return a future completing with {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
      */
+    // todo: redundant syntax sugar; remove me
     default CompletableFuture<Boolean> teleport(final double x, final double y, final double z) {
-        final Location current = location();
-        return teleport(new Location(x, y, z, current.yaw(), current.pitch()));
+        return teleport(Location.of(world(), x, y, z, location().yaw(), location().pitch()));
     }
 
     /**
@@ -79,6 +63,6 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
      * @since 0.1.0
      */
     default CompletableFuture<Boolean> teleport(final Entity target) {
-        return teleport(target.world(), target.location());
+        return teleport(target.location());
     }
 }

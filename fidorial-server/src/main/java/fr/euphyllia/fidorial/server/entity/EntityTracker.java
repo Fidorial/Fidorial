@@ -9,7 +9,7 @@ import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRemoveEntitiesPacket;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 import java.util.Collection;
 

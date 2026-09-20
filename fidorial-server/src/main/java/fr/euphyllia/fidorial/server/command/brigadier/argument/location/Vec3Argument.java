@@ -12,7 +12,8 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +29,7 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
         return new Vec3Argument(true);
     }
 
-    public static Location getPosition(final CommandContext<CommandSource> context, final String name) {
+    public static Position getPosition(final CommandContext<CommandSource> context, final String name) {
         return context.getArgument(name, PositionResolver.class).resolve(context.getSource());
     }
 

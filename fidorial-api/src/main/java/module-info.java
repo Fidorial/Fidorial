@@ -87,6 +87,7 @@ module fr.fidorial {
     exports fr.fidorial.item;
     exports fr.fidorial.item.data;
     exports fr.fidorial.item.component;
+    exports fr.fidorial.math;
 
     requires com.google.common;
     requires com.google.gson;

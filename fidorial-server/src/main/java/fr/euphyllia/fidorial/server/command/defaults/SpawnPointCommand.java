@@ -8,8 +8,7 @@ import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
-import fr.fidorial.entity.RespawnPoint;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 

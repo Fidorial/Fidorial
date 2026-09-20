@@ -14,8 +14,8 @@ import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.NbtPathResolver;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -48,14 +48,14 @@ public final class ComponentResolver {
         }
 
         Component resolvedContent = switch (component) {
-            case SelectorComponent sel -> resolveSelector(sel, source);
+            case final SelectorComponent sel -> resolveSelector(sel, source);
             //case ScoreComponent score -> resolveScore(score, source); TBD
-            case NBTComponent<?> nbt -> resolveNbt(nbt, source);
+            case final NBTComponent<?> nbt -> resolveNbt(nbt, source);
             default -> component;
         };
 
         if (!resolvedContent.children().isEmpty()) {
-            List<Component> resolvedChildren = new ArrayList<>();
+            final List<Component> resolvedChildren = new ArrayList<>();
             for (final Component child : resolvedContent.children()) {
                 resolvedChildren.add(resolve(child, source, depth + 1));
             }

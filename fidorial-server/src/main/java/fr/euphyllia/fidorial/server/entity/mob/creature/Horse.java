@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob.creature;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 
@@ -12,7 +11,7 @@ public final class Horse extends AbstractMob implements Category.Neutral {
 
     public static final float MAX_HEALTH = 15f;
 
-    public Horse(int entityId, World world, Location location) {
-        super(entityId, UUID.randomUUID(), EntityTypes.HORSE, world, location, MAX_HEALTH);
+    public Horse(final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), EntityTypes.HORSE, location, MAX_HEALTH);
     }
 }

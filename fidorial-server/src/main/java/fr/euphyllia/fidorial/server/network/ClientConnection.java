@@ -37,14 +37,13 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogReference;
 import fr.fidorial.entity.PlayerProfile;
-import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
+import fr.fidorial.math.Location;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -433,13 +432,13 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             try {
                 server.playerInventoryStorage().save(disconnecting.uuid(), disconnecting.inventory());
                 server.playerEnderChestStorage().save(disconnecting.uuid(), disconnecting.enderChest());
-                final RespawnPoint point = disconnecting.respawnPoint();
+                final Location point = disconnecting.respawnPoint();
                 server.playerDataStorage().save(
                                 disconnecting.uuid(),
                                 new PlayerDataStorage.PlayerData(
                                         disconnecting.gameMode(),
                                         point == null ? null : point.world().key(),
-                                        point == null ? null : point.location(),
+                                        point,
                                         disconnecting.world().key(),
                                         disconnecting.location()));
                 LOGGER.debug("Inventory + Ender Chest and data for {} saved", disconnecting.name());
@@ -600,9 +599,9 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         listener.onDisconnect();
     }
 
-    public CompletableFuture<Boolean> teleport(final ServerWorld target, final Location location) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
         if (listener instanceof final PlayPacketHandler play) {
-            return play.teleport(target, location);
+            return play.teleport(location);
         }
         return CompletableFuture.completedFuture(false);
     }

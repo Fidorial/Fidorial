@@ -5,8 +5,8 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
+import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 

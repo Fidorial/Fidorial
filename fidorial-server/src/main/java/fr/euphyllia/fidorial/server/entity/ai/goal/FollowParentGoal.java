@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractAgeableMob;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
 public final class FollowParentGoal implements Goal {

@@ -12,7 +12,6 @@ import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;

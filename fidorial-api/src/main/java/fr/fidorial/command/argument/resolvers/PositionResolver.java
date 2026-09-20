@@ -1,7 +1,7 @@
 package fr.fidorial.command.argument.resolvers;
 
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Position;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.ApiStatus;
  * @since 0.1.0
  */
 @ApiStatus.NonExtendable
-public interface PositionResolver extends ArgumentResolver<Location> {
+public interface PositionResolver extends ArgumentResolver<Position> {
 
-    Location resolve(CommandSource source);
+    Position resolve(CommandSource source);
 }

@@ -20,9 +20,8 @@ import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobDefinition;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -59,9 +58,8 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private float sentHeadYaw;
     private int ticksSinceSync;
 
-    protected AbstractMovingMob(final int entityId, final UUID uuid, final EntityType type, final World world,
-                                final Location location, final float maxHealth) {
-        super(entityId, uuid, type, world, location, maxHealth);
+    protected AbstractMovingMob(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth) {
+        super(entityId, uuid, type, location, maxHealth);
         this.yaw = location.yaw();
         this.pitch = location.pitch();
         this.sentX = location.x();

@@ -1,7 +1,6 @@
 package fr.fidorial.entity.mob;
 
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -92,10 +91,9 @@ public interface MobRegistry {
      * Spawns a mob into the world.
      *
      * @param mobType  the mob to spawn
-     * @param world    the world to spawn it in
      * @param location where to put it
      * @return the mob, empty when the key is unknown or its implementation exposes no handle
      * @since 0.1.0
      */
-    Optional<Mob> spawn(Key mobType, World world, Location location);
+    Optional<Mob> spawn(Key mobType, Location location);
 }

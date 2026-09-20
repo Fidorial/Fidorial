@@ -11,8 +11,8 @@ import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.Explosion;
 import fr.fidorial.entity.ai.Goal;
+import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -37,8 +37,8 @@ public final class Creeper extends AbstractPathfinderMob implements Category.Mon
     private int swell;
     private boolean primed;
 
-    public Creeper(final int entityId, final World world, final Location location) {
-        super(entityId, UUID.randomUUID(), EntityTypes.CREEPER, world, location, MAX_HEALTH);
+    public Creeper(final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), EntityTypes.CREEPER, location, MAX_HEALTH);
 
         goals.add(new SwellGoal());
         goals.add(new ChaseTargetGoal(this, 1, CHASE_SPEED));
