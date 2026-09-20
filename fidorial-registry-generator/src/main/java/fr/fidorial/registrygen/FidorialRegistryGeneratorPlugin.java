@@ -15,11 +15,15 @@ import fr.fidorial.registrygen.model.SupportedRegistries;
 import fr.fidorial.registrygen.task.GenerateReportsTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 
-import java.nio.file.Path;
+import javax.inject.Inject;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -43,6 +47,13 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String ENTITY_PROPERTIES_TASK_NAME = "generateEntityProperties";
     public static final String FROZEN_REGISTRIES_TASK_NAME = "generateFrozenRegistries";
 
+    private final JavaToolchainService javaToolchainService;
+
+    @Inject
+    public FidorialRegistryGeneratorPlugin(final JavaToolchainService javaToolchainService) {
+        this.javaToolchainService = javaToolchainService;
+    }
+
     @Override
     public void apply(final Project project) {
         final FidorialRegistryGeneratorExtension extension = project.getExtensions().create(EXTENSION_NAME,
@@ -50,9 +61,11 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
 
         configureDefaults(project, extension);
 
+        final Provider<JavaLauncher> javaLauncher = configureJavaLauncher(project, javaToolchainService);
+
         final TaskProvider<DownloadServerJarTask> downloadTask = registerDownloadTask(project, extension);
         final TaskProvider<DownloadPrismarineDataTask> prismarineTask = registerPrismarineDataTask(project, extension);
-        final TaskProvider<GenerateReportsTask> reportsTask = registerReportsTask(project, extension, downloadTask);
+        final TaskProvider<GenerateReportsTask> reportsTask = registerReportsTask(project, extension, downloadTask, javaLauncher);
         final TaskProvider<GenerateRegistriesTask> registriesTask = registerRegistriesTask(project, extension, reportsTask);
         final TaskProvider<GeneratePacketsTask> packetsTask = registerPacketsTask(project, extension, reportsTask);
         final TaskProvider<GenerateBlockStatesTask> blockStatesTask = registerBlockStatesTask(project, extension, reportsTask, prismarineTask);
@@ -88,6 +101,15 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         extension.getPrismarineDataRef().convention("master");
     }
 
+    private static Provider<JavaLauncher> configureJavaLauncher(final Project project, final JavaToolchainService javaToolchainService) {
+        final JavaPluginExtension javaExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+        if (javaExtension == null) {
+            return javaToolchainService.launcherFor(spec -> spec.getLanguageVersion().set(JavaLanguageVersion.of(25)));
+        } else {
+            return javaToolchainService.launcherFor(javaExtension.getToolchain());
+        }
+    }
+
     private static TaskProvider<DownloadServerJarTask> registerDownloadTask(final Project project,
                                                                             final FidorialRegistryGeneratorExtension extension) {
 
@@ -120,7 +142,8 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
 
     private static TaskProvider<GenerateReportsTask> registerReportsTask(final Project project,
                                                                          final FidorialRegistryGeneratorExtension extension,
-                                                                         final TaskProvider<DownloadServerJarTask> downloadTask) {
+                                                                         final TaskProvider<DownloadServerJarTask> downloadTask,
+                                                                         final Provider<JavaLauncher> javaLauncher) {
 
         return project.getTasks().register(REPORTS_TASK_NAME, GenerateReportsTask.class, task -> {
             task.setGroup("fidorial registry generation");
@@ -129,7 +152,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
 
             task.getMinecraftVersion().set(extension.getMinecraftVersion());
 
-            task.getJavaExecutable().convention(Path.of(System.getProperty("java.home"), "bin", executableName("java")).toString());
+            task.getJavaLauncher().convention(javaLauncher);
 
             task.getDataGeneratorArguments().set(extension.getDataGeneratorArguments());
             task.getServerJar().set(downloadTask.flatMap(DownloadServerJarTask::getServerJar));
@@ -326,9 +349,5 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
             task.dependsOn(registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                     entityTypesTask, entityPropertiesTask, frozenRegistriesTask);
         });
-    }
-
-    private static String executableName(final String executable) {
-        return (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) ? executable + ".exe" : executable;
     }
 }

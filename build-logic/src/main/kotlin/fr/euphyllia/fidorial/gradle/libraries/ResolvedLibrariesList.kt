@@ -6,10 +6,8 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import java.io.File
 import javax.inject.Inject
 
@@ -20,8 +18,7 @@ abstract class ResolvedLibrariesList @Inject constructor(
     @get:Internal
     abstract val filesByIdentifier: MapProperty<ComponentArtifactIdentifier, File>
 
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.NONE)
+    @get:Classpath
     val contents: ConfigurableFileCollection = objects.fileCollection()
 
     fun setFrom(artifacts: Provider<ArtifactCollection>) {

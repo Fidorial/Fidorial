@@ -8,10 +8,12 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.jvm.toolchain.JavaLauncher;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,7 +26,7 @@ import java.util.List;
 /**
  * GenerateReportsTask is responsible for running the Minecraft data generator
  * to create the necessary data files for a specified Minecraft version.
- * The task executes the data generation process using a given Java executable,
+ * The task executes the data generation process using a given {@link JavaLauncher} (Java executable),
  * a server JAR file, and a set of provided arguments.
  * <p>
  * The generated data is stored in a designated output directory. The task ensures
@@ -39,8 +41,8 @@ public abstract class GenerateReportsTask extends DefaultTask {
     @Input
     public abstract Property<String> getMinecraftVersion();
 
-    @Input
-    public abstract Property<String> getJavaExecutable();
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @Input
     public abstract ListProperty<String> getDataGeneratorArguments();
@@ -59,15 +61,20 @@ public abstract class GenerateReportsTask extends DefaultTask {
 
         Files.createDirectories(dataDirectory);
 
+        final String javaExecutable = getJavaLauncher().get()
+                .getExecutablePath()
+                .getAsFile()
+                .getAbsolutePath();
+
         final List<String> command = new ArrayList<>();
-        command.add(getJavaExecutable().get());
+        command.add(javaExecutable);
         command.add("-DbundlerMainClass=net.minecraft.data.Main");
         command.add("-jar");
         command.add(serverJar.toAbsolutePath().toString());
         command.addAll(getDataGeneratorArguments().get());
 
         getLogger().lifecycle("Running Minecraft data generator for Minecraft {}", getMinecraftVersion().get());
-        getLogger().lifecycle("Java executable: {}", getJavaExecutable().get());
+        getLogger().lifecycle("Java executable: {}", javaExecutable);
         getLogger().lifecycle("Working directory: {}", dataDirectory.toAbsolutePath());
         getLogger().lifecycle("Command: {}", command);
 
