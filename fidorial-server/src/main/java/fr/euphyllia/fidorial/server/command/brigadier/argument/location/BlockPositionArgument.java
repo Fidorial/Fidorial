@@ -13,7 +13,6 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 
 import java.util.concurrent.CompletableFuture;
 

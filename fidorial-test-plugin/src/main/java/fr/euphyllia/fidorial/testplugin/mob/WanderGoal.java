@@ -2,8 +2,8 @@ package fr.euphyllia.fidorial.testplugin.mob;
 
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
 

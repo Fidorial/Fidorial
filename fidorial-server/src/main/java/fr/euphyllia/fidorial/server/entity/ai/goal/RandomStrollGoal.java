@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -18,7 +17,7 @@ public final class RandomStrollGoal implements Goal {
     private final double speed;
     private int ticksRunning;
 
-    public RandomStrollGoal(AbstractPathfinderMob mob, int priority, double speed) {
+    public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final double speed) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
@@ -44,11 +43,11 @@ public final class RandomStrollGoal implements Goal {
     @Override
     public void start() {
         ticksRunning = 0;
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        Location from = mob.location();
-        int x = (int) Math.floor(from.x()) + random.nextInt(-RANGE, RANGE + 1);
-        int z = (int) Math.floor(from.z()) + random.nextInt(-RANGE, RANGE + 1);
-        int y = (int) Math.floor(from.y());
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final Location from = mob.location();
+        final int x = (int) Math.floor(from.x()) + random.nextInt(-RANGE, RANGE + 1);
+        final int z = (int) Math.floor(from.z()) + random.nextInt(-RANGE, RANGE + 1);
+        final int y = (int) Math.floor(from.y());
         mob.navigation().moveTo(from, new BlockPos(x, y, z));
     }
 

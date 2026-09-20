@@ -8,8 +8,8 @@ import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionHolder;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.identity.Identified;
@@ -151,7 +151,7 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * @return where this player respawns, or {@code null} when they use the world spawn
      * @since 0.1.0
      */
-    @Nullable RespawnPoint respawnPoint();
+    @Nullable Location respawnPoint();
 
     /**
      * Sets where this player respawns. The point is saved with the rest of their data and restored
@@ -160,24 +160,7 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * @param point the point to respawn at, or {@code null} to fall back to the world spawn
      * @since 0.1.0
      */
-    void setRespawnPoint(@Nullable RespawnPoint point);
-
-    /**
-     * @param world    the world to respawn in
-     * @param location the position to respawn at
-     * @since 0.1.0
-     */
-    default void setRespawnPoint(final World world, final Location location) {
-        setRespawnPoint(new RespawnPoint(world, location));
-    }
-
-    /**
-     * @param location the position to respawn at, in the player's current world
-     * @since 0.1.0
-     */
-    default void setRespawnPoint(final Location location) {
-        setRespawnPoint(new RespawnPoint(world(), location));
-    }
+    void setRespawnPoint(@Nullable Location point);
 
     /**
      * Switches this player's connection status from PLAY to CONFIGURATION.

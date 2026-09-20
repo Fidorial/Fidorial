@@ -6,11 +6,11 @@ import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.testing.ScenarioTestInfo;
 import fr.fidorial.testing.ScenarioTestInstance;
 import fr.fidorial.testing.ScenarioTestPlayerFactory;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
 import net.kyori.adventure.key.Key;
@@ -33,8 +33,8 @@ final class ScenarioTestRunner {
     void start(final List<ScenarioTestInstance> tests, final FidorialServer server) {
         final ScenarioTestPlayerFactory playerFactory = new ScenarioTestPlayerFactory() {
             @Override
-            public Player spawn(final String name, final World world, final Location location, final GameMode gameMode) {
-                return ScenarioTestPlayer.spawn(server, ((ServerWorld) world), name, location, gameMode);
+            public Player spawn(final String name, final Location location, final GameMode gameMode) {
+                return ScenarioTestPlayer.spawn(server, name, location, gameMode);
             }
 
             @Override

@@ -13,10 +13,10 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 
@@ -67,20 +67,20 @@ public final class Explosion {
     private Explosion() {
     }
 
-    public static void explode(final ServerWorld world, final Location center, final float power, final AbstractEntity source) {
+    public static void explode(final Location center, final float power, final AbstractEntity source) {
         final FidorialServer server = FidorialServer.getInstance();
-        playExplosionSound(server, world, center);
-        destroyBlocks(server, world, center, power);
-        damageEntities(server, world, center, power, source);
+        playExplosionSound(server, center);
+        destroyBlocks(server, center, power);
+        damageEntities(server, center, power, source);
     }
 
-    private static void playExplosionSound(final FidorialServer server, final ServerWorld world, final Location center) {
+    private static void playExplosionSound(final FidorialServer server, final Location center) {
         final float pitch = (1.0f
-                        + (ThreadLocalRandom.current().nextFloat()
-                                        - ThreadLocalRandom.current().nextFloat())
-                                * 0.2f)
+                + (ThreadLocalRandom.current().nextFloat()
+                - ThreadLocalRandom.current().nextFloat())
+                * 0.2f)
                 * 0.7f;
-        server.broadcastNear(world, center.x(), center.y(), center.z(),
+        server.broadcastNear(center.world(), center.x(), center.y(), center.z(),
                 new ClientboundSoundPacket(
                         Sound.sound(SoundEvents.GENERIC_EXPLODE, Sound.Source.BLOCK, 4.0f, pitch),
                         center.x(),
@@ -88,12 +88,12 @@ public final class Explosion {
                         center.z()));
     }
 
-    private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final Location center, final float power) {
-        final Set<BlockPos> toDestroy = collectExplodedBlocks(world, center, power);
+    private static void destroyBlocks(final FidorialServer server, final Location center, final float power) {
+        final Set<BlockPos> toDestroy = collectExplodedBlocks(center, power);
         final List<BlockPos> destroyed = new ArrayList<>(toDestroy.size());
 
         for (final BlockPos pos : toDestroy) {
-            if (server.blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
+            if (server.blockEdits().set(((ServerWorld) center.world()), pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
                 destroyed.add(pos);
             }
             if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
@@ -103,13 +103,14 @@ public final class Explosion {
 
         for (int i = 0; i < destroyed.size(); i += 5) {
             final BlockPos broken = destroyed.get(i);
-            server.broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
+            server.broadcastNear(center.world(), broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
                     new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false));
         }
     }
 
-    private static Set<BlockPos> collectExplodedBlocks(final ServerWorld world, final Location center, final float power) {
+    private static Set<BlockPos> collectExplodedBlocks(final Location center, final float power) {
+        final ServerWorld world = ((ServerWorld) center.world());
         final Set<BlockPos> out = new HashSet<>();
         final var random = ThreadLocalRandom.current();
         final double ox = center.x();
@@ -161,7 +162,6 @@ public final class Explosion {
 
     private static void damageEntities(
             final FidorialServer server,
-            final ServerWorld world,
             final Location center,
             final float power,
             final AbstractEntity source
@@ -173,6 +173,7 @@ public final class Explosion {
         final double cz = center.z();
 
         final List<AbstractEntity> affected = new ArrayList<>();
+        final ServerWorld world = (ServerWorld) center.world();
         world.entityManager().forEachNear(center.chunk(), range, affected::add);
 
         for (final AbstractEntity abstractEntity : affected) {
@@ -327,7 +328,7 @@ public final class Explosion {
         }
         final Location loc = entity.location();
         final double half = width / 2.0;
-        return new double[] {loc.x() - half, loc.y(), loc.z() - half, loc.x() + half, loc.y() + height, loc.z() + half};
+        return new double[]{loc.x() - half, loc.y(), loc.z() - half, loc.x() + half, loc.y() + height, loc.z() + half};
     }
 
     private static double lerp(final double t, final double a, final double b) {

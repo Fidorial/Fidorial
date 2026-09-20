@@ -52,7 +52,7 @@ public final class CustomMobCommand {
 
         final Optional<Mob> mob = plugin.server()
                 .mobs()
-                .spawn(key, player.world(), player.location());
+                .spawn(key, player.location());
 
         if (mob.isEmpty()) {
             plugin.msg(

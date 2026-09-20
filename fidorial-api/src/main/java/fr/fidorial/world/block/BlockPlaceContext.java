@@ -1,9 +1,9 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 

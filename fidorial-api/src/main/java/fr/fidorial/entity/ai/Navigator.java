@@ -1,7 +1,7 @@
 package fr.fidorial.entity.ai;
 
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
 /**

@@ -93,7 +93,7 @@ import fr.euphyllia.fidorial.server.entity.mob.water_creature.Squid;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Tadpole;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.TropicalFish;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -216,10 +216,10 @@ public final class MobFactories {
     }
 
 
-    public static AbstractMob create(final EntityType type, final int entityId, final World world, final Location location) {
+    public static AbstractMob create(final EntityType type, final int entityId, final Location location) {
         final FidorialMobRegistry registry = registry();
 
-        AbstractMob mob = registry.createDefined(type, entityId, world, location);
+        AbstractMob mob = registry.createDefined(type, entityId, location);
         if (mob == null) {
             final MobFactory factory = FACTORIES.get(type.key());
             if (factory == null) {
@@ -238,6 +238,6 @@ public final class MobFactories {
 
     @FunctionalInterface
     public interface MobFactory {
-        AbstractMob create(int entityId, World world, Location location);
+        AbstractMob create(int entityId, Location location);
     }
 }

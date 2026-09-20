@@ -2,8 +2,8 @@ package fr.fidorial.testing;
 
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -32,15 +32,7 @@ public final class ScenarioTestHelper {
      * @apiNote the player is automatically despawned upon test completion, regardless of its result.
      */
     public Player summonPlayer(final String name, final Location location, final GameMode gameMode) {
-        return summonPlayer(name, world, location, gameMode);
-    }
-
-    /**
-     * Summons a mock player into the specified world.
-     * @apiNote the player is automatically despawned upon test completion, regardless of its result.
-     */
-    public Player summonPlayer(final String name, final World world, final Location location, final GameMode gameMode) {
-        final Player player = playerFactory.spawn(name, world, location, gameMode);
+        final Player player = playerFactory.spawn(name, location, gameMode);
         summonedPlayers.add(player);
         return player;
     }

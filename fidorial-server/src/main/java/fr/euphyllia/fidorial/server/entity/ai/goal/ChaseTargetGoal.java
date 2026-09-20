@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 
 public final class ChaseTargetGoal implements Goal {
 
@@ -12,7 +11,7 @@ public final class ChaseTargetGoal implements Goal {
     private final int priority;
     private final double speed;
 
-    public ChaseTargetGoal(AbstractPathfinderMob mob, int priority, double speed) {
+    public ChaseTargetGoal(final AbstractPathfinderMob mob, final int priority, final double speed) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
@@ -40,11 +39,11 @@ public final class ChaseTargetGoal implements Goal {
 
     @Override
     public void tick() {
-        ServerPlayer target = mob.target();
+        final ServerPlayer target = mob.target();
         if (target == null) {
             return;
         }
-        Location goal = target.location();
+        final Location goal = target.location();
         mob.navigation()
                 .moveTo(mob.location(), new BlockPos((int) Math.floor(goal.x()), (int) Math.floor(goal.y()), (int)
                         Math.floor(goal.z())));

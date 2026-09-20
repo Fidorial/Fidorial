@@ -12,9 +12,9 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -34,14 +34,12 @@ public abstract class AbstractEntity implements Entity {
     private final EntityType type;
     private final AtomicBoolean removed = new AtomicBoolean(false);
     private UUID uuid;
-    private volatile World world;
     private volatile Location location;
 
-    protected AbstractEntity(final int entityId, final UUID uuid, final EntityType type, final World world, final Location location) {
+    protected AbstractEntity(final int entityId, final UUID uuid, final EntityType type, final Location location) {
         this.entityId = entityId;
         this.uuid = uuid;
         this.type = type;
-        this.world = world;
         this.location = location;
     }
 
@@ -71,7 +69,7 @@ public abstract class AbstractEntity implements Entity {
 
     @Override
     public final World world() {
-        return world;
+        return location.world();
     }
 
     @Override
@@ -81,10 +79,6 @@ public abstract class AbstractEntity implements Entity {
 
     public void setLocation(final Location location) {
         this.location = location;
-    }
-
-    public void setWorld(final World world) {
-        this.world = world;
     }
 
     @Override
@@ -145,25 +139,18 @@ public abstract class AbstractEntity implements Entity {
 
     @Override
     public CompletableFuture<Boolean> teleport(final Location location) {
-        return teleport(world(), location);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
-        if (isRemoved() || !(destination instanceof final ServerWorld target)) {
-            return CompletableFuture.completedFuture(false);
-        }
+        if (isRemoved()) return CompletableFuture.completedFuture(false);
 
         final World from = world();
         final Location previous = location();
 
-        if (from == target) {
+        if (from == location.world()) {
             final ChunkPos fromChunk = previous.chunk();
             final CompletableFuture<Boolean> result = new CompletableFuture<>();
-            final boolean scheduled = target.scheduler().execute(target.key(), fromChunk, () -> {
+            final boolean scheduled = location.world().scheduler().execute(location.world().key(), fromChunk, () -> {
                 try {
                     setLocation(location);
-                    target.entityMoved(this, fromChunk, location.chunk());
+                    ((ServerWorld) location.world()).entityMoved(this, fromChunk, location.chunk());
                     finishTeleport(location);
                     result.complete(true);
                 } catch (final Exception exception) {
@@ -189,13 +176,12 @@ public abstract class AbstractEntity implements Entity {
                 server().regionizer().removeTicket(old.key(), fromChunk);
             }
 
-            final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
+            final boolean arrivalScheduled = location.world().scheduler().execute(location.world().key(), destChunk, () -> {
                 try {
-                    setWorld(target);
                     setLocation(location);
-                    target.addEntity(this);
+                    ((ServerWorld) location.world()).addEntity(this);
                     if (this instanceof AbstractMob) {
-                        server().regionizer().addTicket(target.key(), destChunk);
+                        server().regionizer().addTicket(location.world().key(), destChunk);
                     }
                     finishTeleport(location);
                     result.complete(true);
@@ -206,7 +192,7 @@ public abstract class AbstractEntity implements Entity {
             });
 
             if (!arrivalScheduled) {
-                LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}", this, old.key(), target.key());
+                LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}", this, old.key(), location.world().key());
                 result.complete(false);
             }
         });

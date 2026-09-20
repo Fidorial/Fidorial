@@ -2,7 +2,7 @@ package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 public final class PlayerMoveEvent implements PlayerEvent, Cancellable {
 
@@ -11,7 +11,7 @@ public final class PlayerMoveEvent implements PlayerEvent, Cancellable {
     private final Location to;
     private boolean cancelled;
 
-    public PlayerMoveEvent(Player player, Location from, Location to) {
+    public PlayerMoveEvent(final Player player, final Location from, final Location to) {
         this.player = player;
         this.from = from;
         this.to = to;
@@ -36,7 +36,7 @@ public final class PlayerMoveEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void setCancelled(final boolean cancelled) {
         this.cancelled = cancelled;
     }
 }

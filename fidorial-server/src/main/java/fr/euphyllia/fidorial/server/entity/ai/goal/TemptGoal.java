@@ -6,7 +6,6 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 

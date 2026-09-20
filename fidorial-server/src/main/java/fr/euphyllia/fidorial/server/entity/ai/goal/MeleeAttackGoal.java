@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 
 public class MeleeAttackGoal implements Goal {
 

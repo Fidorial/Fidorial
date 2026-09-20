@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 import fr.euphyllia.fidorial.server.entity.ai.PathPenalty;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.mob.MobDefinition;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.Optional;
@@ -14,9 +13,8 @@ public final class PluginMob extends AbstractPathfinderMob {
 
     private final MobDefinition definition;
 
-    public PluginMob(final MobDefinition definition, final EntityType type, final int entityId,
-                     final World world, final Location location) {
-        super(entityId, UUID.randomUUID(), type, world, location, definition.maxHealth());
+    public PluginMob(final MobDefinition definition, final EntityType type, final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), type, location, definition.maxHealth());
         this.definition = definition;
         navigation.setPathPenalty(PathPenalty.LAND_ANIMAL);
     }

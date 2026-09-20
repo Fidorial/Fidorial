@@ -9,7 +9,6 @@ import fr.euphyllia.fidorial.server.entity.mob.MobFactories;
 import fr.euphyllia.fidorial.server.entity.mob.PluginMob;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;

@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 public final class PermissionlessCommandSource implements CommandSource {

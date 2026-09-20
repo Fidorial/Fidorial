@@ -2,8 +2,7 @@ package fr.euphyllia.fidorial.server.entity;
 
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,10 +25,9 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             final int entityId,
             final UUID uuid,
             final EntityType type,
-            final World world,
             final Location location,
             final float maxHealth) {
-        super(entityId, uuid, type, world, location);
+        super(entityId, uuid, type, location);
         this.maxHealth = maxHealth;
         this.health = maxHealth;
     }

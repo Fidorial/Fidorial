@@ -80,7 +80,6 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.PlayerProfile;
-import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.BlockBreakEvent;
 import fr.fidorial.event.player.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
@@ -97,12 +96,13 @@ import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.math.FinePosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockPlaceContext;
 import net.kyori.adventure.chat.ChatType;
@@ -228,15 +228,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
         final ServerWorld defaultWorld = server.worldManager().overworld();
-        final Location defaultSpawn = new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
 
-        ServerWorld world = defaultWorld;
-        Location spawn = defaultSpawn;
+        Location spawn = Location.of(defaultWorld, config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
 
         if (data.hasLastLocation()) {
             final ServerWorld saved = server.worldManager().world(data.world());
-            if (saved != null) {
-                world = saved;
+            if (saved != null && data.location() != null) {
                 spawn = data.location();
             } else {
                 LOGGER.warn("{} last played in the unloaded world {}, world spawn used instead", profile.name(), data.world());
@@ -250,25 +247,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 loadEnderChest(profile),
                 data.gameMode(),
                 connection,
-                world,
                 spawn);
-        created.setRespawnPoint(restoreRespawnPoint(profile, data));
+        created.setRespawnPoint(data.respawnLocation());
         return created;
-    }
-
-    private @Nullable RespawnPoint restoreRespawnPoint(
-            final PlayerProfile profile, final PlayerDataStorage.PlayerData data) {
-        final Key worldKey = data.respawnWorld();
-        final Location location = data.respawnLocation();
-        if (worldKey == null || location == null) {
-            return null;
-        }
-        final ServerWorld world = server.worldManager().world(worldKey);
-        if (world == null) {
-            LOGGER.warn("Respawn point of {} targets the unknown world {}, dropped", profile.name(), worldKey);
-            return null;
-        }
-        return new RespawnPoint(world, location);
     }
 
     private EnderChestInventory loadEnderChest(final PlayerProfile profile) {
@@ -837,7 +818,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final boolean isOnGround = (flags & 0x01) != 0;
 
         world.scheduler().execute(world.key(), fromChunk, () -> {
-            final Location current = new Location(x, y, z, yaw, pitch);
+            final Location current = Location.of(world, x, y, z, yaw, pitch);
             trackFall(previous, current, wasOnGround, isOnGround);
             moving.setLocation(current);
             moving.setOnGround(isOnGround);
@@ -861,7 +842,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         });
     }
 
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
         if (player == null) {
             return CompletableFuture.completedFuture(false);
         }
@@ -869,17 +850,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final World from = teleporting.world();
         final ChunkPos destChunk = location.chunk();
 
-        if (from == destination) {
-            if (!(destination instanceof final ServerWorld target)) {
-                return CompletableFuture.completedFuture(false);
-            }
+        if (from == location.world()) {
             final Location previous = teleporting.location();
             final ChunkPos fromChunk = previous.chunk();
             final CompletableFuture<Boolean> result = new CompletableFuture<>();
-            final boolean scheduled = target.scheduler().execute(target.key(), fromChunk, () -> {
+            final boolean scheduled = location.world().scheduler().execute(location.world().key(), fromChunk, () -> {
                 try {
                     teleporting.setLocation(location);
-                    target.entityMoved(teleporting, fromChunk, destChunk);
+                    ((ServerWorld) location.world()).entityMoved(teleporting, fromChunk, destChunk);
                     connection.send(new ClientboundPlayerPositionPacket(
                             teleporting.nextTeleportId(),
                             new PositionData.PositionMoveRotationData(
@@ -896,7 +874,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     teleporting.sendToTrackers(new ClientboundRotateHeadPacket(teleporting.entityId(), location.yaw()));
 
                     if (chunkView != null && chunkView.moveTo(destChunk.x(), destChunk.z()) && ticket != null) {
-                        server.regionizer().moveTicket(target.dimension().id(), ticket, destChunk);
+                        server.regionizer().moveTicket(((ServerWorld) location.world()).dimension().id(), ticket, destChunk);
                         ticket = destChunk;
                     }
                     server.entityTracker().update(teleporting, server.players());
@@ -912,7 +890,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return result;
         }
 
-        if (!(from instanceof final ServerWorld fromWorld) || !(destination instanceof final ServerWorld target)) {
+        // fixme: horrific code; i have no idea how the teleportCrossWorld stuff works, I ain't gonna touch that :)
+        if (!(from instanceof final ServerWorld fromWorld) || !(location.world() instanceof final ServerWorld target)) {
             return CompletableFuture.completedFuture(false);
         }
 
@@ -950,7 +929,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
                 final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
                     try {
-                        teleporting.setWorld(target);
                         teleporting.setLocation(location);
                         target.addEntity(teleporting);
 
@@ -1085,34 +1063,30 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("{} requested a respawn while alive (health={})", player.name(), player.health());
             return CompletableFuture.completedFuture(false);
         }
-        final ServerWorld defaultWorld = server.worldManager().overworld(); // FIXME: dont hardcode
-        final Location defaultSpawn =
-                new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
+        final ServerWorld defaultWorld = server.worldManager().overworld();
+        final Location defaultSpawn = Location.of(defaultWorld, config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
 
-        ServerWorld requestedWorld = defaultWorld;
         Location requestedSpawn = defaultSpawn;
         boolean usedRespawnPoint = false;
 
-        final RespawnPoint point = player.respawnPoint();
+        final Location point = player.respawnPoint();
         if (point != null) {
             final ServerWorld target = server.worldManager().world(point.world().key());
             if (target != null) {
-                requestedWorld = target;
-                requestedSpawn = point.location();
+                requestedSpawn = point;
                 usedRespawnPoint = true;
             } else {
                 LOGGER.warn(
                         "Respawn point of {} targets the unloaded world {}, world spawn used instead",
                         player.name(),
                         point.world().key());
-                player.setRespawnPoint((RespawnPoint) null);
+                player.setRespawnPoint(null);
             }
         }
 
         final PlayerRespawnEvent event = server.events()
-                .post(new PlayerRespawnEvent(player, requestedWorld, requestedSpawn, cause, usedRespawnPoint));
-        final ServerWorld world =
-                event.world() instanceof final ServerWorld target ? target : defaultWorld;
+                .post(new PlayerRespawnEvent(player, requestedSpawn, cause, usedRespawnPoint));
+        final ServerWorld world = ((ServerWorld) event.location().world());
         final Location spawn = event.location();
 
         player.resetOnRespawn();
@@ -1205,7 +1179,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
                 final boolean arrivalScheduled = world.scheduler().execute(world.key(), destination, () -> {
                     try {
-                        respawning.setWorld(world);
                         respawning.setLocation(spawn);
                         world.addEntity(respawning);
                         openChunkView(world, destination);
