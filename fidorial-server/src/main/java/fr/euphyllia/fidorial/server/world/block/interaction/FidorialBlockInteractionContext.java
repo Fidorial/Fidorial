@@ -10,6 +10,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Vec3f;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
@@ -34,15 +35,12 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
     private final BlockFace face;
     private final InteractionHand hand;
     private final ItemStack heldItem;
-    private final float cursorX;
-    private final float cursorY;
-    private final float cursorZ;
+    private final Vec3f cursor;
     private final boolean insideBlock;
 
     public FidorialBlockInteractionContext(final FidorialServer server, final ServerWorld world, final ServerPlayer player, final BlockPos pos,
                                            final BlockState state, final BlockFace face, final InteractionHand hand,
-                                           final ItemStack heldItem, final float cursorX, final float cursorY,
-                                           final float cursorZ, final boolean insideBlock) {
+                                           final ItemStack heldItem, final Vec3f cursor, final boolean insideBlock) {
         this.server = server;
         this.world = world;
         this.player = player;
@@ -51,9 +49,7 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
         this.face = face;
         this.hand = hand;
         this.heldItem = heldItem;
-        this.cursorX = cursorX;
-        this.cursorY = cursorY;
-        this.cursorZ = cursorZ;
+        this.cursor = cursor;
         this.insideBlock = insideBlock;
     }
 
@@ -117,18 +113,8 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
     }
 
     @Override
-    public float cursorX() {
-        return cursorX;
-    }
-
-    @Override
-    public float cursorY() {
-        return cursorY;
-    }
-
-    @Override
-    public float cursorZ() {
-        return cursorZ;
+    public Vec3f cursor() {
+        return cursor;
     }
 
     @Override

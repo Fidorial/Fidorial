@@ -5,14 +5,13 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketL
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Vec3f;
 
 public record ServerboundUseItemOnPacket(
         int hand,
         BlockPos target,
         int face,
-        float cursorX,
-        float cursorY,
-        float cursorZ,
+        Vec3f cursor,
         boolean insideBlock,
         int sequence)
         implements ServerboundPacket {
@@ -30,7 +29,8 @@ public record ServerboundUseItemOnPacket(
             buf.readBoolean();
         }
         final int sequence = buf.readableBytes() > 0 ? buf.readVarInt() : 0;
-        return new ServerboundUseItemOnPacket(hand, target, face, cursorX, cursorY, cursorZ, insideBlock, sequence);
+        final Vec3f cursor3f = new Vec3f(cursorX, cursorY, cursorZ);
+        return new ServerboundUseItemOnPacket(hand, target, face, cursor3f, insideBlock, sequence);
     }
 
     @Override

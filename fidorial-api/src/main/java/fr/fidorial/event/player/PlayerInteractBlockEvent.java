@@ -5,6 +5,7 @@ import fr.fidorial.event.Cancellable;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Vec3f;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.interaction.InteractionHand;
@@ -18,9 +19,7 @@ public final class PlayerInteractBlockEvent implements PlayerEvent, Cancellable 
     private final BlockFace face;
     private final InteractionHand hand;
     private final ItemStack item;
-    private final float cursorX;
-    private final float cursorY;
-    private final float cursorZ;
+    private final Vec3f cursor;
     private final boolean insideBlock;
 
     private boolean useInteractedBlock = true;
@@ -28,8 +27,8 @@ public final class PlayerInteractBlockEvent implements PlayerEvent, Cancellable 
 
 
     public PlayerInteractBlockEvent(final Player player, final World world, final BlockPos position, final BlockData block,
-                                    final BlockFace face, final InteractionHand hand, final ItemStack item, final float cursorX,
-                                    final float cursorY, final float cursorZ, final boolean insideBlock) {
+                                    final BlockFace face, final InteractionHand hand, final ItemStack item,
+                                    final Vec3f cursor, final boolean insideBlock) {
         this.player = player;
         this.world = world;
         this.position = position;
@@ -37,9 +36,7 @@ public final class PlayerInteractBlockEvent implements PlayerEvent, Cancellable 
         this.face = face;
         this.hand = hand;
         this.item = item;
-        this.cursorX = cursorX;
-        this.cursorY = cursorY;
-        this.cursorZ = cursorZ;
+        this.cursor = cursor;
         this.insideBlock = insideBlock;
     }
 
@@ -100,24 +97,8 @@ public final class PlayerInteractBlockEvent implements PlayerEvent, Cancellable 
      * @return where on the clicked face the cursor landed, in block space
      * @since 0.1.0
      */
-    public float cursorX() {
-        return cursorX;
-    }
-
-    /**
-     * @return where on the clicked face the cursor landed, in block space
-     * @since 0.1.0
-     */
-    public float cursorY() {
-        return cursorY;
-    }
-
-    /**
-     * @return where on the clicked face the cursor landed, in block space
-     * @since 0.1.0
-     */
-    public float cursorZ() {
-        return cursorZ;
+    public Vec3f cursor() {
+        return cursor;
     }
 
     /**

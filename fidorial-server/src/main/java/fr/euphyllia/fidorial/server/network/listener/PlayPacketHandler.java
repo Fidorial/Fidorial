@@ -623,9 +623,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     clickedFace,
                     context.hand(),
                     context.heldItem(),
-                    packet.cursorX(),
-                    packet.cursorY(),
-                    packet.cursorZ(),
+                    packet.cursor(),
                     packet.insideBlock()));
 
             if (interactEvent.useInteractedBlock()) {
@@ -645,7 +643,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             }
 
             final BlockPos target = clicked.relative(clickedFace);
-            final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
+            final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursor().y());
 
             if (state != null) {
                 final BlockPlaceEvent event = server.events()
@@ -694,9 +692,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 clickedFace,
                 InteractionHand.byId(packet.hand()),
                 heldItem(acting, packet.hand()),
-                packet.cursorX(),
-                packet.cursorY(),
-                packet.cursorZ(),
+                packet.cursor(),
                 packet.insideBlock());
     }
 

@@ -4,6 +4,7 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
+import fr.fidorial.world.Vec3f;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import net.kyori.adventure.sound.Sound;
@@ -61,19 +62,7 @@ public interface BlockInteractionContext {
      * @return where on the clicked face the cursor landed, in block space
      * @since 0.1.0
      */
-    float cursorX();
-
-    /**
-     * @return where on the clicked face the cursor landed, in block space
-     * @since 0.1.0
-     */
-    float cursorY();
-
-    /**
-     * @return where on the clicked face the cursor landed, in block space
-     * @since 0.1.0
-     */
-    float cursorZ();
+    Vec3f cursor();
 
     /**
      * @return {@code true} when the player's head is inside the clicked block
