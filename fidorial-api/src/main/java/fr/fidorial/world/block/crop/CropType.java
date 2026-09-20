@@ -1,5 +1,7 @@
 package fr.fidorial.world.block.crop;
 
+import com.google.common.base.Preconditions;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
 
@@ -208,9 +210,7 @@ public final class CropType {
          * @since 0.1.0
          */
         public Builder maxAge(final int maxAge) {
-            if (maxAge < 1) {
-                throw new IllegalArgumentException("maxAge must be at least 1, got " + maxAge);
-            }
+            Preconditions.checkArgument(maxAge >= 1, "maxAge must be at least 1, got %s", maxAge);
             this.maxAge = maxAge;
             return this;
         }
@@ -223,9 +223,7 @@ public final class CropType {
          * @since 0.1.0
          */
         public Builder soils(final Set<Key> soils) {
-            if (soils.isEmpty()) {
-                throw new IllegalArgumentException("A crop needs at least one soil");
-            }
+            Preconditions.checkArgument(!soils.isEmpty(), "A crop needs at least one soil");
             this.soils.clear();
             this.soils.addAll(soils);
             return this;
@@ -247,10 +245,8 @@ public final class CropType {
          * @since 0.1.0
          */
         public Builder averageTicksPerStage(final int averageTicksPerStage) {
-            if (averageTicksPerStage < 1) {
-                throw new IllegalArgumentException(
-                        "averageTicksPerStage must be at least 1, got " + averageTicksPerStage);
-            }
+            Preconditions.checkArgument(averageTicksPerStage >= 1,
+                    "averageTicksPerStage must be at least 1, got %s", averageTicksPerStage);
             this.averageTicksPerStage = averageTicksPerStage;
             return this;
         }
@@ -291,10 +287,10 @@ public final class CropType {
          */
         public CropType build() {
             if (ripeDrops == null) {
-                ripeDrops = List.of(CropDrop.of(seed, 1));
+                ripeDrops = List.of(CropDrop.of(ItemStack.of(seed)));
             }
             if (immatureDrops == null) {
-                immatureDrops = List.of(CropDrop.of(seed, 1));
+                immatureDrops = List.of(CropDrop.of(ItemStack.of(seed)));
             }
             return new CropType(this);
         }

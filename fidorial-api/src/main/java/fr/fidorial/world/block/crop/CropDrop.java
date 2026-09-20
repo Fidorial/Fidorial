@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.crop;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.ItemStack;
-import net.kyori.adventure.key.Key;
 
 import java.util.Objects;
 import java.util.random.RandomGenerator;
@@ -19,33 +19,8 @@ public record CropDrop(ItemStack item, int min, int max) {
 
     public CropDrop {
         Objects.requireNonNull(item, "item");
-        if (min < 0) {
-            throw new IllegalArgumentException("min cannot be negative, got " + min);
-        }
-        if (max < min) {
-            throw new IllegalArgumentException("max (" + max + ") cannot be below min (" + min + ")");
-        }
-    }
-
-    /**
-     * @param item  an item identifier
-     * @param count a fixed quantity
-     * @return a drop that always gives the same amount of a plain item
-     * @since 0.1.0
-     */
-    public static CropDrop of(final Key item, final int count) {
-        return new CropDrop(ItemStack.of(item), count, count);
-    }
-
-    /**
-     * @param item an item identifier
-     * @param min  the smallest quantity, inclusive
-     * @param max  the largest quantity, inclusive
-     * @return a drop that gives a quantity somewhere in that range
-     * @since 0.1.0
-     */
-    public static CropDrop of(final Key item, final int min, final int max) {
-        return new CropDrop(ItemStack.of(item), min, max);
+        Preconditions.checkArgument(min >= 0, "min cannot be negative, got %s", min);
+        Preconditions.checkArgument(max >= min, "max (%s) cannot be below min (%s)", max, min);
     }
 
     /**
