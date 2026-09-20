@@ -15,24 +15,20 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class BlockTransformers {
-
-    private static final Set<Key> TO_FARMLAND = Set.of(
-            BlockTypeKeys.DIRT.key(),
-            BlockTypeKeys.GRASS_BLOCK.key(),
-            BlockTypeKeys.DIRT_PATH.key());
+public final class BlockTransformers {
 
     private static final Sound TILL_SOUND =
             Sound.sound(SoundEvents.HOE_TILL, Sound.Source.BLOCK, 1.0f, 1.0f);
 
     private static final Map<Key, List<BlockTransformerRule>> ENTRIES = Map.of(
             BlockTransformerKeys.HOE.key(), hoe());
+
+    private static final Set<Key> TRANSFORMABLE_BLOCKS = transformableBlocks(ENTRIES);
 
     private BlockTransformers() {
         throw new UnsupportedOperationException("BlockTransformers cannot be instantiated.");
@@ -47,10 +43,7 @@ public class BlockTransformers {
     }
 
     public static Set<Key> transformableBlocks() {
-        return Stream.concat(TO_FARMLAND.stream(), Stream.of(
-                        BlockTypeKeys.COARSE_DIRT.key(),
-                        BlockTypeKeys.ROOTED_DIRT.key()))
-                .collect(Collectors.toUnmodifiableSet());
+        return TRANSFORMABLE_BLOCKS;
     }
 
     public static InteractionResult use(final BlockInteractionContext context) {
@@ -62,8 +55,9 @@ public class BlockTransformers {
             return InteractionResult.PASS;
         }
 
+        final Key block = ctx.state().name();
         for (final BlockTransformerRule rule : rules(transformer)) {
-            if (rule.disallowedFaces().contains(ctx.face())) {
+            if (!rule.accepts(block, ctx.face())) {
                 continue;
             }
             final BlockState transformed = rule.provider().provide(ctx);
@@ -85,27 +79,30 @@ public class BlockTransformers {
         final Set<BlockFace> notFromBelow = Set.of(BlockFace.DOWN);
         return List.of(
                 new BlockTransformerRule(
-                        ctx -> is(ctx, TO_FARMLAND) && airAbove(ctx) ? farmland(ctx) : null,
+                        Set.of(BlockTypeKeys.DIRT.key(),
+                                BlockTypeKeys.GRASS_BLOCK.key(),
+                                BlockTypeKeys.DIRT_PATH.key()),
+                        ctx -> airAbove(ctx) ? farmland(ctx) : null,
                         TILL_SOUND, notFromBelow),
                 new BlockTransformerRule(
-                        ctx -> is(ctx, BlockTypeKeys.COARSE_DIRT.key()) && airAbove(ctx)
-                                ? BlockState.of(BlockTypeKeys.DIRT.key())
-                                : null,
+                        Set.of(BlockTypeKeys.COARSE_DIRT.key()),
+                        ctx -> airAbove(ctx) ? BlockState.of(BlockTypeKeys.DIRT.key()) : null,
                         TILL_SOUND, notFromBelow),
                 // TODO: loot minecraft:till/rooted_dirt, dropped from the clicked face.
                 new BlockTransformerRule(
-                        ctx -> is(ctx, BlockTypeKeys.ROOTED_DIRT.key())
-                                ? BlockState.of(BlockTypeKeys.DIRT.key())
-                                : null,
+                        Set.of(BlockTypeKeys.ROOTED_DIRT.key()),
+                        _ -> BlockState.of(BlockTypeKeys.DIRT.key()),
                         TILL_SOUND, Set.of()));
     }
 
-    private static boolean is(final FidorialBlockInteractionContext ctx, final Key block) {
-        return block.equals(ctx.state().name());
-    }
-
-    private static boolean is(final FidorialBlockInteractionContext ctx, final Set<Key> blocks) {
-        return blocks.contains(ctx.state().name());
+    private static Set<Key> transformableBlocks(final Map<Key, List<BlockTransformerRule>> entries) {
+        final Set<Key> blocks = new HashSet<>();
+        for (final List<BlockTransformerRule> rules : entries.values()) {
+            for (final BlockTransformerRule rule : rules) {
+                blocks.addAll(rule.from());
+            }
+        }
+        return Set.copyOf(blocks);
     }
 
     private static BlockState farmland(final FidorialBlockInteractionContext ctx) {
