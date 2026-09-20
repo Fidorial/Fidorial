@@ -33,6 +33,17 @@ java {
 }
 
 tasks.javadoc {
+    val adventureVersion =
+        libs.versions.adventure
+            .asProvider()
+            .get()
+    val slf4jVersion = libs.versions.slf4j.get()
+    val guavaVersion = libs.versions.guava.get()
+    val gsonVersion = libs.versions.gson.get()
+    val jetbrainsAnnotationsVersion =
+        libs.versions.jetbrains.annotations
+            .get()
+
     val opt = options as StandardJavadocDocletOptions
 
     opt.encoding = "UTF-8"
@@ -47,8 +58,11 @@ tasks.javadoc {
 
     opt.links(
         "https://docs.oracle.com/en/java/javase/25/docs/api/",
-        "https://jd.papermc.io/adventure/5.2.0/",
-        "https://www.slf4j.org/apidocs/",
+        "https://jd.papermc.io/adventure/$adventureVersion/",
+        "https://www.javadocs.dev/org.slf4j/slf4j-api/$slf4jVersion",
+        "https://guava.dev/releases/$guavaVersion/api/docs/",
+        "https://www.javadocs.dev/com.google.code.gson/gson/$gsonVersion",
+        "https://www.javadocs.dev/org.jetbrains/annotations/$jetbrainsAnnotationsVersion/",
         "https://jspecify.dev/docs/api/",
     )
 
