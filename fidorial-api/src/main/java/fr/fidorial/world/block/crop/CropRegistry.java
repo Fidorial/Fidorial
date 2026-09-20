@@ -15,6 +15,17 @@ import java.util.Set;
 public interface CropRegistry {
 
     /**
+     * Opens a crop for assembly. The crop only takes effect once it is handed to
+     * {@link #register(CropType, Plugin)}.
+     *
+     * @param seed  the item that plants the crop
+     * @param block the block the crop grows as
+     * @return a builder, defaulting to farmland soil and a seven-stage {@code age}
+     * @since 0.1.0
+     */
+    CropType.Builder builder(Key seed, Key block);
+
+    /**
      * Declares a crop.
      *
      * @param crop  the crop to declare

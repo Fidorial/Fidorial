@@ -44,7 +44,7 @@ public final class FidorialCropRegistry implements CropRegistry {
     }
 
     private static CropType wheat() {
-        return CropType.builder(ItemKeys.WHEAT_SEEDS.key(), BlockTypeKeys.WHEAT.key())
+        return FidorialCropType.builder(ItemKeys.WHEAT_SEEDS.key(), BlockTypeKeys.WHEAT.key())
                 .maxAge(7)
                 .averageTicksPerStage(600)
                 .minLight(8)
@@ -54,6 +54,11 @@ public final class FidorialCropRegistry implements CropRegistry {
                         CropDrop.of(ItemStack.of(ItemKeys.WHEAT_SEEDS.key()), 0, 3)))
                 .immatureDrops(List.of(CropDrop.of(ItemStack.of(ItemKeys.WHEAT_SEEDS.key()))))
                 .build();
+    }
+
+    @Override
+    public CropType.Builder builder(final Key seed, final Key block) {
+        return FidorialCropType.builder(seed, block);
     }
 
     @Override

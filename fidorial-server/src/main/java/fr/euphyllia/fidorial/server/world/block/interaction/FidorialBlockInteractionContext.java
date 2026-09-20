@@ -21,45 +21,20 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import java.io.IOException;
 import java.util.Objects;
 
-public final class FidorialBlockInteractionContext implements BlockInteractionContext {
+public record FidorialBlockInteractionContext(FidorialServer server,
+                                              ServerWorld world,
+                                              ServerPlayer player,
+                                              BlockPos pos,
+                                              BlockState state,
+                                              BlockFace face,
+                                              InteractionHand hand,
+                                              ItemStack heldItem,
+                                              Vec3f cursor,
+                                              boolean insideBlock) implements BlockInteractionContext {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialBlockInteractionContext.class);
 
     private static final int OFFHAND_SLOT = 40;
-
-    private final FidorialServer server;
-    private final ServerWorld world;
-    private final ServerPlayer player;
-    private final BlockPos pos;
-    private final BlockState state;
-    private final BlockFace face;
-    private final InteractionHand hand;
-    private final ItemStack heldItem;
-    private final Vec3f cursor;
-    private final boolean insideBlock;
-
-    public FidorialBlockInteractionContext(final FidorialServer server, final ServerWorld world, final ServerPlayer player, final BlockPos pos,
-                                           final BlockState state, final BlockFace face, final InteractionHand hand,
-                                           final ItemStack heldItem, final Vec3f cursor, final boolean insideBlock) {
-        this.server = server;
-        this.world = world;
-        this.player = player;
-        this.pos = pos;
-        this.state = state;
-        this.face = face;
-        this.hand = hand;
-        this.heldItem = heldItem;
-        this.cursor = cursor;
-        this.insideBlock = insideBlock;
-    }
-
-    public FidorialServer server() {
-        return server;
-    }
-
-    public BlockState state() {
-        return state;
-    }
 
     public boolean setBlock(final BlockState newState) {
         return server.blockEdits().set(world, pos, newState);
@@ -78,48 +53,8 @@ public final class FidorialBlockInteractionContext implements BlockInteractionCo
     }
 
     @Override
-    public ServerWorld world() {
-        return world;
-    }
-
-    @Override
-    public ServerPlayer player() {
-        return player;
-    }
-
-    @Override
-    public BlockPos pos() {
-        return pos;
-    }
-
-    @Override
     public BlockData block() {
         return toData(state);
-    }
-
-    @Override
-    public BlockFace face() {
-        return face;
-    }
-
-    @Override
-    public InteractionHand hand() {
-        return hand;
-    }
-
-    @Override
-    public ItemStack heldItem() {
-        return heldItem;
-    }
-
-    @Override
-    public Vec3f cursor() {
-        return cursor;
-    }
-
-    @Override
-    public boolean insideBlock() {
-        return insideBlock;
     }
 
     @Override

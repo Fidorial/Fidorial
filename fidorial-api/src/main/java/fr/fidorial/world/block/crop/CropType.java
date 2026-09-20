@@ -1,106 +1,64 @@
 package fr.fidorial.world.block.crop;
 
-import com.google.common.base.Preconditions;
-import fr.fidorial.item.ItemStack;
-import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.plugin.Plugin;
 import net.kyori.adventure.key.Key;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * A plantable crop: the seed that plants it, the block it grows as, and what it
  * accepts as soil.
  *
+ * <p>Obtain one through {@link CropRegistry#builder(Key, Key)}, then hand it to
+ * {@link CropRegistry#register(CropType, Plugin)}.</p>
+ *
  * @since 0.1.0
  */
-public final class CropType {
-
-    public static final String DEFAULT_AGE_PROPERTY = "age";
-
-    private final Key seed;
-    private final Key block;
-    private final String ageProperty;
-    private final int maxAge;
-    private final Set<Key> soils;
-    private final boolean requiresMoistSoil;
-    private final int averageTicksPerStage;
-    private final int minLight;
-    private final List<CropDrop> ripeDrops;
-    private final List<CropDrop> immatureDrops;
-
-    private CropType(final Builder builder) {
-        this.seed = builder.seed;
-        this.block = builder.block;
-        this.ageProperty = builder.ageProperty;
-        this.maxAge = builder.maxAge;
-        this.soils = Set.copyOf(builder.soils);
-        this.requiresMoistSoil = builder.requiresMoistSoil;
-        this.averageTicksPerStage = builder.averageTicksPerStage;
-        this.minLight = builder.minLight;
-        this.ripeDrops = List.copyOf(builder.ripeDrops);
-        this.immatureDrops = List.copyOf(builder.immatureDrops);
-    }
+public interface CropType {
 
     /**
-     * @param seed  the item that plants this crop
-     * @param block the block the crop grows as
-     * @return a builder, defaulting to farmland soil and a four-stage {@code age}
+     * The block property crops carry their growth stage in, unless they say otherwise.
+     *
      * @since 0.1.0
      */
-    public static Builder builder(final Key seed, final Key block) {
-        return new Builder(seed, block);
-    }
+    String DEFAULT_AGE_PROPERTY = "age";
 
     /**
      * @return the item that plants this crop
      * @since 0.1.0
      */
-    public Key seed() {
-        return seed;
-    }
+    Key seed();
 
     /**
      * @return the block this crop grows as
      * @since 0.1.0
      */
-    public Key block() {
-        return block;
-    }
+    Key block();
 
     /**
      * @return the block property carrying the growth stage
      * @since 0.1.0
      */
-    public String ageProperty() {
-        return ageProperty;
-    }
+    String ageProperty();
 
     /**
      * @return the growth stage at which the crop is ripe
      * @since 0.1.0
      */
-    public int maxAge() {
-        return maxAge;
-    }
+    int maxAge();
 
     /**
      * @return the blocks this crop can be planted on
      * @since 0.1.0
      */
-    public Set<Key> soils() {
-        return soils;
-    }
+    Set<Key> soils();
 
     /**
      * @return {@code true} when the soil has to be wet for planting to work
      * @since 0.1.0
      */
-    public boolean requiresMoistSoil() {
-        return requiresMoistSoil;
-    }
+    boolean requiresMoistSoil();
 
     /**
      * How long one growth stage takes, on average.
@@ -108,41 +66,33 @@ public final class CropType {
      * @return the average number of ticks one growth stage takes
      * @since 0.1.0
      */
-    public int averageTicksPerStage() {
-        return averageTicksPerStage;
-    }
+    int averageTicksPerStage();
 
     /**
      * @return the light level the crop needs to grow; {@code 0} means it grows in the dark
      * @since 0.1.0
      */
-    public int minLight() {
-        return minLight;
-    }
+    int minLight();
 
     /**
      * @return what breaking this crop gives back once it is ripe
      * @since 0.1.0
      */
-    public List<CropDrop> ripeDrops() {
-        return ripeDrops;
-    }
+    List<CropDrop> ripeDrops();
 
     /**
      * @return what breaking this crop gives back before it is ripe
      * @since 0.1.0
      */
-    public List<CropDrop> immatureDrops() {
-        return immatureDrops;
-    }
+    List<CropDrop> immatureDrops();
 
     /**
      * @param age the growth stage the crop was broken at
      * @return the drops that apply at that stage
      * @since 0.1.0
      */
-    public List<CropDrop> dropsAt(final int age) {
-        return age >= maxAge ? ripeDrops : immatureDrops;
+    default List<CropDrop> dropsAt(final int age) {
+        return age >= maxAge() ? ripeDrops() : immatureDrops();
     }
 
     /**
@@ -150,25 +100,8 @@ public final class CropType {
      * @return {@code true} when this crop accepts that block as soil
      * @since 0.1.0
      */
-    public boolean acceptsSoil(final Key soil) {
-        return soils.contains(soil);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        return obj instanceof final CropType other
-                && seed.equals(other.seed)
-                && block.equals(other.block);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(seed, block);
-    }
-
-    @Override
-    public String toString() {
-        return "CropType[seed=" + seed.asString() + ", block=" + block.asString() + "]";
+    default boolean acceptsSoil(final Key soil) {
+        return soils().contains(soil);
     }
 
     /**
@@ -176,44 +109,21 @@ public final class CropType {
      *
      * @since 0.1.0
      */
-    public static final class Builder {
-
-        private final Key seed;
-        private final Key block;
-        private String ageProperty = DEFAULT_AGE_PROPERTY;
-        private int maxAge = 7;
-        private final Set<Key> soils = new LinkedHashSet<>(Set.of(BlockTypeKeys.FARMLAND.key()));
-        private boolean requiresMoistSoil = true;
-        private int averageTicksPerStage = 600;
-        private int minLight = 0;
-        private List<CropDrop> ripeDrops;
-        private List<CropDrop> immatureDrops;
-
-        private Builder(final Key seed, final Key block) {
-            this.seed = Objects.requireNonNull(seed, "seed");
-            this.block = Objects.requireNonNull(block, "block");
-        }
+    interface Builder {
 
         /**
          * @param ageProperty the block property carrying the growth stage
          * @return this builder
          * @since 0.1.0
          */
-        public Builder ageProperty(final String ageProperty) {
-            this.ageProperty = Objects.requireNonNull(ageProperty, "ageProperty");
-            return this;
-        }
+        Builder ageProperty(String ageProperty);
 
         /**
          * @param maxAge the growth stage at which the crop is ripe
          * @return this builder
          * @since 0.1.0
          */
-        public Builder maxAge(final int maxAge) {
-            Preconditions.checkArgument(maxAge >= 1, "maxAge must be at least 1, got %s", maxAge);
-            this.maxAge = maxAge;
-            return this;
-        }
+        Builder maxAge(int maxAge);
 
         /**
          * Replaces the accepted soils. Defaults to farmland alone.
@@ -222,77 +132,47 @@ public final class CropType {
          * @return this builder
          * @since 0.1.0
          */
-        public Builder soils(final Set<Key> soils) {
-            Preconditions.checkArgument(!soils.isEmpty(), "A crop needs at least one soil");
-            this.soils.clear();
-            this.soils.addAll(soils);
-            return this;
-        }
+        Builder soils(Set<Key> soils);
 
         /**
          * @param requiresMoistSoil {@code false} to let the crop be planted on dry soil
          * @return this builder
          * @since 0.1.0
          */
-        public Builder requiresMoistSoil(final boolean requiresMoistSoil) {
-            this.requiresMoistSoil = requiresMoistSoil;
-            return this;
-        }
+        Builder requiresMoistSoil(boolean requiresMoistSoil);
 
         /**
          * @param averageTicksPerStage the average number of ticks one growth stage should take
          * @return this builder
          * @since 0.1.0
          */
-        public Builder averageTicksPerStage(final int averageTicksPerStage) {
-            Preconditions.checkArgument(averageTicksPerStage >= 1,
-                    "averageTicksPerStage must be at least 1, got %s", averageTicksPerStage);
-            this.averageTicksPerStage = averageTicksPerStage;
-            return this;
-        }
+        Builder averageTicksPerStage(int averageTicksPerStage);
 
         /**
          * @param minLight the light level the crop needs to grow; {@code 0} to let it grow in the dark
          * @return this builder
          * @since 0.1.0
          */
-        public Builder minLight(final int minLight) {
-            this.minLight = Math.clamp(minLight, 0, 15);
-            return this;
-        }
+        Builder minLight(int minLight);
 
         /**
          * @param ripeDrops what breaking the ripe crop gives back
          * @return this builder
          * @since 0.1.0
          */
-        public Builder ripeDrops(final List<CropDrop> ripeDrops) {
-            this.ripeDrops = List.copyOf(ripeDrops);
-            return this;
-        }
+        Builder ripeDrops(List<CropDrop> ripeDrops);
 
         /**
          * @param immatureDrops what breaking the crop early gives back
          * @return this builder
          * @since 0.1.0
          */
-        public Builder immatureDrops(final List<CropDrop> immatureDrops) {
-            this.immatureDrops = List.copyOf(immatureDrops);
-            return this;
-        }
+        Builder immatureDrops(List<CropDrop> immatureDrops);
 
         /**
          * @return the crop
          * @since 0.1.0
          */
-        public CropType build() {
-            if (ripeDrops == null) {
-                ripeDrops = List.of(CropDrop.of(ItemStack.of(seed)));
-            }
-            if (immatureDrops == null) {
-                immatureDrops = List.of(CropDrop.of(ItemStack.of(seed)));
-            }
-            return new CropType(this);
-        }
+        CropType build();
     }
 }
