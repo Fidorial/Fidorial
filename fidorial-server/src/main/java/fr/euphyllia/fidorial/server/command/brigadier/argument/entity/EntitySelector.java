@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.selector.DoubleRange;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.selector.EntitySelectorParser;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.Player;
@@ -138,10 +139,11 @@ public final class EntitySelector {
         final FidorialServer server = (FidorialServer) source.server();
         final Collection<? extends Entity> entities;
         final Entity executor = source.executor();
+        final ServerWorld defaultWorld = server.worldManager().defaultWorld().orElse(null);
 
         final Collection<? extends Entity> worldEntities = executor != null
-                ? server.worldManager().world(executor.world().key()).entityManager().all()
-                : server.worldManager().overworld().entityManager().all();
+                ? ((ServerWorld) executor.world()).entityManager().all()
+                : defaultWorld != null ? defaultWorld.entityManager().all() : Collections.emptyList();
 
         if (targetUuid != null) {
             final Optional<? extends Entity> entity = worldEntities.stream()

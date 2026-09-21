@@ -20,6 +20,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import fr.fidorial.world.generation.WorldGenerator;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -31,6 +32,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntSupplier;
@@ -53,6 +56,8 @@ public final class WorldManager implements AutoCloseable {
     private volatile @Nullable IntSupplier entityIdSupplier;
     private volatile @Nullable EntitySpawnBridge entityBridge;
     private volatile @Nullable StructureService structures;
+    private volatile @Nullable Key preferredDefaultKey;
+    private volatile @Nullable Key defaultWorldKey;
 
     private WorldManager(
             final WorldPaths paths,
@@ -107,6 +112,7 @@ public final class WorldManager implements AutoCloseable {
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
         final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));
         restoreForcedChunks(world);
+        reassignDefaultWorld();
         return world;
     }
 
@@ -127,6 +133,39 @@ public final class WorldManager implements AutoCloseable {
         }
         restoreTime(world);
         return world;
+    }
+
+    /**
+     * Sets the key of the world preferred as the server's default.
+     *
+     * <p>This preference is remembered even while the world it names is unloaded, so that
+     * reloading it later automatically restores it as the active default. Pass {@code null}
+     * to clear the preference.</p>
+     *
+     * @param key the preferred default world's key, or {@code null} to clear it
+     * @since 0.1.0
+     */
+    public void setDefaultWorld(final @Nullable Key key) {
+        this.preferredDefaultKey = key;
+        reassignDefaultWorld();
+    }
+
+    /**
+     * {@return the configured default world key set via {@link #setDefaultWorld}, or {@linkplain Optional#empty()}
+     * if none is set, independent of whether that world is currently loaded}
+     */
+    public Optional<Key> defaultWorldKey() {
+        return Optional.ofNullable(preferredDefaultKey);
+    }
+
+    /**
+     * {@return the currently active default world, or {@link Optional#empty()} if no world is loaded}
+     *
+     * @since 0.1.0
+     */
+    public Optional<ServerWorld> defaultWorld() {
+        final Key key = defaultWorldKey;
+        return key == null ? Optional.empty() : Optional.ofNullable(world(key));
     }
 
     private Path forcedChunksFile(final ServerWorld world) {
@@ -206,6 +245,28 @@ public final class WorldManager implements AutoCloseable {
         return registerDimension(Dimension.OVERWORLD, generator);
     }
 
+    private @Nullable ServerWorld mostPopulatedWorld() {
+        if (worlds.isEmpty()) {
+            return null;
+        }
+
+        final Object2IntOpenHashMap<Key> population = new Object2IntOpenHashMap<>();
+        for (final ServerPlayer player : FidorialServer.getInstance().players()) {
+            population.addTo(player.world().key(), 1);
+        }
+
+        ServerWorld best = null;
+        int bestCount = -1;
+        for (final ServerWorld world : worlds.values()) {
+            final int count = population.getInt(world.key());
+            if (count > bestCount || (count == bestCount && world.key().compareTo(best.key()) < 0)) {
+                best = world;
+                bestCount = count;
+            }
+        }
+        return best;
+    }
+
     public Collection<ServerWorld> worlds() {
         return Collections.unmodifiableCollection(worlds.values());
     }
@@ -240,8 +301,8 @@ public final class WorldManager implements AutoCloseable {
             return null;
         }
 
-        if (key.equals(Dimension.OVERWORLD.id())) {
-            LOGGER.warn("Refusal to unload the main world {}", key); // Todo : Make it possible later?
+        if (worlds.size() <= 1) {
+            LOGGER.warn("Refusal to unload {}: it is the last loaded world.", key);
             return null;
         }
 
@@ -267,6 +328,8 @@ public final class WorldManager implements AutoCloseable {
         }
         world.forcedChunks().releaseTickets();
         worlds.remove(key);
+        reassignDefaultWorld();
+
         final StructureService structureService = structures;
         if (structureService != null) {
             structureService.forget(key);
@@ -275,6 +338,40 @@ public final class WorldManager implements AutoCloseable {
         FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
 
         return world;
+    }
+
+    /**
+     * Re-resolves the currently active default world.
+     *
+     * <p>Resolution order:</p>
+     * <ol>
+     *   <li>the {@linkplain #setDefaultWorld preferred default world}, if currently loaded;</li>
+     *   <li>the overworld, if loaded;</li>
+     *   <li>otherwise, the loaded world with the most players currently in it.</li>
+     * </ol>
+     */
+    private void reassignDefaultWorld() {
+        final Key preferred = preferredDefaultKey;
+        final ServerWorld preferredWorld = preferred != null ? worlds.get(preferred) : null;
+        final ServerWorld overworld = worlds.get(Dimension.OVERWORLD.id());
+        final ServerWorld next = preferredWorld != null ? preferredWorld
+                : overworld != null ? overworld
+                : mostPopulatedWorld();
+
+        final Key previous = defaultWorldKey;
+        final Key resolved = next == null ? null : next.key();
+        if (Objects.equals(previous, resolved)) {
+            return;
+        }
+        defaultWorldKey = resolved;
+
+        if (resolved == null) {
+            LOGGER.warn("No default world is currently resolvable: no worlds are loaded.");
+        } else if (previous == null) {
+            LOGGER.info("Default world set to {}", resolved);
+        } else {
+            LOGGER.info("Default world changed from {} to {}", previous, resolved);
+        }
     }
 
     public @Nullable ServerWorld dimension(final Dimension dim) {

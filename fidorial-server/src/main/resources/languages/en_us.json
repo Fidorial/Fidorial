@@ -51,6 +51,7 @@
   "command.summon.notmob" : "<arg:0> is not a summonable mob (yet).",
   "command.summon.unknown" : "Unknown entity type: <arg:0>",
   "command.summon.usage" : "Usage: /<arg:0> <type> [x y z]",
+  "command.summon.no_world": "<red>No world is currently available to summon into",
 
   "command.fillbiome.success" : "Set <arg:0> biome cell(s) to <arg:1>",
   "command.fillbiome.unknown" : "<red>Unknown biome: <arg:0>",
@@ -174,6 +175,7 @@
   "command.time.query": "<arg:0>: <arg:1> (<arg:2>)",
   "command.time.frozen": "Day/night cycle frozen in <arg:0>",
   "command.time.resumed": "Day/night cycle resumed in <arg:0>",
+  "command.time.no_world": "<red>No world is currently available to run this command in",
   "time.phase.day": "day",
   "time.phase.dusk": "dusk",
   "time.phase.night": "night",
@@ -230,5 +232,6 @@
   "commands.forceload.query.success": "Chunk at <arg:0> in <arg:1> is marked for force loading",
   "commands.forceload.query.failure": "<red>Chunk at <arg:0> in <arg:1> is not marked for force loading",
   "commands.forceload.toobig": "<red>Too many chunks in the specified area (maximum <arg:0>, specified <arg:1>)",
+  "commands.forceload.no_world": "<red>No world is currently available to run this command in",
   "argument.pos.outofworld": "<red>That position is out of this world!"
 }

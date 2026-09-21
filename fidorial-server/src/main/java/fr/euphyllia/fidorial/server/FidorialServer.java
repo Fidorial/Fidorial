@@ -389,6 +389,7 @@ public final class FidorialServer implements Server {
                 entityTracker.untrack(entity);
             }
         });
+        worldManager.setDefaultWorld(config.defaultWorld());
         worldManager.setDefaultGenerator(new ServiceBackedChunkGenerator(
                 services,
                 FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));
@@ -639,6 +640,16 @@ public final class FidorialServer implements Server {
             LOGGER.error("Saving world {} before unloading failed", key, e);
             return false;
         }
+    }
+
+    @Override
+    public Optional<Key> defaultWorld() {
+        return worldManager.defaultWorldKey();
+    }
+
+    @Override
+    public void defaultWorld(final @Nullable Key key) {
+        worldManager.setDefaultWorld(key);
     }
 
     @Override

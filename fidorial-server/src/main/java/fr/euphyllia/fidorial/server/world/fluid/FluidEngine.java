@@ -7,7 +7,6 @@ import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
@@ -344,11 +343,8 @@ public final class FluidEngine implements FluidManager {
         return true;
     }
 
-    private ServerWorld worldByKey(@Nullable final Key key) {
-        if (key == null || Dimension.OVERWORLD.id().equals(key)) {
-            return worlds.overworld();
-        }
-        return worlds.dimension(Dimension.datapack(key));
+    private @Nullable ServerWorld worldByKey(@Nullable final Key key) {
+        return key == null ? worlds.defaultWorld().orElse(null) : worlds.world(key);
     }
 
     public void setLightHook(final LightHook hook) {

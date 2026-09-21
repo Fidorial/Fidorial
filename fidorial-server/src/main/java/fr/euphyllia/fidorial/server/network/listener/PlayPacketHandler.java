@@ -227,7 +227,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
-        final ServerWorld defaultWorld = server.worldManager().overworld();
+        final ServerWorld defaultWorld = worldOrDisconnect();
         final Location defaultSpawn = new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
 
         ServerWorld world = defaultWorld;
@@ -1085,7 +1085,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("{} requested a respawn while alive (health={})", player.name(), player.health());
             return CompletableFuture.completedFuture(false);
         }
-        final ServerWorld defaultWorld = server.worldManager().overworld(); // FIXME: dont hardcode
+        final ServerWorld defaultWorld = worldOrDisconnect();
         final Location defaultSpawn =
                 new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
 
@@ -1261,12 +1261,22 @@ public final class PlayPacketHandler implements PlayPacketListener {
         this.player = player;
     }
 
+    private ServerWorld worldOrDisconnect() {
+        return server.worldManager().defaultWorld().orElseThrow(this::disconnectForMissingWorld);
+    }
+
+    private RuntimeException disconnectForMissingWorld() {
+        LOGGER.error("No default world is currently resolvable; disconnecting {}", connection.username());
+        connection.disconnect(Component.translatable("multiplayer.disconnect.generic"));
+        return new IllegalStateException("No world is currently loaded");
+    }
+
     private Key worldId() {
-        return player != null ? player.world().key() : server.worldManager().overworld().dimension().id();
+        return player != null ? player.world().key() : worldOrDisconnect().key();
     }
 
     private ServerWorld serverWorld() {
-        return player != null ? server.worldManager().world(player.world().key()) : server.worldManager().overworld();
+        return player != null ? (ServerWorld) player.world() : worldOrDisconnect();
     }
 
     private WorldManager worldManager() {
