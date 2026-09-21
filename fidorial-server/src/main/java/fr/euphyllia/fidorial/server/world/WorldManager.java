@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntSupplier;
@@ -274,12 +273,12 @@ public final class WorldManager implements AutoCloseable {
         int bestCount = -1;
         for (final ServerWorld world : worlds.values()) {
             final int count = population.getInt(world.key());
-            if (count > bestCount || (count == bestCount && world.key().asString().compareTo(best.key().asString()) < 0)) {
+            if (count > bestCount || (count == bestCount && world.key().compareTo(best.key()) < 0)) {
                 best = world;
                 bestCount = count;
             }
         }
-        return Objects.requireNonNull(best);
+        return best; // non-null
     }
 
     public Collection<ServerWorld> worlds() {
