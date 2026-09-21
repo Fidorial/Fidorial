@@ -92,7 +92,7 @@ public final class TimeCommand {
         if (context.getSource().sender() instanceof final Player player) {
             return player.world();
         }
-        return FidorialServer.getInstance().worldManager().overworld();
+        return FidorialServer.getInstance().worldManager().tryGetDefault();
     }
 
     private static int set(final CommandContext<CommandSource> context, final int timeOfDay) {

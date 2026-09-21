@@ -26,6 +26,7 @@ import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -263,8 +264,8 @@ public interface Server extends ForwardingAudience {
      * held are released. The call is refused, returning {@code false} without side effects, when:</p>
      * <ul>
      *   <li>no world is registered under {@code key};</li>
-     *   <li>the world is the server's primary world, which must always remain loaded; or</li>
-     *   <li>players are still present in the world &mdash; relocate them with another world first.</li>
+     *   <li>the world is the only one currently loaded; at least one world must always remain; or</li>
+     *   <li>players are still present in the world; relocate them with another world first.</li>
      * </ul>
      *
      * @param key  the key of the world to unload
@@ -274,6 +275,26 @@ public interface Server extends ForwardingAudience {
      */
     @Contract(mutates = "this")
     boolean unloadWorld(Key key, boolean save);
+
+    /**
+     * Gets the key of the world currently preferred as the server's default, or {@code null}
+     * if none is configured.
+     *
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    @Nullable Key defaultWorld();
+
+    /**
+     * Sets the world that should be preferred as the server's default when resolving a
+     * fallback world for players and commands with no other context.
+     *
+     * <p>Pass {@code null} to clear the preference.</p>
+     *
+     * @since 0.1.0
+     */
+    @Contract(mutates = "this")
+    void defaultWorld(@Nullable Key key);
 
     Collection<? extends Player> onlinePlayers();
 

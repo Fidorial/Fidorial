@@ -179,6 +179,6 @@ public final class ForceLoadCommand {
         if (executor != null && executor.world() instanceof final ServerWorld world) {
             return world;
         }
-        return FidorialServer.getInstance().worldManager().overworld();
+        return FidorialServer.getInstance().worldManager().tryGetDefault();
     }
 }

@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server;
 
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
 import fr.fidorial.entity.GameMode;
+import net.kyori.adventure.key.InvalidKeyException;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -52,7 +54,8 @@ public record ServerConfig(
         boolean sparkEnabled,
         Path sparkPath,
         boolean generateStructures,
-        @Nullable Long levelSeed
+        @Nullable Long levelSeed,
+        Key defaultWorld
 ) {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerConfig.class);
@@ -132,7 +135,8 @@ public record ServerConfig(
                 true,
                 Path.of("spark"),
                 true,
-                null);
+                null,
+                Key.key("overworld"));
     }
 
     public static ServerConfig load() throws IOException {
@@ -189,7 +193,8 @@ public record ServerConfig(
                 readBool(props, "spark-enabled", defaults.sparkEnabled()),
                 Path.of(props.getProperty("spark-path", defaults.sparkPath().toString())),
                 readBool(props, "generate-structures", defaults.generateStructures()),
-                readSeed(props, "level-seed"));
+                readSeed(props, "level-seed"),
+                readKey(props, "default-world", defaults.defaultWorld()));
         LOGGER.info("Configuration loaded from {}", file);
         return config;
     }
@@ -250,6 +255,19 @@ public record ServerConfig(
             return UUID.fromString(raw.strip());
         } catch (final IllegalArgumentException e) {
             LOGGER.warn("{} = '{}' is not a valid UUID, default value {} used", key, raw, fallback, e);
+            return fallback;
+        }
+    }
+
+    private static Key readKey(final Properties props, final String key, final Key fallback) {
+        final String raw = props.getProperty(key);
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
+        try {
+            return Key.key(raw.strip());
+        } catch (final InvalidKeyException e) {
+            LOGGER.warn("{} = '{}' is not a valid key, default value {} used", key, raw, fallback, e);
             return fallback;
         }
     }
@@ -353,6 +371,7 @@ public record ServerConfig(
         props.setProperty("spark-path", sparkPath.toString());
         props.setProperty("generate-structures", Boolean.toString(generateStructures));
         props.setProperty("level-seed", levelSeed == null ? "" : Long.toString(levelSeed));
+        props.setProperty("default-world", defaultWorld.asString());
         try (final OutputStream out = Files.newOutputStream(file)) {
             props.store(out, "Configuration Fidorial");
         }

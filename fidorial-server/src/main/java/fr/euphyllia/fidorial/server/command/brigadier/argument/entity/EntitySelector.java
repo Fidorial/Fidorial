@@ -141,7 +141,7 @@ public final class EntitySelector {
 
         final Collection<? extends Entity> worldEntities = executor != null
                 ? server.worldManager().world(executor.world().key()).entityManager().all()
-                : server.worldManager().overworld().entityManager().all();
+                : server.worldManager().tryGetDefault().entityManager().all();
 
         if (targetUuid != null) {
             final Optional<? extends Entity> entity = worldEntities.stream()

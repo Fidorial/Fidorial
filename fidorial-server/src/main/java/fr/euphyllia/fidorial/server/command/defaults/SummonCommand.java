@@ -40,7 +40,7 @@ public final class SummonCommand {
                 context,
                 player.world() instanceof final ServerWorld world
                         ? world
-                        : FidorialServer.getInstance().worldManager().overworld(),
+                        : FidorialServer.getInstance().worldManager().tryGetDefault(),
                 player.location());
     }
 
@@ -50,7 +50,7 @@ public final class SummonCommand {
         final ServerWorld world = context.getSource().sender() instanceof final ServerPlayer player
                 && player.world() instanceof final ServerWorld serverWorld
                 ? serverWorld
-                : FidorialServer.getInstance().worldManager().overworld();
+                : FidorialServer.getInstance().worldManager().tryGetDefault();
 
         return summon(context, world, location);
     }
