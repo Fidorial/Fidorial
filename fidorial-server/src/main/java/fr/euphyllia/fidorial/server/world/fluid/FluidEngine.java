@@ -344,7 +344,7 @@ public final class FluidEngine implements FluidManager {
     }
 
     private @Nullable ServerWorld worldByKey(@Nullable final Key key) {
-        return key == null ? worlds.tryGetDefault() : worlds.world(key);
+        return key == null ? worlds.defaultWorld().orElse(null) : worlds.world(key);
     }
 
     public void setLightHook(final LightHook hook) {

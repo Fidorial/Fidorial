@@ -51,6 +51,7 @@
   "command.summon.notmob" : "<arg:0> n'est pas (encore) un mob invocable.",
   "command.summon.unknown" : "Type d'entité inconnu : <arg:0>",
   "command.summon.usage" : "Utilisation : /<arg:0> <type> [x y z]",
+  "command.summon.no_world": "<red>Aucun monde n'est actuellement disponible pour l'invocation",
 
   "command.fillbiome.success" : "<arg:0> cellule(s) de biome définie(s) sur <arg:1>",
   "command.fillbiome.unknown" : "<red>Biome inconnu : <arg:0>",
@@ -174,6 +175,7 @@
   "command.time.query": "<arg:0> : <arg:1> (<arg:2>)",
   "command.time.frozen": "Cycle jour/nuit gelé dans <arg:0>",
   "command.time.resumed": "Cycle jour/nuit relancé dans <arg:0>",
+  "command.time.no_world": "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
   "time.phase.day": "jour",
   "time.phase.dusk": "crépuscule",
   "time.phase.night": "nuit",
@@ -230,5 +232,6 @@
   "commands.forceload.query.success": "Le chunk <arg:0> de <arg:1> est chargé de force",
   "commands.forceload.query.failure": "<red>Le chunk <arg:0> de <arg:1> n'est pas chargé de force",
   "commands.forceload.toobig": "<red>Trop de chunks dans la zone (maximum <arg:0>, demandé <arg:1>)",
+  "commands.forceload.no_world": "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
   "argument.pos.outofworld": "<red>Cette position est hors du monde !"
 }

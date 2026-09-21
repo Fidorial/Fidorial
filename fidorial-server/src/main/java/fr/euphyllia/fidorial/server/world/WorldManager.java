@@ -32,6 +32,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntSupplier;
@@ -54,6 +56,7 @@ public final class WorldManager implements AutoCloseable {
     private volatile @Nullable IntSupplier entityIdSupplier;
     private volatile @Nullable EntitySpawnBridge entityBridge;
     private volatile @Nullable StructureService structures;
+    private volatile @Nullable Key preferredDefaultKey;
     private volatile @Nullable Key defaultWorldKey;
 
     private WorldManager(
@@ -109,6 +112,7 @@ public final class WorldManager implements AutoCloseable {
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
         final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));
         restoreForcedChunks(world);
+        reassignDefaultWorld();
         return world;
     }
 
@@ -132,23 +136,36 @@ public final class WorldManager implements AutoCloseable {
     }
 
     /**
-     * Sets the key of the world that {@link #tryGetDefault()} should prefer when it is loaded.
+     * Sets the key of the world preferred as the server's default.
      *
-     * <p>Pass {@code null} to clear the override and fall back to the overworld / most-populated
-     * resolution described on {@link #tryGetDefault()}.</p>
+     * <p>This preference is remembered even while the world it names is unloaded, so that
+     * reloading it later automatically restores it as the active default. Pass {@code null}
+     * to clear the preference.</p>
      *
      * @param key the preferred default world's key, or {@code null} to clear it
      * @since 0.1.0
      */
     public void setDefaultWorld(final @Nullable Key key) {
-        this.defaultWorldKey = key;
+        this.preferredDefaultKey = key;
+        reassignDefaultWorld();
     }
 
     /**
-     * {@return the currently configured default world key, or {@code null} if none is set}
+     * {@return the configured default world key set via {@link #setDefaultWorld}, or {@code null}
+     * if none is set, independent of whether that world is currently loaded}
      */
     public @Nullable Key defaultWorldKey() {
-        return defaultWorldKey;
+        return preferredDefaultKey;
+    }
+
+    /**
+     * {@return the currently active default world, or {@link Optional#empty()} if no world is loaded}
+     *
+     * @since 0.1.0
+     */
+    public Optional<ServerWorld> defaultWorld() {
+        final Key key = defaultWorldKey;
+        return key == null ? Optional.empty() : Optional.ofNullable(world(key));
     }
 
     private Path forcedChunksFile(final ServerWorld world) {
@@ -228,42 +245,11 @@ public final class WorldManager implements AutoCloseable {
         return registerDimension(Dimension.OVERWORLD, generator);
     }
 
-    /**
-     * Resolves the server's default world.
-     *
-     * <p>Resolution order:</p>
-     * <ol>
-     *   <li>the {@linkplain #setDefaultWorld configured default world}, if set and currently loaded;</li>
-     *   <li>the overworld, if loaded;</li>
-     *   <li>otherwise, the loaded world with the most players currently in it.</li>
-     * </ol>
-     *
-     * @return the resolved default world
-     * @throws IllegalStateException if no world is currently loaded
-     * @since 0.1.0
-     */
-    public ServerWorld tryGetDefault() {
+    private @Nullable ServerWorld mostPopulatedWorld() {
         if (worlds.isEmpty()) {
-            throw new IllegalStateException("No worlds are currently loaded!");
+            return null;
         }
 
-        final Key configured = defaultWorldKey;
-        if (configured != null) {
-            final ServerWorld preferred = worlds.get(configured);
-            if (preferred != null) {
-                return preferred;
-            }
-        }
-
-        final ServerWorld overworld = worlds.get(Dimension.OVERWORLD.id());
-        if (overworld != null) {
-            return overworld;
-        }
-
-        return mostPopulatedWorld();
-    }
-
-    private ServerWorld mostPopulatedWorld() {
         final Object2IntOpenHashMap<Key> population = new Object2IntOpenHashMap<>();
         for (final ServerPlayer player : FidorialServer.getInstance().players()) {
             population.addTo(player.world().key(), 1);
@@ -278,7 +264,7 @@ public final class WorldManager implements AutoCloseable {
                 bestCount = count;
             }
         }
-        return best; // non-null
+        return best;
     }
 
     public Collection<ServerWorld> worlds() {
@@ -342,6 +328,8 @@ public final class WorldManager implements AutoCloseable {
         }
         world.forcedChunks().releaseTickets();
         worlds.remove(key);
+        reassignDefaultWorld();
+
         final StructureService structureService = structures;
         if (structureService != null) {
             structureService.forget(key);
@@ -350,6 +338,40 @@ public final class WorldManager implements AutoCloseable {
         FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
 
         return world;
+    }
+
+    /**
+     * Re-resolves the currently active default world.
+     *
+     * <p>Resolution order:</p>
+     * <ol>
+     *   <li>the {@linkplain #setDefaultWorld preferred default world}, if currently loaded;</li>
+     *   <li>the overworld, if loaded;</li>
+     *   <li>otherwise, the loaded world with the most players currently in it.</li>
+     * </ol>
+     */
+    private void reassignDefaultWorld() {
+        final Key preferred = preferredDefaultKey;
+        final ServerWorld preferredWorld = preferred != null ? worlds.get(preferred) : null;
+        final ServerWorld overworld = worlds.get(Dimension.OVERWORLD.id());
+        final ServerWorld next = preferredWorld != null ? preferredWorld
+                : overworld != null ? overworld
+                : mostPopulatedWorld();
+
+        final Key previous = defaultWorldKey;
+        final Key resolved = next == null ? null : next.key();
+        if (Objects.equals(previous, resolved)) {
+            return;
+        }
+        defaultWorldKey = resolved;
+
+        if (resolved == null) {
+            LOGGER.warn("No default world is currently resolvable: no worlds are loaded.");
+        } else if (previous == null) {
+            LOGGER.info("Default world set to {}", resolved);
+        } else {
+            LOGGER.info("Default world changed from {} to {}", previous, resolved);
+        }
     }
 
     public @Nullable ServerWorld dimension(final Dimension dim) {

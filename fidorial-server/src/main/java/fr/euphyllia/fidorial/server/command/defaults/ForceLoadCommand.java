@@ -11,6 +11,7 @@ import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -77,6 +78,9 @@ public final class ForceLoadCommand {
         }
 
         final ServerWorld world = worldOf(source);
+        if (noWorldAvailable(source, world)) {
+            return 0;
+        }
         int changed = 0;
         int firstX = 0;
         int firstZ = 0;
@@ -112,6 +116,9 @@ public final class ForceLoadCommand {
 
     private static int removeAll(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         for (final ChunkPos pos : world.forceLoadedChunks()) {
             world.setChunkForceLoaded(pos.x(), pos.z(), false);
         }
@@ -122,6 +129,9 @@ public final class ForceLoadCommand {
 
     private static int list(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         final Component dimension = dimension(world);
         final Set<ChunkPos> forced = world.forceLoadedChunks();
 
@@ -145,6 +155,9 @@ public final class ForceLoadCommand {
 
     private static int query(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         final ChunkPos pos = column(context, "pos").chunk();
         final boolean forced = world.isChunkForceLoaded(pos);
 
@@ -171,7 +184,7 @@ public final class ForceLoadCommand {
         return Component.text(world.key().asString());
     }
 
-    private static ServerWorld worldOf(final CommandSource source) {
+    private static @Nullable ServerWorld worldOf(final CommandSource source) {
         if (source.sender() instanceof final ServerPlayer player && player.world() instanceof final ServerWorld world) {
             return world;
         }
@@ -179,6 +192,14 @@ public final class ForceLoadCommand {
         if (executor != null && executor.world() instanceof final ServerWorld world) {
             return world;
         }
-        return FidorialServer.getInstance().worldManager().tryGetDefault();
+        return FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
+    }
+
+    private static boolean noWorldAvailable(final CommandSource source, final @Nullable ServerWorld world) {
+        if (world == null) {
+            source.sender().sendMessage(Component.translatable("commands.forceload.no_world"));
+            return true;
+        }
+        return false;
     }
 }

@@ -15,6 +15,7 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.world.Location;
 import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
@@ -40,7 +41,7 @@ public final class SummonCommand {
                 context,
                 player.world() instanceof final ServerWorld world
                         ? world
-                        : FidorialServer.getInstance().worldManager().tryGetDefault(),
+                        : FidorialServer.getInstance().worldManager().defaultWorld().orElse(null),
                 player.location());
     }
 
@@ -50,12 +51,12 @@ public final class SummonCommand {
         final ServerWorld world = context.getSource().sender() instanceof final ServerPlayer player
                 && player.world() instanceof final ServerWorld serverWorld
                 ? serverWorld
-                : FidorialServer.getInstance().worldManager().tryGetDefault();
+                : FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
 
         return summon(context, world, location);
     }
 
-    private static int summon(final CommandContext<CommandSource> context, final ServerWorld world, final Location location) {
+    private static int summon(final CommandContext<CommandSource> context, final @Nullable ServerWorld world, final Location location) {
         final EntityType entity = context.getArgument("entity", EntityType.class);
 
         if (!MobFactories.isMob(entity)) {
@@ -68,7 +69,10 @@ public final class SummonCommand {
 
         final FidorialServer server = FidorialServer.getInstance();
         final CommandSource source = context.getSource();
-
+        if (world == null) {
+            source.sender().sendMessage(Component.translatable("command.summon.no_world"));
+            return 0;
+        }
         world.scheduler().execute(world.key(), location.chunk(), () -> {
             final AbstractMob mob = MobFactories.create(entity, server.entityIds().allocate(), world, location);
             server.spawnEntity(mob);

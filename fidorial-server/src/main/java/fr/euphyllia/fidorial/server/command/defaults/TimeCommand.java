@@ -10,6 +10,7 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.world.World;
 import fr.fidorial.world.time.DayNightCycle;
 import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
 
@@ -83,7 +84,7 @@ public final class TimeCommand {
                 .build();
     }
 
-    private static World target(final CommandContext<CommandSource> context) {
+    private static @Nullable World target(final CommandContext<CommandSource> context) {
         for (final var node : context.getNodes()) {
             if ("world".equals(node.getNode().getName())) {
                 return context.getArgument("world", World.class);
@@ -92,11 +93,14 @@ public final class TimeCommand {
         if (context.getSource().sender() instanceof final Player player) {
             return player.world();
         }
-        return FidorialServer.getInstance().worldManager().tryGetDefault();
+        return FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
     }
 
     private static int set(final CommandContext<CommandSource> context, final int timeOfDay) {
         final World world = target(context);
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         final DayNightCycle cycle = world.dayNightCycle();
         cycle.setTime(cycle.day() * DayNightCycle.DAY_LENGTH + Math.floorMod(timeOfDay, DayNightCycle.DAY_LENGTH));
         context.getSource()
@@ -110,6 +114,9 @@ public final class TimeCommand {
 
     private static int add(final CommandContext<CommandSource> context) {
         final World world = target(context);
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         final DayNightCycle cycle = world.dayNightCycle();
         cycle.addTime(context.getArgument("ticks", Integer.class));
         context.getSource()
@@ -123,6 +130,9 @@ public final class TimeCommand {
 
     private static int query(final CommandContext<CommandSource> context, final String kind) {
         final World world = target(context);
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         final DayNightCycle cycle = world.dayNightCycle();
         final long value = switch (kind) {
             case "gametime" -> cycle.worldAge();
@@ -141,6 +151,9 @@ public final class TimeCommand {
 
     private static int freeze(final CommandContext<CommandSource> context, final boolean running) {
         final World world = target(context);
+        if (noWorldAvailable(context.getSource(), world)) {
+            return 0;
+        }
         world.dayNightCycle().setDoDaylightCycle(running);
         context.getSource()
                 .sender()
@@ -148,5 +161,13 @@ public final class TimeCommand {
                         running ? "command.time.resumed" : "command.time.frozen",
                         Component.text(world.key().asString())));
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static boolean noWorldAvailable(final CommandSource source, final @Nullable World world) {
+        if (world == null) {
+            source.sender().sendMessage(Component.translatable("command.time.no_world"));
+            return true;
+        }
+        return false;
     }
 }

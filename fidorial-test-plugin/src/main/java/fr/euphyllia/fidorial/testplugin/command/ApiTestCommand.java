@@ -209,6 +209,12 @@ public final class ApiTestCommand {
                 )
                 .then(literal("reenter_configuration")
                         .executes(ApiTestCommand::reenterConfigurationPhase))
+                .then(literal("defaultworld")
+                        .then(literal("get")
+                                .executes(ApiTestCommand::getDefaultWorld))
+                        .then(literal("set")
+                                .then(argument("world", ArgumentTypes.world())
+                                        .executes(ApiTestCommand::setDefaultWorld))))
                 .build();
     }
 
@@ -816,6 +822,29 @@ public final class ApiTestCommand {
 
         plugin.msg(sender, "[TestPlugin] You chose: " + baguette.name().toLowerCase(Locale.ROOT));
 
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int getDefaultWorld(final CommandContext<CommandSource> ctx) {
+        final CommandSender sender = ctx.getSource().sender();
+
+        final Key key = plugin.server().defaultWorld();
+        if (key == null) {
+            plugin.msg(sender, "[TestPlugin] No default world is configured.");
+        } else {
+            plugin.msg(sender, "[TestPlugin] Configured default world: " + key.asString());
+        }
+
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int setDefaultWorld(final CommandContext<CommandSource> ctx) {
+        final CommandSender sender = ctx.getSource().sender();
+        final World world = ctx.getArgument("world", World.class);
+
+        plugin.server().defaultWorld(world.key());
+
+        plugin.msg(sender, "[TestPlugin] Default world set to " + world.key().asString());
         return Command.SINGLE_SUCCESS;
     }
 }
