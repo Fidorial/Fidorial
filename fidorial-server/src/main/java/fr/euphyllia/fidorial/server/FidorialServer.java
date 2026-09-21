@@ -844,7 +844,7 @@ public final class FidorialServer implements Server {
         final double radius = config.sendDistance() * 16.0 + 16.0;
         final double radiusSq = radius * radius;
         for (final ServerPlayer player : players()) {
-            if (player.isRemoved() || player.world() != world) {
+            if (player.isRemoved() || !player.world().equals(world)) {
                 continue;
             }
             final Location loc = player.location();

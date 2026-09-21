@@ -245,7 +245,7 @@ public final class WorldManager implements AutoCloseable {
             return null;
         }
 
-        final boolean hasPlayers = FidorialServer.getInstance().players().stream().anyMatch(player -> player.world() == world);
+        final boolean hasPlayers = FidorialServer.getInstance().players().stream().anyMatch(player -> player.world().equals(world));
         if (hasPlayers) {
             LOGGER.warn("Refusal to unload {}: players are still present there.", key);
             return null;

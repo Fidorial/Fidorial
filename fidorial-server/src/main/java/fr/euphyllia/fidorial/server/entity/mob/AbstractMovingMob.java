@@ -237,11 +237,10 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         final double maxDistSq = maxDistance < 0.0 ? Double.MAX_VALUE : maxDistance * maxDistance;
         ServerPlayer best = null;
         double bestDistSq = Double.MAX_VALUE;
-        for (int i = 0, size = players.size(); i < size; i++) {
-            final ServerPlayer player = players.get(i);
+        for (final ServerPlayer player : players) {
             if (player.isRemoved() || player.isDead()
                     || player.gameMode() == GameMode.SPECTATOR
-                    || player.world() != world()) {
+                    || !player.world().equals(world())) {
                 continue;
             }
             final double distSq = distanceSqTo(player);

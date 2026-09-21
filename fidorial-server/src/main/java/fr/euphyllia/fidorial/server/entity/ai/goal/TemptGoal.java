@@ -115,7 +115,7 @@ public final class TemptGoal implements Goal {
     private boolean isTempting(final ServerPlayer player) {
         if (player.isRemoved() || player.isDead()
                 || player.gameMode() == GameMode.SPECTATOR
-                || player.world() != mob.world()) {
+                || !player.world().equals(mob.world())) {
             return false;
         }
         return holdsTemptingItem(player);

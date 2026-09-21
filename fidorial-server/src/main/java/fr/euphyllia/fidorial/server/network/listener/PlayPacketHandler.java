@@ -201,7 +201,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos targetChunk = leaving.chunk();
 
         leaving.execute(() -> {
-            if (leaving.world() != targetWorld || !leaving.chunk().equals(targetChunk)) {
+            if (!leaving.world().equals(targetWorld) || !leaving.chunk().equals(targetChunk)) {
                 // we moved since the execute call, so reschedule
                 schedulePlayerRemoval(leaving);
                 return;
@@ -869,7 +869,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final World from = teleporting.world();
         final ChunkPos destChunk = location.chunk();
 
-        if (from == destination) {
+        if (from.equals(destination)) {
             if (!(destination instanceof final ServerWorld target)) {
                 return CompletableFuture.completedFuture(false);
             }
@@ -1161,7 +1161,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos destination = spawn.chunk();
         final CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-        if (from == world) {
+        if (from.equals(world)) {
             final Location previous = respawning.location();
             final ChunkPos fromChunk = previous.chunk();
 

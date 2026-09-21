@@ -772,6 +772,17 @@ public final class ServerWorld implements World {
         return lightManager.lightLevel(x, y, z);
     }
 
+    @Override
+    public int hashCode() {
+        return this.dimension.id().hashCode();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        return o == this || o instanceof final ServerWorld world
+                && world.dimension.id().equals(this.dimension.id());
+    }
+
     private final class WorldLightAccess implements LightAccess {
         @Override
         public int minY() {

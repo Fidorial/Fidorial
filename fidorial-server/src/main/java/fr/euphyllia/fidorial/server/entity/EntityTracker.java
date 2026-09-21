@@ -64,7 +64,7 @@ public final class EntityTracker {
             final boolean tracked = current.contains(connection);
             final double limit = tracked ? untrackDistanceSq : trackDistanceSq;
             final boolean visible =
-                    player.world() == abstractEntity.world() && distanceSq(self, player.location()) <= limit;
+                    player.world().equals(abstractEntity.world()) && distanceSq(self, player.location()) <= limit;
 
             if (visible && !tracked) {
                 if (addIfAbsent(current, connection)) {

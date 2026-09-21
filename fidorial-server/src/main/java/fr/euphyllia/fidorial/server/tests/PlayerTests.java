@@ -27,7 +27,7 @@ public final class PlayerTests {
                 .execute(() -> teleportFuture.set(player.teleport(destinationWorld, destination)))
                 .waitUntil(() -> teleportFuture.get().isDone(), "Expected teleport to complete")
                 .execute(() -> helper.assertTrue(teleportFuture.get().join(), "Expected teleport to succeed"))
-                .waitUntil(() -> player.world() == destinationWorld,
+                .waitUntil(() -> player.world().equals(destinationWorld),
                         "Expected the player's world to have switched to the destination")
                 .waitUntil(() -> player.location().equals(destination),
                         "Expected player at " + destination + " in the destination world but was at " + player.location())
@@ -48,7 +48,7 @@ public final class PlayerTests {
                 .execute(() -> respawnFuture.set(player.respawn()))
                 .waitUntil(() -> respawnFuture.get().isDone(), "Expected respawn to complete")
                 .execute(() -> helper.assertTrue(respawnFuture.get().join(), "Expected respawn to succeed"))
-                .waitUntil(() -> player.world() == destinationWorld,
+                .waitUntil(() -> player.world().equals(destinationWorld),
                         "Expected the player to be respawned in the explicitly given world, not the default one")
                 .waitUntil(() -> player.location().equals(point),
                         "Expected the player location after respawning to match what was set, got " + player.location())

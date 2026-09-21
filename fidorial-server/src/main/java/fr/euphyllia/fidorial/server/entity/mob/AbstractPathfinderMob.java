@@ -133,7 +133,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
             return false;
         }
-        return player.world() == world();
+        return player.world().equals(world());
     }
 
     private boolean isValidTarget(final ServerPlayer player, final double maxDistSq) {

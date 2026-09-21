@@ -368,9 +368,8 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         if (!BlockView.isPassable(world, x, y, z) || !BlockView.isPassable(world, x, y + 1, z)) {
             return false;
         }
-        for (int i = 0, size = players.size(); i < size; i++) {
-            final ServerPlayer player = players.get(i);
-            if (player.world() != world) {
+        for (final ServerPlayer player : players) {
+            if (!player.world().equals(world)) {
                 continue;
             }
             final Location pos = player.location();
