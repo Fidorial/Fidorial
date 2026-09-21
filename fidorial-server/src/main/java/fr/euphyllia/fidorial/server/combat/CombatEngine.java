@@ -367,7 +367,7 @@ public final class CombatEngine implements CombatService {
     private List<AbstractLivingEntity> nearbyLivingEntities(final ServerPlayer attacker, final Location center) {
         final List<AbstractLivingEntity> found = new ArrayList<>();
         for (final ServerPlayer player : server.players()) {
-            if (player.world() == attacker.world() && withinSweepBox(center, player.location())) {
+            if (player.world().equals(attacker.world()) && withinSweepBox(center, player.location())) {
                 found.add(player);
             }
         }

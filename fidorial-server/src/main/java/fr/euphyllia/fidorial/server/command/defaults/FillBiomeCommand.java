@@ -186,7 +186,7 @@ public final class FillBiomeCommand {
                 new ClientboundChunksBiomesPacket(server.chunkSerializer(), columns);
 
         for (final ServerPlayer player : server.players()) {
-            if (!player.isRemoved() && player.world() == world) {
+            if (!player.isRemoved() && player.world().equals(world)) {
                 player.connection().send(packet);
             }
         }
