@@ -1262,10 +1262,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private ServerWorld worldOrDisconnect() {
-        return server.worldManager().defaultWorld().orElseThrow(this::noWorldAvailable);
+        return server.worldManager().defaultWorld().orElseThrow(this::disconnectForMissingWorld);
     }
 
-    private RuntimeException noWorldAvailable() {
+    private RuntimeException disconnectForMissingWorld() {
         LOGGER.error("No default world is currently resolvable; disconnecting {}", connection.username());
         connection.disconnect(Component.translatable("multiplayer.disconnect.generic"));
         return new IllegalStateException("No world is currently loaded");

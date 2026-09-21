@@ -98,7 +98,7 @@ public final class TimeCommand {
 
     private static int set(final CommandContext<CommandSource> context, final int timeOfDay) {
         final World world = target(context);
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final DayNightCycle cycle = world.dayNightCycle();
@@ -114,7 +114,7 @@ public final class TimeCommand {
 
     private static int add(final CommandContext<CommandSource> context) {
         final World world = target(context);
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final DayNightCycle cycle = world.dayNightCycle();
@@ -130,7 +130,7 @@ public final class TimeCommand {
 
     private static int query(final CommandContext<CommandSource> context, final String kind) {
         final World world = target(context);
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final DayNightCycle cycle = world.dayNightCycle();
@@ -151,7 +151,7 @@ public final class TimeCommand {
 
     private static int freeze(final CommandContext<CommandSource> context, final boolean running) {
         final World world = target(context);
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         world.dayNightCycle().setDoDaylightCycle(running);
@@ -163,7 +163,7 @@ public final class TimeCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static boolean noWorldAvailable(final CommandSource source, final @Nullable World world) {
+    private static boolean handleMissingWorld(final CommandSource source, final @Nullable World world) {
         if (world == null) {
             source.sender().sendMessage(Component.translatable("command.time.no_world"));
             return true;

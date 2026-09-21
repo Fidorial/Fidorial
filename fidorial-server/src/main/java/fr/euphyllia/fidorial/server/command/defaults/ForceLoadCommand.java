@@ -78,7 +78,7 @@ public final class ForceLoadCommand {
         }
 
         final ServerWorld world = worldOf(source);
-        if (noWorldAvailable(source, world)) {
+        if (handleMissingWorld(source, world)) {
             return 0;
         }
         int changed = 0;
@@ -116,7 +116,7 @@ public final class ForceLoadCommand {
 
     private static int removeAll(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         for (final ChunkPos pos : world.forceLoadedChunks()) {
@@ -129,7 +129,7 @@ public final class ForceLoadCommand {
 
     private static int list(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final Component dimension = dimension(world);
@@ -155,7 +155,7 @@ public final class ForceLoadCommand {
 
     private static int query(final CommandContext<CommandSource> context) {
         final ServerWorld world = worldOf(context.getSource());
-        if (noWorldAvailable(context.getSource(), world)) {
+        if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final ChunkPos pos = column(context, "pos").chunk();
@@ -195,7 +195,7 @@ public final class ForceLoadCommand {
         return FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
     }
 
-    private static boolean noWorldAvailable(final CommandSource source, final @Nullable ServerWorld world) {
+    private static boolean handleMissingWorld(final CommandSource source, final @Nullable ServerWorld world) {
         if (world == null) {
             source.sender().sendMessage(Component.translatable("commands.forceload.no_world"));
             return true;
