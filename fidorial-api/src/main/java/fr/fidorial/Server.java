@@ -277,13 +277,13 @@ public interface Server extends ForwardingAudience {
     boolean unloadWorld(Key key, boolean save);
 
     /**
-     * Gets the key of the world currently preferred as the server's default, or {@code null}
-     * if none is configured.
+     * {@return the key of the world currently preferred as the server's default, or {@linkplain Optional#empty()}
+     * if none is configured}
      *
      * @since 0.1.0
      */
     @Contract(pure = true)
-    @Nullable Key defaultWorld();
+    Optional<Key> defaultWorld();
 
     /**
      * Sets the world that should be preferred as the server's default when resolving a

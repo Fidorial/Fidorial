@@ -828,12 +828,9 @@ public final class ApiTestCommand {
     private static int getDefaultWorld(final CommandContext<CommandSource> ctx) {
         final CommandSender sender = ctx.getSource().sender();
 
-        final Key key = plugin.server().defaultWorld();
-        if (key == null) {
-            plugin.msg(sender, "[TestPlugin] No default world is configured.");
-        } else {
-            plugin.msg(sender, "[TestPlugin] Configured default world: " + key.asString());
-        }
+        plugin.server().defaultWorld().ifPresentOrElse(
+                key -> plugin.msg(sender, "[TestPlugin] Configured default world: " + key.asString()),
+                () -> plugin.msg(sender, "[TestPlugin] No default world is configured."));
 
         return Command.SINGLE_SUCCESS;
     }

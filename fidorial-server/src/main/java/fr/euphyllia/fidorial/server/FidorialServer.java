@@ -643,7 +643,7 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public @Nullable Key defaultWorld() {
+    public Optional<Key> defaultWorld() {
         return worldManager.defaultWorldKey();
     }
 

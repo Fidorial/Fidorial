@@ -151,11 +151,11 @@ public final class WorldManager implements AutoCloseable {
     }
 
     /**
-     * {@return the configured default world key set via {@link #setDefaultWorld}, or {@code null}
+     * {@return the configured default world key set via {@link #setDefaultWorld}, or {@linkplain Optional#empty()}
      * if none is set, independent of whether that world is currently loaded}
      */
-    public @Nullable Key defaultWorldKey() {
-        return preferredDefaultKey;
+    public Optional<Key> defaultWorldKey() {
+        return Optional.ofNullable(preferredDefaultKey);
     }
 
     /**
