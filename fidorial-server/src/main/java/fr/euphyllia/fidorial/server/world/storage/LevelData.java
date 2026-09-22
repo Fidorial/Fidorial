@@ -471,10 +471,6 @@ public final class LevelData {
         };
     }
 
-    public long hashedSeed() {
-        return Hashing.sha256().hashLong(seed).asLong();
-    }
-
     public boolean exists(final Path levelDat) {
         return Files.isRegularFile(levelDat);
     }
