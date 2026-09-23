@@ -129,6 +129,17 @@ public final class BlockStateRegistry {
             return BlockState.of(BlockTypeKeys.LAVA.key(), Map.of("level", "0"));
         }
 
+        final Key declared = registry.blockForItem(itemId).orElse(null);
+        if (declared != null) {
+            final BlockData data = registry.type(declared).map(BlockType::defaultData).orElse(null);
+            return data == null ? null : toBlockState(data);
+        }
+
+        if (!Key.MINECRAFT_NAMESPACE.equals(itemId.namespace())) {
+            // A plugin item that nobody declared as a block item places nothing.
+            return null;
+        }
+
         final BlockState defaultState = BlockStates.defaultStateOf(itemId);
         return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE.key());
     }

@@ -5,15 +5,16 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.List;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Per-item stack size, durability and repair materials.
+ * Per-item stack size, durability, repair materials and block transformer.
  *
  * <p>Joined from Mojang's item registry report and PrismarineJS's
  * {@code minecraft-data} items report; do not edit.</p>
  *
  * <p>These are the item's <em>defaults</em>. A stack that patches
- * {@code max_stack_size} or {@code max_damage} overrides them — read
+ * {@code max_stack_size}, {@code max_damage} or {@code block_transformer} overrides them — read
  * {@code ItemStack#maxStackSize()} rather than this class when you have
  * a stack in hand.</p>
  */
@@ -23,6 +24,8 @@ public final class ItemProperties {
     private static final Object2IntOpenHashMap<Key> MAX_DAMAGE = new Object2IntOpenHashMap<>();
 
     private static final Object2ObjectOpenHashMap<Key, List<Key>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
+
+    private static final Object2ObjectOpenHashMap<Key, Key> BLOCK_TRANSFORMER = new Object2ObjectOpenHashMap<>();
 
     static {
         STACK_SIZE.defaultReturnValue(64);
@@ -63,6 +66,14 @@ public final class ItemProperties {
      */
     public static List<Key> repairMaterials(final Key item) {
         return REPAIR_MATERIALS.getOrDefault(item, List.of());
+    }
+
+    /**
+     * @param item namespaced item identifier
+     * @return the {@code minecraft:block_transformer} entry this item carries by default, or {@code null} when it transforms nothing
+     */
+    public static @Nullable Key blockTransformer(final Key item) {
+        return BLOCK_TRANSFORMER.get(item);
     }
 
     private static void register(final Key item, final int stackSize, final int maxDamage,
@@ -396,6 +407,7 @@ public final class ItemProperties {
         register(ItemKeys.COOKED_SALMON.key(), 64, 0, List.of());
         register(ItemKeys.COOKIE.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_AXE.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.COPPER_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.COPPER_BARS.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_BOOTS.key(), 1, 143, List.of(ItemKeys.COPPER_INGOT.key()));
@@ -409,6 +421,7 @@ public final class ItemProperties {
         register(ItemKeys.COPPER_GRATE.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_HELMET.key(), 1, 121, List.of(ItemKeys.COPPER_INGOT.key()));
         register(ItemKeys.COPPER_HOE.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.COPPER_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.COPPER_HORSE_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.COPPER_INGOT.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_LANTERN.key(), 64, 0, List.of());
@@ -418,6 +431,7 @@ public final class ItemProperties {
         register(ItemKeys.COPPER_ORE.key(), 64, 0, List.of());
         register(ItemKeys.COPPER_PICKAXE.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
         register(ItemKeys.COPPER_SHOVEL.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.COPPER_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.COPPER_SPEAR.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
         register(ItemKeys.COPPER_SWORD.key(), 1, 190, List.of(ItemKeys.COPPER_INGOT.key()));
         register(ItemKeys.COPPER_TORCH.key(), 64, 0, List.of());
@@ -550,17 +564,20 @@ public final class ItemProperties {
         register(ItemKeys.DETECTOR_RAIL.key(), 64, 0, List.of());
         register(ItemKeys.DIAMOND.key(), 64, 0, List.of());
         register(ItemKeys.DIAMOND_AXE.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.DIAMOND_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.DIAMOND_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.DIAMOND_BOOTS.key(), 1, 429, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_CHESTPLATE.key(), 1, 528, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_HELMET.key(), 1, 363, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_HOE.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.DIAMOND_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.DIAMOND_HORSE_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.DIAMOND_LEGGINGS.key(), 1, 495, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_NAUTILUS_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.DIAMOND_ORE.key(), 64, 0, List.of());
         register(ItemKeys.DIAMOND_PICKAXE.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_SHOVEL.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.DIAMOND_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.DIAMOND_SPEAR.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIAMOND_SWORD.key(), 1, 1561, List.of(ItemKeys.DIAMOND.key()));
         register(ItemKeys.DIORITE.key(), 64, 0, List.of());
@@ -679,6 +696,7 @@ public final class ItemProperties {
         register(ItemKeys.GOLD_ORE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_APPLE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_AXE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.GOLDEN_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.GOLDEN_BOOTS.key(), 1, 91, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_CHESTPLATE.key(), 1, 112, List.of(ItemKeys.GOLD_INGOT.key()));
@@ -688,11 +706,13 @@ public final class ItemProperties {
     private static void registerItems3() {
         register(ItemKeys.GOLDEN_HELMET.key(), 1, 77, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_HOE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.GOLDEN_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.GOLDEN_HORSE_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.GOLDEN_LEGGINGS.key(), 1, 105, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_NAUTILUS_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.GOLDEN_PICKAXE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_SHOVEL.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.GOLDEN_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.GOLDEN_SPEAR.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_SWORD.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GRANITE.key(), 64, 0, List.of());
@@ -778,6 +798,7 @@ public final class ItemProperties {
         register(ItemKeys.INFESTED_STONE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.INK_SAC.key(), 64, 0, List.of());
         register(ItemKeys.IRON_AXE.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.IRON_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.IRON_BARS.key(), 64, 0, List.of());
         register(ItemKeys.IRON_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.IRON_BOOTS.key(), 1, 195, List.of(ItemKeys.IRON_INGOT.key()));
@@ -787,6 +808,7 @@ public final class ItemProperties {
         register(ItemKeys.IRON_GOLEM_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.IRON_HELMET.key(), 1, 165, List.of(ItemKeys.IRON_INGOT.key()));
         register(ItemKeys.IRON_HOE.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.IRON_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.IRON_HORSE_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.IRON_INGOT.key(), 64, 0, List.of());
         register(ItemKeys.IRON_LEGGINGS.key(), 1, 225, List.of(ItemKeys.IRON_INGOT.key()));
@@ -795,6 +817,7 @@ public final class ItemProperties {
         register(ItemKeys.IRON_ORE.key(), 64, 0, List.of());
         register(ItemKeys.IRON_PICKAXE.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
         register(ItemKeys.IRON_SHOVEL.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.IRON_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.IRON_SPEAR.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
         register(ItemKeys.IRON_SWORD.key(), 1, 250, List.of(ItemKeys.IRON_INGOT.key()));
         register(ItemKeys.IRON_TRAPDOOR.key(), 64, 0, List.of());
@@ -1027,11 +1050,13 @@ public final class ItemProperties {
         register(ItemKeys.NETHER_WART.key(), 64, 0, List.of());
         register(ItemKeys.NETHER_WART_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.NETHERITE_AXE.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.NETHERITE_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.NETHERITE_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.NETHERITE_BOOTS.key(), 1, 481, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_CHESTPLATE.key(), 1, 592, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_HELMET.key(), 1, 407, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_HOE.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.NETHERITE_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.NETHERITE_HORSE_ARMOR.key(), 1, 0, List.of());
         register(ItemKeys.NETHERITE_INGOT.key(), 64, 0, List.of());
         register(ItemKeys.NETHERITE_LEGGINGS.key(), 1, 555, List.of(ItemKeys.NETHERITE_INGOT.key()));
@@ -1039,6 +1064,7 @@ public final class ItemProperties {
         register(ItemKeys.NETHERITE_PICKAXE.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_SCRAP.key(), 64, 0, List.of());
         register(ItemKeys.NETHERITE_SHOVEL.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.NETHERITE_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.NETHERITE_SPEAR.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_SWORD.key(), 1, 2031, List.of(ItemKeys.NETHERITE_INGOT.key()));
         register(ItemKeys.NETHERITE_UPGRADE_SMITHING_TEMPLATE.key(), 64, 0, List.of());
@@ -1467,15 +1493,18 @@ public final class ItemProperties {
         register(ItemKeys.STICKY_PISTON.key(), 64, 0, List.of());
         register(ItemKeys.STONE.key(), 64, 0, List.of());
         register(ItemKeys.STONE_AXE.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.STONE_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.STONE_BRICK_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BRICK_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BRICK_WALL.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BUTTON.key(), 64, 0, List.of());
         register(ItemKeys.STONE_HOE.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.STONE_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.STONE_PICKAXE.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
         register(ItemKeys.STONE_PRESSURE_PLATE.key(), 64, 0, List.of());
         register(ItemKeys.STONE_SHOVEL.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.STONE_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.STONE_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.STONE_SPEAR.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
         register(ItemKeys.STONE_STAIRS.key(), 64, 0, List.of());
@@ -1723,9 +1752,12 @@ public final class ItemProperties {
         register(ItemKeys.WOLF_ARMOR.key(), 1, 64, List.of(ItemKeys.ARMADILLO_SCUTE.key()));
         register(ItemKeys.WOLF_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.WOODEN_AXE.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.WOODEN_AXE.key(), Key.key("minecraft:axe"));
         register(ItemKeys.WOODEN_HOE.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.WOODEN_HOE.key(), Key.key("minecraft:hoe"));
         register(ItemKeys.WOODEN_PICKAXE.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
         register(ItemKeys.WOODEN_SHOVEL.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
+        BLOCK_TRANSFORMER.put(ItemKeys.WOODEN_SHOVEL.key(), Key.key("minecraft:shovel"));
         register(ItemKeys.WOODEN_SPEAR.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
         register(ItemKeys.WOODEN_SWORD.key(), 1, 59, List.of(ItemKeys.OAK_PLANKS.key(), ItemKeys.SPRUCE_PLANKS.key(), ItemKeys.BIRCH_PLANKS.key(), ItemKeys.JUNGLE_PLANKS.key(), ItemKeys.ACACIA_PLANKS.key(), ItemKeys.CHERRY_PLANKS.key(), ItemKeys.DARK_OAK_PLANKS.key(), ItemKeys.PALE_OAK_PLANKS.key(), ItemKeys.MANGROVE_PLANKS.key(), ItemKeys.POPLAR_PLANKS.key(), ItemKeys.BAMBOO_PLANKS.key(), ItemKeys.CRIMSON_PLANKS.key(), ItemKeys.WARPED_PLANKS.key()));
         register(ItemKeys.WOODLAND_MANSION_MAP.key(), 64, 0, List.of());

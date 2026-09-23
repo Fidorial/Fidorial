@@ -2,6 +2,7 @@ package fr.fidorial.world;
 
 import fr.fidorial.entity.Entity;
 import fr.fidorial.scheduler.RegionizedScheduler;
+import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.time.DayNightCycle;
 import net.kyori.adventure.audience.ForwardingAudience;
@@ -92,6 +93,16 @@ public interface World extends Keyed, ForwardingAudience {
     int skyLight(BlockPos pos);
 
     int lightLevel(BlockPos pos);
+
+    /**
+     * This world as block behaviours see it. Unlike {@link #setBlockStateId}, writes
+     * keep plugin blocks as themselves (a plugin block shares its network ids with
+     * the vanilla block it looks like) and let the neighbours react.
+     *
+     * @return the block view of this world
+     * @since 0.1.0
+     */
+    BlockAccess blocks();
 
     Collection<? extends Entity> entities();
 

@@ -13,6 +13,7 @@ import fr.fidorial.plugin.Plugin;
 import fr.fidorial.plugin.PluginManager;
 import fr.fidorial.plugin.PluginMeta;
 import fr.fidorial.service.ServiceRegistry;
+import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -127,6 +128,8 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 loaded.enabled = false;
                 events.unsubscribeAll(loaded.plugin);
                 services.unregisterAll(loaded.plugin);
+                server.blockInteractions().unregisterAll(loaded.plugin);
+                Blocks.registry().unregisterAll(loaded.plugin);
                 removePluginPermissions(loaded.meta.id());
             }
         }
@@ -294,6 +297,8 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         }
         events.unsubscribeAll(plugin);
         services.unregisterAll(plugin);
+        server.blockInteractions().unregisterAll(plugin);
+        Blocks.registry().unregisterAll(plugin);
         removePluginPermissions(pluginId);
         if (context != null) {
             try {

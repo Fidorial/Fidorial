@@ -4,6 +4,7 @@ import ca.spottedleaf.concurrentutil.collection.iterator.BaseLongIterator;
 import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.list.COWArrayList;
 import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityManager;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
@@ -33,6 +34,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
+import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -235,6 +237,11 @@ public final class ServerWorld implements World {
     @Override
     public int skyLight(final BlockPos pos) {
         return skyLightAt(pos.x(), pos.y(), pos.z());
+    }
+
+    @Override
+    public BlockAccess blocks() {
+        return FidorialServer.getInstance().blockUpdates().access(this);
     }
 
     @Override

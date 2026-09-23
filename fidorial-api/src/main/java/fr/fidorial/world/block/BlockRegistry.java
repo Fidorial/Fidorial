@@ -1,5 +1,7 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.plugin.Plugin;
+import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +34,55 @@ public interface BlockRegistry {
     default Optional<BlockBehaviour> behaviour(final BlockData data) {
         return behaviour(data.key());
     }
+
+    /**
+     * Gives a block type its behaviour. The type is registered first when it is
+     * not known yet (a plugin block); when it is, the behaviour replaces the current
+     * one until {@code owner} is disabled, then the previous one comes back.
+     *
+     * @param behaviour the behaviour to attach
+     * @param owner     the plugin attaching it
+     * @since 0.1.0
+     */
+    void register(BlockBehaviour behaviour, Plugin owner);
+
+    /**
+     * Starts a crop growing as {@code block}. Hand the result to
+     * {@link #register(BlockBehaviour, Plugin)}.
+     *
+     * @param block a block type with an {@value CropBlock#AGE} property, registered beforehand
+     * @return a builder for that crop
+     * @since 0.1.0
+     */
+    CropBlock.Builder crop(Key block);
+
+    /**
+     * Declares that using an item places a block — seeds planting their crop,
+     * cocoa beans their pod, a lily pad itself. Only needed when the item and the
+     * block do not share an identifier.
+     *
+     * @param item  the item in hand
+     * @param block the block it places
+     * @param owner the plugin declaring it
+     * @since 0.1.0
+     */
+    void registerBlockItem(Key item, Key block, Plugin owner);
+
+    /**
+     * @param item an item identifier
+     * @return the block that item places when it was {@linkplain #registerBlockItem declared}
+     * @since 0.1.0
+     */
+    Optional<Key> blockForItem(Key item);
+
+    /**
+     * Drops every behaviour and block item an owner declared, bringing back
+     * whatever they shadowed.
+     *
+     * @param owner the plugin to clean up after
+     * @since 0.1.0
+     */
+    void unregisterAll(Plugin owner);
 
     Collection<BlockType> types();
 

@@ -4,10 +4,12 @@ import fr.euphyllia.fidorial.testplugin.command.ApiTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.BiomeCommand;
 import fr.euphyllia.fidorial.testplugin.command.CustomMobCommand;
 import fr.euphyllia.fidorial.testplugin.command.DialogCommand;
+import fr.euphyllia.fidorial.testplugin.command.FarmCommand;
 import fr.euphyllia.fidorial.testplugin.command.ItemCommand;
 import fr.euphyllia.fidorial.testplugin.command.PregenCommand;
 import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
+import fr.euphyllia.fidorial.testplugin.farming.TestCrops;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
@@ -119,8 +121,10 @@ public final class TestPlugin implements Plugin {
 
         TestChatTypes.registerAll(context.server().chatTypes(), context.logger());
 
+        TestCrops.registerAll(context.server(), this, context.logger());
+
 //        BullMobs.attachToCows(context.server().mobs(), this, context.logger());
-       BullMobs.registerBull(context.server().mobs(), this, context.logger());
+        BullMobs.registerBull(context.server().mobs(), this, context.logger());
         CompanionMobs.register(context.server().mobs(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
@@ -170,6 +174,7 @@ public final class TestPlugin implements Plugin {
         TestDialogs.unregisterAll(server.dialogs());
         TestDimensionTypes.unregisterAll(context.server().dimensionTypes());
         TestChatTypes.unregisterAll(server.chatTypes());
+        TestCrops.unregisterAll(server, this);
         BullMobs.unregisterAll(server.mobs(), this);
         server.mobs().unregisterAll(this);
         TestPluginTranslations.unregister();
@@ -368,5 +373,6 @@ public final class TestPlugin implements Plugin {
         registry.register(context.meta(), new DialogCommand(this).create());
         registry.register(context.meta(), new CustomMobCommand(this).create());
         registry.register(context.meta(), new ItemCommand(this).create());
+        registry.register(context.meta(), new FarmCommand(this).create());
     }
 }
