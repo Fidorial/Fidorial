@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.world.chunk;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import fr.fidorial.world.light.LightType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -35,7 +37,7 @@ public class AnvilChunkSerializer {
         root.putInt("xPos", chunk.chunkX());
         root.putInt("zPos", chunk.chunkZ());
         root.putInt("yPos", chunk.minSectionY());
-        root.putString("Status", chunk.status().asString());
+        root.putString("status", chunk.status().asString());
         root.putLong("LastUpdate", chunk.lastUpdate());
         root.putLong("InhabitedTime", chunk.inhabitedTime());
         root.putBoolean("isLightOn", chunk.lightPopulated());
@@ -184,7 +186,7 @@ public class AnvilChunkSerializer {
         final int chunkZ = root.getInt("zPos");
 
         final ChunkColumn chunk = new ChunkColumn(chunkX, chunkZ, minY, height, defaultBlock, defaultBiome);
-        chunk.setStatus(root.contains("Status") ? Key.key(root.getString("Status")) : Key.key("full"));
+        chunk.setStatus(root.contains("status") ? Key.key(root.getString("status")) : Key.key("full"));
         chunk.setInhabitedTime(root.getLong("InhabitedTime"));
         chunk.setLastUpdate(root.getLong("LastUpdate"));
 
@@ -235,7 +237,9 @@ public class AnvilChunkSerializer {
 
         // biomes
         final List<Key> biomePalette = new ArrayList<>();
-        final CompoundBinaryTag bio = c.getCompound("biomes");
+        final CompoundBinaryTag bio = !c.contains("biomes") && c.contains("noise_biomes")
+                ? ((NbtMapType) V5119.expandNoiseBiomes(NbtMapType.of(c.getCompound("noise_biomes")))).toCompound()
+                : c.getCompound("biomes");
         for (final BinaryTag t : bio.getList("palette")) {
             if (t instanceof final StringBinaryTag st) biomePalette.add(Key.key(st.value()));
         }
