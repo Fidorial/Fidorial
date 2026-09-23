@@ -54,7 +54,7 @@ public final class AttachedStemBlock implements BlockBehaviour {
                                  final BlockPos pos) {
         final boolean towardsFruit = direction.name().toLowerCase(Locale.ROOT).equals(data.get("facing"));
         if (towardsFruit && !neighbour.key().equals(fruit)) {
-            return StemBlock.defaultData(stem).with(CropBlock.DEFAULT_AGE_PROPERTY, "7");
+            return StemBlock.defaultData(stem).with(CropBlock.AGE, "7");
         }
         return data;
     }

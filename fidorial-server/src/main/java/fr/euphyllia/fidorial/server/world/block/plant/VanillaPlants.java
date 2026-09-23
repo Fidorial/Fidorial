@@ -36,29 +36,29 @@ public final class VanillaPlants {
     }
 
     private static void registerCrops(final BlockRegistry registry) {
-        registry.register(CropBlock.builder(BlockTypeKeys.WHEAT.key())
+        registry.register(FidorialCropBlock.builder(BlockTypeKeys.WHEAT.key())
                 .ripeDrops(List.of(drop(ItemKeys.WHEAT.key()), drop(ItemKeys.WHEAT_SEEDS.key(), 1, 4)))
                 .immatureDrops(List.of(drop(ItemKeys.WHEAT_SEEDS.key())))
                 .build(), OWNER);
 
-        registry.register(CropBlock.builder(BlockTypeKeys.CARROTS.key())
+        registry.register(FidorialCropBlock.builder(BlockTypeKeys.CARROTS.key())
                 .ripeDrops(List.of(drop(ItemKeys.CARROT.key(), 1, 4)))
                 .immatureDrops(List.of(drop(ItemKeys.CARROT.key())))
                 .build(), OWNER);
 
         // TODO: the 2% poisonous potato wants chance-based drops.
-        registry.register(CropBlock.builder(BlockTypeKeys.POTATOES.key())
+        registry.register(FidorialCropBlock.builder(BlockTypeKeys.POTATOES.key())
                 .ripeDrops(List.of(drop(ItemKeys.POTATO.key(), 1, 4)))
                 .immatureDrops(List.of(drop(ItemKeys.POTATO.key())))
                 .build(), OWNER);
 
-        registry.register(CropBlock.builder(BlockTypeKeys.BEETROOTS.key())
-                .growth(CropBlock.Growth.vanilla().scaled(2.0 / 3))
+        registry.register(FidorialCropBlock.builder(BlockTypeKeys.BEETROOTS.key())
+                .growth(VanillaGrowth.scaled(VanillaGrowth.on(Set.of(BlockTypeKeys.FARMLAND.key())), 2.0 / 3))
                 .ripeDrops(List.of(drop(ItemKeys.BEETROOT.key()), drop(ItemKeys.BEETROOT_SEEDS.key(), 1, 4)))
                 .immatureDrops(List.of(drop(ItemKeys.BEETROOT_SEEDS.key())))
                 .build(), OWNER);
 
-        registry.register(CropBlock.builder(BlockTypeKeys.NETHER_WART.key())
+        registry.register(FidorialCropBlock.builder(BlockTypeKeys.NETHER_WART.key())
                 .soils(Set.of(BlockTypeKeys.SOUL_SAND.key()))
                 .minLight(0)
                 .growth(CropBlock.Growth.fixed(1.0 / 10))

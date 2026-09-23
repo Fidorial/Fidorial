@@ -3,11 +3,13 @@ package fr.euphyllia.fidorial.server.world.block;
 import fr.euphyllia.fidorial.server.plugin.BuiltInPlugin;
 import fr.euphyllia.fidorial.server.plugin.PluginOwnedMap;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.euphyllia.fidorial.server.world.block.plant.FidorialCropBlock;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -48,6 +50,11 @@ public final class FidorialBlockRegistry implements BlockRegistry {
             register(behaviour.type());
         }
         behaviours.put(behaviour.key(), behaviour, owner);
+    }
+
+    @Override
+    public CropBlock.Builder crop(final Key block) {
+        return FidorialCropBlock.builder(block);
     }
 
     @Override

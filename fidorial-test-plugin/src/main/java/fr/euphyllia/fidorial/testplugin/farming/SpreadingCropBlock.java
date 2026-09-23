@@ -5,6 +5,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.plant.CropBlock;
+import fr.fidorial.world.block.plant.ForwardingCropBlock;
 
 import java.util.random.RandomGenerator;
 
@@ -12,18 +13,20 @@ import java.util.random.RandomGenerator;
  * An invasive crop (mint): once ripe, it keeps planting itself on any free spot
  * of soil next to it.
  */
-public final class SpreadingCropBlock extends CropBlock {
+public final class SpreadingCropBlock extends ForwardingCropBlock {
+
+    private static final int MIN_LIGHT = 9;
 
     private static final BlockFace[] HORIZONTAL = {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
 
     private final double spreadChance;
 
     /**
-     * @param builder      the crop settings; its soils are also where it may spread
+     * @param crop         the regular crop underneath; its soils are also where it may spread
      * @param spreadChance how likely a ripe plant is to try spreading on a random tick
      */
-    public SpreadingCropBlock(final CropBlock.Builder builder, final double spreadChance) {
-        super(builder);
+    public SpreadingCropBlock(final CropBlock crop, final double spreadChance) {
+        super(crop);
         this.spreadChance = spreadChance;
     }
 
@@ -38,7 +41,7 @@ public final class SpreadingCropBlock extends CropBlock {
             super.randomTick(data, world, pos, random);
             return;
         }
-        if (random.nextDouble() >= spreadChance || world.lightLevel(pos) < DEFAULT_MIN_LIGHT) {
+        if (random.nextDouble() >= spreadChance || world.lightLevel(pos) < MIN_LIGHT) {
             return;
         }
         final BlockPos target = pos.relative(HORIZONTAL[random.nextInt(HORIZONTAL.length)]);

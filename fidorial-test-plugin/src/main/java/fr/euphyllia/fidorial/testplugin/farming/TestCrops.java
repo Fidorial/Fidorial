@@ -94,11 +94,11 @@ public final class TestCrops {
         lookalike(blocks, TRUFFLE_PLANT, BlockTypeKeys.NETHER_WART.key(), 4);
         lookalike(blocks, MINT_PLANT, BlockTypeKeys.CARROTS.key(), 8);
 
-        blocks.register(rice(), plugin);
-        blocks.register(tomatoes(), plugin);
-        blocks.register(hemp(), plugin);
-        blocks.register(truffles(), plugin);
-        blocks.register(mint(), plugin);
+        blocks.register(rice(blocks), plugin);
+        blocks.register(tomatoes(blocks), plugin);
+        blocks.register(hemp(blocks), plugin);
+        blocks.register(truffles(blocks), plugin);
+        blocks.register(mint(blocks), plugin);
 
         blocks.registerBlockItem(RICE_SEEDS, RICE_PLANT, plugin);
         blocks.registerBlockItem(TOMATO_SEEDS, TOMATO_PLANT, plugin);
@@ -120,13 +120,10 @@ public final class TestCrops {
     /**
      * Grows only while the soil under it touches water — plant it in a paddy.
      */
-    private static CropBlock rice() {
-        final CropBlock.Growth vanilla = CropBlock.Growth.vanilla();
-        return CropBlock.builder(RICE_PLANT)
+    private static CropBlock rice(final BlockRegistry blocks) {
+        return blocks.crop(RICE_PLANT)
                 .soils(Set.of(FARMLAND, BlockTypeKeys.MUD.key()))
-                .growth((crop, data, world, pos) -> isFlooded(world, pos.offset(0, -1, 0))
-                        ? vanilla.chance(crop, data, world, pos)
-                        : 0.0)
+                .growsWhen((data, world, pos) -> isFlooded(world, pos.offset(0, -1, 0)))
                 .ripeDrops(List.of(drop(RICE, 1, 3), drop(RICE_SEEDS, 1, 2)))
                 .immatureDrops(List.of(drop(RICE_SEEDS, 1, 1)))
                 .build();
@@ -135,11 +132,12 @@ public final class TestCrops {
     /**
      * Right-click when red to pick 2–4 tomatoes; the plant goes back to stage 2.
      */
-    private static CropBlock tomatoes() {
+    private static CropBlock tomatoes(final BlockRegistry blocks) {
         return new RegrowingCropBlock(
-                CropBlock.builder(TOMATO_PLANT)
+                blocks.crop(TOMATO_PLANT)
                         .ripeDrops(List.of(drop(TOMATO, 1, 2), drop(TOMATO_SEEDS, 1, 1)))
-                        .immatureDrops(List.of(drop(TOMATO_SEEDS, 1, 1))),
+                        .immatureDrops(List.of(drop(TOMATO_SEEDS, 1, 1)))
+                        .build(),
                 2,
                 List.of(drop(TOMATO, 2, 4)));
     }
@@ -147,12 +145,13 @@ public final class TestCrops {
     /**
      * Up to three blocks tall; break the bottom to bring the whole stalk down.
      */
-    private static CropBlock hemp() {
+    private static CropBlock hemp(final BlockRegistry blocks) {
         return new ClimbingCropBlock(
-                CropBlock.builder(HEMP_PLANT)
+                blocks.crop(HEMP_PLANT)
                         .growth(CropBlock.Growth.fixed(1.0 / 6))
                         .ripeDrops(List.of(drop(HEMP_FIBER, 1, 2), drop(HEMP_CUTTING, 0, 1)))
-                        .immatureDrops(List.of(drop(HEMP_CUTTING, 1, 1))),
+                        .immatureDrops(List.of(drop(HEMP_CUTTING, 1, 1)))
+                        .build(),
                 3,
                 1.0 / 4);
     }
@@ -160,11 +159,12 @@ public final class TestCrops {
     /**
      * On podzol, mycelium or rooted dirt, and only where light stays at 7 or below.
      */
-    private static CropBlock truffles() {
-        return CropBlock.builder(TRUFFLE_PLANT)
+    private static CropBlock truffles(final BlockRegistry blocks) {
+        return blocks.crop(TRUFFLE_PLANT)
                 .soils(Set.of(BlockTypeKeys.PODZOL.key(), BlockTypeKeys.MYCELIUM.key(), BlockTypeKeys.ROOTED_DIRT.key()))
                 .minLight(0)
-                .growth((crop, data, world, pos) -> world.lightLevel(pos) <= 7 ? 1.0 / 8 : 0.0)
+                .growsWhen((data, world, pos) -> world.lightLevel(pos) <= 7)
+                .growth(CropBlock.Growth.fixed(1.0 / 8))
                 .ripeDrops(List.of(drop(TRUFFLE, 1, 2), drop(TRUFFLE_SPORES, 1, 2)))
                 .immatureDrops(List.of(drop(TRUFFLE_SPORES, 1, 1)))
                 .placeSound(SoundEvents.of("item.nether_wart.plant"))
@@ -174,12 +174,13 @@ public final class TestCrops {
     /**
      * Once ripe, spreads to any free farmland, dirt or grass next to it.
      */
-    private static CropBlock mint() {
+    private static CropBlock mint(final BlockRegistry blocks) {
         return new SpreadingCropBlock(
-                CropBlock.builder(MINT_PLANT)
+                blocks.crop(MINT_PLANT)
                         .soils(Set.of(FARMLAND, BlockTypeKeys.DIRT.key(), BlockTypeKeys.GRASS_BLOCK.key()))
                         .ripeDrops(List.of(drop(MINT, 2, 4)))
-                        .immatureDrops(List.of(drop(MINT, 1, 1))),
+                        .immatureDrops(List.of(drop(MINT, 1, 1)))
+                        .build(),
                 1.0 / 3);
     }
 
@@ -230,7 +231,7 @@ public final class TestCrops {
             return;
         }
         final BlockType base = blocks.type(vanilla).orElseThrow();
-        final BlockProperty baseAge = Objects.requireNonNull(base.property(CropBlock.DEFAULT_AGE_PROPERTY),
+        final BlockProperty baseAge = Objects.requireNonNull(base.property(CropBlock.AGE),
                 () -> vanilla.asString() + " has no age property");
         final int baseMax = baseAge.values().size() - 1;
 
@@ -240,11 +241,11 @@ public final class TestCrops {
             values[stage] = Integer.toString(stage);
             final int mapped = stages == 1 ? 0 : Math.round((float) stage * baseMax / (stages - 1));
             final BlockData look = Objects.requireNonNull(
-                    base.data(Map.of(CropBlock.DEFAULT_AGE_PROPERTY, baseAge.values().get(mapped))));
+                    base.data(Map.of(CropBlock.AGE, baseAge.values().get(mapped))));
             stateIds[stage] = look.networkId();
         }
         blocks.register(BlockType.builder(key)
-                .property(CropBlock.DEFAULT_AGE_PROPERTY, values)
+                .property(CropBlock.AGE, values)
                 .stateIds(stateIds)
                 .build());
     }

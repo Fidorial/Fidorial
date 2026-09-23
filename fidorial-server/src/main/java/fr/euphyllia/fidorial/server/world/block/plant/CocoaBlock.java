@@ -9,7 +9,6 @@ import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockDrop;
 import fr.fidorial.world.block.BlockPlaceContext;
-import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-public final class CocoaBlock extends CropBlock {
+public final class CocoaBlock extends FidorialCropBlock {
 
     private static final Set<Key> JUNGLE_LOGS = Set.of(
             BlockTypeKeys.JUNGLE_LOG.key(),
@@ -26,7 +25,7 @@ public final class CocoaBlock extends CropBlock {
             BlockTypeKeys.STRIPPED_JUNGLE_WOOD.key());
 
     public CocoaBlock() {
-        super(CropBlock.builder(BlockTypeKeys.COCOA.key())
+        super(FidorialCropBlock.builder(BlockTypeKeys.COCOA.key())
                 .minLight(0)
                 .growth(Growth.fixed(1.0 / 5))
                 .placeSound(null)

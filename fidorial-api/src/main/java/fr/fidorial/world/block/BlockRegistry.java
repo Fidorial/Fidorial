@@ -1,6 +1,7 @@
 package fr.fidorial.world.block;
 
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
 import org.jspecify.annotations.Nullable;
@@ -44,6 +45,16 @@ public interface BlockRegistry {
      * @since 0.1.0
      */
     void register(BlockBehaviour behaviour, Plugin owner);
+
+    /**
+     * Starts a crop growing as {@code block}. Hand the result to
+     * {@link #register(BlockBehaviour, Plugin)}.
+     *
+     * @param block a block type with an {@value CropBlock#AGE} property, registered beforehand
+     * @return a builder for that crop
+     * @since 0.1.0
+     */
+    CropBlock.Builder crop(Key block);
 
     /**
      * Declares that using an item places a block — seeds planting their crop,

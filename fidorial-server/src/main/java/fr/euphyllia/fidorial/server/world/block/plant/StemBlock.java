@@ -8,7 +8,6 @@ import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
-import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 
 import java.util.List;
@@ -17,7 +16,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.random.RandomGenerator;
 
-public final class StemBlock extends CropBlock {
+public final class StemBlock extends FidorialCropBlock {
 
     static final BlockFace[] HORIZONTAL = {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
 
@@ -36,14 +35,12 @@ public final class StemBlock extends CropBlock {
             BlockTypeKeys.PALE_MOSS_BLOCK.key(),
             BlockTypeKeys.MUD.key());
 
-    private static final Growth GROWTH = Growth.vanilla();
-
     private final Key attachedStem;
     private final Key fruit;
     private final Key seed;
 
     public StemBlock(final Key stem, final Key attachedStem, final Key fruit, final Key seed) {
-        super(CropBlock.builder(stem).growth(GROWTH));
+        super(FidorialCropBlock.builder(stem));
         this.attachedStem = attachedStem;
         this.fruit = fruit;
         this.seed = seed;
@@ -56,10 +53,7 @@ public final class StemBlock extends CropBlock {
 
     @Override
     public void randomTick(final BlockData data, final BlockAccess world, final BlockPos pos, final RandomGenerator random) {
-        if (world.lightLevel(pos) < DEFAULT_MIN_LIGHT) {
-            return;
-        }
-        if (random.nextDouble() >= GROWTH.chance(this, data, world, pos)) {
+        if (!canGrow(data, world, pos) || !rollGrowth(data, world, pos, random)) {
             return;
         }
         if (!isRipe(data)) {

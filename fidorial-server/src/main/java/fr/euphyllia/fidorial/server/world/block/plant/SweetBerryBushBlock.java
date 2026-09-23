@@ -7,7 +7,6 @@ import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
 import fr.fidorial.world.block.interaction.InteractionResult;
-import fr.fidorial.world.block.plant.CropBlock;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 
@@ -16,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
-public final class SweetBerryBushBlock extends CropBlock {
+public final class SweetBerryBushBlock extends FidorialCropBlock {
 
     private static final Key BERRIES = ItemKeys.SWEET_BERRIES.key();
     private static final Sound.Type PICK_SOUND = SoundEvents.of("block.sweet_berry_bush.pick_berries");
@@ -34,7 +33,7 @@ public final class SweetBerryBushBlock extends CropBlock {
             BlockTypeKeys.MUD.key());
 
     public SweetBerryBushBlock() {
-        super(CropBlock.builder(BlockTypeKeys.SWEET_BERRY_BUSH.key())
+        super(FidorialCropBlock.builder(BlockTypeKeys.SWEET_BERRY_BUSH.key())
                 .soils(SOILS)
                 .growth(Growth.fixed(1.0 / 5))
                 .placeSound(SoundEvents.of("block.sweet_berry_bush.place")));

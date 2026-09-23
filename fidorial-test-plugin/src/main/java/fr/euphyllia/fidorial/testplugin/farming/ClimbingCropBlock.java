@@ -4,6 +4,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.plant.CropBlock;
+import fr.fidorial.world.block.plant.ForwardingCropBlock;
 
 import java.util.random.RandomGenerator;
 
@@ -13,7 +14,7 @@ import java.util.random.RandomGenerator;
  * segment needs soil: the others stand on the segment below, so breaking the
  * bottom brings the whole stalk down.
  */
-public final class ClimbingCropBlock extends CropBlock {
+public final class ClimbingCropBlock extends ForwardingCropBlock {
 
     private static final int MAX_SCAN = 64;
 
@@ -21,12 +22,12 @@ public final class ClimbingCropBlock extends CropBlock {
     private final double climbChance;
 
     /**
-     * @param builder     the crop settings; its soils are what the bottom segment needs
+     * @param crop        the regular crop underneath; its soils are what the bottom segment needs
      * @param maxHeight   how many segments the stalk may reach
      * @param climbChance how likely a ripe top segment is to start a new one on a random tick
      */
-    public ClimbingCropBlock(final CropBlock.Builder builder, final int maxHeight, final double climbChance) {
-        super(builder);
+    public ClimbingCropBlock(final CropBlock crop, final int maxHeight, final double climbChance) {
+        super(crop);
         this.maxHeight = maxHeight;
         this.climbChance = climbChance;
     }

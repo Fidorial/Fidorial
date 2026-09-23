@@ -7,6 +7,7 @@ import fr.fidorial.world.block.BlockDrop;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
 import fr.fidorial.world.block.interaction.InteractionResult;
 import fr.fidorial.world.block.plant.CropBlock;
+import fr.fidorial.world.block.plant.ForwardingCropBlock;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * A crop you do not replant: once ripe, right-clicking it picks the harvest and
  * the plant drops back to an earlier stage to bear again (tomatoes).
  */
-public final class RegrowingCropBlock extends CropBlock {
+public final class RegrowingCropBlock extends ForwardingCropBlock {
 
     private static final Sound.Type PICK_SOUND = SoundEvents.of("block.sweet_berry_bush.pick_berries");
 
@@ -25,12 +26,12 @@ public final class RegrowingCropBlock extends CropBlock {
     private final List<BlockDrop> harvest;
 
     /**
-     * @param builder   the crop settings
+     * @param crop      the regular crop underneath
      * @param regrowAge the stage the plant falls back to after a harvest
      * @param harvest   what one right-click harvest gives
      */
-    public RegrowingCropBlock(final CropBlock.Builder builder, final int regrowAge, final List<BlockDrop> harvest) {
-        super(builder);
+    public RegrowingCropBlock(final CropBlock crop, final int regrowAge, final List<BlockDrop> harvest) {
+        super(crop);
         this.regrowAge = regrowAge;
         this.harvest = List.copyOf(harvest);
     }
