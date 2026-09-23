@@ -11,6 +11,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Vec3f;
+import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.interaction.BlockInteractionContext;
@@ -37,11 +38,16 @@ public record FidorialBlockInteractionContext(FidorialServer server,
     private static final int OFFHAND_SLOT = 40;
 
     public boolean setBlock(final BlockState newState) {
-        return server.blockEdits().set(world, pos, newState);
+        return setBlockAt(pos, newState);
     }
 
     public boolean setBlockAt(final BlockPos position, final BlockState newState) {
-        return server.blockEdits().set(world, position, newState);
+        return server.blockUpdates().set(world, position, newState, player);
+    }
+
+    @Override
+    public BlockAccess blocks() {
+        return server.blockUpdates().access(world, player);
     }
 
     public boolean setBlockAt(final int dx, final int dy, final int dz, final BlockState newState) {
@@ -83,9 +89,17 @@ public record FidorialBlockInteractionContext(FidorialServer server,
 
     @Override
     public void playSound(final Sound sound) {
-        final double x = pos.x() + 0.5;
-        final double y = pos.y() + 0.5;
-        final double z = pos.z() + 0.5;
+        playSoundAt(pos, sound);
+    }
+
+    public void playSoundAt(final BlockPos position, final Sound.Type sound) {
+        playSoundAt(position, Sound.sound(sound, Sound.Source.BLOCK, 1.0f, 1.0f));
+    }
+
+    public void playSoundAt(final BlockPos position, final Sound sound) {
+        final double x = position.x() + 0.5;
+        final double y = position.y() + 0.5;
+        final double z = position.z() + 0.5;
         server.broadcastNear(world, x, y, z, new ClientboundSoundPacket(sound, x, y, z));
     }
 

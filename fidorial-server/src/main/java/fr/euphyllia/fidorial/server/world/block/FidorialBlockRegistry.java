@@ -1,6 +1,9 @@
 package fr.euphyllia.fidorial.server.world.block;
 
+import fr.euphyllia.fidorial.server.plugin.BuiltInPlugin;
+import fr.euphyllia.fidorial.server.plugin.PluginOwnedMap;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.fidorial.plugin.Plugin;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
@@ -17,7 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class FidorialBlockRegistry implements BlockRegistry {
 
     private final Map<Key, BlockType> types = new ConcurrentHashMap<>();
-    private final Map<Key, BlockBehaviour> behaviours = new ConcurrentHashMap<>();
+    private final PluginOwnedMap<Key, BlockBehaviour> behaviours = new PluginOwnedMap<>();
+    private final PluginOwnedMap<Key, Key> blockItems = new PluginOwnedMap<>();
     private final Map<Key, BlockBehaviour> fallbackBehaviours = new ConcurrentHashMap<>();
     private final Map<Integer, BlockData> byNetworkId = new ConcurrentHashMap<>();
 
@@ -29,14 +33,41 @@ public final class FidorialBlockRegistry implements BlockRegistry {
         }
         for (int ordinal = 0; ordinal < type.stateCount(); ordinal++) {
             final BlockData data = type.stateAt(ordinal);
-            byNetworkId.put(data.networkId(), data);
+            byNetworkId.putIfAbsent(data.networkId(), data);
         }
     }
 
     @Override
     public void register(final BlockBehaviour behaviour) {
-        register(behaviour.type());
-        behaviours.put(behaviour.key(), behaviour);
+        register(behaviour, BuiltInPlugin.INSTANCE);
+    }
+
+    @Override
+    public void register(final BlockBehaviour behaviour, final Plugin owner) {
+        if (!types.containsKey(behaviour.key())) {
+            register(behaviour.type());
+        }
+        behaviours.put(behaviour.key(), behaviour, owner);
+    }
+
+    @Override
+    public void registerBlockItem(final Key item, final Key block, final Plugin owner) {
+        blockItems.put(item, block, owner);
+    }
+
+    @Override
+    public Optional<Key> blockForItem(final Key item) {
+        return Optional.ofNullable(blockItems.get(item));
+    }
+
+    @Override
+    public void unregisterAll(final Plugin owner) {
+        behaviours.removeAll(owner);
+        blockItems.removeAll(owner);
+    }
+
+    public @Nullable BlockBehaviour explicitBehaviour(final Key key) {
+        return behaviours.get(key);
     }
 
     @Override

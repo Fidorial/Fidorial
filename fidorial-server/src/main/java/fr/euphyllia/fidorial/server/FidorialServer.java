@@ -63,11 +63,11 @@ import fr.euphyllia.fidorial.server.world.FlatChunkGenerator;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.block.BlockUpdateService;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
-import fr.euphyllia.fidorial.server.world.block.crop.CropGrowth;
-import fr.euphyllia.fidorial.server.world.block.crop.CropHarvest;
-import fr.euphyllia.fidorial.server.world.block.crop.FidorialCropRegistry;
+import fr.euphyllia.fidorial.server.world.block.RandomTicks;
 import fr.euphyllia.fidorial.server.world.block.interaction.FidorialBlockInteractions;
+import fr.euphyllia.fidorial.server.world.block.plant.VanillaPlants;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
@@ -183,7 +183,6 @@ public final class FidorialServer implements Server {
             new NbtPlayerEnderChestStorage(config.worldPath().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
     private final FidorialBlockInteractions blockInteractions = FidorialBlockInteractions.createDefault();
-    private final FidorialCropRegistry cropRegistry = FidorialCropRegistry.createDefault(blockInteractions);
     private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer, config.levelSeed());
     private final StructureService structureService = new StructureService(
             config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
@@ -200,7 +199,8 @@ public final class FidorialServer implements Server {
             (pos, stateId) -> broadcast(new ClientboundBlockUpdatePacket(pos, stateId)),
             fluidEngine::notifyBlockChanged,
             lightDispatcher::queueBlockChange);
-    private final CropHarvest cropHarvest = new CropHarvest(cropRegistry, blockEdits);
+    private final BlockUpdateService blockUpdates =
+            new BlockUpdateService(blockEdits, blockStateRegistry, blockRegistry, BlockUpdateService.loggingDrops());
     private final FidorialPermissionRegistry permissionRegistry = new FidorialPermissionRegistry();
     private final FidorialItemRegistry itemRegistry = new FidorialItemRegistry();
     private final FidorialMobRegistry mobRegistry = new FidorialMobRegistry();
@@ -282,6 +282,7 @@ public final class FidorialServer implements Server {
         BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
         Blocks.bootstrap(registry);
+        VanillaPlants.registerAll(registry);
         LOGGER.info("{} blocks defined in code", registry.definedCount());
         return registry;
     }
@@ -299,7 +300,7 @@ public final class FidorialServer implements Server {
             loadPlugins();
             openWorlds();
             regionizer.registerTickHandler(new EntityTickHandler(worldManager, this));
-            regionizer.registerTickHandler(new CropGrowth(worldManager, cropRegistry, blockEdits));
+            regionizer.registerTickHandler(new RandomTicks(worldManager, blockUpdates));
             syncServerStatusToRegistries(true);
             if (!headless) {
                 network.bind();
@@ -745,13 +746,12 @@ public final class FidorialServer implements Server {
         return blockInteractions;
     }
 
-    @Override
-    public FidorialCropRegistry crops() {
-        return cropRegistry;
+    public FidorialBlockRegistry blockRegistry() {
+        return blockRegistry;
     }
 
-    public CropHarvest cropHarvest() {
-        return cropHarvest;
+    public BlockUpdateService blockUpdates() {
+        return blockUpdates;
     }
 
     public PlayerEnderChestStorage playerEnderChestStorage() {

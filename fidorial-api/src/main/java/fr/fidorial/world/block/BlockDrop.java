@@ -1,4 +1,4 @@
-package fr.fidorial.world.block.crop;
+package fr.fidorial.world.block;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.item.ItemStack;
@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.random.RandomGenerator;
 
 /**
- * One thing a crop gives back when it is broken: a stack to hand over, and how
+ * One thing a block gives back when it is broken: a stack to hand over, and how
  * many of it to hand over this time.
  *
  * @param item the stack to hand over; its count is ignored
@@ -15,9 +15,9 @@ import java.util.random.RandomGenerator;
  * @param max  the largest quantity, inclusive
  * @since 0.1.0
  */
-public record CropDrop(ItemStack item, int min, int max) {
+public record BlockDrop(ItemStack item, int min, int max) {
 
-    public CropDrop {
+    public BlockDrop {
         Objects.requireNonNull(item, "item");
         Preconditions.checkArgument(min >= 0, "min cannot be negative, got %s", min);
         Preconditions.checkArgument(max >= min, "max (%s) cannot be below min (%s)", max, min);
@@ -30,8 +30,8 @@ public record CropDrop(ItemStack item, int min, int max) {
      * @return a drop that always gives that stack as-is
      * @since 0.1.0
      */
-    public static CropDrop of(final ItemStack item) {
-        return new CropDrop(item, item.count(), item.count());
+    public static BlockDrop of(final ItemStack item) {
+        return new BlockDrop(item, item.count(), item.count());
     }
 
     /**
@@ -41,8 +41,8 @@ public record CropDrop(ItemStack item, int min, int max) {
      * @return a drop that gives that stack in a quantity somewhere in the range
      * @since 0.1.0
      */
-    public static CropDrop of(final ItemStack item, final int min, final int max) {
-        return new CropDrop(item, min, max);
+    public static BlockDrop of(final ItemStack item, final int min, final int max) {
+        return new BlockDrop(item, min, max);
     }
 
     /**

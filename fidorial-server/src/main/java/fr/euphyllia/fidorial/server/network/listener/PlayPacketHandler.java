@@ -98,7 +98,6 @@ import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
-import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
@@ -627,7 +626,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     packet.insideBlock()));
 
             if (interactEvent.useInteractedBlock()) {
-                final InteractionResult interaction = server.blockInteractions().use(context);
+                InteractionResult interaction = server.blockInteractions().use(context);
+                if (!interaction.handled()) {
+                    interaction = server.blockUpdates().use(context);
+                }
                 if (interaction.handled()) {
                     if (interaction.shouldSwing()) {
                         acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
@@ -645,11 +647,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
             final BlockPos target = clicked.relative(clickedFace);
             final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursor().y());
 
-            if (state != null) {
+            if (state != null && server.blockUpdates().canSurvive(world, target, state)) {
                 final BlockPlaceEvent event = server.events()
                         .post(new BlockPlaceEvent(acting, target, server.blockStateRegistry().networkId(state)));
-                if (!event.isCancelled()) {
-                    server.blockEdits().set(world, target, state);
+                if (!event.isCancelled() && server.blockUpdates().place(world, target, state, acting, context)) {
+                    if (server.blockRegistry().blockForItem(held.id()).isPresent()) {
+                        // Todo : every placement should use up the item; only declared block items do for now.
+                        context.consumeHeldItem();
+                    }
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                 }
             }
@@ -799,8 +804,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
                 onBlockDestroyed(packet.position());
-                server.cropHarvest().onBlockBroken(world, acting, packet.position());
-                server.blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
+                server.blockUpdates().destroy(world, packet.position(), true, acting);
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
@@ -843,14 +847,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
     }
 
-    @NeedsToBeRevisited("Only crops are known to give way at once; this wants a real block hardness table.")
+    @NeedsToBeRevisited("Only blocks whose behaviour says so give way at once; this wants a real block hardness table.")
     private boolean instantMine(final ServerWorld world, final BlockPos position) {
         final ChunkColumn column = world.loadedColumn(position.chunkX(), position.chunkZ());
         if (column == null) {
             return false;
         }
         final BlockState state = column.getBlock(position.x() & 15, position.y(), position.z() & 15);
-        return server.crops().byBlock(state.name()) != null;
+        return server.blockUpdates().breaksInstantly(state);
     }
 
     @Override

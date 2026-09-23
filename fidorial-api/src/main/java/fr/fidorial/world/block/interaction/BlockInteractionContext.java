@@ -6,6 +6,7 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Vec3f;
 import fr.fidorial.world.World;
+import fr.fidorial.world.block.BlockAccess;
 import fr.fidorial.world.block.BlockData;
 import net.kyori.adventure.sound.Sound;
 
@@ -69,6 +70,13 @@ public interface BlockInteractionContext {
      * @since 0.1.0
      */
     boolean insideBlock();
+
+    /**
+     * @return this world as block behaviours see it: writes go through neighbour
+     * updates, and breaks hand out drops
+     * @since 0.1.0
+     */
+    BlockAccess blocks();
 
     /**
      * Reads any block in this world. Positions in chunks that are not loaded read

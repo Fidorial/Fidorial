@@ -1,17 +1,13 @@
-package fr.euphyllia.fidorial.server.world.block.crop;
+package fr.euphyllia.fidorial.server.world.block;
 
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
-import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
-import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionTickHandler;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.block.crop.CropRegistry;
-import fr.fidorial.world.block.crop.CropType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -20,24 +16,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class CropGrowth implements RegionTickHandler {
+public final class RandomTicks implements RegionTickHandler {
 
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(CropGrowth.class);
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(RandomTicks.class);
+
+    private static final int RANDOM_TICK_SPEED = 3; // Todo Make it modifiable by gamerules in the future
+
     private static final int SWEEP_INTERVAL = 4;
-    private static final int SAMPLES_PER_SECTION = 12;
 
-    private static final double TICKS_BETWEEN_SAMPLES =
-            (double) SWEEP_INTERVAL * ChunkSection.BLOCK_COUNT / SAMPLES_PER_SECTION;
+    private static final int SAMPLES_PER_SWEEP = RANDOM_TICK_SPEED * SWEEP_INTERVAL;
 
     private final WorldManager worldManager;
-    private final CropRegistry crops;
-    private final BlockEditService blockEdits;
+    private final BlockUpdateService blocks;
     private final Map<Key, ServerWorld> worldsById = new ConcurrentHashMap<>();
 
-    public CropGrowth(final WorldManager worldManager, final CropRegistry crops, final BlockEditService blockEdits) {
+    public RandomTicks(final WorldManager worldManager, final BlockUpdateService blocks) {
         this.worldManager = worldManager;
-        this.crops = crops;
-        this.blockEdits = blockEdits;
+        this.blocks = blocks;
     }
 
     @Override
@@ -63,7 +58,7 @@ public final class CropGrowth implements RegionTickHandler {
                 try {
                     sweepColumn(world, column);
                 } catch (final Throwable t) {
-                    LOGGER.error("Crop sweep failed on chunk {},{}", chunkX, chunkZ, t);
+                    LOGGER.error("Random tick sweep failed on chunk {},{}", chunkX, chunkZ, t);
                 }
             }
         }
@@ -71,90 +66,32 @@ public final class CropGrowth implements RegionTickHandler {
 
     private void sweepColumn(final ServerWorld world, final ChunkColumn column) {
         for (final ChunkSection section : column.sections()) {
-            if (section == null || section.isEmpty() || !holdsCrops(section)) {
+            if (section == null || section.isEmpty() || !section.blocks().contains(blocks::isRandomlyTicking)) {
                 continue;
             }
             sweepSection(world, column, section);
         }
     }
 
-    private boolean holdsCrops(final ChunkSection section) {
-        return section.blocks().contains(state -> crops.byBlock(state.name()) != null);
-    }
-
     private void sweepSection(final ServerWorld world, final ChunkColumn column, final ChunkSection section) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final int baseY = section.sectionY() << 4;
 
-        for (int sample = 0; sample < SAMPLES_PER_SECTION; sample++) {
+        for (int sample = 0; sample < SAMPLES_PER_SWEEP; sample++) {
             final int localX = random.nextInt(16);
             final int localY = random.nextInt(16);
             final int localZ = random.nextInt(16);
 
             final BlockState state = section.getBlock(localX, localY, localZ);
-            final CropType crop = crops.byBlock(state.name());
-            if (crop == null) {
+            if (!blocks.isRandomlyTicking(state)) {
                 continue;
             }
-
             final BlockPos pos = new BlockPos(
                     (column.chunkX() << 4) + localX,
                     baseY + localY,
                     (column.chunkZ() << 4) + localZ);
-            grow(world, pos, state, crop, random);
+            blocks.randomTick(world, pos, state);
         }
-    }
-
-    private void grow(
-            final ServerWorld world,
-            final BlockPos pos,
-            final BlockState state,
-            final CropType crop,
-            final ThreadLocalRandom random) {
-
-        final int age = age(state, crop);
-        if (age < 0 || age >= crop.maxAge()) {
-            return;
-        }
-
-        final BlockState soil = column(world, pos.offset(0, -1, 0));
-        if (!crop.acceptsSoil(soil.name()) || !CropPlanting.soilIsUsable(crop, soil)) {
-            return;
-        }
-
-        if (crop.minLight() > 0 && world.lightLevelAt(pos.x(), pos.y(), pos.z()) < crop.minLight()) {
-            return;
-        }
-
-        if (random.nextDouble() >= growthChance(crop)) {
-            return;
-        }
-
-        blockEdits.set(world, pos, CropPlanting.stateAtAge(crop, age + 1));
-    }
-
-    private static double growthChance(final CropType crop) {
-        return Math.min(1.0, TICKS_BETWEEN_SAMPLES / crop.averageTicksPerStage());
-    }
-
-    private static int age(final BlockState state, final CropType crop) {
-        final String raw = state.properties().get(crop.ageProperty());
-        if (raw == null) {
-            return -1;
-        }
-        try {
-            return Integer.parseInt(raw);
-        } catch (final NumberFormatException e) {
-            return -1;
-        }
-    }
-
-    private static BlockState column(final ServerWorld world, final BlockPos pos) {
-        final ChunkColumn column = world.loadedColumn(pos.chunkX(), pos.chunkZ());
-        if (column == null) {
-            return BlockState.of(BlockTypeKeys.AIR.key());
-        }
-        return column.getBlock(pos.x() & 15, pos.y(), pos.z() & 15);
     }
 
     private @Nullable ServerWorld worldById(final Key id) {
@@ -170,5 +107,4 @@ public final class CropGrowth implements RegionTickHandler {
         }
         return null;
     }
-
 }

@@ -106,7 +106,7 @@ public final class BlockTransformers {
     }
 
     private static BlockState farmland(final FidorialBlockInteractionContext ctx) {
-        final boolean hydrated = FarmlandBlock.isHydrated(ctx.world(), ctx.pos());
+        final boolean hydrated = FarmlandBlock.isHydrated(ctx::blockAt, ctx.pos());
         return FarmlandBlock.withMoisture(hydrated ? FarmlandBlock.MAX_MOISTURE : 0);
     }
 
