@@ -363,9 +363,10 @@ public final class TestPlugin implements Plugin {
         final boolean lockPvp = false;
         events.subscribe(GameRuleChangeEvent.class, e -> {
             eventCount.incrementAndGet();
-            logger.info("[TestPlugin][event] game rule {} : {} -> {} ({}, by {})",
-                    e.rule().id(), e.previousValue(), e.newValue(), e.cause(),
-                    e.source().map(CommandSender::name).orElse("a plugin"));
+            logger.info("[TestPlugin][event] game rule {} in {} : {} -> {}{} ({}, by {})",
+                    e.rule().id(), e.world().map(world -> world.key().asString()).orElse("every world"),
+                    e.previousValue(), e.newValue(), e.removesOverride() ? " (override removed)" : "",
+                    e.cause(), e.source().map(CommandSender::name).orElse("a plugin"));
             if (!lockPvp || !e.rule().key().equals(GameRuleKeys.PVP)) return;
             e.setCancelled(true);
             e.source().ifPresent(source -> msg(source, "[TestPlugin] pvp is locked by the test plugin."));

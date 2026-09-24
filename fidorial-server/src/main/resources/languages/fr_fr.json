@@ -36,11 +36,12 @@
   "command.tps.line" : " - <arg:0> [<arg:1>,<arg:2>] (chunks <arg:3>,<arg:4>) : <arg:5> TPS, <arg:6> ms/tick, <arg:7> % CPU, <arg:8> tâche(s), <arg:9> ticket(s)",
   "command.tps.more" : "   ... et <arg:0> autre(s) région(s)",
 
-  "command.weather.current" : "Météo actuelle : <arg:0>",
+  "command.weather.current" : "Météo actuelle dans <arg:1> : <arg:0>",
   "command.weather.usage" : "Utilisation : /<arg:0> [clear|rain|thunder] [durée en secondes]",
   "command.weather.invalidduration" : "Durée non valide : <arg:0>",
-  "command.weather.changed" : "Météo définie sur : <arg:0>",
-  "command.weather.changed.duration" : "La météo est maintenant <arg:0> pendant <arg:1> s",
+  "command.weather.changed" : "Météo de <arg:1> définie sur : <arg:0>",
+  "command.weather.changed.duration" : "La météo de <arg:2> est maintenant <arg:0> pendant <arg:1> s",
+  "command.weather.noweather" : "Il n'y a pas de météo dans <arg:0>",
 
   "weather.clear" : "ensoleillé",
   "weather.rain" : "pluvieux",
@@ -238,6 +239,10 @@
 
   "commands.gamerule.query": "La règle <arg:0> est actuellement définie sur : <arg:1>",
   "commands.gamerule.set": "La règle <arg:0> est désormais définie sur : <arg:1>",
+  "commands.gamerule.query.world": "La règle <arg:0> est actuellement définie sur : <arg:1> dans <arg:2> (surchargée ; les autres mondes suivent <arg:3>)",
+  "commands.gamerule.set.world": "La règle <arg:0> est désormais définie sur : <arg:1> dans <arg:2> uniquement",
+  "commands.gamerule.inherit": "La règle <arg:0> dans <arg:1> suit de nouveau l'overworld : <arg:2>",
+  "commands.gamerule.inherit.none": "<red>La règle <arg:0> n'est pas surchargée dans <arg:1>",
   "commands.gamerule.cancelled": "<red>Le changement de la règle <arg:0> a été annulé",
   "commands.gamerule.unsupported": "<red>La règle <arg:0> n'est pas encore prise en charge par ce serveur ; sa valeur n'a pas été modifiée"
 }

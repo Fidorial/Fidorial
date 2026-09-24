@@ -329,9 +329,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
                 server.config().onlineMode(),
                 server.config().enforcesSecureChat(),
-                server.gameRules().getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO),
-                !server.gameRules().getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN),
-                server.gameRules().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
+                serverWorld().gameRuleValues().getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO),
+                !serverWorld().gameRuleValues().getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN),
+                serverWorld().gameRuleValues().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
         connection.send(new ClientboundPlayerInfoUpdatePacket(
                 player.profile(), player.gameMode().id(), player.ping()));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
@@ -340,7 +340,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 Entry.ofByte(ServerPlayer.MD_DISPLAYED_SKIN_PARTS, connection.displayedSkinParts())));
         player.invalidatePermissions();
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
-        server.weatherEngine().syncTo(connection::send);
+        server.weatherEngine().syncTo(serverWorld(), connection::send);
         server.dayNightEngine().syncTo(serverWorld(), connection::send);
         server.bossBarRegistry().syncTo(player);
     }
@@ -985,6 +985,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                                         LocationPositionData.floatRotation(location))));
                         server.dayNightEngine().syncTo(target, connection::send);
+                        server.weatherEngine().syncTo(target, connection::send);
+                        server.gameRules().syncTo(target, teleporting.entityId(), connection::send);
                         server.entityTracker().update(teleporting, server.players());
                         server.regionizer().addTicket(target.dimension().id(), destChunk);
                         arrival.complete(true);
@@ -1123,7 +1125,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 LOGGER.warn("{} sent an invalid value for game rule {}: {}", player.name(), rule.id(), entry.value());
                 continue;
             }
-            switch (rules.apply(rule, value, GameRuleChangeEvent.Cause.GAME_RULE_SCREEN, player)) {
+            switch (rules.apply(null, rule, value, GameRuleChangeEvent.Cause.GAME_RULE_SCREEN, player)) {
                 case CHANGED -> {
                     final String applied = rule.format(rules.get(rule));
                     LOGGER.info("{} set game rule {} to {} from the game rule screen", player.name(), rule.id(), applied);
@@ -1206,6 +1208,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                         LocationPositionData.floatRotation(spawn))));
         server.dayNightEngine().syncTo(world, connection::send);
+        server.weatherEngine().syncTo(world, connection::send);
+        server.gameRules().syncTo(world, player.entityId(), connection::send);
         server.entityTracker().update(player, server.players());
 
         return moved.handle((succeeded, throwable) -> {

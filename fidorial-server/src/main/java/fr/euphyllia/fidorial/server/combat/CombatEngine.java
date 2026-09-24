@@ -18,6 +18,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
@@ -146,7 +147,7 @@ public final class CombatEngine implements CombatService {
                 && !source.bypassesInvulnerability()) {
             return false;
         }
-        if (victim instanceof ServerPlayer && isDisabledByGameRule(source)) {
+        if (victim instanceof ServerPlayer && isDisabledByGameRule(victim, source)) {
             return false;
         }
 
@@ -203,23 +204,28 @@ public final class CombatEngine implements CombatService {
         return true;
     }
 
-    private boolean isDisabledByGameRule(final DamageSource source) {
+    private boolean isDisabledByGameRule(final AbstractLivingEntity victim, final DamageSource source) {
+        final GameRuleOverrides rules = gameRulesOf(victim);
         final TypedKey<DamageType> type = source.type();
         if (type.equals(DamageTypeKeys.DROWN)) {
-            return !server.gameRules().getBoolean(GameRuleKeys.DROWNING_DAMAGE);
+            return !rules.getBoolean(GameRuleKeys.DROWNING_DAMAGE);
         }
         if (type.equals(DamageTypeKeys.FALL)
                 || type.equals(DamageTypeKeys.STALAGMITE)
                 || type.equals(DamageTypeKeys.ENDER_PEARL)) {
-            return !server.gameRules().getBoolean(GameRuleKeys.FALL_DAMAGE);
+            return !rules.getBoolean(GameRuleKeys.FALL_DAMAGE);
         }
         if (source.isFire() || type.equals(DamageTypeKeys.FIREBALL)) {
-            return !server.gameRules().getBoolean(GameRuleKeys.FIRE_DAMAGE);
+            return !rules.getBoolean(GameRuleKeys.FIRE_DAMAGE);
         }
         if (type.equals(DamageTypeKeys.FREEZE)) {
-            return !server.gameRules().getBoolean(GameRuleKeys.FREEZE_DAMAGE);
+            return !rules.getBoolean(GameRuleKeys.FREEZE_DAMAGE);
         }
         return false;
+    }
+
+    private GameRuleOverrides gameRulesOf(final AbstractLivingEntity entity) {
+        return ((ServerWorld) entity.world()).gameRuleValues();
     }
 
     private float reduce(final AbstractLivingEntity victim, final DamageSource source, final float amount) {
@@ -313,7 +319,7 @@ public final class CombatEngine implements CombatService {
         sendToViewersAndSelf(player, new ClientboundEntityEventPacket(player.entityId(), ENTITY_EVENT_DEATH));
         player.playSound(Sound.sound(SoundEvents.PLAYER_DEATH, Sound.Source.PLAYER, 1.0f, 1.0f));
 
-        final Component shown = server.gameRules().getBoolean(GameRuleKeys.SHOW_DEATH_MESSAGES)
+        final Component shown = gameRulesOf(player).getBoolean(GameRuleKeys.SHOW_DEATH_MESSAGES)
                 ? event.deathMessage()
                 : null;
         player.connection().send(new ClientboundPlayerCombatKillPacket(
@@ -459,7 +465,9 @@ public final class CombatEngine implements CombatService {
         if (!(victim instanceof final ServerPlayer other)) {
             return true;
         }
-        return pvpEnabled() && !other.isInvulnerableToDamage();
+        return server.config().pvp()
+                && gameRulesOf(other).getBoolean(GameRuleKeys.PVP)
+                && !other.isInvulnerableToDamage();
     }
 
     private boolean isWithinReach(final ServerPlayer attacker, final AbstractEntity victim) {

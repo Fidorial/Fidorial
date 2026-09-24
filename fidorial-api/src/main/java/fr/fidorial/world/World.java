@@ -1,9 +1,11 @@
 package fr.fidorial.world;
 
 import fr.fidorial.entity.Entity;
+import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.time.DayNightCycle;
+import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
@@ -28,6 +30,24 @@ public interface World extends Keyed, ForwardingAudience {
     DimensionTypeDefinition dimensionType();
 
     DayNightCycle dayNightCycle();
+
+    /**
+     * The game rules in effect in this world: the base values held by the overworld, except for the
+     * rules this world overrides.
+     *
+     * @return the game rules of this world
+     * @since 0.1.0
+     */
+    WorldGameRules gameRules();
+
+    /**
+     * The weather of this world. Every world has its own weather; it only changes on its own in
+     * worlds whose dimension type has a skylight, while the {@code advance_weather} game rule allows it.
+     *
+     * @return the weather of this world
+     * @since 0.1.0
+     */
+    WeatherManager weather();
 
     /**
      * {@return the scheduler responsible for running tasks against positions in this world}

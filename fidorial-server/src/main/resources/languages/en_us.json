@@ -36,11 +36,12 @@
   "command.tps.line" : " - <arg:0> ['<arg:1>',<arg:2>] (chunks <arg:3>,<arg:4>): <arg:5> TPS, <arg:6> ms/tick, <arg:7>% CPU, <arg:8> task(s), <arg:9> ticket(s)",
   "command.tps.more" : "   ... and <arg:0> other region(s)",
 
-  "command.weather.current" : "Current weather: <arg:0>",
+  "command.weather.current" : "Current weather in <arg:1>: <arg:0>",
   "command.weather.usage" : "Usage: /<arg:0> [clear|rain|thunder] [duration in seconds]",
   "command.weather.invalidduration" : "Invalid duration: <arg:0>",
-  "command.weather.changed" : "Weather changed: <arg:0>",
-  "command.weather.changed.duration" : "Weather changed: <arg:0> for '<arg:1>' s",
+  "command.weather.changed" : "Weather changed in <arg:1>: <arg:0>",
+  "command.weather.changed.duration" : "Weather changed in <arg:2>: <arg:0> for <arg:1> s",
+  "command.weather.noweather" : "<arg:0> has no weather",
 
   "weather.clear" : "clear",
   "weather.rain" : "rain",
@@ -238,6 +239,10 @@
 
   "commands.gamerule.query": "Gamerule <arg:0> is currently set to: <arg:1>",
   "commands.gamerule.set": "Gamerule <arg:0> is now set to: <arg:1>",
+  "commands.gamerule.query.world": "Gamerule <arg:0> is currently set to: <arg:1> in <arg:2> (overridden; the other worlds follow <arg:3>)",
+  "commands.gamerule.set.world": "Gamerule <arg:0> is now set to: <arg:1> in <arg:2> only",
+  "commands.gamerule.inherit": "Gamerule <arg:0> in <arg:1> follows the overworld again: <arg:2>",
+  "commands.gamerule.inherit.none": "<red>Gamerule <arg:0> is not overridden in <arg:1>",
   "commands.gamerule.cancelled": "<red>The change of gamerule <arg:0> was cancelled",
   "commands.gamerule.unsupported": "<red>Gamerule <arg:0> is not supported by this server yet; its value was left unchanged"
 }

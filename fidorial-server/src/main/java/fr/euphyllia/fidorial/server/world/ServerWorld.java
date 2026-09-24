@@ -4,6 +4,7 @@ import ca.spottedleaf.concurrentutil.collection.iterator.BaseLongIterator;
 import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.list.COWArrayList;
 import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityManager;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
@@ -16,6 +17,8 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
+import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
+import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.light.FloodFillLightEngine;
 import fr.euphyllia.fidorial.server.world.light.LightAccess;
@@ -26,7 +29,10 @@ import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
+import fr.euphyllia.fidorial.server.world.weather.WeatherState;
+import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.BlockPos;
@@ -78,6 +84,8 @@ public final class ServerWorld implements World {
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
     private final ForcedChunks forcedChunks;
+    private final GameRuleOverrides gameRuleValues;
+    private final WorldWeather weather;
 
     private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
@@ -99,7 +107,9 @@ public final class ServerWorld implements World {
             final AnvilEntitySerializer entitySerializer,
             final ChunkGenerator generator,
             final BlockStateRegistry blockStates,
-            final ThreadedRegionRegionizer scheduler
+            final ThreadedRegionRegionizer scheduler,
+            final GameRuleValues baseGameRules,
+            final WeatherState weatherState
     ) {
         this.dimension = dimension;
         this.storage = storage;
@@ -115,6 +125,8 @@ public final class ServerWorld implements World {
         this.fallbackEngine = new FloodFillLightEngine(minY, height);
         this.scheduler = scheduler;
         this.forcedChunks = new ForcedChunks(dimension.id(), scheduler);
+        this.gameRuleValues = new GameRuleOverrides(dimension.id(), baseGameRules);
+        this.weather = new WorldWeather(dimension.id(), weatherState, dimensionType.hasSkylight());
     }
 
     public void setEntityBridge(final IntSupplier entityIdSupplier, final EntitySpawnBridge entityBridge) {
@@ -318,6 +330,20 @@ public final class ServerWorld implements World {
 
     public ForcedChunks forcedChunks() {
         return forcedChunks;
+    }
+
+    public GameRuleOverrides gameRuleValues() {
+        return gameRuleValues;
+    }
+
+    @Override
+    public WorldWeather weather() {
+        return weather;
+    }
+
+    @Override
+    public WorldGameRules gameRules() {
+        return FidorialServer.getInstance().gameRules().world(this);
     }
 
     @Override

@@ -10,10 +10,14 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Subscription;
 import fr.fidorial.event.server.GameRuleChangeEvent;
+import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.Location;
+import fr.fidorial.world.World;
+import fr.fidorial.world.WorldBuilder;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.ByteBinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.TagStringIO;
@@ -179,6 +183,71 @@ public final class GameRuleTests {
         } catch (final IOException e) {
             return tag.toString();
         }
+    }
+
+    @ScenarioTest(timeoutTicks = 20)
+    public static void worldsFollowTheBaseValueUnlessTheyOverrideIt(final ScenarioTestHelper helper) {
+        final FidorialGameRules base = FidorialServer.getInstance().gameRules();
+        final World other = overridingWorld();
+        final WorldGameRules otherRules = other.gameRules();
+        final List<GameRuleChangeEvent> seen = new ArrayList<>();
+        final Subscription subscription = FidorialServer.getInstance().events().subscribe(GameRuleChangeEvent.class, event -> {
+            if (event.rule().key().equals(GameRuleKeys.SPAWN_PATROLS)) {
+                seen.add(event);
+            }
+        });
+        try {
+            helper.assertTrue(otherRules.setBoolean(GameRuleKeys.SPAWN_PATROLS, false), "Expected the override to be stored");
+            helper.assertTrue(otherRules.isOverridden(GameRuleKeys.SPAWN_PATROLS), "Expected the world to override spawn_patrols");
+            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "Expected the override in effect in the world");
+            helper.assertTrue(base.getBoolean(GameRuleKeys.SPAWN_PATROLS), "An override must not change the base value");
+
+            base.setBoolean(GameRuleKeys.SPAWN_PATROLS, false);
+            base.setBoolean(GameRuleKeys.SPAWN_PATROLS, true);
+            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "A base change must not reach an overriding world");
+
+            helper.assertTrue(otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS), "Expected the override to be removed");
+            helper.assertTrue(otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "Without override, the world follows the base value");
+            helper.assertTrue(!otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS), "There is no override left to remove");
+
+            helper.assertTrue(seen.size() == 4, "Expected 4 events (override, 2 base changes, removal), got " + seen.size());
+            helper.assertTrue(seen.get(0).world().isPresent() && seen.get(1).world().isEmpty(),
+                    "Override events carry their world, base events none");
+            helper.assertTrue(seen.get(3).removesOverride() && seen.get(3).newValue().equals("true"),
+                    "The removal event should announce the inherited value");
+        } finally {
+            subscription.unsubscribe();
+            otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS);
+            base.reset(GameRuleKeys.SPAWN_PATROLS);
+        }
+    }
+
+    @ScenarioTest(timeoutTicks = 40)
+    public static void overriddenDamageRuleOnlyAppliesInItsWorld(final ScenarioTestHelper helper) {
+        final World other = overridingWorld();
+        final Player player = helper.summonPlayer("NoFallInOtherWorld", other, new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final AtomicBoolean hurt = new AtomicBoolean(true);
+
+        helper.sequence()
+                .execute(() -> {
+                    other.gameRules().setBoolean(GameRuleKeys.FALL_DAMAGE, false);
+                    try {
+                        hurt.set(player.damage(DamageSource.fall(), 4f));
+                    } finally {
+                        other.gameRules().removeOverride(GameRuleKeys.FALL_DAMAGE);
+                    }
+                })
+                .execute(() -> helper.assertTrue(!hurt.get(), "Expected no fall damage where fall_damage is overridden to false"))
+                .execute(() -> helper.assertTrue(FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.FALL_DAMAGE),
+                        "The base value must stay untouched"))
+                .build();
+    }
+
+    private static World overridingWorld() {
+        final FidorialServer server = FidorialServer.getInstance();
+        final Key key = Key.key("scenario_test", "game_rule_overrides");
+        final World world = server.worldManager().world(key);
+        return world != null ? world : server.createWorld(WorldBuilder.builder(key).build());
     }
 
     private static boolean rejects(final Runnable action) {

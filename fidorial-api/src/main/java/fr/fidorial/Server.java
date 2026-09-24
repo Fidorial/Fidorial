@@ -227,9 +227,10 @@ public interface Server extends ForwardingAudience {
     StructureManager structures();
 
     /**
-     * The game rules of the server, shared by every world like in vanilla.
+     * The base game rules of the server: the overworld's, which every world follows unless it
+     * overrides them through {@link World#gameRules()}.
      *
-     * @return the game rules, as changed by {@code /gamerule}
+     * @return the base game rules, as changed by {@code /gamerule <rule> <value>}
      * @since 0.1.0
      */
     GameRules gameRules();

@@ -1,5 +1,10 @@
 package fr.euphyllia.fidorial.server.world.gamerule;
 
+import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.event.EventBus;
@@ -7,8 +12,10 @@ import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRuleType;
 import fr.fidorial.gamerule.GameRules;
+import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -19,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 public final class FidorialGameRules implements GameRules {
 
@@ -35,7 +43,7 @@ public final class FidorialGameRules implements GameRules {
 
     @FunctionalInterface
     public interface Listener {
-        void onChange(GameRuleDefinition rule, int previous, int current);
+        void onChange(@Nullable ServerWorld world, GameRuleDefinition rule);
     }
 
     public enum Result {
@@ -95,33 +103,47 @@ public final class FidorialGameRules implements GameRules {
 
     @Override
     public boolean setBoolean(final TypedKey<GameRule> rule, final boolean value) {
-        return apply(definitionOf(rule, GameRuleType.BOOLEAN), value ? 1 : 0, GameRuleChangeEvent.Cause.API, null)
+        return apply(null, definitionOf(rule, GameRuleType.BOOLEAN), value ? 1 : 0, GameRuleChangeEvent.Cause.API, null)
                 == Result.CHANGED;
     }
 
     @Override
     public boolean setInt(final TypedKey<GameRule> rule, final int value) {
-        return apply(definitionOf(rule, GameRuleType.INTEGER), value, GameRuleChangeEvent.Cause.API, null)
+        return apply(null, definitionOf(rule, GameRuleType.INTEGER), value, GameRuleChangeEvent.Cause.API, null)
                 == Result.CHANGED;
     }
 
     @Override
     public boolean set(final TypedKey<GameRule> rule, final String value) {
         final GameRuleDefinition definition = definitionOf(rule, null);
-        final Integer parsed = definition.parse(value);
-        if (parsed == null) {
-            throw new IllegalArgumentException("Invalid value '" + value + "' for game rule " + rule.key());
-        }
-        return apply(definition, parsed, GameRuleChangeEvent.Cause.API, null) == Result.CHANGED;
+        return apply(null, definition, parse(definition, value), GameRuleChangeEvent.Cause.API, null) == Result.CHANGED;
     }
 
     @Override
     public boolean reset(final TypedKey<GameRule> rule) {
         final GameRuleDefinition definition = definitionOf(rule, null);
-        return apply(definition, definition.defaultValue(), GameRuleChangeEvent.Cause.API, null) == Result.CHANGED;
+        return apply(null, definition, definition.defaultValue(), GameRuleChangeEvent.Cause.API, null) == Result.CHANGED;
+    }
+
+    public WorldGameRules world(final ServerWorld world) {
+        return new FidorialWorldGameRules(this, world);
+    }
+
+    public static boolean holdsBaseValues(final ServerWorld world) {
+        return world.key().equals(Dimension.OVERWORLD.id());
+    }
+
+    public void syncTo(final ServerWorld world, final int entityId, final Consumer<ClientboundPacket> target) {
+        final GameRuleOverrides rules = world.gameRuleValues();
+        target.accept(ClientboundEntityEventPacket.reducedDebugInfo(
+                entityId, rules.getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO)));
+        target.accept(new ClientboundGameEventPacket(
+                ClientboundGameEventPacket.IMMEDIATE_RESPAWN,
+                rules.getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN) ? 1f : 0f));
     }
 
     public synchronized Result apply(
+            final @Nullable ServerWorld world,
             final GameRuleDefinition rule,
             final int value,
             final GameRuleChangeEvent.Cause cause,
@@ -130,35 +152,111 @@ public final class FidorialGameRules implements GameRules {
             throw new IllegalArgumentException("Value " + value + " is out of range for game rule " + rule.key().key()
                     + " [" + rule.minValue() + ", " + rule.maxValue() + "]");
         }
+        if (world == null || holdsBaseValues(world)) {
+            return applyBase(rule, value, cause, source);
+        }
+
+        final GameRuleOverrides overrides = world.gameRuleValues();
+        final Integer previousOverride = overrides.override(rule);
+        if (previousOverride != null && previousOverride == value) {
+            return Result.UNCHANGED;
+        }
+
+        final GameRuleChangeEvent event = events.post(new GameRuleChangeEvent(
+                rule, world, rule.format(overrides.get(rule)), rule.format(value), false, cause, source));
+        if (event.isCancelled()) {
+            return Result.CANCELLED;
+        }
+
+        final int applied = parseEventValue(rule, event);
+        if (previousOverride != null && previousOverride == applied) {
+            return Result.UNCHANGED;
+        }
+        overrides.exchange(rule, applied);
+        notifyListeners(world, rule);
+        return Result.CHANGED;
+    }
+
+    public synchronized Result removeOverride(
+            final ServerWorld world,
+            final GameRuleDefinition rule,
+            final GameRuleChangeEvent.Cause cause,
+            final @Nullable CommandSender source) {
+        final GameRuleOverrides overrides = world.gameRuleValues();
+        final Integer previousOverride = overrides.override(rule);
+        if (previousOverride == null) {
+            return Result.UNCHANGED;
+        }
+
+        final GameRuleChangeEvent event = events.post(new GameRuleChangeEvent(
+                rule, world, rule.format(previousOverride), rule.format(values.get(rule)), true, cause, source));
+        if (event.isCancelled()) {
+            return Result.CANCELLED;
+        }
+
+        if (event.removesOverride()) {
+            overrides.exchange(rule, null);
+        } else {
+            final int applied = parseEventValue(rule, event);
+            if (applied == previousOverride) {
+                return Result.UNCHANGED;
+            }
+            overrides.exchange(rule, applied);
+        }
+        notifyListeners(world, rule);
+        return Result.CHANGED;
+    }
+
+    private Result applyBase(
+            final GameRuleDefinition rule,
+            final int value,
+            final GameRuleChangeEvent.Cause cause,
+            final @Nullable CommandSender source) {
         final int previous = values.get(rule);
         if (previous == value) {
             return Result.UNCHANGED;
         }
 
-        final GameRuleChangeEvent event = events.post(
-                new GameRuleChangeEvent(rule, rule.format(previous), rule.format(value), cause, source));
+        final GameRuleChangeEvent event = events.post(new GameRuleChangeEvent(
+                rule, null, rule.format(previous), rule.format(value), false, cause, source));
         if (event.isCancelled()) {
             return Result.CANCELLED;
         }
 
-        final int applied = Objects.requireNonNull(rule.parse(event.newValue()),
-                () -> "GameRuleChangeEvent left an invalid value '" + event.newValue() + "' for game rule " + rule.key().key());
+        final int applied = parseEventValue(rule, event);
         if (applied == previous) {
             return Result.UNCHANGED;
         }
         values.exchange(rule, applied);
-
-        for (final Listener listener : listeners) {
-            try {
-                listener.onChange(rule, previous, applied);
-            } catch (final Throwable t) {
-                LOGGER.error("Game rule listener failed for {}", rule.key().key(), t);
-            }
-        }
+        notifyListeners(null, rule);
         return Result.CHANGED;
     }
 
-    private static GameRuleDefinition definitionOf(final TypedKey<GameRule> rule, final @Nullable GameRuleType expected) {
+    private void notifyListeners(final @Nullable ServerWorld world, final GameRuleDefinition rule) {
+        for (final Listener listener : listeners) {
+            try {
+                listener.onChange(world, rule);
+            } catch (final Throwable t) {
+                LOGGER.error("Game rule listener failed for {} in {}", rule.key().key(),
+                        world == null ? "every world" : world.key(), t);
+            }
+        }
+    }
+
+    private static int parseEventValue(final GameRuleDefinition rule, final GameRuleChangeEvent event) {
+        return Objects.requireNonNull(rule.parse(event.newValue()),
+                () -> "GameRuleChangeEvent left an invalid value '" + event.newValue() + "' for game rule " + rule.key().key());
+    }
+
+    static int parse(final GameRuleDefinition rule, final String value) {
+        final Integer parsed = rule.parse(value);
+        if (parsed == null) {
+            throw new IllegalArgumentException("Invalid value '" + value + "' for game rule " + rule.key().key());
+        }
+        return parsed;
+    }
+
+    static GameRuleDefinition definitionOf(final TypedKey<GameRule> rule, final @Nullable GameRuleType expected) {
         return VanillaGameRules.ALL.get(GameRuleValues.index(rule, expected));
     }
 }

@@ -2,6 +2,7 @@ package fr.fidorial.gamerule;
 
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
+import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
@@ -10,6 +11,9 @@ import java.util.Optional;
 
 /**
  * A service for reading and changing the game rules of the server, as {@code /gamerule} does.
+ *
+ * <p>These are the base values, held by the overworld and followed by every world that does not
+ * override them; see {@link World#gameRules()}.</p>
  *
  * @since 0.1.0
  */

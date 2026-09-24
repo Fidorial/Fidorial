@@ -4,21 +4,23 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
+import fr.fidorial.entity.Entity;
+import fr.fidorial.world.World;
 import fr.fidorial.world.weather.Weather;
 import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 
-/**
- * /weather                     -> affiche la meteo courante
- * /weather clear|rain|thunder  -> change la meteo (duree aleatoire vanilla)
- * /weather rain 300s            -> change la meteo pour 300 secondes
- */
 public final class WeatherCommand {
+
+    private static final String DURATION = "duration";
+    private static final String WORLD = "world";
 
     private WeatherCommand() {
     }
@@ -34,7 +36,10 @@ public final class WeatherCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("weather")
                 .requires(source -> source.sender().hasPermission("fidorial.command.weather"))
-                .then(literal("get").executes(WeatherCommand::get))
+                .then(literal("get")
+                        .executes(context -> get(context.getSource(), null))
+                        .then(argument(WORLD, ArgumentTypes.world())
+                                .executes(context -> get(context.getSource(), targetWorld(context)))))
                 .then(weather("clear", Weather.CLEAR))
                 .then(weather("rain", Weather.RAIN))
                 .then(weather("thunder", Weather.THUNDER))
@@ -43,31 +48,79 @@ public final class WeatherCommand {
 
     private static LiteralCommandNode<CommandSource> weather(final String name, final Weather weather) {
         return literal(name)
-                .executes(context -> set(context.getSource(), weather, 0))
-                .then(argument("duration", ArgumentTypes.time(0))
-                        .executes(context ->
-                                set(context.getSource(), weather, context.getArgument("duration", Integer.class))))
+                .executes(context -> set(context.getSource(), weather, 0, null))
+                .then(argument(DURATION, ArgumentTypes.time(0))
+                        .executes(context -> set(context.getSource(), weather, duration(context), null))
+                        .then(argument(WORLD, ArgumentTypes.world())
+                                .executes(context -> set(context.getSource(), weather, duration(context), targetWorld(context)))))
                 .build();
     }
 
-    private static int get(final CommandContext<CommandSource> context) {
-        final WeatherEngine weather = FidorialServer.getInstance().weatherEngine();
-        context.getSource()
-                .sender()
-                .sendMessage(Component.translatable("command.weather.current", describe(weather.weather())));
+    private static int duration(final CommandContext<CommandSource> context) {
+        return context.getArgument(DURATION, Integer.class);
+    }
+
+    private static ServerWorld targetWorld(final CommandContext<CommandSource> context) {
+        return (ServerWorld) context.getArgument(WORLD, World.class);
+    }
+
+    private static @Nullable ServerWorld resolve(final CommandSource source, final @Nullable ServerWorld requested) {
+        if (requested != null) {
+            if (requested.weather().hasCycle()) {
+                return requested;
+            }
+            source.sender().sendMessage(Component.translatable(
+                    "command.weather.noweather", Component.text(requested.key().asString())));
+            return null;
+        }
+        final ServerWorld current = worldOf(source);
+        if (current != null && current.weather().hasCycle()) {
+            return current;
+        }
+        return FidorialServer.getInstance().weatherEngine().primaryWorld();
+    }
+
+    private static @Nullable ServerWorld worldOf(final CommandSource source) {
+        if (source.sender() instanceof final Entity entity && entity.world() instanceof final ServerWorld world) {
+            return world;
+        }
+        final Entity executor = source.executor();
+        if (executor != null && executor.world() instanceof final ServerWorld world) {
+            return world;
+        }
+        return null;
+    }
+
+    private static int get(final CommandSource source, final @Nullable ServerWorld requested) {
+        final ServerWorld world = resolve(source, requested);
+        if (world == null) {
+            return 0;
+        }
+        source.sender().sendMessage(Component.translatable(
+                "command.weather.current",
+                describe(world.weather().weather()),
+                Component.text(world.key().asString())));
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int set(final CommandSource source, final Weather target, final int durationTicks) {
-        final WeatherEngine weather = FidorialServer.getInstance().weatherEngine();
+    private static int set(
+            final CommandSource source,
+            final Weather target,
+            final int durationTicks,
+            final @Nullable ServerWorld requested) {
+        final ServerWorld world = resolve(source, requested);
+        if (world == null) {
+            return 0;
+        }
+        final WorldWeather weather = world.weather();
         weather.setWeather(target, durationTicks);
 
+        final Component worldName = Component.text(world.key().asString());
         if (durationTicks > 0) {
-            source.sender()
-                    .sendMessage(Component.translatable(
-                            "command.weather.changed.duration", describe(target), Component.text(durationTicks / 20)));
+            source.sender().sendMessage(Component.translatable(
+                    "command.weather.changed.duration", describe(target), Component.text(durationTicks / 20), worldName));
         } else {
-            source.sender().sendMessage(Component.translatable("command.weather.changed", describe(target)));
+            source.sender().sendMessage(Component.translatable("command.weather.changed", describe(target), worldName));
         }
         return Command.SINGLE_SUCCESS;
     }

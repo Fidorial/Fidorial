@@ -71,14 +71,14 @@ public final class Explosion {
     public static void explode(final ServerWorld world, final Location center, final float power, final AbstractEntity source) {
         final FidorialServer server = FidorialServer.getInstance();
         playExplosionSound(server, world, center);
-        if (breaksBlocks(server, source)) {
+        if (breaksBlocks(world, source)) {
             destroyBlocks(server, world, center, power);
         }
         damageEntities(server, world, center, power, source);
     }
 
-    private static boolean breaksBlocks(final FidorialServer server, final AbstractEntity source) {
-        return !(source instanceof AbstractMob) || server.gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING);
+    private static boolean breaksBlocks(final ServerWorld world, final AbstractEntity source) {
+        return !(source instanceof AbstractMob) || world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING);
     }
 
     private static void playExplosionSound(final FidorialServer server, final ServerWorld world, final Location center) {

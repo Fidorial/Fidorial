@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.chunk.AnvilChunkSerializer;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
+import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
@@ -16,6 +17,8 @@ import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
+import fr.euphyllia.fidorial.server.world.weather.WeatherState;
+import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.entity.EntitySpawnBridge;
@@ -112,6 +115,7 @@ public final class WorldManager implements AutoCloseable {
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
         final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));
         restoreForcedChunks(world);
+        restoreGameRuleOverrides(world);
         reassignDefaultWorld();
         return world;
     }
@@ -121,7 +125,9 @@ public final class WorldManager implements AutoCloseable {
         final ChunkGenerator effective = structureService == null
                 ? generator
                 : structureService.wrap(dim.id(), generator, seed);
-        final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler);
+        final boolean overworld = Dimension.OVERWORLD.id().equals(dim.id());
+        final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler,
+                levelData.gameRules, overworld ? levelData.weather : new WeatherState());
         if (chunkLoader != null) {
             world.setChunkLoader(chunkLoader);
         }
@@ -132,6 +138,7 @@ public final class WorldManager implements AutoCloseable {
             world.setLightDispatcher(lightDispatcher);
         }
         restoreTime(world);
+        restoreWeather(world);
         return world;
     }
 
@@ -186,6 +193,52 @@ public final class WorldManager implements AutoCloseable {
 
     private void saveForcedChunks(final ServerWorld world) throws IOException {
         world.forcedChunks().saveIfDirty(forcedChunksFile(world));
+    }
+
+    private Path gameRuleOverridesFile(final ServerWorld world) {
+        return paths.dimensionDataDir(world.dimension()).resolve("fidorial").resolve(GameRuleOverrides.FILE_NAME);
+    }
+
+    private void restoreGameRuleOverrides(final ServerWorld world) {
+        try {
+            final int restored = world.gameRuleValues().restore(gameRuleOverridesFile(world));
+            if (restored > 0) {
+                LOGGER.info("{} game rule override(s) restored in {}", restored, world.key());
+            }
+        } catch (final IOException e) {
+            LOGGER.error("Unable to read the game rule overrides of {}", world.key(), e);
+        }
+    }
+
+    private void saveGameRuleOverrides(final ServerWorld world) throws IOException {
+        world.gameRuleValues().saveIfDirty(gameRuleOverridesFile(world));
+    }
+
+    private static boolean weatherInLevelData(final ServerWorld world) {
+        return Dimension.OVERWORLD.id().equals(world.key());
+    }
+
+    private Path weatherFile(final ServerWorld world) {
+        return paths.dimensionDataDir(world.dimension()).resolve("fidorial").resolve(WorldWeather.FILE_NAME);
+    }
+
+    private void restoreWeather(final ServerWorld world) {
+        if (weatherInLevelData(world)) {
+            return;
+        }
+        try {
+            if (world.weather().restore(weatherFile(world))) {
+                LOGGER.debug("Weather of {} restored: {}", world.key(), world.weather().weather());
+            }
+        } catch (final IOException e) {
+            LOGGER.error("Unable to read the weather of {}", world.key(), e);
+        }
+    }
+
+    private void saveWeather(final ServerWorld world) throws IOException {
+        if (!weatherInLevelData(world)) {
+            world.weather().save(weatherFile(world));
+        }
     }
 
     private void restoreTime(final ServerWorld world) {
@@ -325,6 +378,8 @@ public final class WorldManager implements AutoCloseable {
             levelData.write(paths.dataDir(), paths.levelDat());
             world.saveAll();
             saveForcedChunks(world);
+            saveGameRuleOverrides(world);
+            saveWeather(world);
         }
         world.forcedChunks().releaseTickets();
         worlds.remove(key);
@@ -396,6 +451,8 @@ public final class WorldManager implements AutoCloseable {
         for (final ServerWorld w : worlds.values()) {
             w.saveAll();
             saveForcedChunks(w);
+            saveGameRuleOverrides(w);
+            saveWeather(w);
         }
         LOGGER.info("World saved ({} dimension(s))", worlds.size());
     }
@@ -412,6 +469,8 @@ public final class WorldManager implements AutoCloseable {
         for (final ServerWorld w : worlds.values()) {
             w.saveDirty();
             saveForcedChunks(w);
+            saveGameRuleOverrides(w);
+            saveWeather(w);
         }
     }
 

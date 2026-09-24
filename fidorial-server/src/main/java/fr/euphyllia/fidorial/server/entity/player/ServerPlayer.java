@@ -751,7 +751,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (health() >= maxHealth() || currentTick % REGENERATION_INTERVAL_TICKS != 0) {
             return;
         }
-        if (!connection.server().gameRules().getBoolean(GameRuleKeys.NATURAL_HEALTH_REGENERATION)) {
+        if (!(world() instanceof final ServerWorld serverWorld)
+                || !serverWorld.gameRuleValues().getBoolean(GameRuleKeys.NATURAL_HEALTH_REGENERATION)) {
             return;
         }
         heal(REGENERATION_AMOUNT);

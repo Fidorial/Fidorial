@@ -67,7 +67,8 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null) {
             return false;
         }
-        if (!FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
+        if (!(mob.world() instanceof final ServerWorld world)
+                || !world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
             return false;
         }
         final BlockPos found = findDoor();
@@ -84,7 +85,7 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null || pos == null || !(mob.world() instanceof final ServerWorld world)) {
             return false;
         }
-        if (!FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
+        if (!world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
             return false;
         }
         final BlockState state = BlockView.blockAt(world, pos.x(), pos.y(), pos.z());

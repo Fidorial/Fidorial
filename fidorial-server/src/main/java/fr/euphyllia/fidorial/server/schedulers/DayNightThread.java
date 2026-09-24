@@ -87,29 +87,32 @@ public class DayNightThread implements AutoCloseable {
         if (sync) {
             sinceLastSync = 0;
         }
-        final boolean advanceTime = advanceTime();
         for (final ServerWorld world : worldManager.worlds()) {
             attach(world);
             final WorldTimeEngine cycle = world.dayNightCycle();
-            cycle.tick(advanceTime);
+            cycle.tick(advanceTime(world));
             if (sync) {
                 broadcast(world, cycle);
             }
         }
     }
 
-    private boolean advanceTime() {
-        return worldManager.levelData().gameRules.getBoolean(GameRuleKeys.ADVANCE_TIME);
+    private static boolean advanceTime(final ServerWorld world) {
+        return world.gameRuleValues().getBoolean(GameRuleKeys.ADVANCE_TIME);
     }
 
     public void resyncAll() {
         for (final ServerWorld world : worldManager.worlds()) {
-            broadcast(world, world.dayNightCycle());
+            resync(world);
         }
     }
 
+    public void resync(final ServerWorld world) {
+        broadcast(world, world.dayNightCycle());
+    }
+
     private void broadcast(final ServerWorld world, final WorldTimeEngine cycle) {
-        final ClientboundSetTimePacket packet = packetFor(cycle);
+        final ClientboundSetTimePacket packet = packetFor(world, cycle);
         if (packet == null) {
             return;
         }
@@ -124,13 +127,13 @@ public class DayNightThread implements AutoCloseable {
     }
 
     public void syncTo(final ServerWorld world, final Consumer<ClientboundPacket> target) {
-        final ClientboundSetTimePacket packet = packetFor(world.dayNightCycle());
+        final ClientboundSetTimePacket packet = packetFor(world, world.dayNightCycle());
         if (packet != null) {
             target.accept(packet);
         }
     }
 
-    private @Nullable ClientboundSetTimePacket packetFor(final WorldTimeEngine cycle) {
+    private @Nullable ClientboundSetTimePacket packetFor(final ServerWorld world, final WorldTimeEngine cycle) {
         final int networkId = registries.networkId(WorldClocks.REGISTRY, cycle.clock());
         if (networkId < 0) {
             if (unknownClocks.add(cycle.clock())) {
@@ -138,7 +141,7 @@ public class DayNightThread implements AutoCloseable {
             }
             return null;
         }
-        return new ClientboundSetTimePacket(cycle.worldAge(), List.of(cycle.snapshot(networkId, advanceTime())));
+        return new ClientboundSetTimePacket(cycle.worldAge(), List.of(cycle.snapshot(networkId, advanceTime(world))));
     }
 
     @Override

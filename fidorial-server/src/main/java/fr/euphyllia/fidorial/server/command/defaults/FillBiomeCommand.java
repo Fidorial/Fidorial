@@ -85,7 +85,7 @@ public final class FillBiomeCommand {
         final BlockPos to = context.getArgument("to", BlockPosResolver.class).resolve(context.getSource());
 
         final long volume = span(from.x(), to.x()) * span(from.y(), to.y()) * span(from.z(), to.z());
-        final int limit = server.gameRules().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
+        final int limit = world.gameRuleValues().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
         if (volume > limit) {
             context.getSource().sender().sendMessage(Component.translatable(
                     "command.fillbiome.toobig", Component.text(limit), Component.text(volume)));

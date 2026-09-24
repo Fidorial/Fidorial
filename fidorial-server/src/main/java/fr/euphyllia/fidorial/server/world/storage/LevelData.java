@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
+import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -75,11 +76,7 @@ public final class LevelData {
 
     public @Nullable UUID singleplayerUuid;
 
-    public boolean raining = false;
-    public int rainTime = 0;
-    public boolean thundering = false;
-    public int thunderTime = 0;
-    public int clearWeatherTime = 0;
+    public final WeatherState weather = new WeatherState();
 
     public boolean doDaylightCycle = true;
 
@@ -194,19 +191,13 @@ public final class LevelData {
         }
 
         if (Files.isRegularFile(dataDir.resolve(WEATHER_PATH))) {
-            readIfPresent(dataDir.resolve(WEATHER_PATH), weather -> {
-                raining = weather.getBoolean("raining");
-                rainTime = weather.getInt("rain_time");
-                thundering = weather.getBoolean("thundering");
-                thunderTime = weather.getInt("thunder_time");
-                clearWeatherTime = weather.getInt("clear_weather_time");
-            });
+            readIfPresent(dataDir.resolve(WEATHER_PATH), weather::load);
         } else if (legacyData.contains("raining")) {
-            raining = legacyData.getBoolean("raining");
-            rainTime = legacyData.getInt("rainTime");
-            thundering = legacyData.getBoolean("thundering");
-            thunderTime = legacyData.getInt("thunderTime");
-            clearWeatherTime = legacyData.getInt("clearWeatherTime");
+            weather.raining = legacyData.getBoolean("raining");
+            weather.rainTime = legacyData.getInt("rainTime");
+            weather.thundering = legacyData.getBoolean("thundering");
+            weather.thunderTime = legacyData.getInt("thunderTime");
+            weather.clearWeatherTime = legacyData.getInt("clearWeatherTime");
         }
 
         if (Files.isRegularFile(dataDir.resolve(WORLD_GEN_SETTINGS_PATH))) {
@@ -357,13 +348,7 @@ public final class LevelData {
     private void writeDimensionData(final Path dataDir) throws IOException {
         writeDatFile(dataDir.resolve(GAME_RULES_PATH), gameRules::save);
 
-        writeDatFile(dataDir.resolve(WEATHER_PATH), weather -> {
-            weather.putBoolean("raining", raining);
-            weather.putInt("rain_time", rainTime);
-            weather.putBoolean("thundering", thundering);
-            weather.putInt("thunder_time", thunderTime);
-            weather.putInt("clear_weather_time", clearWeatherTime);
-        });
+        writeDatFile(dataDir.resolve(WEATHER_PATH), weather::save);
 
         writeDatFile(dataDir.resolve(WORLD_GEN_SETTINGS_PATH), this::buildWorldGenSettings);
         writeDatFile(dataDir.resolve(CUSTOM_BOSS_EVENTS_PATH), this::buildCustomBossEvents);

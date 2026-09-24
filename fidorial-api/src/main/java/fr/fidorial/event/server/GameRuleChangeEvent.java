@@ -6,6 +6,7 @@ import fr.fidorial.event.Event;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRuleType;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.world.World;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -21,33 +22,45 @@ import java.util.Optional;
 public final class GameRuleChangeEvent implements Event, Cancellable {
 
     private final GameRuleDefinition rule;
+    private final @Nullable World world;
     private final String previousValue;
+    private final boolean removesOverride;
     private final Cause cause;
     private final @Nullable CommandSender source;
     private String newValue;
+    private boolean valueReplaced;
     private boolean cancelled;
 
 
     /**
      * Creates an event.
      *
-     * @param rule          the rule about to change
-     * @param previousValue its current value
-     * @param newValue      the value about to be applied
-     * @param cause         what requested the change
-     * @param source        who requested the change, or {@code null} when a plugin did
+     * @param rule            the rule about to change
+     * @param world           the world whose override changes, or {@code null} for the base value
+     * @param previousValue   the value in effect before the change
+     * @param newValue        the value about to be in effect
+     * @param removesOverride whether the world is about to drop its override
+     * @param cause           what requested the change
+     * @param source          who requested the change, or {@code null} when a plugin did
      * @since 0.1.0
      */
     public GameRuleChangeEvent(
             final GameRuleDefinition rule,
+            final @Nullable World world,
             final String previousValue,
             final String newValue,
+            final boolean removesOverride,
             final Cause cause,
             final @Nullable CommandSender source) {
         this.rule = Objects.requireNonNull(rule, "The game rule that changes must not be null");
         this.previousValue = Objects.requireNonNull(previousValue, "The previous value of the game rule must not be null");
         this.newValue = Objects.requireNonNull(newValue, "The new value of the game rule must not be null");
         this.cause = Objects.requireNonNull(cause, "The cause of the game rule change must not be null");
+        if (removesOverride && world == null) {
+            throw new IllegalArgumentException("Only a world can drop its override of game rule " + rule.key().key());
+        }
+        this.world = world;
+        this.removesOverride = removesOverride;
         this.source = source;
     }
 
@@ -61,6 +74,30 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
     @Contract(pure = true)
     public GameRuleDefinition rule() {
         return rule;
+    }
+
+    /**
+     * Gets the world whose override is changing.
+     *
+     * @return the world, or empty when the base value changes, which every world without an
+     * override of this rule follows
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    public Optional<World> world() {
+        return Optional.ofNullable(world);
+    }
+
+    /**
+     * Checks whether the world is about to drop its override and follow the base value again.
+     *
+     * @return {@code true} when the override of {@link #world()} is being removed; calling
+     * {@link #setNewValue(String)} keeps an override instead
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    public boolean removesOverride() {
+        return removesOverride && !valueReplaced;
     }
 
     /**
@@ -98,7 +135,7 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
         if (parsed == null) {
             throw new IllegalArgumentException("Invalid value '" + value + "' for game rule " + rule.key().key());
         }
-        this.newValue = rule.format(parsed);
+        replaceValue(rule.format(parsed));
     }
 
     /**
@@ -110,7 +147,7 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
      */
     public void setNewValue(final boolean value) {
         requireType(GameRuleType.BOOLEAN);
-        this.newValue = Boolean.toString(value);
+        replaceValue(Boolean.toString(value));
     }
 
     /**
@@ -125,7 +162,7 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
         if (!rule.accepts(value)) {
             throw new IllegalArgumentException("Value " + value + " is out of range for game rule " + rule.key().key());
         }
-        this.newValue = Integer.toString(value);
+        replaceValue(Integer.toString(value));
     }
 
     /**
@@ -165,6 +202,11 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
     @Override
     public void setCancelled(final boolean cancelled) {
         this.cancelled = cancelled;
+    }
+
+    private void replaceValue(final String value) {
+        this.newValue = value;
+        this.valueReplaced = true;
     }
 
     private void requireType(final GameRuleType expected) {

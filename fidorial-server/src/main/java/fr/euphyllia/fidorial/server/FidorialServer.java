@@ -34,8 +34,6 @@ import fr.euphyllia.fidorial.server.network.NettyServer;
 import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
 import fr.euphyllia.fidorial.server.permission.DefaultPermissions;
 import fr.euphyllia.fidorial.server.permission.FidorialPermissionRegistry;
 import fr.euphyllia.fidorial.server.permission.OperatorList;
@@ -189,7 +187,7 @@ public final class FidorialServer implements Server {
             config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
     private final FluidEngine fluidEngine =
             new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
-    private final WeatherEngine weatherEngine = new WeatherEngine(worldManager.levelData(), this::broadcast);
+    private final WeatherEngine weatherEngine = new WeatherEngine(worldManager);
     private final FidorialGameRules gameRules = new FidorialGameRules(worldManager.levelData(), events);
     private final BossBarRegistry bossBarRegistry = new BossBarRegistry(worldManager.levelData(), this::players);
     private final DayNightThread dayNightEngine = new DayNightThread(worldManager, registries.dynamic());
@@ -514,27 +512,25 @@ public final class FidorialServer implements Server {
         return gameRules;
     }
 
-    private void syncGameRule(final GameRuleDefinition rule, final int previous, final int current) {
+    private void syncGameRule(final @Nullable ServerWorld world, final GameRuleDefinition rule) {
         final Key key = rule.key().key();
         if (key.equals(GameRuleKeys.ADVANCE_TIME.key())) {
-            dayNightEngine.resyncAll();
-        } else if (key.equals(GameRuleKeys.REDUCED_DEBUG_INFO.key())) {
-            for (final ServerPlayer player : players()) {
-                if (player.connection().isInPlayState()) {
-                    player.connection().send(
-                            ClientboundEntityEventPacket.reducedDebugInfo(player.entityId(), current != 0));
-                }
+            if (world == null) {
+                dayNightEngine.resyncAll();
+            } else {
+                dayNightEngine.resync(world);
             }
-        } else if (key.equals(GameRuleKeys.IMMEDIATE_RESPAWN.key())) {
-            final ClientboundGameEventPacket packet = new ClientboundGameEventPacket(
-                    ClientboundGameEventPacket.IMMEDIATE_RESPAWN, current != 0 ? 1f : 0f);
+        } else if (key.equals(GameRuleKeys.REDUCED_DEBUG_INFO.key()) || key.equals(GameRuleKeys.IMMEDIATE_RESPAWN.key())) {
             for (final ServerPlayer player : players()) {
-                if (player.connection().isInPlayState()) {
-                    player.connection().send(packet);
+                if (!player.connection().isInPlayState()
+                        || !(player.world() instanceof final ServerWorld playerWorld)
+                        || (world != null && !playerWorld.equals(world))) {
+                    continue;
                 }
+                gameRules.syncTo(playerWorld, player.entityId(), player.connection()::send);
             }
         }
-        LOGGER.debug("Game rule {} changed: {} -> {}", key.asString(), rule.format(previous), rule.format(current));
+        LOGGER.debug("Game rule {} changed in {}", key.asString(), world == null ? "every world" : world.key());
     }
 
     @Override

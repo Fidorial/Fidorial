@@ -69,7 +69,7 @@ public final class GameRuleValues {
         return index;
     }
 
-    private static int requireIndex(final Key key) {
+    static int requireIndex(final Key key) {
         final int index = VanillaGameRules.indexOf(key);
         if (index < 0) {
             throw new IllegalArgumentException("Unknown game rule: " + key);
@@ -127,7 +127,7 @@ public final class GameRuleValues {
         }
     }
 
-    private static int sanitize(final GameRuleDefinition definition, final int value, final String name) {
+    static int sanitize(final GameRuleDefinition definition, final int value, final String name) {
         if (definition.isBoolean()) {
             return value != 0 ? 1 : 0;
         }
