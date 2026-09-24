@@ -13,6 +13,8 @@ public record ClientboundGameEventPacket(int event, float value) implements Clie
     public static final int CHANGE_GAME_MODE = 3;
     public static final int RAIN_LEVEL_CHANGE = 7;
     public static final int THUNDER_LEVEL_CHANGE = 8;
+    public static final int IMMEDIATE_RESPAWN = 11;
+    public static final int LIMITED_CRAFTING = 12;
     public static final int START_WAITING_FOR_CHUNKS = 13;
 
     @Override
@@ -21,7 +23,7 @@ public record ClientboundGameEventPacket(int event, float value) implements Clie
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeByte(event).writeFloat(value);
     }
 }

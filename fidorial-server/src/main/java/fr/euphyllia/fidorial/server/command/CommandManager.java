@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.command.defaults.DatapackCommand;
 import fr.euphyllia.fidorial.server.command.defaults.FillBiomeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.ForceLoadCommand;
 import fr.euphyllia.fidorial.server.command.defaults.GameModeCommand;
+import fr.euphyllia.fidorial.server.command.defaults.GameRuleCommand;
 import fr.euphyllia.fidorial.server.command.defaults.LocateCommand;
 import fr.euphyllia.fidorial.server.command.defaults.OpCommand;
 import fr.euphyllia.fidorial.server.command.defaults.PardonCommand;
@@ -105,6 +106,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(PlaceCommand.create());
         registerInternal(LocateCommand.create());
         registerInternal(DatapackCommand.create());
+        registerInternal(GameRuleCommand.create());
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command) {

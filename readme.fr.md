@@ -60,7 +60,7 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 - Scheduler régionalisé inspiré de Folia : le monde est découpé en régions indépendantes de 32×32 chunks, chacune tickée
   à 20 TPS sur son propre thread
 - Commandes Brigadier, en jeu et dans une console interactive avec complétion et coloration : `/gamemode` (`/gm`),
-  `/weather` (`/w`), `/time`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
+  `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
 - Système de permissions avec liste d'opérateurs et nœuds déclarés par les plugins
 - API de plugins basée sur les modules JPMS, avec [Adventure](https://docs.advntr.dev/) pour tout le texte
 - Harnais de tests scénario exécutés contre un vrai serveur

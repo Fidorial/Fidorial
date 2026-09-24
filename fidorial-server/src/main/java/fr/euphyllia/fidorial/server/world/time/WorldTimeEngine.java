@@ -34,9 +34,13 @@ public final class WorldTimeEngine implements DayNightCycle {
         this.broadcaster = broadcaster;
     }
 
-    public synchronized void tick() {
+    public void tick() {
+        tick(true);
+    }
+
+    public synchronized void tick(final boolean advanceTime) {
         worldAge++;
-        if (!doDaylightCycle || rate <= 0f) {
+        if (!advanceTime || !doDaylightCycle || rate <= 0f) {
             return;
         }
         final float accumulated = fractionalTime + rate;
@@ -110,9 +114,13 @@ public final class WorldTimeEngine implements DayNightCycle {
         this.doDaylightCycle = doDaylightCycle;
     }
 
-    public synchronized ClientboundSetTimePacket.Clock snapshot(final int networkId) {
+    public ClientboundSetTimePacket.Clock snapshot(final int networkId) {
+        return snapshot(networkId, true);
+    }
+
+    public synchronized ClientboundSetTimePacket.Clock snapshot(final int networkId, final boolean advanceTime) {
         return new ClientboundSetTimePacket.Clock(
-                networkId, time, fractionalTime, doDaylightCycle ? rate : 0f);
+                networkId, time, fractionalTime, advanceTime && doDaylightCycle ? rate : 0f);
     }
 
     private void broadcast() {

@@ -33,6 +33,7 @@ public final class DefaultPermissions {
                 command("fillbiome", "Repaint the biomes of a region."),
                 command("forceload", "Keep chunks loaded without any player nearby."),
                 command("gamemode", "Change the game mode."),
+                command("gamerule", "Query or change the game rules, also from the in-game game rule screen."),
                 command("locate", "Find the nearest datapack structure."),
                 command("op", "Promote a player to operator."),
                 command("deop", "Remove operator status from a player."),

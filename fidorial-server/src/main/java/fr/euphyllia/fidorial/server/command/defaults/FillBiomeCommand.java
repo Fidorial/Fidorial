@@ -15,6 +15,7 @@ import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Biome;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeRegistry;
@@ -82,6 +83,14 @@ public final class FillBiomeCommand {
         }
         final BlockPos from = context.getArgument("from", BlockPosResolver.class).resolve(context.getSource());
         final BlockPos to = context.getArgument("to", BlockPosResolver.class).resolve(context.getSource());
+
+        final long volume = span(from.x(), to.x()) * span(from.y(), to.y()) * span(from.z(), to.z());
+        final int limit = server.gameRules().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
+        if (volume > limit) {
+            context.getSource().sender().sendMessage(Component.translatable(
+                    "command.fillbiome.toobig", Component.text(limit), Component.text(volume)));
+            return 0;
+        }
 
         final int minX = Math.min(from.x(), to.x());
         final int minZ = Math.min(from.z(), to.z());
@@ -155,6 +164,10 @@ public final class FillBiomeCommand {
         });
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static long span(final int a, final int b) {
+        return Math.abs((long) (a & ~3) - (b & ~3)) + 1L;
     }
 
     private static String rootMessage(final Throwable failure) {

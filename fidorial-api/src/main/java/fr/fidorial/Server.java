@@ -7,6 +7,7 @@ import fr.fidorial.entity.OfflinePlayers;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.event.EventBus;
+import fr.fidorial.gamerule.GameRules;
 import fr.fidorial.item.ItemRegistry;
 import fr.fidorial.moderation.BanManager;
 import fr.fidorial.moderation.WhitelistManager;
@@ -224,6 +225,14 @@ public interface Server extends ForwardingAudience {
      * @since 0.1.0
      */
     StructureManager structures();
+
+    /**
+     * The game rules of the server, shared by every world like in vanilla.
+     *
+     * @return the game rules, as changed by {@code /gamerule}
+     * @since 0.1.0
+     */
+    GameRules gameRules();
 
     Optional<? extends World> world(Key key);
 

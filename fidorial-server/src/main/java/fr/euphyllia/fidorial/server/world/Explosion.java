@@ -14,6 +14,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.Po
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Location;
@@ -70,15 +71,21 @@ public final class Explosion {
     public static void explode(final ServerWorld world, final Location center, final float power, final AbstractEntity source) {
         final FidorialServer server = FidorialServer.getInstance();
         playExplosionSound(server, world, center);
-        destroyBlocks(server, world, center, power);
+        if (breaksBlocks(server, source)) {
+            destroyBlocks(server, world, center, power);
+        }
         damageEntities(server, world, center, power, source);
+    }
+
+    private static boolean breaksBlocks(final FidorialServer server, final AbstractEntity source) {
+        return !(source instanceof AbstractMob) || server.gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING);
     }
 
     private static void playExplosionSound(final FidorialServer server, final ServerWorld world, final Location center) {
         final float pitch = (1.0f
-                        + (ThreadLocalRandom.current().nextFloat()
-                                        - ThreadLocalRandom.current().nextFloat())
-                                * 0.2f)
+                + (ThreadLocalRandom.current().nextFloat()
+                - ThreadLocalRandom.current().nextFloat())
+                * 0.2f)
                 * 0.7f;
         server.broadcastNear(world, center.x(), center.y(), center.z(),
                 new ClientboundSoundPacket(

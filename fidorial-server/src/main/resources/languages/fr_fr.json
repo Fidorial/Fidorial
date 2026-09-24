@@ -58,6 +58,7 @@
   "command.fillbiome.console" : "<red>Lance cette commande en tant que joueur, ou via /execute dans un monde.",
   "command.fillbiome.outofworld" : "<red>La region est entièrement hors du monde.",
   "command.fillbiome.failed" : "<red>Impossible de charger un chunk de la region : <arg:0>",
+  "command.fillbiome.toobig" : "<red>Trop de blocs dans le volume indiqué (maximum <arg:0>, demandé <arg:1>)",
 
   "command.place.console" : "<red>Lance cette commande en tant que joueur, ou via /execute dans un monde.",
   "command.place.rotation.invalid" : "<red>Rotation inconnue : <arg:0> (none, clockwise_90, clockwise_180, counterclockwise_90)",
@@ -233,5 +234,10 @@
   "commands.forceload.query.failure": "<red>Le chunk <arg:0> de <arg:1> n'est pas chargé de force",
   "commands.forceload.toobig": "<red>Trop de chunks dans la zone (maximum <arg:0>, demandé <arg:1>)",
   "commands.forceload.no_world": "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
-  "argument.pos.outofworld": "<red>Cette position est hors du monde !"
+  "argument.pos.outofworld": "<red>Cette position est hors du monde !",
+
+  "commands.gamerule.query": "La règle <arg:0> est actuellement définie sur : <arg:1>",
+  "commands.gamerule.set": "La règle <arg:0> est désormais définie sur : <arg:1>",
+  "commands.gamerule.cancelled": "<red>Le changement de la règle <arg:0> a été annulé",
+  "commands.gamerule.unsupported": "<red>La règle <arg:0> n'est pas encore prise en charge par ce serveur ; sa valeur n'a pas été modifiée"
 }

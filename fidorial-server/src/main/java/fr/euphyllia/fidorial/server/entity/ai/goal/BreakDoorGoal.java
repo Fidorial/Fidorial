@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Location;
@@ -66,6 +67,9 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null) {
             return false;
         }
+        if (!FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
+            return false;
+        }
         final BlockPos found = findDoor();
         if (found == null) {
             return false;
@@ -78,6 +82,9 @@ public final class BreakDoorGoal implements Goal {
     public boolean shouldContinue() {
         final BlockPos pos = this.door;
         if (mob.target() == null || pos == null || !(mob.world() instanceof final ServerWorld world)) {
+            return false;
+        }
+        if (!FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
             return false;
         }
         final BlockState state = BlockView.blockAt(world, pos.x(), pos.y(), pos.z());
@@ -149,10 +156,6 @@ public final class BreakDoorGoal implements Goal {
         progress = 0;
     }
 
-    /**
-     * Cherche la moitie haute d'une porte fermee a portee. On ignore volontairement la
-     * moitie basse : un zombie qui fait face au bas d'une porte ne peut pas la casser.
-     */
     private @Nullable BlockPos findDoor() {
         if (!(mob.world() instanceof final ServerWorld world)) {
             return null;

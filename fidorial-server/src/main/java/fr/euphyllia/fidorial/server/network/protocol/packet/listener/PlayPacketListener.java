@@ -27,6 +27,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCarriedItemPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCreativeModeSlotPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetGameRulePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
 import fr.fidorial.protocol.PacketListener;
 
@@ -76,6 +77,8 @@ public interface PlayPacketListener extends PacketListener {
     void handlePunch(ServerboundPunchPacket packet);
 
     void handleClientCommand(ServerboundClientCommandPacket packet);
+
+    void handleSetGameRule(ServerboundSetGameRulePacket packet);
 
     void handleResourcePackResponse(ServerboundResourcePackPacket packet);
 

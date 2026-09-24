@@ -29,11 +29,13 @@ import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerLoginAttemptEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
+import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStatusRequestEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.plugin.PluginContext;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -120,7 +122,7 @@ public final class TestPlugin implements Plugin {
         TestChatTypes.registerAll(context.server().chatTypes(), context.logger());
 
 //        BullMobs.attachToCows(context.server().mobs(), this, context.logger());
-       BullMobs.registerBull(context.server().mobs(), this, context.logger());
+        BullMobs.registerBull(context.server().mobs(), this, context.logger());
         CompanionMobs.register(context.server().mobs(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
@@ -356,6 +358,17 @@ public final class TestPlugin implements Plugin {
             if (!cancelLogin) return;
             e.setCancelled(cancelLogin);
             e.refuse(Component.text("Server under maintenance", NamedTextColor.RED));
+        });
+
+        final boolean lockPvp = false;
+        events.subscribe(GameRuleChangeEvent.class, e -> {
+            eventCount.incrementAndGet();
+            logger.info("[TestPlugin][event] game rule {} : {} -> {} ({}, by {})",
+                    e.rule().id(), e.previousValue(), e.newValue(), e.cause(),
+                    e.source().map(CommandSender::name).orElse("a plugin"));
+            if (!lockPvp || !e.rule().key().equals(GameRuleKeys.PVP)) return;
+            e.setCancelled(true);
+            e.source().ifPresent(source -> msg(source, "[TestPlugin] pvp is locked by the test plugin."));
         });
     }
 

@@ -21,7 +21,10 @@ public record ClientboundLoginPacket(
         boolean isDebug,
         boolean isFlat,
         boolean onlineMode,
-        boolean enforcesSecureChat
+        boolean enforcesSecureChat,
+        boolean reducedDebugInfo,
+        boolean enableRespawnScreen,
+        boolean doLimitedCrafting
 ) implements ClientboundPacket {
 
     @Override
@@ -30,16 +33,16 @@ public record ClientboundLoginPacket(
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeInt(entityId);
         buf.writeBoolean(isHardcore); // hardcore
         buf.writeKeyArray(dimensions); // liste des dimensions
         buf.writeVarInt(0); // maxPlayers (obsolete)
         buf.writeVarInt(viewDistance);
         buf.writeVarInt(simulationDistance);
-        buf.writeBoolean(false); // reducedDebugInfo
-        buf.writeBoolean(true); // enableRespawnScreen
-        buf.writeBoolean(false); // doLimitedCrafting
+        buf.writeBoolean(reducedDebugInfo); // game rule reduced_debug_info
+        buf.writeBoolean(enableRespawnScreen); // !immediate_respawn
+        buf.writeBoolean(doLimitedCrafting); // game rule limited_crafting
         buf.writeVarInt(dimensionTypeId);
         buf.writeKey(dimensionKey);
         buf.writeLong(hashedSeed); // hashedSeed

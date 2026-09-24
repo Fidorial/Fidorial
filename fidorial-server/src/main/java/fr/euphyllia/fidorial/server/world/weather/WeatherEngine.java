@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.weather;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.weather.Weather;
 import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -73,6 +74,9 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
     }
 
     private synchronized void tick() {
+        if (!level.gameRules.getBoolean(GameRuleKeys.ADVANCE_WEATHER)) {
+            return;
+        }
         if (level.clearWeatherTime > 0) {
             level.clearWeatherTime--;
             if (level.clearWeatherTime == 0) {
@@ -159,7 +163,7 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
 
     public synchronized void syncTo(final Consumer<ClientboundPacket> target) {
         if (!level.raining) {
-            return; // le client demarre au beau fixe par defaut
+            return;
         }
         target.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.BEGIN_RAINING, 0f));
         target.accept(new ClientboundGameEventPacket(ClientboundGameEventPacket.RAIN_LEVEL_CHANGE, 1f));

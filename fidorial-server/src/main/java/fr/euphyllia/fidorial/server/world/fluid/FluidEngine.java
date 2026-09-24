@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
@@ -200,7 +201,7 @@ public final class FluidEngine implements FluidManager {
         }
 
         // Source infinie : deux sources voisines + support en dessous.
-        if (type.canFormSources() && adjacentSources >= 2) {
+        if (canFormSources(type) && adjacentSources >= 2) {
             final BlockState belowBlock = world.getBlock(x, y - 1, z);
             final FluidState belowFluid = FluidBlockCodec.fromBlock(belowBlock);
             final boolean supported = (!belowBlock.isAir() && belowFluid.isEmpty()) || belowFluid.isSource();
@@ -222,6 +223,13 @@ public final class FluidEngine implements FluidManager {
             return null;
         }
         return applyIfChanged(world, worldName, x, y, z, self, wanted);
+    }
+
+    private boolean canFormSources(final FluidType type) {
+        return switch (type) {
+            case WATER -> worlds.levelData().gameRules.getBoolean(GameRuleKeys.WATER_SOURCE_CONVERSION);
+            case LAVA -> worlds.levelData().gameRules.getBoolean(GameRuleKeys.LAVA_SOURCE_CONVERSION);
+        };
     }
 
     private FluidState applyIfChanged(

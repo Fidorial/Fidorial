@@ -34,6 +34,8 @@ import fr.euphyllia.fidorial.server.network.NettyServer;
 import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
 import fr.euphyllia.fidorial.server.permission.DefaultPermissions;
 import fr.euphyllia.fidorial.server.permission.FidorialPermissionRegistry;
 import fr.euphyllia.fidorial.server.permission.OperatorList;
@@ -66,6 +68,7 @@ import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
+import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
@@ -79,11 +82,14 @@ import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
+import fr.fidorial.gamerule.GameRuleDefinition;
+import fr.fidorial.gamerule.GameRules;
 import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.moderation.BanManager;
 import fr.fidorial.moderation.WhitelistManager;
 import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.plugin.PluginManager;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.service.ServiceRegistry;
@@ -184,6 +190,7 @@ public final class FidorialServer implements Server {
     private final FluidEngine fluidEngine =
             new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
     private final WeatherEngine weatherEngine = new WeatherEngine(worldManager.levelData(), this::broadcast);
+    private final FidorialGameRules gameRules = new FidorialGameRules(worldManager.levelData(), events);
     private final BossBarRegistry bossBarRegistry = new BossBarRegistry(worldManager.levelData(), this::players);
     private final DayNightThread dayNightEngine = new DayNightThread(worldManager, registries.dynamic());
     private final ChunkNetworkSerializer chunkSerializer = new ChunkNetworkSerializer(blockStateRegistry, registries.biomes());
@@ -237,6 +244,7 @@ public final class FidorialServer implements Server {
         this.headless = headless;
         instance = this;
         commandManager = new CommandManager();
+        gameRules.addListener(this::syncGameRule);
     }
 
     public static FidorialServer getInstance() {
@@ -403,6 +411,7 @@ public final class FidorialServer implements Server {
         services.register(PermissionRegistry.class, permissionRegistry, this, ServicePriority.LOWEST);
         services.register(FluidManager.class, fluidEngine, this, ServicePriority.LOWEST);
         services.register(WeatherManager.class, weatherEngine, this, ServicePriority.LOWEST);
+        services.register(GameRules.class, gameRules, this, ServicePriority.LOWEST); // Todo : Currently, plugins cannot implement their own system.
         services.register(CombatService.class, combat, this, ServicePriority.LOWEST);
         services.register(BlockEditService.class, blockEdits, this, ServicePriority.LOWEST); // Todo : Currently, plugins cannot implement their own system.
         services.register(CommandRegistry.class, commandManager, this, ServicePriority.LOWEST);
@@ -498,6 +507,34 @@ public final class FidorialServer implements Server {
     @Override
     public StructureService structures() {
         return structureService;
+    }
+
+    @Override
+    public FidorialGameRules gameRules() {
+        return gameRules;
+    }
+
+    private void syncGameRule(final GameRuleDefinition rule, final int previous, final int current) {
+        final Key key = rule.key().key();
+        if (key.equals(GameRuleKeys.ADVANCE_TIME.key())) {
+            dayNightEngine.resyncAll();
+        } else if (key.equals(GameRuleKeys.REDUCED_DEBUG_INFO.key())) {
+            for (final ServerPlayer player : players()) {
+                if (player.connection().isInPlayState()) {
+                    player.connection().send(
+                            ClientboundEntityEventPacket.reducedDebugInfo(player.entityId(), current != 0));
+                }
+            }
+        } else if (key.equals(GameRuleKeys.IMMEDIATE_RESPAWN.key())) {
+            final ClientboundGameEventPacket packet = new ClientboundGameEventPacket(
+                    ClientboundGameEventPacket.IMMEDIATE_RESPAWN, current != 0 ? 1f : 0f);
+            for (final ServerPlayer player : players()) {
+                if (player.connection().isInPlayState()) {
+                    player.connection().send(packet);
+                }
+            }
+        }
+        LOGGER.debug("Game rule {} changed: {} -> {}", key.asString(), rule.format(previous), rule.format(current));
     }
 
     @Override

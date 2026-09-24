@@ -23,6 +23,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameRuleValuesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundInitializeChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLoginPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerAbilitiesPacket;
@@ -68,6 +69,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCarriedItemPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCreativeModeSlotPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetGameRulePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
 import fr.euphyllia.fidorial.server.network.session.ChunkViewTracker;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
@@ -77,6 +79,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.PlayerProfile;
@@ -90,6 +93,8 @@ import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
+import fr.fidorial.event.server.GameRuleChangeEvent;
+import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
@@ -98,6 +103,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
@@ -120,12 +126,15 @@ import java.security.PublicKey;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class PlayPacketHandler implements PlayPacketListener {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(PlayPacketHandler.class);
+
+    private static final String GAMERULE_PERMISSION = "fidorial.command.gamerule";
 
     private final ClientConnection connection;
     private final FidorialServer server;
@@ -319,7 +328,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
                 server.config().onlineMode(),
-                server.config().enforcesSecureChat()));
+                server.config().enforcesSecureChat(),
+                server.gameRules().getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO),
+                !server.gameRules().getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN),
+                server.gameRules().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
         connection.send(new ClientboundPlayerInfoUpdatePacket(
                 player.profile(), player.gameMode().id(), player.ping()));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
@@ -1068,6 +1080,61 @@ public final class PlayPacketHandler implements PlayPacketListener {
         LOGGER.debug("{} sent client_command action={}", player == null ? "?" : player.name(), packet.action());
         if (packet.action() == ServerboundClientCommandPacket.PERFORM_RESPAWN) {
             respawn(PlayerRespawnEvent.Cause.DEATH_SCREEN);
+        } else if (packet.action() == ServerboundClientCommandPacket.REQUEST_GAMERULE_VALUES) {
+            sendGameRuleValues();
+        }
+    }
+
+    private boolean canEditGameRules() {
+        return player != null && player.hasPermission(GAMERULE_PERMISSION);
+    }
+
+    private void sendGameRuleValues() {
+        if (!canEditGameRules()) {
+            LOGGER.debug("{} requested the game rule values without permission", player == null ? "?" : player.name());
+            return;
+        }
+        connection.send(new ClientboundGameRuleValuesPacket(server.gameRules().snapshot()));
+    }
+
+    @Override
+    public void handleSetGameRule(final ServerboundSetGameRulePacket packet) {
+        if (player == null) {
+            return;
+        }
+        if (!canEditGameRules()) {
+            LOGGER.warn("{} tried to change game rules without permission", player.name());
+            return;
+        }
+        final FidorialGameRules rules = server.gameRules();
+        for (final ServerboundSetGameRulePacket.Entry entry : packet.entries()) {
+            final Optional<GameRuleDefinition> found = rules.definition(entry.rule());
+            if (found.isEmpty()) {
+                LOGGER.warn("{} sent an unknown game rule: {}", player.name(), entry.rule());
+                continue;
+            }
+            final GameRuleDefinition rule = found.get();
+            if (!rule.implemented()) {
+                player.sendMessage(Component.translatable("commands.gamerule.unsupported", Component.text(rule.id())));
+                continue;
+            }
+            final Integer value = rule.parse(entry.value());
+            if (value == null) {
+                LOGGER.warn("{} sent an invalid value for game rule {}: {}", player.name(), rule.id(), entry.value());
+                continue;
+            }
+            switch (rules.apply(rule, value, GameRuleChangeEvent.Cause.GAME_RULE_SCREEN, player)) {
+                case CHANGED -> {
+                    final String applied = rule.format(rules.get(rule));
+                    LOGGER.info("{} set game rule {} to {} from the game rule screen", player.name(), rule.id(), applied);
+                    player.sendMessage(Component.translatable(
+                            "commands.gamerule.set", Component.text(rule.id()), Component.text(applied)));
+                }
+                case CANCELLED -> player.sendMessage(
+                        Component.translatable("commands.gamerule.cancelled", Component.text(rule.id())));
+                case UNCHANGED -> {
+                }
+            }
         }
     }
 

@@ -58,6 +58,7 @@
   "command.fillbiome.console" : "<red>Run this command as a player, or with /execute in a world.",
   "command.fillbiome.outofworld" : "<red>The region is entirely outside the world.",
   "command.fillbiome.failed" : "<red>Could not load a chunk of the region: <arg:0>",
+  "command.fillbiome.toobig" : "<red>Too many blocks in the specified volume (maximum <arg:0>, specified <arg:1>)",
 
   "command.place.console" : "<red>Run this command as a player, or with /execute in a world.",
   "command.place.rotation.invalid" : "<red>Unknown rotation: <arg:0> (none, clockwise_90, clockwise_180, counterclockwise_90)",
@@ -233,5 +234,10 @@
   "commands.forceload.query.failure": "<red>Chunk at <arg:0> in <arg:1> is not marked for force loading",
   "commands.forceload.toobig": "<red>Too many chunks in the specified area (maximum <arg:0>, specified <arg:1>)",
   "commands.forceload.no_world": "<red>No world is currently available to run this command in",
-  "argument.pos.outofworld": "<red>That position is out of this world!"
+  "argument.pos.outofworld": "<red>That position is out of this world!",
+
+  "commands.gamerule.query": "Gamerule <arg:0> is currently set to: <arg:1>",
+  "commands.gamerule.set": "Gamerule <arg:0> is now set to: <arg:1>",
+  "commands.gamerule.cancelled": "<red>The change of gamerule <arg:0> was cancelled",
+  "commands.gamerule.unsupported": "<red>Gamerule <arg:0> is not supported by this server yet; its value was left unchanged"
 }

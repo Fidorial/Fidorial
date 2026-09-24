@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -86,13 +87,24 @@ public class DayNightThread implements AutoCloseable {
         if (sync) {
             sinceLastSync = 0;
         }
+        final boolean advanceTime = advanceTime();
         for (final ServerWorld world : worldManager.worlds()) {
             attach(world);
             final WorldTimeEngine cycle = world.dayNightCycle();
-            cycle.tick();
+            cycle.tick(advanceTime);
             if (sync) {
                 broadcast(world, cycle);
             }
+        }
+    }
+
+    private boolean advanceTime() {
+        return worldManager.levelData().gameRules.getBoolean(GameRuleKeys.ADVANCE_TIME);
+    }
+
+    public void resyncAll() {
+        for (final ServerWorld world : worldManager.worlds()) {
+            broadcast(world, world.dayNightCycle());
         }
     }
 
@@ -126,7 +138,7 @@ public class DayNightThread implements AutoCloseable {
             }
             return null;
         }
-        return new ClientboundSetTimePacket(cycle.worldAge(), List.of(cycle.snapshot(networkId)));
+        return new ClientboundSetTimePacket(cycle.worldAge(), List.of(cycle.snapshot(networkId, advanceTime())));
     }
 
     @Override

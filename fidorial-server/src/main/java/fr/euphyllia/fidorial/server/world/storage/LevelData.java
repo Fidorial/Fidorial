@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
+import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
@@ -38,6 +39,7 @@ public final class LevelData {
 
     private static final String DIMENSIONS = "dimensions";
     private static final String WORLD_CLOCKS = "WorldClocks";
+    private static final String LEGACY_DAYLIGHT_RULE = "doDaylightCycle";
 
     private static final Path GAME_RULES_PATH = Path.of("minecraft", "game_rules.dat");
     private static final Path WORLD_GEN_SETTINGS_PATH = Path.of("minecraft", "world_gen_settings.dat");
@@ -80,6 +82,8 @@ public final class LevelData {
     public int clearWeatherTime = 0;
 
     public boolean doDaylightCycle = true;
+
+    public final GameRuleValues gameRules = new GameRuleValues();
 
     public final Map<Key, WorldTime> worldTimes = new LinkedHashMap<>();
     public final Map<Key, BossBarData> bossBars = new LinkedHashMap<>();
@@ -184,16 +188,23 @@ public final class LevelData {
 
     private void readDimensionData(final CompoundBinaryTag legacyData, final Path dataDir) throws IOException {
         if (Files.isRegularFile(dataDir.resolve(GAME_RULES_PATH))) {
-            readIfPresent(dataDir.resolve(GAME_RULES_PATH), gameRules -> {
-                if (gameRules.contains("doDaylightCycle")) {
-                    doDaylightCycle = !"false".equals(gameRules.getString("doDaylightCycle"));
+            final Set<String> ignored = Files.isRegularFile(dataDir.resolve(WORLD_CLOCKS_PATH))
+                    ? Set.of(LEGACY_DAYLIGHT_RULE)
+                    : Set.of();
+            readIfPresent(dataDir.resolve(GAME_RULES_PATH), rules -> {
+                if (rules.contains(LEGACY_DAYLIGHT_RULE)) {
+                    doDaylightCycle = !"false".equals(rules.getString(LEGACY_DAYLIGHT_RULE));
                 }
+                gameRules.load(rules, ignored);
             });
         } else if (legacyData.contains("GameRules")) {
-            final CompoundBinaryTag gameRules = legacyData.getCompound("GameRules");
-            if (gameRules.contains("doDaylightCycle")) {
-                doDaylightCycle = !"false".equals(gameRules.getString("doDaylightCycle"));
+            final CompoundBinaryTag rules = legacyData.getCompound("GameRules");
+            if (rules.contains(LEGACY_DAYLIGHT_RULE)) {
+                doDaylightCycle = !"false".equals(rules.getString(LEGACY_DAYLIGHT_RULE));
             }
+            gameRules.load(rules, Set.of());
+        } else if (legacyData.contains("game_rules")) {
+            gameRules.load(legacyData.getCompound("game_rules"), Set.of());
         }
 
         if (Files.isRegularFile(dataDir.resolve(WEATHER_PATH))) {
@@ -264,7 +275,7 @@ public final class LevelData {
 
             final Set<UUID> players = new HashSet<>();
             for (final BinaryTag entry : bar.getList("Players")) {
-                if (entry instanceof IntArrayBinaryTag iat) {
+                if (entry instanceof final IntArrayBinaryTag iat) {
                     players.add(AnvilEntitySerializer.uuidFromInts(iat.value()));
                 }
             }
@@ -358,8 +369,7 @@ public final class LevelData {
     }
 
     private void writeDimensionData(final Path dataDir) throws IOException {
-        writeDatFile(dataDir.resolve(GAME_RULES_PATH), gameRules ->
-                gameRules.putString("doDaylightCycle", Boolean.toString(doDaylightCycle)));
+        writeDatFile(dataDir.resolve(GAME_RULES_PATH), gameRules::save);
 
         writeDatFile(dataDir.resolve(WEATHER_PATH), weather -> {
             weather.putBoolean("raining", raining);

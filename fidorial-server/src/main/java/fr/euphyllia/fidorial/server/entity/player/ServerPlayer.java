@@ -46,6 +46,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.Location;
@@ -489,10 +490,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public <T> void sendTitlePart(final TitlePart<T> titlePart, final T value) {
         switch (value) {
-            case Component message -> connection.send(titlePart == TitlePart.TITLE
+            case final Component message -> connection.send(titlePart == TitlePart.TITLE
                     ? new ClientboundSetTitleTextPacket(prepareMessageForSend(message))
                     : new ClientboundSetSubtitleTextPacket(prepareMessageForSend(message)));
-            case Title.Times times -> connection.send(new ClientboundSetTitlesAnimationPacket(
+            case final Title.Times times -> connection.send(new ClientboundSetTitlesAnimationPacket(
                     convertDurationToTicks(times.fadeIn()),
                     convertDurationToTicks(times.stay()),
                     convertDurationToTicks(times.fadeOut())));
@@ -748,6 +749,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     private void tickRegeneration(final long currentTick) {
         if (health() >= maxHealth() || currentTick % REGENERATION_INTERVAL_TICKS != 0) {
+            return;
+        }
+        if (!connection.server().gameRules().getBoolean(GameRuleKeys.NATURAL_HEALTH_REGENERATION)) {
             return;
         }
         heal(REGENERATION_AMOUNT);

@@ -24,7 +24,9 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.world.ChunkPos;
 import me.lucko.spark.common.platform.world.AbstractChunkInfo;
 import me.lucko.spark.common.platform.world.CountMap;
@@ -80,8 +82,19 @@ public final class SparkWorldInfoProvider implements WorldInfoProvider {
 
     @Override
     public GameRulesResult pollGameRules() {
-        // TODO: no game rule registry yet. Returning null keeps the Game Rules tab hidden rather
-        return null;
+        final GameRulesResult result = new GameRulesResult();
+        final FidorialGameRules rules = this.server.gameRules();
+
+        for (final GameRuleDefinition rule : rules.definitions()) {
+            final String name = rule.id();
+            final String value = rule.format(rules.get(rule));
+            result.putDefault(name, rule.format(rule.defaultValue()));
+            for (final ServerWorld world : this.server.worldManager().worlds()) {
+                result.put(name, world.key().asString(), value);
+            }
+        }
+
+        return result;
     }
 
     @Override
