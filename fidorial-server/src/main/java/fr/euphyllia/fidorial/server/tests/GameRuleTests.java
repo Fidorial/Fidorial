@@ -14,6 +14,7 @@ import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
+import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldBuilder;
@@ -26,7 +27,9 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
 public final class GameRuleTests {
@@ -222,24 +225,37 @@ public final class GameRuleTests {
         }
     }
 
-    @ScenarioTest(timeoutTicks = 40)
+    @ScenarioTest(timeoutTicks = 60)
     public static void overriddenDamageRuleOnlyAppliesInItsWorld(final ScenarioTestHelper helper) {
         final World other = overridingWorld();
-        final Player player = helper.summonPlayer("NoFallInOtherWorld", other, new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final AtomicBoolean hurt = new AtomicBoolean(true);
+        final Player player = helper.summonPlayer("NoFallInOtherWorld", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final Location destination = new Location(0.5, 65, 0.5, 0f, 0f);
+        final AtomicReference<CompletableFuture<Boolean>> teleport = new AtomicReference<>();
+        final CompletableFuture<Boolean> hurt = new CompletableFuture<>();
+        final AtomicBoolean hurtWhenOverriddenToTrue = new AtomicBoolean(false);
 
         helper.sequence()
-                .execute(() -> {
+                .execute(() -> teleport.set(player.teleport(other, destination)))
+                .waitUntil(() -> teleport.get().isDone() && player.world().equals(other),
+                        "Expected the player to reach the world overriding fall_damage")
+                .execute(() -> helper.assertTrue(other.scheduler().execute(other.key(), new ChunkPos(0, 0), () -> {
                     other.gameRules().setBoolean(GameRuleKeys.FALL_DAMAGE, false);
                     try {
-                        hurt.set(player.damage(DamageSource.fall(), 4f));
+                        final boolean hurtWhenDisabled = player.damage(DamageSource.fall(), 4f);
+                        other.gameRules().setBoolean(GameRuleKeys.FALL_DAMAGE, true);
+                        hurtWhenOverriddenToTrue.set(player.damage(DamageSource.fall(), 4f));
+                        hurt.complete(hurtWhenDisabled);
+                    } catch (final RuntimeException e) {
+                        hurt.completeExceptionally(e);
                     } finally {
                         other.gameRules().removeOverride(GameRuleKeys.FALL_DAMAGE);
                     }
-                })
-                .execute(() -> helper.assertTrue(!hurt.get(), "Expected no fall damage where fall_damage is overridden to false"))
-                .execute(() -> helper.assertTrue(FidorialServer.getInstance().gameRules().getBoolean(GameRuleKeys.FALL_DAMAGE),
-                        "The base value must stay untouched"))
+                }), "Expected the damage to be scheduled in the other world"))
+                .waitUntil(hurt::isDone, "Expected the fall damage to be applied in the other world")
+                .execute(() -> helper.assertTrue(!hurt.join(), "Expected no fall damage where fall_damage is overridden to false"))
+                .execute(() -> helper.assertTrue(hurtWhenOverriddenToTrue.get(), "Expected fall damage where fall_damage is overridden to true"))
+                .execute(() -> helper.assertTrue(!other.gameRules().isOverridden(GameRuleKeys.FALL_DAMAGE),
+                        "The override should be removed once the test is over"))
                 .build();
     }
 
