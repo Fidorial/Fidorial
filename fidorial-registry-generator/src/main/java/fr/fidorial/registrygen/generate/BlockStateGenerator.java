@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Generates block state files from Mojang's {@code reports/blocks.json}.
@@ -42,6 +44,8 @@ public final class BlockStateGenerator {
     private static final ClassName LIST = ClassName.get(List.class);
     private static final ClassName OBJECT_2_INT_OPEN_HASH_MAP =
             ClassName.get("it.unimi.dsi.fastutil.objects", "Object2IntOpenHashMap");
+    private static final ClassName STREAM = ClassName.get(Stream.class);
+    private static final ClassName CONSUMER = ClassName.get(Consumer.class);
 
     /**
      * Generates {@code BlockStateIds}, and — when Prismarine lighting data is supplied —
@@ -122,13 +126,9 @@ public final class BlockStateGenerator {
                                                          final Packages pkgs) {
 
         final ParameterSpec registryParameter = ParameterSpec.builder(pkgs.blockRegistry(), "registry", Modifier.FINAL).build();
+        final ClassName protocolIdsClassName = ClassName.get(pkgs.dataPackage(), PROTOCOL_IDS_CLASS_NAME);
 
-        final MethodSpec.Builder registerAll = MethodSpec.methodBuilder("registerAll")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                .addParameter(registryParameter)
-                .addJavadoc("Registers every generated block type with the given registry.\n\n")
-                .addJavadoc("@param registry the registry to populate\n");
-
+        final List<String> chunkMethodNames = new ArrayList<>();
         int chunkIndex = 0;
         for (int start = 0; start < blocks.size(); start += NETWORK_BLOCKS_PER_METHOD) {
 
@@ -136,12 +136,50 @@ public final class BlockStateGenerator {
             final String chunkMethodName = "register" + chunkIndex;
 
             protocolIds.addMethod(createRegistrationChunkMethod(chunkMethodName, registryParameter, blocks.subList(start, end), pkgs));
-            registerAll.addStatement("$N($N)", chunkMethodName, registryParameter);
+            chunkMethodNames.add(chunkMethodName);
 
             chunkIndex++;
         }
 
-        protocolIds.addMethod(registerAll.build());
+        protocolIds.addMethod(createRegisterAllMethod(registryParameter, chunkMethodNames, protocolIdsClassName, pkgs));
+    }
+
+    private static MethodSpec createRegisterAllMethod(final ParameterSpec registryParameter,
+                                                      final List<String> chunkMethodNames,
+                                                      final ClassName protocolIdsClassName,
+                                                      final Packages pkgs) {
+
+        final MethodSpec.Builder registerAll = MethodSpec.methodBuilder("registerAll")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addParameter(registryParameter)
+                .addJavadoc("Registers every generated block type with the given registry.\n\n")
+                .addJavadoc("@param registry the registry to populate\n");
+
+        if (chunkMethodNames.size() <= 1) {
+            for (final String chunkMethodName : chunkMethodNames) {
+                registerAll.addStatement("$N($N)", chunkMethodName, registryParameter);
+            }
+            return registerAll.build();
+        }
+
+        final ParameterizedTypeName consumerType = ParameterizedTypeName.get(CONSUMER, pkgs.blockRegistry());
+
+        final CodeBlock.Builder body = CodeBlock.builder();
+        body.add("$T.of(\n", STREAM).indent();
+        for (int i = 0; i < chunkMethodNames.size(); i++) {
+            final String chunkMethodName = chunkMethodNames.get(i);
+            if (i == 0) {
+                body.add("($T) $T::$N", consumerType, protocolIdsClassName, chunkMethodName);
+            } else {
+                body.add("$T::$N", protocolIdsClassName, chunkMethodName);
+            }
+            body.add(i < chunkMethodNames.size() - 1 ? ",\n" : "\n");
+        }
+        body.unindent().add(")\n");
+        body.add(".parallel()\n");
+        body.add(".forEach($N -> $N.accept($N));\n", "fn", "fn", registryParameter);
+
+        return registerAll.addCode(body.build()).build();
     }
 
     private static MethodSpec createRegistrationChunkMethod(final String methodName,

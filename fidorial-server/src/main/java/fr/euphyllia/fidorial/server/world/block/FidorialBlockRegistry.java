@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
@@ -19,7 +20,7 @@ public final class FidorialBlockRegistry implements BlockRegistry {
     private final Map<Key, BlockType> types = new ConcurrentHashMap<>();
     private final Map<Key, BlockBehaviour> behaviours = new ConcurrentHashMap<>();
     private final Map<Key, BlockBehaviour> fallbackBehaviours = new ConcurrentHashMap<>();
-    private final Map<Integer, BlockData> byNetworkId = new ConcurrentHashMap<>();
+    private final ConcurrentInt2ObjectMap<BlockData> byNetworkId = new ConcurrentInt2ObjectMap<>();
 
     @Override
     public void register(final BlockType type) {

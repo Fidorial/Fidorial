@@ -5,7 +5,6 @@ import net.kyori.adventure.key.Key;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,28 +16,47 @@ public final class BlockState {
     private final boolean fluid;
 
     private volatile LightProperties lightProperties;
-    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(65_536);
 
     private BlockState(final Key name, final Map<String, String> properties) {
         this.name = name;
         this.properties = properties.isEmpty()
                 ? Collections.emptyMap()
                 : Collections.unmodifiableMap(new TreeMap<>(properties));
-        this.hashCode = Objects.hash(this.name, this.properties);
+        this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
         this.air = name.equals(BlockTypeKeys.AIR.key()) || name.equals(BlockTypeKeys.CAVE_AIR.key()) || name.equals(BlockTypeKeys.VOID_AIR.key());
         this.fluid = name.equals(BlockTypeKeys.WATER.key())
                 || name.equals(BlockTypeKeys.LAVA.key())
                 || "true".equals(this.properties.get("waterlogged"));
     }
 
+    private BlockState(final Key name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean fluid) {
+        this.name = name;
+        this.properties = properties;
+        this.hashCode = hashCode;
+        this.air = air;
+        this.fluid = fluid;
+    }
+
     public static BlockState of(final Key name) {
-        return of(name, Collections.emptyMap());
+        return of(name, Collections.emptyMap(), true);
     }
 
     public static BlockState of(final Key name, final Map<String, String> properties) {
-        final BlockState candidate = new BlockState(name, properties);
-        final BlockState existing = INTERN.putIfAbsent(candidate, candidate);
-        return existing != null ? existing : candidate;
+        return of(name, properties, true);
+    }
+
+    static BlockState of(final Key name, final Map<String, String> properties, final boolean checkIntern) {
+        if (checkIntern) {
+            final int hash = 31 * name.hashCode() + properties.hashCode();
+            final BlockState existing = INTERN.get(new BlockState(name, properties, hash, false, false)); // safe to pass whatever value for air and fluid as they're discarded in this context
+            if (existing != null) {
+                return existing;
+            }
+        }
+        final BlockState created = new BlockState(name, properties);
+        final BlockState previous = INTERN.putIfAbsent(created, created);
+        return previous != null ? previous : created;
     }
 
     public Key name() {
