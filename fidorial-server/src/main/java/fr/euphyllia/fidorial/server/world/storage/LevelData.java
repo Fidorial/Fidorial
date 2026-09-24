@@ -39,7 +39,7 @@ public final class LevelData {
 
     private static final String DIMENSIONS = "dimensions";
     private static final String WORLD_CLOCKS = "WorldClocks";
-    private static final String LEGACY_DAYLIGHT_RULE = "doDaylightCycle";
+    private static final String GAME_RULES = "game_rules";
 
     private static final Path GAME_RULES_PATH = Path.of("minecraft", "game_rules.dat");
     private static final Path WORLD_GEN_SETTINGS_PATH = Path.of("minecraft", "world_gen_settings.dat");
@@ -188,23 +188,9 @@ public final class LevelData {
 
     private void readDimensionData(final CompoundBinaryTag legacyData, final Path dataDir) throws IOException {
         if (Files.isRegularFile(dataDir.resolve(GAME_RULES_PATH))) {
-            final Set<String> ignored = Files.isRegularFile(dataDir.resolve(WORLD_CLOCKS_PATH))
-                    ? Set.of(LEGACY_DAYLIGHT_RULE)
-                    : Set.of();
-            readIfPresent(dataDir.resolve(GAME_RULES_PATH), rules -> {
-                if (rules.contains(LEGACY_DAYLIGHT_RULE)) {
-                    doDaylightCycle = !"false".equals(rules.getString(LEGACY_DAYLIGHT_RULE));
-                }
-                gameRules.load(rules, ignored);
-            });
-        } else if (legacyData.contains("GameRules")) {
-            final CompoundBinaryTag rules = legacyData.getCompound("GameRules");
-            if (rules.contains(LEGACY_DAYLIGHT_RULE)) {
-                doDaylightCycle = !"false".equals(rules.getString(LEGACY_DAYLIGHT_RULE));
-            }
-            gameRules.load(rules, Set.of());
-        } else if (legacyData.contains("game_rules")) {
-            gameRules.load(legacyData.getCompound("game_rules"), Set.of());
+            readIfPresent(dataDir.resolve(GAME_RULES_PATH), gameRules::load);
+        } else if (legacyData.get(GAME_RULES) instanceof final CompoundBinaryTag rules) {
+            gameRules.load(rules);
         }
 
         if (Files.isRegularFile(dataDir.resolve(WEATHER_PATH))) {

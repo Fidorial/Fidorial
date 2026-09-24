@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.tests;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V1_21_11.level.V4660;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
@@ -14,14 +16,18 @@ import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.Location;
 import net.kyori.adventure.nbt.ByteBinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.TagStringIO;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("unused")
 public final class GameRuleTests {
+
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(GameRuleTests.class);
 
     @ScenarioTest(timeoutTicks = 20)
     public static void valuesSurviveASaveRoundTrip(final ScenarioTestHelper helper) {
@@ -29,7 +35,7 @@ public final class GameRuleTests {
         original.load(CompoundBinaryTag.builder()
                 .putBoolean("minecraft:keep_inventory", true)
                 .putInt("minecraft:random_tick_speed", 10)
-                .build(), Set.of());
+                .build());
 
         final CompoundBinaryTag.Builder saved = CompoundBinaryTag.builder();
         original.save(saved);
@@ -38,30 +44,49 @@ public final class GameRuleTests {
         helper.assertTrue(tag.getInt("minecraft:random_tick_speed") == 10, "Expected random_tick_speed to be saved as an int");
 
         final GameRuleValues reloaded = new GameRuleValues();
-        reloaded.load(tag, Set.of());
+        reloaded.load(tag);
         helper.assertTrue(reloaded.getBoolean(GameRuleKeys.KEEP_INVENTORY), "Expected keep_inventory=true after reload");
         helper.assertTrue(reloaded.getInt(GameRuleKeys.RANDOM_TICK_SPEED) == 10, "Expected random_tick_speed=10 after reload");
         helper.assertTrue(reloaded.getBoolean(GameRuleKeys.ADVANCE_TIME), "Expected untouched rules to keep their default");
     }
 
     @ScenarioTest(timeoutTicks = 20)
-    public static void legacyCamelCaseRulesAreImported(final ScenarioTestHelper helper) {
-        final CompoundBinaryTag legacy = CompoundBinaryTag.builder()
-                .putString("keepInventory", "true")
-                .putString("disableRaids", "true")
-                .putString("doFireTick", "false")
-                .putString("randomTickSpeed", "7")
-                .put("minecraft:rule_from_the_future", ByteBinaryTag.byteBinaryTag((byte) 1))
+    public static void legacyCamelCaseRulesAreUpgraded(final ScenarioTestHelper helper) {
+        final CompoundBinaryTag level = CompoundBinaryTag.builder()
+                .put("GameRules", CompoundBinaryTag.builder()
+                        .putString("keepInventory", "true")
+                        .putString("disableRaids", "true")
+                        .putString("doFireTick", "false")
+                        .putString("randomTickSpeed", "7")
+                        .putString("snowAccumulationHeight", "12")
+                        .putString("spawnChunkRadius", "2")
+                        .build())
                 .build();
+        LOGGER.info("[legacyCamelCaseRulesAreUpgraded] before V4660: {}", snbt(level));
+
+        final CompoundBinaryTag upgraded = ((NbtMapType) new V4660().convert(NbtMapType.of(level), 4658, 4660)).toCompound();
+        LOGGER.info("[legacyCamelCaseRulesAreUpgraded] after V4660:  {}", snbt(upgraded));
+
+        helper.assertTrue(!upgraded.contains("GameRules"), "GameRules should be renamed to game_rules");
+        final CompoundBinaryTag stored = upgraded.getCompound("game_rules");
+        helper.assertTrue(stored.get("spawnChunkRadius") == null, "Removed rules should be dropped");
 
         final GameRuleValues rules = new GameRuleValues();
-        rules.load(legacy, Set.of());
+        rules.load(stored);
         helper.assertTrue(rules.getBoolean(GameRuleKeys.KEEP_INVENTORY), "keepInventory should map to keep_inventory");
         helper.assertTrue(!rules.getBoolean(GameRuleKeys.RAIDS), "disableRaids=true should map to raids=false");
         helper.assertTrue(rules.getInt(GameRuleKeys.FIRE_SPREAD_RADIUS_AROUND_PLAYER) == 0,
                 "doFireTick=false should map to fire_spread_radius_around_player=0");
         helper.assertTrue(rules.getInt(GameRuleKeys.RANDOM_TICK_SPEED) == 7, "randomTickSpeed should map to random_tick_speed");
+        helper.assertTrue(rules.getInt(GameRuleKeys.MAX_SNOW_ACCUMULATION_HEIGHT) == 8, "Snow height should be clamped to 8");
+    }
 
+    @ScenarioTest(timeoutTicks = 20)
+    public static void unknownRulesAreWrittenBack(final ScenarioTestHelper helper) {
+        final GameRuleValues rules = new GameRuleValues();
+        rules.load(CompoundBinaryTag.builder()
+                .put("minecraft:rule_from_the_future", ByteBinaryTag.byteBinaryTag((byte) 1))
+                .build());
         final CompoundBinaryTag.Builder saved = CompoundBinaryTag.builder();
         rules.save(saved);
         helper.assertTrue(saved.build().get("minecraft:rule_from_the_future") != null,
@@ -146,6 +171,14 @@ public final class GameRuleTests {
                 .execute(() -> helper.assertTrue(!hurtWhileDisabled.get(), "Expected no fall damage with fall_damage=false"))
                 .execute(() -> helper.assertTrue(hurtWhileEnabled.get(), "Expected fall damage with fall_damage=true"))
                 .build();
+    }
+
+    private static String snbt(final CompoundBinaryTag tag) {
+        try {
+            return TagStringIO.tagStringIO().asString(tag);
+        } catch (final IOException e) {
+            return tag.toString();
+        }
     }
 
     private static boolean rejects(final Runnable action) {
