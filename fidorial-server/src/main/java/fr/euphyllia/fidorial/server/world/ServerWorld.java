@@ -871,5 +871,18 @@ public final class ServerWorld implements World {
             final ChunkSection section = column.sections()[idx];
             return section != null && !section.isEmpty() && section.containsEmissiveBlocks();
         }
+
+        @Override
+        public ColumnSnapshot snapshotAt(final int chunkX, final int chunkZ) {
+            final ChunkColumn column = loadedColumn(chunkX, chunkZ);
+            if (column == null) {
+                return new ColumnSnapshot(null, null, (minY >> 4) - 1, false);
+            }
+            final BlockColumnAccess columnAccess = (localX, worldY, localZ) ->
+                    (worldY < minY || worldY >= minY + height)
+                            ? BlockState.of(BlockTypeKeys.AIR.key())
+                            : column.getBlock(localX, worldY, localZ);
+            return new ColumnSnapshot(column.lightData(), columnAccess, column.topNonEmptySectionY(), column.lightPopulated());
+        }
     }
 }
