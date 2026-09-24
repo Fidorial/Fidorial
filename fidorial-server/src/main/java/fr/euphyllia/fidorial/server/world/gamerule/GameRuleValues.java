@@ -8,14 +8,12 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.NumberBinaryTag;
-import net.kyori.adventure.nbt.StringBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -79,13 +77,13 @@ public final class GameRuleValues {
         return index;
     }
 
-    public void load(final CompoundBinaryTag tag, final Set<String> ignoredNames) {
+    public void load(final CompoundBinaryTag tag) {
         final CompoundBinaryTag source = tag.get(SAVED_DATA_WRAPPER) instanceof final CompoundBinaryTag wrapped
                 ? wrapped
                 : tag;
 
         for (final String name : source.keySet()) {
-            if (name.equals(DATA_VERSION) || ignoredNames.contains(name)) {
+            if (name.equals(DATA_VERSION)) {
                 continue;
             }
             final BinaryTag raw = source.get(name);
@@ -93,31 +91,24 @@ public final class GameRuleValues {
                 continue;
             }
 
-            int index = VanillaGameRules.indexOf(name);
-            Integer value = index < 0 ? null : readValue(raw);
-
+            final int index = VanillaGameRules.indexOf(name);
             if (index < 0) {
-                final VanillaGameRules.Legacy legacy = VanillaGameRules.legacy(name);
-                if (legacy != null) {
-                    index = VanillaGameRules.indexOf(legacy.target().key());
-                    final Integer legacyValue = readValue(raw);
-                    value = legacyValue == null ? null : legacy.convert().applyAsInt(legacyValue);
-                } else if (Key.parseable(name)) {
+                if (Key.parseable(name)) {
                     unknown.put(name, raw);
                     LOGGER.debug("Unknown game rule '{}' kept as-is", name);
-                    continue;
                 } else {
-                    LOGGER.warn("Ignoring unknown legacy game rule '{}'", name);
-                    continue;
+                    LOGGER.warn("Dropping game rule '{}': not a registry key", name);
                 }
-            }
-
-            if (value == null) {
-                LOGGER.warn("Ignoring unreadable value {} for game rule '{}'", raw, name);
                 continue;
             }
+
             final GameRuleDefinition definition = VanillaGameRules.ALL.get(index);
-            values.set(index, sanitize(definition, value, name));
+            if (!(raw instanceof final NumberBinaryTag number)) {
+                LOGGER.warn("Ignoring non-numeric value {} for game rule '{}', keeping {}",
+                        raw, name, definition.format(definition.defaultValue()));
+                continue;
+            }
+            values.set(index, sanitize(definition, number.intValue(), name));
         }
     }
 
@@ -134,27 +125,6 @@ public final class GameRuleValues {
         for (final Map.Entry<String, BinaryTag> entry : unknown.entrySet()) {
             root.put(entry.getKey(), entry.getValue());
         }
-    }
-
-    private static @Nullable Integer readValue(final BinaryTag raw) {
-        if (raw instanceof final NumberBinaryTag number) {
-            return number.intValue();
-        }
-        if (raw instanceof final StringBinaryTag string) {
-            final String text = string.value().trim();
-            if (text.equalsIgnoreCase("true")) {
-                return 1;
-            }
-            if (text.equalsIgnoreCase("false")) {
-                return 0;
-            }
-            try {
-                return Integer.parseInt(text);
-            } catch (final NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
     }
 
     private static int sanitize(final GameRuleDefinition definition, final int value, final String name) {

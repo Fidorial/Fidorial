@@ -1,25 +1,21 @@
 package fr.euphyllia.fidorial.server.world.gamerule;
 
 import fr.fidorial.gamerule.GameRuleDefinition;
-import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.key.Key;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.IntUnaryOperator;
 
 import static fr.fidorial.gamerule.GameRuleDefinition.ofBoolean;
 import static fr.fidorial.gamerule.GameRuleDefinition.ofInteger;
 
 /**
  * Types, vanilla defaults and bounds of every entry of the {@code minecraft:game_rule} registry
- * (Minecraft 26.3), plus the pre-25w44a camelCase names used by older saves.
+ * (Minecraft 26.3).
  *
  * <p>The {@code implemented} flag says whether Fidorial wires the rule into its gameplay. Flip it
  * to {@code true} here once the matching mechanic exists: the rule then shows up in
@@ -36,7 +32,6 @@ public final class VanillaGameRules {
     public static final List<GameRuleDefinition> ALL;
 
     private static final Map<Key, Integer> INDEX_BY_KEY = new LinkedHashMap<>();
-    private static final Map<String, Legacy> LEGACY = new LinkedHashMap<>();
 
     static {
         final List<GameRuleDefinition> rules = new ArrayList<>(List.of(
@@ -110,78 +105,10 @@ public final class VanillaGameRules {
                 throw new IllegalStateException("Duplicate game rule definition: " + ALL.get(i).key().key());
             }
         }
-
-        legacy("allowEnteringNetherUsingPortals", GameRuleKeys.ALLOW_ENTERING_NETHER_USING_PORTALS);
-        legacy("announceAdvancements", GameRuleKeys.SHOW_ADVANCEMENT_MESSAGES);
-        legacy("blockExplosionDropDecay", GameRuleKeys.BLOCK_EXPLOSION_DROP_DECAY);
-        legacy("commandBlockOutput", GameRuleKeys.COMMAND_BLOCK_OUTPUT);
-        legacy("commandBlocksEnabled", GameRuleKeys.COMMAND_BLOCKS_WORK);
-        legacy("commandModificationBlockLimit", GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
-        legacyInverted("disableElytraMovementCheck", GameRuleKeys.ELYTRA_MOVEMENT_CHECK);
-        legacyInverted("disablePlayerMovementCheck", GameRuleKeys.PLAYER_MOVEMENT_CHECK);
-        legacyInverted("disableRaids", GameRuleKeys.RAIDS);
-        legacy("doDaylightCycle", GameRuleKeys.ADVANCE_TIME);
-        legacy("doEntityDrops", GameRuleKeys.ENTITY_DROPS);
-        LEGACY.put("doFireTick", new Legacy(GameRuleKeys.FIRE_SPREAD_RADIUS_AROUND_PLAYER, v -> v != 0 ? 128 : 0));
-        legacy("doImmediateRespawn", GameRuleKeys.IMMEDIATE_RESPAWN);
-        legacy("doInsomnia", GameRuleKeys.SPAWN_PHANTOMS);
-        legacy("doLimitedCrafting", GameRuleKeys.LIMITED_CRAFTING);
-        legacy("doMobLoot", GameRuleKeys.MOB_DROPS);
-        legacy("doMobSpawning", GameRuleKeys.SPAWN_MOBS);
-        legacy("doPatrolSpawning", GameRuleKeys.SPAWN_PATROLS);
-        legacy("doTileDrops", GameRuleKeys.BLOCK_DROPS);
-        legacy("doTraderSpawning", GameRuleKeys.SPAWN_WANDERING_TRADERS);
-        legacy("doVinesSpread", GameRuleKeys.SPREAD_VINES);
-        legacy("doWardenSpawning", GameRuleKeys.SPAWN_WARDENS);
-        legacy("doWeatherCycle", GameRuleKeys.ADVANCE_WEATHER);
-        legacy("drowningDamage", GameRuleKeys.DROWNING_DAMAGE);
-        legacy("enderPearlsVanishOnDeath", GameRuleKeys.ENDER_PEARLS_VANISH_ON_DEATH);
-        legacy("fallDamage", GameRuleKeys.FALL_DAMAGE);
-        legacy("fireDamage", GameRuleKeys.FIRE_DAMAGE);
-        legacy("forgiveDeadPlayers", GameRuleKeys.FORGIVE_DEAD_PLAYERS);
-        legacy("freezeDamage", GameRuleKeys.FREEZE_DAMAGE);
-        legacy("globalSoundEvents", GameRuleKeys.GLOBAL_SOUND_EVENTS);
-        legacy("keepInventory", GameRuleKeys.KEEP_INVENTORY);
-        legacy("lavaSourceConversion", GameRuleKeys.LAVA_SOURCE_CONVERSION);
-        legacy("locatorBar", GameRuleKeys.LOCATOR_BAR);
-        legacy("logAdminCommands", GameRuleKeys.LOG_ADMIN_COMMANDS);
-        legacy("maxCommandChainLength", GameRuleKeys.MAX_COMMAND_SEQUENCE_LENGTH);
-        legacy("maxCommandForkCount", GameRuleKeys.MAX_COMMAND_FORKS);
-        legacy("maxEntityCramming", GameRuleKeys.MAX_ENTITY_CRAMMING);
-        legacy("minecartMaxSpeed", GameRuleKeys.MAX_MINECART_SPEED);
-        legacy("mobExplosionDropDecay", GameRuleKeys.MOB_EXPLOSION_DROP_DECAY);
-        legacy("mobGriefing", GameRuleKeys.MOB_GRIEFING);
-        legacy("naturalRegeneration", GameRuleKeys.NATURAL_HEALTH_REGENERATION);
-        legacy("playersNetherPortalCreativeDelay", GameRuleKeys.PLAYERS_NETHER_PORTAL_CREATIVE_DELAY);
-        legacy("playersNetherPortalDefaultDelay", GameRuleKeys.PLAYERS_NETHER_PORTAL_DEFAULT_DELAY);
-        legacy("playersSleepingPercentage", GameRuleKeys.PLAYERS_SLEEPING_PERCENTAGE);
-        legacy("projectilesCanBreakBlocks", GameRuleKeys.PROJECTILES_CAN_BREAK_BLOCKS);
-        legacy("randomTickSpeed", GameRuleKeys.RANDOM_TICK_SPEED);
-        legacy("reducedDebugInfo", GameRuleKeys.REDUCED_DEBUG_INFO);
-        legacy("sendCommandFeedback", GameRuleKeys.SEND_COMMAND_FEEDBACK);
-        legacy("showDeathMessages", GameRuleKeys.SHOW_DEATH_MESSAGES);
-        legacy("snowAccumulationHeight", GameRuleKeys.MAX_SNOW_ACCUMULATION_HEIGHT);
-        legacy("spawnerBlocksEnabled", GameRuleKeys.SPAWNER_BLOCKS_WORK);
-        legacy("spawnRadius", GameRuleKeys.RESPAWN_RADIUS);
-        legacy("spectatorsGenerateChunks", GameRuleKeys.SPECTATORS_GENERATE_CHUNKS);
-        legacy("tntExplodes", GameRuleKeys.TNT_EXPLODES);
-        legacy("tntExplosionDropDecay", GameRuleKeys.TNT_EXPLOSION_DROP_DECAY);
-        legacy("universalAnger", GameRuleKeys.UNIVERSAL_ANGER);
-        legacy("waterSourceConversion", GameRuleKeys.WATER_SOURCE_CONVERSION);
-        legacy("pvp", GameRuleKeys.PVP);
     }
 
     private VanillaGameRules() {
     }
-
-    private static void legacy(final String name, final TypedKey<GameRule> key) {
-        LEGACY.put(name, new Legacy(key, IntUnaryOperator.identity()));
-    }
-
-    private static void legacyInverted(final String name, final TypedKey<GameRule> key) {
-        LEGACY.put(name, new Legacy(key, v -> v != 0 ? 0 : 1));
-    }
-
 
     public static int indexOf(final Key key) {
         final Integer index = INDEX_BY_KEY.get(key);
@@ -193,12 +120,5 @@ public final class VanillaGameRules {
             return -1;
         }
         return indexOf(Key.key(id));
-    }
-
-    public static @Nullable Legacy legacy(final String name) {
-        return LEGACY.get(name);
-    }
-
-    public record Legacy(TypedKey<GameRule> target, IntUnaryOperator convert) {
     }
 }

@@ -49,26 +49,37 @@ public final class DataFixer {
             current = registry.apply(current, sourceDataVersion);
         }
 
-        List<DataWalker<MapType>> walkers = this.walkers.get(type);
+        final List<DataWalker<MapType>> walkers = this.walkers.get(type);
         if (walkers != null) {
-            for (DataWalker<MapType> walker : walkers) {
+            for (final DataWalker<MapType> walker : walkers) {
                 current = walker.walk(current, sourceDataVersion, encodedTargetVersion);
             }
         }
 
+        if (current == null) {
+            return null;
+        }
+
         final List<NestedType> rules = nesting.get(type);
-        if (rules != null && current != null) {
+        if (rules != null) {
             for (final NestedType rule : rules) {
-                updateList(rule.nestedType(), current.getListUnchecked(rule.key(), null), sourceDataVersion);
+                final ListType list = current.getListUnchecked(rule.key(), null);
+                if (list != null) {
+                    updateList(rule.nestedType(), list, sourceDataVersion);
+                    current.setList(rule.key(), list);
+                }
             }
         }
 
         final List<NestedType> mapRules = nestedMaps.get(type);
-        if (mapRules != null && current != null) {
+        if (mapRules != null) {
             for (final NestedType rule : mapRules) {
                 final MapType nested = current.getMap(rule.key(), null);
                 if (nested != null) {
-                    update(rule.nestedType(), nested, sourceDataVersion);
+                    final MapType updated = update(rule.nestedType(), nested, sourceDataVersion);
+                    if (updated != null) {
+                        current.setMap(rule.key(), updated);
+                    }
                 }
             }
         }
@@ -83,7 +94,10 @@ public final class DataFixer {
         for (int i = 0, len = list.size(); i < len; ++i) {
             final MapType element = list.getMap(i, null);
             if (element != null) {
-                update(type, element, sourceDataVersion);
+                final MapType updated = update(type, element, sourceDataVersion);
+                if (updated != null) {
+                    list.setMap(i, updated);
+                }
             }
         }
     }
