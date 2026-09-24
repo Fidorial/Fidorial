@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 public final class BlockStates {
 
     private static final Object2ObjectOpenHashMap<Key, BlockState[]> BY_KEY = new Object2ObjectOpenHashMap<>();
-    private static final Object2ObjectOpenHashMap<Key, BlockState> DEFAULT = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<Key, @Nullable BlockState> DEFAULT = new Object2ObjectOpenHashMap<>();
 
     private BlockStates() {
         throw new UnsupportedOperationException("BlockStates cannot be instantiated.");
@@ -34,7 +34,7 @@ public final class BlockStates {
 
         final BlockState[] states = new BlockState[stateCount];
         for (int ordinal = 0; ordinal < stateCount; ordinal++) {
-            states[ordinal] = BlockState.of(key, type.propertyValuesAt(ordinal));
+            states[ordinal] = BlockState.of(key, type.propertyValuesAt(ordinal), false); // safe here as this is during bootstrap so there isn't anything interned for us
         }
 
         BY_KEY.put(key, states);
