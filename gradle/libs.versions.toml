@@ -19,7 +19,7 @@ dfu = "10.0.21"
 adventure-nbt-dfu = "0.1.2"
 spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
-leafpile = "1.2.0"
+leafpile = "1.2.2"
 
 [libraries]
 netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
