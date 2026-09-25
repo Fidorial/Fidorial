@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.world.chunk;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import fr.fidorial.world.light.LightType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -35,7 +37,7 @@ public class AnvilChunkSerializer {
         root.putInt("xPos", chunk.chunkX());
         root.putInt("zPos", chunk.chunkZ());
         root.putInt("yPos", chunk.minSectionY());
-        root.putString("Status", chunk.status().asString());
+        root.putString("status", chunk.status().asString());
         root.putLong("LastUpdate", chunk.lastUpdate());
         root.putLong("InhabitedTime", chunk.inhabitedTime());
         root.putBoolean("isLightOn", chunk.lightPopulated());
@@ -110,7 +112,7 @@ public class AnvilChunkSerializer {
             final int localZ = compound.getInt("z") & 15;
             final int y = compound.getInt("y");
 
-            CompoundBinaryTag.Builder data = CompoundBinaryTag.builder();
+            final CompoundBinaryTag.Builder data = CompoundBinaryTag.builder();
             for (final String key : compound.keySet()) {
                 if (!BLOCK_ENTITY_CONTAINER_KEYS.contains(key)) {
                     data.put(key, compound.get(key));
@@ -146,7 +148,7 @@ public class AnvilChunkSerializer {
         blockStates.put("palette", blockPalette.build());
         final long[] blockData = section.blocks().packedData();
         if (blockData != null) {
-            blockStates.putLongArray("tool/data", blockData);
+            blockStates.putLongArray("data", blockData);
         }
         c.put("block_states", blockStates.build());
 
@@ -159,7 +161,7 @@ public class AnvilChunkSerializer {
         biomes.put("palette", biomePalette.build());
         final long[] biomeData = section.biomes().packedData();
         if (biomeData != null) {
-            biomes.putLongArray("tool/data", biomeData);
+            biomes.putLongArray("data", biomeData);
         }
         c.put("biomes", biomes.build());
 
@@ -184,7 +186,7 @@ public class AnvilChunkSerializer {
         final int chunkZ = root.getInt("zPos");
 
         final ChunkColumn chunk = new ChunkColumn(chunkX, chunkZ, minY, height, defaultBlock, defaultBiome);
-        chunk.setStatus(root.contains("Status") ? Key.key(root.getString("Status")) : Key.key("full"));
+        chunk.setStatus(root.contains("status") ? Key.key(root.getString("status")) : Key.key("full"));
         chunk.setInhabitedTime(root.getLong("InhabitedTime"));
         chunk.setLastUpdate(root.getLong("LastUpdate"));
 
@@ -231,17 +233,19 @@ public class AnvilChunkSerializer {
         }
         if (blockPalette.isEmpty()) blockPalette.add(defaultBlock);
         final PalettedContainer<BlockState> blocks =
-                PalettedContainer.fromNbt(ChunkSection.BLOCK_COUNT, 4, blockPalette, bs.getLongArray("tool/data"));
+                PalettedContainer.fromNbt(ChunkSection.BLOCK_COUNT, 4, blockPalette, bs.getLongArray("data"));
 
         // biomes
         final List<Key> biomePalette = new ArrayList<>();
-        final CompoundBinaryTag bio = c.getCompound("biomes");
+        final CompoundBinaryTag bio = !c.contains("biomes") && c.contains("noise_biomes")
+                ? ((NbtMapType) V5119.expandNoiseBiomes(NbtMapType.of(c.getCompound("noise_biomes")))).toCompound()
+                : c.getCompound("biomes");
         for (final BinaryTag t : bio.getList("palette")) {
-            if (t instanceof StringBinaryTag st) biomePalette.add(Key.key(st.value()));
+            if (t instanceof final StringBinaryTag st) biomePalette.add(Key.key(st.value()));
         }
         if (biomePalette.isEmpty()) biomePalette.add(defaultBiome);
         final PalettedContainer<Key> biomes =
-                PalettedContainer.fromNbt(ChunkSection.BIOME_COUNT, 1, biomePalette, bio.getLongArray("tool/data"));
+                PalettedContainer.fromNbt(ChunkSection.BIOME_COUNT, 1, biomePalette, bio.getLongArray("data"));
 
         return new ChunkSection(sectionY, blocks, biomes);
     }
@@ -254,7 +258,7 @@ public class AnvilChunkSerializer {
         }
         final Map<String, String> map = new TreeMap<>();
         for (final String key : props.keySet()) {
-            if (props.get(key) instanceof StringBinaryTag st) {
+            if (props.get(key) instanceof final StringBinaryTag st) {
                 map.put(key, st.value());
             }
         }

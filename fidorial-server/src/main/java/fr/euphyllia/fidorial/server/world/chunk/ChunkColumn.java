@@ -86,21 +86,19 @@ public final class ChunkColumn {
             return false;
         }
 
-        final int bx = localX >> 2;
-        final int by = (worldY & 15) >> 2;
-        final int bz = localZ >> 2;
+        final int y = worldY & 15;
 
-        if (biome.equals(section.getBiome(bx, by, bz))) {
+        if (biome.equals(section.getBiome(localX, y, localZ))) {
             return false;
         }
 
-        section.setBiome(bx, by, bz, biome);
+        section.setBiome(localX, y, localZ, biome);
         return true;
     }
 
     public @Nullable Key getBiome(final int localX, final int worldY, final int localZ) {
         final ChunkSection chunkSection = sectionForY(worldY);
-        return chunkSection == null ? null : chunkSection.getBiome(localX >> 2, (worldY & 15) >> 2, localZ >> 2);
+        return chunkSection == null ? null : chunkSection.getBiome(localX, worldY & 15, localZ);
     }
 
     public long inhabitedTime() {

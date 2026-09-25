@@ -108,10 +108,10 @@ public final class FillBiomeCommand {
         }
 
         final Map<ChunkPos, List<int[]>> byChunk = new LinkedHashMap<>();
-        for (int x = minX & ~3; x <= maxX; x += 4) {
-            for (int z = minZ & ~3; z <= maxZ; z += 4) {
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 final ChunkPos chunkPos = new ChunkPos(x >> 4, z >> 4);
-                for (int y = minY & ~3; y <= maxY; y += 4) {
+                for (int y = minY; y <= maxY; y++) {
                     byChunk.computeIfAbsent(chunkPos, _ -> new ArrayList<>()).add(new int[] {x, y, z});
                 }
             }

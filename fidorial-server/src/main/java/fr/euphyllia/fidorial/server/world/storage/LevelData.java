@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
 import ca.spottedleaf.converter.types.MapType;
-import com.google.common.hash.Hashing;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -469,10 +468,6 @@ public final class LevelData {
                 yield generator.build();
             }
         };
-    }
-
-    public long hashedSeed() {
-        return Hashing.sha256().hashLong(seed).asLong();
     }
 
     public boolean exists(final Path levelDat) {

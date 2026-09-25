@@ -190,6 +190,12 @@
       "minecraft:allows_tropical_fish_spawns_at_any_height": [
         "minecraft:lush_caves"
       ],
+      "minecraft:generated_in_below_zero_retrogen": [
+        "minecraft:deep_dark",
+        "minecraft:dripstone_caves",
+        "minecraft:lush_caves",
+        "minecraft:sulfur_caves"
+      ],
       "minecraft:has_structure/abandoned_camp_bamboo_jungle": [
         "minecraft:bamboo_jungle"
       ],
@@ -618,6 +624,12 @@
       "minecraft:is_beach": [
         "minecraft:beach",
         "minecraft:snowy_beach"
+      ],
+      "minecraft:is_cave": [
+        "minecraft:deep_dark",
+        "minecraft:dripstone_caves",
+        "minecraft:lush_caves",
+        "minecraft:sulfur_caves"
       ],
       "minecraft:is_deep_ocean": [
         "minecraft:deep_cold_ocean",

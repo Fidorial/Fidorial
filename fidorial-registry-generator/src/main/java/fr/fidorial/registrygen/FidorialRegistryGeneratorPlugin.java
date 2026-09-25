@@ -215,7 +215,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         return project.getTasks().register(BLOCK_STATES_TASK_NAME, GenerateBlockStatesTask.class, task -> {
             task.setGroup("fidorial registry generation");
             task.setDescription("Generates BlockType registrations from Mojang's blocks report.");
-            task.dependsOn(reportsTask);
+            task.dependsOn(reportsTask, prismarineTask);
 
             task.onlyIf(_ -> extension.getGenerateBlockStates().getOrElse(false));
 

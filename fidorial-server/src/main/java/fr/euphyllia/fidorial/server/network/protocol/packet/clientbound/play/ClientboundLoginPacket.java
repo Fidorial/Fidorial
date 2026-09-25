@@ -14,7 +14,6 @@ public record ClientboundLoginPacket(
         Key[] dimensions,
         Key dimensionKey,
         int dimensionTypeId,
-        long hashedSeed,
         int viewDistance,
         int simulationDistance,
         int gameMode,
@@ -45,7 +44,6 @@ public record ClientboundLoginPacket(
         buf.writeBoolean(doLimitedCrafting); // game rule limited_crafting
         buf.writeVarInt(dimensionTypeId);
         buf.writeKey(dimensionKey);
-        buf.writeLong(hashedSeed); // hashedSeed
         buf.writeVarInt(gameMode); // gameMode (survie)
         buf.writeVarInt(0); // previousGameMode
         buf.writeBoolean(isDebug); // isDebug

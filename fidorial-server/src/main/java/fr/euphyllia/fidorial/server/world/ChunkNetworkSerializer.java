@@ -27,7 +27,7 @@ public final class ChunkNetworkSerializer {
     private final BlockStateRegistry blockRegistry;
     private static final byte[] FULL_LIGHT = fullLight();
     private final FidorialBiomeRegistry biomes;
-    private static final int MAX_INDIRECT_BIOME_BITS = 3;
+    private static final int MAX_INDIRECT_BIOME_BITS = 8;
 
     private static final int HEIGHTMAP_WORLD_SURFACE = 1;
     private static final int HEIGHTMAP_MOTION_BLOCKING = 4;
