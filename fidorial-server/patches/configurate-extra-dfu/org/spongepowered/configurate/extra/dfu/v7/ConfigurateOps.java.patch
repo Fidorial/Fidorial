@@ -1,0 +1,100 @@
+--- a/org/spongepowered/configurate/extra/dfu/v7/ConfigurateOps.java
++++ b/org/spongepowered/configurate/extra/dfu/v7/ConfigurateOps.java
+@@ -174,6 +_,19 @@
+         return builder().factoryFromNode(value).build();
+     }
+ 
++    // Fidorial start - readable error messages
++    private static String describe(final ConfigurationNode node) {
++        if (node.isMap()) {
++            return "a section";
++        }
++        if (node.isList()) {
++            return "a list";
++        }
++        final @Nullable Object value = node.rawScalar();
++        return value == null ? "nothing" : "'" + value + "'";
++    }
++    // Fidorial end - readable error messages
++
+     /**
+      * Create a new builder for an ops instance.
+      *
+@@ -363,14 +_,29 @@
+             if (compressMaps()) {
+                 final int result = input.getInt(Integer.MIN_VALUE);
+                 if (result == Integer.MIN_VALUE) {
+-                    return DataResult.error(() -> "Value is not a number");
++                    return DataResult.error(() -> "Not a number: " + describe(input)); // Fidorial - readable error messages
+                 }
+                 return DataResult.success(result);
+             }
+         }
+ 
+-        return DataResult.error(() -> "Not a number: " + input);
+-    }
++        return DataResult.error(() -> "Not a number: " + describe(input)); // Fidorial - readable error messages
++    }
++
++    // Fidorial start - DFUv10 made getBooleanValue abstract
++    /**
++     * Get the value of the provided node as a boolean: a boolean, or a number where non-zero is {@code true}.
++     *
++     * @param input data source
++     * @return extracted boolean
++     */
++    @Override
++    public DataResult<Boolean> getBooleanValue(final ConfigurationNode input) {
++        return getNumberValue(input)
++                .map(number -> number.byteValue() != 0)
++                .mapError(_ -> "Not a boolean: " + describe(input)); // Fidorial - readable error messages
++    }
++    // Fidorial end - DFUv10 made getBooleanValue abstract
+ 
+     /**
+      * Get the value of the provided node if it is a scalar, converted to
+@@ -386,7 +_,7 @@
+             return DataResult.success(value);
+         }
+ 
+-        return DataResult.error(() -> "Not a string: " + input);
++        return DataResult.error(() -> "Not a string: " + describe(input)); // Fidorial - readable error messages
+     }
+ 
+     /**
+@@ -521,7 +_,7 @@
+                                                                     guardOutputRead(entry.getValue()))));
+         }
+ 
+-        return DataResult.error(() -> "Not a map: " + input);
++        return DataResult.error(() -> "Not a map: " + describe(input)); // Fidorial - readable error messages
+     }
+ 
+     /**
+@@ -538,7 +_,7 @@
+         if (input.empty() || input.isMap()) {
+             return DataResult.success(new NodeMaplike(this, input.options(), input.childrenMap()));
+         } else {
+-            return DataResult.error(() -> "Input node is not a map");
++            return DataResult.error(() -> "Not a map: " + describe(input)); // Fidorial - readable error messages
+         }
+     }
+ 
+@@ -566,7 +_,7 @@
+                 }
+             });
+         } else {
+-            return DataResult.error(() -> "Input node is not a list");
++            return DataResult.error(() -> "Not a list: " + describe(input)); // Fidorial - readable error messages
+         }
+     }
+ 
+@@ -583,7 +_,7 @@
+             return DataResult.success(stream);
+         }
+ 
+-        return DataResult.error(() -> "Not a list: " + input);
++        return DataResult.error(() -> "Not a list: " + describe(input)); // Fidorial - readable error messages
+     }
+ 
+     /**

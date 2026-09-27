@@ -28,11 +28,12 @@ import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
 import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -137,7 +138,8 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             default -> true;
         };
 
-        if (terminalFailure && server.config().resourcePackForced()) {
+        final ResourcePackRequest pack = server.config().resourcePack();
+        if (terminalFailure && pack != null && pack.required()) {
             connection.disconnect(Component.translatable("multiplayer.requiredTexturePrompt.disconnect"));
             return;
         }
@@ -203,19 +205,19 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     }
 
     private boolean sendResourcePackIfConfigured() {
-        final String url = server.config().resourcePackUrl();
-        if (url == null || url.isBlank()) {
+        final ResourcePackRequest request = server.config().resourcePack();
+        if (request == null) {
             return false;
         }
-        // the constructor of ServerConfig already guarantees this
-        final UUID id = Objects.requireNonNull(server.config().resourcePackId(), "resourcePackId must be set when resourcePackUrl is");
-        connection.send(new ClientboundResourcePackPushPacket(
-                ConfigurationClientboundPackets.RESOURCE_PACK_PUSH,
-                id,
-                url,
-                server.config().resourcePackHash() == null ? "" : server.config().resourcePackHash(),
-                server.config().resourcePackForced(),
-                server.config().resourcePackPrompt()));
+        for (final ResourcePackInfo pack : request.packs()) {
+            connection.send(new ClientboundResourcePackPushPacket(
+                    ConfigurationClientboundPackets.RESOURCE_PACK_PUSH,
+                    pack.id(),
+                    pack.uri().toString(),
+                    pack.hash(),
+                    request.required(),
+                    request.prompt()));
+        }
         return true;
     }
 

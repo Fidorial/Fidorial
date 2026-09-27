@@ -266,7 +266,7 @@ public final class StructureService implements StructureManager {
             packet = new ClientboundLevelChunkWithLightPacket(
                     server.chunkSerializer(), column, world.generator.dimensionType().hasSkylight());
         }
-        final int range = server.config().viewDistance() + 1;
+        final int range = server.config().general().viewDistance() + 1;
         for (final ServerPlayer player : server.players()) {
             if (player.isRemoved() || !player.world().equals(world)) {
                 continue;

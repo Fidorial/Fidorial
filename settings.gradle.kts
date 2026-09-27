@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
         maven("https://repo.euphyllia.moe/repository/maven-public/")
     }

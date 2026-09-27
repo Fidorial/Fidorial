@@ -20,6 +20,8 @@ adventure-nbt-dfu = "0.1.2"
 spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
 leafpile = "1.2.4"
+configurate = "4.3.0-SNAPSHOT"
+configurate-geyser = "4.2.0-GeyserMC-SNAPSHOT"
 
 [libraries]
 netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
@@ -59,6 +61,8 @@ leafpile-bom = { module = "ca.spottedleaf.leafpile:bom", version.ref = "leafpile
 leafpile-common = { module = "ca.spottedleaf.leafpile:common" }
 leafpile-converter = { module = "ca.spottedleaf.leafpile:converter" }
 leafpile-concurrentutil = { module = "ca.spottedleaf.leafpile:concurrentutil" }
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate-geyser" }
+configurate-extra-dfu = { module = "org.spongepowered:configurate-extra-dfu7", version.ref = "configurate" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

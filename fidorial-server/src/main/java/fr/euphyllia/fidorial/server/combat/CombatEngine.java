@@ -458,14 +458,14 @@ public final class CombatEngine implements CombatService {
 
     @Override
     public boolean pvpEnabled() {
-        return server.config().pvp() && server.gameRules().getBoolean(GameRuleKeys.PVP);
+        return server.config().general().pvp() && server.gameRules().getBoolean(GameRuleKeys.PVP);
     }
 
     private boolean canHarm(final ServerPlayer attacker, final AbstractLivingEntity victim) {
         if (!(victim instanceof final ServerPlayer other)) {
             return true;
         }
-        return server.config().pvp()
+        return server.config().general().pvp()
                 && gameRulesOf(other).getBoolean(GameRuleKeys.PVP)
                 && !other.isInvulnerableToDamage();
     }

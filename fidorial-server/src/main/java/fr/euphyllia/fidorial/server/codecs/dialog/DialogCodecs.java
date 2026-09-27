@@ -7,8 +7,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.DispatchCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.StyleCodecs;
 import fr.fidorial.dialog.ConfirmationDialog;
 import fr.fidorial.dialog.Dialog;
@@ -32,7 +32,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static fr.euphyllia.fidorial.server.codecs.CommonCodecs.KEY_CODEC;
 import static fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs.COMPONENT_CODEC;
@@ -54,111 +53,78 @@ public final class DialogCodecs {
     private static final Codec<DialogAfterAction> AFTER_ACTION_CODEC =
             Codec.STRING.comapFlatMap(DialogCodecs::afterActionById, DialogAfterAction::id);
 
-    private static final Codec<DialogActionButton> BUTTON_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            COMPONENT_CODEC.fieldOf("label").forGetter(DialogActionButton::label),
-            COMPONENT_CODEC.optionalFieldOf("tooltip").forGetter(b -> Optional.ofNullable(b.tooltip())),
-            Codec.intRange(1, DialogActionButton.MAX_WIDTH)
-                    .optionalFieldOf("width", DialogActionButton.DEFAULT_WIDTH)
-                    .forGetter(DialogActionButton::width),
-            ACTION_CODEC.optionalFieldOf("action").forGetter(b -> Optional.ofNullable(b.action()))
-    ).apply(instance, (label, tooltip, width, action) ->
-            new DialogActionButton(label, tooltip.orElse(null), width, action.orElse(null))));
+    private static final Codec<DialogActionButton> BUTTON_CODEC = RecordCodec.builder(DialogActionButton.class)
+            .required("label", DialogActionButton::label, COMPONENT_CODEC)
+            .nullable("tooltip", DialogActionButton::tooltip, COMPONENT_CODEC)
+            .field("width", DialogActionButton::width, Codec.intRange(1, DialogActionButton.MAX_WIDTH), DialogActionButton.DEFAULT_WIDTH)
+            .nullable("action", DialogActionButton::action, ACTION_CODEC)
+            .build();
 
     private DialogCodecs() {
         throw new UnsupportedOperationException("DialogCodecs cannot be instantiated.");
     }
 
-    private static final MapCodec<DialogBody.PlainMessage> PLAIN_MESSAGE_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    COMPONENT_CODEC.fieldOf("contents").forGetter(DialogBody.PlainMessage::contents),
-                    Codec.intRange(1, DialogBody.MAX_WIDTH)
-                            .optionalFieldOf("width", DialogBody.DEFAULT_WIDTH)
-                            .forGetter(DialogBody.PlainMessage::width)
-            ).apply(instance, DialogBody.PlainMessage::new));
+    private static final MapCodec<DialogBody.PlainMessage> PLAIN_MESSAGE_CODEC = RecordCodec.builder(DialogBody.PlainMessage.class)
+            .required("contents", DialogBody.PlainMessage::contents, COMPONENT_CODEC)
+            .field("width", DialogBody.PlainMessage::width, Codec.intRange(1, DialogBody.MAX_WIDTH), DialogBody.DEFAULT_WIDTH)
+            .buildMap();
 
-    private static final MapCodec<DialogBody.Item> ITEM_BODY_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    DialogItemCodecs.ITEM_STACK_CODEC.fieldOf("item").forGetter(DialogBody.Item::item),
-                    PLAIN_MESSAGE_CODEC.codec().optionalFieldOf("description")
-                            .forGetter(b -> Optional.ofNullable(b.description())),
-                    Codec.BOOL.optionalFieldOf("show_decoration", true).forGetter(DialogBody.Item::showDecoration),
-                    Codec.BOOL.optionalFieldOf("show_tooltip", true).forGetter(DialogBody.Item::showTooltip),
-                    Codec.intRange(1, DialogBody.Item.MAX_ITEM_SIZE)
-                            .optionalFieldOf("width", DialogBody.Item.DEFAULT_ITEM_SIZE)
-                            .forGetter(DialogBody.Item::width),
-                    Codec.intRange(1, DialogBody.Item.MAX_ITEM_SIZE)
-                            .optionalFieldOf("height", DialogBody.Item.DEFAULT_ITEM_SIZE)
-                            .forGetter(DialogBody.Item::height)
-            ).apply(instance, (item, description, decoration, tooltip, width, height) ->
-                    new DialogBody.Item(item, description.orElse(null), decoration, tooltip, width, height)));
+    private static final MapCodec<DialogBody.Item> ITEM_BODY_CODEC = RecordCodec.builder(DialogBody.Item.class)
+            .required("item", DialogBody.Item::item, DialogItemCodecs.ITEM_STACK_CODEC)
+            .nullable("description", DialogBody.Item::description, PLAIN_MESSAGE_CODEC.codec())
+            .field("show_decoration", DialogBody.Item::showDecoration, Codec.BOOL, true)
+            .field("show_tooltip", DialogBody.Item::showTooltip, Codec.BOOL, true)
+            .field("width", DialogBody.Item::width, Codec.intRange(1, DialogBody.Item.MAX_ITEM_SIZE), DialogBody.Item.DEFAULT_ITEM_SIZE)
+            .field("height", DialogBody.Item::height, Codec.intRange(1, DialogBody.Item.MAX_ITEM_SIZE), DialogBody.Item.DEFAULT_ITEM_SIZE)
+            .buildMap();
 
-    private static final Codec<DialogInput.Text.Multiline> MULTILINE_CODEC =
-            RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.INT.optionalFieldOf("max_lines").forGetter(m -> Optional.ofNullable(m.maxLines())),
-                    Codec.intRange(1, DialogInput.Text.Multiline.MAX_HEIGHT)
-                            .optionalFieldOf("height").forGetter(m -> Optional.ofNullable(m.height()))
-            ).apply(instance, (maxLines, height) ->
-                    new DialogInput.Text.Multiline(maxLines.orElse(null), height.orElse(null))));
+    private static final Codec<DialogInput.Text.Multiline> MULTILINE_CODEC = RecordCodec.builder(DialogInput.Text.Multiline.class)
+            .nullable("max_lines", DialogInput.Text.Multiline::maxLines, Codec.INT)
+            .nullable("height", DialogInput.Text.Multiline::height, Codec.intRange(1, DialogInput.Text.Multiline.MAX_HEIGHT))
+            .build();
 
-    private static final MapCodec<DialogInput.Text> TEXT_INPUT_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Codec.STRING.fieldOf("key").forGetter(DialogInput.Text::key),
-                    COMPONENT_CODEC.fieldOf("label").forGetter(DialogInput.Text::label),
-                    Codec.intRange(1, DialogInput.MAX_WIDTH)
-                            .optionalFieldOf("width", DialogInput.DEFAULT_WIDTH)
-                            .forGetter(DialogInput.Text::width),
-                    Codec.BOOL.optionalFieldOf("label_visible", true).forGetter(DialogInput.Text::labelVisible),
-                    Codec.STRING.optionalFieldOf("initial", "").forGetter(DialogInput.Text::initial),
-                    Codec.INT.optionalFieldOf("max_length", DialogInput.Text.DEFAULT_MAX_LENGTH)
-                            .forGetter(DialogInput.Text::maxLength),
-                    MULTILINE_CODEC.optionalFieldOf("multiline").forGetter(t -> Optional.ofNullable(t.multiline()))
-            ).apply(instance, (key, label, width, visible, initial, maxLength, multiline) ->
-                    new DialogInput.Text(key, label, width, visible, initial, maxLength, multiline.orElse(null))));
+    private static final MapCodec<DialogInput.Text> TEXT_INPUT_CODEC = RecordCodec.builder(DialogInput.Text.class)
+            .required("key", DialogInput.Text::key, Codec.STRING)
+            .required("label", DialogInput.Text::label, COMPONENT_CODEC)
+            .field("width", DialogInput.Text::width, Codec.intRange(1, DialogInput.MAX_WIDTH), DialogInput.DEFAULT_WIDTH)
+            .field("label_visible", DialogInput.Text::labelVisible, Codec.BOOL, true)
+            .field("initial", DialogInput.Text::initial, Codec.STRING, "")
+            .field("max_length", DialogInput.Text::maxLength, Codec.INT, DialogInput.Text.DEFAULT_MAX_LENGTH)
+            .nullable("multiline", DialogInput.Text::multiline, MULTILINE_CODEC)
+            .buildMap();
 
-    private static final MapCodec<DialogInput.Bool> BOOL_INPUT_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Codec.STRING.fieldOf("key").forGetter(DialogInput.Bool::key),
-                    COMPONENT_CODEC.fieldOf("label").forGetter(DialogInput.Bool::label),
-                    Codec.BOOL.optionalFieldOf("initial", false).forGetter(DialogInput.Bool::initial),
-                    Codec.STRING.optionalFieldOf("on_true", "true").forGetter(DialogInput.Bool::onTrue),
-                    Codec.STRING.optionalFieldOf("on_false", "false").forGetter(DialogInput.Bool::onFalse)
-            ).apply(instance, DialogInput.Bool::new));
+    private static final MapCodec<DialogInput.Bool> BOOL_INPUT_CODEC = RecordCodec.builder(DialogInput.Bool.class)
+            .required("key", DialogInput.Bool::key, Codec.STRING)
+            .required("label", DialogInput.Bool::label, COMPONENT_CODEC)
+            .field("initial", DialogInput.Bool::initial, Codec.BOOL, false)
+            .field("on_true", DialogInput.Bool::onTrue, Codec.STRING, "true")
+            .field("on_false", DialogInput.Bool::onFalse, Codec.STRING, "false")
+            .buildMap();
 
-    private static final Codec<DialogInput.SingleOption.Entry> OPTION_ENTRY_CODEC =
-            RecordCodecBuilder.create(instance -> instance.group(
-                    Codec.STRING.fieldOf("id").forGetter(DialogInput.SingleOption.Entry::id),
-                    COMPONENT_CODEC.optionalFieldOf("display").forGetter(e -> Optional.ofNullable(e.display())),
-                    Codec.BOOL.optionalFieldOf("initial", false).forGetter(DialogInput.SingleOption.Entry::initial)
-            ).apply(instance, (id, display, initial) ->
-                    new DialogInput.SingleOption.Entry(id, display.orElse(null), initial)));
+    private static final Codec<DialogInput.SingleOption.Entry> OPTION_ENTRY_CODEC = RecordCodec.builder(DialogInput.SingleOption.Entry.class)
+            .required("id", DialogInput.SingleOption.Entry::id, Codec.STRING)
+            .nullable("display", DialogInput.SingleOption.Entry::display, COMPONENT_CODEC)
+            .field("initial", DialogInput.SingleOption.Entry::initial, Codec.BOOL, false)
+            .build();
 
-    private static final MapCodec<DialogInput.SingleOption> SINGLE_OPTION_INPUT_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Codec.STRING.fieldOf("key").forGetter(DialogInput.SingleOption::key),
-                    COMPONENT_CODEC.fieldOf("label").forGetter(DialogInput.SingleOption::label),
-                    OPTION_ENTRY_CODEC.listOf().fieldOf("options").forGetter(DialogInput.SingleOption::options),
-                    Codec.BOOL.optionalFieldOf("label_visible", true).forGetter(DialogInput.SingleOption::labelVisible),
-                    Codec.intRange(1, DialogInput.MAX_WIDTH)
-                            .optionalFieldOf("width", DialogInput.DEFAULT_WIDTH)
-                            .forGetter(DialogInput.SingleOption::width)
-            ).apply(instance, DialogInput.SingleOption::new));
+    private static final MapCodec<DialogInput.SingleOption> SINGLE_OPTION_INPUT_CODEC = RecordCodec.builder(DialogInput.SingleOption.class)
+            .required("key", DialogInput.SingleOption::key, Codec.STRING)
+            .required("label", DialogInput.SingleOption::label, COMPONENT_CODEC)
+            .required("options", DialogInput.SingleOption::options, OPTION_ENTRY_CODEC.listOf())
+            .field("label_visible", DialogInput.SingleOption::labelVisible, Codec.BOOL, true)
+            .field("width", DialogInput.SingleOption::width, Codec.intRange(1, DialogInput.MAX_WIDTH), DialogInput.DEFAULT_WIDTH)
+            .buildMap();
 
-    private static final MapCodec<DialogInput.NumberRange> NUMBER_RANGE_INPUT_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    Codec.STRING.fieldOf("key").forGetter(DialogInput.NumberRange::key),
-                    COMPONENT_CODEC.fieldOf("label").forGetter(DialogInput.NumberRange::label),
-                    Codec.STRING.optionalFieldOf("label_format", DialogInput.NumberRange.DEFAULT_LABEL_FORMAT)
-                            .forGetter(DialogInput.NumberRange::labelFormat),
-                    Codec.intRange(1, DialogInput.MAX_WIDTH)
-                            .optionalFieldOf("width", DialogInput.DEFAULT_WIDTH)
-                            .forGetter(DialogInput.NumberRange::width),
-                    Codec.FLOAT.fieldOf("start").forGetter(DialogInput.NumberRange::start),
-                    Codec.FLOAT.fieldOf("end").forGetter(DialogInput.NumberRange::end),
-                    Codec.FLOAT.optionalFieldOf("step").forGetter(n -> Optional.ofNullable(n.step())),
-                    Codec.FLOAT.optionalFieldOf("initial").forGetter(n -> Optional.ofNullable(n.initial()))
-            ).apply(instance, (key, label, format, width, start, end, step, initial) ->
-                    new DialogInput.NumberRange(
-                            key, label, format, width, start, end, step.orElse(null), initial.orElse(null))));
+    private static final MapCodec<DialogInput.NumberRange> NUMBER_RANGE_INPUT_CODEC = RecordCodec.builder(DialogInput.NumberRange.class)
+            .required("key", DialogInput.NumberRange::key, Codec.STRING)
+            .required("label", DialogInput.NumberRange::label, COMPONENT_CODEC)
+            .field("label_format", DialogInput.NumberRange::labelFormat, Codec.STRING, DialogInput.NumberRange.DEFAULT_LABEL_FORMAT)
+            .field("width", DialogInput.NumberRange::width, Codec.intRange(1, DialogInput.MAX_WIDTH), DialogInput.DEFAULT_WIDTH)
+            .required("start", DialogInput.NumberRange::start, Codec.FLOAT)
+            .required("end", DialogInput.NumberRange::end, Codec.FLOAT)
+            .nullable("step", DialogInput.NumberRange::step, Codec.FLOAT)
+            .nullable("initial", DialogInput.NumberRange::initial, Codec.FLOAT)
+            .buildMap();
 
     static {
         BODY_CODEC = DispatchCodecs.<DialogBody>matcher("type", List.of(
@@ -181,7 +147,7 @@ public final class DialogCodecs {
                         DialogInput.NumberRange.class, NUMBER_RANGE_INPUT_CODEC)
         )).codec();
 
-        DEFINITION_CODEC = Codec.<DialogDefinition>recursive("fidorial:dialog", self -> {
+        DEFINITION_CODEC = Codec.recursive("fidorial:dialog", self -> {
             final Codec<Dialog> dialog = eitherReferenceOr(self);
             return DispatchCodecs.<DialogDefinition>matcher("type", List.of(
                     DispatchCodecs.Variant.of(
@@ -205,71 +171,60 @@ public final class DialogCodecs {
     }
 
     private static MapCodec<DialogBase> baseCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                COMPONENT_CODEC.fieldOf("title").forGetter(DialogBase::title),
-                COMPONENT_CODEC.optionalFieldOf("external_title")
-                        .forGetter(b -> Optional.ofNullable(b.externalTitle())),
-                bodyListCodec().optionalFieldOf("body", List.of()).forGetter(DialogBase::body),
-                INPUT_CODEC.listOf().optionalFieldOf("inputs", List.of()).forGetter(DialogBase::inputs),
-                Codec.BOOL.optionalFieldOf("can_close_with_escape", true).forGetter(DialogBase::canCloseWithEscape),
-                Codec.BOOL.optionalFieldOf("pause", true).forGetter(DialogBase::pause),
-                AFTER_ACTION_CODEC.optionalFieldOf("after_action", DialogAfterAction.CLOSE)
-                        .forGetter(DialogBase::afterAction)
-        ).apply(instance, (title, external, body, inputs, escape, pause, after) ->
-                new DialogBase(title, external.orElse(null), body, inputs, escape, pause, after)));
+        return RecordCodec.builder(DialogBase.class)
+                .required("title", DialogBase::title, COMPONENT_CODEC)
+                .nullable("external_title", DialogBase::externalTitle, COMPONENT_CODEC)
+                .field("body", DialogBase::body, bodyListCodec(), List.of())
+                .field("inputs", DialogBase::inputs, INPUT_CODEC.listOf(), List.of())
+                .field("can_close_with_escape", DialogBase::canCloseWithEscape, Codec.BOOL, true)
+                .field("pause", DialogBase::pause, Codec.BOOL, true)
+                .field("after_action", DialogBase::afterAction, AFTER_ACTION_CODEC, DialogAfterAction.CLOSE)
+                .buildMap();
     }
 
     private static MapCodec<NoticeDialog> noticeCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                baseCodec().forGetter(NoticeDialog::base),
-                BUTTON_CODEC.optionalFieldOf("action", NoticeDialog.DEFAULT_ACTION).forGetter(NoticeDialog::action)
-        ).apply(instance, NoticeDialog::new));
+        return RecordCodec.builder(NoticeDialog.class)
+                .inline(NoticeDialog::base, baseCodec())
+                .field("action", NoticeDialog::action, BUTTON_CODEC, NoticeDialog.DEFAULT_ACTION)
+                .buildMap();
     }
 
     private static MapCodec<ConfirmationDialog> confirmationCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                baseCodec().forGetter(ConfirmationDialog::base),
-                BUTTON_CODEC.fieldOf("yes").forGetter(ConfirmationDialog::yes),
-                BUTTON_CODEC.fieldOf("no").forGetter(ConfirmationDialog::no)
-        ).apply(instance, ConfirmationDialog::new));
+        return RecordCodec.builder(ConfirmationDialog.class)
+                .inline(ConfirmationDialog::base, baseCodec())
+                .required("yes", ConfirmationDialog::yes, BUTTON_CODEC)
+                .required("no", ConfirmationDialog::no, BUTTON_CODEC)
+                .buildMap();
     }
 
     private static MapCodec<MultiActionDialog> multiActionCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                baseCodec().forGetter(MultiActionDialog::base),
-                BUTTON_CODEC.listOf().fieldOf("actions").forGetter(MultiActionDialog::actions),
-                Codec.INT.optionalFieldOf("columns", MultiActionDialog.DEFAULT_COLUMNS)
-                        .forGetter(MultiActionDialog::columns),
-                BUTTON_CODEC.optionalFieldOf("exit_action").forGetter(d -> Optional.ofNullable(d.exitAction()))
-        ).apply(instance, (base, actions, columns, exit) ->
-                new MultiActionDialog(base, actions, columns, exit.orElse(null))));
+        return RecordCodec.builder(MultiActionDialog.class)
+                .inline(MultiActionDialog::base, baseCodec())
+                .required("actions", MultiActionDialog::actions, BUTTON_CODEC.listOf())
+                .field("columns", MultiActionDialog::columns, Codec.INT, MultiActionDialog.DEFAULT_COLUMNS)
+                .nullable("exit_action", MultiActionDialog::exitAction, BUTTON_CODEC)
+                .buildMap();
     }
 
     private static MapCodec<ServerLinksDialog> serverLinksCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                baseCodec().forGetter(ServerLinksDialog::base),
-                BUTTON_CODEC.optionalFieldOf("exit_action").forGetter(d -> Optional.ofNullable(d.exitAction())),
-                Codec.INT.optionalFieldOf("columns", ServerLinksDialog.DEFAULT_COLUMNS)
-                        .forGetter(ServerLinksDialog::columns),
-                Codec.intRange(1, DialogActionButton.MAX_WIDTH)
-                        .optionalFieldOf("button_width", DialogActionButton.DEFAULT_WIDTH)
-                        .forGetter(ServerLinksDialog::buttonWidth)
-        ).apply(instance, (base, exit, columns, width) ->
-                new ServerLinksDialog(base, exit.orElse(null), columns, width)));
+        return RecordCodec.builder(ServerLinksDialog.class)
+                .inline(ServerLinksDialog::base, baseCodec())
+                .nullable("exit_action", ServerLinksDialog::exitAction, BUTTON_CODEC)
+                .field("columns", ServerLinksDialog::columns, Codec.INT, ServerLinksDialog.DEFAULT_COLUMNS)
+                .field("button_width", ServerLinksDialog::buttonWidth,
+                        Codec.intRange(1, DialogActionButton.MAX_WIDTH), DialogActionButton.DEFAULT_WIDTH)
+                .buildMap();
     }
 
     private static MapCodec<DialogListDialog> dialogListCodec(final Codec<Dialog> nested) {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                baseCodec().forGetter(DialogListDialog::base),
-                nested.listOf().fieldOf("dialogs").forGetter(DialogListDialog::dialogs),
-                BUTTON_CODEC.optionalFieldOf("exit_action").forGetter(d -> Optional.ofNullable(d.exitAction())),
-                Codec.INT.optionalFieldOf("columns", DialogListDialog.DEFAULT_COLUMNS)
-                        .forGetter(DialogListDialog::columns),
-                Codec.intRange(1, DialogActionButton.MAX_WIDTH)
-                        .optionalFieldOf("button_width", DialogActionButton.DEFAULT_WIDTH)
-                        .forGetter(DialogListDialog::buttonWidth)
-        ).apply(instance, (base, dialogs, exit, columns, width) ->
-                new DialogListDialog(base, dialogs, exit.orElse(null), columns, width)));
+        return RecordCodec.builder(DialogListDialog.class)
+                .inline(DialogListDialog::base, baseCodec())
+                .required("dialogs", DialogListDialog::dialogs, nested.listOf())
+                .nullable("exit_action", DialogListDialog::exitAction, BUTTON_CODEC)
+                .field("columns", DialogListDialog::columns, Codec.INT, DialogListDialog.DEFAULT_COLUMNS)
+                .field("button_width", DialogListDialog::buttonWidth,
+                        Codec.intRange(1, DialogActionButton.MAX_WIDTH), DialogActionButton.DEFAULT_WIDTH)
+                .buildMap();
     }
 
     private static Codec<List<DialogBody>> bodyListCodec() {
@@ -308,28 +263,29 @@ public final class DialogCodecs {
     }
 
     private static MapCodec<DialogAction.ShowDialog> showDialogCodec() {
-        return DIALOG_CODEC.fieldOf("dialog")
-                .xmap(DialogAction.ShowDialog::new, DialogAction.ShowDialog::dialog);
+        return RecordCodec.builder(DialogAction.ShowDialog.class)
+                .required("dialog", DialogAction.ShowDialog::dialog, DIALOG_CODEC)
+                .buildMap();
     }
 
     private static MapCodec<DialogAction.DynamicRunCommand> dynamicRunCommandCodec() {
-        return Codec.STRING.fieldOf("template")
-                .xmap(DialogAction.DynamicRunCommand::new, DialogAction.DynamicRunCommand::template);
+        return RecordCodec.builder(DialogAction.DynamicRunCommand.class)
+                .required("template", DialogAction.DynamicRunCommand::template, Codec.STRING)
+                .buildMap();
     }
 
     private static MapCodec<DialogAction.DynamicCustom> dynamicCustomCodec() {
-        return RecordCodecBuilder.mapCodec(instance -> instance.group(
-                KEY_CODEC.fieldOf("id").forGetter(DialogAction.DynamicCustom::id),
-                COMPOUND_BINARY_TAG_CODEC.optionalFieldOf("additions")
-                        .forGetter(action -> Optional.ofNullable(action.additions()))
-        ).apply(instance, (id, additions) -> new DialogAction.DynamicCustom(id, additions.orElse(null))));
+        return RecordCodec.builder(DialogAction.DynamicCustom.class)
+                .required("id", DialogAction.DynamicCustom::id, KEY_CODEC)
+                .nullable("additions", DialogAction.DynamicCustom::additions, COMPOUND_BINARY_TAG_CODEC)
+                .buildMap();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static MapCodec<DialogAction> staticActionCodec(final String type) {
         final MapCodec raw = StyleCodecs.clickMapCodecFor(type);
         final MapCodec<ClickEvent<?>> codec = (MapCodec<ClickEvent<?>>) raw;
-        return codec.<DialogAction>xmap(DialogAction::of, action -> ((DialogAction.Static) action).event());
+        return codec.xmap(DialogAction::of, action -> ((DialogAction.Static) action).event());
     }
 
     private static DataResult<DialogAfterAction> afterActionById(final String id) {
@@ -365,5 +321,4 @@ public final class DialogCodecs {
                 .getOrThrow(message -> new IllegalArgumentException(
                         "Failed to read dialog " + key.asString() + ": " + message));
     }
-
 }

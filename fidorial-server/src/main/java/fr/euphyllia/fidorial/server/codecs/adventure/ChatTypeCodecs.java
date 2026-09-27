@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.chat.ChatTypeDecoration;
 import fr.fidorial.chat.ChatTypeDefinition;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
@@ -12,29 +12,26 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
-import java.util.Optional;
-
 import static fr.euphyllia.fidorial.server.codecs.adventure.StyleCodecs.STYLE_MAP_CODEC;
 
 public final class ChatTypeCodecs {
 
-    private static final Codec<ChatTypeDecoration> DECORATION_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("translation_key").forGetter(ChatTypeDecoration::translationKey),
-            Codec.STRING.listOf().fieldOf("parameters").forGetter(ChatTypeDecoration::parameters),
-            STYLE_MAP_CODEC.codec().optionalFieldOf("style")
-                    .forGetter(d -> Optional.ofNullable(d.style()))
-    ).apply(instance, (translationKey, parameters, style) ->
-            new ChatTypeDecoration(translationKey, parameters, style.orElse(null))));
+    private static final Codec<ChatTypeDecoration> DECORATION_CODEC = RecordCodec.builder(ChatTypeDecoration.class)
+            .required("translation_key", ChatTypeDecoration::translationKey, Codec.STRING)
+            .required("parameters", ChatTypeDecoration::parameters, Codec.STRING.listOf())
+            .nullable("style", ChatTypeDecoration::style, STYLE_MAP_CODEC.codec())
+            .build();
 
     private ChatTypeCodecs() {
         throw new UnsupportedOperationException("ChatTypeCodecs cannot be instantiated.");
     }
 
     public static Codec<ChatTypeDefinition> codec(final Key key) {
-        return RecordCodecBuilder.create(instance -> instance.group(
-                DECORATION_CODEC.fieldOf("chat").forGetter(ChatTypeDefinition::chat),
-                DECORATION_CODEC.fieldOf("narration").forGetter(ChatTypeDefinition::narration)
-        ).apply(instance, (chat, narration) -> new ChatTypeDefinition(key, chat, narration)));
+        return RecordCodec.builder(ChatTypeDefinition.class)
+                .given(key)
+                .required("chat", ChatTypeDefinition::chat, DECORATION_CODEC)
+                .required("narration", ChatTypeDefinition::narration, DECORATION_CODEC)
+                .build();
     }
 
     public static CompoundBinaryTag encodeNbt(final ChatTypeDefinition chatType) {

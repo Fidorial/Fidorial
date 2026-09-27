@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server;
 
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.fidorial.entity.GameMode;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
@@ -18,6 +19,12 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
 
+/**
+ * @deprecated Kept only for migration of legacy {@code fidorial.properties} files.
+ * Will be removed alongside updating to MC 26.4
+ */
+@NeedsToBeRevisited("Needs to be removed alongside updating to MC 26.4")
+@SuppressWarnings({"MissingDeprecatedAnnotation", "dep-ann"}) // deliberately not marked as deprecated to avoid warnings in other classes
 public record ServerConfig(
         int port,
         boolean onlineMode,
