@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.configuration;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
@@ -78,29 +79,47 @@ public record ServerConfiguration(
 
     public sealed interface ProxyForwarding {
 
-        Codec<ProxyForwarding> CODEC = CommonCodecs.dispatch("mode",
-                proxy -> switch (proxy) {
-                    case final None _ -> "none";
-                    case final Velocity _ -> "velocity";
-                },
-                Map.of(
-                        "none", MapCodec.unit(new None()),
-                        "velocity", Velocity.CODEC));
+        Codec<ProxyForwarding> CODEC = ProxySection.CODEC.flatXmap(
+                ProxySection::toForwarding,
+                forwarding -> DataResult.success(ProxySection.of(forwarding)));
 
         record None() implements ProxyForwarding {
         }
 
         record Velocity(String secret) implements ProxyForwarding {
-
-            static final MapCodec<Velocity> CODEC = RecordCodec.builder(Velocity.class)
-                    .required("secret", Velocity::secret, commented(CommonCodecs.NON_BLANK_STRING,
-                            "The proxy's secret. Must match what is set in the proxy's forwarding.secret file"))
-                    .buildMap();
-
             @Override
             public String toString() {
                 return "Velocity[secret=<redacted>]";
             }
+        }
+    }
+
+    private record ProxySection(String mode, String secret) {
+
+        private static final ProxySection NONE = new ProxySection("none", "");
+
+        private static final Codec<ProxySection> CODEC = configRecord(ProxySection.class, NONE)
+                .field("mode", ProxySection::mode, commented(Codec.STRING,
+                        "How players reach this server: 'none' to connect directly, 'velocity' through a Velocity proxy"))
+                .field("secret", ProxySection::secret, commented(Codec.STRING,
+                        "The proxy's secret, used with 'velocity'. Must match the proxy's forwarding.secret file"))
+                .build();
+
+        private DataResult<ProxyForwarding> toForwarding() {
+            return switch (mode) {
+                case "none" -> DataResult.success(new ProxyForwarding.None());
+                case "velocity" -> secret.isBlank()
+                        ? DataResult.error(() -> "secret: Must be set when mode is 'velocity'")
+                        : DataResult.success(new ProxyForwarding.Velocity(secret));
+                default -> DataResult.error(() -> "mode: Unknown mode '" + mode + "', expected one of: none, velocity");
+            };
+        }
+
+        private static ProxySection of(final ProxyForwarding forwarding) {
+            return switch (forwarding) {
+                case final ProxyForwarding.None _ -> NONE;
+                case ProxyForwarding.Velocity(final String secret) -> new ProxySection("velocity", secret);
+            };
         }
     }
 
