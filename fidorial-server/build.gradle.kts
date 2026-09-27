@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.blossom)
     id("fidorial-spotless")
     id("fidorial-build-conventions")
-    id("fr.fidorial.dependency-patcher") version "1.1.0-SNAPSHOT"
+    id("fr.fidorial.dependency-patcher") version "1.1.0"
     id("fr.fidorial.registry-generator")
 }
 
