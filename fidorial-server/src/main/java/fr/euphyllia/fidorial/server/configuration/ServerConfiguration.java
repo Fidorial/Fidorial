@@ -2,9 +2,7 @@ package fr.euphyllia.fidorial.server.configuration;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
-import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
@@ -20,7 +18,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
