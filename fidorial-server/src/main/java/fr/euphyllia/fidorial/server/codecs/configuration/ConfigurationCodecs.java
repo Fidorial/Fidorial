@@ -26,7 +26,9 @@ import java.net.URISyntaxException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -151,6 +153,16 @@ public final class ConfigurationCodecs {
             return loader().createNode();
         }
 
+        private static void removeBlankValues(final ConfigurationNode node) {
+            for (final ConfigurationNode child : List.copyOf(node.childrenMap().values())) {
+                if (child.isMap()) {
+                    removeBlankValues(child);
+                } else if (!child.isList() && child.rawScalar() == null) {
+                    node.removeChild(Objects.requireNonNull(child.key()));
+                }
+            }
+        }
+
         public T load() throws ConfigurateException, InvalidConfigurationException {
             return load(loader().load());
         }
@@ -160,6 +172,7 @@ public final class ConfigurationCodecs {
          */
         public T load(final CommentedConfigurationNode root) throws ConfigurateException, InvalidConfigurationException {
             schemas.upgrade(root);
+            removeBlankValues(root);
             final T value = switch (codec.parse(ops(root), root)) {
                 case final DataResult.Success<T> success -> success.value();
                 case final DataResult.Error<T> error -> throw new InvalidConfigurationException(path, error.message().lines().toList());
