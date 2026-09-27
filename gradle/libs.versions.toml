@@ -19,7 +19,7 @@ dfu = "10.0.21"
 adventure-nbt-dfu = "0.1.2"
 spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
-leafpile = "1.2.2"
+leafpile = "1.2.4"
 
 [libraries]
 netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
@@ -55,7 +55,10 @@ fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 dfu = { module = "com.mojang:datafixerupper", version.ref = "dfu" }
 spark-common = { module = "me.lucko:spark-common", version.ref = "spark" }
 spark-api = { module = "me.lucko:spark-api", version.ref = "spark-api" }
-leafpile = { module = "ca.spottedleaf:leafpile", version.ref = "leafpile" }
+leafpile-bom = { module = "ca.spottedleaf.leafpile:bom", version.ref = "leafpile" }
+leafpile-common = { module = "ca.spottedleaf.leafpile:common" }
+leafpile-converter = { module = "ca.spottedleaf.leafpile:converter" }
+leafpile-concurrentutil = { module = "ca.spottedleaf.leafpile:concurrentutil" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
@@ -69,4 +72,10 @@ adventure = [
     "adventure-text-serializer-gson",
     "adventure-text-minimessage",
     "adventure-text-logger-slf4j"
+]
+
+leafpile = [
+    "leafpile-common",
+    "leafpile-converter",
+    "leafpile-concurrentutil"
 ]

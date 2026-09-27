@@ -53,7 +53,8 @@ dependencies {
         exclude(group = "org.jspecify", module = "jspecify")
     }
     implementation(libs.spark.api)
-    implementation(libs.leafpile)
+    implementation(platform(libs.leafpile.bom))
+    implementation(libs.bundles.leafpile)
 
     runtimeOnly(libs.netty.epoll)
     runtimeOnly(libs.netty.iouring)
