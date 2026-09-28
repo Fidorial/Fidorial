@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server.network.listener;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
+import fr.euphyllia.fidorial.server.datapack.known.KnownPack;
+import fr.euphyllia.fidorial.server.datapack.known.KnownPackNegotiation;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
@@ -21,6 +23,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configur
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundSelectKnownPacksPacket;
 import fr.euphyllia.fidorial.server.registry.Registry;
+import fr.euphyllia.fidorial.server.registry.RegistryEntry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
 import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
@@ -33,15 +36,28 @@ import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
-
-import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;
+import java.util.function.Predicate;
 
 public final class ConfigurationPacketHandler implements ConfigurationPacketListener {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ConfigurationPacketHandler.class);
+
+    private static final KnownPackNegotiation KNOWN_PACKS = KnownPackNegotiation.packs(KnownPack.core());
+
+    private static final Key[] ENABLED_FEATURES = { Key.key("vanilla") };
+
+    /**
+     * Registries that should be sent with full NBT.
+     */
+    private static final Set<Key> FULL_DATA_REGISTRIES = Set.of(
+            FidorialBiomeRegistry.REGISTRY_NAME,
+            FidorialDialogRegistry.REGISTRY_NAME,
+            FidorialDimensionTypeRegistry.REGISTRY_NAME,
+            FidorialChatTypeRegistry.REGISTRY_NAME);
 
     private final ClientConnection connection;
     private final FidorialServer server;
@@ -50,6 +66,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     private boolean clientInformationReceived = false;
     private boolean codeOfConductPending = false;
     private volatile boolean awaitingCodeOfConduct = false;
+    private volatile boolean awaitingKnownPacks = false;
 
     public ConfigurationPacketHandler(final ClientConnection connection) {
         this.connection = connection;
@@ -66,7 +83,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             connection.close();
             return;
         }
-        connection.send(new ClientboundBrandPacket(FidorialServer.getInstance().brandName()));
+        connection.send(new ClientboundBrandPacket(server.brandName()));
         if (sendResourcePackIfConfigured()) {
             awaitingResourcePackResponse = true;
         } else {
@@ -75,12 +92,9 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     }
 
     private void proceedToKnownPacks() {
-        connection.send(new ClientboundSelectKnownPacksPacket("minecraft", "core", MINECRAFT_VERSION_ID));
-        proceedToEnabledFeatures();
-    }
-
-    private void proceedToEnabledFeatures() {
-        connection.send(new ClientboundUpdateEnabledFeaturesPacket(Stream.of(Key.key("vanilla")).toArray(Key[]::new)));
+        connection.send(new ClientboundUpdateEnabledFeaturesPacket(ENABLED_FEATURES));
+        awaitingKnownPacks = true;
+        connection.send(new ClientboundSelectKnownPacksPacket(KNOWN_PACKS.packs()));
     }
 
     private void proceedToCodeOfConduct() {
@@ -152,56 +166,78 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
 
     @Override
     public void handleSelectKnownPacks(final ServerboundSelectKnownPacksPacket packet) {
-        if (awaitingCodeOfConduct) {
-            LOGGER.debug("{} sent Known Packs before accepting the Code of Conduct; ignored.", connection.username());
+        if (!awaitingKnownPacks) {
+            LOGGER.debug("{} sent an out-of-place Known Packs response; ignored.", connection.username());
             return;
         }
-        LOGGER.debug("Known Packs client received -> sending registers");
-        sendRegistries();
+        awaitingKnownPacks = false;
+        LOGGER.debug("Known packs for {}: offered by server {}, returned by client {}", connection.username(), KNOWN_PACKS.packs(), packet.knownPacks());
+
+        switch (KNOWN_PACKS.negotiate(packet.knownPacks())) {
+            case KnownPackNegotiation.Result.Accepted(final Set<KnownPack> negotiated) -> {
+                LOGGER.debug("Known Packs negotiated with {}: {}", connection.username(), negotiated);
+                sendRegistries(negotiated);
+            }
+            case KnownPackNegotiation.Result.Rejected(final Set<KnownPack> empty) -> {
+                LOGGER.debug("Known Packs negotiation with {} did not match; sending full registries.", connection.username());
+                sendRegistries(empty);
+            }
+        }
         sendTags();
         connection.send(new ClientboundFinishConfigurationPacket());
     }
 
-    private void sendRegistries() {
+    private void sendRegistries(final Set<KnownPack> negotiatedPacks) {
         final RegistryHolder dynamic = server.dynamicRegistries();
         if (dynamic.isEmpty()) {
             LOGGER.warn("No dynamic registry to send (GeneratedRegistryData is empty).");
             return;
         }
 
+        final boolean hasKnownPacks = !negotiatedPacks.isEmpty();
+
         for (final Registry reg : dynamic.all()) {
-            if (reg.name().asString().contains("minecraft:enchantment")) { // Todo
+            if (FULL_DATA_REGISTRIES.contains(reg.name())) {
                 continue;
             }
-            if (reg.name().equals(FidorialBiomeRegistry.REGISTRY_NAME)
-                    || reg.name().equals(FidorialDialogRegistry.REGISTRY_NAME)
-                    || reg.name().equals(FidorialDimensionTypeRegistry.REGISTRY_NAME)
-                    || reg.name().equals(FidorialChatTypeRegistry.REGISTRY_NAME)) {
-                continue;
-            }
-            connection.send(ClientboundRegistryDataPacket.knownOnly(reg.name(), reg.entries()));
+            connection.send(hasKnownPacks
+                    ? ClientboundRegistryDataPacket.knownOnly(reg.name(), reg.entries())
+                    : new ClientboundRegistryDataPacket(reg.name(), reg.networkEntries()));
         }
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialBiomeRegistry.REGISTRY_NAME,
-                server.biomeRegistry().networkEntries()));
+                forClient(server.biomeRegistry().networkEntries(),
+                        server.biomeRegistry()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialDialogRegistry.REGISTRY_NAME,
-                server.dialogs().networkEntries()));
+                forClient(server.dialogs().networkEntries(),
+                        server.dialogs()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialDimensionTypeRegistry.REGISTRY_NAME,
-                server.dimensionTypes().networkEntries()));
+                forClient(server.dimensionTypes().networkEntries(),
+                        server.dimensionTypes()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialChatTypeRegistry.REGISTRY_NAME,
-                server.registries().chatTypes().networkEntries()));
+                forClient(server.chatTypes().networkEntries(),
+                        server.chatTypes()::isCustom, hasKnownPacks)));
     }
 
     private void sendTags() {
         connection.send(new ClientboundUpdateTagsPacket(
                 server.registries().network(), server.biomeRegistry(), server.dialogs(), server.dimensionTypes(), server.chatTypes()));
+    }
+
+    private List<RegistryEntry> forClient(final List<RegistryEntry> entries, final Predicate<Key> isCustom, final boolean hasKnownPacks) {
+        if (!hasKnownPacks) {
+            return entries;
+        }
+        return entries.stream()
+                .map(e -> isCustom.test(e.key()) ? e : RegistryEntry.known(e.key()))
+                .toList();
     }
 
     private boolean sendResourcePackIfConfigured() {

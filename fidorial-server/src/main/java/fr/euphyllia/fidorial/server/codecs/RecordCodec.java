@@ -14,12 +14,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -175,27 +173,10 @@ public final class RecordCodec {
         }
 
         public MapCodec<R> buildMap() {
-            final RecordComponent[] components = type.getRecordComponents();
-            if (components.length != fields.size()) {
-                throw new IllegalStateException(type.getName() + " has " + components.length + " components but " + fields.size() + " fields were declared");
-            }
-            final Set<String> keys = new HashSet<>();
-            for (int i = 0; i < components.length; i++) {
-                if (!(fields.get(i) instanceof final Keyed<R, ?> keyed)) {
-                    continue;
-                }
-                final String key = keyed.key();
-                final String expected = keyStyle.keyFor(components[i].getName());
-                if (expected != null && !key.substring(key.lastIndexOf('/') + 1).equals(expected)) {
-                    throw new IllegalStateException("Field #" + (i + 1) + " '" + key + "' of " + type.getName()
-                            + " does not match component '" + components[i].getName() + "' (expected '" + expected
-                            + "'); fields must be declared in component order");
-                }
-                if (!keys.add(key)) {
-                    throw new IllegalStateException("Duplicate key '" + key + "' in " + type.getName());
-                }
-            }
-            return new RecordMapCodec<>(type.getSimpleName(), List.copyOf(fields), canonicalConstructor(components), validator);
+            RecordShapes.checkKeys(type,
+                    fields.stream().<@Nullable String>map(field -> field instanceof final Keyed<R, ?> keyed ? keyed.key() : null).toList(),
+                    keyStyle);
+            return new RecordMapCodec<>(type.getSimpleName(), List.copyOf(fields), RecordShapes.canonicalConstructor(type), validator);
         }
 
         private <V> Builder<R> withFallback(final String key, final Codec<V> codec, final Function<R, V> read,

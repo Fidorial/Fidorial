@@ -1,5 +1,8 @@
 package fr.fidorial.registrygen.generate;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonWriter;
 import fr.fidorial.registrygen.model.RegistryDefinition;
 import fr.fidorial.registrygen.model.RegistryEntryDefinition;
@@ -8,6 +11,7 @@ import fr.fidorial.registrygen.model.RegistryTagDefinition;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -50,23 +54,26 @@ public final class RegistryDatasetGenerator {
     public void generate(final Map<String, RegistryDefinition> registries,
                          final Map<String, List<RegistryTagDefinition>> tags,
                          final List<RegistryTypeDefinition> types,
+                         final Path vanillaDataDirectory,
                          final Path directory) throws IOException {
 
         Objects.requireNonNull(registries, "registries");
         Objects.requireNonNull(tags, "tags");
         Objects.requireNonNull(types, "types");
+        Objects.requireNonNull(vanillaDataDirectory, "vanillaDataDirectory");
         Objects.requireNonNull(directory, "directory");
 
         Files.createDirectories(directory);
 
-        write(directory.resolve(DYNAMIC_FILE_NAME), RegistrySync.DYNAMIC, registries, tags, types);
+        write(directory.resolve(DYNAMIC_FILE_NAME), RegistrySync.DYNAMIC, registries, tags, types, vanillaDataDirectory);
     }
 
     private static void write(final Path target,
                               final RegistrySync sync,
                               final Map<String, RegistryDefinition> registries,
                               final Map<String, List<RegistryTagDefinition>> tags,
-                              final List<RegistryTypeDefinition> types) throws IOException {
+                              final List<RegistryTypeDefinition> types,
+                              final Path vanillaDataDirectory) throws IOException {
 
         try (final Writer writer = Files.newBufferedWriter(target, StandardCharsets.UTF_8);
              final JsonWriter json = new JsonWriter(writer)) {
@@ -94,7 +101,7 @@ public final class RegistryDatasetGenerator {
                 }
 
                 json.name(namespaced(type.identifier())).beginObject();
-                writeEntries(json, registry);
+                writeEntries(json, registry, type, vanillaDataDirectory);
                 writeTags(json, tags.getOrDefault(type.identifier(), List.of()));
                 json.endObject();
             }
@@ -108,7 +115,12 @@ public final class RegistryDatasetGenerator {
      * Writes entries in strict ascending {@code protocol_id} order, so that the
      * array index is the entry's network ID.
      */
-    private static void writeEntries(final JsonWriter json, final RegistryDefinition registry) throws IOException {
+    private static final Gson GSON = new Gson();
+
+    private static void writeEntries(final JsonWriter json,
+                                     final RegistryDefinition registry,
+                                     final RegistryTypeDefinition type,
+                                     final Path vanillaDataDirectory) throws IOException {
 
         final List<String> ordered = registry.entries().stream()
                 .sorted(Comparator.comparingInt(RegistryEntryDefinition::protocolId))
@@ -118,7 +130,28 @@ public final class RegistryDatasetGenerator {
         json.name("entries").beginArray();
 
         for (final String identifier : ordered) {
-            json.value(namespaced(identifier));
+            final String full = namespaced(identifier);
+            final int sep = full.indexOf(':');
+            final Path file = vanillaDataDirectory
+                    .resolve(full.substring(0, sep))
+                    .resolve(type.path())
+                    .resolve(full.substring(sep + 1) + ".json");
+
+            if (!Files.isRegularFile(file)) {
+                throw new IllegalStateException("No data file for " + full + " in registry '"
+                        + type.identifier() + "' (expected " + file + ").");
+            }
+
+            final JsonElement data;
+            try (final Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+                data = JsonParser.parseReader(reader);
+            }
+
+            json.beginObject();
+            json.name("id").value(full);
+            json.name("data");
+            GSON.toJson(data, json);
+            json.endObject();
         }
 
         json.endArray();
