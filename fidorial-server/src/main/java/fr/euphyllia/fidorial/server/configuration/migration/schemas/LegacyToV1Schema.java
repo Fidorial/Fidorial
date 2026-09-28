@@ -45,10 +45,10 @@ public final class LegacyToV1Schema {
         general.node("auto-save-seconds").raw(legacy.autoSaveSeconds());
         general.node("plugins-path").raw(legacy.pluginsPath().toString());
 
-        final CommentedConfigurationNode world = root.node("world");
-        world.node("path").raw(legacy.worldPath().toString());
-        world.node("default-world").raw(legacy.defaultWorld().asString());
-        world.node("level-seed").raw(legacy.levelSeed() == null ? "" : legacy.levelSeed());
+        final CommentedConfigurationNode worlds = root.node("worlds");
+        worlds.node("path").raw(legacy.worldPath().toString());
+        worlds.node("default-world").raw(legacy.defaultWorld().asString());
+        worlds.node("level-seed").raw(legacy.levelSeed() == null ? "" : legacy.levelSeed());
 
         final CommentedConfigurationNode threading = root.node("threading");
         threading.node("region-workers").raw(legacy.regionWorkers());
