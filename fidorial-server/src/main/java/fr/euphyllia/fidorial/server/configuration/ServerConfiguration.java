@@ -265,7 +265,7 @@ public record ServerConfiguration(
             .field("general", ServerConfiguration::general, commented(General.CODEC,
                     "Server-wide settings"))
             .field("worlds", ServerConfiguration::worlds, commented(WorldSettings.CODEC,
-                    "The worlds directory and default worlds. Per-worlds settings are in worlds/"))
+                    "World storage and the default world. Per-world settings are in worlds/"))
             .field("threading", ServerConfiguration::threading, commented(Threading.CODEC, """
                     Thread pool sizes. Each value must be at least 1
                     Leave a value blank to let the server choose it based on the number of CPU cores"""))
