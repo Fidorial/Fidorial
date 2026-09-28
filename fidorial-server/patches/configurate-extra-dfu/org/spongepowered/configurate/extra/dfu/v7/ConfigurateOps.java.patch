@@ -46,7 +46,7 @@
 +    @Override
 +    public DataResult<Boolean> getBooleanValue(final ConfigurationNode input) {
 +        return getNumberValue(input)
-+                .map(number -> number.byteValue() != 0)
++                .map(number -> number.doubleValue() != 0.0) // MC-307774
 +                .mapError(_ -> "Not a boolean: " + describe(input)); // Fidorial - readable error messages
 +    }
 +    // Fidorial end - DFUv10 made getBooleanValue abstract
