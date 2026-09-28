@@ -38,7 +38,7 @@
 +
 +    // Fidorial start - DFUv10 made getBooleanValue abstract
 +    /**
-+     * Get the value of the provided node as a boolean: a boolean, or a number where non-zero is {@code true}.
++     * Get the value of the provided node if it is a boolean or a number where non-zero is {@code true}.
 +     *
 +     * @param input data source
 +     * @return extracted boolean
