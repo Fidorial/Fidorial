@@ -18,52 +18,66 @@ public final class WorldConfigurationContainer {
 
     private static final String DEFAULTS_HEADER = """
             Fidorial world configuration.
-            These settings apply to every world, unless overridden in worlds/<namespace>/<world>.yml.""";
+            These settings apply to every world, unless overridden in the fidorial-world.yml file
+            inside that world's dimension folder, e.g. world/dimensions/minecraft/overworld/data/fidorial/fidorial-world.yaml.""";
 
-    private final Path worldsDirectory;
     private final WorldConfiguration defaults;
     private final Codec<WorldConfiguration> overrideCodec;
-    private final Map<Key, WorldConfiguration> resolved = new ConcurrentHashMap<>();
+    private final Map<Key, WorldConfiguration> loaded = new ConcurrentHashMap<>();
 
-    private WorldConfigurationContainer(final Path worldsDirectory, final WorldConfiguration defaults) {
-        this.worldsDirectory = worldsDirectory;
+    private WorldConfigurationContainer(final WorldConfiguration defaults) {
         this.defaults = defaults;
         this.overrideCodec = WorldConfiguration.codec(defaults);
     }
 
     public static WorldConfigurationContainer load(final Path configDirectory) throws IOException {
-        final var configFile = defaultsFile(configDirectory);
-        LOGGER.info("Default world configuration loaded from {}", configFile.path());
-        return new WorldConfigurationContainer(configDirectory.resolve("worlds"), configFile.load());
+        final ConfigurationCodecs.YamlFile<WorldConfiguration> file = defaultsFile(configDirectory);
+        final WorldConfigurationContainer container = new WorldConfigurationContainer(file.load());
+        LOGGER.info("Default world configuration loaded from {}", file.path());
+        return container;
     }
 
     static ConfigurationCodecs.YamlFile<WorldConfiguration> defaultsFile(final Path configDirectory) {
         return new ConfigurationCodecs.YamlFile<>(
-                configDirectory.resolve("worlds").resolve("default.yml"), WorldConfiguration.CODEC, ConfigurationSchemas.WORLD, DEFAULTS_HEADER);
+                configDirectory.resolve("fidorial-world-default.yaml"), WorldConfiguration.CODEC, ConfigurationSchemas.WORLD, DEFAULTS_HEADER);
     }
 
     public WorldConfiguration defaults() {
         return defaults;
     }
 
+    /**
+     * The settings of a loaded world, or the defaults for a world that isn't loaded.
+     */
     public WorldConfiguration resolve(final Key world) {
-        return resolved.computeIfAbsent(world, this::read);
+        return loaded.getOrDefault(world, defaults);
     }
 
-    private WorldConfiguration read(final Key world) {
+    /**
+     * Reads the overrides of {@code world} from {@code file}, creating it if missing. Done once per load of the world.
+     */
+    public WorldConfiguration loadWorld(final Key world, final Path file) {
+        return loaded.computeIfAbsent(world, _ -> read(world, file));
+    }
+
+    /**
+     * Forgets an unloaded world, so its file is read again the next time it is loaded.
+     */
+    public void unloadWorld(final Key world) {
+        loaded.remove(world);
+    }
+
+    private WorldConfiguration read(final Key world, final Path file) {
         final String header = """
                 Configuration overrides for %s.
-                Use this to override specific configurations from worlds/default.yml.""".formatted(world.asString());
+                Use this to override specific settings from config/fidorial-world-default.yaml.""".formatted(world.asString());
         try {
-            final Path override = overridePath(world);
-            LOGGER.info("Configuration overrides for {} loaded from {}", world, override);
-            return new ConfigurationCodecs.YamlFile<>(override, overrideCodec, ConfigurationSchemas.WORLD, header).loadSparse();
+            final WorldConfiguration configuration =
+                    new ConfigurationCodecs.YamlFile<>(file, overrideCodec, ConfigurationSchemas.WORLD, header).loadSparse();
+            LOGGER.info("Configuration overrides for {} loaded from {}", world.asString(), file);
+            return configuration;
         } catch (final IOException e) {
             throw new UncheckedIOException("Could not read the configuration of " + world.asString(), e);
         }
-    }
-
-    private Path overridePath(final Key world) {
-        return worldsDirectory.resolve(world.namespace()).resolve(world.value() + ".yml");
     }
 }

@@ -38,7 +38,7 @@ public record ServerConfiguration(
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerConfiguration.class);
     public static final Path DIRECTORY = Path.of("config");
-    private static final Path FILE = DIRECTORY.resolve("fidorial.yml");
+    private static final Path FILE = DIRECTORY.resolve("fidorial.yaml");
 
     private static final String HEADER = """
             Fidorial server-wide configuration.

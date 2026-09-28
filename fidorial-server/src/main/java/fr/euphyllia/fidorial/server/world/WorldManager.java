@@ -126,7 +126,7 @@ public final class WorldManager implements AutoCloseable {
     }
 
     private ServerWorld newWorld(final Dimension dim, final ChunkGenerator generator, final long seed) {
-        final WorldConfiguration configuration = configurations.resolve(dim.id());
+        final WorldConfiguration configuration = configurations.loadWorld(dim.id(), paths.configFile(dim));
         final StructureService structureService = structures;
         final ChunkGenerator effective = structureService == null
                 ? generator
@@ -393,6 +393,7 @@ public final class WorldManager implements AutoCloseable {
         }
         world.forcedChunks().releaseTickets();
         worlds.remove(key);
+        configurations.unloadWorld(key);
         reassignDefaultWorld();
 
         final StructureService structureService = structures;
