@@ -5,6 +5,8 @@ import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Registers every block type and its full network state table.
@@ -4532,14 +4534,18 @@ public final class BlockStateIds {
      * @param registry the registry to populate
      */
     public static void registerAll(final BlockRegistry registry) {
-        register0(registry);
-        register1(registry);
-        register2(registry);
-        register3(registry);
-        register4(registry);
-        register5(registry);
-        register6(registry);
-        register7(registry);
-        register8(registry);
+        Stream.of(
+            (Consumer<BlockRegistry>) BlockStateIds::register0,
+            BlockStateIds::register1,
+            BlockStateIds::register2,
+            BlockStateIds::register3,
+            BlockStateIds::register4,
+            BlockStateIds::register5,
+            BlockStateIds::register6,
+            BlockStateIds::register7,
+            BlockStateIds::register8
+        )
+        .parallel()
+        .forEach(fn -> fn.accept(registry));
     }
 }

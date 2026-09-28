@@ -5,7 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.RecordBuilder;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SwingAnimation;
@@ -50,14 +51,11 @@ public final class ItemStackCodecs {
             type -> type.name().toLowerCase(Locale.ROOT)
     );
 
-    public static final Codec<SwingAnimation> SWING_ANIMATION_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            SWING_ANIMATION_TYPE_CODEC.optionalFieldOf("type", SwingAnimation.DEFAULT.type()).forGetter(SwingAnimation::type),
-            Codec.INT.validate(duration -> duration >= 0
-                            ? DataResult.success(duration)
-                            : DataResult.error(() -> "duration must be non-negative, got " + duration))
-                    .optionalFieldOf("duration", SwingAnimation.DEFAULT.duration())
-                    .forGetter(SwingAnimation::duration)
-    ).apply(instance, SwingAnimation::new));
+    public static final Codec<SwingAnimation> SWING_ANIMATION_CODEC = RecordCodec.builder(SwingAnimation.class)
+            .defaults(SwingAnimation.DEFAULT)
+            .field("type", SwingAnimation::type, SWING_ANIMATION_TYPE_CODEC)
+            .field("duration", SwingAnimation::duration, CommonCodecs.NON_NEGATIVE_INT)
+            .build();
 
     static {
         register(DataComponentTypes.MAX_STACK_SIZE, Codec.INT);

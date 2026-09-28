@@ -29,10 +29,11 @@ final class CachedLightAccess implements LightAccess {
         final int slot = (int) ((key * 0x9E3779B97F4A7C15L >>> 40)) & MASK;
         if (!filled[slot] || keys[slot] != key) {
             keys[slot] = key;
-            data[slot] = delegate.lightAt(chunkX, chunkZ);
-            columns[slot] = delegate.columnAt(chunkX, chunkZ);
-            topSection[slot] = delegate.topNonEmptySectionY(chunkX, chunkZ);
-            populated[slot] = delegate.isLightPopulated(chunkX, chunkZ);
+            final LightAccess.ColumnSnapshot snap = delegate.snapshotAt(chunkX, chunkZ);
+            data[slot] = snap.lightData();
+            columns[slot] = snap.column();
+            topSection[slot] = snap.topNonEmptySectionY();
+            populated[slot] = snap.populated();
             filled[slot] = true;
         }
         return slot;

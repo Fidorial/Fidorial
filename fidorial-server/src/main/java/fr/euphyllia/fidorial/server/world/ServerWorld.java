@@ -5,6 +5,7 @@ import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.list.COWArrayList;
 import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityManager;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
@@ -86,6 +87,7 @@ public final class ServerWorld implements World {
     private final ForcedChunks forcedChunks;
     private final GameRuleOverrides gameRuleValues;
     private final WorldWeather weather;
+    private final WorldConfiguration configuration;
 
     private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
@@ -109,7 +111,8 @@ public final class ServerWorld implements World {
             final BlockStateRegistry blockStates,
             final ThreadedRegionRegionizer scheduler,
             final GameRuleValues baseGameRules,
-            final WeatherState weatherState
+            final WeatherState weatherState,
+            final WorldConfiguration configuration
     ) {
         this.dimension = dimension;
         this.storage = storage;
@@ -119,6 +122,7 @@ public final class ServerWorld implements World {
         this.blockStates = blockStates;
         this.dayNightCycle = new WorldTimeEngine(WorldClocks.forDimension(dimension));
         this.dimensionType = generator.dimensionType();
+        this.configuration = configuration;
         this.minY = dimensionType.minY();
         this.height = dimensionType.height();
         this.lightManager = new WorldLightManager(new WorldLightAccess());
@@ -786,6 +790,10 @@ public final class ServerWorld implements World {
         return dirty;
     }
 
+    public WorldConfiguration configuration() {
+        return configuration;
+    }
+
     public int blockLightAt(final int x, final int y, final int z) {
         return lightManager.blockLight(x, y, z);
     }
@@ -870,6 +878,19 @@ public final class ServerWorld implements World {
             }
             final ChunkSection section = column.sections()[idx];
             return section != null && !section.isEmpty() && section.containsEmissiveBlocks();
+        }
+
+        @Override
+        public ColumnSnapshot snapshotAt(final int chunkX, final int chunkZ) {
+            final ChunkColumn column = loadedColumn(chunkX, chunkZ);
+            if (column == null) {
+                return new ColumnSnapshot(null, null, (minY >> 4) - 1, false);
+            }
+            final BlockColumnAccess columnAccess = (localX, worldY, localZ) ->
+                    (worldY < minY || worldY >= minY + height)
+                            ? BlockState.of(BlockTypeKeys.AIR.key())
+                            : column.getBlock(localX, worldY, localZ);
+            return new ColumnSnapshot(column.lightData(), columnAccess, column.topNonEmptySectionY(), column.lightPopulated());
         }
     }
 }

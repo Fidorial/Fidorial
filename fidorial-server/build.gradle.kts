@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.blossom)
     id("fidorial-spotless")
     id("fidorial-build-conventions")
-    id("fr.fidorial.dependency-patcher") version "1.0.0"
+    id("fr.fidorial.dependency-patcher") version "1.1.0"
     id("fr.fidorial.registry-generator")
 }
 
@@ -53,7 +53,8 @@ dependencies {
         exclude(group = "org.jspecify", module = "jspecify")
     }
     implementation(libs.spark.api)
-    implementation(libs.leafpile)
+    implementation(platform(libs.leafpile.bom))
+    implementation(libs.bundles.leafpile)
 
     runtimeOnly(libs.netty.epoll)
     runtimeOnly(libs.netty.iouring)
@@ -258,5 +259,14 @@ dependencyPatcher {
     patchSet("brigadier") {
         library.set(libs.brigadier)
         autoRebuild = true
+    }
+
+    patchSet("configurate-extra-dfu") {
+        library.set(libs.configurate.extra.dfu)
+        autoRebuild = true
+        dependencies {
+            compileOnly(libs.dfu)
+            compileOnly(libs.configurate.yaml)
+        }
     }
 }

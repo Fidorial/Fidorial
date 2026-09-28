@@ -10,6 +10,7 @@ import com.mojang.serialization.ListBuilder;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.DispatchCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import net.kyori.adventure.text.BlockNBTComponent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.EntityNBTComponent;
@@ -90,10 +91,10 @@ public final class ComponentCodecs {
     private record ScoreData(String name, String objective) {
     }
 
-    private static final Codec<ScoreData> SCORE_DATA_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.fieldOf("name").forGetter(ScoreData::name),
-            Codec.STRING.fieldOf("objective").forGetter(ScoreData::objective)
-    ).apply(instance, ScoreData::new));
+    private static final Codec<ScoreData> SCORE_DATA_CODEC = RecordCodec.builder(ScoreData.class)
+            .required("name", ScoreData::name, Codec.STRING)
+            .required("objective", ScoreData::objective, Codec.STRING)
+            .build();
 
     private static final MapCodec<ScoreComponent> SCORE_CODEC = SCORE_DATA_CODEC.fieldOf("score").xmap(
             d -> Component.score(d.name(), d.objective()),

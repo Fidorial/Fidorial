@@ -1,9 +1,10 @@
 package fr.euphyllia.fidorial.server.codecs.world;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.DispatchCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.world.dimension.IntProvider;
 
 import java.util.List;
@@ -18,42 +19,41 @@ public final class IntProviderCodecs {
     }
 
     private static Codec<IntProvider> createCodec(final Codec<IntProvider> self) {
-        final MapCodec<IntProvider.Constant> constantCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.INT.fieldOf("value").forGetter(IntProvider.Constant::value)
-        ).apply(instance, IntProvider.Constant::new));
+        final MapCodec<IntProvider.Constant> constantCodec = RecordCodec.builder(IntProvider.Constant.class)
+                .required("value", IntProvider.Constant::value, Codec.INT)
+                .buildMap();
 
-        final MapCodec<IntProvider.Uniform> uniformCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.INT.fieldOf("min_inclusive").forGetter(IntProvider.Uniform::minInclusive),
-                Codec.INT.fieldOf("max_inclusive").forGetter(IntProvider.Uniform::maxInclusive)
-        ).apply(instance, IntProvider.Uniform::new));
+        final MapCodec<IntProvider.Uniform> uniformCodec = RecordCodec.builder(IntProvider.Uniform.class)
+                .required("min_inclusive", IntProvider.Uniform::minInclusive, Codec.INT)
+                .required("max_inclusive", IntProvider.Uniform::maxInclusive, Codec.INT)
+                .buildMap();
 
-        final MapCodec<IntProvider.BiasedToBottom> biasedCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.INT.fieldOf("min_inclusive").forGetter(IntProvider.BiasedToBottom::minInclusive),
-                Codec.INT.fieldOf("max_inclusive").forGetter(IntProvider.BiasedToBottom::maxInclusive)
-        ).apply(instance, IntProvider.BiasedToBottom::new));
+        final MapCodec<IntProvider.BiasedToBottom> biasedCodec = RecordCodec.builder(IntProvider.BiasedToBottom.class)
+                .required("min_inclusive", IntProvider.BiasedToBottom::minInclusive, Codec.INT)
+                .required("max_inclusive", IntProvider.BiasedToBottom::maxInclusive, Codec.INT)
+                .buildMap();
 
-        final MapCodec<IntProvider.Clamped> clampedCodec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                Codec.INT.fieldOf("min_inclusive").forGetter(IntProvider.Clamped::minInclusive),
-                Codec.INT.fieldOf("max_inclusive").forGetter(IntProvider.Clamped::maxInclusive),
-                self.fieldOf("source").forGetter(IntProvider.Clamped::source)
-        ).apply(instance, IntProvider.Clamped::new));
+        final MapCodec<IntProvider.Clamped> clampedCodec = RecordCodec.builder(IntProvider.Clamped.class)
+                .required("min_inclusive", IntProvider.Clamped::minInclusive, Codec.INT)
+                .required("max_inclusive", IntProvider.Clamped::maxInclusive, Codec.INT)
+                .required("source", IntProvider.Clamped::source, self)
+                .buildMap();
 
-        final MapCodec<IntProvider.ClampedNormal> clampedNormalCodec =
-                RecordCodecBuilder.mapCodec(instance -> instance.group(
-                        Codec.FLOAT.fieldOf("mean").forGetter(IntProvider.ClampedNormal::mean),
-                        Codec.FLOAT.fieldOf("deviation").forGetter(IntProvider.ClampedNormal::deviation),
-                        Codec.INT.fieldOf("min_inclusive").forGetter(IntProvider.ClampedNormal::minInclusive),
-                        Codec.INT.fieldOf("max_inclusive").forGetter(IntProvider.ClampedNormal::maxInclusive)
-                ).apply(instance, IntProvider.ClampedNormal::new));
+        final MapCodec<IntProvider.ClampedNormal> clampedNormalCodec = RecordCodec.builder(IntProvider.ClampedNormal.class)
+                .required("mean", IntProvider.ClampedNormal::mean, Codec.FLOAT)
+                .required("deviation", IntProvider.ClampedNormal::deviation, Codec.FLOAT)
+                .required("min_inclusive", IntProvider.ClampedNormal::minInclusive, Codec.INT)
+                .required("max_inclusive", IntProvider.ClampedNormal::maxInclusive, Codec.INT)
+                .buildMap();
 
-        final Codec<IntProvider.WeightedList.Entry> entryCodec = RecordCodecBuilder.create(instance -> instance.group(
-                self.fieldOf("data").forGetter(IntProvider.WeightedList.Entry::data),
-                Codec.INT.fieldOf("weight").forGetter(IntProvider.WeightedList.Entry::weight)
-        ).apply(instance, IntProvider.WeightedList.Entry::new));
+        final Codec<IntProvider.WeightedList.Entry> entryCodec = RecordCodec.builder(IntProvider.WeightedList.Entry.class)
+                .required("data", IntProvider.WeightedList.Entry::data, self)
+                .required("weight", IntProvider.WeightedList.Entry::weight, Codec.INT)
+                .build();
 
-        final MapCodec<IntProvider.WeightedList> weightedListCodec = entryCodec.listOf()
-                .fieldOf("distribution")
-                .xmap(IntProvider.WeightedList::new, IntProvider.WeightedList::distribution);
+        final MapCodec<IntProvider.WeightedList> weightedListCodec = RecordCodec.builder(IntProvider.WeightedList.class)
+                .required("distribution", IntProvider.WeightedList::distribution, entryCodec.listOf())
+                .buildMap();
 
         final Codec<IntProvider> dispatch = DispatchCodecs.<IntProvider>matcher("type", List.of(
                 DispatchCodecs.Variant.of("constant", null, true, IntProvider.Constant.class, constantCodec),
@@ -69,8 +69,8 @@ public final class IntProviderCodecs {
 
         return Codec.either(Codec.INT, dispatch).xmap(
                 either -> either.map(IntProvider.Constant::new, provider -> provider),
-                provider -> provider instanceof IntProvider.Constant(int value)
-                        ? com.mojang.datafixers.util.Either.left(value)
-                        : com.mojang.datafixers.util.Either.right(provider));
+                provider -> provider instanceof IntProvider.Constant(final int value)
+                        ? Either.left(value)
+                        : Either.right(provider));
     }
 }

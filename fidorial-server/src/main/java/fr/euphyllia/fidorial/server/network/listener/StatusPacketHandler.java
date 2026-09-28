@@ -32,7 +32,7 @@ public final class StatusPacketHandler implements StatusPacketListener {
                         server.brandName() + " " + server.minecraftVersion(),
                         server.protocolVersion()
                 ))
-                .enforceSecureChat(server.config().enforcesSecureChat())
+                .enforceSecureChat(server.config().network().enforceSecureChat())
                 .build();
         final ServerStatusRequestEvent event = new ServerStatusRequestEventImpl(status);
         server.events().post(event);

@@ -25,6 +25,22 @@ public interface LightAccess {
 
     boolean sectionHasEmissiveBlocks(final int chunkX, final int sectionY, final int chunkZ);
 
+    default ColumnSnapshot snapshotAt(final int chunkX, final int chunkZ) {
+        return new ColumnSnapshot(
+                lightAt(chunkX, chunkZ),
+                columnAt(chunkX, chunkZ),
+                topNonEmptySectionY(chunkX, chunkZ),
+                isLightPopulated(chunkX, chunkZ)
+        );
+    }
+
+    record ColumnSnapshot(
+            @Nullable ChunkLightData lightData,
+            @Nullable BlockColumnAccess column,
+            int topNonEmptySectionY,
+            boolean populated
+    ) { }
+
     interface BlockColumnAccess {
         BlockState blockAt(int localX, int worldY, int localZ);
     }

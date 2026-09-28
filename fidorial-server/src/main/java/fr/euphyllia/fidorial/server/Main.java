@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server;
 
+import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -16,6 +17,9 @@ public final class Main {
             final FidorialServer server = new FidorialServer();
             Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown, "fidorial-shutdown"));
             server.start();
+        } catch (final InvalidConfigurationException e) {
+            LOGGER.error(e.getMessage());
+            System.exit(1);
         } catch (final Throwable t) {
             LOGGER.error("Fidorial could not start : ", t);
             System.exit(1);

@@ -3,6 +3,7 @@ package fr.fidorial.combat;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.Player;
+import fr.fidorial.world.World;
 import org.jspecify.annotations.Nullable;
 
 public interface CombatService {
@@ -69,8 +70,9 @@ public interface CombatService {
     int attackCooldownTicks(Player attacker);
 
     /**
-     * @return {@code true} when players are allowed to damage each other
+     * @param world the world
+     * @return {@code true} when players are allowed to damage each other in this world
      * @since 0.1.0
      */
-    boolean pvpEnabled();
+    boolean pvpEnabled(World world);
 }
