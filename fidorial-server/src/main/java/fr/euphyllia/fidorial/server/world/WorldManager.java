@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
+import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
@@ -61,6 +63,7 @@ public final class WorldManager implements AutoCloseable {
     private volatile @Nullable StructureService structures;
     private volatile @Nullable Key preferredDefaultKey;
     private volatile @Nullable Key defaultWorldKey;
+    private final WorldConfigurationContainer configurations;
 
     private WorldManager(
             final WorldPaths paths,
@@ -69,7 +72,8 @@ public final class WorldManager implements AutoCloseable {
             final EntityRegionStorage entityStorage,
             final AnvilEntitySerializer entitySerializer,
             final BlockStateRegistry blockStates,
-            final ThreadedRegionRegionizer scheduler
+            final ThreadedRegionRegionizer scheduler,
+            final WorldConfigurationContainer configurations
     ) {
         this.paths = paths;
         this.levelData = levelData;
@@ -78,14 +82,15 @@ public final class WorldManager implements AutoCloseable {
         this.entitySerializer = entitySerializer;
         this.blockStates = blockStates;
         this.scheduler = scheduler;
+        this.configurations = configurations;
     }
 
-    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler) throws IOException {
-        return openOrCreate(worldRoot, blockStates, scheduler, null);
+    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler, WorldConfigurationContainer configurations) throws IOException {
+        return openOrCreate(worldRoot, blockStates, scheduler, null, configurations);
     }
 
     public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
-                                            final @Nullable Long newWorldSeed) throws IOException {
+                                            final @Nullable Long newWorldSeed, WorldConfigurationContainer configurations) throws IOException {
         final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
 
         final LevelData levelData;
@@ -105,7 +110,7 @@ public final class WorldManager implements AutoCloseable {
         final EntityRegionStorage entityStorage = new EntityRegionStorage(paths);
         final AnvilEntitySerializer entitySerializer = new AnvilEntitySerializer();
 
-        return new WorldManager(paths, levelData, storage, entityStorage, entitySerializer, blockStates, scheduler);
+        return new WorldManager(paths, levelData, storage, entityStorage, entitySerializer, blockStates, scheduler, configurations);
     }
 
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator) {
@@ -121,13 +126,14 @@ public final class WorldManager implements AutoCloseable {
     }
 
     private ServerWorld newWorld(final Dimension dim, final ChunkGenerator generator, final long seed) {
+        final WorldConfiguration configuration = configurations.resolve(dim.id());
         final StructureService structureService = structures;
         final ChunkGenerator effective = structureService == null
                 ? generator
-                : structureService.wrap(dim.id(), generator, seed);
+                : structureService.wrap(dim.id(), generator, seed, configuration.gameplay()::generateStructures);
         final boolean overworld = Dimension.OVERWORLD.id().equals(dim.id());
         final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler,
-                levelData.gameRules, overworld ? levelData.weather : new WeatherState());
+                levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration);
         if (chunkLoader != null) {
             world.setChunkLoader(chunkLoader);
         }
@@ -140,6 +146,10 @@ public final class WorldManager implements AutoCloseable {
         restoreTime(world);
         restoreWeather(world);
         return world;
+    }
+
+    public WorldConfigurationContainer configurations() {
+        return configurations;
     }
 
     /**

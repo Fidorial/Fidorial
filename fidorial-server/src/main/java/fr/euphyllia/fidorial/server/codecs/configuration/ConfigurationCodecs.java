@@ -21,8 +21,10 @@ import org.spongepowered.configurate.loader.HeaderMode;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -171,14 +173,38 @@ public final class ConfigurationCodecs {
          * Upgrades, decodes and saves {@code root}.
          */
         public T load(final CommentedConfigurationNode root) throws ConfigurateException, InvalidConfigurationException {
-            schemas.upgrade(root);
+            schemas.upgrade(path, root);
             removeBlankValues(root);
-            final T value = switch (codec.parse(ops(root), root)) {
-                case final DataResult.Success<T> success -> success.value();
-                case final DataResult.Error<T> error -> throw new InvalidConfigurationException(path, error.message().lines().toList());
-            };
+            final T value = decode(root);
             save(value);
             return value;
+        }
+
+        /**
+         * Loads the file without rewriting it, so it keeps only the settings written in it. A missing file is
+         * created with just the header and the version.
+         */
+        public T loadSparse() throws IOException {
+            final boolean existed = Files.exists(path);
+            final YamlConfigurationLoader loader = loader();
+            final CommentedConfigurationNode root = loader.load();
+            removeBlankValues(root);
+            final int version = root.node(schemas.versionKey()).getInt(-1);
+            schemas.upgrade(path, root);
+            if (!existed || version != schemas.latestVersion()) {
+                schemas.stamp(root);
+                Files.createDirectories(path.toAbsolutePath().getParent());
+                loader.save(root);
+            }
+            return decode(root);
+        }
+
+        private T decode(final CommentedConfigurationNode root) {
+            return switch (codec.parse(ops(root), root)) {
+                case final DataResult.Success<T> success -> success.value();
+                case final DataResult.Error<T> error ->
+                        throw new InvalidConfigurationException(path, error.message().lines().toList());
+            };
         }
 
         public void save(final T value) throws ConfigurateException {

@@ -237,7 +237,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = new Location(config.world().spawn().x(), config.world().spawn().y(), config.world().spawn().z(), 0f, 0f);
+        final Location defaultSpawn = new Location(defaultWorld.configuration().gameplay().spawn().x(), defaultWorld.configuration().gameplay().spawn().y(), defaultWorld.configuration().gameplay().spawn().z(), 0f, 0f);
 
         ServerWorld world = defaultWorld;
         Location spawn = defaultSpawn;
@@ -303,7 +303,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private PlayerDataStorage.PlayerData loadPlayerData(final PlayerProfile profile) {
-        final PlayerDataStorage.PlayerData defaults = new PlayerDataStorage.PlayerData(config.general().defaultGameMode(), null, null, null, null);
+        final PlayerDataStorage.PlayerData defaults = new PlayerDataStorage.PlayerData(worldOrDisconnect().configuration().gameplay().defaultGameMode(), null, null, null, null);
         try {
             return server.playerDataStorage().load(profile.uuid(), defaults);
         } catch (final Exception e) {
@@ -327,8 +327,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 player.gameMode().id(),
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
-                server.config().network().onlineMode(),
-                server.config().network().enforceSecureChat(),
+                config.network().onlineMode(),
+                config.network().enforceSecureChat(),
                 serverWorld().gameRuleValues().getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO),
                 !serverWorld().gameRuleValues().getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN),
                 serverWorld().gameRuleValues().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
@@ -1156,7 +1156,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         final ServerWorld defaultWorld = worldOrDisconnect();
         final Location defaultSpawn =
-                new Location(config.world().spawn().x(), config.world().spawn().y(), config.world().spawn().z(), 0f, 0f);
+                new Location(defaultWorld.configuration().gameplay().spawn().x(), defaultWorld.configuration().gameplay().spawn().y(), defaultWorld.configuration().gameplay().spawn().z(), 0f, 0f);
 
         ServerWorld requestedWorld = defaultWorld;
         Location requestedSpawn = defaultSpawn;

@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.ServerConfig;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.schemas.LegacyToV1Schema;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import org.spongepowered.configurate.CommentedConfigurationNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,8 +24,12 @@ final class LegacyConfigurationMigration {
     }
 
     static ServerConfiguration migrate(final ConfigurationCodecs.YamlFile<ServerConfiguration> target) throws IOException {
-        final CommentedConfigurationNode imported = LegacyToV1Schema.apply(ServerConfig.read(LEGACY_FILE), target.createNode());
-        final ServerConfiguration config = target.load(imported);
+        final ServerConfig legacy = ServerConfig.read(LEGACY_FILE);
+        final ServerConfiguration config = target.load(LegacyToV1Schema.apply(legacy, target.createNode()));
+        WorldConfigurationContainer.defaultsFile(ServerConfiguration.DIRECTORY).save(new WorldConfiguration(
+                new WorldConfiguration.Gameplay(
+                        legacy.pvp(), legacy.defaultGameMode(), legacy.generateStructures(),
+                        new WorldConfiguration.Spawn(legacy.spawnX(), legacy.spawnY(), legacy.spawnZ()))));
 
         final Path backup = LEGACY_FILE.resolveSibling(LEGACY_FILE.getFileName() + "_old");
         Files.move(LEGACY_FILE, backup, StandardCopyOption.REPLACE_EXISTING);

@@ -52,7 +52,6 @@ public final class StructureService implements StructureManager {
 
     private final Path folder;
     private final BlockValidator validator;
-    private final BooleanSupplier generationEnabled;
     private final Map<Key, StructureChunkGenerator> generators = new ConcurrentHashMap<>();
     private final ExecutorService worker = Executors.newFixedThreadPool(2, runnable -> {
         final Thread thread = new Thread(runnable, "fidorial-structures");
@@ -61,10 +60,9 @@ public final class StructureService implements StructureManager {
     });
     private volatile StructureRegistry registry;
 
-    public StructureService(final Path folder, final BlockValidator validator, final BooleanSupplier generationEnabled) {
+    public StructureService(final Path folder, final BlockValidator validator) {
         this.folder = folder;
         this.validator = validator;
-        this.generationEnabled = generationEnabled;
         this.registry = StructureRegistry.empty(validator);
     }
 
@@ -95,11 +93,7 @@ public final class StructureService implements StructureManager {
         return registry;
     }
 
-    public boolean generationEnabled() {
-        return generationEnabled.getAsBoolean();
-    }
-
-    public ChunkGenerator wrap(final Key world, final ChunkGenerator base, final long seed) {
+    public ChunkGenerator wrap(final Key world, final ChunkGenerator base, final long seed, final BooleanSupplier generationEnabled) {
         if (base instanceof final StructureChunkGenerator already) {
             return already;
         }

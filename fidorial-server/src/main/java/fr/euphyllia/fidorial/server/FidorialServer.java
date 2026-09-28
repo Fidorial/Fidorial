@@ -11,6 +11,8 @@ import fr.euphyllia.fidorial.server.combat.CombatEngine;
 import fr.euphyllia.fidorial.server.command.CommandManager;
 import fr.euphyllia.fidorial.server.command.ConsoleSender;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
+import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityIdAllocator;
@@ -177,18 +179,18 @@ public final class FidorialServer implements Server {
             r -> Thread.ofPlatform().name("fidorial-autosave").unstarted(r));
 
     private final NbtPlayerInventoryStorage defaultInventoryStorage =
-            new NbtPlayerInventoryStorage(config.world().path().resolve("player"), false);
+            new NbtPlayerInventoryStorage(config.worlds().path().resolve("player"), false);
     private final NbtPlayerDataStorage defaultPlayerDataStorage =
-            new NbtPlayerDataStorage(config.world().path().resolve("player"), false);
+            new NbtPlayerDataStorage(config.worlds().path().resolve("player"), false);
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
-            new NbtPlayerEnderChestStorage(config.world().path().resolve("player"), false);
+            new NbtPlayerEnderChestStorage(config.worlds().path().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
     private final WorldManager worldManager = WorldManager.openOrCreate(
-            config.world().path(), blockStateRegistry, regionizer, config.world().levelSeed());
+            config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
     private final StructureService structureService = new StructureService(
-            config.world().path().resolve("datapacks"),
-            new RegistryBlockValidator(blockRegistry),
-            () -> config.world().generateStructures());
+            config.worlds().path().resolve("datapacks"),
+            new RegistryBlockValidator(blockRegistry)
+    );
     private final FluidEngine fluidEngine =
             new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
     private final WeatherEngine weatherEngine = new WeatherEngine(worldManager);
@@ -213,7 +215,7 @@ public final class FidorialServer implements Server {
     private final FidorialWhitelist fidorialWhitelist = new FidorialWhitelist(Path.of("whitelist.json"));
     private final FidorialOfflinePlayers offlinePlayers = new FidorialOfflinePlayers(
             this,
-            config.world().path().resolve("player").resolve("profiles.fop"),
+            config.worlds().path().resolve("player").resolve("profiles.fop"),
             PROFILE_CACHE_TTL,
             PROFILE_CACHE_MAX_ENTRIES,
             config.network().onlineMode());
@@ -307,6 +309,9 @@ public final class FidorialServer implements Server {
                 pluginManager.enableAll();
             }
             events.post(new ServerStartedEvent(this));
+        } catch (final InvalidConfigurationException e) {
+            shutdown();
+            throw e;
         } catch (final Exception e) {
             LOGGER.error("Startup interrupted, shutting down", e);
             shutdown();
@@ -397,7 +402,7 @@ public final class FidorialServer implements Server {
                 entityTracker.untrack(entity);
             }
         });
-        worldManager.setDefaultWorld(config.world().defaultWorld());
+        worldManager.setDefaultWorld(config.worlds().defaultWorld());
         worldManager.setDefaultGenerator(new ServiceBackedChunkGenerator(
                 services,
                 FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));

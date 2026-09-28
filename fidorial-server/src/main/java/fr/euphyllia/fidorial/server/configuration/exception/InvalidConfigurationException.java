@@ -1,12 +1,11 @@
 package fr.euphyllia.fidorial.server.configuration.exception;
 
-import java.io.IOException;
 import java.io.Serial;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public final class InvalidConfigurationException extends IOException {
+public final class InvalidConfigurationException extends RuntimeException {
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -6,7 +6,6 @@ import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
-import fr.fidorial.entity.GameMode;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
@@ -30,7 +29,7 @@ public record ServerConfiguration(
         Network network,
         Status status,
         General general,
-        WorldSettings world,
+        WorldSettings worlds,
         Threading threading,
         @Nullable ResourcePackRequest resourcePack,
         CodeOfConduct codeOfConduct,
@@ -38,10 +37,11 @@ public record ServerConfiguration(
 ) {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerConfiguration.class);
-    private static final Path FILE = Path.of("fidorial.yml");
+    public static final Path DIRECTORY = Path.of("config");
+    private static final Path FILE = DIRECTORY.resolve("fidorial.yml");
 
     private static final String HEADER = """
-            Fidorial configuration.
+            Fidorial server-wide configuration.
             This file is generated next to the JAR on first startup.""";
 
     public record Network(
@@ -134,16 +134,8 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record General(
-            int viewDistance,
-            int sendDistance,
-            int autoSaveSeconds,
-            GameMode defaultGameMode,
-            boolean pvp,
-            Path pluginsPath
-    ) {
-        static final General DEFAULTS = new General(
-                10, 10, 5, GameMode.SURVIVAL, true, Path.of("plugins"));
+    public record General(int viewDistance, int sendDistance, int autoSaveSeconds, Path pluginsPath) {
+        static final General DEFAULTS = new General(10, 10, 5, Path.of("plugins"));
 
         static final Codec<General> CODEC = configRecord(General.class, DEFAULTS)
                 .field("view-distance", General::viewDistance, commented(CommonCodecs.POSITIVE_INT,
@@ -152,10 +144,6 @@ public record ServerConfiguration(
                         "The actual streaming radius. Must not exceed view-distance"))
                 .field("auto-save-seconds", General::autoSaveSeconds, commented(CommonCodecs.POSITIVE_INT,
                         "How often should auto-save happen. Declared in seconds"))
-                .field("default-game-mode", General::defaultGameMode, commented(ConfigurationCodecs.GAME_MODE,
-                        "The gamemode given to players joining for the first time. Available options are: survival, creative, adventure, spectator"))
-                .field("pvp", General::pvp, commented(Codec.BOOL,
-                        "Whether PVP is enabled"))
                 .field("plugins-path", General::pluginsPath, commented(ConfigurationCodecs.PATH,
                         "The path to the directory containing plugins"))
                 .validate(general -> general.sendDistance() <= general.viewDistance(),
@@ -164,37 +152,16 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record WorldSettings(
-            Path path,
-            Key defaultWorld,
-            boolean generateStructures,
-            @Nullable Long levelSeed,
-            Spawn spawn
-    ) {
-        static final WorldSettings DEFAULTS = new WorldSettings(
-                Path.of("world"), Key.key("overworld"), true, null, Spawn.DEFAULTS);
+    public record WorldSettings(Path path, Key defaultWorld, @Nullable Long levelSeed) {
+        static final WorldSettings DEFAULTS = new WorldSettings(Path.of("world"), Key.key("overworld"), null);
 
         static final Codec<WorldSettings> CODEC = configRecord(WorldSettings.class, DEFAULTS)
                 .field("path", WorldSettings::path, commented(ConfigurationCodecs.PATH,
-                        "The path to the world directory"))
+                        "The path to the directory containing worlds"))
                 .field("default-world", WorldSettings::defaultWorld, commented(KEY_CODEC,
                         "The dimension that should serve as the default for various operations, like selecting players' default spawn world"))
-                .field("generate-structures", WorldSettings::generateStructures, commented(Codec.BOOL,
-                        "Whether to generate structures. Effective only when a datapack containing them is loaded"))
                 .nullableInline("level-seed", WorldSettings::levelSeed, commented(ConfigurationCodecs.SEED,
                         "The seed to use for the default world generator"))
-                .field("spawn", WorldSettings::spawn, commented(Spawn.CODEC,
-                        "The spawn position for joining players. Defaults to Vanilla's superflat default spawn position"))
-                .build();
-    }
-
-    public record Spawn(double x, double y, double z) {
-        static final Spawn DEFAULTS = new Spawn(8.5, -48.0, 8.5);
-
-        static final Codec<Spawn> CODEC = configRecord(Spawn.class, DEFAULTS)
-                .field("x", Spawn::x, Codec.DOUBLE)
-                .field("y", Spawn::y, Codec.DOUBLE)
-                .field("z", Spawn::z, Codec.DOUBLE)
                 .build();
     }
 
@@ -296,9 +263,9 @@ public record ServerConfiguration(
             .field("status", ServerConfiguration::status, commented(Status.CODEC,
                     "How the server appears in the client's server list"))
             .field("general", ServerConfiguration::general, commented(General.CODEC,
-                    "Gameplay and server-wide settings"))
-            .field("world", ServerConfiguration::world, commented(WorldSettings.CODEC,
-                    "Settings for the world directory and world generation"))
+                    "Server-wide settings"))
+            .field("worlds", ServerConfiguration::worlds, commented(WorldSettings.CODEC,
+                    "The worlds directory and default worlds. Per-worlds settings are in worlds/"))
             .field("threading", ServerConfiguration::threading, commented(Threading.CODEC, """
                     Thread pool sizes. Each value must be at least 1
                     Leave a value blank to let the server choose it based on the number of CPU cores"""))

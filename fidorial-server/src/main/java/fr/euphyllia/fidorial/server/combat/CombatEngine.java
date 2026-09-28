@@ -36,6 +36,7 @@ import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.Location;
+import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -457,17 +458,16 @@ public final class CombatEngine implements CombatService {
     }
 
     @Override
-    public boolean pvpEnabled() {
-        return server.config().general().pvp() && server.gameRules().getBoolean(GameRuleKeys.PVP);
+    public boolean pvpEnabled(final World world) {
+        return server.worldManager().configurations().resolve(world.key()).gameplay().pvp()
+                && ((ServerWorld) world).gameRuleValues().getBoolean(GameRuleKeys.PVP);
     }
 
     private boolean canHarm(final ServerPlayer attacker, final AbstractLivingEntity victim) {
         if (!(victim instanceof final ServerPlayer other)) {
             return true;
         }
-        return server.config().general().pvp()
-                && gameRulesOf(other).getBoolean(GameRuleKeys.PVP)
-                && !other.isInvulnerableToDamage();
+        return pvpEnabled(other.world()) && !other.isInvulnerableToDamage();
     }
 
     private boolean isWithinReach(final ServerPlayer attacker, final AbstractEntity victim) {

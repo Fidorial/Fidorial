@@ -5,7 +5,6 @@ import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -44,19 +43,12 @@ public final class LegacyToV1Schema {
         general.node("view-distance").raw(legacy.viewDistance());
         general.node("send-distance").raw(legacy.sendDistance());
         general.node("auto-save-seconds").raw(legacy.autoSaveSeconds());
-        general.node("default-game-mode").raw(legacy.defaultGameMode().name().toLowerCase(Locale.ROOT));
-        general.node("pvp").raw(legacy.pvp());
         general.node("plugins-path").raw(legacy.pluginsPath().toString());
 
         final CommentedConfigurationNode world = root.node("world");
         world.node("path").raw(legacy.worldPath().toString());
         world.node("default-world").raw(legacy.defaultWorld().asString());
-        world.node("generate-structures").raw(legacy.generateStructures());
         world.node("level-seed").raw(legacy.levelSeed() == null ? "" : legacy.levelSeed());
-        final CommentedConfigurationNode spawn = world.node("spawn");
-        spawn.node("x").raw(legacy.spawnX());
-        spawn.node("y").raw(legacy.spawnY());
-        spawn.node("z").raw(legacy.spawnZ());
 
         final CommentedConfigurationNode threading = root.node("threading");
         threading.node("region-workers").raw(legacy.regionWorkers());
