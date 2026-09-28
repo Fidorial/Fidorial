@@ -62,6 +62,33 @@
      }
  
      /**
+@@ -398,8 +_,24 @@
+      */
+     @Override
+     public ConfigurationNode createNumeric(final Number value) {
+-        return empty().raw(requireNonNull(value, "value"));
+-    }
++        // Fidorial start - store numbers the node doesn't accept as a type it does
++        final ConfigurationNode node = empty();
++        requireNonNull(value, "value");
++        return node.raw(node.options().acceptsType(value.getClass()) ? value : widen(value));
++        // Fidorial end - store numbers the node doesn't accept as a type it does
++    }
++
++    // Fidorial start - store numbers the node doesn't accept as a type it does
++    private static Number widen(final Number value) {
++        if (value instanceof Float) {
++            return Double.parseDouble(value.toString()); // keeps 0.1f as 0.1
++        }
++        if (value instanceof Byte || value instanceof Short) {
++            return value.intValue();
++        }
++        return value;
++    }
++    // Fidorial end - store numbers the node doesn't accept as a type it does
+ 
+     /**
+      * Create a new node using this ops instance's node factory,
 @@ -521,7 +_,7 @@
                                                                      guardOutputRead(entry.getValue()))));
          }

@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.configuration;
 import fr.euphyllia.fidorial.server.ServerConfig;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.schemas.LegacyToV1Schema;
+import fr.fidorial.world.Location;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ final class LegacyConfigurationMigration {
         WorldConfigurationContainer.defaultsFile(ServerConfiguration.DIRECTORY).save(new WorldConfiguration(
                 new WorldConfiguration.Gameplay(
                         legacy.pvp(), legacy.defaultGameMode(), legacy.generateStructures(),
-                        new WorldConfiguration.Spawn(legacy.spawnX(), legacy.spawnY(), legacy.spawnZ()))));
+                        new Location(legacy.spawnX(), legacy.spawnY(), legacy.spawnZ(), 0f, 0f))));
 
         final Path backup = LEGACY_FILE.resolveSibling(LEGACY_FILE.getFileName() + "_old");
         Files.move(LEGACY_FILE, backup, StandardCopyOption.REPLACE_EXISTING);

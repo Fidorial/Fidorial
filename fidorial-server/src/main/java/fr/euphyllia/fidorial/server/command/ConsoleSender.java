@@ -91,10 +91,7 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
     public Location location() {
         // provide the location as default spawn
         final WorldConfiguration config = FidorialServer.getInstance().worldManager().defaultWorld().orElseThrow().configuration();
-        final double x = config.gameplay().spawn().x();
-        final double y = config.gameplay().spawn().y();
-        final double z = config.gameplay().spawn().z();
-        return new Location(x, y, z, 0, 0);
+        return config.gameplay().spawn();
     }
 
     @Override

@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.configuration;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.world.Location;
 
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.commented;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.configRecord;
@@ -27,10 +28,11 @@ public record WorldConfiguration(Gameplay gameplay) {
             boolean pvp,
             GameMode defaultGameMode,
             boolean generateStructures,
-            Spawn spawn
+            Location spawn
     ) {
 
-        public static final Gameplay DEFAULTS = new Gameplay(true, GameMode.SURVIVAL, true, Spawn.DEFAULTS);
+        public static final Gameplay DEFAULTS = new Gameplay(
+                true, GameMode.SURVIVAL, true, new Location(8.5, -48.0, 8.5, 0f, 0f));
 
         static Codec<Gameplay> codec(final Gameplay defaults) {
             return configRecord(Gameplay.class, defaults)
@@ -40,21 +42,18 @@ public record WorldConfiguration(Gameplay gameplay) {
                             "The gamemode given to players joining for the first time. Available options are: survival, creative, adventure, spectator"))
                     .field("generate-structures", Gameplay::generateStructures, commented(Codec.BOOL,
                             "Whether to generate structures. Effective only when a datapack containing them is loaded"))
-                    .field("spawn", Gameplay::spawn, commented(Spawn.codec(defaults.spawn()),
-                            "The spawn position for joining players. Defaults to Vanilla's superflat default spawn position"))
+                    .field("spawn", Gameplay::spawn, commented(spawnCodec(defaults.spawn()),
+                            "The spawn position and rotation for joining players. Defaults to Vanilla's superflat default spawn position"))
                     .build();
         }
-    }
 
-    public record Spawn(double x, double y, double z) {
-
-        public static final Spawn DEFAULTS = new Spawn(8.5, -48.0, 8.5);
-
-        static Codec<Spawn> codec(final Spawn defaults) {
-            return configRecord(Spawn.class, defaults)
-                    .field("x", Spawn::x, Codec.DOUBLE)
-                    .field("y", Spawn::y, Codec.DOUBLE)
-                    .field("z", Spawn::z, Codec.DOUBLE)
+        private static Codec<Location> spawnCodec(final Location defaults) {
+            return configRecord(Location.class, defaults)
+                    .field("x", Location::x, Codec.DOUBLE)
+                    .field("y", Location::y, Codec.DOUBLE)
+                    .field("z", Location::z, Codec.DOUBLE)
+                    .field("yaw", Location::yaw, Codec.FLOAT)
+                    .field("pitch", Location::pitch, Codec.FLOAT)
                     .build();
         }
     }
