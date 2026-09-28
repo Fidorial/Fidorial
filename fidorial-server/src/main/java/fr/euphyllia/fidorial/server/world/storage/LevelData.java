@@ -383,6 +383,7 @@ public final class LevelData {
         for (final Key pack : packs) {
             final boolean vanillaNamespace = Key.MINECRAFT_NAMESPACE.equals(pack.namespace());
             enabledPacks.add(vanillaNamespace ? pack.value() : pack.asString());
+            // To be revisited: custom datapacks defining features in their pack.mcmeta
             if (vanillaNamespace && !enabledFeatures.contains(pack)) {
                 enabledFeatures.add(pack);
             }
