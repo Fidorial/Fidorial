@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.codecs.dialog;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.data.DataComponentMap;
@@ -17,15 +18,11 @@ import static fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs.COMP
 
 public class DialogItemCodecs {
 
-    private static final MapCodec<ItemComponents> COMPONENTS_CODEC =
-            RecordCodecBuilder.mapCodec(instance -> instance.group(
-                    COMPONENT_CODEC.optionalFieldOf("custom_name")
-                            .forGetter(ItemComponents::customName),
-                    COMPONENT_CODEC.optionalFieldOf("item_name")
-                            .forGetter(ItemComponents::itemName),
-                    COMPONENT_CODEC.listOf().optionalFieldOf("lore")
-                            .forGetter(ItemComponents::lore)
-            ).apply(instance, ItemComponents::new));
+    private static final MapCodec<ItemComponents> COMPONENTS_CODEC = RecordCodec.builder(ItemComponents.class)
+            .optional("custom_name", ItemComponents::customName, COMPONENT_CODEC)
+            .optional("item_name", ItemComponents::itemName, COMPONENT_CODEC)
+            .optional("lore", ItemComponents::lore, COMPONENT_CODEC.listOf())
+            .buildMap();
 
     static final Codec<ItemStack> ITEM_STACK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
             KEY_CODEC.fieldOf("id").forGetter(ItemStack::id),

@@ -69,6 +69,10 @@ public class WorldPaths {
         return modern;
     }
 
+    public Path configFile(final Dimension dim) {
+        final Path base = dimensionDataDir(dim);
+        return base.resolve("fidorial/fidorial-world.yaml");
+    }
 
     public enum Layout {
         MODERN,

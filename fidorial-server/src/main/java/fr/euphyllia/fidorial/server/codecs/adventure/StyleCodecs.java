@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -65,9 +66,7 @@ public final class StyleCodecs {
                     .xmap(ClickEvent::runCommand, e -> ((ClickEvent.Payload.Text) e.payload()).value());
             case "suggest_command" -> Codec.STRING.fieldOf("command")
                     .xmap(ClickEvent::suggestCommand, e -> ((ClickEvent.Payload.Text) e.payload()).value());
-            case "change_page" -> Codec.INT.validate(page -> page > 0
-                            ? DataResult.success(page)
-                            : DataResult.error(() -> "Page must be positive: " + page))
+            case "change_page" -> CommonCodecs.POSITIVE_INT
                     .fieldOf("page")
                     .xmap(ClickEvent::changePage, e -> ((ClickEvent.Payload.Int) e.payload()).integer());
             case "copy_to_clipboard" -> Codec.STRING.fieldOf("value")

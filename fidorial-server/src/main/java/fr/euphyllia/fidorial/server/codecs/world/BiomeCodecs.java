@@ -5,8 +5,8 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.biome.BiomeEffects;
 import fr.fidorial.world.biome.GrassColorModifier;
@@ -18,7 +18,6 @@ import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.function.Function;
 
 public class BiomeCodecs {
@@ -29,45 +28,30 @@ public class BiomeCodecs {
     public static final Codec<GrassColorModifier> GRASS_COLOR_MODIFIER =
             byId(GrassColorModifier.values(), GrassColorModifier::id, "grass color modifier");
 
-    public static final Codec<Key> PARTICLE_OPTIONS = RecordCodecBuilder.create(instance -> instance.group(
-            CommonCodecs.KEY_CODEC.fieldOf("type").forGetter(type -> type)
-    ).apply(instance, type -> type));
+    public static final Codec<Key> PARTICLE_OPTIONS = CommonCodecs.KEY_CODEC.fieldOf("type").codec();
 
-    public static final Codec<BiomeEffects> EFFECTS = RecordCodecBuilder.create(instance -> instance.group(
-            CommonCodecs.RGB_COLOR.fieldOf("water_color").forGetter(BiomeEffects::waterColor),
-            CommonCodecs.RGB_COLOR.optionalFieldOf("foliage_color")
-                    .forGetter(effects -> Optional.ofNullable(effects.foliageColor())),
-            CommonCodecs.RGB_COLOR.optionalFieldOf("grass_color")
-                    .forGetter(effects -> Optional.ofNullable(effects.grassColor())),
-            CommonCodecs.RGB_COLOR.optionalFieldOf("dry_foliage_color")
-                    .forGetter(effects -> Optional.ofNullable(effects.dryFoliageColor())),
-            GRASS_COLOR_MODIFIER.optionalFieldOf("grass_color_modifier", GrassColorModifier.NONE)
-                    .forGetter(BiomeEffects::grassColorModifier)
-    ).apply(instance, (water, foliage, grass, dryFoliage, grassModifier) ->
-            new BiomeEffects(
-                    water,
-                    foliage.orElse(null),
-                    grass.orElse(null),
-                    dryFoliage.orElse(null),
-                    grassModifier)));
+    public static final Codec<BiomeEffects> EFFECTS = RecordCodec.builder(BiomeEffects.class)
+            .required("water_color", BiomeEffects::waterColor, CommonCodecs.RGB_COLOR)
+            .nullable("foliage_color", BiomeEffects::foliageColor, CommonCodecs.RGB_COLOR)
+            .nullable("grass_color", BiomeEffects::grassColor, CommonCodecs.RGB_COLOR)
+            .nullable("dry_foliage_color", BiomeEffects::dryFoliageColor, CommonCodecs.RGB_COLOR)
+            .field("grass_color_modifier", BiomeEffects::grassColorModifier, GRASS_COLOR_MODIFIER, GrassColorModifier.NONE)
+            .build();
 
     private BiomeCodecs() {
         throw new UnsupportedOperationException("BiomeCodecs cannot be instantiated.");
     }
 
     public static Codec<BiomeDefinition> codec(final Key key) {
-        return RecordCodecBuilder.create(instance -> instance.group(
-                Codec.BOOL.fieldOf("has_precipitation").forGetter(BiomeDefinition::hasPrecipitation),
-                Codec.FLOAT.fieldOf("temperature").forGetter(BiomeDefinition::temperature),
-                TEMPERATURE_MODIFIER.optionalFieldOf("temperature_modifier", TemperatureModifier.NONE)
-                        .forGetter(BiomeDefinition::temperatureModifier),
-                Codec.FLOAT.fieldOf("downfall").forGetter(BiomeDefinition::downfall),
-                EFFECTS.fieldOf("effects").forGetter(BiomeDefinition::effects),
-                EnvironmentAttributeCodecs.ATTRIBUTES
-                        .optionalFieldOf("attributes", EnvironmentAttributes.EMPTY)
-                        .forGetter(BiomeDefinition::attributes)
-        ).apply(instance, (precipitation, temperature, modifier, downfall, effects, attributes) ->
-                new BiomeDefinition(key, precipitation, temperature, modifier, downfall, effects, attributes)));
+        return RecordCodec.builder(BiomeDefinition.class)
+                .given(key)
+                .required("has_precipitation", BiomeDefinition::hasPrecipitation, Codec.BOOL)
+                .required("temperature", BiomeDefinition::temperature, Codec.FLOAT)
+                .field("temperature_modifier", BiomeDefinition::temperatureModifier, TEMPERATURE_MODIFIER, TemperatureModifier.NONE)
+                .required("downfall", BiomeDefinition::downfall, Codec.FLOAT)
+                .required("effects", BiomeDefinition::effects, EFFECTS)
+                .field("attributes", BiomeDefinition::attributes, EnvironmentAttributeCodecs.ATTRIBUTES, EnvironmentAttributes.EMPTY)
+                .build();
     }
 
     public static CompoundBinaryTag encodeNbt(final BiomeDefinition biome) {

@@ -536,7 +536,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public int effectiveViewDistance() {
-        final int serverMax = server.config().sendDistance();
+        final int serverMax = server.config().general().sendDistance();
         final int client = viewDistance;
         return Math.clamp(client, 2, serverMax);
     }

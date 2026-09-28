@@ -10,6 +10,9 @@ import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.combat.CombatEngine;
 import fr.euphyllia.fidorial.server.command.CommandManager;
 import fr.euphyllia.fidorial.server.command.ConsoleSender;
+import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
+import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityIdAllocator;
@@ -110,7 +113,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -145,7 +147,7 @@ public final class FidorialServer implements Server {
 
     private static @Nullable FidorialServer instance;
 
-    private final ServerConfig config = ServerConfig.load();
+    private final ServerConfiguration config = ServerConfiguration.load();
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final KeyPair keyPair = EncryptionUtils.generateServerKeyPair();
@@ -154,7 +156,7 @@ public final class FidorialServer implements Server {
     private final FidorialBlockRegistry blockRegistry = bootstrapBlocks();
     private final BlockStateRegistry blockStateRegistry = new BlockStateRegistry(blockRegistry);
     private final EntityIdAllocator entityIds = new EntityIdAllocator();
-    private final EntityTracker entityTracker = new EntityTracker(config.sendDistance());
+    private final EntityTracker entityTracker = new EntityTracker(config.general().sendDistance());
     private final SimpleEventBus events = new SimpleEventBus();
     private final CombatEngine combat = new CombatEngine(this);
     private final ServiceRegistry services = new SimpleServiceRegistry();
@@ -167,24 +169,28 @@ public final class FidorialServer implements Server {
     private final CommandManager commandManager;
     private final ClickCallbackManager clickCallbackManager = new ClickCallbackManager();
     private final CodeOfConductManager codeOfConduct =
-            new CodeOfConductManager(config.enableCodeOfConduct(), config.codeOfConductPath());
+            new CodeOfConductManager(config.codeOfConduct().enabled(), config.codeOfConduct().path());
 
-    private final ThreadedRegionRegionizer regionizer = new ThreadedRegionRegionizer(config.regionWorkers(), config.regionShift());
-    private final ThreadedChunkWorker chunkWorker = new ThreadedChunkWorker(config.chunkWorkers());
-    private final AiWorker aiWorker = new AiWorker(config.aiWorkers());
+    private final ThreadedRegionRegionizer regionizer = new ThreadedRegionRegionizer(
+            config.threading().regionWorkers(), config.threading().regionSectionShift());
+    private final ThreadedChunkWorker chunkWorker = new ThreadedChunkWorker(config.threading().chunkWorkers());
+    private final AiWorker aiWorker = new AiWorker(config.threading().aiWorkers());
     private final ScheduledExecutorService autoSave = Executors.newSingleThreadScheduledExecutor(
             r -> Thread.ofPlatform().name("fidorial-autosave").unstarted(r));
 
     private final NbtPlayerInventoryStorage defaultInventoryStorage =
-            new NbtPlayerInventoryStorage(config.worldPath().resolve("player"), false);
+            new NbtPlayerInventoryStorage(config.worlds().path().resolve("player"), false);
     private final NbtPlayerDataStorage defaultPlayerDataStorage =
-            new NbtPlayerDataStorage(config.worldPath().resolve("player"), false);
+            new NbtPlayerDataStorage(config.worlds().path().resolve("player"), false);
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
-            new NbtPlayerEnderChestStorage(config.worldPath().resolve("player"), false);
+            new NbtPlayerEnderChestStorage(config.worlds().path().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
-    private final WorldManager worldManager = WorldManager.openOrCreate(config.worldPath(), blockStateRegistry, regionizer, config.levelSeed());
+    private final WorldManager worldManager = WorldManager.openOrCreate(
+            config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
     private final StructureService structureService = new StructureService(
-            config.worldPath().resolve("datapacks"), new RegistryBlockValidator(blockRegistry), config::generateStructures);
+            config.worlds().path().resolve("datapacks"),
+            new RegistryBlockValidator(blockRegistry)
+    );
     private final FluidEngine fluidEngine =
             new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
     private final WeatherEngine weatherEngine = new WeatherEngine(worldManager);
@@ -193,7 +199,7 @@ public final class FidorialServer implements Server {
     private final DayNightThread dayNightEngine = new DayNightThread(worldManager, registries.dynamic());
     private final ChunkNetworkSerializer chunkSerializer = new ChunkNetworkSerializer(blockStateRegistry, registries.biomes());
     private final LightUpdateDispatcher lightDispatcher = new LightUpdateDispatcher(
-            config.lightWorkers(), this::broadcast, chunkSerializer, worldManager::world);
+            config.threading().lightWorkers(), this::broadcast, chunkSerializer, worldManager::world);
     private final BlockEditService blockEdits = new BlockEditService(
             blockStateRegistry,
             (pos, stateId) -> broadcast(new ClientboundBlockUpdatePacket(pos, stateId)),
@@ -203,31 +209,29 @@ public final class FidorialServer implements Server {
     private final FidorialItemRegistry itemRegistry = new FidorialItemRegistry();
     private final FidorialMobRegistry mobRegistry = new FidorialMobRegistry();
     private final JavaPluginManager pluginManager =
-            new JavaPluginManager(this, events, services, permissionRegistry, config.pluginsPath());
+            new JavaPluginManager(this, events, services, permissionRegistry, config.general().pluginsPath());
     private final OperatorList operators = new OperatorList(Path.of("ops.json"));
     private final FidorialBanManager fidorialBanManager = new FidorialBanManager(Path.of("banned-players.json"), Path.of("banned-ips.json"));
     private final FidorialWhitelist fidorialWhitelist = new FidorialWhitelist(Path.of("whitelist.json"));
     private final FidorialOfflinePlayers offlinePlayers = new FidorialOfflinePlayers(
             this,
-            config.worldPath().resolve("player").resolve("profiles.fop"),
+            config.worlds().path().resolve("player").resolve("profiles.fop"),
             PROFILE_CACHE_TTL,
             PROFILE_CACHE_MAX_ENTRIES,
-            config.onlineMode());
-    private final NettyServer network = new NettyServer(this, config.port());
+            config.network().onlineMode());
+    private final NettyServer network = new NettyServer(this, config.network().port());
     private final FidorialContext metrics = new FidorialContext.Factory("6c8c21fe427163e998ea50f54a0ce855")
             .errorTrackerService(ERROR_TRACKER)
             .metrics(Metrics.Factory::create)
             .create();
     private final ConsoleSender console = new ConsoleSender(this);
     private final @Nullable SparkService spark =
-            config.sparkEnabled() ? new SparkService(this, config.sparkPath()) : null;
+            config.spark().enabled() ? new SparkService(this, config.spark().path()) : null;
     private volatile @Nullable Iterable<? extends Audience> adventure$audiences;
 
     private @Nullable Favicon favicon = loadFavicon();
-    private Component description = MiniMessage
-            .miniMessage(MiniMessage.Preset.FORMATTED_TEXT)
-            .deserialize(config.motd());
-    private int maxPlayers = config.maxPlayers();
+    private Component description = config.status().motd();
+    private int maxPlayers = config.status().maxPlayers();
     private final boolean headless;
 
     public FidorialServer() throws IOException {
@@ -300,11 +304,14 @@ public final class FidorialServer implements Server {
                 console.setLocale(Locale.getDefault());
                 new ConsoleCommandReader(commandManager, running::get).start();
                 pluginManager.enableAll();
-                LOGGER.info("Listening on port {}", config.port());
+                LOGGER.info("Listening on port {}", config.network().port());
             } else {
                 pluginManager.enableAll();
             }
             events.post(new ServerStartedEvent(this));
+        } catch (final InvalidConfigurationException e) {
+            shutdown();
+            throw e;
         } catch (final Exception e) {
             LOGGER.error("Startup interrupted, shutting down", e);
             shutdown();
@@ -395,7 +402,7 @@ public final class FidorialServer implements Server {
                 entityTracker.untrack(entity);
             }
         });
-        worldManager.setDefaultWorld(config.defaultWorld());
+        worldManager.setDefaultWorld(config.worlds().defaultWorld());
         worldManager.setDefaultGenerator(new ServiceBackedChunkGenerator(
                 services,
                 FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));
@@ -450,6 +457,7 @@ public final class FidorialServer implements Server {
     private final AtomicBoolean autoSaveInProgress = new AtomicBoolean(false);
 
     private void startAutoSave() {
+        final int interval = config.general().autoSaveSeconds();
         autoSave.scheduleAtFixedRate(
                 () -> {
                     if (!autoSaveInProgress.compareAndSet(false, true)) {
@@ -474,8 +482,8 @@ public final class FidorialServer implements Server {
                         autoSaveInProgress.set(false);
                     }
                 },
-                config.autoSaveSeconds(),
-                config.autoSaveSeconds(),
+                interval,
+                interval,
                 TimeUnit.SECONDS);
     }
 
@@ -712,7 +720,7 @@ public final class FidorialServer implements Server {
         return running.get();
     }
 
-    public ServerConfig config() {
+    public ServerConfiguration config() {
         return config;
     }
 
@@ -885,7 +893,7 @@ public final class FidorialServer implements Server {
 
     public void broadcastNear(
             final World world, final double x, final double y, final double z, final ClientboundPacket packet) {
-        final double radius = config.sendDistance() * 16.0 + 16.0;
+        final double radius = config.general().sendDistance() * 16.0 + 16.0;
         final double radiusSq = radius * radius;
         for (final ServerPlayer player : players()) {
             if (player.isRemoved() || !player.world().equals(world)) {

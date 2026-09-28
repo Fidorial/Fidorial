@@ -3,8 +3,8 @@ package fr.euphyllia.fidorial.server.network.listener;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.auth.GameProfile;
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.ServerConfig;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.configuration.ServerConfiguration.ProxyForwarding;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundCustomQueryPacket;
@@ -51,6 +51,10 @@ public final class LoginPacketHandler implements LoginPacketListener {
         this.server = connection.server();
     }
 
+    private boolean behindVelocity() {
+        return server.config().network().proxy() instanceof ProxyForwarding.Velocity;
+    }
+
     @Override
     public void handleHello(final ServerboundHelloPacket packet) {
         if (pendingUsername != null) {
@@ -59,18 +63,20 @@ public final class LoginPacketHandler implements LoginPacketListener {
         }
         if (connection.clientProtocol() < VersionConstants.PROTOCOL_VERSION) {
             disconnect(Component.translatable("multiplayer.disconnect.outdated_client", Component.text(VersionConstants.MINECRAFT_VERSION_NAME)));
+            return;
         } else if (connection.clientProtocol() > VersionConstants.PROTOCOL_VERSION) {
             disconnect(Component.translatable("multiplayer.disconnect.outdated_server", Component.text(VersionConstants.MINECRAFT_VERSION_NAME)));
+            return;
         }
         this.pendingUsername = packet.username();
         connection.setUsername(pendingUsername);
-        if (server.config().proxyMode() == ServerConfig.ProxyMode.VELOCITY) {
+        if (behindVelocity()) {
             sendVelocityForwardingRequest();
-        } else if (server.config().onlineMode()) {
+        } else if (server.config().network().onlineMode()) {
             sendEncryptionRequest(true);
         } else {
             LOGGER.warn("Offline connection (unauthenticated): {}", pendingUsername);
-            if (server.config().encryptOfflineModeConnections()) {
+            if (server.config().network().encryptOfflineModeConnections()) {
                 sendEncryptionRequest(false);
             } else {
                 enableCompression();
@@ -93,13 +99,9 @@ public final class LoginPacketHandler implements LoginPacketListener {
 
     @Override
     public void handleCustomQueryAnswer(final ServerboundCustomQueryAnswerPacket packet) {
-        if (server.config().proxyMode() != ServerConfig.ProxyMode.VELOCITY
+        if (!(server.config().network().proxy() instanceof ProxyForwarding.Velocity(final String secret))
                 || packet.transactionId() != velocityTransactionId) {
             LOGGER.trace("unexpected custom_query_answer (id {}) ignore", packet.transactionId());
-            return;
-        }
-        if (server.config().velocitySecret() == null) {
-            LOGGER.error("Velocity secret is not configured");
             return;
         }
         velocityTransactionId = -1;
@@ -108,8 +110,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
             return;
         }
         try {
-            final VelocityForwarding.ForwardedData data =
-                    VelocityForwarding.decode(packet.payload(), server.config().velocitySecret());
+            final VelocityForwarding.ForwardedData data = VelocityForwarding.decode(packet.payload(), secret);
             connection.setForwardedAddress(data.remoteAddress());
             connection.setUsername(data.profile().name());
             this.pendingUsername = data.profile().name();
@@ -163,7 +164,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
         try {
             final Optional<GameProfile> profile = server.sessionService().hasJoined(username, serverHash);
             connection.execute(() -> {
-                if (!server.config().onlineMode()) {
+                if (!server.config().network().onlineMode()) {
                     enableCompression();
                     sendLoginSuccess(offlineProfile(username));
                     return;
@@ -182,7 +183,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
     }
 
     private void enableCompression() {
-        final int threshold = server.config().compressionThreshold();
+        final int threshold = server.config().network().compressionThreshold();
         if (threshold < 0) {
             return;
         }
@@ -196,8 +197,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
                 .map(p -> new PlayerProfile.Property(p.name(), p.value(), p.signature()))
                 .toList();
         final PlayerProfile playerProfile = new PlayerProfile(profile.uuid(), profile.name(), properties);
-        final boolean authenticated = server.config().onlineMode()
-                || server.config().proxyMode() == ServerConfig.ProxyMode.VELOCITY;
+        final boolean authenticated = server.config().network().onlineMode() || behindVelocity();
         final String address = connection.remoteAddress();
 
         final PlayerLoginAttemptEvent attempt = new PlayerLoginAttemptEvent(playerProfile, address, authenticated);

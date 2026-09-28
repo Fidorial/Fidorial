@@ -3,10 +3,15 @@ package fr.euphyllia.fidorial.server.codecs;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.MapCodec;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class CommonCodecs {
@@ -30,6 +35,13 @@ public final class CommonCodecs {
                     (int) (uuid.getLeastSignificantBits() >> 32),
                     (int) uuid.getLeastSignificantBits())
     );
+
+    public static final Codec<UUID> UUID_STRING_CODEC = Codec.STRING.comapFlatMap(uuid -> {
+        try {
+            return DataResult.success(UUID.fromString(uuid.strip()));
+        } catch (final IllegalArgumentException e) {
+            return DataResult.error(() -> "Not a valid UUID: " + uuid);
+    }}, UUID::toString);
 
     public static final Codec<Key> KEY_CODEC = Codec.STRING.comapFlatMap(
             s -> Key.parseable(s)
@@ -61,6 +73,9 @@ public final class CommonCodecs {
                 case NOT_SET -> "not_set";
             });
 
+    public static final Codec<Integer> POSITIVE_INT = Codec.intRange(1, Integer.MAX_VALUE);
+    public static final Codec<Integer> NON_NEGATIVE_INT = Codec.intRange(0, Integer.MAX_VALUE);
+
     private static String formatHexColor(final int color) {
         return String.format("#%06x", color & 0xFFFFFF);
     }
@@ -91,5 +106,23 @@ public final class CommonCodecs {
         } catch (final NumberFormatException exception) {
             return DataResult.error(() -> "Malformed hexadecimal color: " + value);
         }
+    }
+
+    public static final Codec<String> NON_BLANK_STRING = Codec.STRING.validate(check(value -> !value.isBlank(), _ -> "Must not be blank"));
+
+    public static <T> Function<T, DataResult<T>> check(final Predicate<? super T> test, final Function<? super T, String> message) {
+        return value -> test.test(value) ? DataResult.success(value) : DataResult.error(() -> message.apply(value));
+    }
+
+    public static <T> Codec<T> dispatch(final String typeKey, final Function<? super T, String> type, final Map<String, ? extends MapCodec<? extends T>> variants) {
+        final String expected = variants.keySet().stream().sorted().collect(Collectors.joining(", "));
+        return Codec.STRING.partialDispatch(typeKey,
+                value -> DataResult.success(type.apply(value)),
+                name -> {
+                    final MapCodec<? extends T> codec = variants.get(name);
+                    return codec != null
+                            ? DataResult.success(codec)
+                            : DataResult.error(() -> "Unknown " + typeKey + " '" + name + "', expected one of: " + expected);
+                });
     }
 }

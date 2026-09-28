@@ -38,7 +38,7 @@ public final class NettyServer {
         this.server = server;
         this.port = port;
 
-        if (server.config().useIoUring() && IoUring.isAvailable()) {
+        if (server.config().network().useIoUring() && IoUring.isAvailable()) {
             LOGGER.info("Using io_uring transport");
             bossGroup = new MultiThreadIoEventLoopGroup(1, IoUringIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(IoUringIoHandler.newFactory());

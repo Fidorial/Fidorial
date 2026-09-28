@@ -6,9 +6,8 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.world.dimension.CardinalLight;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.Skybox;
@@ -18,11 +17,9 @@ import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 public final class DimensionTypeCodecs {
@@ -37,6 +34,11 @@ public final class DimensionTypeCodecs {
                     ? DataResult.success(Key.key(s.substring(1)))
                     : DataResult.error(() -> "Expected a #tag, got: " + s),
             key -> "#" + key.asString());
+
+    private static final Codec<Double> COORDINATE_SCALE = Codec.DOUBLE.validate(CommonCodecs.check(
+            scale -> scale >= 0.00001D && scale <= 30_000_000.0D,
+            scale -> "coordinate_scale out of range: " + scale
+    ));
 
     private static final Codec<TimelineReference> SINGLE_TIMELINE = Codec.STRING.comapFlatMap(
             s -> {
@@ -58,51 +60,31 @@ public final class DimensionTypeCodecs {
             either -> either.map(list -> list, List::of),
             list -> list.size() == 1 ? Either.right(list.getFirst()) : Either.left(list));
 
-    private record Extras(Skybox skybox, CardinalLight cardinalLight, @Nullable Key defaultClock, List<TimelineReference> timelines) { }
-
-    private static final MapCodec<Extras> EXTRAS = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            SKYBOX.optionalFieldOf("skybox", Skybox.OVERWORLD).forGetter(Extras::skybox),
-            CARDINAL_LIGHT.optionalFieldOf("cardinal_light", CardinalLight.DEFAULT).forGetter(Extras::cardinalLight),
-            CommonCodecs.KEY_CODEC.optionalFieldOf("default_clock")
-                    .forGetter(e -> Optional.ofNullable(e.defaultClock())),
-            TIMELINES.optionalFieldOf("timelines", List.of()).forGetter(Extras::timelines)
-    ).apply(instance, (skybox, cardinalLight, defaultClock, timelines) ->
-            new Extras(skybox, cardinalLight, defaultClock.orElse(null), timelines)));
-
     private DimensionTypeCodecs() {
         throw new UnsupportedOperationException("DimensionTypeCodecs cannot be instantiated.");
     }
 
     public static Codec<DimensionTypeDefinition> codec(final Key key) {
-        return RecordCodecBuilder.create(instance -> instance.group(
-                Codec.DOUBLE.validate(scale -> scale >= 0.00001D && scale <= 30_000_000.0D
-                                ? DataResult.success(scale)
-                                : DataResult.error(() -> "coordinate_scale out of range: " + scale))
-                        .fieldOf("coordinate_scale").forGetter(DimensionTypeDefinition::coordinateScale),
-                Codec.BOOL.fieldOf("has_skylight").forGetter(DimensionTypeDefinition::hasSkylight),
-                Codec.BOOL.fieldOf("has_ceiling").forGetter(DimensionTypeDefinition::hasCeiling),
-                Codec.BOOL.fieldOf("has_ender_dragon_fight")
-                        .forGetter(DimensionTypeDefinition::hasEnderDragonFight),
-                Codec.FLOAT.fieldOf("ambient_light").forGetter(DimensionTypeDefinition::ambientLight),
-                Codec.BOOL.optionalFieldOf("has_fixed_time", false)
-                        .forGetter(DimensionTypeDefinition::hasFixedTime),
-                Codec.intRange(0, 15).fieldOf("monster_spawn_block_light_limit")
-                        .forGetter(DimensionTypeDefinition::monsterSpawnBlockLightLimit),
-                IntProviderCodecs.INT_PROVIDER.fieldOf("monster_spawn_light_level")
-                        .forGetter(DimensionTypeDefinition::monsterSpawnLightLevel),
-                Codec.INT.fieldOf("logical_height").forGetter(DimensionTypeDefinition::logicalHeight),
-                Codec.INT.fieldOf("min_y").forGetter(DimensionTypeDefinition::minY),
-                Codec.INT.fieldOf("height").forGetter(DimensionTypeDefinition::height),
-                TAG_KEY.fieldOf("infiniburn").forGetter(DimensionTypeDefinition::infiniburn),
-                EnvironmentAttributeCodecs.ATTRIBUTES.optionalFieldOf("attributes", EnvironmentAttributes.EMPTY)
-                        .forGetter(DimensionTypeDefinition::attributes),
-                EXTRAS.forGetter(d -> new Extras(d.skybox(), d.cardinalLight(), d.defaultClock(), d.timelines()))
-        ).apply(instance, (scale, skylight, ceiling, dragonFight, ambient, fixedTime, blockLightLimit,
-                           lightLevel, logicalHeight, minY, height, infiniburn, attributes, extras) ->
-                new DimensionTypeDefinition(
-                        key, scale, skylight, ceiling, dragonFight, ambient, fixedTime, blockLightLimit,
-                        lightLevel, logicalHeight, minY, height, infiniburn, extras.skybox(), extras.cardinalLight(),
-                        attributes, extras.defaultClock(), extras.timelines())));
+        return RecordCodec.builder(DimensionTypeDefinition.class)
+                .given(key)
+                .required("coordinate_scale", DimensionTypeDefinition::coordinateScale, COORDINATE_SCALE)
+                .required("has_skylight", DimensionTypeDefinition::hasSkylight, Codec.BOOL)
+                .required("has_ceiling", DimensionTypeDefinition::hasCeiling, Codec.BOOL)
+                .required("has_ender_dragon_fight", DimensionTypeDefinition::hasEnderDragonFight, Codec.BOOL)
+                .required("ambient_light", DimensionTypeDefinition::ambientLight, Codec.FLOAT)
+                .field("has_fixed_time", DimensionTypeDefinition::hasFixedTime, Codec.BOOL, false)
+                .required("monster_spawn_block_light_limit", DimensionTypeDefinition::monsterSpawnBlockLightLimit, Codec.intRange(0, 15))
+                .required("monster_spawn_light_level", DimensionTypeDefinition::monsterSpawnLightLevel, IntProviderCodecs.INT_PROVIDER)
+                .required("logical_height", DimensionTypeDefinition::logicalHeight, Codec.INT)
+                .required("min_y", DimensionTypeDefinition::minY, Codec.INT)
+                .required("height", DimensionTypeDefinition::height, Codec.INT)
+                .required("infiniburn", DimensionTypeDefinition::infiniburn, TAG_KEY)
+                .field("skybox", DimensionTypeDefinition::skybox, SKYBOX, Skybox.OVERWORLD)
+                .field("cardinal_light", DimensionTypeDefinition::cardinalLight, CARDINAL_LIGHT, CardinalLight.DEFAULT)
+                .field("attributes", DimensionTypeDefinition::attributes, EnvironmentAttributeCodecs.ATTRIBUTES, EnvironmentAttributes.EMPTY)
+                .nullable("default_clock", DimensionTypeDefinition::defaultClock, CommonCodecs.KEY_CODEC)
+                .field("timelines", DimensionTypeDefinition::timelines, TIMELINES, List.of())
+                .build();
     }
 
     public static CompoundBinaryTag encodeNbt(final DimensionTypeDefinition dimensionType) {

@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.network.listener;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.ServerConfig;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.chat.ChatSigning;
 import fr.euphyllia.fidorial.server.chat.IdentifiedSignedMessage;
@@ -9,6 +8,7 @@ import fr.euphyllia.fidorial.server.chat.LastSeenMessages;
 import fr.euphyllia.fidorial.server.chat.SignedChatSession;
 import fr.euphyllia.fidorial.server.chat.SignedMessageChain;
 import fr.euphyllia.fidorial.server.chat.SignedMessageHelper;
+import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.InventorySlots;
@@ -138,7 +138,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     private final ClientConnection connection;
     private final FidorialServer server;
-    private final ServerConfig config;
+    private final ServerConfiguration config;
 
     private @Nullable ServerPlayer player;
     private @Nullable ChunkViewTracker chunkView;
@@ -237,7 +237,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
+        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn();
 
         ServerWorld world = defaultWorld;
         Location spawn = defaultSpawn;
@@ -303,7 +303,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private PlayerDataStorage.PlayerData loadPlayerData(final PlayerProfile profile) {
-        final PlayerDataStorage.PlayerData defaults = new PlayerDataStorage.PlayerData(config.defaultGameMode(), null, null, null, null);
+        final PlayerDataStorage.PlayerData defaults = new PlayerDataStorage.PlayerData(worldOrDisconnect().configuration().gameplay().defaultGameMode(), null, null, null, null);
         try {
             return server.playerDataStorage().load(profile.uuid(), defaults);
         } catch (final Exception e) {
@@ -322,13 +322,13 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 worldId(),
                 dimensionType,
                 worldManager().levelData().hashedSeed(),
-                config.viewDistance(),
-                config.viewDistance(),
+                config.general().viewDistance(),
+                config.general().viewDistance(),
                 player.gameMode().id(),
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
-                server.config().onlineMode(),
-                server.config().enforcesSecureChat(),
+                config.network().onlineMode(),
+                config.network().enforceSecureChat(),
                 serverWorld().gameRuleValues().getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO),
                 !serverWorld().gameRuleValues().getBoolean(GameRuleKeys.IMMEDIATE_RESPAWN),
                 serverWorld().gameRuleValues().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
@@ -495,12 +495,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
                             session.sessionId(),
                             outcome.index(),
                             lastSeen);
-                } else if (config.enforcesSecureChat()) {
+                } else if (config.network().enforceSecureChat()) {
                     disconnectForChat(outcome.reason());
                     return;
                 }
             }
-        } else if (config.enforcesSecureChat()) {
+        } else if (config.network().enforceSecureChat()) {
             disconnectForChat(SignedMessageChain.Reason.MISSING_SIGNATURE);
             return;
         }
@@ -570,7 +570,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
             if (!trusted) {
                 LOGGER.warn("{} sent a chat session key with an invalid Mojang signature", player.name());
-                if (config.enforcesSecureChat()) {
+                if (config.network().enforceSecureChat()) {
                     connection.disconnect(Component.translatable("multiplayer.disconnect.invalid_public_key_signature"));
                 }
                 return;
@@ -1155,8 +1155,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return CompletableFuture.completedFuture(false);
         }
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn =
-                new Location(config.spawnX(), config.spawnY(), config.spawnZ(), 0f, 0f);
+        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn();
 
         ServerWorld requestedWorld = defaultWorld;
         Location requestedSpawn = defaultSpawn;
