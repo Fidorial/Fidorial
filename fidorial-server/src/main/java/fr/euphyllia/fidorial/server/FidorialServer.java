@@ -186,7 +186,7 @@ public final class FidorialServer implements Server {
             new NbtPlayerEnderChestStorage(config.worlds().path().resolve("player"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
     private final WorldManager worldManager = WorldManager.openOrCreate(
-            config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
+            config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), config.worlds().initialEnabledPacks(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
     private final StructureService structureService = new StructureService(
             config.worlds().path().resolve("datapacks"),
             new RegistryBlockValidator(blockRegistry)

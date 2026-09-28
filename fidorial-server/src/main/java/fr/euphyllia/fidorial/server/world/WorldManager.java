@@ -85,12 +85,12 @@ public final class WorldManager implements AutoCloseable {
         this.configurations = configurations;
     }
 
-    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler, WorldConfigurationContainer configurations) throws IOException {
-        return openOrCreate(worldRoot, blockStates, scheduler, null, configurations);
+    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
+        return openOrCreate(worldRoot, blockStates, scheduler, null, initialPacks, configurations);
     }
 
     public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
-                                            final @Nullable Long newWorldSeed, WorldConfigurationContainer configurations) throws IOException {
+                                            final @Nullable Long newWorldSeed, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
         final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
 
         final LevelData levelData;
@@ -100,6 +100,7 @@ public final class WorldManager implements AutoCloseable {
         } else {
             levelData = new LevelData();
             levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
+            levelData.applyInitialPacks(initialPacks);
             levelData.write(paths.dataDir(), paths.levelDat());
             LOGGER.info("Nouveau monde créé dans {}", worldRoot);
         }

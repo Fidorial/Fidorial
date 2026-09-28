@@ -48,8 +48,6 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
 
     private static final KnownPackNegotiation KNOWN_PACKS = KnownPackNegotiation.packs(KnownPack.core());
 
-    private static final Key[] ENABLED_FEATURES = { Key.key("vanilla") };
-
     /**
      * Registries that should be sent with full NBT.
      */
@@ -92,7 +90,8 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     }
 
     private void proceedToKnownPacks() {
-        connection.send(new ClientboundUpdateEnabledFeaturesPacket(ENABLED_FEATURES));
+        connection.send(new ClientboundUpdateEnabledFeaturesPacket(
+                server.worldManager().levelData().enabledFeatures.toArray(Key[]::new)));
         awaitingKnownPacks = true;
         connection.send(new ClientboundSelectKnownPacksPacket(KNOWN_PACKS.packs()));
     }
