@@ -108,6 +108,7 @@ public class EnvironmentAttributeCodecs {
             .nullable("visual/water_fog_color", EnvironmentAttributes::waterFogColor, modifiable(CommonCodecs.RGB_COLOR))
             .nullable("visual/water_fog_start_distance", EnvironmentAttributes::waterFogStartDistance, modifiable(Codec.FLOAT))
             .nullable("visual/water_fog_end_distance", EnvironmentAttributes::waterFogEndDistance, modifiable(Codec.FLOAT))
+            .nullable("visual/has_sky_occluder", EnvironmentAttributes::hasSkyOccluder, modifiable(Codec.BOOL))
             .nullable("audio/music_volume", EnvironmentAttributes::musicVolume, modifiable(Codec.FLOAT))
             .nullable("audio/firefly_bush_sounds", EnvironmentAttributes::fireflyBushSounds, modifiable(Codec.BOOL))
             .nullable("gameplay/can_start_raid", EnvironmentAttributes::canStartRaid, modifiable(Codec.BOOL))

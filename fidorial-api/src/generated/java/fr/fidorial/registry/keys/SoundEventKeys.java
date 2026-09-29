@@ -8962,6 +8962,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> ENTITY_ZOMBIE_NAUTILUS_HURT_LAND = create("entity.zombie_nautilus.hurt_land");
 
     /**
+     * Key for {@code minecraft:entity.zombie_nautilus.riding}.
+     */
+    public static final TypedKey<SoundEvent> ENTITY_ZOMBIE_NAUTILUS_RIDING = create("entity.zombie_nautilus.riding");
+
+    /**
      * Key for {@code minecraft:entity.zombie_nautilus.swim}.
      */
     public static final TypedKey<SoundEvent> ENTITY_ZOMBIE_NAUTILUS_SWIM = create("entity.zombie_nautilus.swim");
@@ -11757,6 +11762,7 @@ public final class SoundEventKeys {
         ENTITY_ZOMBIE_NAUTILUS_EAT,
         ENTITY_ZOMBIE_NAUTILUS_HURT,
         ENTITY_ZOMBIE_NAUTILUS_HURT_LAND,
+        ENTITY_ZOMBIE_NAUTILUS_RIDING,
         ENTITY_ZOMBIE_NAUTILUS_SWIM,
         ENTITY_ZOMBIE_VILLAGER_AMBIENT,
         ENTITY_ZOMBIE_VILLAGER_CONVERTED,
