@@ -6,12 +6,14 @@ import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogRegistry;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -30,9 +32,13 @@ public final class FidorialDialogRegistry implements DialogRegistry {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialDialogRegistry.class);
 
+    private final Map<Key, BinaryTag> vanillaData;
+
     private volatile Snapshot snapshot;
 
-    private FidorialDialogRegistry(final List<Key> vanilla) {
+    private FidorialDialogRegistry(final List<Key> vanilla, final Map<Key, BinaryTag> vanillaData) {
+        this.vanillaData = Map.copyOf(vanillaData);
+
         final Map<Key, @Nullable DialogDefinition> initial = new LinkedHashMap<>();
         for (final Key key : vanilla) {
             initial.put(key, null);
@@ -43,12 +49,21 @@ public final class FidorialDialogRegistry implements DialogRegistry {
     public static FidorialDialogRegistry bootstrap(final RegistryHolder dynamic) {
         final fr.euphyllia.fidorial.server.registry.Registry source = dynamic.get(REGISTRY_NAME);
         final List<Key> entries = source == null ? List.of() : source.entries();
+        final Map<Key, BinaryTag> data = new HashMap<>();
+
+        if (source != null) {
+            for (final RegistryEntry entry : source.networkEntries()) {
+                if (entry.data() != null) {
+                    data.put(entry.key(), entry.data());
+                }
+            }
+        }
 
         if (entries.isEmpty()) {
             LOGGER.warn("No vanilla dialog found in the registry dump, starting empty.");
         }
 
-        return new FidorialDialogRegistry(entries);
+        return new FidorialDialogRegistry(entries, data);
     }
 
     @Override
@@ -111,6 +126,10 @@ public final class FidorialDialogRegistry implements DialogRegistry {
         return snapshot.order.contains(key);
     }
 
+    public boolean isCustom(final Key key) {
+        return snapshot.definitions.containsKey(key);
+    }
+
     @Override
     public Collection<Key> keys() {
         return snapshot.order;
@@ -167,7 +186,10 @@ public final class FidorialDialogRegistry implements DialogRegistry {
         final Snapshot current = snapshot;
         final List<RegistryEntry> entries = new ArrayList<>(current.order.size());
         for (final Key key : current.order) {
-            entries.add(new RegistryEntry(key, current.payloads.get(key)));
+            final BinaryTag data = current.payloads.containsKey(key)
+                    ? current.payloads.get(key)
+                    : vanillaData.get(key);
+            entries.add(new RegistryEntry(key, data));
         }
         return entries;
     }

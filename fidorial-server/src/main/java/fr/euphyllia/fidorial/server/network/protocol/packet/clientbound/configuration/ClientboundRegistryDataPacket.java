@@ -5,7 +5,7 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClient
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.registry.RegistryEntry;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.BinaryTag;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public record ClientboundRegistryDataPacket(Key registryId, List<RegistryEntry> 
         buf.writeVarInt(entries.size());
         for (final RegistryEntry entry : entries) {
             buf.writeKey(entry.key());
-            final CompoundBinaryTag data = entry.data();
+            final BinaryTag data = entry.data();
             buf.writeBoolean(data != null);
             if (data != null) {
                 buf.writeNbt(data);

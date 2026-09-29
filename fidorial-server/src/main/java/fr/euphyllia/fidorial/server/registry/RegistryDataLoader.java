@@ -1,7 +1,14 @@
 package fr.euphyllia.fidorial.server.registry;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTag;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,13 +63,29 @@ public class RegistryDataLoader {
     }
 
     private Registry readRegistry(final Key name, final JsonReader reader) throws IOException {
-        List<Key> entries = List.of();
+        final List<Key> entries = new ArrayList<>();
+        final List<RegistryEntry> network = new ArrayList<>();
         Map<Key, List<Key>> tags = Map.of();
 
         reader.beginObject();
         while (reader.hasNext()) {
             switch (reader.nextName()) {
-                case "entries" -> entries = readKeys(reader);
+                case "entries" -> {
+                    reader.beginArray();
+                    while (reader.hasNext()) {
+                        if (reader.peek() == JsonToken.STRING) {
+                            final Key key = Key.key(reader.nextString());
+                            entries.add(key);
+                            network.add(RegistryEntry.known(key));
+                        } else {
+                            final JsonObject object = JsonParser.parseReader(reader).getAsJsonObject();
+                            final Key key = Key.key(object.get("id").getAsString());
+                            entries.add(key);
+                            network.add(new RegistryEntry(key, decodeData(name, key, object)));
+                        }
+                    }
+                    reader.endArray();
+                }
                 case "tags" -> {
                     tags = new LinkedHashMap<>();
                     reader.beginObject();
@@ -75,7 +98,17 @@ public class RegistryDataLoader {
             }
         }
         reader.endObject();
-        return new Registry(name, entries, tags);
+        return new Registry(name, entries, network, tags);
+    }
+
+    private static @Nullable BinaryTag decodeData(final Key registry, final Key key, final JsonObject object) {
+        if (!object.has("data")) {
+            return null;
+        }
+        return NbtCodecs.BINARY_TAG_CODEC
+                .parse(JsonOps.INSTANCE, object.get("data"))
+                .getOrThrow(message -> new IllegalStateException(
+                        "Invalid data for " + key.asString() + " in " + registry.asString() + ": " + message));
     }
 
     private List<Key> readKeys(final JsonReader reader) throws IOException {

@@ -72,6 +72,11 @@ public final class LevelData {
     public boolean snapshot = !VersionConstants.IS_RELEASE;
     public boolean wasModded = false;
     public final List<Integer> versionHistory = new ArrayList<>();
+    private static final List<Key> DEFAULT_FEATURES = List.of(Key.key("vanilla"));
+
+    public final List<String> enabledPacks = new ArrayList<>(List.of("vanilla"));
+    public final List<String> disabledPacks = new ArrayList<>();
+    public final List<Key> enabledFeatures = new ArrayList<>(DEFAULT_FEATURES);
 
     public @Nullable UUID singleplayerUuid;
 
@@ -151,6 +156,18 @@ public final class LevelData {
             if (entry instanceof final IntBinaryTag tag) {
                 l.versionHistory.add(tag.value());
             }
+        }
+
+        final CompoundBinaryTag dataPacks = data.getCompound("DataPacks");
+        if (dataPacks.contains("Enabled")) {
+            l.enabledPacks.clear();
+            readStrings(dataPacks.getList("Enabled"), l.enabledPacks);
+        }
+        readStrings(dataPacks.getList("Disabled"), l.disabledPacks);
+
+        if (data.contains("enabled_features")) {
+            l.enabledFeatures.clear();
+            readKeys(data.getList("enabled_features"), l.enabledFeatures);
         }
 
         final CompoundBinaryTag difficultySettings = data.getCompound("difficulty_settings");
@@ -333,9 +350,13 @@ public final class LevelData {
         data.putBoolean("allowCommands", allowCommands);
 
         final CompoundBinaryTag.Builder dataPacks = CompoundBinaryTag.builder();
-        dataPacks.put("Enabled", ListBinaryTag.builder().add(StringBinaryTag.stringBinaryTag("vanilla")).build());
-        dataPacks.put("Disabled", ListBinaryTag.empty());
+        dataPacks.put("Enabled", stringList(enabledPacks));
+        dataPacks.put("Disabled", stringList(disabledPacks));
         data.put("DataPacks", dataPacks.build());
+
+        if (!enabledFeatures.equals(DEFAULT_FEATURES)) {
+            data.put("enabled_features", keyList(enabledFeatures));
+        }
 
         data.put("ServerBrands", ListBinaryTag.builder().add(StringBinaryTag.stringBinaryTag("Fidorial")).build());
 
@@ -352,6 +373,20 @@ public final class LevelData {
         writeDatFile(dataDir.resolve(WORLD_GEN_SETTINGS_PATH), this::buildWorldGenSettings);
         writeDatFile(dataDir.resolve(CUSTOM_BOSS_EVENTS_PATH), this::buildCustomBossEvents);
         writeDatFile(dataDir.resolve(WORLD_CLOCKS_PATH), this::buildWorldClocksInto);
+    }
+
+    public void applyInitialPacks(final List<Key> packs) {
+        enabledPacks.clear();
+        enabledFeatures.clear();
+        enabledFeatures.add(Key.key("vanilla"));
+        for (final Key pack : packs) {
+            final boolean vanillaNamespace = Key.MINECRAFT_NAMESPACE.equals(pack.namespace());
+            enabledPacks.add(vanillaNamespace ? pack.value() : pack.asString());
+            // To be revisited: custom datapacks defining features in their pack.mcmeta
+            if (vanillaNamespace && !enabledFeatures.contains(pack)) {
+                enabledFeatures.add(pack);
+            }
+        }
     }
 
     @FunctionalInterface
@@ -472,5 +507,43 @@ public final class LevelData {
 
     public boolean exists(final Path levelDat) {
         return Files.isRegularFile(levelDat);
+    }
+
+    private static void readStrings(final ListBinaryTag list, final List<String> out) {
+        for (final BinaryTag entry : list) {
+            if (entry instanceof final StringBinaryTag string) {
+                out.add(string.value());
+            }
+        }
+    }
+
+    private static void readKeys(final ListBinaryTag list, final List<Key> out) {
+        for (final BinaryTag entry : list) {
+            if (entry instanceof final StringBinaryTag string) {
+                out.add(Key.key(string.value()));
+            }
+        }
+    }
+
+    private static ListBinaryTag stringList(final List<String> values) {
+        if (values.isEmpty()) {
+            return ListBinaryTag.empty();
+        }
+        final ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
+        for (final String value : values) {
+            builder.add(StringBinaryTag.stringBinaryTag(value));
+        }
+        return builder.build();
+    }
+
+    private static ListBinaryTag keyList(final List<Key> values) {
+        if (values.isEmpty()) {
+            return ListBinaryTag.empty();
+        }
+        final ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
+        for (final Key value : values) {
+            builder.add(StringBinaryTag.stringBinaryTag(value.asString()));
+        }
+        return builder.build();
     }
 }
