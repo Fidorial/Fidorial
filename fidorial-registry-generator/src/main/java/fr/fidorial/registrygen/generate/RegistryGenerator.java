@@ -228,7 +228,7 @@ public final class RegistryGenerator {
          * registries, and it is the server, not the API, that needs them at runtime.
          */
         if (datasetDirectory != null) {
-            datasetGenerator.generate(generatedRegistries, resolvedTags, registryTypes, datasetDirectory);
+            datasetGenerator.generate(generatedRegistries, resolvedTags, registryTypes, vanillaDataDirectory, datasetDirectory);
         }
 
         /*

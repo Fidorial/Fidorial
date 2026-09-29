@@ -25,6 +25,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Gradle plugin that downloads the Minecraft server, generates Mojang reports,
@@ -92,10 +93,11 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         extension.getRegistryKeysPackage().convention(extension.getGeneratedPackage().map(p -> p + ".keys"));
         extension.getRegistries().convention(Map.of());
 
-        extension.getFrozenRegistries().convention(SupportedRegistries.ALL.stream()
-                .filter(type -> type.sync() == RegistrySync.FROZEN)
-                .map(RegistryTypeDefinition::identifier)
-                .toList());
+        extension.getFrozenRegistries().convention(
+                Stream.concat(SupportedRegistries.ALL.stream()
+                                        .filter(type -> type.sync() == RegistrySync.FROZEN)
+                                        .map(RegistryTypeDefinition::identifier), Stream.of(SupportedRegistries.ENTITY_TYPE.identifier())).sorted().toList()); // cannot be added to ALL as then it generates protocol ids in api (huh?)
+
         extension.getDataGeneratorArguments().convention(List.of("--reports"));
         extension.getPrismarineDataRepository().convention("PrismarineJS/minecraft-data");
         extension.getPrismarineDataRef().convention("master");

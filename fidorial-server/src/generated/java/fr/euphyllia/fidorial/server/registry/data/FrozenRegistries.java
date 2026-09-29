@@ -20,6 +20,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("attribute"), attribute()),
         Map.entry(Key.key("block"), block()),
         Map.entry(Key.key("data_component_type"), dataComponentType()),
+        Map.entry(Key.key("entity_type"), entityType()),
         Map.entry(Key.key("fluid"), fluid()),
         Map.entry(Key.key("item"), item()),
         Map.entry(Key.key("menu"), menu())
@@ -29,6 +30,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("attribute"), attributeTags()),
         Map.entry(Key.key("block"), blockTags()),
         Map.entry(Key.key("data_component_type"), dataComponentTypeTags()),
+        Map.entry(Key.key("entity_type"), entityTypeTags()),
         Map.entry(Key.key("fluid"), fluidTags()),
         Map.entry(Key.key("item"), itemTags()),
         Map.entry(Key.key("menu"), menuTags())
@@ -8061,6 +8063,351 @@ public final class FrozenRegistries {
      */
     private static Map<Key, List<Key>> dataComponentTypeTags() {
         return Map.of();
+    }
+
+    private static void entityType0(final List<Key> entries) {
+        entries.add(Key.key("acacia_boat"));
+        entries.add(Key.key("acacia_chest_boat"));
+        entries.add(Key.key("allay"));
+        entries.add(Key.key("area_effect_cloud"));
+        entries.add(Key.key("armadillo"));
+        entries.add(Key.key("armor_stand"));
+        entries.add(Key.key("arrow"));
+        entries.add(Key.key("axolotl"));
+        entries.add(Key.key("bamboo_chest_raft"));
+        entries.add(Key.key("bamboo_raft"));
+        entries.add(Key.key("bat"));
+        entries.add(Key.key("bee"));
+        entries.add(Key.key("birch_boat"));
+        entries.add(Key.key("birch_chest_boat"));
+        entries.add(Key.key("blaze"));
+        entries.add(Key.key("block_display"));
+        entries.add(Key.key("bogged"));
+        entries.add(Key.key("breeze"));
+        entries.add(Key.key("breeze_wind_charge"));
+        entries.add(Key.key("camel"));
+        entries.add(Key.key("camel_husk"));
+        entries.add(Key.key("cat"));
+        entries.add(Key.key("cave_spider"));
+        entries.add(Key.key("cherry_boat"));
+        entries.add(Key.key("cherry_chest_boat"));
+        entries.add(Key.key("chest_minecart"));
+        entries.add(Key.key("chicken"));
+        entries.add(Key.key("cod"));
+        entries.add(Key.key("copper_golem"));
+        entries.add(Key.key("command_block_minecart"));
+        entries.add(Key.key("cow"));
+        entries.add(Key.key("creaking"));
+        entries.add(Key.key("creeper"));
+        entries.add(Key.key("cushion"));
+        entries.add(Key.key("dark_oak_boat"));
+        entries.add(Key.key("dark_oak_chest_boat"));
+        entries.add(Key.key("dolphin"));
+        entries.add(Key.key("donkey"));
+        entries.add(Key.key("dragon_fireball"));
+        entries.add(Key.key("drowned"));
+        entries.add(Key.key("egg"));
+        entries.add(Key.key("elder_guardian"));
+        entries.add(Key.key("enderman"));
+        entries.add(Key.key("endermite"));
+        entries.add(Key.key("ender_dragon"));
+        entries.add(Key.key("ender_pearl"));
+        entries.add(Key.key("end_crystal"));
+        entries.add(Key.key("evoker"));
+        entries.add(Key.key("evoker_fangs"));
+        entries.add(Key.key("experience_bottle"));
+        entries.add(Key.key("experience_orb"));
+        entries.add(Key.key("eye_of_ender"));
+        entries.add(Key.key("falling_block"));
+        entries.add(Key.key("fireball"));
+        entries.add(Key.key("firework_rocket"));
+        entries.add(Key.key("fox"));
+        entries.add(Key.key("frog"));
+        entries.add(Key.key("furnace_minecart"));
+        entries.add(Key.key("ghast"));
+        entries.add(Key.key("happy_ghast"));
+        entries.add(Key.key("giant"));
+        entries.add(Key.key("glow_item_frame"));
+        entries.add(Key.key("glow_squid"));
+        entries.add(Key.key("goat"));
+        entries.add(Key.key("guardian"));
+        entries.add(Key.key("hoglin"));
+        entries.add(Key.key("hopper_minecart"));
+        entries.add(Key.key("horse"));
+        entries.add(Key.key("husk"));
+        entries.add(Key.key("illusioner"));
+        entries.add(Key.key("interaction"));
+        entries.add(Key.key("iron_golem"));
+        entries.add(Key.key("item"));
+        entries.add(Key.key("item_display"));
+        entries.add(Key.key("item_frame"));
+        entries.add(Key.key("jungle_boat"));
+        entries.add(Key.key("jungle_chest_boat"));
+        entries.add(Key.key("leash_knot"));
+        entries.add(Key.key("lightning_bolt"));
+        entries.add(Key.key("llama"));
+        entries.add(Key.key("llama_spit"));
+        entries.add(Key.key("magma_cube"));
+        entries.add(Key.key("mangrove_boat"));
+        entries.add(Key.key("mangrove_chest_boat"));
+        entries.add(Key.key("mannequin"));
+        entries.add(Key.key("marker"));
+        entries.add(Key.key("minecart"));
+        entries.add(Key.key("mooshroom"));
+        entries.add(Key.key("mule"));
+        entries.add(Key.key("nautilus"));
+        entries.add(Key.key("oak_boat"));
+        entries.add(Key.key("oak_chest_boat"));
+        entries.add(Key.key("ocelot"));
+        entries.add(Key.key("ominous_item_spawner"));
+        entries.add(Key.key("painting"));
+        entries.add(Key.key("pale_oak_boat"));
+        entries.add(Key.key("pale_oak_chest_boat"));
+        entries.add(Key.key("panda"));
+        entries.add(Key.key("parched"));
+        entries.add(Key.key("parrot"));
+        entries.add(Key.key("phantom"));
+        entries.add(Key.key("pig"));
+        entries.add(Key.key("piglin"));
+        entries.add(Key.key("piglin_brute"));
+        entries.add(Key.key("pillager"));
+        entries.add(Key.key("polar_bear"));
+        entries.add(Key.key("poplar_boat"));
+        entries.add(Key.key("poplar_chest_boat"));
+        entries.add(Key.key("splash_potion"));
+        entries.add(Key.key("lingering_potion"));
+        entries.add(Key.key("pufferfish"));
+        entries.add(Key.key("rabbit"));
+        entries.add(Key.key("ravager"));
+        entries.add(Key.key("salmon"));
+        entries.add(Key.key("sheep"));
+        entries.add(Key.key("shulker"));
+        entries.add(Key.key("shulker_bullet"));
+        entries.add(Key.key("silverfish"));
+        entries.add(Key.key("skeleton"));
+        entries.add(Key.key("skeleton_horse"));
+        entries.add(Key.key("slime"));
+        entries.add(Key.key("small_fireball"));
+        entries.add(Key.key("sniffer"));
+        entries.add(Key.key("snowball"));
+        entries.add(Key.key("snow_golem"));
+        entries.add(Key.key("spawner_minecart"));
+        entries.add(Key.key("spectral_arrow"));
+        entries.add(Key.key("spider"));
+        entries.add(Key.key("spruce_boat"));
+        entries.add(Key.key("spruce_chest_boat"));
+        entries.add(Key.key("squid"));
+        entries.add(Key.key("stray"));
+        entries.add(Key.key("strider"));
+        entries.add(Key.key("sulfur_cube"));
+        entries.add(Key.key("tadpole"));
+        entries.add(Key.key("text_display"));
+        entries.add(Key.key("tnt"));
+        entries.add(Key.key("tnt_minecart"));
+        entries.add(Key.key("trader_llama"));
+        entries.add(Key.key("trident"));
+        entries.add(Key.key("tropical_fish"));
+        entries.add(Key.key("turtle"));
+        entries.add(Key.key("vex"));
+        entries.add(Key.key("villager"));
+        entries.add(Key.key("vindicator"));
+        entries.add(Key.key("wandering_trader"));
+        entries.add(Key.key("warden"));
+        entries.add(Key.key("wind_charge"));
+        entries.add(Key.key("witch"));
+        entries.add(Key.key("wither"));
+        entries.add(Key.key("wither_skeleton"));
+        entries.add(Key.key("wither_skull"));
+        entries.add(Key.key("wolf"));
+        entries.add(Key.key("zoglin"));
+        entries.add(Key.key("zombie"));
+        entries.add(Key.key("zombie_horse"));
+        entries.add(Key.key("zombie_nautilus"));
+        entries.add(Key.key("zombie_villager"));
+        entries.add(Key.key("zombified_piglin"));
+        entries.add(Key.key("player"));
+        entries.add(Key.key("fishing_bobber"));
+    }
+
+    /**
+     * @return {@code minecraft:entity_type}, indexed by network ID
+     */
+    private static List<Key> entityType() {
+        final List<Key> entries = new ArrayList<>(161);
+        entityType0(entries);
+        return List.copyOf(entries);
+    }
+
+    private static void entityTypeTags0(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("accepts_iron_golem_gift"), List.of(Key.key("copper_golem")));
+        tags.put(Key.key("aquatic"), List.of(Key.key("axolotl"), Key.key("cod"), Key.key("dolphin"),
+                Key.key("elder_guardian"), Key.key("glow_squid"), Key.key("guardian"),
+                Key.key("nautilus"), Key.key("pufferfish"), Key.key("salmon"), Key.key("squid"),
+                Key.key("tadpole"), Key.key("tropical_fish"), Key.key("turtle"),
+                Key.key("zombie_nautilus")));
+        tags.put(Key.key("arrows"), List.of(Key.key("arrow"), Key.key("spectral_arrow")));
+        tags.put(Key.key("arthropod"), List.of(Key.key("bee"), Key.key("cave_spider"),
+                Key.key("endermite"), Key.key("silverfish"), Key.key("spider")));
+        tags.put(Key.key("axolotl_always_hostiles"), List.of(Key.key("drowned"),
+                Key.key("elder_guardian"), Key.key("guardian")));
+        tags.put(Key.key("axolotl_hunt_targets"), List.of(Key.key("cod"), Key.key("glow_squid"),
+                Key.key("pufferfish"), Key.key("salmon"), Key.key("squid"), Key.key("tadpole"),
+                Key.key("tropical_fish")));
+        tags.put(Key.key("beehive_inhabitors"), List.of(Key.key("bee")));
+        tags.put(Key.key("boat"), List.of(Key.key("acacia_boat"), Key.key("bamboo_raft"),
+                Key.key("birch_boat"), Key.key("cherry_boat"), Key.key("dark_oak_boat"),
+                Key.key("jungle_boat"), Key.key("mangrove_boat"), Key.key("oak_boat"),
+                Key.key("pale_oak_boat"), Key.key("poplar_boat"), Key.key("spruce_boat")));
+        tags.put(Key.key("burn_in_daylight"), List.of(Key.key("bogged"), Key.key("drowned"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("stray"),
+                Key.key("wither_skeleton"), Key.key("zombie"), Key.key("zombie_horse"),
+                Key.key("zombie_nautilus"), Key.key("zombie_villager")));
+        tags.put(Key.key("can_breathe_under_water"), List.of(Key.key("armor_stand"),
+                Key.key("axolotl"), Key.key("bogged"), Key.key("camel_husk"), Key.key("cod"),
+                Key.key("copper_golem"), Key.key("drowned"), Key.key("elder_guardian"),
+                Key.key("frog"), Key.key("glow_squid"), Key.key("guardian"), Key.key("husk"),
+                Key.key("nautilus"), Key.key("parched"), Key.key("phantom"), Key.key("pufferfish"),
+                Key.key("salmon"), Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("squid"),
+                Key.key("stray"), Key.key("tadpole"), Key.key("tropical_fish"), Key.key("turtle"),
+                Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+        tags.put(Key.key("can_equip_harness"), List.of(Key.key("happy_ghast")));
+        tags.put(Key.key("can_equip_saddle"), List.of(Key.key("camel"), Key.key("camel_husk"),
+                Key.key("donkey"), Key.key("horse"), Key.key("mule"), Key.key("nautilus"),
+                Key.key("pig"), Key.key("skeleton_horse"), Key.key("strider"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus")));
+        tags.put(Key.key("can_float_while_ridden"), List.of(Key.key("camel"), Key.key("camel_husk"),
+                Key.key("donkey"), Key.key("horse"), Key.key("mule"), Key.key("zombie_horse")));
+        tags.put(Key.key("can_turn_in_boats"), List.of(Key.key("breeze")));
+        tags.put(Key.key("can_wear_horse_armor"), List.of(Key.key("horse"),
+                Key.key("zombie_horse")));
+        tags.put(Key.key("can_wear_nautilus_armor"), List.of(Key.key("nautilus"),
+                Key.key("zombie_nautilus")));
+        tags.put(Key.key("candidate_for_iron_golem_gift"), List.of(Key.key("copper_golem"),
+                Key.key("villager")));
+        tags.put(Key.key("cannot_be_age_locked"), List.of(Key.key("skeleton_horse"),
+                Key.key("villager"), Key.key("zombie_horse")));
+        tags.put(Key.key("cannot_be_dismounted_by_item_usage"), List.of(Key.key("interaction")));
+        tags.put(Key.key("cannot_be_pushed_onto_boats"), List.of(Key.key("cod"),
+                Key.key("creaking"), Key.key("dolphin"), Key.key("elder_guardian"),
+                Key.key("glow_squid"), Key.key("nautilus"), Key.key("player"),
+                Key.key("pufferfish"), Key.key("salmon"), Key.key("squid"), Key.key("sulfur_cube"),
+                Key.key("tadpole"), Key.key("tropical_fish"), Key.key("zombie_nautilus")));
+        tags.put(Key.key("deflects_projectiles"), List.of(Key.key("breeze")));
+        tags.put(Key.key("dismounts_underwater"), List.of(Key.key("camel"), Key.key("chicken"),
+                Key.key("donkey"), Key.key("happy_ghast"), Key.key("horse"), Key.key("llama"),
+                Key.key("mule"), Key.key("pig"), Key.key("ravager"), Key.key("spider"),
+                Key.key("strider"), Key.key("trader_llama"), Key.key("zombie_horse")));
+        tags.put(Key.key("fall_damage_immune"), List.of(Key.key("allay"), Key.key("bat"),
+                Key.key("bee"), Key.key("blaze"), Key.key("breeze"), Key.key("cat"),
+                Key.key("chicken"), Key.key("copper_golem"), Key.key("ghast"),
+                Key.key("happy_ghast"), Key.key("iron_golem"), Key.key("magma_cube"),
+                Key.key("ocelot"), Key.key("parrot"), Key.key("phantom"), Key.key("shulker"),
+                Key.key("snow_golem"), Key.key("wither")));
+    }
+
+    private static void entityTypeTags1(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("followable_friendly_mobs"), List.of(Key.key("armadillo"), Key.key("bee"),
+                Key.key("camel"), Key.key("cat"), Key.key("chicken"), Key.key("cow"),
+                Key.key("donkey"), Key.key("fox"), Key.key("goat"), Key.key("happy_ghast"),
+                Key.key("horse"), Key.key("llama"), Key.key("mule"), Key.key("ocelot"),
+                Key.key("panda"), Key.key("parrot"), Key.key("pig"), Key.key("polar_bear"),
+                Key.key("rabbit"), Key.key("sheep"), Key.key("skeleton_horse"), Key.key("sniffer"),
+                Key.key("strider"), Key.key("villager"), Key.key("wolf")));
+        tags.put(Key.key("freeze_hurts_extra_types"), List.of(Key.key("blaze"),
+                Key.key("magma_cube"), Key.key("strider")));
+        tags.put(Key.key("freeze_immune_entity_types"), List.of(Key.key("polar_bear"),
+                Key.key("snow_golem"), Key.key("stray"), Key.key("wither")));
+        tags.put(Key.key("frog_food"), List.of(Key.key("magma_cube"), Key.key("slime")));
+        tags.put(Key.key("ignores_poison_and_regen"), List.of(Key.key("bogged"),
+                Key.key("camel_husk"), Key.key("drowned"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
+                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
+                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
+                Key.key("zombie_villager"), Key.key("zombified_piglin")));
+        tags.put(Key.key("illager"), List.of(Key.key("evoker"), Key.key("illusioner"),
+                Key.key("pillager"), Key.key("vindicator")));
+        tags.put(Key.key("illager_friends"), List.of(Key.key("evoker"), Key.key("illusioner"),
+                Key.key("pillager"), Key.key("vindicator")));
+        tags.put(Key.key("immune_to_infested"), List.of(Key.key("silverfish")));
+        tags.put(Key.key("immune_to_oozing"), List.of(Key.key("slime")));
+        tags.put(Key.key("impact_projectiles"), List.of(Key.key("arrow"),
+                Key.key("breeze_wind_charge"), Key.key("dragon_fireball"), Key.key("egg"),
+                Key.key("fireball"), Key.key("firework_rocket"), Key.key("small_fireball"),
+                Key.key("snowball"), Key.key("spectral_arrow"), Key.key("trident"),
+                Key.key("wind_charge"), Key.key("wither_skull")));
+        tags.put(Key.key("inverted_healing_and_harm"), List.of(Key.key("bogged"),
+                Key.key("camel_husk"), Key.key("drowned"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
+                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
+                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
+                Key.key("zombie_villager"), Key.key("zombified_piglin")));
+        tags.put(Key.key("nautilus_hostiles"), List.of(Key.key("pufferfish")));
+        tags.put(Key.key("no_anger_from_wind_charge"), List.of(Key.key("bogged"), Key.key("breeze"),
+                Key.key("cave_spider"), Key.key("husk"), Key.key("skeleton"), Key.key("slime"),
+                Key.key("spider"), Key.key("stray"), Key.key("zombie")));
+        tags.put(Key.key("non_controlling_rider"), List.of(Key.key("magma_cube"), Key.key("slime"),
+                Key.key("sulfur_cube")));
+        tags.put(Key.key("not_affected_by_geysers"), List.of(Key.key("ender_dragon")));
+        tags.put(Key.key("not_scary_for_pufferfish"), List.of(Key.key("cod"), Key.key("dolphin"),
+                Key.key("elder_guardian"), Key.key("glow_squid"), Key.key("guardian"),
+                Key.key("nautilus"), Key.key("pufferfish"), Key.key("salmon"), Key.key("squid"),
+                Key.key("sulfur_cube"), Key.key("tadpole"), Key.key("tropical_fish"),
+                Key.key("turtle"), Key.key("zombie_nautilus")));
+        tags.put(Key.key("powder_snow_walkable_mobs"), List.of(Key.key("endermite"), Key.key("fox"),
+                Key.key("rabbit"), Key.key("silverfish")));
+        tags.put(Key.key("raiders"), List.of(Key.key("evoker"), Key.key("illusioner"),
+                Key.key("pillager"), Key.key("ravager"), Key.key("vindicator"), Key.key("witch")));
+        tags.put(Key.key("redirectable_projectile"), List.of(Key.key("breeze_wind_charge"),
+                Key.key("fireball"), Key.key("wind_charge")));
+        tags.put(Key.key("sensitive_to_bane_of_arthropods"), List.of(Key.key("bee"),
+                Key.key("cave_spider"), Key.key("endermite"), Key.key("silverfish"),
+                Key.key("spider")));
+        tags.put(Key.key("sensitive_to_impaling"), List.of(Key.key("axolotl"), Key.key("cod"),
+                Key.key("dolphin"), Key.key("elder_guardian"), Key.key("glow_squid"),
+                Key.key("guardian"), Key.key("nautilus"), Key.key("pufferfish"), Key.key("salmon"),
+                Key.key("squid"), Key.key("tadpole"), Key.key("tropical_fish"), Key.key("turtle"),
+                Key.key("zombie_nautilus")));
+    }
+
+    private static void entityTypeTags2(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("sensitive_to_smite"), List.of(Key.key("bogged"), Key.key("camel_husk"),
+                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
+                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+        tags.put(Key.key("skeletons"), List.of(Key.key("bogged"), Key.key("parched"),
+                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"),
+                Key.key("wither_skeleton")));
+        tags.put(Key.key("undead"), List.of(Key.key("bogged"), Key.key("camel_husk"),
+                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
+                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+        tags.put(Key.key("wither_friends"), List.of(Key.key("bogged"), Key.key("camel_husk"),
+                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
+                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+        tags.put(Key.key("zombies"), List.of(Key.key("camel_husk"), Key.key("drowned"),
+                Key.key("husk"), Key.key("zoglin"), Key.key("zombie"), Key.key("zombie_horse"),
+                Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+    }
+
+    /**
+     * @return the tags of {@code minecraft:entity_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> entityTypeTags() {
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(49);
+        entityTypeTags0(tags);
+        entityTypeTags1(tags);
+        entityTypeTags2(tags);
+        return Map.copyOf(tags);
     }
 
     private static void fluid0(final List<Key> entries) {

@@ -182,7 +182,7 @@ public final class Registries {
 
         FrozenRegistries.entries().forEach((name, entries) ->
                 frozen.put(name, new fr.euphyllia.fidorial.server.registry.Registry(
-                        name, entries, tags.getOrDefault(name, Map.of()))));
+                        name, entries, List.of(), tags.getOrDefault(name, Map.of()))));
 
         return RegistryHolder.of(frozen);
     }

@@ -12,12 +12,14 @@ import fr.fidorial.registry.data.Biome;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.biome.BiomeRegistry;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +35,14 @@ public final class FidorialBiomeRegistry implements BiomeRegistry, Registry<Biom
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialBiomeRegistry.class);
 
     private final Key fallback;
+    private final Map<Key, BinaryTag> vanillaData;
     public final AtomicBoolean started = new AtomicBoolean(false);
 
     private volatile Snapshot snapshot;
 
-    private FidorialBiomeRegistry(final Key fallback, final List<Key> vanilla) {
+    private FidorialBiomeRegistry(final Key fallback, final List<Key> vanilla, final Map<Key, BinaryTag> vanillaData) {
         this.fallback = fallback;
+        this.vanillaData = Map.copyOf(vanillaData);
 
         final Map<Key, @Nullable BiomeDefinition> initial = new LinkedHashMap<>();
         for (final Key key : vanilla) {
@@ -51,12 +55,21 @@ public final class FidorialBiomeRegistry implements BiomeRegistry, Registry<Biom
     public static FidorialBiomeRegistry bootstrap(final RegistryHolder dynamic, final Key fallback) {
         final fr.euphyllia.fidorial.server.registry.Registry source = dynamic.get(REGISTRY_NAME);
         final List<Key> entries = source == null ? List.of() : source.entries();
+        final Map<Key, BinaryTag> data = new HashMap<>();
+
+        if (source != null) {
+            for (final RegistryEntry entry : source.networkEntries()) {
+                if (entry.data() != null) {
+                    data.put(entry.key(), entry.data());
+                }
+            }
+        }
 
         if (entries.isEmpty()) {
             LOGGER.warn("No vanilla biome found in the registry dump, starting with '{}' only.", fallback.asString());
         }
 
-        return new FidorialBiomeRegistry(fallback, entries);
+        return new FidorialBiomeRegistry(fallback, entries, data);
     }
 
     @Override
@@ -165,12 +178,14 @@ public final class FidorialBiomeRegistry implements BiomeRegistry, Registry<Biom
         final List<RegistryEntry> entries = new ArrayList<>(current.order.size());
 
         for (final Key key : current.order) {
-            entries.add(new RegistryEntry(key, current.payloads.get(key)));
+            final BinaryTag data = current.payloads.containsKey(key)
+                    ? current.payloads.get(key)
+                    : vanillaData.get(key);
+            entries.add(new RegistryEntry(key, data));
         }
 
         return entries;
     }
-
 
     @Override
     public RegistryKey<Biome> registryKey() {

@@ -7,15 +7,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public record Registry(Key name, List<Key> entries, Map<Key, List<Key>> tags) {
+public record Registry(Key name, List<Key> entries, List<RegistryEntry> networkEntries, Map<Key, List<Key>> tags) {
 
     public Registry {
         entries = List.copyOf(entries);
         tags = Collections.unmodifiableMap(new LinkedHashMap<>(tags));
     }
 
-    public static Registry of(final Key name, final List<Key> entries) {
-        return new Registry(name, entries, Map.of());
+    public static Registry of(final Key name, final List<Key> entries, final List<RegistryEntry> networkEntries) {
+        return new Registry(name, entries, networkEntries, Map.of());
     }
 
     public int networkId(final Key entry) {
