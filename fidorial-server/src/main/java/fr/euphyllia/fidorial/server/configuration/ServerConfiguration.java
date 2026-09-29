@@ -287,10 +287,6 @@ public record ServerConfiguration(
         final ConfigurationCodecs.YamlFile<ServerConfiguration> file =
                 new ConfigurationCodecs.YamlFile<>(FILE, CODEC, ConfigurationSchemas.SERVER, HEADER);
 
-        if (LegacyConfigurationMigration.isNeeded(FILE)) {
-            return LegacyConfigurationMigration.migrate(file);
-        }
-
         final ServerConfiguration config = file.load();
         LOGGER.info("Configuration loaded from {}", FILE);
         return config;
