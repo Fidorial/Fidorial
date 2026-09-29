@@ -17,6 +17,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -152,8 +153,8 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record WorldSettings(Path path, Key defaultWorld, @Nullable Long levelSeed) {
-        static final WorldSettings DEFAULTS = new WorldSettings(Path.of("world"), Key.key("overworld"), null);
+    public record WorldSettings(Path path, Key defaultWorld, @Nullable Long levelSeed, List<Key> initialEnabledPacks) {
+        static final WorldSettings DEFAULTS = new WorldSettings(Path.of("world"), Key.key("overworld"), null, List.of(Key.key("vanilla")));
 
         static final Codec<WorldSettings> CODEC = configRecord(WorldSettings.class, DEFAULTS)
                 .field("path", WorldSettings::path, commented(ConfigurationCodecs.PATH,
@@ -162,6 +163,10 @@ public record ServerConfiguration(
                         "The dimension that should serve as the default for various operations, like selecting players' default spawn world"))
                 .nullableInline("level-seed", WorldSettings::levelSeed, commented(ConfigurationCodecs.SEED,
                         "The seed to use for the default world generator"))
+                .field("initial-enabled-packs", WorldSettings::initialEnabledPacks, commented(KEY_CODEC.listOf(),
+                        "The feature packs to be enabled during first world creation. Ignored for existing worlds"))
+                .validate(settings -> settings.initialEnabledPacks().contains(Key.key("vanilla")),
+                        _ -> "initial-enabled-packs must contain 'minecraft:vanilla'")
                 .build();
     }
 
@@ -281,10 +286,6 @@ public record ServerConfiguration(
     public static ServerConfiguration load() throws IOException {
         final ConfigurationCodecs.YamlFile<ServerConfiguration> file =
                 new ConfigurationCodecs.YamlFile<>(FILE, CODEC, ConfigurationSchemas.SERVER, HEADER);
-
-        if (LegacyConfigurationMigration.isNeeded(FILE)) {
-            return LegacyConfigurationMigration.migrate(file);
-        }
 
         final ServerConfiguration config = file.load();
         LOGGER.info("Configuration loaded from {}", FILE);

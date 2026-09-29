@@ -4,13 +4,20 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.nbt.TagStringIO;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public final class NbtCodecs {
 
@@ -70,4 +77,47 @@ public final class NbtCodecs {
                         }
                     }
             );
+
+    public static final Codec<BinaryTag> BINARY_TAG_CODEC = new Codec<>() {
+        @Override
+        public <T> DataResult<Pair<BinaryTag, T>> decode(final DynamicOps<T> ops, final T input) {
+            try {
+                return DataResult.success(Pair.of(toTag(ops, input), input));
+            } catch (final Exception e) {
+                return DataResult.error(() -> "Failed to convert to a binary tag: " + e.getMessage());
+            }
+        }
+
+        @Override
+        public <T> DataResult<T> encode(final BinaryTag input, final DynamicOps<T> ops, final T prefix) {
+            try {
+                return DataResult.success(BinaryTagOps.binaryTagOps().convertTo(ops, input));
+            } catch (final Exception e) {
+                return DataResult.error(() -> "Failed to encode tag: " + e.getMessage());
+            }
+        }
+    };
+
+    private static <T> BinaryTag toTag(final DynamicOps<T> ops, final T input) {
+        final DynamicOps<BinaryTag> out = BinaryTagOps.binaryTagOps();
+
+        final Optional<Stream<T>> list = ops.getStream(input).result();
+        if (list.isPresent()) {
+            final List<BinaryTag> elements = new ArrayList<>();
+            list.get().forEach(element -> elements.add(toTag(ops, element)));
+            return elements.isEmpty()
+                    ? ListBinaryTag.empty()
+                    : ListBinaryTag.heterogeneousListBinaryTag().add(elements).build();
+        }
+
+        final Optional<MapLike<T>> map = ops.getMap(input).result();
+        if (map.isPresent()) {
+            final RecordBuilder<BinaryTag> builder = out.mapBuilder();
+            map.get().entries().forEach(entry ->
+                    builder.add(toTag(ops, entry.getFirst()), toTag(ops, entry.getSecond())));
+            return builder.build(out.empty()).getOrThrow(IllegalStateException::new);
+        }
+
+        return ops.convertTo(out, input);
+    }
 }

@@ -12,6 +12,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.ChatType;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -19,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +37,13 @@ public final class FidorialChatTypeRegistry implements ChatTypeRegistry, Registr
 
     public final AtomicBoolean started = new AtomicBoolean(false);
 
+    private final Map<Key, BinaryTag> vanillaData;
+
     private volatile Snapshot snapshot;
 
-    private FidorialChatTypeRegistry(final List<Key> vanilla) {
+    private FidorialChatTypeRegistry(final List<Key> vanilla, final Map<Key, BinaryTag> vanillaData) {
+        this.vanillaData = Map.copyOf(vanillaData);
+
         final Map<Key, @Nullable ChatTypeDefinition> initial = new LinkedHashMap<>();
         for (final Key key : vanilla) {
             initial.put(key, null);
@@ -48,12 +54,21 @@ public final class FidorialChatTypeRegistry implements ChatTypeRegistry, Registr
     public static FidorialChatTypeRegistry bootstrap(final RegistryHolder dynamic) {
         final fr.euphyllia.fidorial.server.registry.Registry source = dynamic.get(REGISTRY_NAME);
         final List<Key> entries = source == null ? List.of() : source.entries();
+        final Map<Key, BinaryTag> data = new HashMap<>();
+
+        if (source != null) {
+            for (final RegistryEntry entry : source.networkEntries()) {
+                if (entry.data() != null) {
+                    data.put(entry.key(), entry.data());
+                }
+            }
+        }
 
         if (entries.isEmpty()) {
             LOGGER.warn("No vanilla chat type found in the registry dump, starting empty.");
         }
 
-        return new FidorialChatTypeRegistry(entries);
+        return new FidorialChatTypeRegistry(entries, data);
     }
 
     @Override
@@ -143,7 +158,10 @@ public final class FidorialChatTypeRegistry implements ChatTypeRegistry, Registr
         final Snapshot current = snapshot;
         final List<RegistryEntry> entries = new ArrayList<>(current.order.size());
         for (final Key key : current.order) {
-            entries.add(new RegistryEntry(key, current.payloads.get(key)));
+            final BinaryTag data = current.payloads.containsKey(key)
+                    ? current.payloads.get(key)
+                    : vanillaData.get(key);
+            entries.add(new RegistryEntry(key, data));
         }
         return entries;
     }

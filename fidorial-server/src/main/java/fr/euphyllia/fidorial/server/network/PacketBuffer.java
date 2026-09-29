@@ -8,7 +8,6 @@ import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -285,7 +284,7 @@ public final class PacketBuffer {
         return VarInts.readComponent(buf, maxLength);
     }
 
-    public PacketBuffer writeNbt(final @Nullable CompoundBinaryTag nbt) {
+    public PacketBuffer writeNbt(final @Nullable BinaryTag nbt) {
         if (nbt == null) {
             buf.writeByte(BinaryTagTypes.END.id());
             return this;

@@ -61,7 +61,10 @@ public final class DataFixersRegistry {
         for (int i = 0, len = list.size(); i < len; ++i) {
             final MapType element = list.getMap(i, null);
             if (element != null) {
-                update(type, element, sourceDataVersion);
+                final MapType updated = update(type, element, sourceDataVersion);
+                if (updated != null) {
+                    list.setMap(i, updated);
+                }
             }
         }
     }
