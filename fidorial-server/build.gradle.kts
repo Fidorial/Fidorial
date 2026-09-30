@@ -90,6 +90,9 @@ sourceSets.main {
         property("protocolVersion", providers.gradleProperty("protocolVersion"))
         property("dataVersion", providers.gradleProperty("dataVersion"))
     }
+    blossom.resources {
+        property("sparkVersion", libs.versions.spark.asProvider())
+    }
 }
 
 java {
