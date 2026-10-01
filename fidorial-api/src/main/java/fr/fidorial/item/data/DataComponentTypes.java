@@ -1,5 +1,6 @@
 package fr.fidorial.item.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
@@ -11,7 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class DataComponentTypes {
 
@@ -91,7 +91,8 @@ public class DataComponentTypes {
      * @return the component type, or {@code null} when Fidorial does not model it
      */
     public static @Nullable DataComponentType<?> byKey(final Key key) {
-        return BY_KEY.get(Objects.requireNonNull(key, "key"));
+        Preconditions.checkNotNull(key, "The key passed to DataComponentTypes.byKey() must not be null");
+        return BY_KEY.get(key);
     }
 
     /**
@@ -99,7 +100,8 @@ public class DataComponentTypes {
      * @return {@code true} when Fidorial has a typed handle for that component
      */
     public static boolean isModelled(final Key key) {
-        return BY_KEY.containsKey(Objects.requireNonNull(key, "key"));
+        Preconditions.checkNotNull(key, "The key passed to DataComponentTypes.isModelled() must not be null");
+        return BY_KEY.containsKey(key);
     }
 
     /**

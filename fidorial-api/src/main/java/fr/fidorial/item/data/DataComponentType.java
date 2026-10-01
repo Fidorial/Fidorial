@@ -1,10 +1,10 @@
 package fr.fidorial.item.data;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 public final class DataComponentType<T> implements Keyed {
 
@@ -13,8 +13,8 @@ public final class DataComponentType<T> implements Keyed {
     private final boolean persistent;
 
     private DataComponentType(final Key key, final Class<T> valueType, final boolean persistent) {
-        this.key = Objects.requireNonNull(key, "key");
-        this.valueType = Objects.requireNonNull(valueType, "valueType");
+        this.key = Preconditions.checkNotNull(key, "The key of a data component type must not be null");
+        this.valueType = Preconditions.checkNotNull(valueType, "The value type of a data component type must not be null");
         this.persistent = persistent;
     }
 

@@ -1,5 +1,6 @@
 package fr.fidorial.item;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.data.DataComponentEditor;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentMap;
@@ -7,7 +8,6 @@ import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -27,9 +27,9 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
     public static final int DEFAULT_MAX_STACK_SIZE = 1;
 
     public ItemDefinition {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(networkType, "networkType");
-        Objects.requireNonNull(components, "components");
+        Preconditions.checkNotNull(key, "The key of an item definition must not be null");
+        Preconditions.checkNotNull(networkType, "The network type of an item definition must not be null");
+        Preconditions.checkNotNull(components, "The components of an item definition must not be null");
 
         final int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, DEFAULT_MAX_STACK_SIZE);
         final int damage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
@@ -84,9 +84,9 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
         }
 
         private Builder(final Key key, final Key networkType, final DataComponentEditor components) {
-            this.key = Objects.requireNonNull(key, "key");
-            this.networkType = Objects.requireNonNull(networkType, "networkType");
-            this.components = Objects.requireNonNull(components, "components");
+            this.key = Preconditions.checkNotNull(key, "The key of an item definition builder must not be null");
+            this.networkType = Preconditions.checkNotNull(networkType, "The network type of an item definition builder must not be null");
+            this.components = Preconditions.checkNotNull(components, "The components of an item definition builder must not be null");
         }
 
         /**

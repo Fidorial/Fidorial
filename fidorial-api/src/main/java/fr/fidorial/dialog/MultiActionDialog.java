@@ -1,10 +1,10 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 
 public record MultiActionDialog(
         DialogBase base,
@@ -28,7 +28,7 @@ public record MultiActionDialog(
      * @since 0.1.0
      */
     public MultiActionDialog {
-        Objects.requireNonNull(base, "base");
+        Preconditions.checkNotNull(base, "The base of a multi action dialog must not be null");
         actions = List.copyOf(actions);
         if (actions.isEmpty()) {
             throw new IllegalArgumentException("A multi_action dialog needs at least one action");

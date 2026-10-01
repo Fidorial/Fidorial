@@ -1,10 +1,10 @@
 package fr.fidorial.chat;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -23,7 +23,7 @@ public final class ChatTypeBuilder {
             .build();
 
     ChatTypeBuilder(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        this.key = Preconditions.checkNotNull(key, "The key of a chat type builder must not be null");
     }
 
     ChatTypeBuilder(final ChatTypeDefinition definition) {
@@ -38,7 +38,7 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder key(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        this.key = Preconditions.checkNotNull(key, "The key passed to ChatTypeBuilder.key() must not be null");
         return this;
     }
 
@@ -48,7 +48,7 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder chat(final ChatTypeDecoration chat) {
-        this.chat = Objects.requireNonNull(chat, "chat");
+        this.chat = Preconditions.checkNotNull(chat, "The chat passed to ChatTypeBuilder.chat() must not be null");
         return this;
     }
 
@@ -72,7 +72,7 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder narration(final ChatTypeDecoration narration) {
-        this.narration = Objects.requireNonNull(narration, "narration");
+        this.narration = Preconditions.checkNotNull(narration, "The narration passed to ChatTypeBuilder.narration() must not be null");
         return this;
     }
 

@@ -1,19 +1,19 @@
 package fr.fidorial.attribute;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 
 public record AttributeModifier(Key attribute, Key id, double amount, Operation operation, EquipmentSlotGroup slot) {
 
     public AttributeModifier {
-        Objects.requireNonNull(attribute, "attribute");
-        Objects.requireNonNull(id, "id");
-        Objects.requireNonNull(operation, "operation");
-        Objects.requireNonNull(slot, "slot");
+        Preconditions.checkNotNull(attribute, "The attribute of an attribute modifier must not be null");
+        Preconditions.checkNotNull(id, "The ID of an attribute modifier must not be null");
+        Preconditions.checkNotNull(operation, "The operation of an attribute modifier must not be null");
+        Preconditions.checkNotNull(slot, "The slot of an attribute modifier must not be null");
     }
 
     public static AttributeModifier of(

@@ -1,14 +1,14 @@
 package fr.fidorial.entity;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 
 public record EntityType(Key key, Category category, float width, float height) {
 
     public EntityType {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(category, "category");
+        Preconditions.checkNotNull(key, "The key of an entity type must not be null");
+        Preconditions.checkNotNull(category, "The category of an entity type must not be null");
     }
 
     public enum Category {

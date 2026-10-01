@@ -1,5 +1,6 @@
 package fr.fidorial.event.server;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.Event;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -52,10 +52,10 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
             final boolean removesOverride,
             final Cause cause,
             final @Nullable CommandSender source) {
-        this.rule = Objects.requireNonNull(rule, "The game rule that changes must not be null");
-        this.previousValue = Objects.requireNonNull(previousValue, "The previous value of the game rule must not be null");
-        this.newValue = Objects.requireNonNull(newValue, "The new value of the game rule must not be null");
-        this.cause = Objects.requireNonNull(cause, "The cause of the game rule change must not be null");
+        this.rule = Preconditions.checkNotNull(rule, "The game rule that changes must not be null");
+        this.previousValue = Preconditions.checkNotNull(previousValue, "The previous value of the game rule must not be null");
+        this.newValue = Preconditions.checkNotNull(newValue, "The new value of the game rule must not be null");
+        this.cause = Preconditions.checkNotNull(cause, "The cause of the game rule change must not be null");
         if (removesOverride && world == null) {
             throw new IllegalArgumentException("Only a world can drop its override of game rule " + rule.key().key());
         }
@@ -130,7 +130,7 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public void setNewValue(final String value) {
-        Objects.requireNonNull(value, "The value to apply to the game rule must not be null");
+        Preconditions.checkNotNull(value, "The value to apply to the game rule must not be null");
         final Integer parsed = rule.parse(value);
         if (parsed == null) {
             throw new IllegalArgumentException("Invalid value '" + value + "' for game rule " + rule.key().key());

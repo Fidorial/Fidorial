@@ -1,11 +1,11 @@
 package fr.fidorial.event.player;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 
 /**
  * Fired when a player presses a dialog button carrying a
@@ -28,9 +28,9 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
      * @since 0.1.0
      */
     public PlayerDialogActionEvent(final Player player, final Key id, final DialogResponse response) {
-        this.player = Objects.requireNonNull(player, "player");
-        this.id = Objects.requireNonNull(id, "id");
-        this.response = Objects.requireNonNull(response, "response");
+        this.player = Preconditions.checkNotNull(player, "The player of a player dialog action event must not be null");
+        this.id = Preconditions.checkNotNull(id, "The ID of a player dialog action event must not be null");
+        this.response = Preconditions.checkNotNull(response, "The response of a player dialog action event must not be null");
     }
 
     @Override

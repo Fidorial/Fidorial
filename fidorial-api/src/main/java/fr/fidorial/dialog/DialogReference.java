@@ -1,8 +1,8 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 
 /**
  * A pointer to a dialog held by the {@linkplain DialogRegistry dialog registry}.
@@ -18,6 +18,6 @@ public record DialogReference(Key key) implements Dialog {
      * @since 0.1.0
      */
     public DialogReference {
-        Objects.requireNonNull(key, "key");
+        Preconditions.checkNotNull(key, "The key of a dialog reference must not be null");
     }
 }

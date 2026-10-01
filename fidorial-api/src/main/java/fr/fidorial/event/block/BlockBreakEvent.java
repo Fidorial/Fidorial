@@ -1,7 +1,9 @@
-package fr.fidorial.event.player;
+package fr.fidorial.event.block;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
+import fr.fidorial.event.player.PlayerEvent;
 import fr.fidorial.world.BlockPos;
 
 public final class BlockBreakEvent implements PlayerEvent, Cancellable {
@@ -10,9 +12,9 @@ public final class BlockBreakEvent implements PlayerEvent, Cancellable {
     private final BlockPos position;
     private boolean cancelled;
 
-    public BlockBreakEvent(Player player, BlockPos position) {
-        this.player = player;
-        this.position = position;
+    public BlockBreakEvent(final Player player, final BlockPos position) {
+        this.player = Preconditions.checkNotNull(player, "The player of a block break event must not be null");
+        this.position = Preconditions.checkNotNull(position, "The position of a block break event must not be null");
     }
 
     @Override
@@ -30,7 +32,7 @@ public final class BlockBreakEvent implements PlayerEvent, Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancelled) {
+    public void setCancelled(final boolean cancelled) {
         this.cancelled = cancelled;
     }
 }

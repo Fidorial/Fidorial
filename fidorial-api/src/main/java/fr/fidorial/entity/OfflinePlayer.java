@@ -1,11 +1,11 @@
 package fr.fidorial.entity;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -26,8 +26,8 @@ public final class OfflinePlayer {
             final long firstSeen,
             final long lastSeen
     ) {
-        this.registry = Objects.requireNonNull(registry, "registry");
-        this.uuid = Objects.requireNonNull(uuid, "uuid");
+        this.registry = Preconditions.checkNotNull(registry, "The registry of an offline player must not be null");
+        this.uuid = Preconditions.checkNotNull(uuid, "The UUID of an offline player must not be null");
         this.name = name;
         this.firstSeen = firstSeen;
         this.lastSeen = lastSeen;

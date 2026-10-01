@@ -1,10 +1,10 @@
 package fr.fidorial.item.component;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The extra tooltip lines a stack carries, under {@code minecraft:lore}.
@@ -25,7 +25,7 @@ public record ItemLore(List<Component> lines) {
     public static final ItemLore EMPTY = new ItemLore(List.of());
 
     public ItemLore {
-        Objects.requireNonNull(lines, "lines");
+        Preconditions.checkNotNull(lines, "The lines of an item lore must not be null");
 
         if (lines.size() > MAX_LINES) {
             throw new IllegalArgumentException(
@@ -56,7 +56,7 @@ public record ItemLore(List<Component> lines) {
      * @return a new lore, one line longer
      */
     public ItemLore plus(final Component line) {
-        Objects.requireNonNull(line, "line");
+        Preconditions.checkNotNull(line, "The line passed to ItemLore.plus() must not be null");
 
         final List<Component> copy = new ArrayList<>(lines);
         copy.add(line);

@@ -1,11 +1,11 @@
 package fr.fidorial.item;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -87,7 +87,7 @@ public final class ItemDefaults {
      * @param source the table to read from; replaces whatever was installed before
      */
     public static void install(final Source source) {
-        ItemDefaults.source = Objects.requireNonNull(source, "source");
+        ItemDefaults.source = Preconditions.checkNotNull(source, "The source passed to ItemDefaults.install() must not be null");
     }
 
     /**
@@ -98,7 +98,9 @@ public final class ItemDefaults {
      * @param properties the defaults to record
      */
     public static void register(final Key item, final Properties properties) {
-        OVERRIDES.put(Objects.requireNonNull(item, "item"), Objects.requireNonNull(properties, "properties"));
+        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.register() must not be null");
+        Preconditions.checkNotNull(properties, "The properties passed to ItemDefaults.register() must not be null");
+        OVERRIDES.put(item, properties);
     }
 
     /**
@@ -108,7 +110,8 @@ public final class ItemDefaults {
      * @return {@code true} when an override was removed
      */
     public static boolean unregister(final Key item) {
-        return OVERRIDES.remove(Objects.requireNonNull(item, "item")) != null;
+        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.unregister() must not be null");
+        return OVERRIDES.remove(item) != null;
     }
 
     /**
@@ -116,7 +119,8 @@ public final class ItemDefaults {
      * @return {@code true} when this item has registered defaults of its own
      */
     public static boolean isRegistered(final Key item) {
-        return OVERRIDES.containsKey(Objects.requireNonNull(item, "item"));
+        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.isRegistered() must not be null");
+        return OVERRIDES.containsKey(item);
     }
 
     /**

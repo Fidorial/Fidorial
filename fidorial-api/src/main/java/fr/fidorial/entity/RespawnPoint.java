@@ -1,9 +1,9 @@
 package fr.fidorial.entity;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 
-import java.util.Objects;
 
 /**
  * The place a player comes back to after dying.
@@ -19,8 +19,8 @@ import java.util.Objects;
 public record RespawnPoint(World world, Location location) {
 
     public RespawnPoint {
-        Objects.requireNonNull(world, "world");
-        Objects.requireNonNull(location, "location");
+        Preconditions.checkNotNull(world, "The world of a respawn point must not be null");
+        Preconditions.checkNotNull(location, "The location of a respawn point must not be null");
     }
 
     /**

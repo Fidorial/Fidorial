@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -7,7 +8,6 @@ import net.kyori.adventure.nbt.NumberBinaryTag;
 import net.kyori.adventure.nbt.StringBinaryTag;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
@@ -25,7 +25,7 @@ public record DialogResponse(CompoundBinaryTag values) {
      * @since 0.1.0
      */
     public DialogResponse {
-        Objects.requireNonNull(values, "values");
+        Preconditions.checkNotNull(values, "The values of a dialog response must not be null");
     }
 
     /**

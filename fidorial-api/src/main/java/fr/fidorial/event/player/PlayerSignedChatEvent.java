@@ -1,10 +1,10 @@
 package fr.fidorial.event.player;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
 
-import java.util.Objects;
 
 /**
  * A {@link PlayerChatEvent} for a message that carried a verified client signature.
@@ -17,7 +17,7 @@ public final class PlayerSignedChatEvent extends PlayerChatEvent {
 
     public PlayerSignedChatEvent(final Player player, final SignedMessage signedMessage) {
         super(player, contentOf(signedMessage));
-        this.signedMessage = Objects.requireNonNull(signedMessage, "signedMessage");
+        this.signedMessage = Preconditions.checkNotNull(signedMessage, "The signed message of a player signed chat event must not be null");
     }
 
     private static Component contentOf(final SignedMessage signedMessage) {

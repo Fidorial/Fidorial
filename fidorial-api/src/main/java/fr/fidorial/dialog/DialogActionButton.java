@@ -1,11 +1,11 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 public record DialogActionButton(
         Component label,
@@ -36,7 +36,7 @@ public record DialogActionButton(
      * @since 0.1.0
      */
     public DialogActionButton {
-        Objects.requireNonNull(label, "label");
+        Preconditions.checkNotNull(label, "The label of a dialog action button must not be null");
         DialogValidation.width(width, MAX_WIDTH, "width");
     }
 
@@ -90,7 +90,7 @@ public record DialogActionButton(
         private @Nullable DialogAction action;
 
         Builder(final Component label) {
-            this.label = Objects.requireNonNull(label, "label");
+            this.label = Preconditions.checkNotNull(label, "The label of a dialog action button builder must not be null");
         }
 
         /**

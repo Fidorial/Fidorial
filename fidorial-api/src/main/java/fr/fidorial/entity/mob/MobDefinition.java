@@ -1,9 +1,9 @@
 package fr.fidorial.entity.mob;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 
-import java.util.Objects;
 
 /**
  * Everything the server needs to build a mob a plugin invented.
@@ -35,10 +35,10 @@ public record MobDefinition(
         boolean persistent) {
 
     public MobDefinition {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(networkType, "networkType");
-        Objects.requireNonNull(soundSource, "soundSource");
-        Objects.requireNonNull(behaviour, "behaviour");
+        Preconditions.checkNotNull(key, "The key of a mob definition must not be null");
+        Preconditions.checkNotNull(networkType, "The network type of a mob definition must not be null");
+        Preconditions.checkNotNull(soundSource, "The sound source of a mob definition must not be null");
+        Preconditions.checkNotNull(behaviour, "The behaviour of a mob definition must not be null");
         if (maxHealth <= 0f) {
             throw new IllegalArgumentException("maxHealth must be positive, got " + maxHealth);
         }

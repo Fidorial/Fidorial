@@ -1,6 +1,7 @@
 package fr.fidorial.item.component;
 
-import java.util.Objects;
+import com.google.common.base.Preconditions;
+
 
 /**
  * The animation played when an item is used to attack or interact with something,
@@ -15,7 +16,7 @@ public record SwingAnimation(SwingAnimationType type, int duration) {
     public static final SwingAnimation DEFAULT = new SwingAnimation(SwingAnimationType.WHACK, 6);
 
     public SwingAnimation {
-        Objects.requireNonNull(type, "type");
+        Preconditions.checkNotNull(type, "The type of a swing animation must not be null");
 
         if (duration < 0) {
             throw new IllegalArgumentException("Duration cannot be negative, got " + duration);

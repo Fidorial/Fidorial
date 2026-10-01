@@ -1,8 +1,8 @@
 package fr.fidorial.item.data;
 
+import com.google.common.base.Preconditions;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 /**
  * The writing half of the component model: a mutable, chainable editor over one
@@ -15,7 +15,7 @@ public final class DataComponentEditor implements DataComponentHolder {
     private DataComponentMap components;
 
     private DataComponentEditor(final DataComponentMap components) {
-        this.components = Objects.requireNonNull(components, "components");
+        this.components = Preconditions.checkNotNull(components, "The components of a data component editor must not be null");
     }
 
     /**

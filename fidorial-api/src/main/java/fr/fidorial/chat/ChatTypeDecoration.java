@@ -1,11 +1,11 @@
 package fr.fidorial.chat;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.format.Style;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * How a chat message is formatted for the chat log and/or for narration/accessibility.
@@ -20,7 +20,7 @@ import java.util.Objects;
 public record ChatTypeDecoration(String translationKey, List<String> parameters, @Nullable Style style) {
 
     public ChatTypeDecoration {
-        Objects.requireNonNull(translationKey, "translationKey");
+        Preconditions.checkNotNull(translationKey, "The translation key of a chat type decoration must not be null");
         parameters = List.copyOf(parameters);
     }
 
@@ -57,7 +57,7 @@ public record ChatTypeDecoration(String translationKey, List<String> parameters,
         private @Nullable Style style;
 
         private Builder(final String translationKey) {
-            this.translationKey = Objects.requireNonNull(translationKey, "translationKey");
+            this.translationKey = Preconditions.checkNotNull(translationKey, "The translation key of a chat type decoration builder must not be null");
         }
 
         private Builder(final ChatTypeDecoration decoration) {
@@ -73,7 +73,7 @@ public record ChatTypeDecoration(String translationKey, List<String> parameters,
          */
         @Contract("_ -> this")
         public Builder translationKey(final String translationKey) {
-            this.translationKey = Objects.requireNonNull(translationKey, "translationKey");
+            this.translationKey = Preconditions.checkNotNull(translationKey, "The translation key passed to ChatTypeDecoration.Builder.translationKey() must not be null");
             return this;
         }
 
