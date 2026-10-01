@@ -90,6 +90,9 @@ sourceSets.main {
         property("protocolVersion", providers.gradleProperty("protocolVersion"))
         property("dataVersion", providers.gradleProperty("dataVersion"))
     }
+    blossom.resources {
+        property("sparkVersion", libs.versions.spark.asProvider())
+    }
 }
 
 java {
@@ -173,7 +176,7 @@ tasks.register<JavaExec>("run") {
     classpath(sourceSets.main.map { it.runtimeClasspath })
     mainClass.set("fr.euphyllia.fidorial.server.Main")
     workingDir = project.file("run")
-    jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+    jvmArgs = listOf("--enable-native-access=ALL-UNNAMED", "-DFidorial.logLevel=TRACE")
     dependsOn(":fidorial-test-plugin:deployToRun")
     doFirst {
         workingDir.mkdirs()
@@ -190,7 +193,7 @@ val testScenarios =
         standardInput = System.`in`
         classpath(sourceSets.main.map { it.runtimeClasspath })
         workingDir = layout.projectDirectory.file("build/tmp/scenario-tests").asFile
-        jvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
+        jvmArgs = listOf("--enable-native-access=ALL-UNNAMED", "-DFidorial.logLevel=DEBUG")
         mainClass = "fr.euphyllia.fidorial.server.testing.ScenarioTestMain"
         args = listOf("fr.euphyllia.fidorial.server.tests", "fr.euphyllia.fidorial.testplugin.tests")
         dependsOn(":fidorial-test-plugin:deployToRun")
