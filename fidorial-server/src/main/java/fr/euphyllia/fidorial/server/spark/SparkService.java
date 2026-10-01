@@ -20,12 +20,8 @@
 
 package fr.euphyllia.fidorial.server.spark;
 
-import com.google.gson.JsonElement;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.spark.SparkCommand;
-import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.plugin.PluginMeta;
 import me.lucko.spark.api.Spark;
@@ -140,8 +136,6 @@ public final class SparkService implements SparkPlugin {
             throw t;
         }
 
-        warnIfServerConfigUnencodable();
-
         LOGGER.info("spark {} enabled - use /{} to profile the server", this.version, COMMAND_NAME);
     }
 
@@ -161,13 +155,6 @@ public final class SparkService implements SparkPlugin {
         detachTickProfiler();
         shutdownPlatform();
         shutdownScheduler();
-    }
-
-    private void warnIfServerConfigUnencodable() {
-        final DataResult<JsonElement> result = ServerConfiguration.CODEC.encodeStart(JsonOps.INSTANCE, this.server.config());
-        if (result instanceof final DataResult.Error<JsonElement> error) {
-            log(Level.WARNING, "spark will not be able to report the server configuration: " + error.message());
-        }
     }
 
     private void detachTickProfiler() {
