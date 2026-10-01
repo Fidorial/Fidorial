@@ -1,5 +1,5 @@
 [versions]
-netty = "4.2.16.Final"
+netty = "4.2.18.Final"
 gson = "2.14.0"
 slf4j = "2.0.17"
 logback = "1.6.3"

@@ -46,7 +46,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
         definitions.put(definition.key(), definition);
         definitionOwners.put(definition.key(), owner);
 
-        LOGGER.info("Item {} registered by {} (rendered as {})",
+        LOGGER.debug("Item {} registered by {} (rendered as {})",
                 definition.key(), ownerName(owner), definition.networkType());
     }
 
@@ -61,7 +61,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
 
         definitionOwners.remove(itemType);
 
-        LOGGER.info("Item {} unregistered", removed.key());
+        LOGGER.debug("Item {} unregistered", removed.key());
         return true;
     }
 
