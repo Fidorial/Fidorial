@@ -136,8 +136,6 @@ public final class SparkService implements SparkPlugin {
             throw t;
         }
 
-        warnIfServerConfigMissing();
-
         LOGGER.info("spark {} enabled - use /{} to profile the server", this.version, COMMAND_NAME);
     }
 
@@ -157,17 +155,6 @@ public final class SparkService implements SparkPlugin {
         detachTickProfiler();
         shutdownPlatform();
         shutdownScheduler();
-    }
-
-    private void warnIfServerConfigMissing() {
-        final Path expected = Path.of(SparkServerConfigProvider.CONFIG_FILE).toAbsolutePath();
-        if (!Files.isRegularFile(expected)) {
-            log(
-                    Level.WARNING,
-                    "spark will not be able to report the server configuration: no "
-                            + SparkServerConfigProvider.CONFIG_FILE
-                            + " in the working directory (looked for " + expected + ")");
-        }
     }
 
     private void detachTickProfiler() {
@@ -308,7 +295,7 @@ public final class SparkService implements SparkPlugin {
 
     @Override
     public ServerConfigProvider createServerConfigProvider() {
-        return new SparkServerConfigProvider();
+        return new SparkServerConfigProvider(this.server);
     }
 
     @Override
