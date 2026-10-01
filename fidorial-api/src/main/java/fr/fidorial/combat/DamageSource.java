@@ -2,10 +2,10 @@ package fr.fidorial.combat;
 
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
-import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;

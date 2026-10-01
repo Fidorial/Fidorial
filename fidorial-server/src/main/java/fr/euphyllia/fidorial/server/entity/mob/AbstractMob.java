@@ -9,8 +9,7 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.inventory.EquipmentSlotGroup;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -27,8 +26,8 @@ public abstract class AbstractMob extends AbstractLivingEntity {
 
     private final List<MobBehaviour> behaviours = new CopyOnWriteArrayList<>();
 
-    protected AbstractMob(final int entityId, final UUID uuid, final EntityType type, final World world, final Location location, final float maxHealth) {
-        super(entityId, uuid, type, world, location, maxHealth);
+    protected AbstractMob(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth) {
+        super(entityId, uuid, type, location, maxHealth);
     }
 
     @Override

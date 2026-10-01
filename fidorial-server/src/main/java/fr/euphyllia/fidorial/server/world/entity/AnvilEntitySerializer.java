@@ -9,7 +9,7 @@ import fr.euphyllia.fidorial.server.entity.mob.MobFactories;
 import fr.euphyllia.fidorial.server.entity.mob.PluginMob;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -121,9 +121,9 @@ public class AnvilEntitySerializer {
         final double z = doubleAt(pos, 2);
         final float yaw = floatAt(rot, 0);
         final float pitch = floatAt(rot, 1);
-        final Location location = new Location(x, y, z, yaw, pitch);
+        final Location location = Location.of(world, x, y, z, yaw, pitch);
 
-        final AbstractMob mob = MobFactories.create(type, idAllocator.getAsInt(), world, location);
+        final AbstractMob mob = MobFactories.create(type, idAllocator.getAsInt(), location);
 
         final int[] uuid = c.getIntArray("UUID");
         if (uuid.length == 4) {

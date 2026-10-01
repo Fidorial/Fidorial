@@ -19,10 +19,9 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.List;
@@ -98,13 +97,12 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private boolean metadataSent;
     private boolean sentOnFire;
 
-    public Zombie(final int entityId, final World world, final Location location) {
-        this(entityId, EntityTypes.ZOMBIE, world, location, SpawnData.roll());
+    public Zombie(final int entityId, final Location location) {
+        this(entityId, EntityTypes.ZOMBIE, location, SpawnData.roll());
     }
 
-    protected Zombie(final int entityId, final EntityType type, final World world,
-                     final Location location, final SpawnData data) {
-        super(entityId, UUID.randomUUID(), type, world, location, data.maxHealth());
+    protected Zombie(final int entityId, final EntityType type, final Location location, final SpawnData data) {
+        super(entityId, UUID.randomUUID(), type, location, data.maxHealth());
 
         this.baby = data.baby();
         this.leader = data.leader();
@@ -274,9 +272,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     }
 
     protected void convertToDrowned() {
-        final Location loc = location();
-        final AbstractMob drowned = MobFactories.create(EntityTypes.DROWNED, server().entityIds().allocate(),
-                world(), loc);
+        final AbstractMob drowned = MobFactories.create(EntityTypes.DROWNED, server().entityIds().allocate(), location());
         server().despawnEntity(this);
         server().spawnEntity(drowned);
     }
@@ -348,8 +344,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
                 continue;
             }
 
-            final Zombie reinforcement = new Zombie(server().entityIds().allocate(), world,
-                    new Location(x, y, z, 0f, 0f));
+            final Zombie reinforcement = new Zombie(server().entityIds().allocate(), Location.of(world, x, y, z, 0f, 0f));
             reinforcement.reinforcementChance =
                     Math.max(0.0, reinforcement.reinforcementChance - REINFORCEMENT_DECAY);
             reinforcement.setTarget(attacker);

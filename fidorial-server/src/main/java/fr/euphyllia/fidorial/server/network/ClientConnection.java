@@ -40,11 +40,11 @@ import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
+import fr.fidorial.math.Location;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -438,9 +438,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                                 disconnecting.uuid(),
                                 new PlayerDataStorage.PlayerData(
                                         disconnecting.gameMode(),
-                                        point == null ? null : point.world().key(),
-                                        point == null ? null : point.location(),
-                                        disconnecting.world().key(),
+                                        point == null ? null : point.position().toLocation(point.world()),
                                         disconnecting.location()));
                 LOGGER.debug("Inventory + Ender Chest and data for {} saved", disconnecting.name());
             } catch (final Exception e) {
@@ -600,9 +598,9 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         listener.onDisconnect();
     }
 
-    public CompletableFuture<Boolean> teleport(final ServerWorld target, final Location location) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
         if (listener instanceof final PlayPacketHandler play) {
-            return play.teleport(target, location);
+            return play.teleport(location);
         }
         return CompletableFuture.completedFuture(false);
     }
