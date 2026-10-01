@@ -96,13 +96,13 @@ public final class WorldManager implements AutoCloseable {
         final LevelData levelData;
         if (paths.levelDat().toFile().isFile()) {
             levelData = LevelData.read(paths.dataDir(), paths.levelDat());
-            LOGGER.info("Monde chargé : {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
+            LOGGER.info("Loaded world: {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
         } else {
             levelData = new LevelData();
             levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
             levelData.applyInitialPacks(initialPacks);
             levelData.write(paths.dataDir(), paths.levelDat());
-            LOGGER.info("Nouveau monde créé dans {}", worldRoot);
+            LOGGER.info("New world created at {}", worldRoot);
         }
 
         final AnvilChunkSerializer serializer = new AnvilChunkSerializer();
@@ -194,7 +194,7 @@ public final class WorldManager implements AutoCloseable {
         try {
             final int restored = world.forcedChunks().restore(forcedChunksFile(world));
             if (restored > 0) {
-                LOGGER.info("{} force-loaded chunk(s) restored in {}", restored, world.key());
+                LOGGER.debug("{} force-loaded chunk(s) restored in {}", restored, world.key());
                 world.loadForcedChunks();
             }
         } catch (final IOException e) {
@@ -214,7 +214,7 @@ public final class WorldManager implements AutoCloseable {
         try {
             final int restored = world.gameRuleValues().restore(gameRuleOverridesFile(world));
             if (restored > 0) {
-                LOGGER.info("{} game rule override(s) restored in {}", restored, world.key());
+                LOGGER.debug("{} game rule override(s) restored in {}", restored, world.key());
             }
         } catch (final IOException e) {
             LOGGER.error("Unable to read the game rule overrides of {}", world.key(), e);
@@ -435,9 +435,9 @@ public final class WorldManager implements AutoCloseable {
         if (resolved == null) {
             LOGGER.warn("No default world is currently resolvable: no worlds are loaded.");
         } else if (previous == null) {
-            LOGGER.info("Default world set to {}", resolved);
+            LOGGER.debug("Default world set to {}", resolved);
         } else {
-            LOGGER.info("Default world changed from {} to {}", previous, resolved);
+            LOGGER.debug("Default world changed from {} to {}", previous, resolved);
         }
     }
 
