@@ -1,0 +1,6 @@
+/**
+ * Number ranges produced by argument types.
+ *
+ * @since 0.1.0
+ */
+package fr.fidorial.command.argument.range;
