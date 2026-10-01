@@ -96,7 +96,7 @@ public final class WorldManager implements AutoCloseable {
         final LevelData levelData;
         if (paths.levelDat().toFile().isFile()) {
             levelData = LevelData.read(paths.dataDir(), paths.levelDat());
-            LOGGER.info("World: {} loaded (DataVersion {})", levelData.levelName, levelData.dataVersion);
+            LOGGER.info("Loaded world: {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
         } else {
             levelData = new LevelData();
             levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
