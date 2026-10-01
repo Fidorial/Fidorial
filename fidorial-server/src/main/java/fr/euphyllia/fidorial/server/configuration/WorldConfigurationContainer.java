@@ -42,6 +42,10 @@ public final class WorldConfigurationContainer {
                 configDirectory.resolve("fidorial-world-default.yaml"), WorldConfiguration.CODEC, ConfigurationSchemas.WORLD, DEFAULTS_HEADER);
     }
 
+    public Codec<WorldConfiguration> overrideCodec() {
+        return overrideCodec;
+    }
+
     public WorldConfiguration defaults() {
         return defaults;
     }

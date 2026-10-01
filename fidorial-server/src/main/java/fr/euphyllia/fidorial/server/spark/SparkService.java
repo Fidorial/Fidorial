@@ -20,8 +20,12 @@
 
 package fr.euphyllia.fidorial.server.spark;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.spark.SparkCommand;
+import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.plugin.PluginMeta;
 import me.lucko.spark.api.Spark;
@@ -136,7 +140,7 @@ public final class SparkService implements SparkPlugin {
             throw t;
         }
 
-        warnIfServerConfigMissing();
+        warnIfServerConfigUnencodable();
 
         LOGGER.info("spark {} enabled - use /{} to profile the server", this.version, COMMAND_NAME);
     }
@@ -159,14 +163,10 @@ public final class SparkService implements SparkPlugin {
         shutdownScheduler();
     }
 
-    private void warnIfServerConfigMissing() {
-        final Path expected = Path.of(SparkServerConfigProvider.CONFIG_FILE).toAbsolutePath();
-        if (!Files.isRegularFile(expected)) {
-            log(
-                    Level.WARNING,
-                    "spark will not be able to report the server configuration: no "
-                            + SparkServerConfigProvider.CONFIG_FILE
-                            + " in the working directory (looked for " + expected + ")");
+    private void warnIfServerConfigUnencodable() {
+        final DataResult<JsonElement> result = ServerConfiguration.CODEC.encodeStart(JsonOps.INSTANCE, this.server.config());
+        if (result instanceof final DataResult.Error<JsonElement> error) {
+            log(Level.WARNING, "spark will not be able to report the server configuration: " + error.message());
         }
     }
 
@@ -308,7 +308,7 @@ public final class SparkService implements SparkPlugin {
 
     @Override
     public ServerConfigProvider createServerConfigProvider() {
-        return new SparkServerConfigProvider();
+        return new SparkServerConfigProvider(this.server);
     }
 
     @Override

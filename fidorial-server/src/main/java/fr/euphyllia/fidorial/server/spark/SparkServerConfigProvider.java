@@ -22,29 +22,76 @@ package fr.euphyllia.fidorial.server.spark;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
+import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.WorldManager;
 import me.lucko.spark.common.platform.serverconfig.ConfigParser;
-import me.lucko.spark.common.platform.serverconfig.PropertiesConfigParser;
+import me.lucko.spark.common.platform.serverconfig.ExcludedConfigFilter;
 import me.lucko.spark.common.platform.serverconfig.ServerConfigProvider;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 
 public final class SparkServerConfigProvider extends ServerConfigProvider {
 
-    static final String CONFIG_FILE = "fidorial.properties";
-
-    private static final Map<String, ConfigParser> FILES =
-            ImmutableMap.of(CONFIG_FILE, PropertiesConfigParser.INSTANCE);
-
     private static final Collection<String> HIDDEN_PATHS = ImmutableSet.<String>builder()
             .addAll(BASE_HIDDEN_PATHS)
-            .add("velocity-secret")
-            .add("resource-pack-url")
-            .add("resource-pack-hash")
-            .add("resource-pack-id")
+            .add("network.proxy.secret")
+            .add("resource-pack.url")
+            .add("resource-pack.hash")
+            .add("resource-pack.id")
+            .add("worlds.level-seed")
             .build();
 
-    public SparkServerConfigProvider() {
-        super(FILES, HIDDEN_PATHS);
+    public SparkServerConfigProvider(final FidorialServer server) {
+        super(sources(server), HIDDEN_PATHS);
+    }
+
+    private static Map<String, ConfigParser> sources(final FidorialServer server) {
+        return ImmutableMap.of(
+                "fidorial", new LiveSource(() -> encode(ServerConfiguration.CODEC, server.config())),
+                "worlds", new LiveSource(() -> encodeWorlds(server.worldManager())));
+    }
+
+    private static JsonElement encodeWorlds(final WorldManager manager) throws IOException {
+        final WorldConfigurationContainer configurations = manager.configurations();
+        final JsonObject root = new JsonObject();
+        root.add("default", encode(WorldConfiguration.CODEC, configurations.defaults()));
+        for (final ServerWorld world : manager.worlds()) {
+            root.add(world.key().asString(), encode(configurations.overrideCodec(), world.configuration()));
+        }
+        return root;
+    }
+
+    private static <T> JsonElement encode(final Codec<T> codec, final T value) throws IOException {
+        return codec.encodeStart(JsonOps.INSTANCE, value)
+                .getOrThrow(message -> new IOException("Could not encode the configuration: " + message));
+    }
+
+    @FunctionalInterface
+    private interface Snapshot {
+        JsonElement take() throws IOException;
+    }
+
+    private record LiveSource(Snapshot snapshot) implements ConfigParser {
+
+        @Override
+        public JsonElement load(final String name, final ExcludedConfigFilter filter) throws IOException {
+            return filter.apply(snapshot.take());
+        }
+
+        @Override
+        public Map<String, Object> parse(final BufferedReader reader) {
+            throw new UnsupportedOperationException("Live configurations are encoded, not parsed");
+        }
     }
 }
