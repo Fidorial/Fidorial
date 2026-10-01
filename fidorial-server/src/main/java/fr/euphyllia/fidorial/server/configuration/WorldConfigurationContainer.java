@@ -27,7 +27,7 @@ public final class WorldConfigurationContainer {
 
     private WorldConfigurationContainer(final WorldConfiguration defaults) {
         this.defaults = defaults;
-        this.overrideCodec = WorldConfiguration.codec(defaults);
+        this.overrideCodec = WorldConfiguration.sparseCodec(defaults);
     }
 
     public static WorldConfigurationContainer load(final Path configDirectory) throws IOException {
@@ -44,6 +44,14 @@ public final class WorldConfigurationContainer {
 
     public WorldConfiguration defaults() {
         return defaults;
+    }
+
+    /**
+     * {@return the codec of the per-world override files: missing settings fall back to {@link #defaults()}, and
+     * only the settings that differ from them are encoded}
+     */
+    public Codec<WorldConfiguration> overrideCodec() {
+        return overrideCodec;
     }
 
     /**
