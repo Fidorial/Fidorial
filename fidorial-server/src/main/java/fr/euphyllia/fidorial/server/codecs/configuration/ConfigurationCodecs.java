@@ -81,13 +81,23 @@ public final class ConfigurationCodecs {
     }
 
     /**
-     * A {@link RecordCodec} builder for a configuration record.
+     * A {@link RecordCodec} builder for a configuration record, writing every setting.
      */
     public static <R extends Record> RecordCodec.Builder<R> configRecord(final Class<R> type, final R defaults) {
-        return RecordCodec.builder(type)
+        return configRecord(type, defaults, true);
+    }
+
+    /**
+     * A {@link RecordCodec} builder for a configuration record.
+     *
+     * @param writeDefaults whether settings equal to their default are written;
+     * when {@code false}, only the settings that differ from {@code defaults} are encoded
+     */
+    public static <R extends Record> RecordCodec.Builder<R> configRecord(final Class<R> type, final R defaults, final boolean writeDefaults) {
+        final RecordCodec.Builder<R> builder = RecordCodec.builder(type)
                 .keys(RecordCodec.KeyStyle.KEBAB_CASE)
-                .defaults(defaults)
-                .writeDefaults();
+                .defaults(defaults);
+        return writeDefaults ? builder.writeDefaults() : builder;
     }
 
     /**
