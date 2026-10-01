@@ -37,7 +37,7 @@ public class ConsoleCommandReader {
         Thread thread = new Thread(this::run, "fidorial-console");
         thread.setDaemon(true);
         thread.start();
-        LOGGER.info("Console interactive prete");
+        LOGGER.debug("Interactive console ready");
     }
 
     private void run() {
@@ -71,7 +71,7 @@ public class ConsoleCommandReader {
                 commandManager.dispatchAsync(FidorialServer.getInstance().getConsole(), line);
             }
         } catch (final IOException e) {
-            LOGGER.warn("Lecture de la console interrompue : {}", e.getMessage());
+            LOGGER.warn("Console reading interrupted: {}", e.getMessage());
         }
     }
 }

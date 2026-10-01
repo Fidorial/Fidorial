@@ -39,22 +39,22 @@ public final class NettyServer {
         this.port = port;
 
         if (server.config().network().useIoUring() && IoUring.isAvailable()) {
-            LOGGER.info("Using io_uring transport");
+            LOGGER.debug("Using io_uring transport");
             bossGroup = new MultiThreadIoEventLoopGroup(1, IoUringIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(IoUringIoHandler.newFactory());
             channelClass = IoUringServerSocketChannel.class;
         } else if (Epoll.isAvailable()) {
-            LOGGER.info("Using epoll transport");
+            LOGGER.debug("Using epoll transport");
             bossGroup = new MultiThreadIoEventLoopGroup(1, EpollIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory());
             channelClass = EpollServerSocketChannel.class;
         } else if (KQueue.isAvailable()) {
-            LOGGER.info("Using kqueue transport");
+            LOGGER.debug("Using kqueue transport");
             bossGroup = new MultiThreadIoEventLoopGroup(1, KQueueIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(KQueueIoHandler.newFactory());
             channelClass = KQueueServerSocketChannel.class;
         } else {
-            LOGGER.info("Using NIO transport");
+            LOGGER.debug("Using NIO transport");
             bossGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             channelClass = NioServerSocketChannel.class;

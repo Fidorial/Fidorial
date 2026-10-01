@@ -288,7 +288,7 @@ public record ServerConfiguration(
                 new ConfigurationCodecs.YamlFile<>(FILE, CODEC, ConfigurationSchemas.SERVER, HEADER);
 
         final ServerConfiguration config = file.load();
-        LOGGER.info("Configuration loaded from {}", FILE);
+        LOGGER.debug("Configuration loaded from {}", FILE);
         return config;
     }
 }

@@ -623,7 +623,6 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     @Override
     public void sendResourcePacks(final ResourcePackRequest request) {
-        LOGGER.info("ClientConnection.sendResourcePacks called for {} (packs={})", username, request.packs().size());
         if (state != ConnectionState.CONFIGURATION && !isInPlayState()) {
             return;
         }
