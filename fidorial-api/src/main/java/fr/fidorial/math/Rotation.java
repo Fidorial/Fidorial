@@ -1,5 +1,7 @@
 package fr.fidorial.math;
 
+import org.jetbrains.annotations.Contract;
+
 /**
  * Represents a rotation with specified pitch and yaw values.
  */
@@ -11,6 +13,7 @@ public interface Rotation {
      * @param pitch the pitch component of the rotation, measured in degrees
      * @return a new {@code Rotation} instance with the specified yaw and pitch
      */
+    @Contract(value = "_, _ -> new", pure = true)
     static Rotation rotation(final float yaw, final float pitch) {
         return new RotationImpl(yaw, pitch);
     }
@@ -20,6 +23,7 @@ public interface Rotation {
      *
      * @return the pitch value in degrees
      */
+    @Contract(pure = true)
     float pitch();
 
     /**
@@ -27,5 +31,6 @@ public interface Rotation {
      *
      * @return the yaw value in degrees
      */
+    @Contract(pure = true)
     float yaw();
 }
