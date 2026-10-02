@@ -7,8 +7,17 @@ package fr.fidorial.world.dimension;
  */
 public enum Skybox {
 
+    /**
+     * No sky, like the nether.
+     */
     NONE("none"),
+    /**
+     * The overworld sky, with sun, moon and stars.
+     */
     OVERWORLD("overworld"),
+    /**
+     * The end sky.
+     */
     END("end");
 
     private final String id;

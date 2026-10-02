@@ -23,10 +23,10 @@ public record MoodSound(Key sound, int tickDelay, int blockSearchExtent, double 
 
     public MoodSound {
         if (tickDelay < 0) {
-            throw new IllegalArgumentException("tickDelay must not be negative");
+            throw new IllegalArgumentException("The tick delay of a mood sound must not be negative, got " + tickDelay);
         }
         if (blockSearchExtent < 0) {
-            throw new IllegalArgumentException("blockSearchExtent must not be negative");
+            throw new IllegalArgumentException("The block search extent of a mood sound must not be negative, got " + blockSearchExtent);
         }
     }
 

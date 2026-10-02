@@ -1,21 +1,45 @@
 package fr.fidorial.attribute;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.Objects;
 
+/**
+ * A change applied to an attribute of the entity wearing or holding an item.
+ *
+ * @param attribute the attribute changed, see {@link fr.fidorial.registry.keys.AttributeKeys}
+ * @param id        the identifier of the modifier, unique per attribute
+ * @param amount    the amount applied, interpreted according to {@code operation}
+ * @param operation how the amount combines with the attribute value
+ * @param slot      the equipment slots the modifier applies in
+ * @since 0.1.0
+ */
 public record AttributeModifier(Key attribute, Key id, double amount, Operation operation, EquipmentSlotGroup slot) {
 
+    /**
+     * Validates the components.
+     */
     public AttributeModifier {
-        Objects.requireNonNull(attribute, "attribute");
-        Objects.requireNonNull(id, "id");
-        Objects.requireNonNull(operation, "operation");
-        Objects.requireNonNull(slot, "slot");
+        Preconditions.checkArgument(attribute != null, "The attribute of an attribute modifier must not be null");
+        Preconditions.checkArgument(id != null, "The ID of an attribute modifier must not be null");
+        Preconditions.checkArgument(operation != null, "The operation of an attribute modifier must not be null");
+        Preconditions.checkArgument(slot != null, "The slot of an attribute modifier must not be null");
     }
 
+    /**
+     * Creates a modifier.
+     *
+     * @param attribute the attribute changed
+     * @param id        the identifier of the modifier
+     * @param amount    the amount applied
+     * @param operation how the amount combines with the attribute value
+     * @param slot      the equipment slots the modifier applies in
+     * @return the modifier
+     * @since 0.1.0
+     */
     public static AttributeModifier of(
             final Key attribute,
             final Key id,
@@ -26,10 +50,25 @@ public record AttributeModifier(Key attribute, Key id, double amount, Operation 
         return new AttributeModifier(attribute, id, amount, operation, slot);
     }
 
+    /**
+     * Creates a modifier applying in any slot.
+     *
+     * @param attribute the attribute changed
+     * @param id        the identifier of the modifier
+     * @param amount    the amount applied
+     * @param operation how the amount combines with the attribute value
+     * @return the modifier
+     * @since 0.1.0
+     */
     public static AttributeModifier of(final Key attribute, final Key id, final double amount, final Operation operation) {
         return new AttributeModifier(attribute, id, amount, operation, EquipmentSlotGroup.ANY);
     }
 
+    /**
+     * How the amount of a modifier combines with the attribute value.
+     *
+     * @since 0.1.0
+     */
     public enum Operation {
         /**
          * Adds all of the modifiers' amounts to the base attribute.
@@ -52,14 +91,30 @@ public record AttributeModifier(Key attribute, Key id, double amount, Operation 
             this.serializedName = serializedName;
         }
 
+        /**
+         * {@return the protocol identifier of this operation}
+         *
+         * @since 0.1.0
+         */
         public int networkId() {
             return networkId;
         }
 
+        /**
+         * {@return the name used in data components, for instance {@code add_value}}
+         *
+         * @since 0.1.0
+         */
         public String serializedName() {
             return serializedName;
         }
 
+        /**
+         * {@return the operation with a serialized name, {@link #ADD_VALUE} when it is unknown or {@code null}}
+         *
+         * @param name the serialized name
+         * @since 0.1.0
+         */
         public static Operation byName(@Nullable final String name) {
             if (name == null) {
                 return ADD_VALUE;

@@ -1,5 +1,6 @@
 package fr.fidorial.moderation;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
@@ -10,7 +11,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +21,11 @@ import java.util.UUID;
  */
 public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
 
+    /**
+     * The format of the dates stored in the ban lists, in the system time zone.
+     *
+     * @since 0.1.0
+     */
     DateTimeFormatter FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ROOT).withZone(ZoneId.systemDefault());
 
@@ -168,7 +173,7 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
     /**
      * A ban on a player identity.
      *
-     * @param uuid  the banned identity
+     * @param uuid    the banned identity
      * @param name    the last known name of the player, or {@code null}
      * @param reason  why the player is banned, or {@code null}
      * @param source  the identity of who issued the ban, or {@code null} for the server
@@ -186,8 +191,8 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
     ) implements BanEntry {
 
         public Profile {
-            Objects.requireNonNull(uuid, "uuid");
-            Objects.requireNonNull(created, "created");
+            Preconditions.checkArgument(uuid != null, "The UUID of a ban entry profile must not be null");
+            Preconditions.checkArgument(created != null, "The creation date of a ban entry profile must not be null");
         }
 
         /**
@@ -229,7 +234,7 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
                 @Nullable final UUID source,
                 final Duration duration
         ) {
-            Objects.requireNonNull(duration, "duration");
+            Preconditions.checkArgument(duration != null, "The duration passed to BanEntry.Profile.lasting() must not be null");
 
             final Instant created = Instant.now();
 
@@ -291,8 +296,8 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
     ) implements BanEntry {
 
         public Address {
-            Objects.requireNonNull(address, "address");
-            Objects.requireNonNull(created, "created");
+            Preconditions.checkArgument(address != null, "The address of a ban entry address must not be null");
+            Preconditions.checkArgument(created != null, "The creation date of a ban entry address must not be null");
         }
 
         /**
@@ -334,7 +339,7 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
                 @Nullable final UUID source,
                 final Duration duration
         ) {
-            Objects.requireNonNull(duration, "duration");
+            Preconditions.checkArgument(duration != null, "The duration passed to BanEntry.Address.lasting() must not be null");
 
             final Instant created = Instant.now();
 

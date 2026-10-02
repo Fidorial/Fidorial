@@ -1,9 +1,9 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Objects;
 
 /**
  * A dialog with a single button in its footer.
@@ -29,8 +29,8 @@ public record NoticeDialog(DialogBase base, DialogActionButton action) implement
      * @since 0.1.0
      */
     public NoticeDialog {
-        Objects.requireNonNull(base, "base");
-        Objects.requireNonNull(action, "action");
+        Preconditions.checkArgument(base != null, "The base of a notice dialog must not be null");
+        Preconditions.checkArgument(action != null, "The action of a notice dialog must not be null");
     }
 
     /**

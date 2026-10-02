@@ -1,16 +1,23 @@
 package fr.fidorial.entity;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * A handle on a player identity, whether or not it is connected.
+ *
+ * <p>Obtained from {@link OfflinePlayers}. Two handles are equal when they share the same uuid.</p>
+ *
+ * @since 0.1.0
+ */
 public final class OfflinePlayer {
 
     private final OfflinePlayers registry;
@@ -26,8 +33,10 @@ public final class OfflinePlayer {
             final long firstSeen,
             final long lastSeen
     ) {
-        this.registry = Objects.requireNonNull(registry, "registry");
-        this.uuid = Objects.requireNonNull(uuid, "uuid");
+        Preconditions.checkArgument(registry != null, "The registry of an offline player must not be null");
+        Preconditions.checkArgument(uuid != null, "The UUID of an offline player must not be null");
+        this.registry = registry;
+        this.uuid = uuid;
         this.name = name;
         this.firstSeen = firstSeen;
         this.lastSeen = lastSeen;

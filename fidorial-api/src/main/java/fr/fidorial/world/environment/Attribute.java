@@ -1,8 +1,7 @@
 package fr.fidorial.world.environment;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
-
-import java.util.Objects;
 
 /**
  * One environment attribute value, together with the way it combines with the dimension's value.
@@ -16,8 +15,8 @@ import java.util.Objects;
 public record Attribute<T>(T value, Modifier modifier) {
 
     public Attribute {
-        Objects.requireNonNull(value, "value");
-        Objects.requireNonNull(modifier, "modifier");
+        Preconditions.checkArgument(value != null, "The value of an attribute must not be null");
+        Preconditions.checkArgument(modifier != null, "The modifier of an attribute must not be null");
     }
 
     /**

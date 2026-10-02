@@ -32,8 +32,8 @@ public record GameRuleDefinition(
 ) {
 
     public GameRuleDefinition {
-        Preconditions.checkNotNull(key, "The registry key of a game rule definition must not be null");
-        Preconditions.checkNotNull(type, "The value type of a game rule definition must not be null");
+        Preconditions.checkArgument(key != null, "The registry key of a game rule definition must not be null");
+        Preconditions.checkArgument(type != null, "The value type of a game rule definition must not be null");
         Preconditions.checkArgument(minValue <= maxValue,
                 "The minimum value of game rule %s (%s) must not be greater than its maximum value (%s)",
                 key.key(), minValue, maxValue);

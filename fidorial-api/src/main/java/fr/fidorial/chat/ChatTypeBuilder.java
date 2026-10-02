@@ -1,10 +1,10 @@
 package fr.fidorial.chat;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -23,7 +23,8 @@ public final class ChatTypeBuilder {
             .build();
 
     ChatTypeBuilder(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key of a chat type builder must not be null");
+        this.key = key;
     }
 
     ChatTypeBuilder(final ChatTypeDefinition definition) {
@@ -38,7 +39,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder key(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key passed to ChatTypeBuilder.key() must not be null");
+        this.key = key;
         return this;
     }
 
@@ -48,7 +50,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder chat(final ChatTypeDecoration chat) {
-        this.chat = Objects.requireNonNull(chat, "chat");
+        Preconditions.checkArgument(chat != null, "The chat passed to ChatTypeBuilder.chat() must not be null");
+        this.chat = chat;
         return this;
     }
 
@@ -72,7 +75,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder narration(final ChatTypeDecoration narration) {
-        this.narration = Objects.requireNonNull(narration, "narration");
+        Preconditions.checkArgument(narration != null, "The narration passed to ChatTypeBuilder.narration() must not be null");
+        this.narration = narration;
         return this;
     }
 
@@ -100,8 +104,8 @@ public final class ChatTypeBuilder {
      *
      * @param translationKey the translation key used to format the message, supporting placeholders
      * @param parameters     which named slots are substituted into the translation, in order
-     * @apiNote the translation key is resolved purely client-side using language files from resource packs; fallbacks to plaintext with resolved placeholders when it can't be found.
      * @return this builder
+     * @apiNote the translation key is resolved purely client-side using language files from resource packs; fallbacks to plaintext with resolved placeholders when it can't be found.
      */
     @Contract("_, _ -> this")
     public ChatTypeBuilder sameForBoth(final String translationKey, final List<String> parameters) {

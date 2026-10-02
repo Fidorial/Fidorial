@@ -13,7 +13,7 @@ public record AdditionsSound(Key sound, float tickChance) {
 
     public AdditionsSound {
         if (tickChance < 0F || tickChance > 1F) {
-            throw new IllegalArgumentException("tickChance must be within [0, 1], got " + tickChance);
+            throw new IllegalArgumentException("The tick chance of an additions sound must be within [0, 1], got " + tickChance);
         }
     }
 

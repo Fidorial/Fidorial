@@ -21,7 +21,7 @@ public final class Main {
             LOGGER.error(e.getMessage());
             System.exit(1);
         } catch (final Throwable t) {
-            LOGGER.error("Fidorial could not start : ", t);
+            LOGGER.error("Fidorial could not start", t);
             System.exit(1);
         }
     }

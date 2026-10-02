@@ -1,6 +1,6 @@
 package fr.fidorial.dialog;
 
-import java.util.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * A dialog with two buttons in its footer.
@@ -21,8 +21,8 @@ public record ConfirmationDialog(DialogBase base, DialogActionButton yes, Dialog
      * @since 0.1.0
      */
     public ConfirmationDialog {
-        Objects.requireNonNull(base, "base");
-        Objects.requireNonNull(yes, "yes");
-        Objects.requireNonNull(no, "no");
+        Preconditions.checkArgument(base != null, "The base of a confirmation dialog must not be null");
+        Preconditions.checkArgument(yes != null, "The positive button of a confirmation dialog must not be null");
+        Preconditions.checkArgument(no != null, "The negative button of a confirmation dialog must not be null");
     }
 }

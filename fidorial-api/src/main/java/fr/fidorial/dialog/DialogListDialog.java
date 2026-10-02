@@ -1,10 +1,10 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A dialog whose buttons lead to other dialogs.
@@ -42,7 +42,7 @@ public record DialogListDialog(
      * @since 0.1.0
      */
     public DialogListDialog {
-        Objects.requireNonNull(base, "base");
+        Preconditions.checkArgument(base != null, "The base of a dialog list dialog must not be null");
         dialogs = List.copyOf(dialogs);
         if (dialogs.isEmpty()) {
             throw new IllegalArgumentException("A dialog_list needs at least one dialog");
@@ -55,7 +55,7 @@ public record DialogListDialog(
             }
         }
         DialogValidation.positive(columns, "columns");
-        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "buttonWidth");
+        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "button width");
     }
 
     /**

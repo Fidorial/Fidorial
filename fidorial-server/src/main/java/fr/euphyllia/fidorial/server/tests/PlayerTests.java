@@ -7,7 +7,7 @@ import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
 
 import java.util.concurrent.CompletableFuture;
@@ -59,6 +59,6 @@ public final class PlayerTests {
         final FidorialServer server = FidorialServer.getInstance();
         final Key key = Key.key("scenario_test", "cross_world_destination");
         final World world = server.worldManager().world((key));
-        return world != null ? world : server.createWorld(WorldBuilder.builder(key).build());
+        return world != null ? world : server.createWorld(WorldSpec.builder(key).build());
     }
 }

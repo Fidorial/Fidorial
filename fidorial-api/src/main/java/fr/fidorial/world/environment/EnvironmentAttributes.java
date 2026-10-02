@@ -1,5 +1,6 @@
 package fr.fidorial.world.environment;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 import org.jetbrains.annotations.Contract;
@@ -8,59 +9,58 @@ import org.jspecify.annotations.Nullable;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * @param fogColor                          distance fog color, packed RGB — {@code minecraft:visual/fog_color}
- * @param fogStartDistance                  distance in blocks at which fog begins — {@code minecraft:visual/fog_start_distance}
- * @param fogEndDistance                     distance in blocks at which fog reaches full density — {@code minecraft:visual/fog_end_distance}
- * @param skyFogEndDistance                 distance in blocks at which sky-visible fog reaches full density — {@code minecraft:visual/sky_fog_end_distance}
- * @param cloudFogEndDistance               distance in blocks at which cloud-visible fog reaches full density — {@code minecraft:visual/cloud_fog_end_distance}
- * @param skyColor                          sky color, packed RGB — {@code minecraft:visual/sky_color}
- * @param sunriseSunsetColor                sunrise/sunset gradient color, packed ARGB — {@code minecraft:visual/sunrise_sunset_color}
- * @param cloudColor                        cloud color, packed ARGB — {@code minecraft:visual/cloud_color}
- * @param cloudHeight                       height, in blocks, at which clouds render — {@code minecraft:visual/cloud_height}
- * @param sunAngle                          sun angle offset, in degrees — {@code minecraft:visual/sun_angle}
- * @param moonAngle                         moon angle offset, in degrees — {@code minecraft:visual/moon_angle}
- * @param starAngle                         star angle offset, in degrees — {@code minecraft:visual/star_angle}
- * @param moonPhase                         moon phase index, within {@code [0, 7]} — {@code minecraft:visual/moon_phase}
- * @param starBrightness                    star brightness, within {@code [0, 1]} — {@code minecraft:visual/star_brightness}
- * @param blockLightTint                    tint applied to block light, packed RGB — {@code minecraft:visual/block_light_tint}
- * @param skyLightColor                     sky light color, packed RGB — {@code minecraft:visual/sky_light_color}
- * @param skyLightFactor                    multiplier applied to sky light, within {@code [0, 1]} — {@code minecraft:visual/sky_light_factor}
- * @param nightVisionColor                  tint applied by Night Vision, packed RGB — {@code minecraft:visual/night_vision_color}
- * @param ambientLightColor                 ambient light color, packed RGB — {@code minecraft:visual/ambient_light_color}
- * @param defaultDripstoneParticle          particle used by dripping dripstone — {@code minecraft:visual/default_dripstone_particle}
- * @param waterFogColor                     underwater fog color, packed RGB — {@code minecraft:visual/water_fog_color}
- * @param waterFogStartDistance             distance in blocks at which underwater fog begins — {@code minecraft:visual/water_fog_start_distance}
- * @param waterFogEndDistance               distance in blocks at which underwater fog reaches full density — {@code minecraft:visual/water_fog_end_distance}
- * @param musicVolume                       volume music fades to, within {@code [0, 1]} — {@code minecraft:audio/music_volume}
- * @param fireflyBushSounds                 whether firefly bushes emit ambient sound — {@code minecraft:audio/firefly_bush_sounds}
- * @param canStartRaid                      whether a raid can begin here — {@code minecraft:gameplay/can_start_raid}
- * @param canPillagerPatrolSpawn            whether pillager patrols spawn here — {@code minecraft:gameplay/can_pillager_patrol_spawn}
- * @param waterEvaporates                   whether placed water evaporates — {@code minecraft:gameplay/water_evaporates}
- * @param bedRule                           when beds are usable to sleep/set spawn — {@code minecraft:gameplay/bed_rule}
- * @param strawBedRule                      when straw beds are usable to sleep/set spawn — {@code minecraft:gameplay/straw_bed_rule}
- * @param respawnAnchorWorks                whether respawn anchors set spawn instead of exploding — {@code minecraft:gameplay/respawn_anchor_works}
- * @param netherPortalSpawnsPiglin          whether entering a nether portal can spawn a piglin — {@code minecraft:gameplay/nether_portal_spawns_piglin}
- * @param fastLava                          whether lava flows and spreads at Nether speed — {@code minecraft:gameplay/fast_lava}
- * @param increasedFireBurnout              whether fire burns out faster — {@code minecraft:gameplay/increased_fire_burnout}
- * @param eyeblossomOpen                    whether eyeblossoms are forced open/closed, or left to their default day cycle — {@code minecraft:gameplay/eyeblossom_open}
- * @param turtleEggHatchChance              chance a turtle egg hatches per random tick, within {@code [0, 1]} — {@code minecraft:gameplay/turtle_egg_hatch_chance}
- * @param piglinsZombify                    whether piglins and hoglins zombify — {@code minecraft:gameplay/piglins_zombify}
- * @param snowGolemMelts                    whether snow golems take damage — {@code minecraft:gameplay/snow_golem_melts}
- * @param creakingActive                    whether creakings are active — {@code minecraft:gameplay/creaking_active}
- * @param surfaceSlimeSpawnChance           chance a slime spawns on the surface, within {@code [0, 1]} — {@code minecraft:gameplay/surface_slime_spawn_chance}
- * @param catWakingUpGiftChance             chance a cat gives a gift on waking up, within {@code [0, 1]} — {@code minecraft:gameplay/cat_waking_up_gift_chance}
- * @param beesStayInHive                    whether bees refuse to leave their hive — {@code minecraft:gameplay/bees_stay_in_hive}
- * @param monstersBurn                      whether monsters burn in daylight — {@code minecraft:gameplay/monsters_burn}
- * @param creatureWorldGenSpawnProbability  probability creatures spawn during world generation, within {@code [0, 1]} — {@code minecraft:gameplay/creature_world_gen_spawn_probability}
- * @param villagerActivity                  forced villager schedule activity — {@code minecraft:gameplay/villager_activity}
- * @param babyVillagerActivity              forced baby villager schedule activity — {@code minecraft:gameplay/baby_villager_activity}
- * @param skyLightLevel                     sky light level, within {@code [0, 15]} — {@code minecraft:gameplay/sky_light_level}
- * @param ambientParticles                  particles randomly spawned around the camera, possibly empty — {@code minecraft:visual/ambient_particles}
- * @param ambientSounds                      looping, mood and additions sounds — {@code minecraft:audio/ambient_sounds}
- * @param backgroundMusic                    music tracks — {@code minecraft:audio/background_music}
+ * @param fogColor                         distance fog color, packed RGB — {@code minecraft:visual/fog_color}
+ * @param fogStartDistance                 distance in blocks at which fog begins — {@code minecraft:visual/fog_start_distance}
+ * @param fogEndDistance                   distance in blocks at which fog reaches full density — {@code minecraft:visual/fog_end_distance}
+ * @param skyFogEndDistance                distance in blocks at which sky-visible fog reaches full density — {@code minecraft:visual/sky_fog_end_distance}
+ * @param cloudFogEndDistance              distance in blocks at which cloud-visible fog reaches full density — {@code minecraft:visual/cloud_fog_end_distance}
+ * @param skyColor                         sky color, packed RGB — {@code minecraft:visual/sky_color}
+ * @param sunriseSunsetColor               sunrise/sunset gradient color, packed ARGB — {@code minecraft:visual/sunrise_sunset_color}
+ * @param cloudColor                       cloud color, packed ARGB — {@code minecraft:visual/cloud_color}
+ * @param cloudHeight                      height, in blocks, at which clouds render — {@code minecraft:visual/cloud_height}
+ * @param sunAngle                         sun angle offset, in degrees — {@code minecraft:visual/sun_angle}
+ * @param moonAngle                        moon angle offset, in degrees — {@code minecraft:visual/moon_angle}
+ * @param starAngle                        star angle offset, in degrees — {@code minecraft:visual/star_angle}
+ * @param moonPhase                        moon phase index, within {@code [0, 7]} — {@code minecraft:visual/moon_phase}
+ * @param starBrightness                   star brightness, within {@code [0, 1]} — {@code minecraft:visual/star_brightness}
+ * @param blockLightTint                   tint applied to block light, packed RGB — {@code minecraft:visual/block_light_tint}
+ * @param skyLightColor                    sky light color, packed RGB — {@code minecraft:visual/sky_light_color}
+ * @param skyLightFactor                   multiplier applied to sky light, within {@code [0, 1]} — {@code minecraft:visual/sky_light_factor}
+ * @param nightVisionColor                 tint applied by Night Vision, packed RGB — {@code minecraft:visual/night_vision_color}
+ * @param ambientLightColor                ambient light color, packed RGB — {@code minecraft:visual/ambient_light_color}
+ * @param defaultDripstoneParticle         particle used by dripping dripstone — {@code minecraft:visual/default_dripstone_particle}
+ * @param waterFogColor                    underwater fog color, packed RGB — {@code minecraft:visual/water_fog_color}
+ * @param waterFogStartDistance            distance in blocks at which underwater fog begins — {@code minecraft:visual/water_fog_start_distance}
+ * @param waterFogEndDistance              distance in blocks at which underwater fog reaches full density — {@code minecraft:visual/water_fog_end_distance}
+ * @param musicVolume                      volume music fades to, within {@code [0, 1]} — {@code minecraft:audio/music_volume}
+ * @param fireflyBushSounds                whether firefly bushes emit ambient sound — {@code minecraft:audio/firefly_bush_sounds}
+ * @param canStartRaid                     whether a raid can begin here — {@code minecraft:gameplay/can_start_raid}
+ * @param canPillagerPatrolSpawn           whether pillager patrols spawn here — {@code minecraft:gameplay/can_pillager_patrol_spawn}
+ * @param waterEvaporates                  whether placed water evaporates — {@code minecraft:gameplay/water_evaporates}
+ * @param bedRule                          when beds are usable to sleep/set spawn — {@code minecraft:gameplay/bed_rule}
+ * @param strawBedRule                     when straw beds are usable to sleep/set spawn — {@code minecraft:gameplay/straw_bed_rule}
+ * @param respawnAnchorWorks               whether respawn anchors set spawn instead of exploding — {@code minecraft:gameplay/respawn_anchor_works}
+ * @param netherPortalSpawnsPiglin         whether entering a nether portal can spawn a piglin — {@code minecraft:gameplay/nether_portal_spawns_piglin}
+ * @param fastLava                         whether lava flows and spreads at Nether speed — {@code minecraft:gameplay/fast_lava}
+ * @param increasedFireBurnout             whether fire burns out faster — {@code minecraft:gameplay/increased_fire_burnout}
+ * @param eyeblossomOpen                   whether eyeblossoms are forced open/closed, or left to their default day cycle — {@code minecraft:gameplay/eyeblossom_open}
+ * @param turtleEggHatchChance             chance a turtle egg hatches per random tick, within {@code [0, 1]} — {@code minecraft:gameplay/turtle_egg_hatch_chance}
+ * @param piglinsZombify                   whether piglins and hoglins zombify — {@code minecraft:gameplay/piglins_zombify}
+ * @param snowGolemMelts                   whether snow golems take damage — {@code minecraft:gameplay/snow_golem_melts}
+ * @param creakingActive                   whether creakings are active — {@code minecraft:gameplay/creaking_active}
+ * @param surfaceSlimeSpawnChance          chance a slime spawns on the surface, within {@code [0, 1]} — {@code minecraft:gameplay/surface_slime_spawn_chance}
+ * @param catWakingUpGiftChance            chance a cat gives a gift on waking up, within {@code [0, 1]} — {@code minecraft:gameplay/cat_waking_up_gift_chance}
+ * @param beesStayInHive                   whether bees refuse to leave their hive — {@code minecraft:gameplay/bees_stay_in_hive}
+ * @param monstersBurn                     whether monsters burn in daylight — {@code minecraft:gameplay/monsters_burn}
+ * @param creatureWorldGenSpawnProbability probability creatures spawn during world generation, within {@code [0, 1]} — {@code minecraft:gameplay/creature_world_gen_spawn_probability}
+ * @param villagerActivity                 forced villager schedule activity — {@code minecraft:gameplay/villager_activity}
+ * @param babyVillagerActivity             forced baby villager schedule activity — {@code minecraft:gameplay/baby_villager_activity}
+ * @param skyLightLevel                    sky light level, within {@code [0, 15]} — {@code minecraft:gameplay/sky_light_level}
+ * @param ambientParticles                 particles randomly spawned around the camera, possibly empty — {@code minecraft:visual/ambient_particles}
+ * @param ambientSounds                    looping, mood and additions sounds — {@code minecraft:audio/ambient_sounds}
+ * @param backgroundMusic                  music tracks — {@code minecraft:audio/background_music}
  * @since 0.1.0
  */
 public record EnvironmentAttributes(
@@ -1457,7 +1457,8 @@ public record EnvironmentAttributes(
          */
         @Contract("_ -> this")
         public Builder addAmbientParticle(final AmbientParticle particle) {
-            this.ambientParticles.add(Objects.requireNonNull(particle, "particle"));
+            Preconditions.checkArgument(particle != null, "The particle passed to EnvironmentAttributes.Builder.addAmbientParticle() must not be null");
+            this.ambientParticles.add(particle);
             return this;
         }
 

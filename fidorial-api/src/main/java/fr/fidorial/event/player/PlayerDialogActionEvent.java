@@ -1,25 +1,21 @@
 package fr.fidorial.event.player;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 
 /**
  * Fired when a player presses a dialog button carrying a
  * {@link DialogAction#custom(Key) custom} or
  * {@link DialogAction#dynamicCustom(Key) dynamic custom} action.
  *
- * @since 0.1.0
  * @sinceMinecraft 1.21.6
+ * @since 0.1.0
  */
-public final class PlayerDialogActionEvent implements PlayerEvent {
-
-    private final Player player;
-    private final Key id;
-    private final DialogResponse response;
+public record PlayerDialogActionEvent(Player player, Key id, DialogResponse response) implements PlayerEvent {
 
     /**
      * @param player   the player who pressed the button
@@ -27,15 +23,10 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
      * @param response the values submitted alongside it
      * @since 0.1.0
      */
-    public PlayerDialogActionEvent(final Player player, final Key id, final DialogResponse response) {
-        this.player = Objects.requireNonNull(player, "player");
-        this.id = Objects.requireNonNull(id, "id");
-        this.response = Objects.requireNonNull(response, "response");
-    }
-
-    @Override
-    public Player player() {
-        return player;
+    public PlayerDialogActionEvent {
+        Preconditions.checkArgument(player != null, "The player of a player dialog action event must not be null");
+        Preconditions.checkArgument(id != null, "The ID of a player dialog action event must not be null");
+        Preconditions.checkArgument(response != null, "The response of a player dialog action event must not be null");
     }
 
     /**
@@ -43,6 +34,7 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
      *
      * @since 0.1.0
      */
+    @Override
     public Key id() {
         return id;
     }
@@ -52,6 +44,7 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
      *
      * @since 0.1.0
      */
+    @Override
     public DialogResponse response() {
         return response;
     }

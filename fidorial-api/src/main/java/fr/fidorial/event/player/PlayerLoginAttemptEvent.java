@@ -1,12 +1,12 @@
 package fr.fidorial.event.player;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.Event;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -35,8 +35,10 @@ public final class PlayerLoginAttemptEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public PlayerLoginAttemptEvent(final PlayerProfile profile, final String address, final boolean authenticated) {
-        this.profile = Objects.requireNonNull(profile, "profile");
-        this.address = Objects.requireNonNull(address, "address");
+        Preconditions.checkArgument(profile != null, "The profile of a player login attempt event must not be null");
+        Preconditions.checkArgument(address != null, "The address of a player login attempt event must not be null");
+        this.profile = profile;
+        this.address = address;
         this.authenticated = authenticated;
     }
 
@@ -84,7 +86,8 @@ public final class PlayerLoginAttemptEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public void refuse(final Component reason) {
-        this.refusal = Objects.requireNonNull(reason, "reason");
+        Preconditions.checkArgument(reason != null, "The reason passed to PlayerLoginAttemptEvent.refuse() must not be null");
+        this.refusal = reason;
         this.cancelled = true;
     }
 

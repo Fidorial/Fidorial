@@ -1,12 +1,11 @@
 package fr.fidorial.chat;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.ChatType;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
-
-import java.util.Objects;
 
 /**
  * A complete chat type definition, ready to be sent to clients.
@@ -23,9 +22,9 @@ public record ChatTypeDefinition(
 ) implements ChatType, net.kyori.adventure.chat.ChatType {
 
     public ChatTypeDefinition {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(chat, "chat");
-        Objects.requireNonNull(narration, "narration");
+        Preconditions.checkArgument(key != null, "The key of a chat type definition must not be null");
+        Preconditions.checkArgument(chat != null, "The chat of a chat type definition must not be null");
+        Preconditions.checkArgument(narration != null, "The narration of a chat type definition must not be null");
     }
 
     /**

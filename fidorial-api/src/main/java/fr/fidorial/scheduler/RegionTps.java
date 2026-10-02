@@ -8,6 +8,9 @@ import net.kyori.adventure.key.Key;
  * <p>A region corresponds to a group of chunks processed by a dedicated
  * scheduler thread. This interface exposes metrics such as TPS, MSPT,
  * CPU usage, queued tasks and ticket count.</p>
+ *
+ * @see RegionizedScheduler#tpsSnapshots()
+ * @since 0.1.0
  */
 public interface RegionTps {
 
@@ -15,6 +18,7 @@ public interface RegionTps {
      * Returns the Key of the world containing this region.
      *
      * @return the world key
+     * @since 0.1.0
      */
     Key world();
 
@@ -22,6 +26,7 @@ public interface RegionTps {
      * Returns the X coordinate of the region section.
      *
      * @return the region section X coordinate
+     * @since 0.1.0
      */
     int sectionX();
 
@@ -29,6 +34,7 @@ public interface RegionTps {
      * Returns the Z coordinate of the region section.
      *
      * @return the region section Z coordinate
+     * @since 0.1.0
      */
     int sectionZ();
 
@@ -36,6 +42,7 @@ public interface RegionTps {
      * Returns the X coordinate of the origin chunk of this region.
      *
      * @return the origin chunk X coordinate
+     * @since 0.1.0
      */
     int originChunkX();
 
@@ -43,6 +50,7 @@ public interface RegionTps {
      * Returns the Z coordinate of the origin chunk of this region.
      *
      * @return the origin chunk Z coordinate
+     * @since 0.1.0
      */
     int originChunkZ();
 
@@ -52,6 +60,7 @@ public interface RegionTps {
      * <p>The ideal value is {@code 20.0}.</p>
      *
      * @return the current TPS
+     * @since 0.1.0
      */
     double tps();
 
@@ -62,6 +71,7 @@ public interface RegionTps {
      * {@code 50.0 ms} corresponds to the limit for maintaining 20 TPS.</p>
      *
      * @return the average MSPT
+     * @since 0.1.0
      */
     double msptAvg();
 
@@ -75,7 +85,8 @@ public interface RegionTps {
      * accumulates additional work.</p>
      *
      * @return the CPU usage of the region, expressed as a percentage of one CPU
-     *         core
+     * core
+     * @since 0.1.0
      */
     double cpuPercent();
 
@@ -83,6 +94,7 @@ public interface RegionTps {
      * Returns the number of tasks currently queued for this region.
      *
      * @return the queued task count
+     * @since 0.1.0
      */
     int queuedTasks();
 
@@ -92,6 +104,7 @@ public interface RegionTps {
      * <p>Tickets are used internally to keep chunks loaded and scheduled.</p>
      *
      * @return the active ticket count
+     * @since 0.1.0
      */
     int tickets();
 }

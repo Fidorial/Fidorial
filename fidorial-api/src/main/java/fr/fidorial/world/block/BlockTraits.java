@@ -22,7 +22,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class BlockTraits {
+/**
+ * Detects the trait interfaces a block type implements from its properties.
+ */
+final class BlockTraits {
 
     private static final Set<String> FACES = Set.of("north", "south", "east", "west", "up", "down");
     private static final Set<String> AXES = Set.of("x", "y", "z");
@@ -33,17 +36,17 @@ public class BlockTraits {
     private BlockTraits() {
     }
 
-    public static List<Class<? extends BlockData>> detect(Key key, List<BlockProperty> properties) {
-        List<Class<? extends BlockData>> traits = new ArrayList<>();
+    static List<Class<? extends BlockData>> detect(final Key key, final List<BlockProperty> properties) {
+        final List<Class<? extends BlockData>> traits = new ArrayList<>();
 
-        BlockProperty facing = find(properties, "facing");
-        BlockProperty half = find(properties, "half");
-        BlockProperty type = find(properties, "type");
+        final BlockProperty facing = find(properties, "facing");
+        final BlockProperty half = find(properties, "half");
+        final BlockProperty type = find(properties, "type");
 
         if (facing != null && FACES.containsAll(facing.values())) {
             traits.add(Directional.class);
         }
-        BlockProperty axis = find(properties, "axis");
+        final BlockProperty axis = find(properties, "axis");
         if (axis != null && AXES.containsAll(axis.values())) {
             traits.add(Orientable.class);
         }
@@ -93,8 +96,8 @@ public class BlockTraits {
         return traits;
     }
 
-    private static @Nullable BlockProperty find(List<BlockProperty> properties, String name) {
-        for (BlockProperty property : properties) {
+    private static @Nullable BlockProperty find(final List<BlockProperty> properties, final String name) {
+        for (final BlockProperty property : properties) {
             if (property.name().equals(name)) {
                 return property;
             }

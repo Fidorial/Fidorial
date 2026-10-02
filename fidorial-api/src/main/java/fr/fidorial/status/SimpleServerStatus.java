@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The immutable implementation behind {@link ServerStatus}.
+ */
 final class SimpleServerStatus implements ServerStatus {
     private final @Nullable Favicon favicon;
     private final Component description;

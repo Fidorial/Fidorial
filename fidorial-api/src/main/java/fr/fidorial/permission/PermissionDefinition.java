@@ -1,9 +1,18 @@
 package fr.fidorial.permission;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.util.TriState;
 
-import java.util.Objects;
 
+/**
+ * The declaration of a permission node and the values it takes by default.
+ *
+ * @param node            the node
+ * @param description     what the permission allows
+ * @param regularDefault  the default value for regular players
+ * @param operatorDefault the default value for operators
+ * @since 0.1.0
+ */
 public record PermissionDefinition(
         PermissionNode node,
         String description,
@@ -11,10 +20,13 @@ public record PermissionDefinition(
         TriState operatorDefault
 ) {
 
+    /**
+     * Validates the components.
+     */
     public PermissionDefinition {
-        Objects.requireNonNull(node, "node");
-        Objects.requireNonNull(regularDefault, "regularDefault");
-        Objects.requireNonNull(operatorDefault, "operatorDefault");
+        Preconditions.checkArgument(node != null, "The node of a permission definition must not be null");
+        Preconditions.checkArgument(regularDefault != null, "The regular default of a permission definition must not be null");
+        Preconditions.checkArgument(operatorDefault != null, "The operator default of a permission definition must not be null");
     }
 
     /**

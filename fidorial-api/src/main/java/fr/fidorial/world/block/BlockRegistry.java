@@ -9,32 +9,93 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Every block type the server knows, vanilla and plugin-defined.
+ *
+ * @see Blocks#registry()
+ * @since 0.1.0
+ */
 public interface BlockRegistry {
 
+    /**
+     * {@return the block type registered under a key, if any}
+     *
+     * @param key the block key
+     * @since 0.1.0
+     */
     Optional<BlockType> type(Key key);
 
+    /**
+     * {@return the block type registered under a key, if any}
+     *
+     * @param key the block key, for instance {@code minecraft:stone}
+     * @since 0.1.0
+     */
     default Optional<BlockType> type(@KeyPattern final String key) {
         return type(Key.key(key));
     }
 
+    /**
+     * {@return the state with the given network identifier, or {@code null} if it is unknown}
+     *
+     * @param networkId the network identifier
+     * @since 0.1.0
+     */
     @Nullable BlockData fromNetworkId(int networkId);
 
+    /**
+     * Registers a block type.
+     *
+     * @param type the block type
+     * @since 0.1.0
+     */
     void register(BlockType type);
 
+    /**
+     * Registers the block type a behaviour drives.
+     *
+     * @param behaviour the behaviour
+     * @since 0.1.0
+     */
     default void register(final BlockBehaviour behaviour) {
         register(behaviour.type());
     }
 
+    /**
+     * {@return the behaviour driving a block type, if any}
+     *
+     * @param key the block key
+     * @since 0.1.0
+     */
     default Optional<BlockBehaviour> behaviour(final Key key) {
         return Optional.empty();
     }
 
+    /**
+     * {@return the behaviour driving the type of a state, if any}
+     *
+     * @param data the state
+     * @since 0.1.0
+     */
     default Optional<BlockBehaviour> behaviour(final BlockData data) {
         return behaviour(data.key());
     }
 
+    /**
+     * {@return every registered block type}
+     *
+     * @since 0.1.0
+     */
     Collection<BlockType> types();
 
+    /**
+     * Parses a state in command syntax, for instance {@code minecraft:oak_stairs[facing=north]}.
+     *
+     * @param input the state to parse
+     * @return the state, or {@code null} if the block is unknown
+     * @throws IllegalArgumentException if the syntax is malformed or a property is unknown
+     * @since 0.1.0
+     */
     @SuppressWarnings("PatternValidation")
     default @Nullable BlockData parse(final String input) {
         String name = input;

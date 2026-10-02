@@ -35,7 +35,7 @@ public final class BanCommand {
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> playerArgument =
                 ArgumentTypes.playerProfiles(player ->
-                        !server.ban().isBanned(player.uuid()));
+                        !server.bans().isBanned(player.uuid()));
 
         return literal("ban")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
@@ -67,7 +67,7 @@ public final class BanCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.ban();
+        final BanManager bans = server.bans();
 
         final Collection<PlayerProfile> targets =
                 context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
@@ -123,7 +123,7 @@ public final class BanCommand {
 
         for (final ServerPlayer player : server.players()) {
             if (player.uuid().equals(entry.uuid())) {
-                player.kick(server.ban().disconnectMessage(entry));
+                player.kick(server.bans().disconnectMessage(entry));
                 kicked++;
             }
         }

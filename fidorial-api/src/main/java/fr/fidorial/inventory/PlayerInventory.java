@@ -1,70 +1,87 @@
 package fr.fidorial.inventory;
 
-import fr.fidorial.item.ItemStack;
-import org.jspecify.annotations.Nullable;
+/**
+ * The inventory a player carries.
+ *
+ * <p>Slots are laid out as follows: the hotbar from {@value #HOTBAR_START} to {@code 8}, the main
+ * inventory from {@value #MAIN_START} to {@code 35}, the armor from {@value #FEET} (feet) to
+ * {@value #HEAD} (head), then the off hand at {@value #OFF_HAND}. The remaining slots are
+ * reserved.</p>
+ *
+ * @see fr.fidorial.entity.Player#inventory()
+ * @since 0.1.0
+ */
+public class PlayerInventory extends SimpleContainer {
 
-import java.util.Arrays;
-
-public class PlayerInventory implements Container {
-
+    /**
+     * The number of slots of a player inventory, reserved ones included.
+     *
+     * @since 0.1.0
+     */
     public static final int SIZE = 46;
 
-    private final ItemStack[] slots = new ItemStack[SIZE];
+    /**
+     * The first hotbar slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int HOTBAR_START = 0;
 
+    /**
+     * The number of hotbar slots.
+     *
+     * @since 0.1.0
+     */
+    public static final int HOTBAR_SIZE = 9;
+
+    /**
+     * The first slot of the main inventory, right after the hotbar.
+     *
+     * @since 0.1.0
+     */
+    public static final int MAIN_START = 9;
+
+    /**
+     * The boots slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int FEET = 36;
+
+    /**
+     * The leggings slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int LEGS = 37;
+
+    /**
+     * The chestplate slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int CHEST = 38;
+
+    /**
+     * The helmet slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int HEAD = 39;
+
+    /**
+     * The off hand slot.
+     *
+     * @since 0.1.0
+     */
+    public static final int OFF_HAND = 40;
+
+    /**
+     * Creates an empty inventory.
+     *
+     * @since 0.1.0
+     */
     public PlayerInventory() {
-        Arrays.fill(slots, ItemStack.EMPTY);
-    }
-
-    private static void checkSlot(final int slot) {
-        if (slot < 0 || slot >= SIZE) {
-            throw new IndexOutOfBoundsException("Emplacement invalide : " + slot);
-        }
-    }
-
-    @Override
-    public int size() {
-        return SIZE;
-    }
-
-    @Override
-    public ItemStack get(final int slot) {
-        checkSlot(slot);
-        return slots[slot];
-    }
-
-    @Override
-    public void set(final int slot, @Nullable final ItemStack stack) {
-        checkSlot(slot);
-        slots[slot] = stack == null ? ItemStack.EMPTY : stack;
-    }
-
-    @Override
-    public void clear() {
-        Arrays.fill(slots, ItemStack.EMPTY);
-    }
-
-    @Override
-    public boolean isEmpty() {
-        for (final ItemStack stack : slots) {
-            if (!stack.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public ItemStack[] getAllItems() {
-        return Arrays.copyOf(slots, SIZE);
-    }
-
-    public void setAllItems(final ItemStack @Nullable [] contents) {
-        if (contents == null) {
-            return;
-        }
-        clear();
-        final int limit = Math.min(contents.length, SIZE);
-        for (int slot = 0; slot < limit; slot++) {
-            set(slot, contents[slot]);
-        }
+        super(SIZE);
     }
 }

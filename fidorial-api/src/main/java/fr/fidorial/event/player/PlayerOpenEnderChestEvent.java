@@ -7,6 +7,10 @@ import fr.fidorial.world.BlockPos;
 
 /**
  * Fired right before a player opens an ender chest.
+ *
+ * <p>Cancelling the event keeps the container closed.</p>
+ *
+ * @since 0.1.0
  */
 public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable {
 
@@ -15,6 +19,14 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
     private final EnderChestInventory enderChest;
     private boolean cancelled;
 
+    /**
+     * Creates an event.
+     *
+     * @param player     the player opening the ender chest
+     * @param position   the position of the ender chest block
+     * @param enderChest the container about to be displayed
+     * @since 0.1.0
+     */
     public PlayerOpenEnderChestEvent(final Player player, final BlockPos position, final EnderChestInventory enderChest) {
         this.player = player;
         this.position = position;
@@ -27,14 +39,18 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
     }
 
     /**
-     * Position of the opened block.
+     * {@return the position of the ender chest block}
+     *
+     * @since 0.1.0
      */
     public BlockPos position() {
         return position;
     }
 
     /**
-     * The container about to be displayed, mutable.
+     * {@return the container about to be displayed; changes made to it are kept}
+     *
+     * @since 0.1.0
      */
     public EnderChestInventory enderChest() {
         return enderChest;

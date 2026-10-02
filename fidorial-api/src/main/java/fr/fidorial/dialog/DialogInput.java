@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
@@ -7,8 +8,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * A control the player fills in a dialog, whose value is sent back in the {@link DialogResponse}.
+ *
+ * @since 0.1.0
+ */
 public sealed interface DialogInput
         permits DialogInput.Text, DialogInput.Bool, DialogInput.SingleOption, DialogInput.NumberRange {
     /**
@@ -145,10 +150,10 @@ public sealed interface DialogInput
          */
         public Text {
             DialogValidation.inputKey(key);
-            Objects.requireNonNull(label, "label");
-            Objects.requireNonNull(initial, "initial");
+            Preconditions.checkArgument(label != null, "The label of a dialog input text must not be null");
+            Preconditions.checkArgument(initial != null, "The initial value of a dialog input text must not be null");
             DialogValidation.width(width, MAX_WIDTH, "width");
-            DialogValidation.positive(maxLength, "maxLength");
+            DialogValidation.positive(maxLength, "maximum length");
         }
 
         /**
@@ -175,7 +180,7 @@ public sealed interface DialogInput
              */
             public Multiline {
                 if (maxLines != null) {
-                    DialogValidation.positive(maxLines, "maxLines");
+                    DialogValidation.positive(maxLines, "maximum line count");
                 }
                 if (height != null) {
                     DialogValidation.width(height, MAX_HEIGHT, "height");
@@ -200,7 +205,8 @@ public sealed interface DialogInput
 
             Builder(final String key, final Component label) {
                 this.key = DialogValidation.inputKey(key);
-                this.label = Objects.requireNonNull(label, "label");
+                Preconditions.checkArgument(label != null, "The label of a dialog input text builder must not be null");
+                this.label = label;
             }
 
             /**
@@ -243,7 +249,8 @@ public sealed interface DialogInput
              */
             @Contract("_ -> this")
             public Builder initial(final String initial) {
-                this.initial = Objects.requireNonNull(initial, "initial");
+                Preconditions.checkArgument(initial != null, "The initial value passed to DialogInput.Text.Builder.initial() must not be null");
+                this.initial = initial;
                 return this;
             }
 
@@ -306,9 +313,9 @@ public sealed interface DialogInput
          */
         public Bool {
             DialogValidation.inputKey(key);
-            Objects.requireNonNull(label, "label");
-            Objects.requireNonNull(onTrue, "onTrue");
-            Objects.requireNonNull(onFalse, "onFalse");
+            Preconditions.checkArgument(label != null, "The label of a dialog input bool must not be null");
+            Preconditions.checkArgument(onTrue != null, "The value a dialog input bool sends when checked must not be null");
+            Preconditions.checkArgument(onFalse != null, "The value a dialog input bool sends when unchecked must not be null");
         }
 
         /**
@@ -361,7 +368,7 @@ public sealed interface DialogInput
          */
         public SingleOption {
             DialogValidation.inputKey(key);
-            Objects.requireNonNull(label, "label");
+            Preconditions.checkArgument(label != null, "The label of a dialog input single option must not be null");
             options = List.copyOf(options);
             if (options.isEmpty()) {
                 throw new IllegalArgumentException("A single_option input needs at least one option");
@@ -396,7 +403,7 @@ public sealed interface DialogInput
              * @since 0.1.0
              */
             public Entry {
-                Objects.requireNonNull(id, "id");
+                Preconditions.checkArgument(id != null, "The ID of a dialog input single option entry must not be null");
                 if (id.isEmpty()) {
                     throw new IllegalArgumentException("An option id cannot be empty");
                 }
@@ -451,7 +458,8 @@ public sealed interface DialogInput
 
             Builder(final String key, final Component label) {
                 this.key = DialogValidation.inputKey(key);
-                this.label = Objects.requireNonNull(label, "label");
+                Preconditions.checkArgument(label != null, "The label of a dialog input single option builder must not be null");
+                this.label = label;
             }
 
             /**
@@ -494,7 +502,8 @@ public sealed interface DialogInput
              */
             @Contract("_ -> this")
             public Builder option(final Entry option) {
-                this.options.add(Objects.requireNonNull(option, "option"));
+                Preconditions.checkArgument(option != null, "The option passed to DialogInput.SingleOption.Builder.option() must not be null");
+                this.options.add(option);
                 return this;
             }
 
@@ -578,11 +587,11 @@ public sealed interface DialogInput
          */
         public NumberRange {
             DialogValidation.inputKey(key);
-            Objects.requireNonNull(label, "label");
-            Objects.requireNonNull(labelFormat, "labelFormat");
+            Preconditions.checkArgument(label != null, "The label of a dialog input number range must not be null");
+            Preconditions.checkArgument(labelFormat != null, "The label format of a dialog input number range must not be null");
             DialogValidation.width(width, MAX_WIDTH, "width");
             if (step != null && step <= 0f) {
-                throw new IllegalArgumentException("step must be positive, was " + step);
+                throw new IllegalArgumentException("The step of a number range input must be positive, got " + step);
             }
         }
 
@@ -604,7 +613,8 @@ public sealed interface DialogInput
 
             Builder(final String key, final Component label, final float start, final float end) {
                 this.key = DialogValidation.inputKey(key);
-                this.label = Objects.requireNonNull(label, "label");
+                Preconditions.checkArgument(label != null, "The label of a dialog input number range builder must not be null");
+                this.label = label;
                 this.start = start;
                 this.end = end;
             }
@@ -627,7 +637,8 @@ public sealed interface DialogInput
              */
             @Contract("_ -> this")
             public Builder labelFormat(final String labelFormat) {
-                this.labelFormat = Objects.requireNonNull(labelFormat, "labelFormat");
+                Preconditions.checkArgument(labelFormat != null, "The label format passed to DialogInput.NumberRange.Builder.labelFormat() must not be null");
+                this.labelFormat = labelFormat;
                 return this;
             }
 

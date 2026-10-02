@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -7,11 +8,16 @@ import net.kyori.adventure.nbt.NumberBinaryTag;
 import net.kyori.adventure.nbt.StringBinaryTag;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 
+/**
+ * The values a player submitted from a dialog, keyed by input key.
+ *
+ * @param values the raw payload received from the client
+ * @since 0.1.0
+ */
 public record DialogResponse(CompoundBinaryTag values) {
     /**
      * A response carrying nothing, as sent by a dialog with no input control.
@@ -25,7 +31,7 @@ public record DialogResponse(CompoundBinaryTag values) {
      * @since 0.1.0
      */
     public DialogResponse {
-        Objects.requireNonNull(values, "values");
+        Preconditions.checkArgument(values != null, "The values of a dialog response must not be null");
     }
 
     /**
@@ -41,14 +47,13 @@ public record DialogResponse(CompoundBinaryTag values) {
     public Optional<String> text(final String key) {
         final BinaryTag tag = values.get(key);
         return switch (tag) {
-            case null -> Optional.empty();
             case final StringBinaryTag string -> Optional.of(string.value());
             case final NumberBinaryTag number -> Optional.of(
                     tag.type() == BinaryTagTypes.BYTE || tag.type() == BinaryTagTypes.SHORT
                             || tag.type() == BinaryTagTypes.INT || tag.type() == BinaryTagTypes.LONG
                             ? Long.toString(number.longValue())
                             : Double.toString(number.doubleValue()));
-            default -> Optional.empty();
+            case null, default -> Optional.empty();
         };
     }
 

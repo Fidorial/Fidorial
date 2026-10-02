@@ -1,11 +1,17 @@
 package fr.fidorial.item.data;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
+/**
+ * A kind of data an item stack may carry, such as its lore or maximum damage.
+ *
+ * @param <T> the type of the value
+ * @since 0.1.0
+ */
 public final class DataComponentType<T> implements Keyed {
 
     private final Key key;
@@ -13,8 +19,10 @@ public final class DataComponentType<T> implements Keyed {
     private final boolean persistent;
 
     private DataComponentType(final Key key, final Class<T> valueType, final boolean persistent) {
-        this.key = Objects.requireNonNull(key, "key");
-        this.valueType = Objects.requireNonNull(valueType, "valueType");
+        Preconditions.checkArgument(key != null, "The key of a data component type must not be null");
+        Preconditions.checkArgument(valueType != null, "The value type of a data component type must not be null");
+        this.key = key;
+        this.valueType = valueType;
         this.persistent = persistent;
     }
 

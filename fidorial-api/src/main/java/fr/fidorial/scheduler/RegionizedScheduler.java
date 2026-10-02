@@ -12,6 +12,9 @@ import java.util.List;
  * thread. Tasks submitted through this scheduler run on whichever thread currently owns the
  * targeted {@code (worldName, pos)}, rather than on the calling thread.</p>
  *
+ * <p>Region threads must never block. Long work belongs on an executor of your own, whose
+ * result is then handed back to the right region with {@link #execute(Key, ChunkPos, Runnable)}.</p>
+ *
  * @since 0.1.0
  */
 public interface RegionizedScheduler {
@@ -41,6 +44,8 @@ public interface RegionizedScheduler {
     boolean executeDelayed(Key worldName, ChunkPos pos, Runnable task, long delayTicks);
 
     /**
+     * Checks whether the calling thread may safely touch the given position.
+     *
      * @param worldName the key of the world the position belongs to
      * @param pos       the chunk position identifying the target region
      * @return {@code true} if the calling thread is the region thread that currently owns

@@ -22,7 +22,7 @@ public class BlockView {
         if (y < world.minY() || y >= world.minY() + world.height()) {
             return BlockState.of(BlockTypeKeys.AIR.key());
         }
-        final Optional<Chunk> optionalChunk = world.getChunkIfLoaded(x >> 4, z >> 4);
+        final Optional<Chunk> optionalChunk = world.chunkIfLoaded(x >> 4, z >> 4);
         if (optionalChunk.isEmpty()) return null;
         final Chunk chunk = optionalChunk.get();
         return chunk instanceof final ServerChunk serverChunk ? serverChunk.column().getBlock(x & 15, y, z & 15) : null;
@@ -47,7 +47,7 @@ public class BlockView {
     }
 
     public static @Nullable Key biomeAt(final ServerWorld world, final int x, final int y, final int z) {
-        final Optional<Chunk> optionalChunk = world.getChunkIfLoaded(x >> 4, z >> 4);
+        final Optional<Chunk> optionalChunk = world.chunkIfLoaded(x >> 4, z >> 4);
         if (optionalChunk.isEmpty()) return null;
         final Chunk chunk = optionalChunk.get();
         return chunk instanceof final ServerChunk serverChunk

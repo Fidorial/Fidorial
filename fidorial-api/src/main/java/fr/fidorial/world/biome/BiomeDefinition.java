@@ -1,5 +1,6 @@
 package fr.fidorial.world.biome;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Biome;
@@ -7,7 +8,6 @@ import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Objects;
 
 /**
  * A complete biome definition, ready to be sent to clients.
@@ -32,12 +32,12 @@ public record BiomeDefinition(
 ) implements Biome {
 
     public BiomeDefinition {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(temperatureModifier, "temperatureModifier");
-        Objects.requireNonNull(effects, "effects");
-        Objects.requireNonNull(attributes, "attributes");
+        Preconditions.checkArgument(key != null, "The key of a biome definition must not be null");
+        Preconditions.checkArgument(temperatureModifier != null, "The temperature modifier of a biome definition must not be null");
+        Preconditions.checkArgument(effects != null, "The effects of a biome definition must not be null");
+        Preconditions.checkArgument(attributes != null, "The attributes of a biome definition must not be null");
         if (downfall < 0F || downfall > 1F) {
-            throw new IllegalArgumentException("downfall must be within [0, 1], got " + downfall);
+            throw new IllegalArgumentException("The downfall of a biome must be within [0, 1], got " + downfall);
         }
     }
 

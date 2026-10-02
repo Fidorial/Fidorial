@@ -1,5 +1,6 @@
 package fr.fidorial.permission;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.plugin.Plugin;
 import net.kyori.adventure.util.TriState;
 
@@ -8,12 +9,16 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
+/**
+ * The permission engine of one holder: its grants, resolvers, defaults and cache.
+ *
+ * @since 0.1.0
+ */
 public final class PermissionState {
 
     private final PermissionHolder owner;
@@ -47,9 +52,12 @@ public final class PermissionState {
             final PermissionRegistry registry,
             final Supplier<List<PermissionResolver>> resolvers
     ) {
-        this.owner = Objects.requireNonNull(owner, "owner");
-        this.registry = Objects.requireNonNull(registry, "registry");
-        this.resolvers = Objects.requireNonNull(resolvers, "resolvers");
+        Preconditions.checkArgument(owner != null, "The owner of a permission state must not be null");
+        Preconditions.checkArgument(registry != null, "The registry of a permission state must not be null");
+        Preconditions.checkArgument(resolvers != null, "The resolvers of a permission state must not be null");
+        this.owner = owner;
+        this.registry = registry;
+        this.resolvers = resolvers;
     }
 
     /**
@@ -59,7 +67,7 @@ public final class PermissionState {
      * @return the resolved state
      */
     public TriState resolve(final PermissionNode node) {
-        Objects.requireNonNull(node, "node");
+        Preconditions.checkArgument(node != null, "The node passed to PermissionState.resolve() must not be null");
         final long revision = registry.revision();
         if (seenRevision.getAndSet(revision) != revision) {
             cache.clear();
@@ -105,7 +113,7 @@ public final class PermissionState {
         TriState result = TriState.NOT_SET;
         for (final ActiveGrant grant : grants) {
             final TriState state = grant.overrides.get(node);
-            if (state != null && state !=  TriState.NOT_SET) {
+            if (state != null && state != TriState.NOT_SET) {
                 result = state; // later grants win over earlier ones
             }
         }
@@ -119,7 +127,8 @@ public final class PermissionState {
      * @return the grant
      */
     public PermissionGrant newGrant(final Plugin plugin) {
-        final ActiveGrant grant = new ActiveGrant(Objects.requireNonNull(plugin, "plugin"));
+        Preconditions.checkArgument(plugin != null, "The plugin passed to PermissionState.newGrant() must not be null");
+        final ActiveGrant grant = new ActiveGrant(plugin);
         grants.add(grant);
         invalidate();
         return grant;
@@ -188,8 +197,8 @@ public final class PermissionState {
 
         @Override
         public PermissionGrant set(final PermissionNode node, final TriState state) {
-            Objects.requireNonNull(node, "node");
-            Objects.requireNonNull(state, "state");
+            Preconditions.checkArgument(node != null, "The node passed to PermissionState.ActiveGrant.set() must not be null");
+            Preconditions.checkArgument(state != null, "The state passed to PermissionState.ActiveGrant.set() must not be null");
             if (revoked) {
                 throw new IllegalStateException("This grant has been revoked");
             }

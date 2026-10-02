@@ -22,7 +22,7 @@ public final class BlockStateTests {
         final BlockStateRegistry registry = FidorialServer.getInstance().blockStateRegistry();
         final BlockPos pos = new BlockPos(0, world.dimensionType().minY() - 1, 0);
 
-        final BlockState actual = registry.byId(world.getBlockStateId(pos));
+        final BlockState actual = registry.byId(world.blockStateId(pos));
         helper.assertTrue(actual.isAir(),
                 "Expected " + pos + " to be air (unset), but found " + actual.name());
     }

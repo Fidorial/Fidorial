@@ -1,9 +1,9 @@
 package fr.fidorial.world.dimension;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
-import java.util.Objects;
 
 /**
  * A reference to a single object specified by {@link DimensionTypeDefinition#timelines()}
@@ -37,7 +37,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      */
     record Id(Key key) implements TimelineReference {
         public Id {
-            Objects.requireNonNull(key, "key");
+            Preconditions.checkArgument(key != null, "The key of a timeline reference id must not be null");
         }
     }
 
@@ -47,7 +47,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      */
     record Tag(Key key) implements TimelineReference {
         public Tag {
-            Objects.requireNonNull(key, "key");
+            Preconditions.checkArgument(key != null, "The key of a timeline reference tag must not be null");
         }
     }
 }

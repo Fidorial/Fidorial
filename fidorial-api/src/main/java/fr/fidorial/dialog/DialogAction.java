@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -9,8 +10,12 @@ import net.kyori.adventure.text.event.ClickEvent;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
+/**
+ * What happens when a dialog button is pressed.
+ *
+ * @since 0.1.0
+ */
 public sealed interface DialogAction
         permits DialogAction.Static, DialogAction.ShowDialog, DialogAction.DynamicRunCommand, DialogAction.DynamicCustom {
 
@@ -187,7 +192,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public Static {
-            Objects.requireNonNull(event, "event");
+            Preconditions.checkArgument(event != null, "The event of a dialog action static must not be null");
             if (event.action() instanceof ClickEvent.Action.OpenFile) {
                 throw new IllegalArgumentException("Dialogs do not support the open_file click action");
             }
@@ -207,7 +212,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public ShowDialog {
-            Objects.requireNonNull(dialog, "dialog");
+            Preconditions.checkArgument(dialog != null, "The dialog of a dialog action show dialog must not be null");
         }
     }
 
@@ -224,7 +229,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public DynamicRunCommand {
-            Objects.requireNonNull(template, "template");
+            Preconditions.checkArgument(template != null, "The template of a dialog action dynamic run command must not be null");
         }
     }
 
@@ -243,7 +248,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public DynamicCustom {
-            Objects.requireNonNull(id, "id");
+            Preconditions.checkArgument(id != null, "The ID of a dialog action dynamic custom must not be null");
         }
     }
 }

@@ -1,10 +1,19 @@
 package fr.fidorial.permission;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
+/**
+ * A permission node, such as {@code fidorial.command.gamemode}, normalized to lower case.
+ *
+ * <p>A {@value #WILDCARD} segment matches any segment at its position.</p>
+ *
+ * @param path the dotted path of the node
+ * @since 0.1.0
+ */
 public record PermissionNode(String path) implements Comparable<PermissionNode> {
 
     /**
@@ -17,8 +26,13 @@ public record PermissionNode(String path) implements Comparable<PermissionNode> 
      */
     public static final String WILDCARD = "*";
 
+    /**
+     * Normalizes the path to lower case and validates it.
+     *
+     * @throws IllegalArgumentException if the path is empty or malformed
+     */
     public PermissionNode {
-        Objects.requireNonNull(path, "path");
+        Preconditions.checkArgument(path != null, "The path of a permission node must not be null");
         path = path.trim().toLowerCase(Locale.ROOT);
         if (path.isEmpty()) {
             throw new IllegalArgumentException("A permission node cannot be empty");
@@ -88,7 +102,7 @@ public record PermissionNode(String path) implements Comparable<PermissionNode> 
      * @return {@code true} if a rule on this node applies to {@code other}
      */
     public boolean covers(final PermissionNode other) {
-        Objects.requireNonNull(other, "other");
+        Preconditions.checkArgument(other != null, "The node to compare passed to PermissionNode.covers() must not be null");
         if (this.equals(other)) {
             return true;
         }

@@ -15,7 +15,7 @@ public record MusicTrack(Key sound, int minDelay, int maxDelay, boolean replaceC
 
     public MusicTrack {
         if (minDelay < 0 || maxDelay < minDelay) {
-            throw new IllegalArgumentException("expected 0 <= minDelay <= maxDelay");
+            throw new IllegalArgumentException("The delays of a music track must satisfy 0 <= minDelay <= maxDelay, got " + minDelay + " and " + maxDelay);
         }
     }
 
