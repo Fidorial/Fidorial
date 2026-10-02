@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.testplugin.mob;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -53,10 +52,10 @@ public final class WanderGoal implements Goal {
 
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final Location from = mob.location();
-        final BlockPos destination = new BlockPos(
-                (int) Math.floor(from.x()) + random.nextInt(-RADIUS, RADIUS + 1),
-                (int) Math.floor(from.y()),
-                (int) Math.floor(from.z()) + random.nextInt(-RADIUS, RADIUS + 1));
+        final Location destination = from.offset(
+                random.nextInt(-RADIUS, RADIUS + 1),
+                0,
+                random.nextInt(-RADIUS, RADIUS + 1));
 
         mob.navigation().moveTo(from, destination);
     }

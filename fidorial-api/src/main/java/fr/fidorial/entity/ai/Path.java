@@ -1,6 +1,7 @@
 package fr.fidorial.entity.ai;
 
-import fr.fidorial.world.BlockPos;
+
+import fr.fidorial.math.BlockPosition;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -12,7 +13,7 @@ import java.util.NoSuchElementException;
  * @param reachesGoal {@code true} if the path ends at the goal, {@code false} if it only gets as close as possible
  * @since 0.1.0
  */
-public record Path(List<BlockPos> waypoints, boolean reachesGoal) {
+public record Path(List<BlockPosition> waypoints, boolean reachesGoal) {
 
     /**
      * Copies the waypoints.
@@ -27,7 +28,7 @@ public record Path(List<BlockPos> waypoints, boolean reachesGoal) {
      * @throws NoSuchElementException if the path has no waypoint
      * @since 0.1.0
      */
-    public BlockPos target() {
+    public BlockPosition target() {
         return waypoints.getLast();
     }
 }

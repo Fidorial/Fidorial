@@ -25,8 +25,9 @@ import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobDefinition;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import fr.fidorial.world.ChunkPos;
 import org.jspecify.annotations.Nullable;
 
@@ -288,7 +289,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         if (currentTarget != null) {
             memories.add("attack_target: " + currentTarget.name());
         }
-        final BlockPos waypoint = navigation().currentWaypoint();
+        final Position waypoint = navigation().currentWaypoint();
         if (waypoint != null) {
             memories.add("walk_target: " + waypoint.x() + ", " + waypoint.y() + ", " + waypoint.z());
         }
@@ -296,7 +297,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
                 type().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
     }
 
-    public final void forEachIntersectedBlock(final BiConsumer<BlockPos, DebugValues.BlockIntersection> action) {
+    public final void forEachIntersectedBlock(final BiConsumer<BlockPosition, DebugValues.BlockIntersection> action) {
         final Location loc = location();
         final double half = halfWidth() - 1.0E-5;
         final int minX = (int) Math.floor(loc.x() - half);
@@ -316,7 +317,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
                     final DebugValues.BlockIntersection kind = state.isAir() ? DebugValues.BlockIntersection.IN_AIR
                             : state.isFluid() ? DebugValues.BlockIntersection.IN_FLUID
                             : DebugValues.BlockIntersection.IN_BLOCK;
-                    action.accept(new BlockPos(x, y, z), kind);
+                    action.accept(Position.block(x, y, z), kind);
                 }
             }
         }

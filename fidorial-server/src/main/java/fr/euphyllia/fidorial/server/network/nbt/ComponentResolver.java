@@ -14,8 +14,9 @@ import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.NbtPathResolver;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -48,14 +49,14 @@ public final class ComponentResolver {
         }
 
         Component resolvedContent = switch (component) {
-            case SelectorComponent sel -> resolveSelector(sel, source);
+            case final SelectorComponent sel -> resolveSelector(sel, source);
             //case ScoreComponent score -> resolveScore(score, source); TBD
-            case NBTComponent<?> nbt -> resolveNbt(nbt, source);
+            case final NBTComponent<?> nbt -> resolveNbt(nbt, source);
             default -> component;
         };
 
         if (!resolvedContent.children().isEmpty()) {
-            List<Component> resolvedChildren = new ArrayList<>();
+            final List<Component> resolvedChildren = new ArrayList<>();
             for (final Component child : resolvedContent.children()) {
                 resolvedChildren.add(resolve(child, source, depth + 1));
             }
@@ -186,7 +187,7 @@ public final class ComponentResolver {
             return null;
         }
 
-        final BlockPos pos = resolveBlockPos(nbt.pos(), executor.location());
+        final BlockPosition pos = resolveBlockPos(nbt.pos(), executor.location());
         if (pos == null) {
             return null;
         }
@@ -196,7 +197,7 @@ public final class ComponentResolver {
             return null;
         }
 
-        final BlockEntity blockEntity = chunk.blockEntity(pos.localX(), pos.y(), pos.localZ());
+        final BlockEntity blockEntity = chunk.blockEntity(pos.localX(), pos.blockY(), pos.localZ());
         if (blockEntity == null) {
             return null;
         }
@@ -205,9 +206,9 @@ public final class ComponentResolver {
         final CompoundBinaryTag extra = blockEntity.data();
 
         root.putString("id", blockEntity.type().asString());
-        root.putInt("x", pos.x());
-        root.putInt("y", pos.y());
-        root.putInt("z", pos.z());
+        root.putInt("x", pos.blockX());
+        root.putInt("y", pos.blockY());
+        root.putInt("z", pos.blockZ());
 
         root.put("components",
                 (extra != null && extra.keySet().contains("components"))
@@ -225,20 +226,17 @@ public final class ComponentResolver {
         return root.build();
     }
 
-    private static @Nullable BlockPos resolveBlockPos(final BlockNBTComponent.Pos pos, final Location origin) {
+    private static @Nullable BlockPosition resolveBlockPos(final BlockNBTComponent.Pos pos, final Location origin) {
         return switch (pos) {
             case final BlockNBTComponent.LocalPos local -> {
                 final Location resolved = CoordMath.applyLocalCoords(
                         origin, local.left(), local.up(), local.forwards());
-                yield new BlockPos(
-                        (int) Math.floor(resolved.x()),
-                        (int) Math.floor(resolved.y()),
-                        (int) Math.floor(resolved.z()));
+                yield Position.block(resolved.blockX(), resolved.blockY(), resolved.blockZ());
             }
-            case final BlockNBTComponent.WorldPos world -> new BlockPos(
-                    resolveCoordinate(world.x(), (int) Math.floor(origin.x())),
-                    resolveCoordinate(world.y(), (int) Math.floor(origin.y())),
-                    resolveCoordinate(world.z(), (int) Math.floor(origin.z())));
+            case final BlockNBTComponent.WorldPos world -> Position.block(
+                    resolveCoordinate(world.x(), origin.blockX()),
+                    resolveCoordinate(world.y(), origin.blockY()),
+                    resolveCoordinate(world.z(), origin.blockZ()));
             default -> null;
         };
     }

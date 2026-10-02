@@ -12,7 +12,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.light.FloodFillLightEngine;
 import fr.euphyllia.fidorial.server.world.light.LightEnginePool;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.world.ChunkPos;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -55,7 +56,7 @@ public class LightUpdateDispatcher {
 
     private final Map<Key, WorldLightState> states = new ConcurrentHashMap<>();
 
-    private final Map<Key, MultiThreadedQueue<BlockPos>> pendingBlocks = new ConcurrentHashMap<>();
+    private final Map<Key, MultiThreadedQueue<BlockPosition>> pendingBlocks = new ConcurrentHashMap<>();
     private final Set<Key> scheduledBlocks = ConcurrentHashMap.newKeySet();
     private final Map<Key, ConcurrentLongSet> pendingChunks = new ConcurrentHashMap<>();
     private final Set<Key> scheduledChunks = ConcurrentHashMap.newKeySet();
@@ -109,7 +110,7 @@ public class LightUpdateDispatcher {
 
         pendingBlocks
                 .computeIfAbsent(world, _ -> new MultiThreadedQueue<>())
-                .add(new BlockPos(x, y, z));
+                .add(Position.block(x, y, z));
 
         scheduleBlocks(world);
     }
@@ -159,7 +160,7 @@ public class LightUpdateDispatcher {
     }
 
     private void drainBlocks(final Key world) {
-        final MultiThreadedQueue<BlockPos> queue = pendingBlocks.get(world);
+        final MultiThreadedQueue<BlockPosition> queue = pendingBlocks.get(world);
         if (queue == null) {
             scheduledBlocks.remove(world);
             return;
@@ -168,30 +169,30 @@ public class LightUpdateDispatcher {
         final ServerWorld serverWorld = worldLookup.apply(world);
         if (!queue.isEmpty() && serverWorld != null) {
             final LightEnginePool pool = poolFor(serverWorld);
-            final Long2ObjectOpenHashMap<List<BlockPos>> byCluster = new Long2ObjectOpenHashMap<>();
+            final Long2ObjectOpenHashMap<List<BlockPosition>> byCluster = new Long2ObjectOpenHashMap<>();
             int processed = 0;
-            BlockPos pos;
+            BlockPosition pos;
             while (processed < 4096 && (pos = queue.poll()) != null) {
                 processed++;
-                final int cx = pos.x() >> 4;
-                final int cz = pos.z() >> 4;
+                final int cx = pos.chunkX();
+                final int cz = pos.chunkZ();
                 final long clusterKey = ChunkPos.chunkKey(cx >> CLUSTER_SHIFT, cz >> CLUSTER_SHIFT);
                 byCluster.computeIfAbsent(clusterKey, _ -> new ArrayList<>()).add(pos);
             }
 
-            for (final Long2ObjectOpenHashMap.Entry<List<BlockPos>> entry : byCluster.long2ObjectEntrySet()) {
-                final List<BlockPos> positions = entry.getValue();
+            for (final Long2ObjectOpenHashMap.Entry<List<BlockPosition>> entry : byCluster.long2ObjectEntrySet()) {
+                final List<BlockPosition> positions = entry.getValue();
                 final LongOpenHashSet chunkKeys = new LongOpenHashSet();
-                for (final BlockPos p : positions) {
-                    chunkKeys.add(ChunkPos.chunkKey(p.x() >> 4, p.z() >> 4));
+                for (final BlockPosition p : positions) {
+                    chunkKeys.add(ChunkPos.chunkKey(p.chunkX(), p.chunkZ()));
                 }
                 queueAreaTask(chunkKeys, () -> {
                     FloodFillLightEngine engine = null;
                     try {
                         engine = pool.acquire();
                         final LongOpenHashSet dirtyChunks = new LongOpenHashSet();
-                        for (final BlockPos p : positions) {
-                            dirtyChunks.addAll(serverWorld.checkBlockLight(p.x(), p.y(), p.z(), engine));
+                        for (final BlockPosition p : positions) {
+                            dirtyChunks.addAll(serverWorld.checkBlockLight(p.blockX(), p.blockY(), p.blockZ(), engine));
                         }
                         if (!dirtyChunks.isEmpty()) {
                             final LongSet viewedChunks = serverWorld.collectAllViewedChunks();
@@ -209,8 +210,8 @@ public class LightUpdateDispatcher {
                     } catch (final InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
-                        for (final BlockPos p : positions) {
-                            decrementArea(world, p.x() >> 4, p.z() >> 4);
+                        for (final BlockPosition p : positions) {
+                            decrementArea(world, p.chunkX(), p.chunkZ());
                         }
                         if (engine != null) {
                             pool.release(engine);

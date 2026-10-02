@@ -10,9 +10,10 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -89,7 +90,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
 
     private boolean resting;
     private boolean persistent;
-    private @Nullable BlockPos wanderTarget;
+    private @Nullable BlockPosition wanderTarget;
     private int ambientSoundChance;
     private int fireTicks;
     private boolean sentOnFire;
@@ -218,7 +219,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
 
         pickWanderTargetIfNeeded(self, random);
 
-        final BlockPos target = this.wanderTarget;
+        final BlockPosition target = this.wanderTarget;
         if (target == null) {
             return;
         }
@@ -252,27 +253,28 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     }
 
     private void pickWanderTargetIfNeeded(final Location self, final ThreadLocalRandom random) {
-        final BlockPos current = this.wanderTarget;
+        final BlockPosition current = this.wanderTarget;
         if (current != null
-                && (!BlockView.isPassable(serverWorld(), current.x(), current.y(), current.z())
+                && (!BlockView.isPassable(serverWorld(), current.blockX(), current.blockY(), current.blockZ())
                 || current.y() <= serverWorld().minY())) {
             this.wanderTarget = null;
         }
 
-        final BlockPos target = this.wanderTarget;
+        final BlockPosition target = this.wanderTarget;
         if (target != null
                 && !isWithin(target, self, TARGET_REACHED_DISTANCE)
                 && random.nextInt(RETARGET_CHANCE) != 0) {
             return;
         }
 
-        this.wanderTarget = new BlockPos(
-                (int) self.x() + random.nextInt(WANDER_HORIZONTAL_RANGE) - random.nextInt(WANDER_HORIZONTAL_RANGE),
-                (int) self.y() + random.nextInt(WANDER_VERTICAL_RANGE) - WANDER_VERTICAL_OFFSET,
-                (int) self.z() + random.nextInt(WANDER_HORIZONTAL_RANGE) - random.nextInt(WANDER_HORIZONTAL_RANGE));
+        this.wanderTarget = Position.block(
+                self.blockX() + random.nextInt(WANDER_HORIZONTAL_RANGE) - random.nextInt(WANDER_HORIZONTAL_RANGE),
+                self.blockY() + random.nextInt(WANDER_VERTICAL_RANGE) - WANDER_VERTICAL_OFFSET,
+                self.blockZ() + random.nextInt(WANDER_HORIZONTAL_RANGE) - random.nextInt(WANDER_HORIZONTAL_RANGE)
+        );
     }
 
-    private boolean isWithin(final BlockPos pos, final Location location, final double distance) {
+    private boolean isWithin(final BlockPosition pos, final Location location, final double distance) {
         final double dx = pos.x() + 0.5 - location.x();
         final double dy = pos.y() + 0.5 - location.y();
         final double dz = pos.z() + 0.5 - location.z();
@@ -299,7 +301,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
             final Location self = location();
             sendToTrackers(new ClientboundLevelEventPacket(
                     LEVEL_EVENT_BAT_TAKEOFF,
-                    new BlockPos((int) Math.floor(self.x()), (int) Math.floor(self.y()), (int) Math.floor(self.z())),
+                    self,
                     0,
                     false));
         }

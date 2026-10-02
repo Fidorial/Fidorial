@@ -34,9 +34,10 @@ import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
@@ -204,9 +205,9 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public Optional<Key> blockKeyAt(final BlockPos pos) {
+    public Optional<Key> blockKeyAt(final BlockPosition pos) {
         try {
-            final BlockState state = getBlock(pos.x(), pos.y(), pos.z());
+            final BlockState state = getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
             if (state.isAir()) {
                 return Optional.empty();
             }
@@ -221,20 +222,20 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public int blockStateId(final BlockPos pos) {
+    public int blockStateId(final BlockPosition pos) {
         try {
-            return blockStates.networkId(getBlock(pos.x(), pos.y(), pos.z()));
+            return blockStates.networkId(getBlock(pos.blockX(), pos.blockY(), pos.blockZ()));
         } catch (final IOException e) {
             throw new UncheckedIOException("Failed to read block " + pos, e);
         }
     }
 
     @Override
-    public CompletableFuture<Boolean> setBlockStateId(final BlockPos pos, final int stateId) {
+    public CompletableFuture<Boolean> setBlockStateId(final BlockPosition pos, final int stateId) {
         final CompletableFuture<Boolean> future = new CompletableFuture<>();
         final boolean scheduled = this.scheduler().execute(dimension.id(), pos.chunk(), () -> {
             try {
-                future.complete(setBlock(pos.x(), pos.y(), pos.z(), blockStates.byId(stateId)));
+                future.complete(setBlock(pos.blockX(), pos.blockY(), pos.blockZ(), blockStates.byId(stateId)));
             } catch (final IOException e) {
                 future.completeExceptionally(new UncheckedIOException("Failed to write block " + pos, e));
             }
@@ -244,18 +245,18 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public int blockLight(final BlockPos pos) {
-        return blockLightAt(pos.x(), pos.y(), pos.z());
+    public int blockLight(final BlockPosition pos) {
+        return blockLightAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
-    public int skyLight(final BlockPos pos) {
-        return skyLightAt(pos.x(), pos.y(), pos.z());
+    public int skyLight(final BlockPosition pos) {
+        return skyLightAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
-    public int lightLevel(final BlockPos pos) {
-        return lightLevelAt(pos.x(), pos.y(), pos.z());
+    public int lightLevel(final BlockPosition pos) {
+        return lightLevelAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
@@ -499,7 +500,7 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBlock(final int x, final int y, final int z, final BlockState state) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, new BlockPos(x, y, z), "setBlock");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBlock");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
@@ -518,7 +519,7 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBiome(final int x, final int y, final int z, final Key biome) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, new BlockPos(x, y, z), "setBiome");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBiome");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;

@@ -2,8 +2,8 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.GameEventKeys;
-import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -37,11 +37,11 @@ public final class BlockEditService {
         this.lightNotifier = lightNotifier;
     }
 
-    public boolean set(final ServerWorld world, final BlockPos pos, final BlockState state) {
+    public boolean set(final ServerWorld world, final BlockPosition pos, final BlockState state) {
         final BlockState previous;
         try {
-            previous = world.getBlock(pos.x(), pos.y(), pos.z());
-            if (!world.setBlock(pos.x(), pos.y(), pos.z(), state)) {
+            previous = world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
+            if (!world.setBlock(pos.blockX(), pos.blockY(), pos.blockZ(), state)) {
                 return false;
             }
         } catch (final IOException e) {
@@ -49,8 +49,8 @@ public final class BlockEditService {
             return false;
         }
         broadcaster.broadcast(pos, blockRegistry.networkId(state));
-        fluidNotifier.notifyBlockChanged(world.dimension().id(), pos.x(), pos.y(), pos.z());
-        lightNotifier.onBlockChanged(world.dimension().id(), pos.x(), pos.y(), pos.z());
+        fluidNotifier.notifyBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
+        lightNotifier.onBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
 
         final DebugGameEvents events = debugEvents;
         if (events != null && previous != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
@@ -61,7 +61,7 @@ public final class BlockEditService {
 
     @FunctionalInterface
     public interface BlockChangeBroadcaster {
-        void broadcast(BlockPos pos, int stateId);
+        void broadcast(BlockPosition pos, int stateId);
     }
 
     @FunctionalInterface

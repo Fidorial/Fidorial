@@ -3,11 +3,11 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Block_Update
-public record ClientboundBlockUpdatePacket(BlockPos pos, int blockStateId) implements ClientboundPacket {
+public record ClientboundBlockUpdatePacket(BlockPosition pos, int blockStateId) implements ClientboundPacket {
 
     @Override
     public Key name() {
@@ -15,8 +15,8 @@ public record ClientboundBlockUpdatePacket(BlockPos pos, int blockStateId) imple
     }
 
     @Override
-    public void write(PacketBuffer buf) {
-        buf.writePosition(pos.x(), pos.y(), pos.z());
+    public void write(final PacketBuffer buf) {
+        buf.writePosition(pos.blockX(), pos.blockY(), pos.blockZ());
         buf.writeVarInt(blockStateId);
     }
 }
