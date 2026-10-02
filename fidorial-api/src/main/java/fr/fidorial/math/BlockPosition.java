@@ -3,6 +3,12 @@ package fr.fidorial.math;
 import fr.fidorial.world.BlockFace;
 import org.jetbrains.annotations.Contract;
 
+/**
+ * A position made of integer coordinates, pointing at a single block.
+ *
+ * @see Position#block(int, int, int)
+ * @since 0.1.0
+ */
 public sealed interface BlockPosition extends Position permits BlockPositionImpl {
     @Override
     @Contract(value = "_ -> new", pure = true)
