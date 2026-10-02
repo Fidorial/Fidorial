@@ -22,7 +22,6 @@ public interface PlayerDataStorage {
      * Loads the data of a player.
      *
      * @param uuid     the player identity
-     * @param defaults the values to return when nothing was saved
      * @return the saved data, or {@code defaults}
      * @throws IOException if the data cannot be read
      * @since 0.1.0

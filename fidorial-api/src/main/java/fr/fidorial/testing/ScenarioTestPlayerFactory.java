@@ -15,7 +15,6 @@ public interface ScenarioTestPlayerFactory {
      * Spawns a mock player.
      *
      * @param name     the player name
-     * @param world    the world to spawn in
      * @param location where to spawn
      * @param gameMode the game mode of the player
      * @return the mock player

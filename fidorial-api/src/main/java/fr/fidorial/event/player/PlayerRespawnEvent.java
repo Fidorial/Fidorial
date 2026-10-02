@@ -22,7 +22,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * Creates an event.
      *
      * @param player           the player about to respawn
-     * @param world            the world they are about to respawn in
      * @param location         the position they are about to respawn at
      * @param cause            what triggered the respawn
      * @param usedRespawnPoint whether the position comes from the player's respawn point
