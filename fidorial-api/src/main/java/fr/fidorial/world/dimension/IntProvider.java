@@ -1,9 +1,9 @@
 package fr.fidorial.world.dimension;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A value, or a random distribution of values, used by
@@ -121,7 +121,7 @@ public sealed interface IntProvider
     record Clamped(int minInclusive, int maxInclusive, IntProvider source) implements IntProvider {
         public Clamped {
             requireOrdered(minInclusive, maxInclusive);
-            Objects.requireNonNull(source, "source");
+            Preconditions.checkArgument(source != null, "The source of an int provider clamped must not be null");
         }
     }
 
@@ -147,7 +147,7 @@ public sealed interface IntProvider
         public WeightedList {
             distribution = List.copyOf(distribution);
             if (distribution.isEmpty()) {
-                throw new IllegalArgumentException("distribution must not be empty");
+                throw new IllegalArgumentException("A weighted list int provider needs at least one entry");
             }
         }
 
@@ -160,9 +160,9 @@ public sealed interface IntProvider
          */
         public record Entry(IntProvider data, int weight) {
             public Entry {
-                Objects.requireNonNull(data, "data");
+                Preconditions.checkArgument(data != null, "The data of an int provider weighted list entry must not be null");
                 if (weight <= 0) {
-                    throw new IllegalArgumentException("weight must be positive, got " + weight);
+                    throw new IllegalArgumentException("The weight of an int provider entry must be positive, got " + weight);
                 }
             }
         }

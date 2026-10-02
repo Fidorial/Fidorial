@@ -101,7 +101,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
     public void handleCustomQueryAnswer(final ServerboundCustomQueryAnswerPacket packet) {
         if (!(server.config().network().proxy() instanceof ProxyForwarding.Velocity(final String secret))
                 || packet.transactionId() != velocityTransactionId) {
-            LOGGER.trace("unexpected custom_query_answer (id {}) ignore", packet.transactionId());
+            LOGGER.trace("Unexpected custom_query_answer (id {}), ignored", packet.transactionId());
             return;
         }
         velocityTransactionId = -1;
@@ -122,7 +122,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
             enableCompression();
             sendLoginSuccess(data.profile());
         } catch (final VelocityForwarding.ForwardingException e) {
-            LOGGER.warn("Forwarding Velocity refuses for {}: {}", pendingUsername, e.getMessage());
+            LOGGER.warn("Velocity forwarding rejected for {}: {}", pendingUsername, e.getMessage());
             disconnect("Invalid Velocity forwarding data");
         }
     }
@@ -155,7 +155,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
             final String username = pendingUsername;
             Thread.startVirtualThread(() -> authenticate(username, serverHash));
         } catch (final Exception e) {
-            LOGGER.warn("Echec du chiffrement pour {}", pendingUsername, e);
+            LOGGER.warn("Encryption failed for {}", pendingUsername, e);
             disconnect(Component.translatable("disconnect.packetError"));
         }
     }
@@ -226,8 +226,8 @@ public final class LoginPacketHandler implements LoginPacketListener {
     }
 
     private Optional<Component> loginRefusal(final PlayerProfile profile, @Nullable final InetAddress address) {
-        return server.ban().findAny(profile.uuid(), address)
-                .map(server.ban()::disconnectMessage)
+        return server.bans().findAny(profile.uuid(), address)
+                .map(server.bans()::disconnectMessage)
                 .or(() -> server.whitelist().allows(profile.uuid())
                         ? Optional.empty()
                         : Optional.of(Component.translatable("multiplayer.disconnect.not_whitelisted")));
@@ -235,7 +235,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
 
     private void completeLogin(final GameProfile profile, final PlayerProfile playerProfile) {
         this.loginComplete = true;
-        LOGGER.info("Authenticates: {} ({})", profile.name(), profile.uuid());
+        LOGGER.info("Authenticated: {} ({})", profile.name(), profile.uuid());
         connection.setProfile(playerProfile);
         server.offlinePlayers().remember(playerProfile);
         connection.send(new ClientboundLoginFinishedPacket(profile));
@@ -244,7 +244,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
     @Override
     public void handleLoginAcknowledged(final ServerboundLoginAcknowledgedPacket packet) {
         if (!loginComplete || connection.profile() == null) {
-            LOGGER.warn("login_acknowledged refuses for {}: login not completed", pendingUsername);
+            LOGGER.warn("login_acknowledged rejected for {}: login not completed", pendingUsername);
             disconnect(Component.translatable("disconnect.packetError"));
             return;
 

@@ -25,7 +25,7 @@ public record ItemLore(List<Component> lines) {
     public static final ItemLore EMPTY = new ItemLore(List.of());
 
     public ItemLore {
-        Preconditions.checkNotNull(lines, "The lines of an item lore must not be null");
+        Preconditions.checkArgument(lines != null, "The lines of an item lore must not be null");
 
         if (lines.size() > MAX_LINES) {
             throw new IllegalArgumentException(
@@ -56,7 +56,7 @@ public record ItemLore(List<Component> lines) {
      * @return a new lore, one line longer
      */
     public ItemLore plus(final Component line) {
-        Preconditions.checkNotNull(line, "The line passed to ItemLore.plus() must not be null");
+        Preconditions.checkArgument(line != null, "The line passed to ItemLore.plus() must not be null");
 
         final List<Component> copy = new ArrayList<>(lines);
         copy.add(line);

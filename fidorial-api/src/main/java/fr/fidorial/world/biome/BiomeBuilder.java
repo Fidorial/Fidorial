@@ -1,5 +1,6 @@
 package fr.fidorial.world.biome;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.environment.AmbientParticle;
 import fr.fidorial.world.environment.AmbientSounds;
 import fr.fidorial.world.environment.BackgroundMusic;
@@ -8,7 +9,6 @@ import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -27,7 +27,8 @@ public final class BiomeBuilder {
     private EnvironmentAttributes.Builder attributes = EnvironmentAttributes.builder();
 
     BiomeBuilder(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key of a biome builder must not be null");
+        this.key = key;
     }
 
     BiomeBuilder(final BiomeDefinition definition) {
@@ -46,7 +47,8 @@ public final class BiomeBuilder {
      */
     @Contract("_ -> this")
     public BiomeBuilder key(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key passed to BiomeBuilder.key() must not be null");
+        this.key = key;
         return this;
     }
 
@@ -81,7 +83,8 @@ public final class BiomeBuilder {
      */
     @Contract("_ -> this")
     public BiomeBuilder temperatureModifier(final TemperatureModifier modifier) {
-        this.temperatureModifier = Objects.requireNonNull(modifier, "modifier");
+        Preconditions.checkArgument(modifier != null, "The modifier passed to BiomeBuilder.temperatureModifier() must not be null");
+        this.temperatureModifier = modifier;
         return this;
     }
 
@@ -101,7 +104,8 @@ public final class BiomeBuilder {
      */
     @Contract("_ -> this")
     public BiomeBuilder effects(final BiomeEffects effects) {
-        this.effects = Objects.requireNonNull(effects, "effects");
+        Preconditions.checkArgument(effects != null, "The effects passed to BiomeBuilder.effects() must not be null");
+        this.effects = effects;
         return this;
     }
 

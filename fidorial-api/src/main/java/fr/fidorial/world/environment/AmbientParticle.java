@@ -15,7 +15,7 @@ public record AmbientParticle(Key type, float probability) {
 
     public AmbientParticle {
         if (probability < 0F || probability > 1F) {
-            throw new IllegalArgumentException("probability must be within [0, 1], got " + probability);
+            throw new IllegalArgumentException("The probability of an ambient particle must be within [0, 1], got " + probability);
         }
     }
 

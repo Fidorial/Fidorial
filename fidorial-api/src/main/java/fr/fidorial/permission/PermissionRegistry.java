@@ -5,6 +5,11 @@ import net.kyori.adventure.util.TriState;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Every permission node declared by the server and its plugins, with their defaults.
+ *
+ * @since 0.1.0
+ */
 public interface PermissionRegistry {
 
     /**

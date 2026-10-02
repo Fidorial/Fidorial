@@ -101,7 +101,7 @@ import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
@@ -606,7 +606,7 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public BanManager ban() {
+    public BanManager bans() {
         return fidorialBanManager;
     }
 
@@ -669,7 +669,7 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public World createWorld(final WorldBuilder spec) {
+    public World createWorld(final WorldSpec spec) {
         return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), false);
     }
 
@@ -929,7 +929,7 @@ public final class FidorialServer implements Server {
         return TranslationStore.current();
     }
 
-    public World createWorldSilent(final WorldBuilder spec) {
+    public World createWorldSilent(final WorldSpec spec) {
         return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), true);
     }
 

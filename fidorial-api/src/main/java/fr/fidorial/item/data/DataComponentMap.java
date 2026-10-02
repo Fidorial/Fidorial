@@ -16,6 +16,11 @@ import java.util.Set;
  */
 public final class DataComponentMap {
 
+    /**
+     * A patch changing nothing.
+     *
+     * @since 0.1.0
+     */
     public static final DataComponentMap EMPTY = new DataComponentMap(Map.of(), Set.of());
 
     private final Map<DataComponentType<?>, Object> values;
@@ -42,7 +47,7 @@ public final class DataComponentMap {
      */
     @SuppressWarnings("unchecked")
     public <T> @Nullable T get(final DataComponentType<T> type) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.get() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.get() must not be null");
         return (T) values.get(type);
     }
 
@@ -64,7 +69,7 @@ public final class DataComponentMap {
      * @return {@code true} if this patch sets the component
      */
     public boolean has(final DataComponentType<?> type) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.has() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.has() must not be null");
         return values.containsKey(type);
     }
 
@@ -73,7 +78,7 @@ public final class DataComponentMap {
      * @return {@code true} if this patch explicitly removes the item's default
      */
     public boolean isRemoved(final DataComponentType<?> type) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.isRemoved() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.isRemoved() must not be null");
         return removed.contains(type);
     }
 
@@ -86,8 +91,8 @@ public final class DataComponentMap {
      * @return a new patch
      */
     public <T> DataComponentMap with(final DataComponentType<T> type, final T value) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.with() must not be null");
-        Preconditions.checkNotNull(value, "The value passed to DataComponentMap.with() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.with() must not be null");
+        Preconditions.checkArgument(value != null, "The value passed to DataComponentMap.with() must not be null");
 
         final Map<DataComponentType<?>, Object> copy = new LinkedHashMap<>(values);
         copy.put(type, value);
@@ -111,7 +116,7 @@ public final class DataComponentMap {
      * @return a new patch
      */
     public DataComponentMap without(final DataComponentType<?> type) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.without() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.without() must not be null");
 
         final Map<DataComponentType<?>, Object> copy = new LinkedHashMap<>(values);
         copy.remove(type);
@@ -130,7 +135,7 @@ public final class DataComponentMap {
      * @return a new patch
      */
     public DataComponentMap reset(final DataComponentType<?> type) {
-        Preconditions.checkNotNull(type, "The type passed to DataComponentMap.reset() must not be null");
+        Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.reset() must not be null");
 
         if (!values.containsKey(type) && !removed.contains(type)) {
             return this;
@@ -244,8 +249,8 @@ public final class DataComponentMap {
          * @return this builder
          */
         public <T> Builder set(final DataComponentType<T> type, final T value) {
-            Preconditions.checkNotNull(type, "The type passed to DataComponentMap.Builder.set() must not be null");
-            Preconditions.checkNotNull(value, "The value passed to DataComponentMap.Builder.set() must not be null");
+            Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.Builder.set() must not be null");
+            Preconditions.checkArgument(value != null, "The value passed to DataComponentMap.Builder.set() must not be null");
             values.put(type, value);
             removed.remove(type);
             return this;
@@ -268,7 +273,7 @@ public final class DataComponentMap {
          * @return this builder
          */
         public Builder remove(final DataComponentType<?> type) {
-            Preconditions.checkNotNull(type, "The type passed to DataComponentMap.Builder.remove() must not be null");
+            Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.Builder.remove() must not be null");
             values.remove(type);
             removed.add(type);
             return this;
@@ -279,7 +284,7 @@ public final class DataComponentMap {
          * @return this builder
          */
         public Builder reset(final DataComponentType<?> type) {
-            Preconditions.checkNotNull(type, "The type passed to DataComponentMap.Builder.reset() must not be null");
+            Preconditions.checkArgument(type != null, "The type passed to DataComponentMap.Builder.reset() must not be null");
             values.remove(type);
             removed.remove(type);
             return this;

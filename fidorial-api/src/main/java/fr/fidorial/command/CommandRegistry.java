@@ -23,7 +23,7 @@ public interface CommandRegistry {
      * Registers a command from the given builder.
      *
      * @param namespace the plugin namespace
-     * @param command the command builder to register
+     * @param command   the command builder to register
      * @since 0.1.0
      */
     default void register(String namespace, LiteralArgumentBuilder<CommandSource> command) {
@@ -33,7 +33,7 @@ public interface CommandRegistry {
     /**
      * Registers a command from the given builder.
      *
-     * @param meta the plugin meta
+     * @param meta    the plugin meta
      * @param command the command builder to register
      * @since 0.1.0
      */
@@ -45,7 +45,7 @@ public interface CommandRegistry {
      * Registers a command node without aliases.
      *
      * @param namespace the plugin namespace
-     * @param command the command node to register
+     * @param command   the command node to register
      * @since 0.1.0
      */
     default void register(String namespace, LiteralCommandNode<CommandSource> command) {
@@ -55,7 +55,7 @@ public interface CommandRegistry {
     /**
      * Registers a command node without aliases.
      *
-     * @param meta the plugin meta
+     * @param meta    the plugin meta
      * @param command the command node to register
      * @since 0.1.0
      */
@@ -67,8 +67,8 @@ public interface CommandRegistry {
      * Registers a command from the given builder with the specified aliases.
      *
      * @param namespace the plugin namespace
-     * @param command the command builder to register
-     * @param aliases additional aliases that should point to this command
+     * @param command   the command builder to register
+     * @param aliases   additional aliases that should point to this command
      * @since 0.1.0
      */
     default void register(String namespace, LiteralArgumentBuilder<CommandSource> command, Set<String> aliases) {
@@ -78,7 +78,7 @@ public interface CommandRegistry {
     /**
      * Registers a command from the given builder with the specified aliases.
      *
-     * @param meta the plugin meta
+     * @param meta    the plugin meta
      * @param command the command builder to register
      * @param aliases additional aliases that should point to this command
      * @since 0.1.0
@@ -94,8 +94,8 @@ public interface CommandRegistry {
      * besides its primary literal name.</p>
      *
      * @param namespace the plugin namespace
-     * @param command the command node to register
-     * @param aliases additional aliases that should point to this command
+     * @param command   the command node to register
+     * @param aliases   additional aliases that should point to this command
      * @since 0.1.0
      */
     void register(String namespace, LiteralCommandNode<CommandSource> command, Set<String> aliases);
@@ -106,7 +106,7 @@ public interface CommandRegistry {
      * <p>Aliases are additional names that can be used to execute the command
      * besides its primary literal name.</p>
      *
-     * @param meta the plugin meta
+     * @param meta    the plugin meta
      * @param command the command node to register
      * @param aliases additional aliases that should point to this command
      * @since 0.1.0
@@ -120,7 +120,7 @@ public interface CommandRegistry {
      * Root literal names are also treated as aliases in this context.
      *
      * @param namespace the namespace of the command to unregister
-     * @param alias the command alias to unregister; if not currently registered, this method does nothing
+     * @param alias     the command alias to unregister; if not currently registered, this method does nothing
      * @apiNote This removes both the namespaced {@code namespace:alias} and plain {@code alias} command nodes.
      * @since 0.1.0
      */
@@ -150,9 +150,8 @@ public interface CommandRegistry {
      * The outcome of a command dispatch.
      *
      * @param returnValue the raw brigadier return value from {@link CommandDispatcher#execute(ParseResults)}.
-     * {@code 0} is used both when the command failed to parse or execute, and when a command had no effect.
+     *                    {@code 0} is used both when the command failed to parse or execute, and when a command had no effect.
      * @apiNote Use {@link #executed()} to distinguish outcome from raw value.
-     *
      * @since 0.1.0
      */
     record CommandResult(int returnValue) {
@@ -176,7 +175,6 @@ public interface CommandRegistry {
      * @param source  the source to execute the command for
      * @param cmdLine the command to run
      * @return a future completed with the {@link CommandResult}; never completes exceptionally
-     *
      * @since 0.1.0
      */
     CompletableFuture<CommandResult> dispatchAsyncResult(CommandSource source, String cmdLine);
@@ -187,7 +185,6 @@ public interface CommandRegistry {
      * @param source  the source to execute the command for
      * @param cmdLine the command to run
      * @return a future completed with the result of the command execution; never completes exceptionally
-     *
      * @since 0.1.0
      */
     default CompletableFuture<Boolean> dispatchAsync(CommandSource source, String cmdLine) {

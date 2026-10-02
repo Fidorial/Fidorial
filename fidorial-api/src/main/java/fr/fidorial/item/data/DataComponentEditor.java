@@ -15,7 +15,8 @@ public final class DataComponentEditor implements DataComponentHolder {
     private DataComponentMap components;
 
     private DataComponentEditor(final DataComponentMap components) {
-        this.components = Preconditions.checkNotNull(components, "The components of a data component editor must not be null");
+        Preconditions.checkArgument(components != null, "The components of a data component editor must not be null");
+        this.components = components;
     }
 
     /**

@@ -27,19 +27,19 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
     public static final int DEFAULT_MAX_STACK_SIZE = 1;
 
     public ItemDefinition {
-        Preconditions.checkNotNull(key, "The key of an item definition must not be null");
-        Preconditions.checkNotNull(networkType, "The network type of an item definition must not be null");
-        Preconditions.checkNotNull(components, "The components of an item definition must not be null");
+        Preconditions.checkArgument(key != null, "The key of an item definition must not be null");
+        Preconditions.checkArgument(networkType != null, "The network type of an item definition must not be null");
+        Preconditions.checkArgument(components != null, "The components of an item definition must not be null");
 
         final int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, DEFAULT_MAX_STACK_SIZE);
         final int damage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
         if (stackSize < 1) {
-            throw new IllegalArgumentException("maxStackSize must be at least 1, got " + stackSize);
+            throw new IllegalArgumentException("The maximum stack size of an item must be at least 1, got " + stackSize);
         }
 
         if (damage < 0) {
-            throw new IllegalArgumentException("maxDamage cannot be negative, got " + damage);
+            throw new IllegalArgumentException("The maximum damage of an item cannot be negative, got " + damage);
         }
 
         if (stackSize > 1 && damage > 0) {
@@ -84,9 +84,12 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
         }
 
         private Builder(final Key key, final Key networkType, final DataComponentEditor components) {
-            this.key = Preconditions.checkNotNull(key, "The key of an item definition builder must not be null");
-            this.networkType = Preconditions.checkNotNull(networkType, "The network type of an item definition builder must not be null");
-            this.components = Preconditions.checkNotNull(components, "The components of an item definition builder must not be null");
+            Preconditions.checkArgument(key != null, "The key of an item definition builder must not be null");
+            Preconditions.checkArgument(networkType != null, "The network type of an item definition builder must not be null");
+            Preconditions.checkArgument(components != null, "The components of an item definition builder must not be null");
+            this.key = key;
+            this.networkType = networkType;
+            this.components = components;
         }
 
         /**

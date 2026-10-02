@@ -1,5 +1,8 @@
 package fr.fidorial.plugin;
 
+import fr.fidorial.Server;
+import fr.fidorial.permission.PermissionRegistry;
+
 import java.util.Collection;
 import java.util.Optional;
 
@@ -7,8 +10,8 @@ import java.util.Optional;
  * Loads plugins and exposes what is currently running.
  *
  * <p>Permissions are deliberately not part of this interface: they live in
- * {@link fr.fidorial.permission.PermissionRegistry}, reachable through
- * {@link fr.fidorial.Server#permissions()}. Keeping the two apart means a plugin that only wants to
+ * {@link PermissionRegistry}, reachable through
+ * {@link Server#permissions()}. Keeping the two apart means a plugin that only wants to
  * declare permissions does not need a handle on the plugin loader, and the registry has no
  * knowledge of plugin lifecycles.
  *
@@ -16,7 +19,11 @@ import java.util.Optional;
  */
 public interface PluginManager {
 
-    /** @return metadata for every loaded plugin */
+    /**
+     * {@return the metadata of every loaded plugin}
+     *
+     * @since 0.1.0
+     */
     Collection<PluginMeta> loaded();
 
     /**
@@ -24,6 +31,7 @@ public interface PluginManager {
      *
      * @param id the plugin identifier
      * @return the plugin, if loaded
+     * @since 0.1.0
      */
     Optional<Plugin> plugin(String id);
 
@@ -32,6 +40,7 @@ public interface PluginManager {
      *
      * @param id the plugin identifier
      * @return {@code true} if enabled
+     * @since 0.1.0
      */
     boolean isEnabled(String id);
 }

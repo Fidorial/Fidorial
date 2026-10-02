@@ -63,7 +63,7 @@ public final class BanIpCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.ban();
+        final BanManager bans = server.bans();
 
         final List<Player> targets =
                 context.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(source);
@@ -106,7 +106,7 @@ public final class BanIpCommand {
 
         for (final ServerPlayer player : server.players()) {
             if (player.address().equals(entry.address())) {
-                player.kick(server.ban().disconnectMessage(entry));
+                player.kick(server.bans().disconnectMessage(entry));
                 kicked++;
             }
         }

@@ -108,10 +108,21 @@ public record BedRule(
             this.id = id;
         }
 
+        /**
+         * {@return the identifier used in the dimension type definition}
+         *
+         * @since 0.1.0
+         */
         public String id() {
             return this.id;
         }
 
+        /**
+         * {@return the condition with an identifier, or empty if it is unknown}
+         *
+         * @param id the identifier
+         * @since 0.1.0
+         */
         public static Optional<AccessCondition> fromId(final String id) {
             for (final AccessCondition access : values()) {
                 if (access.id.equals(id)) {

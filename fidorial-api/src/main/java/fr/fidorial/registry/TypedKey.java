@@ -1,22 +1,49 @@
 package fr.fidorial.registry;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
 
-import java.util.Objects;
 
+/**
+ * A key bound to the registry it belongs to, so lookups are type-safe.
+ *
+ * @param registry the registry the key belongs to
+ * @param key      the key of the entry
+ * @param <T>      the type of the entry
+ * @since 0.1.0
+ */
 public record TypedKey<T>(RegistryKey<T> registry, Key key) {
 
+    /**
+     * Validates the components.
+     */
     public TypedKey {
-        Objects.requireNonNull(registry, "registry");
-        Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(registry != null, "The registry of a typed key must not be null");
+        Preconditions.checkArgument(key != null, "The key of a typed key must not be null");
     }
 
-    public static <T> TypedKey<T> create(RegistryKey<T> registry, Key key) {
+    /**
+     * {@return a key of the given registry}
+     *
+     * @param registry the registry
+     * @param key      the key of the entry
+     * @param <T>      the type of the entry
+     * @since 0.1.0
+     */
+    public static <T> TypedKey<T> create(final RegistryKey<T> registry, final Key key) {
         return new TypedKey<>(registry, key);
     }
 
-    public static <T> TypedKey<T> create(RegistryKey<T> registry, @KeyPattern String key) {
+    /**
+     * {@return a key of the given registry}
+     *
+     * @param registry the registry
+     * @param key      the key of the entry, for instance {@code minecraft:stone}
+     * @param <T>      the type of the entry
+     * @since 0.1.0
+     */
+    public static <T> TypedKey<T> create(final RegistryKey<T> registry, @KeyPattern final String key) {
         return new TypedKey<>(registry, Key.key(key));
     }
 

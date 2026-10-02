@@ -69,8 +69,8 @@ public record ChatTypeDecoration(String translationKey, List<String> parameters,
 
         /**
          * @param translationKey the translation key used to format the message, supporting placeholders
-         * @apiNote the translation key is resolved purely client-side using language files from resource packs; fallbacks to plaintext with resolved placeholders when it can't be found.
          * @return this builder
+         * @apiNote the translation key is resolved purely client-side using language files from resource packs; fallbacks to plaintext with resolved placeholders when it can't be found.
          */
         @Contract("_ -> this")
         public Builder translationKey(final String translationKey) {

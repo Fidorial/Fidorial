@@ -1,10 +1,10 @@
 package fr.fidorial.world.biome;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 /**
  * The client-side tinting a biome applies.
@@ -30,7 +30,7 @@ public record BiomeEffects(
     public static final BiomeEffects DEFAULT = builder().build();
 
     public BiomeEffects {
-        Objects.requireNonNull(grassColorModifier, "grassColorModifier");
+        Preconditions.checkArgument(grassColorModifier != null, "The grass color modifier of a biome effects must not be null");
     }
 
     /**
@@ -134,7 +134,8 @@ public record BiomeEffects(
          */
         @Contract("_ -> this")
         public Builder grassColorModifier(final GrassColorModifier modifier) {
-            this.grassColorModifier = Objects.requireNonNull(modifier, "modifier");
+            Preconditions.checkArgument(modifier != null, "The modifier passed to BiomeEffects.Builder.grassColorModifier() must not be null");
+            this.grassColorModifier = modifier;
             return this;
         }
 

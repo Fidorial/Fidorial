@@ -33,8 +33,8 @@ public record ItemStack(Key id, int count, DataComponentMap components)
     public static final ItemStack EMPTY = new ItemStack(AIR, 0, DataComponentMap.EMPTY);
 
     public ItemStack {
-        Preconditions.checkNotNull(id, "The ID of an item stack must not be null");
-        Preconditions.checkNotNull(components, "The components of an item stack must not be null");
+        Preconditions.checkArgument(id != null, "The ID of an item stack must not be null");
+        Preconditions.checkArgument(components != null, "The components of an item stack must not be null");
     }
 
     /**
@@ -96,7 +96,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @since 0.1.0
      */
     public ItemStack withComponents(final DataComponentEditor editor) {
-        Preconditions.checkNotNull(editor, "The editor passed to ItemStack.withComponents() must not be null");
+        Preconditions.checkArgument(editor != null, "The editor passed to ItemStack.withComponents() must not be null");
         final DataComponentMap patched = editor.components();
         return patched.equals(components) ? this : new ItemStack(id, count, patched);
     }
@@ -216,9 +216,11 @@ public record ItemStack(Key id, int count, DataComponentMap components)
         private int count;
 
         private Builder(final Key id, final int count, final DataComponentEditor components) {
-            this.id = Preconditions.checkNotNull(id, "The ID of an item stack builder must not be null");
+            Preconditions.checkArgument(id != null, "The ID of an item stack builder must not be null");
+            this.id = id;
             this.count = count;
-            this.components = Preconditions.checkNotNull(components, "The components of an item stack builder must not be null");
+            Preconditions.checkArgument(components != null, "The components of an item stack builder must not be null");
+            this.components = components;
         }
 
         /**

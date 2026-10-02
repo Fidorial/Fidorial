@@ -26,11 +26,11 @@ public final class ItemDefaults {
 
         public Properties {
             if (maxStackSize < 1) {
-                throw new IllegalArgumentException("maxStackSize must be at least 1, got " + maxStackSize);
+                throw new IllegalArgumentException("The maximum stack size of an item must be at least 1, got " + maxStackSize);
             }
 
             if (maxDamage < 0) {
-                throw new IllegalArgumentException("maxDamage cannot be negative, got " + maxDamage);
+                throw new IllegalArgumentException("The maximum damage of an item cannot be negative, got " + maxDamage);
             }
         }
     }
@@ -87,7 +87,8 @@ public final class ItemDefaults {
      * @param source the table to read from; replaces whatever was installed before
      */
     public static void install(final Source source) {
-        ItemDefaults.source = Preconditions.checkNotNull(source, "The source passed to ItemDefaults.install() must not be null");
+        Preconditions.checkArgument(source != null, "The source passed to ItemDefaults.install() must not be null");
+        ItemDefaults.source = source;
     }
 
     /**
@@ -98,8 +99,8 @@ public final class ItemDefaults {
      * @param properties the defaults to record
      */
     public static void register(final Key item, final Properties properties) {
-        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.register() must not be null");
-        Preconditions.checkNotNull(properties, "The properties passed to ItemDefaults.register() must not be null");
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.register() must not be null");
+        Preconditions.checkArgument(properties != null, "The properties passed to ItemDefaults.register() must not be null");
         OVERRIDES.put(item, properties);
     }
 
@@ -110,7 +111,7 @@ public final class ItemDefaults {
      * @return {@code true} when an override was removed
      */
     public static boolean unregister(final Key item) {
-        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.unregister() must not be null");
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.unregister() must not be null");
         return OVERRIDES.remove(item) != null;
     }
 
@@ -119,7 +120,7 @@ public final class ItemDefaults {
      * @return {@code true} when this item has registered defaults of its own
      */
     public static boolean isRegistered(final Key item) {
-        Preconditions.checkNotNull(item, "The item passed to ItemDefaults.isRegistered() must not be null");
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.isRegistered() must not be null");
         return OVERRIDES.containsKey(item);
     }
 

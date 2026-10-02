@@ -224,7 +224,7 @@ public interface ArgumentProvider {
      */
     ArgumentType<Integer> time(int minTicks);
 
-     /**
+    /**
      * @since 0.1.0
      */
     ArgumentType<Duration> duration();

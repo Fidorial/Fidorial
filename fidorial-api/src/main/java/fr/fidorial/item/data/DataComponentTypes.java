@@ -13,6 +13,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * The data component types the API models, keyed like their vanilla counterparts.
+ *
+ * @since 0.1.0
+ */
 public class DataComponentTypes {
 
     private static final Map<Key, DataComponentType<?>> BY_KEY = new LinkedHashMap<>();
@@ -91,7 +96,7 @@ public class DataComponentTypes {
      * @return the component type, or {@code null} when Fidorial does not model it
      */
     public static @Nullable DataComponentType<?> byKey(final Key key) {
-        Preconditions.checkNotNull(key, "The key passed to DataComponentTypes.byKey() must not be null");
+        Preconditions.checkArgument(key != null, "The key passed to DataComponentTypes.byKey() must not be null");
         return BY_KEY.get(key);
     }
 
@@ -100,7 +105,7 @@ public class DataComponentTypes {
      * @return {@code true} when Fidorial has a typed handle for that component
      */
     public static boolean isModelled(final Key key) {
-        Preconditions.checkNotNull(key, "The key passed to DataComponentTypes.isModelled() must not be null");
+        Preconditions.checkArgument(key != null, "The key passed to DataComponentTypes.isModelled() must not be null");
         return BY_KEY.containsKey(key);
     }
 

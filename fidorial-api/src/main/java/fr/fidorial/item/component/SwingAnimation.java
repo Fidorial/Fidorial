@@ -2,7 +2,6 @@ package fr.fidorial.item.component;
 
 import com.google.common.base.Preconditions;
 
-
 /**
  * The animation played when an item is used to attack or interact with something,
  * able to be specified using {@code minecraft:attack_animation} and {@code minecraft:interact_animation}.
@@ -13,10 +12,15 @@ import com.google.common.base.Preconditions;
  */
 public record SwingAnimation(SwingAnimationType type, int duration) {
 
+    /**
+     * The vanilla animation: a six-tick whack.
+     *
+     * @since 0.1.0
+     */
     public static final SwingAnimation DEFAULT = new SwingAnimation(SwingAnimationType.WHACK, 6);
 
     public SwingAnimation {
-        Preconditions.checkNotNull(type, "The type of a swing animation must not be null");
+        Preconditions.checkArgument(type != null, "The type of a swing animation must not be null");
 
         if (duration < 0) {
             throw new IllegalArgumentException("Duration cannot be negative, got " + duration);

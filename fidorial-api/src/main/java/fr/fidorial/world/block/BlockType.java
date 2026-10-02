@@ -12,6 +12,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A kind of block, such as {@code minecraft:oak_stairs}, with the properties its states combine.
+ *
+ * <p>Every combination of property values is one {@link BlockData state}, addressed by an ordinal
+ * in property order and sent to clients under its network identifier. States are immutable proxies
+ * implementing the {@linkplain #traits() traits} detected from the properties.</p>
+ *
+ * @since 0.1.0
+ */
 public final class BlockType {
 
     private final Key key;
@@ -50,22 +59,55 @@ public final class BlockType {
         this.defaultData = createData(defaultOrdinal);
     }
 
+    /**
+     * Creates a block type from its network identifiers.
+     *
+     * @param key            the block key
+     * @param properties     the properties, in declaration order
+     * @param stateIds       the network identifier of each state, indexed by ordinal
+     * @param defaultOrdinal the ordinal of the default state
+     * @return the block type
+     * @throws IllegalArgumentException if the identifiers do not match the property combinations
+     * @since 0.1.0
+     */
     public static BlockType of(final Key key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal) {
         return new BlockType(key, properties, stateIds, defaultOrdinal, BlockTraits.detect(key, properties));
     }
 
+    /**
+     * {@return a builder for a block type of the given key}
+     *
+     * @param key the block key
+     * @since 0.1.0
+     */
     public static Builder builder(final Key key) {
         return new Builder(key);
     }
 
+    /**
+     * {@return the block key}
+     *
+     * @since 0.1.0
+     */
     public Key key() {
         return key;
     }
 
+    /**
+     * {@return the properties of this block, in declaration order}
+     *
+     * @since 0.1.0
+     */
     public List<BlockProperty> properties() {
         return properties;
     }
 
+    /**
+     * {@return the property with the given name, or {@code null} if this block has none}
+     *
+     * @param name the property name
+     * @since 0.1.0
+     */
     public @Nullable BlockProperty property(final String name) {
         for (final BlockProperty property : properties) {
             if (property.name().equals(name)) {
@@ -75,22 +117,49 @@ public final class BlockType {
         return null;
     }
 
+    /**
+     * {@return {@code true} if this block declares a property with the given name}
+     *
+     * @param name the property name
+     * @since 0.1.0
+     */
     public boolean hasProperty(final String name) {
         return property(name) != null;
     }
 
+    /**
+     * {@return the number of states of this block, one per property combination}
+     *
+     * @since 0.1.0
+     */
     public int stateCount() {
         return stateIds.length;
     }
 
+    /**
+     * {@return the interfaces every state of this block implements, {@link BlockData} first}
+     *
+     * @since 0.1.0
+     */
     public List<Class<?>> traits() {
         return List.of(interfaces);
     }
 
+    /**
+     * {@return the state a block of this type takes when placed without context}
+     *
+     * @since 0.1.0
+     */
     public @Nullable BlockData defaultData() {
         return defaultData;
     }
 
+    /**
+     * {@return the state with the given ordinal}
+     *
+     * @param ordinal the ordinal, from {@code 0} to {@code stateCount() - 1}
+     * @since 0.1.0
+     */
     public BlockData stateAt(final int ordinal) {
         if (ordinal == defaultOrdinal && defaultData != null) {
             return defaultData;
@@ -98,6 +167,14 @@ public final class BlockType {
         return createData(ordinal);
     }
 
+    /**
+     * Gets the state matching the given property values, starting from the default state.
+     *
+     * @param values property name to value; {@code null} or empty for the default state
+     * @return the matching state
+     * @throws IllegalArgumentException if a property or value is unknown to this block
+     * @since 0.1.0
+     */
     public @Nullable BlockData data(@Nullable final Map<String, String> values) {
         if (values == null || values.isEmpty()) {
             return defaultData;
@@ -109,6 +186,13 @@ public final class BlockType {
         return stateAt(ordinal);
     }
 
+    /**
+     * Gets the state matching the given property values, starting from the default state.
+     *
+     * @param values property name to value
+     * @return the matching state, or {@code null} if a property or value is unknown to this block
+     * @since 0.1.0
+     */
     public @Nullable BlockData dataOrNull(final Map<String, String> values) {
         try {
             return data(values);
@@ -162,16 +246,27 @@ public final class BlockType {
         return map;
     }
 
+    /**
+     * {@return the ordinal of the default state}
+     *
+     * @since 0.1.0
+     */
     public int defaultOrdinal() {
         return defaultOrdinal;
     }
 
+    /**
+     * {@return the property values of the state with the given ordinal, in declaration order}
+     *
+     * @param ordinal the ordinal of the state
+     * @since 0.1.0
+     */
     public Map<String, @Nullable String> propertyValuesAt(final int ordinal) {
         return valuesOf(ordinal);
     }
 
     @Override
-    public boolean equals(final Object other) {
+    public boolean equals(final @Nullable Object other) {
         return other instanceof final BlockType type && type.key.equals(key);
     }
 
@@ -207,7 +302,9 @@ public final class BlockType {
         private boolean equalsData(@Nullable final Object other) {
             if (other == null) return false;
             return Proxy.isProxyClass(other.getClass())
-                    && Proxy.getInvocationHandler(other) instanceof DataHandler(final BlockType type1, final int ordinal1)
+                    && Proxy.getInvocationHandler(other) instanceof DataHandler(
+                    final BlockType type1, final int ordinal1
+            )
                     && type1.equals(type)
                     && ordinal1 == ordinal;
         }
@@ -227,6 +324,14 @@ public final class BlockType {
         return ordinal;
     }
 
+    /**
+     * Builds a {@link BlockType}, typically for a block a plugin adds.
+     *
+     * <p>Network identifiers come from exactly one of {@link #firstStateId(int)},
+     * {@link #stateIds(int[])} or {@link #appearance(int)}.</p>
+     *
+     * @since 0.1.0
+     */
     public static final class Builder {
 
         private final Key key;
@@ -241,6 +346,14 @@ public final class BlockType {
             this.key = key;
         }
 
+        /**
+         * Declares a property.
+         *
+         * @param property the property
+         * @return this builder
+         * @throws IllegalArgumentException if a property with the same name is already declared
+         * @since 0.1.0
+         */
         public Builder property(final BlockProperty property) {
             for (final BlockProperty declared : properties) {
                 if (declared.name().equals(property.name())) {
@@ -252,29 +365,74 @@ public final class BlockType {
             return this;
         }
 
+        /**
+         * Declares a property.
+         *
+         * @param name   the property name
+         * @param values the accepted values, the first one being the default
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder property(final String name, final List<String> values) {
             return property(new BlockProperty(name, values));
         }
 
+        /**
+         * Declares a property.
+         *
+         * @param name   the property name
+         * @param values the accepted values, the first one being the default
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder property(final String name, final String... values) {
             return property(name, Arrays.asList(values));
         }
 
+        /**
+         * Numbers the states consecutively from a first network identifier.
+         *
+         * @param firstStateId the network identifier of the state of ordinal {@code 0}
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder firstStateId(final int firstStateId) {
             this.firstStateId = firstStateId;
             return this;
         }
 
+        /**
+         * Gives the network identifier of every state explicitly.
+         *
+         * @param stateIds the identifiers, indexed by ordinal
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder stateIds(final int[] stateIds) {
             this.stateIds = stateIds.clone();
             return this;
         }
 
+        /**
+         * Makes every state render client-side as one existing block state.
+         *
+         * @param networkId the network identifier of the vanilla state to render as
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder appearance(final int networkId) {
             this.fixedStateId = networkId;
             return this;
         }
 
+        /**
+         * Sets the value a property takes in the default state.
+         *
+         * @param property the property name
+         * @param value    the value
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder defaultValue(final String property, final String value) {
             final Map<String, String> merged = new LinkedHashMap<>(defaultValues);
             merged.put(property, value);
@@ -282,16 +440,36 @@ public final class BlockType {
             return this;
         }
 
+        /**
+         * Sets the values the properties take in the default state, replacing earlier ones.
+         *
+         * @param values property name to value
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder defaultValues(final Map<String, String> values) {
             this.defaultValues = Map.copyOf(values);
             return this;
         }
 
+        /**
+         * Adds a trait interface the states implement, on top of the detected ones.
+         *
+         * @param trait the trait interface
+         * @return this builder
+         * @since 0.1.0
+         */
         public Builder trait(final Class<? extends BlockData> trait) {
             extraTraits.add(trait);
             return this;
         }
 
+        /**
+         * {@return the block type}
+         *
+         * @throws IllegalStateException if no network identifier source was given
+         * @since 0.1.0
+         */
         public BlockType build() {
             int count = 1;
             for (final BlockProperty property : properties) {

@@ -181,7 +181,7 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public CompletableFuture<Chunk> getChunkAsync(final int chunkX, final int chunkZ) {
+    public CompletableFuture<Chunk> chunkAsync(final int chunkX, final int chunkZ) {
         final ChunkColumn cached = loaded.get(ChunkPos.chunkKey(chunkX, chunkZ));
         if (cached != null) {
             return CompletableFuture.completedFuture(wrap(cached));
@@ -198,7 +198,7 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public Optional<Chunk> getChunkIfLoaded(final int chunkX, final int chunkZ) {
+    public Optional<Chunk> chunkIfLoaded(final int chunkX, final int chunkZ) {
         final ChunkColumn cached = loaded.get(ChunkPos.chunkKey(chunkX, chunkZ));
         return Optional.ofNullable(cached).map(this::wrap);
     }
@@ -221,11 +221,11 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public int getBlockStateId(final BlockPos pos) {
+    public int blockStateId(final BlockPos pos) {
         try {
             return blockStates.networkId(getBlock(pos.x(), pos.y(), pos.z()));
         } catch (final IOException e) {
-            throw new UncheckedIOException("Lecture du bloc " + pos + " impossible", e);
+            throw new UncheckedIOException("Failed to read block " + pos, e);
         }
     }
 
@@ -236,7 +236,7 @@ public final class ServerWorld implements World {
             try {
                 future.complete(setBlock(pos.x(), pos.y(), pos.z(), blockStates.byId(stateId)));
             } catch (final IOException e) {
-                future.completeExceptionally(new UncheckedIOException("Ecriture du bloc " + pos + " impossible", e));
+                future.completeExceptionally(new UncheckedIOException("Failed to write block " + pos, e));
             }
         });
         if (!scheduled) future.complete(false);
@@ -264,13 +264,13 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public Entity entity(final UUID uuid) {
-        return entities.byUuid(uuid);
+    public Optional<? extends Entity> entity(final UUID uuid) {
+        return Optional.ofNullable(entities.byUuid(uuid));
     }
 
     @Override
-    public Entity entity(final int entityId) {
-        return entities.byId(entityId);
+    public Optional<? extends Entity> entity(final int entityId) {
+        return Optional.ofNullable(entities.byId(entityId));
     }
 
     public void addEntity(final AbstractEntity entity) {
@@ -382,7 +382,7 @@ public final class ServerWorld implements World {
     }
 
     private void loadForcedChunk(final int chunkX, final int chunkZ) {
-        getChunkAsync(chunkX, chunkZ).exceptionally(failure -> {
+        chunkAsync(chunkX, chunkZ).exceptionally(failure -> {
             LOGGER.warn("Unable to load the force-loaded chunk {},{} in {}", chunkX, chunkZ, key(), failure);
             return null;
         });

@@ -81,7 +81,6 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      *
      * @return the client address
      * @throws IllegalStateException if the connection has no resolvable IP address
-     *
      * @since 0.1.0
      */
     InetAddress address();
@@ -220,10 +219,10 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * Switches this player's connection status from PLAY to CONFIGURATION.
      * Useful for resending data synced during the CONFIGURATION phase.
      *
-     * @since 0.1.0
      * @apiNote This removes the player from the world fully and creates them anew,
      * firing {@link PlayerQuitEvent}, {@link PlayerJoinEvent}, and saving their data to disk.
      * Any reference to this {@link Player} held before this call should be considered stale.
+     * @since 0.1.0
      */
     void enterConfigurationPhase();
 

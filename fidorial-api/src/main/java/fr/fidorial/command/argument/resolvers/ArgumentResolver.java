@@ -17,6 +17,7 @@ public interface ArgumentResolver<T> {
     /**
      * Resolves the argument with the given
      * command source.
+     *
      * @param source source
      * @return resolved
      * @throws CommandSyntaxException if an error occurs while parsing

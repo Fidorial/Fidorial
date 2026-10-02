@@ -20,7 +20,8 @@ import static net.kyori.adventure.text.object.PlayerHeadObjectContents.property;
  * @param properties the profile properties, usually the signed {@code textures}
  * @since 0.1.0
  */
-public record PlayerProfile(UUID uuid, String name, List<Property> properties) implements PlayerHeadObjectContents.SkinSource, ObjectContentsLike {
+public record PlayerProfile(UUID uuid, String name,
+                            List<Property> properties) implements PlayerHeadObjectContents.SkinSource, ObjectContentsLike {
 
     /**
      * Copies the properties.
