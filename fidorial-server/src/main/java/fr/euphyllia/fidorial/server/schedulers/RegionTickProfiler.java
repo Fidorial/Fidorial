@@ -1,10 +1,12 @@
 package fr.euphyllia.fidorial.server.schedulers;
 
+import net.kyori.adventure.key.Key;
+
 /**
  * Callback surface used by the scheduler to feed an external profiler.
  *
  * <p>Kept free of any profiler-specific type so the scheduler package stays independent of spark.
- * The only implementation today is {@code fr.euphyllia.fidorial.server.spark.SparkTickBridge}.</p>
+ * The only implementations today are {@link fr.euphyllia.fidorial.server.spark.SparkTickBridge} and {@link fr.euphyllia.fidorial.server.debug.DebugSampleBroadcaster}.</p>
  *
  * <p>Every method is called from region worker threads and from the day/night ticker, so
  * implementations must be thread safe and must not block.</p>
@@ -40,4 +42,12 @@ public interface RegionTickProfiler {
      * @param durationMillis the wall-clock duration of the region tick, in milliseconds
      */
     void reportRegionTick(double durationMillis);
+
+    /**
+     * Reports a region tick with its identity and the task time spent since the previous tick.
+     * Called on the region thread right after the tick.
+     */
+    default void reportRegionTick(final Key world, final int sectionX, final int sectionZ, final long tickNanos, final long taskNanos) {
+        reportRegionTick(tickNanos / 1_000_000.0D);
+    }
 }

@@ -15,6 +15,7 @@ import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.data.DataComponentType;
+import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Dialog;
 import fr.fidorial.registry.data.DimensionType;
@@ -132,6 +133,11 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:decorated_pot_pattern}.
      */
     public static final RegistryKey<DecoratedPotPattern> DECORATED_POT_PATTERN = of("decorated_pot_pattern");
+
+    /**
+     * Registry key for {@code minecraft:debug_subscription}.
+     */
+    public static final RegistryKey<DebugSubscription> DEBUG_SUBSCRIPTION = of("debug_subscription");
 
     /**
      * Registry key for {@code minecraft:dimension_type}.

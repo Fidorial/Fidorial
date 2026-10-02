@@ -1,9 +1,11 @@
 package fr.euphyllia.fidorial.server.entity.ai;
 
+import fr.euphyllia.fidorial.server.debug.DebugValues;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.ai.Goals;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -83,6 +85,22 @@ public class GoalSelector implements Goals {
 
     public @Nullable Goal active() {
         return active;
+    }
+
+    public DebugValues.@Nullable GoalSelectorInfo debugSnapshot() {
+        if (goals.isEmpty()) {
+            return null;
+        }
+        final List<DebugValues.GoalSelectorInfo.Entry> entries = new ArrayList<>(goals.size());
+        for (final Goal goal : goals) {
+            entries.add(new DebugValues.GoalSelectorInfo.Entry(goal.priority(), goal == active, debugName(goal)));
+        }
+        return new DebugValues.GoalSelectorInfo(entries);
+    }
+
+    public static String debugName(final Goal goal) {
+        final String simple = goal.getClass().getSimpleName();
+        return simple.isEmpty() ? goal.getClass().getName() : simple;
     }
 
     public void stopAll() {

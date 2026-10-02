@@ -12,6 +12,7 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.world.Location;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 public final class EntityTracker {
 
@@ -36,7 +37,6 @@ public final class EntityTracker {
     public static boolean shouldUpdate(final Entity entity, final long currentTick) {
         return Math.floorMod(currentTick + entity.entityId(), UPDATE_INTERVAL_TICKS) == 0;
     }
-
 
     public void update(final Entity entity, final Collection<ServerPlayer> players) {
         if (entity.isRemoved()) {
@@ -86,6 +86,23 @@ public final class EntityTracker {
         for (final ClientConnection connection : current.getArray()) {
             connection.send(packet);
         }
+    }
+
+    public void sendToViewers(final AbstractEntity entity, final ClientboundPacket packet, final Predicate<ClientConnection> filter) {
+        final COWArrayList<ClientConnection> current = viewers.get(entity.entityId());
+        if (current == null) {
+            return;
+        }
+        for (final ClientConnection connection : current.getArray()) {
+            if (filter.test(connection)) {
+                connection.send(packet);
+            }
+        }
+    }
+
+    public int viewerCount(final Entity entity) {
+        final COWArrayList<ClientConnection> current = viewers.get(entity.entityId());
+        return current == null ? 0 : current.getArray().length;
     }
 
     public void untrack(final Entity entity) {

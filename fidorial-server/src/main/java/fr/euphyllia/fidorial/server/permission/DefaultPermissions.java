@@ -12,6 +12,7 @@ public final class DefaultPermissions {
 
     public static final String ROOT = "fidorial";
     public static final String COMMAND_ROOT = ROOT + ".command";
+    public static final String DEBUG_SUBSCRIPTIONS = ROOT + ".debug.subscriptions";
 
     private DefaultPermissions() {
     }
@@ -51,7 +52,8 @@ public final class DefaultPermissions {
                 PermissionDefinition.operatorOnly("spark", "Use the built-in spark profiler."),
                 PermissionDefinition.operatorOnly("spark.*", "Every spark subcommand."),
                 PermissionDefinition.operatorOnly(
-                        "minecraft.command.selector", "Use entity selectors (@a, @p, @e, @s).")));
+                        "minecraft.command.selector", "Use entity selectors (@a, @p, @e, @s)."),
+                PermissionDefinition.operatorOnly(DEBUG_SUBSCRIPTIONS, "Use the client debug renderers.")));
     }
 
     private static PermissionDefinition command(final String name, final String description) {

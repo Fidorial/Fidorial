@@ -52,6 +52,7 @@ public class DayNightThread implements AutoCloseable {
         ticker.scheduleAtFixedRate(
                 () -> {
                     try {
+                        tickProfiler.heartbeat();
                         tick();
                     } catch (final Throwable t) {
                         LOGGER.error("Day/night cycle tick failed", t);

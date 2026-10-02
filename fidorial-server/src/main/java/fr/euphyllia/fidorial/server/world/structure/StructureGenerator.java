@@ -237,4 +237,21 @@ public final class StructureGenerator {
         }
         return best;
     }
+
+    public List<StructureStart> startsOriginatingIn(final int chunkX, final int chunkZ) {
+        final List<StructureStart> found = new ArrayList<>();
+        final List<StructureSet> sets = registry.structureSets();
+        for (int setIndex = 0; setIndex < sets.size(); setIndex++) {
+            final StructureSet set = sets.get(setIndex);
+            if (!(set.placement() instanceof final StructurePlacement.RandomSpread spread)
+                    || !isStartChunk(spread, chunkX, chunkZ, 0)) {
+                continue;
+            }
+            final StructureStart start = startAt(setIndex, set, chunkX, chunkZ);
+            if (!start.isEmpty() && start.bounds() != null) {
+                found.add(start);
+            }
+        }
+        return found;
+    }
 }
