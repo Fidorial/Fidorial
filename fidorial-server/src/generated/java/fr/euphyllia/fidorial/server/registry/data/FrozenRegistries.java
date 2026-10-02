@@ -20,8 +20,10 @@ public final class FrozenRegistries {
         Map.entry(Key.key("attribute"), attribute()),
         Map.entry(Key.key("block"), block()),
         Map.entry(Key.key("data_component_type"), dataComponentType()),
+        Map.entry(Key.key("debug_subscription"), debugSubscription()),
         Map.entry(Key.key("entity_type"), entityType()),
         Map.entry(Key.key("fluid"), fluid()),
+        Map.entry(Key.key("game_event"), gameEvent()),
         Map.entry(Key.key("item"), item()),
         Map.entry(Key.key("menu"), menu())
     );
@@ -30,8 +32,10 @@ public final class FrozenRegistries {
         Map.entry(Key.key("attribute"), attributeTags()),
         Map.entry(Key.key("block"), blockTags()),
         Map.entry(Key.key("data_component_type"), dataComponentTypeTags()),
+        Map.entry(Key.key("debug_subscription"), debugSubscriptionTags()),
         Map.entry(Key.key("entity_type"), entityTypeTags()),
         Map.entry(Key.key("fluid"), fluidTags()),
+        Map.entry(Key.key("game_event"), gameEventTags()),
         Map.entry(Key.key("item"), itemTags()),
         Map.entry(Key.key("menu"), menuTags())
     );
@@ -8065,6 +8069,41 @@ public final class FrozenRegistries {
         return Map.of();
     }
 
+    private static void debugSubscription0(final List<Key> entries) {
+        entries.add(Key.key("dedicated_server_tick_time"));
+        entries.add(Key.key("bees"));
+        entries.add(Key.key("brains"));
+        entries.add(Key.key("breezes"));
+        entries.add(Key.key("goal_selectors"));
+        entries.add(Key.key("entity_paths"));
+        entries.add(Key.key("entity_block_intersections"));
+        entries.add(Key.key("bee_hives"));
+        entries.add(Key.key("pois"));
+        entries.add(Key.key("redstone_wire_orientations"));
+        entries.add(Key.key("village_sections"));
+        entries.add(Key.key("raids"));
+        entries.add(Key.key("structures"));
+        entries.add(Key.key("game_event_listeners"));
+        entries.add(Key.key("neighbor_updates"));
+        entries.add(Key.key("game_events"));
+    }
+
+    /**
+     * @return {@code minecraft:debug_subscription}, indexed by network ID
+     */
+    private static List<Key> debugSubscription() {
+        final List<Key> entries = new ArrayList<>(16);
+        debugSubscription0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:debug_subscription}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> debugSubscriptionTags() {
+        return Map.of();
+    }
+
     private static void entityType0(final List<Key> entries) {
         entries.add(Key.key("acacia_boat"));
         entries.add(Key.key("acacia_chest_boat"));
@@ -8447,6 +8486,135 @@ public final class FrozenRegistries {
     private static Map<Key, List<Key>> fluidTags() {
         final Map<Key, List<Key>> tags = new LinkedHashMap<>(10);
         fluidTags0(tags);
+        return Map.copyOf(tags);
+    }
+
+    private static void gameEvent0(final List<Key> entries) {
+        entries.add(Key.key("block_activate"));
+        entries.add(Key.key("block_attach"));
+        entries.add(Key.key("block_change"));
+        entries.add(Key.key("block_close"));
+        entries.add(Key.key("block_deactivate"));
+        entries.add(Key.key("block_destroy"));
+        entries.add(Key.key("block_detach"));
+        entries.add(Key.key("block_open"));
+        entries.add(Key.key("block_place"));
+        entries.add(Key.key("bounce"));
+        entries.add(Key.key("container_close"));
+        entries.add(Key.key("container_open"));
+        entries.add(Key.key("drink"));
+        entries.add(Key.key("eat"));
+        entries.add(Key.key("elytra_glide"));
+        entries.add(Key.key("entity_damage"));
+        entries.add(Key.key("entity_die"));
+        entries.add(Key.key("entity_dismount"));
+        entries.add(Key.key("entity_interact"));
+        entries.add(Key.key("entity_mount"));
+        entries.add(Key.key("entity_place"));
+        entries.add(Key.key("entity_action"));
+        entries.add(Key.key("equip"));
+        entries.add(Key.key("explode"));
+        entries.add(Key.key("flap"));
+        entries.add(Key.key("fluid_pickup"));
+        entries.add(Key.key("fluid_place"));
+        entries.add(Key.key("hit_ground"));
+        entries.add(Key.key("instrument_play"));
+        entries.add(Key.key("item_interact_finish"));
+        entries.add(Key.key("item_interact_start"));
+        entries.add(Key.key("jukebox_play"));
+        entries.add(Key.key("jukebox_stop_play"));
+        entries.add(Key.key("lightning_strike"));
+        entries.add(Key.key("note_block_play"));
+        entries.add(Key.key("prime_fuse"));
+        entries.add(Key.key("projectile_land"));
+        entries.add(Key.key("projectile_shoot"));
+        entries.add(Key.key("sculk_sensor_tendrils_clicking"));
+        entries.add(Key.key("shear"));
+        entries.add(Key.key("shriek"));
+        entries.add(Key.key("splash"));
+        entries.add(Key.key("step"));
+        entries.add(Key.key("swim"));
+        entries.add(Key.key("teleport"));
+        entries.add(Key.key("unequip"));
+        entries.add(Key.key("resonate_1"));
+        entries.add(Key.key("resonate_2"));
+        entries.add(Key.key("resonate_3"));
+        entries.add(Key.key("resonate_4"));
+        entries.add(Key.key("resonate_5"));
+        entries.add(Key.key("resonate_6"));
+        entries.add(Key.key("resonate_7"));
+        entries.add(Key.key("resonate_8"));
+        entries.add(Key.key("resonate_9"));
+        entries.add(Key.key("resonate_10"));
+        entries.add(Key.key("resonate_11"));
+        entries.add(Key.key("resonate_12"));
+        entries.add(Key.key("resonate_13"));
+        entries.add(Key.key("resonate_14"));
+        entries.add(Key.key("resonate_15"));
+    }
+
+    /**
+     * @return {@code minecraft:game_event}, indexed by network ID
+     */
+    private static List<Key> gameEvent() {
+        final List<Key> entries = new ArrayList<>(61);
+        gameEvent0(entries);
+        return List.copyOf(entries);
+    }
+
+    private static void gameEventTags0(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("allay_can_listen"), List.of(Key.key("note_block_play")));
+        tags.put(Key.key("ignore_vibrations_sneaking"), List.of(Key.key("hit_ground"),
+                Key.key("item_interact_finish"), Key.key("item_interact_start"),
+                Key.key("projectile_shoot"), Key.key("step"), Key.key("swim")));
+        tags.put(Key.key("shrieker_can_listen"), List.of(Key.key("sculk_sensor_tendrils_clicking")));
+        tags.put(Key.key("vibrations"), List.of(Key.key("block_activate"), Key.key("block_attach"),
+                Key.key("block_change"), Key.key("block_close"), Key.key("block_deactivate"),
+                Key.key("block_destroy"), Key.key("block_detach"), Key.key("block_open"),
+                Key.key("block_place"), Key.key("bounce"), Key.key("container_close"),
+                Key.key("container_open"), Key.key("drink"), Key.key("eat"),
+                Key.key("elytra_glide"), Key.key("entity_action"), Key.key("entity_damage"),
+                Key.key("entity_die"), Key.key("entity_dismount"), Key.key("entity_interact"),
+                Key.key("entity_mount"), Key.key("entity_place"), Key.key("equip"),
+                Key.key("explode"), Key.key("flap"), Key.key("fluid_pickup"),
+                Key.key("fluid_place"), Key.key("hit_ground"), Key.key("instrument_play"),
+                Key.key("item_interact_finish"), Key.key("lightning_strike"),
+                Key.key("note_block_play"), Key.key("prime_fuse"), Key.key("projectile_land"),
+                Key.key("projectile_shoot"), Key.key("resonate_1"), Key.key("resonate_10"),
+                Key.key("resonate_11"), Key.key("resonate_12"), Key.key("resonate_13"),
+                Key.key("resonate_14"), Key.key("resonate_15"), Key.key("resonate_2"),
+                Key.key("resonate_3"), Key.key("resonate_4"), Key.key("resonate_5"),
+                Key.key("resonate_6"), Key.key("resonate_7"), Key.key("resonate_8"),
+                Key.key("resonate_9"), Key.key("shear"), Key.key("splash"), Key.key("step"),
+                Key.key("swim"), Key.key("teleport"), Key.key("unequip")));
+        tags.put(Key.key("warden_can_listen"), List.of(Key.key("block_activate"),
+                Key.key("block_attach"), Key.key("block_change"), Key.key("block_close"),
+                Key.key("block_deactivate"), Key.key("block_destroy"), Key.key("block_detach"),
+                Key.key("block_open"), Key.key("block_place"), Key.key("bounce"),
+                Key.key("container_close"), Key.key("container_open"), Key.key("drink"),
+                Key.key("eat"), Key.key("elytra_glide"), Key.key("entity_action"),
+                Key.key("entity_damage"), Key.key("entity_die"), Key.key("entity_dismount"),
+                Key.key("entity_interact"), Key.key("entity_mount"), Key.key("entity_place"),
+                Key.key("equip"), Key.key("explode"), Key.key("fluid_pickup"),
+                Key.key("fluid_place"), Key.key("hit_ground"), Key.key("instrument_play"),
+                Key.key("item_interact_finish"), Key.key("lightning_strike"),
+                Key.key("note_block_play"), Key.key("prime_fuse"), Key.key("projectile_land"),
+                Key.key("projectile_shoot"), Key.key("resonate_1"), Key.key("resonate_10"),
+                Key.key("resonate_11"), Key.key("resonate_12"), Key.key("resonate_13"),
+                Key.key("resonate_14"), Key.key("resonate_15"), Key.key("resonate_2"),
+                Key.key("resonate_3"), Key.key("resonate_4"), Key.key("resonate_5"),
+                Key.key("resonate_6"), Key.key("resonate_7"), Key.key("resonate_8"),
+                Key.key("resonate_9"), Key.key("sculk_sensor_tendrils_clicking"), Key.key("shear"),
+                Key.key("shriek"), Key.key("splash"), Key.key("step"), Key.key("swim"),
+                Key.key("teleport"), Key.key("unequip")));
+    }
+
+    /**
+     * @return the tags of {@code minecraft:game_event}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> gameEventTags() {
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(5);
+        gameEventTags0(tags);
         return Map.copyOf(tags);
     }
 

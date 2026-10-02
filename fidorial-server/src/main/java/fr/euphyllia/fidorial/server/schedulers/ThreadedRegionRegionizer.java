@@ -61,6 +61,7 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     private volatile boolean shutdown;
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
+    private final COWArrayList<RegionTickProfiler> tickProfilers = new COWArrayList<>(RegionTickProfiler.class);
 
     public ThreadedRegionRegionizer(final int workerThreads, final int sectionShift) {
         SECTION_SHIFT = sectionShift;
@@ -102,10 +103,6 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
     public void registerTickHandler(final RegionTickHandler handler) {
         tickHandlers.add(handler);
-    }
-
-    public void setTickProfiler(final @Nullable RegionTickProfiler profiler) {
-        tickProfiler = profiler == null ? RegionTickProfiler.NO_OP : profiler;
     }
 
     public void addTicket(final Key worldName, final ChunkPos pos) {
@@ -239,6 +236,14 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
                 : "[thread=" + owner.getName() + ",class=" + owner.getClass().getName() + "]";
     }
 
+    public void addTickProfiler(final RegionTickProfiler profiler) {
+        tickProfilers.add(profiler);
+    }
+
+    public void removeTickProfiler(final RegionTickProfiler profiler) {
+        tickProfilers.remove(profiler);
+    }
+
     public void shutdown() {
         shutdown = true;
         scheduler.halt();
@@ -369,8 +374,10 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
         @Override
         public boolean runTick() {
-            final RegionTickProfiler profiler = tickProfiler;
-            profiler.heartbeat();
+            final RegionTickProfiler[] profilers = tickProfilers.getArray();
+            for (final RegionTickProfiler profiler : profilers) {
+                profiler.heartbeat();
+            }
 
             final long scheduledStart = getScheduledStart();
             final long tickStart = System.nanoTime();
@@ -395,8 +402,15 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
                 }
             } finally {
                 exit();
+                final long taskNanos = intermediateTimeNS;
                 final long durationNanos = recordTick(scheduledStart, tickStart, tickStartCpu);
-                profiler.reportRegionTick(durationNanos / 1_000_000.0D);
+                for (final RegionTickProfiler profiler : profilers) {
+                    try {
+                        profiler.reportRegionTick(key.world(), key.sectionX(), key.sectionZ(), durationNanos, taskNanos);
+                    } catch (final Throwable ex) {
+                        LOGGER.error("Error in a tick profiler of {}", key, ex);
+                    }
+                }
                 scheduleNextTick(scheduledStart);
             }
 

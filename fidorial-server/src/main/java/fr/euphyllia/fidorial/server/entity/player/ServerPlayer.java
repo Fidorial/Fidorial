@@ -1,9 +1,10 @@
 package fr.euphyllia.fidorial.server.entity.player;
 
-import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.debug.DebugSubscriptionState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
+import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
@@ -46,6 +47,9 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.GameEvent;
+import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.translation.TranslationStore;
@@ -81,7 +85,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToDoubleFunction;
+import java.util.function.UnaryOperator;
 
 public final class ServerPlayer extends AbstractLivingEntity implements Player, PermissionStateHolder {
 
@@ -132,6 +138,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile @Nullable RespawnPoint respawnPoint;
     private int nextWindowId = 1;
     private Locale locale;
+    private final AtomicReference<DebugSubscriptionState> debugSubscriptions = new AtomicReference<>(DebugSubscriptionState.EMPTY);
 
     public ServerPlayer(
             final int entityId,
@@ -152,8 +159,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.locale = connection.locale();
         this.permissions = new PermissionState(
                 this,
-                FidorialServer.getInstance().permissions(),
-                () -> FidorialServer.getInstance()
+                connection.server().permissions(),
+                () -> connection.server()
                         .services()
                         .find(PermissionResolver.class)
                         .map(List::of)
@@ -175,12 +182,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public boolean isOperator() {
-        return FidorialServer.getInstance().operators().isOp(profile.uuid());
+        return connection.server().operators().isOp(profile.uuid());
     }
 
     @Override
     public void setOperator(final boolean operator) {
-        FidorialServer.getInstance().operators().setOp(profile.uuid(), profile.name(), operator);
+        connection.server().operators().setOp(profile.uuid(), profile.name(), operator);
         invalidatePermissions();
     }
 
@@ -194,6 +201,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         permissions.invalidate();
         updateClientPermissionLevel();
         refreshCommands();
+        connection.server().debugSubscribers().refresh(this);
     }
 
     private void updateClientPermissionLevel() {
@@ -249,6 +257,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
                 menu.menuTypeId(connection.server().registries().frozen()),
                 menu.title()));
         connection.send(menu.buildSyncPacket(connection.server().registries().frozen()));
+        emitContainerEvent(GameEventKeys.CONTAINER_OPEN, menu);
     }
 
     /**
@@ -265,8 +274,18 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.openMenu = null;
         menu.returnCarried();
         menu.onClosed();
+        emitContainerEvent(GameEventKeys.CONTAINER_CLOSE, menu);
         if (notifyClient) {
             connection.send(new ClientboundContainerClosePacket(menu.windowId()));
+        }
+    }
+
+    private void emitContainerEvent(final TypedKey<GameEvent> event, final ContainerMenu menu) {
+        final var events = connection.server().debugGameEvents();
+        if (menu instanceof final EnderChestMenu enderChestMenu) {
+            events.emit(world(), event, enderChestMenu.position());
+        } else {
+            events.emit(world(), event, location());
         }
     }
 
@@ -427,6 +446,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         final double distance = fallDistance;
         setFallDistance(0.0);
         setFalling(false);
+        if (distance > 0.0) {
+            connection.server().debugGameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
+        }
         if (distance <= SAFE_FALL_DISTANCE || isInvulnerableToDamage()) {
             return 0f;
         }
@@ -716,6 +738,20 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public CommandSender sender() {
         return this;
+    }
+
+    public DebugSubscriptionState debugSubscriptions() {
+        return debugSubscriptions.get();
+    }
+
+    public DebugSubscriptionState.Transition updateDebugSubscriptions(final UnaryOperator<DebugSubscriptionState> update) {
+        while (true) {
+            final DebugSubscriptionState previous = debugSubscriptions.get();
+            final DebugSubscriptionState current = update.apply(previous);
+            if (debugSubscriptions.compareAndSet(previous, current)) {
+                return new DebugSubscriptionState.Transition(previous, current);
+            }
+        }
     }
 
     private double armorFromInventory(final ToDoubleFunction<ItemStack> value) {

@@ -8,6 +8,7 @@ import net.kyori.adventure.key.Key;
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Game_Event
 public record ClientboundGameEventPacket(int event, float value) implements ClientboundPacket {
 
+    public static final int NO_RESPAWN_BLOCK_AVAILABLE = 0;
     public static final int END_RAINING = 1;
     public static final int BEGIN_RAINING = 2;
     public static final int CHANGE_GAME_MODE = 3;

@@ -118,7 +118,7 @@ public final class SparkService implements SparkPlugin {
             return;
         }
 
-        this.server.regionizer().setTickProfiler(this.tickBridge);
+        this.server.regionizer().addTickProfiler(this.tickBridge);
         this.server.dayNightEngine().setTickProfiler(this.tickBridge);
 
         final SparkPlatform platform = new SparkPlatform(this);
@@ -159,7 +159,7 @@ public final class SparkService implements SparkPlugin {
 
     private void detachTickProfiler() {
         try {
-            this.server.regionizer().setTickProfiler(null);
+            this.server.regionizer().removeTickProfiler(this.tickBridge);
             this.server.dayNightEngine().setTickProfiler(null);
         } catch (final Throwable t) {
             log(Level.WARNING, "Could not detach the spark tick profiler", t);

@@ -33,6 +33,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
+import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.Location;
@@ -187,6 +188,7 @@ public final class CombatEngine implements CombatService {
             victim.setHealth(victim.health() - dealt);
         }
         syncHealth(victim);
+        server.debugGameEvents().emit(victim.world(), GameEventKeys.ENTITY_DAMAGE, victim.location());
 
         if (event.knockback() > 0.0) {
             final Location origin = knockbackOrigin(source, victim);

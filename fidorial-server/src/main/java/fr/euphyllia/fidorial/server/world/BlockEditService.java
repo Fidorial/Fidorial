@@ -1,9 +1,12 @@
 package fr.euphyllia.fidorial.server.world;
 
+import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -15,6 +18,12 @@ public final class BlockEditService {
     private final BlockChangeBroadcaster broadcaster;
     private final FluidNotifier fluidNotifier;
     private final LightNotifier lightNotifier;
+
+    private volatile @Nullable DebugGameEvents debugEvents;
+
+    public void setDebugEvents(final DebugGameEvents debugEvents) {
+        this.debugEvents = debugEvents;
+    }
 
     public BlockEditService(
             final BlockStateRegistry blockRegistry,
@@ -29,7 +38,9 @@ public final class BlockEditService {
     }
 
     public boolean set(final ServerWorld world, final BlockPos pos, final BlockState state) {
+        final BlockState previous;
         try {
+            previous = world.getBlock(pos.x(), pos.y(), pos.z());
             if (!world.setBlock(pos.x(), pos.y(), pos.z(), state)) {
                 return false;
             }
@@ -40,6 +51,11 @@ public final class BlockEditService {
         broadcaster.broadcast(pos, blockRegistry.networkId(state));
         fluidNotifier.notifyBlockChanged(world.dimension().id(), pos.x(), pos.y(), pos.z());
         lightNotifier.onBlockChanged(world.dimension().id(), pos.x(), pos.y(), pos.z());
+
+        final DebugGameEvents events = debugEvents;
+        if (events != null && previous != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
+            events.emit(world, GameEventKeys.BLOCK_CHANGE, pos);
+        }
         return true;
     }
 

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.session;
 
+import fr.euphyllia.fidorial.server.debug.ChunkDebugValues;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundForgetLevelChunkPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelChunkWithLightPacket;
@@ -11,6 +12,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.world.ChunkPos;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongConsumer;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
@@ -177,6 +179,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
             packet = new ClientboundLevelChunkWithLightPacket(serializer, column, world.generator.dimensionType().hasSkylight());
         }
         connection.send(packet);
+        ChunkDebugValues.sendStructures(connection, world, cx, cz);
     }
 
     private boolean inRange(final int cx, final int cz, final int centerX, final int centerZ, final int range) {
@@ -201,6 +204,19 @@ public final class ChunkViewTracker implements ChunkViewSource {
             }
             target.addAll(sent);
             target.addAll(pending);
+        }
+    }
+
+    public void forEachSent(final LongConsumer action) {
+        final long[] snapshot;
+        synchronized (lock) {
+            if (closed) {
+                return;
+            }
+            snapshot = sent.toLongArray();
+        }
+        for (final long key : snapshot) {
+            action.accept(key);
         }
     }
 
