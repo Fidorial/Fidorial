@@ -5,12 +5,11 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.goal.LookAtTargetGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.RandomStrollGoal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.ChickenVariant;
 import fr.fidorial.registry.keys.ChickenVariantKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.UUID;
@@ -35,8 +34,8 @@ public final class Chicken extends AbstractPathfinderMob implements Category.Neu
     private int eggTimer = nextEggDelay();
 
 
-    public Chicken(final int entityId, final World world, final Location location) {
-        super(entityId, UUID.randomUUID(), EntityTypes.CHICKEN, world, location, MAX_HEALTH);
+    public Chicken(final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), EntityTypes.CHICKEN, location, MAX_HEALTH);
 
         goals.add(new RandomStrollGoal(this, 1, STROLL_SPEED));
         goals.add(new LookAtTargetGoal(this, 2, 6.0));

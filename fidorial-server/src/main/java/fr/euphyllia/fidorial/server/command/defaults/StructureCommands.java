@@ -10,8 +10,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 

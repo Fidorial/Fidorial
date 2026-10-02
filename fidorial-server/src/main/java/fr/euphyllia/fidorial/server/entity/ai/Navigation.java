@@ -4,8 +4,8 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.ai.Path;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;

@@ -1,8 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 
@@ -14,9 +13,9 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
     private static final double MIN_VELOCITY = 1.0E-3;
     private static final double VOID_MARGIN = 64.0;
 
-    protected AbstractFlyingMob(final int entityId, final UUID uuid, final EntityType type, final World world,
+    protected AbstractFlyingMob(final int entityId, final UUID uuid, final EntityType type,
                                 final Location location, final float maxHealth) {
-        super(entityId, uuid, type, world, location, maxHealth);
+        super(entityId, uuid, type, location, maxHealth);
     }
 
     @Override
@@ -129,7 +128,7 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
 
         if (newX != x || newY != y || newZ != z
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
-            setLocation(new Location(newX, newY, newZ, yaw(), pitch()));
+            setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
     }
 }

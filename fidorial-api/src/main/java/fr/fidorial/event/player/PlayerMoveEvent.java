@@ -2,7 +2,7 @@ package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 public final class PlayerMoveEvent implements PlayerEvent, Cancellable {
 

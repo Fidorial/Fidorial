@@ -43,14 +43,13 @@ import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
@@ -140,10 +139,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             final EnderChestInventory enderChest,
             final GameMode gameMode,
             final ClientConnection connection,
-            final World world,
             final Location location
     ) {
-        super(entityId, profile.uuid(), EntityTypes.PLAYER, world, location, MAX_HEALTH);
+        super(entityId, profile.uuid(), EntityTypes.PLAYER, location, MAX_HEALTH);
         this.profile = profile;
         this.inventory = inventory;
         this.enderChest = enderChest;
@@ -706,11 +704,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
-        if (isRemoved() || !(destination instanceof final ServerWorld target)) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
+        if (isRemoved()) {
             return CompletableFuture.completedFuture(false);
         }
-        return connection.teleport(target, location);
+        return connection.teleport(location);
     }
 
     @Override

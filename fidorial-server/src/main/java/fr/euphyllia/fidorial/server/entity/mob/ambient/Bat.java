@@ -10,10 +10,9 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -96,8 +95,8 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private boolean sentOnFire;
     private boolean metadataSent;
 
-    public Bat(final int entityId, final World world, final Location location) {
-        super(entityId, UUID.randomUUID(), EntityTypes.BAT, world, location, MAX_HEALTH);
+    public Bat(final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), EntityTypes.BAT, location, MAX_HEALTH);
     }
 
 
@@ -209,7 +208,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
         setVelocity(0.0, 0.0, 0.0);
         final double restingY = blockY + 1.0 - height();
         if (self.y() != restingY) {
-            setLocation(new Location(self.x(), restingY, self.z(), yaw(), pitch()));
+            setLocation(location().with(self.x(), restingY, self.z(), yaw(), pitch()));
         }
     }
 

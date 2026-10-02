@@ -6,11 +6,11 @@ import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.pointer.Pointers;
@@ -63,7 +63,7 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
 
     @Override
     public void sendMessage(final Component message) {
-        Component resolved = ComponentResolver.resolve(message, this);
+        final Component resolved = ComponentResolver.resolve(message, this);
         LOGGER.info(TranslationStore.render(resolved, locale()));
     }
 
@@ -90,8 +90,9 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
     @Override
     public Location location() {
         // provide the location as default spawn
-        final WorldConfiguration config = FidorialServer.getInstance().worldManager().defaultWorld().orElseThrow().configuration();
-        return config.gameplay().spawn();
+        final var world = FidorialServer.getInstance().worldManager().defaultWorld().orElseThrow();
+        final WorldConfiguration config = world.configuration();
+        return config.gameplay().spawn().location(world);
     }
 
     @Override
