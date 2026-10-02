@@ -67,6 +67,17 @@ public sealed interface Position permits BlockPosition, FinePosition {
     double z();
 
     /**
+     * Moves this position by the defined distance in the direction of the given face.
+     *
+     * @param face     the direction to move towards
+     * @param distance the offset distance
+     * @return a new position moved by one block towards the given face
+     * @since 0.1.0
+     */
+    @Contract(value = "_, _ -> new", pure = true)
+    Position relative(BlockFace face, int distance);
+
+    /**
      * Moves this position by one block in the direction of the given face.
      *
      * @param face the direction to move towards

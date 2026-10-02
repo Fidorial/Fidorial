@@ -44,6 +44,10 @@ public sealed interface Location extends FinePosition permits LocationImpl {
     }
 
     @Override
+    @Contract(value = "_, _ -> new", pure = true)
+    Location relative(BlockFace face, int distance);
+
+    @Override
     @Contract(value = "_ -> new", pure = true)
     Location relative(BlockFace face);
 

@@ -11,6 +11,10 @@ import org.jetbrains.annotations.Contract;
  */
 public sealed interface BlockPosition extends Position permits BlockPositionImpl {
     @Override
+    @Contract(value = "_, _ -> new", pure = true)
+    BlockPosition relative(BlockFace face, int distance);
+
+    @Override
     @Contract(value = "_ -> new", pure = true)
     BlockPosition relative(BlockFace face);
 

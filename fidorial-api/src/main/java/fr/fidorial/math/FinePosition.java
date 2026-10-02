@@ -11,6 +11,10 @@ import org.jetbrains.annotations.Contract;
  */
 public sealed interface FinePosition extends Position permits FinePositionImpl, Location {
     @Override
+    @Contract(value = "_, _ -> new", pure = true)
+    FinePosition relative(BlockFace face, int distance);
+
+    @Override
     @Contract(value = "_ -> new", pure = true)
     FinePosition relative(BlockFace face);
 

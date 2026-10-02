@@ -50,8 +50,13 @@ record FinePositionImpl(double x, double y, double z) implements FinePosition {
     }
 
     @Override
+    public FinePosition relative(final BlockFace face, final int distance) {
+        return offset(distance * face.dx(), distance * face.dy(), distance * face.dz());
+    }
+
+    @Override
     public FinePosition relative(final BlockFace face) {
-        return offset(face.dx(), face.dy(), face.dz());
+        return relative(face, 1);
     }
 
     @Override

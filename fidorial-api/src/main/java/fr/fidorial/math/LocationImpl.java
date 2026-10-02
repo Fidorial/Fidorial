@@ -5,8 +5,13 @@ import fr.fidorial.world.World;
 
 record LocationImpl(World world, double x, double y, double z, float yaw, float pitch) implements Location {
     @Override
+    public Location relative(final BlockFace face, final int distance) {
+        return offset(distance * face.dx(), distance * face.dy(), distance * face.dz());
+    }
+
+    @Override
     public Location relative(final BlockFace face) {
-        return offset(face.dx(), face.dy(), face.dz());
+        return relative(face, 1);
     }
 
     @Override
