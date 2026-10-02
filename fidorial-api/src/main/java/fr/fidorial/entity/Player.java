@@ -37,8 +37,18 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface Player extends LivingEntity, PermissionHolder, CommandSource, CommandSender, Identified, BossBarViewer, ObjectContentsLike {
 
+    /**
+     * Resends the command tree to the client, after permissions or registered commands changed.
+     *
+     * @since 0.1.0
+     */
     void refreshCommands();
 
+    /**
+     * {@return the identity and skin of this player}
+     *
+     * @since 0.1.0
+     */
     PlayerProfile profile();
 
     /**
@@ -84,10 +94,26 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      */
     int ping();
 
+    /**
+     * Disconnects this player.
+     *
+     * @param reason the message shown on the disconnection screen
+     * @since 0.1.0
+     */
     void kick(Component reason);
 
+    /**
+     * {@return the inventory this player carries; call {@link #updateInventory()} after changing it}
+     *
+     * @since 0.1.0
+     */
     PlayerInventory inventory();
 
+    /**
+     * {@return the ender chest of this player}
+     *
+     * @since 0.1.0
+     */
     EnderChestInventory enderChest();
 
     /**
@@ -122,8 +148,19 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
         inventory().set(selectedSlot(), stack);
     }
 
+    /**
+     * {@return the current game mode of this player}
+     *
+     * @since 0.1.0
+     */
     GameMode gameMode();
 
+    /**
+     * Changes the game mode of this player.
+     *
+     * @param gameMode the new game mode
+     * @since 0.1.0
+     */
     void setGameMode(GameMode gameMode);
 
     /**

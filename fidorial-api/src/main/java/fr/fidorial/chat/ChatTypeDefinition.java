@@ -22,9 +22,9 @@ public record ChatTypeDefinition(
 ) implements ChatType, net.kyori.adventure.chat.ChatType {
 
     public ChatTypeDefinition {
-        Preconditions.checkNotNull(key, "The key of a chat type definition must not be null");
-        Preconditions.checkNotNull(chat, "The chat of a chat type definition must not be null");
-        Preconditions.checkNotNull(narration, "The narration of a chat type definition must not be null");
+        Preconditions.checkArgument(key != null, "The key of a chat type definition must not be null");
+        Preconditions.checkArgument(chat != null, "The chat of a chat type definition must not be null");
+        Preconditions.checkArgument(narration != null, "The narration of a chat type definition must not be null");
     }
 
     /**

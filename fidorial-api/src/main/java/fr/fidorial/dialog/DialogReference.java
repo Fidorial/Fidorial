@@ -18,6 +18,6 @@ public record DialogReference(Key key) implements Dialog {
      * @since 0.1.0
      */
     public DialogReference {
-        Preconditions.checkNotNull(key, "The key of a dialog reference must not be null");
+        Preconditions.checkArgument(key != null, "The key of a dialog reference must not be null");
     }
 }

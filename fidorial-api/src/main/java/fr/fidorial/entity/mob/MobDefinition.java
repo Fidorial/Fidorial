@@ -35,12 +35,12 @@ public record MobDefinition(
         boolean persistent) {
 
     public MobDefinition {
-        Preconditions.checkNotNull(key, "The key of a mob definition must not be null");
-        Preconditions.checkNotNull(networkType, "The network type of a mob definition must not be null");
-        Preconditions.checkNotNull(soundSource, "The sound source of a mob definition must not be null");
-        Preconditions.checkNotNull(behaviour, "The behaviour of a mob definition must not be null");
+        Preconditions.checkArgument(key != null, "The key of a mob definition must not be null");
+        Preconditions.checkArgument(networkType != null, "The network type of a mob definition must not be null");
+        Preconditions.checkArgument(soundSource != null, "The sound source of a mob definition must not be null");
+        Preconditions.checkArgument(behaviour != null, "The behaviour of a mob definition must not be null");
         if (maxHealth <= 0f) {
-            throw new IllegalArgumentException("maxHealth must be positive, got " + maxHealth);
+            throw new IllegalArgumentException("The maximum health of a mob must be positive, got " + maxHealth);
         }
         if (width <= 0.0 || height <= 0.0) {
             throw new IllegalArgumentException("The hitbox must be positive, got " + width + "x" + height);

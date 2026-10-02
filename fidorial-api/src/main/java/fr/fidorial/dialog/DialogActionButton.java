@@ -7,6 +7,15 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 
+/**
+ * A button of a dialog.
+ *
+ * @param label   the text of the button
+ * @param tooltip the text shown on hover, or {@code null}
+ * @param width   the width of the button, between 1 and {@value #MAX_WIDTH}
+ * @param action  what pressing the button does, or {@code null} to only close the dialog
+ * @since 0.1.0
+ */
 public record DialogActionButton(
         Component label,
         @Nullable Component tooltip,
@@ -36,7 +45,7 @@ public record DialogActionButton(
      * @since 0.1.0
      */
     public DialogActionButton {
-        Preconditions.checkNotNull(label, "The label of a dialog action button must not be null");
+        Preconditions.checkArgument(label != null, "The label of a dialog action button must not be null");
         DialogValidation.width(width, MAX_WIDTH, "width");
     }
 
@@ -90,7 +99,8 @@ public record DialogActionButton(
         private @Nullable DialogAction action;
 
         Builder(final Component label) {
-            this.label = Preconditions.checkNotNull(label, "The label of a dialog action button builder must not be null");
+            Preconditions.checkArgument(label != null, "The label of a dialog action button builder must not be null");
+            this.label = label;
         }
 
         /**

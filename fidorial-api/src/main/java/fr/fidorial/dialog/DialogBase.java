@@ -49,8 +49,8 @@ public record DialogBase(
      * @since 0.1.0
      */
     public DialogBase {
-        Preconditions.checkNotNull(title, "The title of a dialog base must not be null");
-        Preconditions.checkNotNull(afterAction, "The after action of a dialog base must not be null");
+        Preconditions.checkArgument(title != null, "The title of a dialog base must not be null");
+        Preconditions.checkArgument(afterAction != null, "The after action of a dialog base must not be null");
         body = List.copyOf(body);
         inputs = List.copyOf(inputs);
 
@@ -118,7 +118,8 @@ public record DialogBase(
         private DialogAfterAction afterAction = DialogAfterAction.CLOSE;
 
         Builder(final Component title) {
-            this.title = Preconditions.checkNotNull(title, "The title of a dialog base builder must not be null");
+            Preconditions.checkArgument(title != null, "The title of a dialog base builder must not be null");
+            this.title = title;
         }
 
         Builder(final DialogBase base) {
@@ -163,7 +164,7 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder body(final DialogBody element) {
-            Preconditions.checkNotNull(element, "The element passed to DialogBase.Builder.body() must not be null");
+            Preconditions.checkArgument(element != null, "The element passed to DialogBase.Builder.body() must not be null");
             this.body.add(element);
             return this;
         }
@@ -202,7 +203,7 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder input(final DialogInput input) {
-            Preconditions.checkNotNull(input, "The input passed to DialogBase.Builder.input() must not be null");
+            Preconditions.checkArgument(input != null, "The input passed to DialogBase.Builder.input() must not be null");
             this.inputs.add(input);
             return this;
         }
@@ -254,7 +255,8 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder afterAction(final DialogAfterAction afterAction) {
-            this.afterAction = Preconditions.checkNotNull(afterAction, "The after action passed to DialogBase.Builder.afterAction() must not be null");
+            Preconditions.checkArgument(afterAction != null, "The after action passed to DialogBase.Builder.afterAction() must not be null");
+            this.afterAction = afterAction;
             if (afterAction == DialogAfterAction.NONE) {
                 this.pause = false;
             }

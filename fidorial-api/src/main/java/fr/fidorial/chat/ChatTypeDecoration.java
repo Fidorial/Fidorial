@@ -20,7 +20,7 @@ import java.util.List;
 public record ChatTypeDecoration(String translationKey, List<String> parameters, @Nullable Style style) {
 
     public ChatTypeDecoration {
-        Preconditions.checkNotNull(translationKey, "The translation key of a chat type decoration must not be null");
+        Preconditions.checkArgument(translationKey != null, "The translation key of a chat type decoration must not be null");
         parameters = List.copyOf(parameters);
     }
 
@@ -57,7 +57,8 @@ public record ChatTypeDecoration(String translationKey, List<String> parameters,
         private @Nullable Style style;
 
         private Builder(final String translationKey) {
-            this.translationKey = Preconditions.checkNotNull(translationKey, "The translation key of a chat type decoration builder must not be null");
+            Preconditions.checkArgument(translationKey != null, "The translation key of a chat type decoration builder must not be null");
+            this.translationKey = translationKey;
         }
 
         private Builder(final ChatTypeDecoration decoration) {
@@ -73,7 +74,8 @@ public record ChatTypeDecoration(String translationKey, List<String> parameters,
          */
         @Contract("_ -> this")
         public Builder translationKey(final String translationKey) {
-            this.translationKey = Preconditions.checkNotNull(translationKey, "The translation key passed to ChatTypeDecoration.Builder.translationKey() must not be null");
+            Preconditions.checkArgument(translationKey != null, "The translation key passed to ChatTypeDecoration.Builder.translationKey() must not be null");
+            this.translationKey = translationKey;
             return this;
         }
 

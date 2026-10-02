@@ -7,15 +7,40 @@ import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * Fired when a player dies, before the death message is broadcast and the death screen shown.
+ *
  * @since 0.1.0
  */
-public final class PlayerDeathEvent extends EntityDeathEvent {
+public final class PlayerDeathEvent extends EntityDeathEvent implements PlayerEvent {
 
     private @Nullable Component deathMessage;
 
+    /**
+     * Creates an event.
+     *
+     * @param player       the player who died
+     * @param killer       the entity credited with the kill, or {@code null}
+     * @param deathMessage the message to broadcast, or {@code null} to stay silent
+     * @since 0.1.0
+     */
     public PlayerDeathEvent(final Player player, final @Nullable Entity killer, final @Nullable Component deathMessage) {
         super(player, killer);
         this.deathMessage = deathMessage;
+    }
+
+    /**
+     * {@return the player who died}
+     *
+     * @since 0.1.0
+     */
+    @Override
+    public Player entity() {
+        return (Player) super.entity();
+    }
+
+    @Override
+    public Player player() {
+        return entity();
     }
 
     /**

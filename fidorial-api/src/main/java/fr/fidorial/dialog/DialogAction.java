@@ -11,6 +11,11 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 
+/**
+ * What happens when a dialog button is pressed.
+ *
+ * @since 0.1.0
+ */
 public sealed interface DialogAction
         permits DialogAction.Static, DialogAction.ShowDialog, DialogAction.DynamicRunCommand, DialogAction.DynamicCustom {
 
@@ -187,7 +192,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public Static {
-            Preconditions.checkNotNull(event, "The event of a dialog action static must not be null");
+            Preconditions.checkArgument(event != null, "The event of a dialog action static must not be null");
             if (event.action() instanceof ClickEvent.Action.OpenFile) {
                 throw new IllegalArgumentException("Dialogs do not support the open_file click action");
             }
@@ -207,7 +212,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public ShowDialog {
-            Preconditions.checkNotNull(dialog, "The dialog of a dialog action show dialog must not be null");
+            Preconditions.checkArgument(dialog != null, "The dialog of a dialog action show dialog must not be null");
         }
     }
 
@@ -224,7 +229,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public DynamicRunCommand {
-            Preconditions.checkNotNull(template, "The template of a dialog action dynamic run command must not be null");
+            Preconditions.checkArgument(template != null, "The template of a dialog action dynamic run command must not be null");
         }
     }
 
@@ -243,7 +248,7 @@ public sealed interface DialogAction
          * @since 0.1.0
          */
         public DynamicCustom {
-            Preconditions.checkNotNull(id, "The ID of a dialog action dynamic custom must not be null");
+            Preconditions.checkArgument(id != null, "The ID of a dialog action dynamic custom must not be null");
         }
     }
 }

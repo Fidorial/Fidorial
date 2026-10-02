@@ -15,9 +15,17 @@ public final class PlayerSignedChatEvent extends PlayerChatEvent {
 
     private final SignedMessage signedMessage;
 
+    /**
+     * Creates an event.
+     *
+     * @param player        the player who sent the message
+     * @param signedMessage the verified signed message
+     * @since 0.1.0
+     */
     public PlayerSignedChatEvent(final Player player, final SignedMessage signedMessage) {
         super(player, contentOf(signedMessage));
-        this.signedMessage = Preconditions.checkNotNull(signedMessage, "The signed message of a player signed chat event must not be null");
+        Preconditions.checkArgument(signedMessage != null, "The signed message of a player signed chat event must not be null");
+        this.signedMessage = signedMessage;
     }
 
     private static Component contentOf(final SignedMessage signedMessage) {

@@ -23,7 +23,8 @@ public final class ChatTypeBuilder {
             .build();
 
     ChatTypeBuilder(final Key key) {
-        this.key = Preconditions.checkNotNull(key, "The key of a chat type builder must not be null");
+        Preconditions.checkArgument(key != null, "The key of a chat type builder must not be null");
+        this.key = key;
     }
 
     ChatTypeBuilder(final ChatTypeDefinition definition) {
@@ -38,7 +39,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder key(final Key key) {
-        this.key = Preconditions.checkNotNull(key, "The key passed to ChatTypeBuilder.key() must not be null");
+        Preconditions.checkArgument(key != null, "The key passed to ChatTypeBuilder.key() must not be null");
+        this.key = key;
         return this;
     }
 
@@ -48,7 +50,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder chat(final ChatTypeDecoration chat) {
-        this.chat = Preconditions.checkNotNull(chat, "The chat passed to ChatTypeBuilder.chat() must not be null");
+        Preconditions.checkArgument(chat != null, "The chat passed to ChatTypeBuilder.chat() must not be null");
+        this.chat = chat;
         return this;
     }
 
@@ -72,7 +75,8 @@ public final class ChatTypeBuilder {
      */
     @Contract("_ -> this")
     public ChatTypeBuilder narration(final ChatTypeDecoration narration) {
-        this.narration = Preconditions.checkNotNull(narration, "The narration passed to ChatTypeBuilder.narration() must not be null");
+        Preconditions.checkArgument(narration != null, "The narration passed to ChatTypeBuilder.narration() must not be null");
+        this.narration = narration;
         return this;
     }
 

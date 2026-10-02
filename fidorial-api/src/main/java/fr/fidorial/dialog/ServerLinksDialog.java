@@ -38,9 +38,9 @@ public record ServerLinksDialog(
      * @since 0.1.0
      */
     public ServerLinksDialog {
-        Preconditions.checkNotNull(base, "The base of a server links dialog must not be null");
+        Preconditions.checkArgument(base != null, "The base of a server links dialog must not be null");
         DialogValidation.positive(columns, "columns");
-        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "buttonWidth");
+        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "button width");
     }
 
     /**

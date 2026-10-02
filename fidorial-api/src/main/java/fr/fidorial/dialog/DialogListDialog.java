@@ -42,7 +42,7 @@ public record DialogListDialog(
      * @since 0.1.0
      */
     public DialogListDialog {
-        Preconditions.checkNotNull(base, "The base of a dialog list dialog must not be null");
+        Preconditions.checkArgument(base != null, "The base of a dialog list dialog must not be null");
         dialogs = List.copyOf(dialogs);
         if (dialogs.isEmpty()) {
             throw new IllegalArgumentException("A dialog_list needs at least one dialog");
@@ -55,7 +55,7 @@ public record DialogListDialog(
             }
         }
         DialogValidation.positive(columns, "columns");
-        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "buttonWidth");
+        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "button width");
     }
 
     /**

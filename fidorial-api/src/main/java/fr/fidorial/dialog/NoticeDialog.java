@@ -29,8 +29,8 @@ public record NoticeDialog(DialogBase base, DialogActionButton action) implement
      * @since 0.1.0
      */
     public NoticeDialog {
-        Preconditions.checkNotNull(base, "The base of a notice dialog must not be null");
-        Preconditions.checkNotNull(action, "The action of a notice dialog must not be null");
+        Preconditions.checkArgument(base != null, "The base of a notice dialog must not be null");
+        Preconditions.checkArgument(action != null, "The action of a notice dialog must not be null");
     }
 
     /**

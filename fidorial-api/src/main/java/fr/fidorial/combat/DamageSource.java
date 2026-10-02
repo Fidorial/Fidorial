@@ -1,5 +1,6 @@
 package fr.fidorial.combat;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.Player;
 import fr.fidorial.registry.TypedKey;
@@ -8,7 +9,6 @@ import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -85,7 +85,8 @@ public final class DamageSource {
             final @Nullable Entity causingEntity,
             final @Nullable Entity directEntity,
             final @Nullable Location position) {
-        this.type = Objects.requireNonNull(type, "type");
+        Preconditions.checkArgument(type != null, "The type of a damage source must not be null");
+        this.type = type;
         this.causingEntity = causingEntity;
         this.directEntity = directEntity;
         this.position = position;
@@ -121,54 +122,114 @@ public final class DamageSource {
     }
 
     /**
+     * Creates a source for damage radiating from a point, such as an explosion.
+     *
      * @param type     the {@code minecraft:damage_type} to report to the client
      * @param position the point the damage radiated from, used by the client for the hit direction
+     * @return the source
      * @since 0.1.0
      */
     public static DamageSource at(final TypedKey<DamageType> type, final Location position) {
         return new DamageSource(type, null, null, position);
     }
 
+    /**
+     * {@return a source for damage dealt by a player melee hit}
+     *
+     * @param attacker the attacking player
+     * @since 0.1.0
+     */
     public static DamageSource playerAttack(final Player attacker) {
         return of(DamageTypeKeys.PLAYER_ATTACK, attacker);
     }
 
+    /**
+     * {@return a source for damage dealt by a mob melee hit}
+     *
+     * @param attacker the attacking mob, or {@code null}
+     * @since 0.1.0
+     */
     public static DamageSource mobAttack(final @Nullable Entity attacker) {
         return of(DamageTypeKeys.MOB_ATTACK, attacker);
     }
 
+    /**
+     * {@return a source for damage dealt by falling}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource fall() {
         return of(DamageTypeKeys.FALL);
     }
 
+    /**
+     * {@return a source for damage dealt by drowning}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource drown() {
         return of(DamageTypeKeys.DROWN);
     }
 
+    /**
+     * {@return a source for damage dealt by standing in lava}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource lava() {
         return of(DamageTypeKeys.LAVA);
     }
 
+    /**
+     * {@return a source for damage dealt by standing in fire}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource inFire() {
         return of(DamageTypeKeys.IN_FIRE);
     }
 
+    /**
+     * {@return a source for damage dealt by burning}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource onFire() {
         return of(DamageTypeKeys.ON_FIRE);
     }
 
+    /**
+     * {@return a source for damage dealt by touching a cactus}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource cactus() {
         return of(DamageTypeKeys.CACTUS);
     }
 
+    /**
+     * {@return a source for damage dealt by starving}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource starve() {
         return of(DamageTypeKeys.STARVE);
     }
 
+    /**
+     * {@return a source for damage dealt by falling out of the world}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource outOfWorld() {
         return of(DamageTypeKeys.OUT_OF_WORLD);
     }
 
+    /**
+     * {@return a source for damage dealt by an unspecified cause}
+     *
+     * @since 0.1.0
+     */
     public static DamageSource generic() {
         return of(DamageTypeKeys.GENERIC);
     }

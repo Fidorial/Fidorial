@@ -18,9 +18,12 @@ import fr.fidorial.world.World;
  */
 public record RespawnPoint(World world, Location location) {
 
+    /**
+     * Validates the components.
+     */
     public RespawnPoint {
-        Preconditions.checkNotNull(world, "The world of a respawn point must not be null");
-        Preconditions.checkNotNull(location, "The location of a respawn point must not be null");
+        Preconditions.checkArgument(world != null, "The world of a respawn point must not be null");
+        Preconditions.checkArgument(location != null, "The location of a respawn point must not be null");
     }
 
     /**

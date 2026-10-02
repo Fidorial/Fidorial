@@ -28,9 +28,12 @@ public final class PlayerDialogActionEvent implements PlayerEvent {
      * @since 0.1.0
      */
     public PlayerDialogActionEvent(final Player player, final Key id, final DialogResponse response) {
-        this.player = Preconditions.checkNotNull(player, "The player of a player dialog action event must not be null");
-        this.id = Preconditions.checkNotNull(id, "The ID of a player dialog action event must not be null");
-        this.response = Preconditions.checkNotNull(response, "The response of a player dialog action event must not be null");
+        Preconditions.checkArgument(player != null, "The player of a player dialog action event must not be null");
+        Preconditions.checkArgument(id != null, "The ID of a player dialog action event must not be null");
+        Preconditions.checkArgument(response != null, "The response of a player dialog action event must not be null");
+        this.player = player;
+        this.id = id;
+        this.response = response;
     }
 
     @Override

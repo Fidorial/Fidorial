@@ -21,6 +21,15 @@ public class EntityDamageEvent implements Event, Cancellable {
     private double knockback;
     private boolean cancelled;
 
+    /**
+     * Creates an event.
+     *
+     * @param entity    the entity about to be hurt
+     * @param source    the origin of the hit
+     * @param damage    the damage about to be dealt, in half-hearts
+     * @param knockback the horizontal knockback strength about to be applied
+     * @since 0.1.0
+     */
     public EntityDamageEvent(
             final LivingEntity entity, final DamageSource source, final float damage, final double knockback) {
         this.entity = entity;
@@ -29,6 +38,11 @@ public class EntityDamageEvent implements Event, Cancellable {
         this.knockback = knockback;
     }
 
+    /**
+     * {@return the entity about to be hurt}
+     *
+     * @since 0.1.0
+     */
     public LivingEntity entity() {
         return entity;
     }

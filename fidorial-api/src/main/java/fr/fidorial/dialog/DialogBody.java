@@ -84,7 +84,7 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
          * @since 0.1.0
          */
         public PlainMessage {
-            Preconditions.checkNotNull(contents, "The contents of a dialog body plain message must not be null");
+            Preconditions.checkArgument(contents != null, "The contents of a dialog body plain message must not be null");
             DialogValidation.width(width, MAX_WIDTH, "width");
         }
     }
@@ -133,7 +133,7 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
          * @since 0.1.0
          */
         public Item {
-            Preconditions.checkNotNull(item, "The item of a dialog body item must not be null");
+            Preconditions.checkArgument(item != null, "The item of a dialog body item must not be null");
             DialogValidation.width(width, MAX_ITEM_SIZE, "width");
             DialogValidation.width(height, MAX_ITEM_SIZE, "height");
         }
@@ -153,7 +153,8 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
             private int height = DEFAULT_ITEM_SIZE;
 
             Builder(final ItemStack item) {
-                this.item = Preconditions.checkNotNull(item, "The item of a dialog body item builder must not be null");
+                Preconditions.checkArgument(item != null, "The item of a dialog body item builder must not be null");
+                this.item = item;
             }
 
             /**
@@ -163,7 +164,8 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
              */
             @Contract("_ -> this")
             public Builder item(final ItemStack item) {
-                this.item = Preconditions.checkNotNull(item, "The item passed to DialogBody.Item.Builder.item() must not be null");
+                Preconditions.checkArgument(item != null, "The item passed to DialogBody.Item.Builder.item() must not be null");
+                this.item = item;
                 return this;
             }
 

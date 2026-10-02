@@ -1,5 +1,6 @@
 package fr.fidorial.moderation;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
@@ -186,8 +187,8 @@ public sealed interface BanEntry permits BanEntry.Profile, BanEntry.Address {
     ) implements BanEntry {
 
         public Profile {
-            Objects.requireNonNull(uuid, "uuid");
-            Objects.requireNonNull(created, "created");
+            Preconditions.checkNotNull(uuid, "The UUID of a ban entry profile must not be null");
+            Preconditions.checkNotNull(created, "The creation date of a ban entry profile must not be null");
         }
 
         /**

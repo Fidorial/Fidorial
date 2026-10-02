@@ -15,7 +15,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * Fired right before a game rule changes
+ * Fired right before a game rule changes.
  *
  * @since 0.1.0
  */
@@ -52,10 +52,14 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
             final boolean removesOverride,
             final Cause cause,
             final @Nullable CommandSender source) {
-        this.rule = Preconditions.checkNotNull(rule, "The game rule that changes must not be null");
-        this.previousValue = Preconditions.checkNotNull(previousValue, "The previous value of the game rule must not be null");
-        this.newValue = Preconditions.checkNotNull(newValue, "The new value of the game rule must not be null");
-        this.cause = Preconditions.checkNotNull(cause, "The cause of the game rule change must not be null");
+        Preconditions.checkArgument(rule != null, "The game rule that changes must not be null");
+        Preconditions.checkArgument(previousValue != null, "The previous value of the game rule must not be null");
+        Preconditions.checkArgument(newValue != null, "The new value of the game rule must not be null");
+        Preconditions.checkArgument(cause != null, "The cause of the game rule change must not be null");
+        this.rule = rule;
+        this.previousValue = previousValue;
+        this.newValue = newValue;
+        this.cause = cause;
         if (removesOverride && world == null) {
             throw new IllegalArgumentException("Only a world can drop its override of game rule " + rule.key().key());
         }
@@ -130,7 +134,7 @@ public final class GameRuleChangeEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public void setNewValue(final String value) {
-        Preconditions.checkNotNull(value, "The value to apply to the game rule must not be null");
+        Preconditions.checkArgument(value != null, "The value to apply to the game rule must not be null");
         final Integer parsed = rule.parse(value);
         if (parsed == null) {
             throw new IllegalArgumentException("Invalid value '" + value + "' for game rule " + rule.key().key());

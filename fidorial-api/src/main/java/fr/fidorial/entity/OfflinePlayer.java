@@ -11,6 +11,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * A handle on a player identity, whether or not it is connected.
+ *
+ * <p>Obtained from {@link OfflinePlayers}. Two handles are equal when they share the same uuid.</p>
+ *
+ * @since 0.1.0
+ */
 public final class OfflinePlayer {
 
     private final OfflinePlayers registry;
@@ -26,8 +33,10 @@ public final class OfflinePlayer {
             final long firstSeen,
             final long lastSeen
     ) {
-        this.registry = Preconditions.checkNotNull(registry, "The registry of an offline player must not be null");
-        this.uuid = Preconditions.checkNotNull(uuid, "The UUID of an offline player must not be null");
+        Preconditions.checkArgument(registry != null, "The registry of an offline player must not be null");
+        Preconditions.checkArgument(uuid != null, "The UUID of an offline player must not be null");
+        this.registry = registry;
+        this.uuid = uuid;
         this.name = name;
         this.firstSeen = firstSeen;
         this.lastSeen = lastSeen;

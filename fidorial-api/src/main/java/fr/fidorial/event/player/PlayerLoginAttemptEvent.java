@@ -35,8 +35,10 @@ public final class PlayerLoginAttemptEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public PlayerLoginAttemptEvent(final PlayerProfile profile, final String address, final boolean authenticated) {
-        this.profile = Preconditions.checkNotNull(profile, "The profile of a player login attempt event must not be null");
-        this.address = Preconditions.checkNotNull(address, "The address of a player login attempt event must not be null");
+        Preconditions.checkArgument(profile != null, "The profile of a player login attempt event must not be null");
+        Preconditions.checkArgument(address != null, "The address of a player login attempt event must not be null");
+        this.profile = profile;
+        this.address = address;
         this.authenticated = authenticated;
     }
 
@@ -84,7 +86,8 @@ public final class PlayerLoginAttemptEvent implements Event, Cancellable {
      * @since 0.1.0
      */
     public void refuse(final Component reason) {
-        this.refusal = Preconditions.checkNotNull(reason, "The reason passed to PlayerLoginAttemptEvent.refuse() must not be null");
+        Preconditions.checkArgument(reason != null, "The reason passed to PlayerLoginAttemptEvent.refuse() must not be null");
+        this.refusal = reason;
         this.cancelled = true;
     }
 
