@@ -35,8 +35,8 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 faststats-core = { module = "dev.faststats.metrics:core", version.ref = "faststats" }
 faststats-config = { module = "dev.faststats.metrics:config", version.ref = "faststats" }
 adventure-bom = { module = "net.kyori:adventure-bom", version.ref = "adventure" }
-adventure-api = { module = "net.kyori:adventure-api" }
-adventure-key = { module = "net.kyori:adventure-key" }
+adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
+adventure-key = { module = "net.kyori:adventure-key", version.ref = "adventure" }
 adventure-nbt = { module = "net.kyori:adventure-nbt" }
 adventure-nbt-dfu = { module = "io.papermc:adventurex-nbt-dfu", version.ref = "adventure-nbt-dfu" }
 adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson" }
