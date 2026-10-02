@@ -1,5 +1,6 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import org.jetbrains.annotations.Contract;
@@ -23,6 +24,9 @@ public sealed interface Position permits BlockPosition, FinePosition {
 
     @Contract(pure = true)
     double z();
+
+    @Contract(value = "_ -> new", pure = true)
+    Position relative(BlockFace face);
 
     @Contract(value = "_ -> new", pure = true)
     FinePosition offsetX(double x);

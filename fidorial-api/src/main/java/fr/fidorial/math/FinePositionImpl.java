@@ -1,5 +1,6 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 
 record FinePositionImpl(double x, double y, double z) implements FinePosition {
@@ -46,6 +47,11 @@ record FinePositionImpl(double x, double y, double z) implements FinePosition {
     @Override
     public FinePosition offset(final double x, final double y, final double z) {
         return with(x() + x, y() + y, z() + z);
+    }
+
+    @Override
+    public FinePosition relative(final BlockFace face) {
+        return offset(face.dx(), face.dy(), face.dz());
     }
 
     @Override

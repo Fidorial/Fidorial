@@ -1,6 +1,7 @@
 package fr.fidorial.math;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import org.jetbrains.annotations.Contract;
 
@@ -14,6 +15,10 @@ public sealed interface Location extends FinePosition permits LocationImpl {
     static Location of(final World world, final double x, final double y, final double z, final float yaw, final float pitch) {
         return new LocationImpl(world, x, y, z, yaw, pitch);
     }
+
+    @Override
+    @Contract(value = "_ -> new", pure = true)
+    Location relative(BlockFace face);
 
     @Override
     @Contract(value = "_ -> new", pure = true)

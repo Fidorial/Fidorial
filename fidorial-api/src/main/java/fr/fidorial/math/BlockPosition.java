@@ -1,8 +1,13 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import org.jetbrains.annotations.Contract;
 
 public sealed interface BlockPosition extends Position permits BlockPositionImpl {
+    @Override
+    @Contract(value = "_ -> new", pure = true)
+    BlockPosition relative(BlockFace face);
+
     @Override
     @Contract(value = "_ -> new", pure = true)
     BlockPosition offsetX(int x);

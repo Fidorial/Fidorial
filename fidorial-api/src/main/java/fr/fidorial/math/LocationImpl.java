@@ -1,8 +1,14 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 
 record LocationImpl(World world, double x, double y, double z, float yaw, float pitch) implements Location {
+    @Override
+    public Location relative(final BlockFace face) {
+        return offset(face.dx(), face.dy(), face.dz());
+    }
+
     @Override
     public Location offsetX(final double x) {
         return withX(x() + x);
