@@ -9,6 +9,8 @@ import fr.euphyllia.fidorial.server.chat.SignedChatSession;
 import fr.euphyllia.fidorial.server.chat.SignedMessageChain;
 import fr.euphyllia.fidorial.server.chat.SignedMessageHelper;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.debug.ChunkDebugValues;
+import fr.euphyllia.fidorial.server.debug.DebugChannels;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.InventorySlots;
@@ -56,6 +58,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClosePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCustomClickActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundDebugSubscriptionRequestPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundInteractPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosPacket;
@@ -84,8 +87,8 @@ import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
-import fr.fidorial.event.player.BlockBreakEvent;
-import fr.fidorial.event.player.BlockPlaceEvent;
+import fr.fidorial.event.block.BlockBreakEvent;
+import fr.fidorial.event.block.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
@@ -104,6 +107,7 @@ import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
@@ -199,6 +203,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             ticket = null;
         }
         if (player != null) {
+            server.debugSubscribers().clear(player);
             closeOpenMenu(false);
             server.events().post(new PlayerQuitEvent(player));
             schedulePlayerRemoval(player);
@@ -600,6 +605,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         .post(new BlockPlaceEvent(acting, target, server.blockStateRegistry().networkId(state)));
                 if (!event.isCancelled()) {
                     server.blockEdits().set(world, target, state);
+                    server.debugGameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                 }
             }
@@ -752,6 +758,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             if (!event.isCancelled()) {
                 onBlockDestroyed(packet.position());
                 server.blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
+                server.debugGameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
@@ -828,7 +835,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
             moving.setOnGround(isOnGround);
 
             world.entityMoved(moving, fromChunk, current.chunk());
-
             moving.sendToTrackers(new ClientboundEntityPositionSyncPacket(
                     moving.entityId(),
                     new PositionData.LinearPositionPath(LocationPositionData.vec3(current)),
@@ -883,6 +889,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         ticket = destChunk;
                     }
                     server.entityTracker().update(teleporting, server.players());
+                    server.debugGameEvents().emit(target, GameEventKeys.TELEPORT, location);
                     result.complete(true);
                 } catch (final Exception exception) {
                     LOGGER.error("An error occurred while teleporting the player : ", exception);
@@ -954,6 +961,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         server.gameRules().syncTo(target, teleporting.entityId(), connection::send);
                         server.entityTracker().update(teleporting, server.players());
                         server.regionizer().addTicket(target.dimension().id(), destChunk);
+                        server.debugGameEvents().emit(target, GameEventKeys.TELEPORT, location);
                         arrival.complete(true);
                     } catch (final Exception exception) {
                         LOGGER.error("An error occurred while teleporting the player : ", exception);
@@ -1001,7 +1009,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("{} interacts with the entity {} which does not exist or no longer exists.", player.name(), packet.entityId());
             return;
         }
-        mob.onInteract(player, packet.isOffHand() ? EquipmentSlotGroup.OFF_HAND : EquipmentSlotGroup.MAIN_HAND);
+        if (mob.onInteract(player, packet.isOffHand() ? EquipmentSlotGroup.OFF_HAND : EquipmentSlotGroup.MAIN_HAND)) {
+            server.debugGameEvents().emit(target.world(), GameEventKeys.ENTITY_INTERACT, target.location());
+        }
     }
 
     @Override
@@ -1040,6 +1050,20 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handleMovePlayerRot(final ServerboundMovePlayerRotPacket packet) {
         final Location old = player.location();
         onMoved(old.x(), old.y(), old.z(), packet.rotation().yaw(), packet.rotation().pitch(), packet.flags());
+    }
+
+    @Override
+    public void handleDebugSubscriptionRequest(final ServerboundDebugSubscriptionRequestPacket packet) {
+        if (player == null) {
+            return;
+        }
+        final int gained = server.debugSubscribers().update(player, packet.requested());
+        final ChunkViewTracker view = chunkView;
+        if ((gained & DebugChannels.STRUCTURES.bit()) != 0 && view != null) {
+            final ServerWorld world = view.world();
+            view.forEachSent(key -> server.chunkWorker().execute(
+                    () -> ChunkDebugValues.sendStructures(connection, world, (int) (key >> 32), (int) key)));
+        }
     }
 
     @Override
@@ -1138,6 +1162,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         "Respawn point of {} targets the unloaded world {}, world spawn used instead",
                         player.name(),
                         point.world().key());
+                connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.NO_RESPAWN_BLOCK_AVAILABLE, 0.0f));
                 player.setRespawnPoint((RespawnPoint) null);
             }
         }

@@ -8,6 +8,11 @@ import org.jetbrains.annotations.Contract;
 
 import java.util.List;
 
+/**
+ * A dialog to show a player: either a full definition, or a reference to one held by the {@link DialogRegistry}.
+ *
+ * @since 0.1.0
+ */
 public sealed interface Dialog extends DialogLike permits DialogDefinition, DialogReference {
 
     /**

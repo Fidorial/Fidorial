@@ -12,7 +12,7 @@ import fr.fidorial.testing.ScenarioTestInstance;
 import fr.fidorial.testing.ScenarioTestPlayerFactory;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -64,7 +64,7 @@ final class ScenarioTestRunner {
         final World existing = server.world(key).orElse(null);
         final World world = existing != null
                 ? existing
-                : server.createWorldSilent(WorldBuilder.builder(key).build());
+                : server.createWorldSilent(WorldSpec.builder(key).build());
         return (ServerWorld) world;
     }
 

@@ -55,6 +55,29 @@ public final class SimpleServiceRegistry implements ServiceRegistry {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> List<T> findAll(final Class<T> service) {
+        final List<Provider<?>> list = providers.get(service);
+        if (list == null) {
+            return List.of();
+        }
+        synchronized (list) {
+            return list.stream().map(p -> (T) p.implementation).toList();
+        }
+    }
+
+    @Override
+    public <T> boolean unregister(final Class<T> service, final T implementation) {
+        final List<Provider<?>> list = providers.get(service);
+        if (list == null) {
+            return false;
+        }
+        synchronized (list) {
+            return list.removeIf(p -> p.implementation == implementation);
+        }
+    }
+
+    @Override
     public void unregisterAll(final Object owner) {
         for (final List<Provider<?>> list : providers.values()) {
             synchronized (list) {

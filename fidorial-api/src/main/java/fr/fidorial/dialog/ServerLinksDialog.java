@@ -1,9 +1,9 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 /**
  * A dialog listing the links the server advertised, laid out in columns.
@@ -38,9 +38,9 @@ public record ServerLinksDialog(
      * @since 0.1.0
      */
     public ServerLinksDialog {
-        Objects.requireNonNull(base, "base");
+        Preconditions.checkArgument(base != null, "The base of a server links dialog must not be null");
         DialogValidation.positive(columns, "columns");
-        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "buttonWidth");
+        DialogValidation.width(buttonWidth, DialogActionButton.MAX_WIDTH, "button width");
     }
 
     /**

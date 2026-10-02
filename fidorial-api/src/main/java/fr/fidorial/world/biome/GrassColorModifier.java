@@ -28,6 +28,11 @@ public enum GrassColorModifier {
         this.id = id;
     }
 
+    /**
+     * {@return the identifier used in the biome definition}
+     *
+     * @since 0.1.0
+     */
     public String id() {
         return id;
     }

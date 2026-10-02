@@ -14,6 +14,11 @@ import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
+import fr.euphyllia.fidorial.server.debug.DebugChannels;
+import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
+import fr.euphyllia.fidorial.server.debug.DebugSampleBroadcaster;
+import fr.euphyllia.fidorial.server.debug.DebugSubscribers;
+import fr.euphyllia.fidorial.server.debug.EntityDebugSynchronizer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityIdAllocator;
 import fr.euphyllia.fidorial.server.entity.EntityTickHandler;
@@ -101,7 +106,7 @@ import fr.fidorial.storage.player.PlayerEnderChestStorage;
 import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
@@ -157,6 +162,9 @@ public final class FidorialServer implements Server {
     private final BlockStateRegistry blockStateRegistry = new BlockStateRegistry(blockRegistry);
     private final EntityIdAllocator entityIds = new EntityIdAllocator();
     private final EntityTracker entityTracker = new EntityTracker(config.general().sendDistance());
+    private final DebugSubscribers debugSubscribers = new DebugSubscribers(this::players);
+    private final EntityDebugSynchronizer entityDebug = new EntityDebugSynchronizer(debugSubscribers, entityTracker);
+    private final DebugGameEvents debugGameEvents = new DebugGameEvents(debugSubscribers, this::players);
     private final SimpleEventBus events = new SimpleEventBus();
     private final CombatEngine combat = new CombatEngine(this);
     private final ServiceRegistry services = new SimpleServiceRegistry();
@@ -297,7 +305,9 @@ public final class FidorialServer implements Server {
             loadPlugins();
             openWorlds();
             regionizer.registerTickHandler(new EntityTickHandler(worldManager, this));
+            regionizer.addTickProfiler(new DebugSampleBroadcaster(debugSubscribers, this::players));
             syncServerStatusToRegistries(true);
+            DebugChannels.bootstrap();
             if (!headless) {
                 network.bind();
                 startAutoSave();
@@ -385,6 +395,8 @@ public final class FidorialServer implements Server {
         worldManager.setChunkLoader(chunkWorker);
         worldManager.setLightDispatcher(lightDispatcher);
         fluidEngine.setLightHook(lightDispatcher::queueBlockChange);
+        fluidEngine.setDebugEvents(debugGameEvents);
+        blockEdits.setDebugEvents(debugGameEvents);
         worldManager.setEntityBridge(entityIds::allocate, new EntitySpawnBridge() {
             @Override
             public void onEntityAppear(final Entity entity) {
@@ -606,7 +618,7 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public BanManager ban() {
+    public BanManager bans() {
         return fidorialBanManager;
     }
 
@@ -668,8 +680,20 @@ public final class FidorialServer implements Server {
         return worlds().stream().filter(w -> w.key().equals(key)).findFirst();
     }
 
+    public DebugSubscribers debugSubscribers() {
+        return debugSubscribers;
+    }
+
+    public EntityDebugSynchronizer entityDebug() {
+        return entityDebug;
+    }
+
+    public DebugGameEvents debugGameEvents() {
+        return debugGameEvents;
+    }
+
     @Override
-    public World createWorld(final WorldBuilder spec) {
+    public World createWorld(final WorldSpec spec) {
         return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), false);
     }
 
@@ -860,6 +884,7 @@ public final class FidorialServer implements Server {
     public void addPlayerConnection(final ClientConnection connection) {
         connections.add(connection);
         refreshPlayerSnapshot();
+        debugSubscribers.recompute();
     }
 
     public void removePlayerConnection(final ClientConnection connection) {
@@ -869,6 +894,7 @@ public final class FidorialServer implements Server {
         connections.remove(connection);
         entityTracker.removeViewer(connection);
         refreshPlayerSnapshot();
+        debugSubscribers.recompute();
     }
 
     public EntityTracker entityTracker() {
@@ -929,7 +955,7 @@ public final class FidorialServer implements Server {
         return TranslationStore.current();
     }
 
-    public World createWorldSilent(final WorldBuilder spec) {
+    public World createWorldSilent(final WorldSpec spec) {
         return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), true);
     }
 

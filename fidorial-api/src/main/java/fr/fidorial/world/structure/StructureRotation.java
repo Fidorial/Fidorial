@@ -70,6 +70,12 @@ public enum StructureRotation {
         return name().toLowerCase(Locale.ROOT);
     }
 
+    /**
+     * {@return the rotation with a name, as typed in commands or as the constant name, or {@code null}}
+     *
+     * @param name the name, ignoring case
+     * @since 0.1.0
+     */
     public static @Nullable StructureRotation byName(final String name) {
         for (final StructureRotation rotation : VALUES) {
             if (rotation.serializedName().equalsIgnoreCase(name) || rotation.name().equalsIgnoreCase(name)) {

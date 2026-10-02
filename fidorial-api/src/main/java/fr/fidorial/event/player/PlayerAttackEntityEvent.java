@@ -21,6 +21,18 @@ public final class PlayerAttackEntityEvent implements PlayerEvent, Cancellable {
     private boolean sweeping;
     private boolean cancelled;
 
+    /**
+     * Creates an event.
+     *
+     * @param player         the attacking player
+     * @param target         the entity being hit
+     * @param damage         the damage about to be dealt, in half-hearts
+     * @param knockback      the horizontal knockback strength about to be applied
+     * @param attackStrength the attack cooldown charge of the swing
+     * @param critical       whether the swing is a critical hit
+     * @param sweeping       whether the swing also hits the entities around the target
+     * @since 0.1.0
+     */
     public PlayerAttackEntityEvent(
             final Player player,
             final Entity target,
@@ -43,6 +55,11 @@ public final class PlayerAttackEntityEvent implements PlayerEvent, Cancellable {
         return player;
     }
 
+    /**
+     * {@return the entity being hit}
+     *
+     * @since 0.1.0
+     */
     public Entity target() {
         return target;
     }

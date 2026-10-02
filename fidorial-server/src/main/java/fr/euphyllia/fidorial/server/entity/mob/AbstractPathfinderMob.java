@@ -2,9 +2,11 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.keys.GameEventKeys;
 
 import java.util.List;
 import java.util.UUID;
@@ -234,6 +236,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             stepDistance += Math.sqrt(stepDx * stepDx + stepDz * stepDz);
             if (stepDistance >= STEP_INTERVAL) {
                 stepDistance = 0.0;
+                server().debugGameEvents().emit(world(), GameEventKeys.STEP, new PositionData.Vec3D(newX, newY, newZ));
                 onStep();
             }
 

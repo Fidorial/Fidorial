@@ -10,6 +10,7 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.keys.GameEventKeys;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -39,6 +40,7 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     protected void onDeath() {
+        server().debugGameEvents().emit(world(), GameEventKeys.ENTITY_DIE, location());
         sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_DEATH));
         startDeathAnimation();
         dispatch(MobBehaviour::onDeath, "onDeath");

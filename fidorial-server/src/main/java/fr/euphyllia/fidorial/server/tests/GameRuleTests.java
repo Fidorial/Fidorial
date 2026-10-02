@@ -17,7 +17,7 @@ import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.ByteBinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -263,7 +263,7 @@ public final class GameRuleTests {
         final FidorialServer server = FidorialServer.getInstance();
         final Key key = Key.key("scenario_test", "game_rule_overrides");
         final World world = server.worldManager().world(key);
-        return world != null ? world : server.createWorld(WorldBuilder.builder(key).build());
+        return world != null ? world : server.createWorld(WorldSpec.builder(key).build());
     }
 
     private static boolean rejects(final Runnable action) {

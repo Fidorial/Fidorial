@@ -2,6 +2,11 @@ package fr.fidorial.permission;
 
 import net.kyori.adventure.util.TriState;
 
+/**
+ * An external source of permission decisions, such as a permission plugin, consulted before the defaults.
+ *
+ * @since 0.1.0
+ */
 @FunctionalInterface
 public interface PermissionResolver {
 

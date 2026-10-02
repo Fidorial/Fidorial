@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.fluid;
 
+import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
@@ -7,7 +8,10 @@ import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.BlockPos;
@@ -41,6 +45,7 @@ public final class FluidEngine implements FluidManager {
 
     private final Map<Key, Set<Long>> pending = new ConcurrentHashMap<>();
     private volatile LightHook lightHook = (_, _, _, _) -> {};
+    private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
             final WorldManager worlds,
@@ -81,6 +86,7 @@ public final class FluidEngine implements FluidManager {
         final boolean applied = setAndBroadcast(w, x, y, z, FluidBlockCodec.toBlock(FluidState.source(type)));
         if (applied) {
             schedule(world, x, y, z, type.tickDelay());
+            emitEvent(w, GameEventKeys.FLUID_PLACE, x, y, z);
         }
         return applied;
     }
@@ -97,6 +103,7 @@ public final class FluidEngine implements FluidManager {
         final boolean applied = setAndBroadcast(w, x, y, z, BlockState.of(BlockTypeKeys.AIR.key()));
         if (applied) {
             notifyBlockChanged(world, x, y, z);
+            emitEvent(w, GameEventKeys.FLUID_PICKUP, x, y, z);
         }
         return applied;
     }
@@ -357,6 +364,17 @@ public final class FluidEngine implements FluidManager {
 
     public void setLightHook(final LightHook hook) {
         this.lightHook = hook;
+    }
+
+    public void setDebugEvents(final DebugGameEvents debugEvents) {
+        this.debugEvents = debugEvents;
+    }
+
+    private void emitEvent(final ServerWorld world, final TypedKey<GameEvent> event, final int x, final int y, final int z) {
+        final DebugGameEvents events = debugEvents;
+        if (events != null) {
+            events.emit(world, event, new BlockPos(x, y, z));
+        }
     }
 
     @FunctionalInterface

@@ -1,9 +1,12 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.debug.DebugValues;
+import fr.euphyllia.fidorial.server.debug.EntityDebugState;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.GoalSelector;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMoveEntityPosPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMoveEntityPosRotPacket;
@@ -12,21 +15,26 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
+import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.math.Location;
+import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 public abstract class AbstractMovingMob extends AbstractMob implements Mob {
 
@@ -57,6 +65,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private float sentPitch;
     private float sentHeadYaw;
     private int ticksSinceSync;
+    private final EntityDebugState debugState = new EntityDebugState();
 
     protected AbstractMovingMob(final int entityId, final UUID uuid, final EntityType type,
                                 final Location location, final float maxHealth) {
@@ -260,6 +269,59 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
                 other.x(), other.y() + 1.5, other.z());
     }
 
+    public final EntityDebugState debugState() {
+        return debugState;
+    }
+
+    public final GoalSelector goalSelector() {
+        return goals;
+    }
+
+    public DebugValues.BrainInfo brainSnapshot() {
+        final List<String> behaviors = new ArrayList<>(1);
+        final Goal active = goals.active();
+        if (active != null) {
+            behaviors.add(GoalSelector.debugName(active));
+        }
+        final List<String> memories = new ArrayList<>(2);
+        final ServerPlayer currentTarget = target;
+        if (currentTarget != null) {
+            memories.add("attack_target: " + currentTarget.name());
+        }
+        final BlockPos waypoint = navigation().currentWaypoint();
+        if (waypoint != null) {
+            memories.add("walk_target: " + waypoint.x() + ", " + waypoint.y() + ", " + waypoint.z());
+        }
+        return DebugValues.BrainInfo.forMob(
+                type().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
+    }
+
+    public final void forEachIntersectedBlock(final BiConsumer<BlockPos, DebugValues.BlockIntersection> action) {
+        final Location loc = location();
+        final double half = halfWidth() - 1.0E-5;
+        final int minX = (int) Math.floor(loc.x() - half);
+        final int maxX = (int) Math.floor(loc.x() + half);
+        final int minY = (int) Math.floor(loc.y() + 1.0E-5);
+        final int maxY = (int) Math.floor(loc.y() + height() - 1.0E-5);
+        final int minZ = (int) Math.floor(loc.z() - half);
+        final int maxZ = (int) Math.floor(loc.z() + half);
+        final ServerWorld world = serverWorld();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    final BlockState state = BlockView.blockAt(world, x, y, z);
+                    if (state == null) {
+                        continue;
+                    }
+                    final DebugValues.BlockIntersection kind = state.isAir() ? DebugValues.BlockIntersection.IN_AIR
+                            : state.isFluid() ? DebugValues.BlockIntersection.IN_FLUID
+                            : DebugValues.BlockIntersection.IN_BLOCK;
+                    action.accept(new BlockPos(x, y, z), kind);
+                }
+            }
+        }
+    }
+
     protected final void updateChunkMembership(final Location before, final Location after) {
         final ChunkPos fromChunk = before.chunk();
         final ChunkPos toChunk = after.chunk();
@@ -323,5 +385,11 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             sendToTrackers(new ClientboundRotateHeadPacket(entityId(), yaw));
             sentHeadYaw = yaw;
         }
+    }
+
+    @Override
+    public void sendSpawnPackets(final ClientConnection connection) {
+        super.sendSpawnPackets(connection);
+        server().entityDebug().sendCurrent(this, connection);
     }
 }

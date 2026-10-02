@@ -5,6 +5,11 @@ import net.kyori.adventure.util.TriState;
 
 import java.util.Map;
 
+/**
+ * A set of permission overrides a plugin applies to one holder, released by {@link #close()}.
+ *
+ * @since 0.1.0
+ */
 public interface PermissionGrant extends AutoCloseable {
 
     /**

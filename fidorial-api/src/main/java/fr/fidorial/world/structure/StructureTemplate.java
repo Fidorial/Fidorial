@@ -17,10 +17,25 @@ public interface StructureTemplate extends Keyed {
     @Override
     Key key();
 
+    /**
+     * {@return the size of the template along X, in blocks}
+     *
+     * @since 0.1.0
+     */
     int sizeX();
 
+    /**
+     * {@return the size of the template along Y, in blocks}
+     *
+     * @since 0.1.0
+     */
     int sizeY();
 
+    /**
+     * {@return the size of the template along Z, in blocks}
+     *
+     * @since 0.1.0
+     */
     int sizeZ();
 
     /**

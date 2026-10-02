@@ -30,5 +30,5 @@ public interface ServerStatusRequestEvent extends Event {
      * @since 0.1.0
      */
     @Contract(mutates = "this")
-    void status(final ServerStatus status);
+    void status(ServerStatus status);
 }

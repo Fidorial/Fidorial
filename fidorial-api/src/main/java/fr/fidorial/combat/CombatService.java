@@ -3,9 +3,16 @@ package fr.fidorial.combat;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.Player;
+import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * The combat rules: hits, damage, knockback and death, registered as a
+ * {@linkplain ServiceRegistry service} so plugins can replace them.
+ *
+ * @since 0.1.0
+ */
 public interface CombatService {
 
     /**

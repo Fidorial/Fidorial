@@ -115,10 +115,25 @@ public interface Mob extends LivingEntity {
      */
     boolean onGround();
 
+    /**
+     * {@return the velocity along x, in blocks per tick}
+     *
+     * @since 0.1.0
+     */
     double velocityX();
 
+    /**
+     * {@return the velocity along y, in blocks per tick, positive upwards}
+     *
+     * @since 0.1.0
+     */
     double velocityY();
 
+    /**
+     * {@return the velocity along z, in blocks per tick}
+     *
+     * @since 0.1.0
+     */
     double velocityZ();
 
     /**

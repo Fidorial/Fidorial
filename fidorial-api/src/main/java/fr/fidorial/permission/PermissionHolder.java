@@ -5,6 +5,11 @@ import net.kyori.adventure.util.TriState;
 
 import java.util.Map;
 
+/**
+ * Something permissions are checked against: a player or the console.
+ *
+ * @since 0.1.0
+ */
 public interface PermissionHolder {
 
     /**

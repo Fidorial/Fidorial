@@ -27,9 +27,9 @@ public interface Commands {
     /**
      * Creates a new {@link RequiredArgumentBuilder} of the required name and type.
      *
-     * @param name the argument name
+     * @param name         the argument name
      * @param argumentType the argument type required
-     * @param <T> the argument type
+     * @param <T>          the argument type
      * @return a new required argument builder
      * @since 0.1.0
      */

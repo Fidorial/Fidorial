@@ -1,5 +1,6 @@
 package fr.fidorial.item;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.data.DataComponentEditor;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentMap;
@@ -7,7 +8,6 @@ import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -27,19 +27,19 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
     public static final int DEFAULT_MAX_STACK_SIZE = 1;
 
     public ItemDefinition {
-        Objects.requireNonNull(key, "key");
-        Objects.requireNonNull(networkType, "networkType");
-        Objects.requireNonNull(components, "components");
+        Preconditions.checkArgument(key != null, "The key of an item definition must not be null");
+        Preconditions.checkArgument(networkType != null, "The network type of an item definition must not be null");
+        Preconditions.checkArgument(components != null, "The components of an item definition must not be null");
 
         final int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, DEFAULT_MAX_STACK_SIZE);
         final int damage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
         if (stackSize < 1) {
-            throw new IllegalArgumentException("maxStackSize must be at least 1, got " + stackSize);
+            throw new IllegalArgumentException("The maximum stack size of an item must be at least 1, got " + stackSize);
         }
 
         if (damage < 0) {
-            throw new IllegalArgumentException("maxDamage cannot be negative, got " + damage);
+            throw new IllegalArgumentException("The maximum damage of an item cannot be negative, got " + damage);
         }
 
         if (stackSize > 1 && damage > 0) {
@@ -84,9 +84,12 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
         }
 
         private Builder(final Key key, final Key networkType, final DataComponentEditor components) {
-            this.key = Objects.requireNonNull(key, "key");
-            this.networkType = Objects.requireNonNull(networkType, "networkType");
-            this.components = Objects.requireNonNull(components, "components");
+            Preconditions.checkArgument(key != null, "The key of an item definition builder must not be null");
+            Preconditions.checkArgument(networkType != null, "The network type of an item definition builder must not be null");
+            Preconditions.checkArgument(components != null, "The components of an item definition builder must not be null");
+            this.key = key;
+            this.networkType = networkType;
+            this.components = components;
         }
 
         /**

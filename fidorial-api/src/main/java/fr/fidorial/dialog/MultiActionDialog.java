@@ -1,11 +1,20 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * A dialog laying out a grid of buttons.
+ *
+ * @param base       the shared title, contents and behaviour
+ * @param actions    the buttons of the grid, never empty
+ * @param columns    how many buttons sit side by side
+ * @param exitAction the footer button, or {@code null} for no footer
+ * @since 0.1.0
+ */
 public record MultiActionDialog(
         DialogBase base,
         List<DialogActionButton> actions,
@@ -28,7 +37,7 @@ public record MultiActionDialog(
      * @since 0.1.0
      */
     public MultiActionDialog {
-        Objects.requireNonNull(base, "base");
+        Preconditions.checkArgument(base != null, "The base of a multi action dialog must not be null");
         actions = List.copyOf(actions);
         if (actions.isEmpty()) {
             throw new IllegalArgumentException("A multi_action dialog needs at least one action");

@@ -41,14 +41,14 @@ public class PregenTask {
     });
 
     public PregenTask(
-            World world,
-            ComponentLogger logger,
-            int centerX,
-            int centerZ,
-            int radius,
-            Consumer<String> progressListener,
-            Runnable onStart,
-            Runnable onFinish
+            final World world,
+            final ComponentLogger logger,
+            final int centerX,
+            final int centerZ,
+            final int radius,
+            final Consumer<String> progressListener,
+            final Runnable onStart,
+            final Runnable onFinish
     ) {
         this.world = world;
         this.logger = logger;
@@ -77,18 +77,18 @@ public class PregenTask {
     }
 
     public String status() {
-        int completed = done.get();
-        long elapsedMs = Math.max(1, System.currentTimeMillis() - startedAt);
-        double perSecond = completed * 1000.0 / elapsedMs;
-        long remaining = total - completed;
-        long etaSeconds = perSecond > 0 ? (long) (remaining / perSecond) : -1;
+        final int completed = done.get();
+        final long elapsedMs = Math.max(1, System.currentTimeMillis() - startedAt);
+        final double perSecond = completed * 1000.0 / elapsedMs;
+        final long remaining = total - completed;
+        final long etaSeconds = perSecond > 0 ? (long) (remaining / perSecond) : -1;
         return String.format(
                 "%d/%d chunks (%.1f%%), %.0f chunks/s, ETA %s",
                 completed, total, completed * 100.0 / total, perSecond, etaSeconds < 0 ? "?" : etaSeconds + "s");
     }
 
     private void run() throws ExecutionException, InterruptedException {
-        logger.info("Pre-generation lancee : rayon {} autour de {},{} ({} chunks)", radius, centerX, centerZ, total);
+        logger.info("Pre-generation started: radius {} around {},{} ({} chunks)", radius, centerX, centerZ, total);
         long nextReport = System.currentTimeMillis() + REPORT_PERIOD_MS;
 
         outer:
@@ -114,42 +114,42 @@ public class PregenTask {
         // attendre la fin des chargements en vol
         try {
             inFlight.acquire(MAX_IN_FLIGHT);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             thread.interrupt();
         }
         finished = true;
 
         try {
             onFinish.run();
-        } catch (Exception e) {
-            logger.warn("Erreur pendant le refresh des commandes", e);
+        } catch (final Exception e) {
+            logger.warn("Failed to refresh the commands", e);
         }
 
         if (cancelled) {
-            progressListener.accept("Pre-generation annulee apres " + done.get() + " chunks.");
+            progressListener.accept("Pre-generation cancelled after " + done.get() + " chunks.");
         } else {
-            long seconds = (System.currentTimeMillis() - startedAt) / 1000;
-            progressListener.accept("Pre-generation terminee : " + done.get() + " chunks en " + seconds + "s"
-                    + (failed.get() > 0 ? " (" + failed.get() + " echecs, voir logs)" : "") + ".");
+            final long seconds = (System.currentTimeMillis() - startedAt) / 1000;
+            progressListener.accept("Pre-generation finished: " + done.get() + " chunks in " + seconds + "s"
+                    + (failed.get() > 0 ? " (" + failed.get() + " failures, see the logs)" : "") + ".");
         }
     }
 
-    private CompletableFuture<Chunk> submit(World world, int chunkX, int chunkZ) {
+    private CompletableFuture<Chunk> submit(final World world, final int chunkX, final int chunkZ) {
         try {
             inFlight.acquire();
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             thread.interrupt();
             cancelled = true;
             return new CompletableFuture<>();
         }
 
-        return world.getChunkAsync(chunkX, chunkZ)
+        return world.chunkAsync(chunkX, chunkZ)
                 .thenCompose(c -> world.unloadChunkAsync(chunkX, chunkZ).thenApply(_ -> c))
                 .whenComplete((_, error) -> {
                     inFlight.release();
                     if (error != null) {
                         failed.incrementAndGet();
-                        logger.warn("Pre-generation du chunk {},{} impossible", chunkX, chunkZ, error);
+                        logger.warn("Failed to pre-generate chunk {},{}", chunkX, chunkZ, error);
                     }
                     done.incrementAndGet();
                 });

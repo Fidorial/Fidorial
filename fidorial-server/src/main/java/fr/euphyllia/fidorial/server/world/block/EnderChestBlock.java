@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -14,7 +15,6 @@ import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Waterlogged;
 import net.kyori.adventure.key.Key;
 
-import java.util.Objects;
 
 public final class EnderChestBlock implements BlockBehaviour {
 
@@ -39,15 +39,18 @@ public final class EnderChestBlock implements BlockBehaviour {
 
     @Override
     public BlockType type() {
-        return Objects.requireNonNull(Blocks.type(KEY));
+        final BlockType type = Blocks.type(KEY);
+        Preconditions.checkState(type != null, "The block type %s is not registered", KEY);
+        return type;
     }
 
     @Override
     public BlockData placementState(final BlockPlaceContext context) {
         final BlockFace facing = context.horizontalFacing().opposite();
-        BlockData state = Objects.requireNonNull(type().defaultData());
-        state = ((Directional) state).setFacing(facing);
-        state = ((Waterlogged) state).setWaterlogged(context.intoWater());
+        BlockData state = type().defaultData();
+        Preconditions.checkState(state != null, "The block type %s has no default state", KEY);
+        state = ((Directional) state).withFacing(facing);
+        state = ((Waterlogged) state).withWaterlogged(context.intoWater());
         return state;
     }
 

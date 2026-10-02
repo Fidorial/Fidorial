@@ -1,5 +1,7 @@
 package fr.fidorial.world;
 
+import com.google.common.base.Preconditions;
+import fr.fidorial.Server;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -8,13 +10,20 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-public class WorldBuilder {
+/**
+ * An immutable description of a world to create through {@link Server#createWorld(WorldSpec)}.
+ *
+ * <p>Instances are obtained from {@link #builder(Key)}; {@link #toBuilder()} derives a modified copy.</p>
+ *
+ * @since 0.1.0
+ */
+public final class WorldSpec {
 
     private final Key key;
     private final long seed;
     private final @Nullable WorldGenerator generator;
 
-    private WorldBuilder(final Builder builder) {
+    private WorldSpec(final Builder builder) {
         this.key = builder.key;
         this.seed = builder.seed;
         this.generator = builder.generator;
@@ -84,12 +93,20 @@ public class WorldBuilder {
     }
 
     @Override
+    public boolean equals(final @Nullable Object other) {
+        return other instanceof final WorldSpec spec
+                && seed == spec.seed
+                && key.equals(spec.key)
+                && Objects.equals(generator, spec.generator);
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(key, seed, generator);
     }
 
     /**
-     * A fluent builder for {@link WorldBuilder}.
+     * A fluent builder for {@link WorldSpec}.
      *
      * @since 0.1.0
      */
@@ -100,7 +117,8 @@ public class WorldBuilder {
         private @Nullable WorldGenerator generator;
 
         private Builder(final Key key) {
-            this.key = Objects.requireNonNull(key, "key");
+            Preconditions.checkArgument(key != null, "The key of a world spec builder must not be null");
+            this.key = key;
         }
 
         /**
@@ -112,12 +130,13 @@ public class WorldBuilder {
          */
         @Contract(value = "_ -> this", mutates = "this")
         public Builder key(final Key key) {
-            this.key = Objects.requireNonNull(key, "key");
+            Preconditions.checkArgument(key != null, "The key passed to WorldSpec.Builder.key() must not be null");
+            this.key = key;
             return this;
         }
 
         /**
-         * Sets the world seed. See {@link WorldBuilder#seed()} for how the seed is used.
+         * Sets the world seed. See {@link WorldSpec#seed()} for how the seed is used.
          *
          * @param seed the world seed
          * @return this builder
@@ -143,14 +162,14 @@ public class WorldBuilder {
         }
 
         /**
-         * Builds an immutable {@link WorldBuilder} from the current builder state.
+         * Builds an immutable {@link WorldSpec} from the current builder state.
          *
          * @return a new spec
          * @since 0.1.0
          */
         @Contract(value = "-> new", pure = true)
-        public WorldBuilder build() {
-            return new WorldBuilder(this);
+        public WorldSpec build() {
+            return new WorldSpec(this);
         }
     }
 }

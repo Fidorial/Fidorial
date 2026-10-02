@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.entity;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.WorldManager;
@@ -41,6 +42,9 @@ public final class EntityTickHandler implements RegionTickHandler {
             }
             try {
                 entity.tick(currentTick);
+                if (entity instanceof final AbstractMovingMob mob) {
+                    server.entityDebug().tick(mob);
+                }
             } catch (final Throwable t) {
                 LOGGER.error("Error during tick of {}", entity, t);
             }

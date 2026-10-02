@@ -529,8 +529,8 @@ public final class ArgumentTypes {
      * consumes the argument.
      *
      * @param registryKey the registry's key
+     * @param <T>         the registry value type
      * @return argument
-     * @param <T> the registry value type
      * @since 0.1.0
      */
     public static <T> ArgumentType<TypedKey<T>> resourceKey(final RegistryKey<T> registryKey) {
@@ -544,8 +544,8 @@ public final class ArgumentTypes {
      * populated from the registry's current contents.
      *
      * @param registryKey the registry's key
+     * @param <T>         the registry value type
      * @return argument
-     * @param <T> the registry value type
      * @since 0.1.0
      */
     public static <T> ArgumentType<T> resource(final RegistryKey<T> registryKey) {
@@ -559,11 +559,11 @@ public final class ArgumentTypes {
      * are requested from the server rather than computed by the client.
      *
      * @param registryKey the registry's key
+     * @param <T>         the registry value type
      * @return argument
-     * @param <T> the registry value type
-     * @since 0.1.0
      * @apiNote This argument is sent to the client as a {@link #resourceKey(RegistryKey)} argument, so the client doesn't
      * participate in registry resolution and instead asks the server both to validate it and to supply suggestions.
+     * @since 0.1.0
      */
     public static <T> ArgumentType<T> serverResource(final RegistryKey<T> registryKey) {
         return provider().serverResource(registryKey);
@@ -585,10 +585,10 @@ public final class ArgumentTypes {
      * converting the parsed value into a custom result type.
      *
      * @param nativeType the native type providing grammar and suggestions
-     * @param mapper converts a parsed native value into the result type
+     * @param mapper     converts a parsed native value into the result type
+     * @param <N>        the native value type
+     * @param <T>        the mapped result type
      * @return argument
-     * @param <N> the native value type
-     * @param <T> the mapped result type
      * @since 0.1.0
      */
     public static <N, T> ArgumentType<T> map(final ArgumentType<N> nativeType, final ArgumentMapper<N, T> mapper) {
@@ -604,12 +604,12 @@ public final class ArgumentTypes {
      * to the mapped domain (e.g. mapping a plain {@code word()} into an enum, where
      * the enum's own values should be suggested instead of arbitrary words).
      *
-     * @param nativeType the native type providing grammar and highlighting
-     * @param mapper converts a parsed native value into the result type
+     * @param nativeType  the native type providing grammar and highlighting
+     * @param mapper      converts a parsed native value into the result type
      * @param suggestions replaces the native type's client-side suggestions
+     * @param <N>         the native value type
+     * @param <T>         the mapped result type
      * @return argument
-     * @param <N> the native value type
-     * @param <T> the mapped result type
      * @see #map(ArgumentType, ArgumentMapper)
      * @since 0.1.0
      */
@@ -627,8 +627,8 @@ public final class ArgumentTypes {
      * argument types with hand-rolled {@code parse}/{@code listSuggestions} logic.
      *
      * @param type the custom argument type
+     * @param <T>  the parsed value type
      * @return argument that forces server-side suggestions
-     * @param <T> the parsed value type
      * @since 0.1.0
      */
     public static <T> ArgumentType<T> withServerSuggestions(final ArgumentType<T> type) {

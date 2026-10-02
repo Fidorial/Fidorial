@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
@@ -8,7 +9,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -49,8 +49,8 @@ public record DialogBase(
      * @since 0.1.0
      */
     public DialogBase {
-        Objects.requireNonNull(title, "title");
-        Objects.requireNonNull(afterAction, "afterAction");
+        Preconditions.checkArgument(title != null, "The title of a dialog base must not be null");
+        Preconditions.checkArgument(afterAction != null, "The after action of a dialog base must not be null");
         body = List.copyOf(body);
         inputs = List.copyOf(inputs);
 
@@ -118,7 +118,8 @@ public record DialogBase(
         private DialogAfterAction afterAction = DialogAfterAction.CLOSE;
 
         Builder(final Component title) {
-            this.title = Objects.requireNonNull(title, "title");
+            Preconditions.checkArgument(title != null, "The title of a dialog base builder must not be null");
+            this.title = title;
         }
 
         Builder(final DialogBase base) {
@@ -163,7 +164,8 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder body(final DialogBody element) {
-            this.body.add(Objects.requireNonNull(element, "element"));
+            Preconditions.checkArgument(element != null, "The element passed to DialogBase.Builder.body() must not be null");
+            this.body.add(element);
             return this;
         }
 
@@ -201,7 +203,8 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder input(final DialogInput input) {
-            this.inputs.add(Objects.requireNonNull(input, "input"));
+            Preconditions.checkArgument(input != null, "The input passed to DialogBase.Builder.input() must not be null");
+            this.inputs.add(input);
             return this;
         }
 
@@ -252,7 +255,8 @@ public record DialogBase(
          */
         @Contract("_ -> this")
         public Builder afterAction(final DialogAfterAction afterAction) {
-            this.afterAction = Objects.requireNonNull(afterAction, "afterAction");
+            Preconditions.checkArgument(afterAction != null, "The after action passed to DialogBase.Builder.afterAction() must not be null");
+            this.afterAction = afterAction;
             if (afterAction == DialogAfterAction.NONE) {
                 this.pause = false;
             }

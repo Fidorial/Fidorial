@@ -1,5 +1,6 @@
 package fr.fidorial.world.dimension;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -7,7 +8,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -39,7 +39,8 @@ public final class DimensionTypeBuilder {
     private final List<TimelineReference> timelines = new ArrayList<>();
 
     DimensionTypeBuilder(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key of a dimension type builder must not be null");
+        this.key = key;
     }
 
     DimensionTypeBuilder(final DimensionTypeDefinition definition) {
@@ -69,7 +70,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder key(final Key key) {
-        this.key = Objects.requireNonNull(key, "key");
+        Preconditions.checkArgument(key != null, "The key passed to DimensionTypeBuilder.key() must not be null");
+        this.key = key;
         return this;
     }
 
@@ -152,7 +154,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder monsterSpawnLightLevel(final IntProvider monsterSpawnLightLevel) {
-        this.monsterSpawnLightLevel = Objects.requireNonNull(monsterSpawnLightLevel, "monsterSpawnLightLevel");
+        Preconditions.checkArgument(monsterSpawnLightLevel != null, "The monster spawn light level passed to DimensionTypeBuilder.monsterSpawnLightLevel() must not be null");
+        this.monsterSpawnLightLevel = monsterSpawnLightLevel;
         return this;
     }
 
@@ -221,7 +224,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder infiniburn(final Key infiniburn) {
-        this.infiniburn = Objects.requireNonNull(infiniburn, "infiniburn");
+        Preconditions.checkArgument(infiniburn != null, "The infiniburn passed to DimensionTypeBuilder.infiniburn() must not be null");
+        this.infiniburn = infiniburn;
         return this;
     }
 
@@ -231,7 +235,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder skybox(final Skybox skybox) {
-        this.skybox = Objects.requireNonNull(skybox, "skybox");
+        Preconditions.checkArgument(skybox != null, "The skybox passed to DimensionTypeBuilder.skybox() must not be null");
+        this.skybox = skybox;
         return this;
     }
 
@@ -241,7 +246,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder cardinalLight(final CardinalLight cardinalLight) {
-        this.cardinalLight = Objects.requireNonNull(cardinalLight, "cardinalLight");
+        Preconditions.checkArgument(cardinalLight != null, "The cardinal light passed to DimensionTypeBuilder.cardinalLight() must not be null");
+        this.cardinalLight = cardinalLight;
         return this;
     }
 
@@ -288,7 +294,8 @@ public final class DimensionTypeBuilder {
      */
     @Contract("_ -> this")
     public DimensionTypeBuilder addTimeline(final TimelineReference timeline) {
-        this.timelines.add(Objects.requireNonNull(timeline, "timeline"));
+        Preconditions.checkArgument(timeline != null, "The timeline passed to DimensionTypeBuilder.addTimeline() must not be null");
+        this.timelines.add(timeline);
         return this;
     }
 

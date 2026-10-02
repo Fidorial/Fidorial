@@ -49,7 +49,7 @@ public final class ServerChunk implements Chunk {
     }
 
     @Override
-    public int getBlockStateId(final int localX, final int worldY, final int localZ) {
+    public int blockStateId(final int localX, final int worldY, final int localZ) {
         return blockStates.networkId(column.getBlock(localX & 15, worldY, localZ & 15));
     }
 

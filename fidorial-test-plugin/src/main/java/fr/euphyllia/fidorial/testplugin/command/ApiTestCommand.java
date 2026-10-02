@@ -27,7 +27,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
-import fr.fidorial.world.WorldBuilder;
+import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
@@ -405,7 +405,7 @@ public final class ApiTestCommand {
         plugin.msg(
                 sender,
                 "[TestPlugin] MC " + plugin.server().minecraftVersion()
-                        + " | protocole " + plugin.server().protocolVersion()
+                        + " | protocol " + plugin.server().protocolVersion()
                         + " | running=" + plugin.server().isRunning()
                         + " | plugins=" + plugin.server().plugins().loaded().size()
                         + " | events=" + plugin.eventCount());
@@ -419,7 +419,7 @@ public final class ApiTestCommand {
         final List<? extends RegionTps> snapshots = plugin.server().scheduler().tpsSnapshots();
 
         if (snapshots.isEmpty()) {
-            plugin.msg(sender, "[TestPlugin] Aucune region active.");
+            plugin.msg(sender, "[TestPlugin] No active region.");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -446,7 +446,7 @@ public final class ApiTestCommand {
         final String worlds =
                 plugin.server().worlds().stream().map(w -> w.key().toString()).collect(Collectors.joining(", "));
 
-        plugin.msg(sender, "[TestPlugin] " + plugin.server().worlds().size() + " monde(s): " + worlds);
+        plugin.msg(sender, "[TestPlugin] " + plugin.server().worlds().size() + " world(s): " + worlds);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -462,7 +462,7 @@ public final class ApiTestCommand {
         final World world = player.world();
         final ChunkPos pos = player.chunk();
         final boolean forced = world.isChunkForceLoaded(pos);
-        final boolean chunkForced = world.getChunkIfLoaded(pos.x(), pos.z())
+        final boolean chunkForced = world.chunkIfLoaded(pos.x(), pos.z())
                 .map(Chunk::isForceLoaded)
                 .orElse(false);
 
@@ -485,7 +485,7 @@ public final class ApiTestCommand {
         final double z = ctx.getArgument("z", Double.class);
 
         player.teleport(x, y, z).whenComplete((ok, _) ->
-                plugin.msg(player, "[TestPlugin] Teleportation " + (ok ? "OK" : "refusee") + " vers " + x + ", " + y + ", " + z));
+                plugin.msg(player, "[TestPlugin] Teleporting " + (ok ? "OK" : "refusee") + " to " + x + ", " + y + ", " + z));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -501,8 +501,8 @@ public final class ApiTestCommand {
         final World target = plugin.server().world(key).orElse(null);
         if (target == null) {
 
-            plugin.msg(player, "[TestPlugin] Monde " + key + " inexistant.");
-            plugin.msg(player, "Liste des mondes : ");
+            plugin.msg(player, "[TestPlugin] World " + key + " does not exist.");
+            plugin.msg(player, "Loaded worlds: ");
 
             for (final World world : worlds) {
                 plugin.msg(player, world.key().asString());
@@ -513,7 +513,7 @@ public final class ApiTestCommand {
 
         final Location destination = Location.of(target, 8.5, 100.0, 8.5, 0f, 0f);
         player.teleport(destination).whenComplete((ok, _) ->
-                plugin.msg(player, "[TestPlugin] Teleportation inter-monde " + (ok ? "OK" : "refusee") + " vers " + key));
+                plugin.msg(player, "[TestPlugin] Cross-world teleport " + (ok ? "OK" : "refusee") + " to " + key));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -526,7 +526,7 @@ public final class ApiTestCommand {
                 sender,
                 "[TestPlugin] "
                         + players.size()
-                        + " joueur(s): "
+                        + " player(s): "
                         + players.stream().map(Player::name).collect(Collectors.joining(", ")));
 
         return Command.SINGLE_SUCCESS;
@@ -538,11 +538,11 @@ public final class ApiTestCommand {
         final var service = plugin.server().services().find(CounterService.class);
 
         if (service.isEmpty()) {
-            plugin.msg(sender, "<red>CounterService introuvable.</red>");
+            plugin.msg(sender, "<red>CounterService is not registered.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
-        plugin.msg(sender, "[TestPlugin] compteur = " + service.get().increment());
+        plugin.msg(sender, "[TestPlugin] counter = " + service.get().increment());
 
         return Command.SINGLE_SUCCESS;
     }
@@ -553,7 +553,7 @@ public final class ApiTestCommand {
         final World world = plugin.server().worlds().stream().findFirst().orElse(null);
 
         if (world == null) {
-            plugin.msg(sender, "[TestPlugin] Aucun monde.");
+            plugin.msg(sender, "[TestPlugin] No world is loaded.");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -592,13 +592,13 @@ public final class ApiTestCommand {
         final CommandSender sender = ctx.getSource().sender();
 
         if (plugin.server().world(key).isPresent()) {
-            plugin.msg(sender, "[TestPlugin] Le monde " + key + " existe deja (test d'idempotence OK).");
+            plugin.msg(sender, "[TestPlugin] The world " + key + " already exists (idempotence test OK).");
             return Command.SINGLE_SUCCESS;
         }
 
         final long seed = 20260716L;
         final WorldGenerator generator = resolveGenerator(generatorName, seed);
-        final WorldBuilder spec = WorldBuilder.builder(key)
+        final WorldSpec spec = WorldSpec.builder(key)
                 .seed(seed)
                 .generator(generator)
                 .build();
@@ -607,7 +607,7 @@ public final class ApiTestCommand {
 
         plugin.msg(
                 sender,
-                "[TestPlugin] Monde cree: " + world.key()
+                "[TestPlugin] World created: " + world.key()
                         + " | minY=" + world.minY()
                         + " | height=" + world.height()
                         + " | type=" + world.dimensionType().key()
@@ -624,13 +624,13 @@ public final class ApiTestCommand {
         if (unloaded) {
             plugin.msg(
                     sender,
-                    "[TestPlugin] Monde decharge: " + key
+                    "[TestPlugin] World unloaded: " + key
                             + " | total=" + plugin.server().worlds().size());
         } else {
             plugin.msg(
                     sender,
-                    "[TestPlugin] Dechargement refuse pour " + key
-                            + " (monde inexistant, monde principal, ou joueurs presents).");
+                    "[TestPlugin] Unload refused for " + key
+                            + " (unknown world, last loaded world, or players still in it).");
         }
 
         return Command.SINGLE_SUCCESS;

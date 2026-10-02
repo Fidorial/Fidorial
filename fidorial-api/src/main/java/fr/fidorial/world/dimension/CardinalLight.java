@@ -7,7 +7,13 @@ package fr.fidorial.world.dimension;
  */
 public enum CardinalLight {
 
+    /**
+     * The overworld shading.
+     */
     DEFAULT("default"),
+    /**
+     * The flatter nether shading.
+     */
     NETHER("nether");
 
     private final String id;

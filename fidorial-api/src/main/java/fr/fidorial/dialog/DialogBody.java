@@ -1,12 +1,12 @@
 package fr.fidorial.dialog;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.ItemStack;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 /**
  * A single element of a dialog body, that is the contents shown between the title and the
@@ -84,7 +84,7 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
          * @since 0.1.0
          */
         public PlainMessage {
-            Objects.requireNonNull(contents, "contents");
+            Preconditions.checkArgument(contents != null, "The contents of a dialog body plain message must not be null");
             DialogValidation.width(width, MAX_WIDTH, "width");
         }
     }
@@ -133,7 +133,7 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
          * @since 0.1.0
          */
         public Item {
-            Objects.requireNonNull(item, "item");
+            Preconditions.checkArgument(item != null, "The item of a dialog body item must not be null");
             DialogValidation.width(width, MAX_ITEM_SIZE, "width");
             DialogValidation.width(height, MAX_ITEM_SIZE, "height");
         }
@@ -153,7 +153,8 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
             private int height = DEFAULT_ITEM_SIZE;
 
             Builder(final ItemStack item) {
-                this.item = Objects.requireNonNull(item, "item");
+                Preconditions.checkArgument(item != null, "The item of a dialog body item builder must not be null");
+                this.item = item;
             }
 
             /**
@@ -163,7 +164,8 @@ public sealed interface DialogBody permits DialogBody.PlainMessage, DialogBody.I
              */
             @Contract("_ -> this")
             public Builder item(final ItemStack item) {
-                this.item = Objects.requireNonNull(item, "item");
+                Preconditions.checkArgument(item != null, "The item passed to DialogBody.Item.Builder.item() must not be null");
+                this.item = item;
                 return this;
             }
 

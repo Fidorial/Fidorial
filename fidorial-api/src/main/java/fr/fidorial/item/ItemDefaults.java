@@ -1,11 +1,11 @@
 package fr.fidorial.item;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,11 +26,11 @@ public final class ItemDefaults {
 
         public Properties {
             if (maxStackSize < 1) {
-                throw new IllegalArgumentException("maxStackSize must be at least 1, got " + maxStackSize);
+                throw new IllegalArgumentException("The maximum stack size of an item must be at least 1, got " + maxStackSize);
             }
 
             if (maxDamage < 0) {
-                throw new IllegalArgumentException("maxDamage cannot be negative, got " + maxDamage);
+                throw new IllegalArgumentException("The maximum damage of an item cannot be negative, got " + maxDamage);
             }
         }
     }
@@ -87,7 +87,8 @@ public final class ItemDefaults {
      * @param source the table to read from; replaces whatever was installed before
      */
     public static void install(final Source source) {
-        ItemDefaults.source = Objects.requireNonNull(source, "source");
+        Preconditions.checkArgument(source != null, "The source passed to ItemDefaults.install() must not be null");
+        ItemDefaults.source = source;
     }
 
     /**
@@ -98,7 +99,9 @@ public final class ItemDefaults {
      * @param properties the defaults to record
      */
     public static void register(final Key item, final Properties properties) {
-        OVERRIDES.put(Objects.requireNonNull(item, "item"), Objects.requireNonNull(properties, "properties"));
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.register() must not be null");
+        Preconditions.checkArgument(properties != null, "The properties passed to ItemDefaults.register() must not be null");
+        OVERRIDES.put(item, properties);
     }
 
     /**
@@ -108,7 +111,8 @@ public final class ItemDefaults {
      * @return {@code true} when an override was removed
      */
     public static boolean unregister(final Key item) {
-        return OVERRIDES.remove(Objects.requireNonNull(item, "item")) != null;
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.unregister() must not be null");
+        return OVERRIDES.remove(item) != null;
     }
 
     /**
@@ -116,7 +120,8 @@ public final class ItemDefaults {
      * @return {@code true} when this item has registered defaults of its own
      */
     public static boolean isRegistered(final Key item) {
-        return OVERRIDES.containsKey(Objects.requireNonNull(item, "item"));
+        Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.isRegistered() must not be null");
+        return OVERRIDES.containsKey(item);
     }
 
     /**

@@ -1,5 +1,10 @@
 package fr.fidorial.dialog;
 
+/**
+ * A complete dialog: its shared {@linkplain #base() base} plus the buttons specific to its type.
+ *
+ * @since 0.1.0
+ */
 public sealed interface DialogDefinition extends Dialog
         permits NoticeDialog, ConfirmationDialog, MultiActionDialog, ServerLinksDialog, DialogListDialog {
 

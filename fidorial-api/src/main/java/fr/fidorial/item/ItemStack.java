@@ -1,5 +1,6 @@
 package fr.fidorial.item;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.item.data.DataComponentEditor;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentMap;
@@ -10,7 +11,6 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.translation.Translatable;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -33,8 +33,8 @@ public record ItemStack(Key id, int count, DataComponentMap components)
     public static final ItemStack EMPTY = new ItemStack(AIR, 0, DataComponentMap.EMPTY);
 
     public ItemStack {
-        Objects.requireNonNull(id, "id");
-        Objects.requireNonNull(components, "components");
+        Preconditions.checkArgument(id != null, "The ID of an item stack must not be null");
+        Preconditions.checkArgument(components != null, "The components of an item stack must not be null");
     }
 
     /**
@@ -96,7 +96,8 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @since 0.1.0
      */
     public ItemStack withComponents(final DataComponentEditor editor) {
-        final DataComponentMap patched = Objects.requireNonNull(editor, "editor").components();
+        Preconditions.checkArgument(editor != null, "The editor passed to ItemStack.withComponents() must not be null");
+        final DataComponentMap patched = editor.components();
         return patched.equals(components) ? this : new ItemStack(id, count, patched);
     }
 
@@ -215,9 +216,11 @@ public record ItemStack(Key id, int count, DataComponentMap components)
         private int count;
 
         private Builder(final Key id, final int count, final DataComponentEditor components) {
-            this.id = Objects.requireNonNull(id, "id");
+            Preconditions.checkArgument(id != null, "The ID of an item stack builder must not be null");
+            this.id = id;
             this.count = count;
-            this.components = Objects.requireNonNull(components, "components");
+            Preconditions.checkArgument(components != null, "The components of an item stack builder must not be null");
+            this.components = components;
         }
 
         /**

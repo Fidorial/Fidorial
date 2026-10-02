@@ -114,23 +114,24 @@ public final class CommandManager implements CommandRegistry {
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command, final Set<String> aliases) {
-        Preconditions.checkNotNull(command, "command");
-        Preconditions.checkNotNull(aliases, "aliases");
+        Preconditions.checkArgument(command != null, "The command to register must not be null");
+        Preconditions.checkArgument(aliases != null, "The aliases of the command must not be null");
         registerCommand(Key.MINECRAFT_NAMESPACE, command, aliases, true);
     }
 
     @Override
     public void register(final String namespace, final LiteralCommandNode<CommandSource> command, final Set<String> aliases) {
-        Preconditions.checkNotNull(namespace, "namespace");
-        Preconditions.checkArgument(!namespace.isBlank(), "namespace must not be blank");
+        Preconditions.checkArgument(namespace != null, "The namespace of the command must not be null");
+        Preconditions.checkArgument(!namespace.isBlank(), "The namespace of the command must not be blank");
         for (final char c : namespace.toCharArray()) {
-            Preconditions.checkArgument(Key.allowedInNamespace(c), "namespace contains illegal characters");
+            Preconditions.checkArgument(Key.allowedInNamespace(c),
+                    "The namespace '%s' contains the illegal character '%s'", namespace, c);
         }
         Preconditions.checkArgument(
                 !namespace.equalsIgnoreCase(Key.MINECRAFT_NAMESPACE),
-                "namespace '%s' is reserved for internal server commands", Key.MINECRAFT_NAMESPACE);
-        Preconditions.checkNotNull(command, "command");
-        Preconditions.checkNotNull(aliases, "aliases");
+                "The namespace '%s' is reserved for the built-in server commands", Key.MINECRAFT_NAMESPACE);
+        Preconditions.checkArgument(command != null, "The command to register must not be null");
+        Preconditions.checkArgument(aliases != null, "The aliases of the command must not be null");
 
         registerCommand(namespace, command, aliases, false);
     }
@@ -150,7 +151,7 @@ public final class CommandManager implements CommandRegistry {
         lock.writeLock().lock();
         try {
             for (final String alias : names) {
-                Preconditions.checkArgument(!alias.contains(":"), "alias '%s' must not contain ':'", alias);
+                Preconditions.checkArgument(!alias.contains(":"), "The alias '%s' must not contain ':'", alias);
                 final String aliasKey = alias.toLowerCase(Locale.ROOT);
 
                 registerNamespacedNode(ns, aliasKey, command, registered);
@@ -239,8 +240,8 @@ public final class CommandManager implements CommandRegistry {
 
     @Override
     public void unregister(final String namespace, final String alias) {
-        Preconditions.checkNotNull(namespace, "namespace");
-        Preconditions.checkNotNull(alias, "alias");
+        Preconditions.checkArgument(namespace != null, "The namespace of the command to unregister must not be null");
+        Preconditions.checkArgument(alias != null, "The alias of the command to unregister must not be null");
 
         final String ns = namespace.toLowerCase(Locale.ROOT);
         final String aliasKey = alias.toLowerCase(Locale.ROOT);
@@ -274,7 +275,7 @@ public final class CommandManager implements CommandRegistry {
 
     @Override
     public void unregisterNamespace(final String namespace) {
-        Preconditions.checkNotNull(namespace, "namespace");
+        Preconditions.checkArgument(namespace != null, "The namespace to unregister must not be null");
         final String ns = namespace.toLowerCase(Locale.ROOT);
         final String prefix = ns + ":";
 

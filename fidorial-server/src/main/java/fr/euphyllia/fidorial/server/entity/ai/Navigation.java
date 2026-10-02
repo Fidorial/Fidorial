@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.ai;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.debug.DebugValues;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.ai.Path;
@@ -8,6 +9,8 @@ import fr.fidorial.math.Location;
 import fr.fidorial.world.BlockPos;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Navigation implements Navigator {
@@ -18,6 +21,8 @@ public class Navigation implements Navigator {
 
     private static final double REPATH_TARGET_MOVED_SQ = 2.0 * 2.0;
     private static final int MAX_NODES = 768;
+
+    private static final float MAX_NODE_DISTANCE = (float) Math.sqrt(WAYPOINT_REACHED_SQ);
 
     private final ServerWorld world;
     private final AtomicReference<@Nullable PathResult> pendingResult = new AtomicReference<>();
@@ -124,6 +129,24 @@ public class Navigation implements Navigator {
     @Override
     public boolean isNavigating() {
         return currentWaypoint() != null || requestInFlight;
+    }
+
+    public DebugValues.@Nullable PathInfo debugSnapshot() {
+        final Path current = path;
+        if (current == null || current.waypoints().isEmpty()) {
+            return null;
+        }
+        final List<BlockPos> waypoints = current.waypoints();
+        final BlockPos target = requestedGoal != null ? requestedGoal : waypoints.getLast();
+        final List<DebugValues.PathInfo.Node> nodes = new ArrayList<>(waypoints.size());
+        for (final BlockPos waypoint : waypoints) {
+            nodes.add(DebugValues.PathInfo.Node.walkable(waypoint));
+        }
+        return new DebugValues.PathInfo(
+                current.reachesGoal(), waypointIndex, target, nodes,
+                List.of(DebugValues.PathInfo.Node.walkable(target)),
+                List.of(), List.of(),
+                MAX_NODE_DISTANCE);
     }
 
     @Override

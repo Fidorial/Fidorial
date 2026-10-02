@@ -5,6 +5,11 @@ import net.kyori.adventure.util.TriState;
 
 import java.util.Map;
 
+/**
+ * A {@link PermissionHolder} backed by a {@link PermissionState}.
+ *
+ * @since 0.1.0
+ */
 public interface PermissionStateHolder extends PermissionHolder {
 
     /**

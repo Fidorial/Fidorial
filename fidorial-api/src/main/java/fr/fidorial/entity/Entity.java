@@ -13,26 +13,80 @@ import net.kyori.adventure.text.event.HoverEventSource;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Anything living in a {@link World}: players, mobs, items, projectiles.
+ *
+ * <p>An entity is bound to the region thread owning its chunk. Read its state freely, but change it
+ * from that thread, through {@link SchedulerSource#execute(Runnable)} when
+ * needed.</p>
+ *
+ * @since 0.1.0
+ */
 public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowEntity>, Sound.Emitter, Sound.Source.Provider, SchedulerSource {
 
+    /**
+     * {@return the network identifier of this entity, unique while the server runs}
+     *
+     * @since 0.1.0
+     */
     int entityId();
 
+    /**
+     * {@return the persistent identity of this entity}
+     *
+     * @since 0.1.0
+     */
     UUID uuid();
 
+    /**
+     * {@return the name shown for this entity, its custom name or its type name}
+     *
+     * @since 0.1.0
+     */
     Component displayName();
 
+    /**
+     * {@return the type of this entity}
+     *
+     * @since 0.1.0
+     */
     EntityType type();
 
+    /**
+     * {@return the world this entity is in}
+     *
+     * @since 0.1.0
+     */
     World world();
 
+    /**
+     * {@return the current position and orientation of this entity}
+     *
+     * @since 0.1.0
+     */
     Location location();
 
+    /**
+     * {@return the position of the chunk holding this entity}
+     *
+     * @since 0.1.0
+     */
     default ChunkPos chunk() {
         return location().chunk();
     }
 
+    /**
+     * {@return {@code true} once this entity has left its world for good}
+     *
+     * @since 0.1.0
+     */
     boolean isRemoved();
 
+    /**
+     * Removes this entity from its world for good.
+     *
+     * @since 0.1.0
+     */
     void remove();
 
     /**
@@ -46,6 +100,8 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
     CompletableFuture<Boolean> teleport(Location location);
 
     /**
+     * Teleports this entity within its current world, keeping its orientation.
+     *
      * @param x the destination x coordinate
      * @param y the destination y coordinate
      * @param z the destination z coordinate
@@ -57,6 +113,8 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
     }
 
     /**
+     * Teleports this entity to another entity, moving worlds when needed.
+     *
      * @param target the entity to teleport to
      * @return a future completing with {@code true} if the teleport happened, {@code false} if it was refused
      * @since 0.1.0
