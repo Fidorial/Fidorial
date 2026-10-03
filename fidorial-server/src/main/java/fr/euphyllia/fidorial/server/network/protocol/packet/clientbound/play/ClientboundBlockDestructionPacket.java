@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -27,7 +27,7 @@ import net.kyori.adventure.key.Key;
  *   </tbody>
  * </table>
  */
-public record ClientboundBlockDestructionPacket(int entityId, BlockPos location,
+public record ClientboundBlockDestructionPacket(int entityId, Position location,
                                                 int destroyStage) implements ClientboundPacket {
 
     @Override
@@ -38,7 +38,7 @@ public record ClientboundBlockDestructionPacket(int entityId, BlockPos location,
     @Override
     public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
-        buf.writePosition(location.x(), location.y(), location.z());
+        buf.writePosition(location.blockX(), location.blockY(), location.blockZ());
         buf.writeByte(destroyStage);
     }
 }

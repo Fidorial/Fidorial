@@ -5,8 +5,6 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.item.ItemStack;
-import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -85,9 +83,7 @@ public final class TemptGoal implements Goal {
         }
 
         mob.setMoveSpeed(speed);
-        final Location target = current.location();
-        mob.navigation().moveTo(mob.location(), new BlockPos(
-                (int) Math.floor(target.x()), (int) Math.floor(target.y()), (int) Math.floor(target.z())));
+        mob.navigation().moveTo(mob.location(), current.location());
     }
 
     public @Nullable ServerPlayer tempter() {

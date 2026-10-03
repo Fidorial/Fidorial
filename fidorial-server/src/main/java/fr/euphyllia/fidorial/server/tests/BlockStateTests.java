@@ -3,10 +3,11 @@ package fr.euphyllia.fidorial.server.tests;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -20,7 +21,7 @@ public final class BlockStateTests {
     public static void belowWorldIsAir(final ScenarioTestHelper helper) {
         final World world = helper.world();
         final BlockStateRegistry registry = FidorialServer.getInstance().blockStateRegistry();
-        final BlockPos pos = new BlockPos(0, world.dimensionType().minY() - 1, 0);
+        final BlockPosition pos = Position.block(0, world.dimensionType().minY() - 1, 0);
 
         final BlockState actual = registry.byId(world.blockStateId(pos));
         helper.assertTrue(actual.isAir(),
@@ -30,7 +31,7 @@ public final class BlockStateTests {
     @ScenarioTest(timeoutTicks = 40)
     public static void settingBlockStateUpdatesWorld(final ScenarioTestHelper helper) {
         final World world = helper.world();
-        final BlockPos pos = new BlockPos(0, -60, 0);
+        final BlockPosition pos = Position.block(0, -60, 0);
         final int stoneId = stoneId();
 
         helper.sequence()
@@ -52,14 +53,14 @@ public final class BlockStateTests {
         helper.sequence()
                 .execute(() -> {
                     for (int y = world.minY() + world.height() - 1; y >= targetY; y--) {
-                        world.setBlockStateId(new BlockPos(x, y, z), airId);
+                        world.setBlockStateId(Position.block(x, y, z), airId);
                     }
                 })
-                .waitUntil(() -> assertSkyLight(helper, new BlockPos(x, targetY, z), 15))
-                .execute(() -> world.setBlockStateId(new BlockPos(x, blockerY, z), cobblestoneId))
-                .waitUntil(() -> assertSkyLight(helper, new BlockPos(x, targetY, z), 0))
-                .execute(() -> world.setBlockStateId(new BlockPos(x, blockerY, z), airId))
-                .waitUntil(() -> assertSkyLight(helper, new BlockPos(x, targetY, z), 15))
+                .waitUntil(() -> assertSkyLight(helper, Position.block(x, targetY, z), 15))
+                .execute(() -> world.setBlockStateId(Position.block(x, blockerY, z), cobblestoneId))
+                .waitUntil(() -> assertSkyLight(helper, Position.block(x, targetY, z), 0))
+                .execute(() -> world.setBlockStateId(Position.block(x, blockerY, z), airId))
+                .waitUntil(() -> assertSkyLight(helper, Position.block(x, targetY, z), 15))
                 .build();
     }
 
@@ -73,10 +74,10 @@ public final class BlockStateTests {
         return registry.networkId(BlockState.of(COBBLESTONE));
     }
 
-    private static void assertSkyLight(final ScenarioTestHelper helper, final BlockPos pos, final int expected) {
+    private static void assertSkyLight(final ScenarioTestHelper helper, final BlockPosition pos, final int expected) {
         final int actual = helper.world().skyLight(pos);
         helper.assertTrue(
                 actual == expected,
-                "Expected skylight " + expected + " at " + pos + " but found " + actual );
+                "Expected skylight " + expected + " at " + pos + " but found " + actual);
     }
 }

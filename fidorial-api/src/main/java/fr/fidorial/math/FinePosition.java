@@ -1,8 +1,23 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import org.jetbrains.annotations.Contract;
 
+/**
+ * A position made of decimal coordinates.
+ *
+ * @see Position#fine(double, double, double)
+ * @since 0.1.0
+ */
 public sealed interface FinePosition extends Position permits FinePositionImpl, Location {
+    @Override
+    @Contract(value = "_, _ -> new", pure = true)
+    FinePosition relative(BlockFace face, int distance);
+
+    @Override
+    @Contract(value = "_ -> new", pure = true)
+    FinePosition relative(BlockFace face);
+
     @Override
     @Contract(value = "_ -> new", pure = true)
     FinePosition offsetX(int x);

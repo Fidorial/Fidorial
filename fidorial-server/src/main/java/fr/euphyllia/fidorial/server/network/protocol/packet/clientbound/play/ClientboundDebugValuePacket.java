@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.debug.DebugChannel;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -18,7 +18,7 @@ public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> chan
         record Chunk(int x, int z) implements Target {
         }
 
-        record Block(BlockPos pos) implements Target {
+        record Block(BlockPosition pos) implements Target {
         }
     }
 
@@ -41,7 +41,7 @@ public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> chan
         return new ClientboundDebugValuePacket<>(new Target.Chunk(chunkX, chunkZ), channel, value);
     }
 
-    public static <T> ClientboundDebugValuePacket<T> block(final BlockPos pos, final DebugChannel<T> channel, final @Nullable T value) {
+    public static <T> ClientboundDebugValuePacket<T> block(final BlockPosition pos, final DebugChannel<T> channel, final @Nullable T value) {
         return new ClientboundDebugValuePacket<>(new Target.Block(pos), channel, value);
     }
 
@@ -62,7 +62,7 @@ public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> chan
                 buf.writeInt(chunk.z());
                 buf.writeInt(chunk.x());
             }
-            case final Target.Block block -> buf.writePosition(block.pos().x(), block.pos().y(), block.pos().z());
+            case final Target.Block block -> buf.writePosition(block.pos().blockX(), block.pos().blockY(), block.pos().blockZ());
         }
         buf.writeVarInt(channel.networkId());
         buf.writeBoolean(value != null);

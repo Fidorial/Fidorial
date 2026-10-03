@@ -19,11 +19,11 @@ import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.command.argument.resolvers.NbtPathResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.scheduler.RegionTps;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
@@ -285,10 +285,10 @@ public final class ApiTestCommand {
             return 0;
         }
 
-        final BlockPos pos = ctx.getArgument("pos", BlockPosResolver.class).resolve(ctx.getSource());
+        final BlockPosition pos = ctx.getArgument("pos", BlockPosResolver.class).resolve(ctx.getSource());
 
         final BlockNBTComponent nbtComponent = Component.blockNBT()
-                .absoluteWorldPos(pos.x(), pos.y(), pos.z())
+                .absoluteWorldPos(pos.blockX(), pos.blockY(), pos.blockZ())
                 .nbtPath(path)
                 .interpret(true)
                 .build();

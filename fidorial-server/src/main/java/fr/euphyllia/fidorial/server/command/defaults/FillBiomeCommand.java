@@ -13,10 +13,10 @@ import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Biome;
 import fr.fidorial.registry.keys.GameRuleKeys;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeRegistry;
 import net.kyori.adventure.key.Key;
@@ -81,10 +81,10 @@ public final class FillBiomeCommand {
             context.getSource().sender().sendMessage(Component.translatable("command.fillbiome.console"));
             return 0;
         }
-        final BlockPos from = context.getArgument("from", BlockPosResolver.class).resolve(context.getSource());
-        final BlockPos to = context.getArgument("to", BlockPosResolver.class).resolve(context.getSource());
+        final BlockPosition from = context.getArgument("from", BlockPosResolver.class).resolve(context.getSource());
+        final BlockPosition to = context.getArgument("to", BlockPosResolver.class).resolve(context.getSource());
 
-        final long volume = span(from.x(), to.x()) * span(from.y(), to.y()) * span(from.z(), to.z());
+        final long volume = span(from.blockX(), to.blockX()) * span(from.blockY(), to.blockY()) * span(from.blockZ(), to.blockZ());
         final int limit = world.gameRuleValues().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
         if (volume > limit) {
             context.getSource().sender().sendMessage(Component.translatable(
@@ -92,15 +92,15 @@ public final class FillBiomeCommand {
             return 0;
         }
 
-        final int minX = Math.min(from.x(), to.x());
-        final int minZ = Math.min(from.z(), to.z());
-        final int maxX = Math.max(from.x(), to.x());
-        final int maxZ = Math.max(from.z(), to.z());
+        final int minX = Math.min(from.blockX(), to.blockX());
+        final int minZ = Math.min(from.blockZ(), to.blockZ());
+        final int maxX = Math.max(from.blockX(), to.blockX());
+        final int maxZ = Math.max(from.blockZ(), to.blockZ());
 
         final int floor = world.minY();
         final int ceiling = floor + world.height() - 1;
-        final int minY = Math.max(floor, Math.min(from.y(), to.y()));
-        final int maxY = Math.min(ceiling, Math.max(from.y(), to.y()));
+        final int minY = Math.max(floor, Math.min(from.blockY(), to.blockY()));
+        final int maxY = Math.min(ceiling, Math.max(from.blockY(), to.blockY()));
 
         if (minY > maxY) {
             context.getSource().sender().sendMessage(Component.translatable("command.fillbiome.outofworld"));
@@ -112,7 +112,7 @@ public final class FillBiomeCommand {
             for (int z = minZ; z <= maxZ; z++) {
                 final ChunkPos chunkPos = new ChunkPos(x >> 4, z >> 4);
                 for (int y = minY; y <= maxY; y++) {
-                    byChunk.computeIfAbsent(chunkPos, _ -> new ArrayList<>()).add(new int[] {x, y, z});
+                    byChunk.computeIfAbsent(chunkPos, _ -> new ArrayList<>()).add(new int[]{x, y, z});
                 }
             }
         }

@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.player.PlayerEvent;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.Blocks;
@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 public final class BlockPlaceEvent implements PlayerEvent, Cancellable {
 
     private final Player player;
-    private final BlockPos position;
+    private final BlockPosition position;
     private final int stateId;
     private boolean cancelled;
 
@@ -33,7 +33,7 @@ public final class BlockPlaceEvent implements PlayerEvent, Cancellable {
      * @param stateId  the network identifier of the block state about to be placed
      * @since 0.1.0
      */
-    public BlockPlaceEvent(final Player player, final BlockPos position, final int stateId) {
+    public BlockPlaceEvent(final Player player, final BlockPosition position, final int stateId) {
         Preconditions.checkArgument(player != null, "The player of a block place event must not be null");
         Preconditions.checkArgument(position != null, "The position of a block place event must not be null");
         this.player = player;
@@ -60,7 +60,7 @@ public final class BlockPlaceEvent implements PlayerEvent, Cancellable {
      *
      * @since 0.1.0
      */
-    public BlockPos position() {
+    public BlockPosition position() {
         return position;
     }
 
