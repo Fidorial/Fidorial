@@ -91,6 +91,7 @@ import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
 import fr.fidorial.item.ItemDefaults;
+import fr.fidorial.math.Location;
 import fr.fidorial.moderation.BanManager;
 import fr.fidorial.moderation.WhitelistManager;
 import fr.fidorial.permission.PermissionRegistry;
@@ -104,7 +105,6 @@ import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.storage.player.PlayerEnderChestStorage;
 import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.biome.BiomeRegistry;
@@ -288,7 +288,7 @@ public final class FidorialServer implements Server {
         BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
         Blocks.bootstrap(registry);
-        LOGGER.info("{} blocks defined in code", registry.definedCount());
+        LOGGER.debug("{} blocks defined in code", registry.definedCount());
         return registry;
     }
 
@@ -364,7 +364,7 @@ public final class FidorialServer implements Server {
         closeQuietly("worlds", worldManager::close);
         closeQuietly("metrics", metrics::shutdown);
 
-        LOGGER.info("Fidorial shut down correctly.");
+        LOGGER.debug("Fidorial shut down correctly.");
     }
 
     private @Nullable Favicon loadFavicon() {

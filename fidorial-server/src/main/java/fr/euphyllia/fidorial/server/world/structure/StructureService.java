@@ -20,7 +20,8 @@ import fr.euphyllia.fidorial.server.world.structure.processor.ProcessorList;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.JigsawStructure;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.structure.Datapack;
@@ -141,7 +142,7 @@ public final class StructureService implements StructureManager {
     }
 
     @Override
-    public CompletableFuture<Integer> placeTemplate(final World world, final BlockPos origin, final Key key,
+    public CompletableFuture<Integer> placeTemplate(final World world, final Position origin, final Key key,
                                                     final StructureRotation rotation) {
         final StructureChunkGenerator generator = generator(world);
         final StructureTemplateImpl template = registry.template(key);
@@ -149,15 +150,15 @@ public final class StructureService implements StructureManager {
             return CompletableFuture.failedFuture(new IllegalArgumentException("Unknown template " + key.asString()));
         }
         final ServerWorld serverWorld = (ServerWorld) world;
-        final Box box = Rotations.box(origin.x(), origin.y(), origin.z(),
+        final Box box = Rotations.box(origin.blockX(), origin.blockY(), origin.blockZ(),
                 template.sizeX(), template.sizeY(), template.sizeZ(), rotation);
         final StructureGenerator structures = generator.structures();
         return forEachChunk(serverWorld, box, target -> structures.placer().placeTemplate(
-                template, origin.x(), origin.y(), origin.z(), rotation, ProcessorList.EMPTY, target, true));
+                template, origin.blockX(), origin.blockY(), origin.blockZ(), rotation, ProcessorList.EMPTY, target, true));
     }
 
     @Override
-    public CompletableFuture<Integer> placeStructure(final World world, final BlockPos position, final Key key) {
+    public CompletableFuture<Integer> placeStructure(final World world, final Position position, final Key key) {
         final StructureChunkGenerator generator = generator(world);
         final JigsawStructure structure = registry.structure(key);
         if (generator == null || structure == null) {
@@ -165,11 +166,11 @@ public final class StructureService implements StructureManager {
         }
         final StructureGenerator structures = generator.structures();
         return CompletableFuture
-                .supplyAsync(() -> structures.assembler().generate(structure, position.x() >> 4, position.z() >> 4, false), worker)
+                .supplyAsync(() -> structures.assembler().generate(structure, position.chunkX(), position.chunkZ(), false), worker)
                 .thenCompose(start -> placeStart((ServerWorld) world, structures, start));
     }
 
-    public CompletableFuture<Integer> placeJigsaw(final World world, final BlockPos position, final Key pool,
+    public CompletableFuture<Integer> placeJigsaw(final World world, final Position position, final Key pool,
                                                   final Key target, final int maxDepth) {
         final StructureChunkGenerator generator = generator(world);
         if (generator == null || registry.pool(pool) == null) {
@@ -177,18 +178,18 @@ public final class StructureService implements StructureManager {
         }
         final StructureGenerator structures = generator.structures();
         final JigsawStructure synthetic = new JigsawStructure(pool, Set.of(), pool, target, Math.clamp(maxDepth, 0, 20),
-                (random, minY, height) -> position.y(), null, 128, 128, false, TerrainAdaptation.NONE, true, 0, 0, List.of());
+                (random, minY, height) -> position.blockY(), null, 128, 128, false, TerrainAdaptation.NONE, true, 0, 0, List.of());
         return CompletableFuture.supplyAsync(() -> {
             final LegacyRandom random = new LegacyRandom(structures.terrain().seed()
-                    ^ LegacyRandom.positionSeed(position.x(), position.y(), position.z()));
+                    ^ LegacyRandom.positionSeed(position.blockX(), position.blockY(), position.blockZ()));
             final JigsawAssembler.Stub stub = structures.assembler().stub(synthetic, pool, target,
-                    position.x(), position.y(), position.z(), random, false);
+                    position.blockX(), position.blockY(), position.blockZ(), random, false);
             return stub == null ? StructureStart.EMPTY : structures.assembler().assemble(stub);
         }, worker).thenCompose(start -> placeStart((ServerWorld) world, structures, start));
     }
 
     @Override
-    public CompletableFuture<Optional<BlockPos>> locate(final World world, final BlockPos origin, final Key structure,
+    public CompletableFuture<Optional<BlockPosition>> locate(final World world, final Position origin, final Key structure,
                                                         final int radiusCells) {
         final StructureChunkGenerator generator = generator(world);
         if (generator == null) {
@@ -196,8 +197,8 @@ public final class StructureService implements StructureManager {
         }
         final StructureGenerator structures = generator.structures();
         return CompletableFuture.supplyAsync(() -> {
-            final StructureGenerator.Located located = structures.locate(structure, origin.x(), origin.z(), radiusCells);
-            return Optional.ofNullable(located).map(found -> new BlockPos(found.x(), found.y(), found.z()));
+            final StructureGenerator.Located located = structures.locate(structure, origin.blockX(), origin.blockZ(), radiusCells);
+            return Optional.ofNullable(located).map(found -> Position.block(found.x(), found.y(), found.z()));
         }, worker);
     }
 

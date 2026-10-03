@@ -10,8 +10,6 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -59,11 +57,6 @@ final class StructureCommands {
             return world;
         }
         return null;
-    }
-
-    static BlockPos here(final CommandContext<CommandSource> context) {
-        final Location location = context.getSource().location();
-        return new BlockPos((int) Math.floor(location.x()), (int) Math.floor(location.y()), (int) Math.floor(location.z()));
     }
 
     static String rootMessage(final Throwable failure) {

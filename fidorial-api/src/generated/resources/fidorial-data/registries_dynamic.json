@@ -12083,6 +12083,12 @@
       "minecraft:allows_tropical_fish_spawns_at_any_height": [
         "minecraft:lush_caves"
       ],
+      "minecraft:generated_in_below_zero_retrogen": [
+        "minecraft:deep_dark",
+        "minecraft:dripstone_caves",
+        "minecraft:lush_caves",
+        "minecraft:sulfur_caves"
+      ],
       "minecraft:has_structure/abandoned_camp_bamboo_jungle": [
         "minecraft:bamboo_jungle"
       ],
@@ -12511,6 +12517,12 @@
       "minecraft:is_beach": [
         "minecraft:beach",
         "minecraft:snowy_beach"
+      ],
+      "minecraft:is_cave": [
+        "minecraft:deep_dark",
+        "minecraft:dripstone_caves",
+        "minecraft:lush_caves",
+        "minecraft:sulfur_caves"
       ],
       "minecraft:is_deep_ocean": [
         "minecraft:deep_cold_ocean",
@@ -16640,6 +16652,7 @@
             "minecraft:visual/cloud_color": "#ccffffff",
             "minecraft:visual/cloud_height": 192.33,
             "minecraft:visual/fog_color": "#c0d8ff",
+            "minecraft:visual/has_sky_occluder": true,
             "minecraft:visual/sky_color": "#78a7ff"
           },
           "coordinate_scale": 1.0,
@@ -16706,6 +16719,7 @@
             "minecraft:visual/cloud_color": "#ccffffff",
             "minecraft:visual/cloud_height": 192.33,
             "minecraft:visual/fog_color": "#c0d8ff",
+            "minecraft:visual/has_sky_occluder": true,
             "minecraft:visual/sky_color": "#78a7ff"
           },
           "coordinate_scale": 1.0,

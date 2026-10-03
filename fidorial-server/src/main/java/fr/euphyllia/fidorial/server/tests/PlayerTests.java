@@ -3,9 +3,9 @@ package fr.euphyllia.fidorial.server.tests;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
@@ -19,12 +19,12 @@ public final class PlayerTests {
     @ScenarioTest(timeoutTicks = 60)
     public static void crossWorldTeleport(final ScenarioTestHelper helper) {
         final World destinationWorld = crossWorldDestination();
-        final Player player = helper.summonPlayer("Teleporting", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final Location destination = new Location(5.5, 70, 5.5, 0f, 0f);
+        final Player player = helper.summonPlayer("Teleporting", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final Location destination = Location.of(destinationWorld, 5.5, 70, 5.5, 0f, 0f);
 
         final AtomicReference<CompletableFuture<Boolean>> teleportFuture = new AtomicReference<>();
         helper.sequence()
-                .execute(() -> teleportFuture.set(player.teleport(destinationWorld, destination)))
+                .execute(() -> teleportFuture.set(player.teleport(destination)))
                 .waitUntil(() -> teleportFuture.get().isDone(), "Expected teleport to complete")
                 .execute(() -> helper.assertTrue(teleportFuture.get().join(), "Expected teleport to succeed"))
                 .waitUntil(() -> player.world().equals(destinationWorld),
@@ -37,8 +37,8 @@ public final class PlayerTests {
     @ScenarioTest(timeoutTicks = 20)
     public static void respawnInAnotherWorld(final ScenarioTestHelper helper) {
         final World destinationWorld = crossWorldDestination();
-        final Player player = helper.summonPlayer("Respawning", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final Location point = new Location(1.5, 70, 1.5, 0f, 0f);
+        final Player player = helper.summonPlayer("Respawning", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final Location point = Location.of(destinationWorld, 1.5, 70, 1.5, 0f, 0f);
 
         player.setRespawnPoint(destinationWorld, point);
         final AtomicReference<CompletableFuture<Boolean>> respawnFuture = new AtomicReference<>();

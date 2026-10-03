@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.inventory;
 
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,12 +8,12 @@ import java.util.function.ObjIntConsumer;
 
 public final class ChestViewerTracker {
 
-    private final Map<BlockPos, Integer> viewers = new ConcurrentHashMap<>();
+    private final Map<BlockPosition, Integer> viewers = new ConcurrentHashMap<>();
 
     /**
      * Records an opening and notifies the callback with the new viewer count.
      */
-    public void open(final BlockPos pos, final ObjIntConsumer<BlockPos> onChanged) {
+    public void open(final BlockPosition pos, final ObjIntConsumer<BlockPosition> onChanged) {
         final int count = viewers.merge(pos, 1, Integer::sum);
         onChanged.accept(pos, count);
     }
@@ -21,7 +21,7 @@ public final class ChestViewerTracker {
     /**
      * Records a closing and notifies the callback with the new viewer count.
      */
-    public void close(final BlockPos pos, final ObjIntConsumer<BlockPos> onChanged) {
+    public void close(final BlockPosition pos, final ObjIntConsumer<BlockPosition> onChanged) {
         final Integer remaining = viewers.compute(pos, (key, current) -> {
             if (current == null || current <= 1) {
                 return null;
@@ -31,11 +31,11 @@ public final class ChestViewerTracker {
         onChanged.accept(pos, remaining == null ? 0 : remaining);
     }
 
-    public void forget(final BlockPos pos) {
+    public void forget(final BlockPosition pos) {
         viewers.remove(pos);
     }
 
-    public int count(final BlockPos pos) {
+    public int count(final BlockPosition pos) {
         return viewers.getOrDefault(pos, 0);
     }
 }

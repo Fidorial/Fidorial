@@ -292,10 +292,7 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
                 if (!data.exists(uuid)) {
                     return Optional.empty();
                 }
-                final PlayerDataStorage.PlayerData loaded =
-                        data.load(uuid, new PlayerDataStorage.PlayerData(
-                                server.worldManager().defaultWorld().orElseThrow().configuration().gameplay().defaultGameMode(),
-                                null, null, null, null));
+                final PlayerDataStorage.PlayerData loaded = data.load(uuid);
                 return Optional.of(new OfflinePlayerSnapshot(
                         uuid,
                         loaded.gameMode(),

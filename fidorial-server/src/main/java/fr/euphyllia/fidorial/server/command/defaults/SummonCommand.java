@@ -12,8 +12,8 @@ import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -74,7 +74,7 @@ public final class SummonCommand {
             return 0;
         }
         world.scheduler().execute(world.key(), location.chunk(), () -> {
-            final AbstractMob mob = MobFactories.create(entity, server.entityIds().allocate(), world, location);
+            final AbstractMob mob = MobFactories.create(entity, server.entityIds().allocate(), location);
             server.spawnEntity(mob);
 
             source.sender().sendMessage(Component.translatable(

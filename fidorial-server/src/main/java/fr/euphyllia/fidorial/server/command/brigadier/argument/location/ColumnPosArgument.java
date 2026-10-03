@@ -11,8 +11,8 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 
 import java.util.concurrent.CompletableFuture;
 

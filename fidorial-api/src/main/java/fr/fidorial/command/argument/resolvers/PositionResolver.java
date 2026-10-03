@@ -1,7 +1,7 @@
 package fr.fidorial.command.argument.resolvers;
 
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import org.jetbrains.annotations.ApiStatus;
 
 /**

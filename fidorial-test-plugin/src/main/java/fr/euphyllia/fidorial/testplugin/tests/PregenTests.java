@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.tests;
 
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
+import fr.fidorial.math.Position;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -63,7 +63,7 @@ public final class PregenTests {
         final int blockY = world.minY() + 5;
 
         helper.assertTrue(
-                world.blockKeyAt(new BlockPos(blockX, blockY, blockZ)).isPresent(),
+                world.blockKeyAt(Position.block(blockX, blockY, blockZ)).isPresent(),
                 "Expected generated chunk at " + chunkX + "," + chunkZ
         );
     }

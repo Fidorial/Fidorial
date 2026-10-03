@@ -3,7 +3,8 @@ package fr.euphyllia.fidorial.server.configuration;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
+import fr.fidorial.world.World;
 
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.commented;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.configRecord;
@@ -33,11 +34,11 @@ public record WorldConfiguration(Gameplay gameplay) {
             boolean pvp,
             GameMode defaultGameMode,
             boolean generateStructures,
-            Location spawn
+            Spawn spawn
     ) {
 
         public static final Gameplay DEFAULTS = new Gameplay(
-                true, GameMode.SURVIVAL, true, new Location(8.5, -48.0, 8.5, 0f, 0f));
+                true, GameMode.SURVIVAL, true, new Spawn(8.5, -48.0, 8.5, 0, 0));
 
         static Codec<Gameplay> codec(final Gameplay defaults, final boolean writeDefaults) {
             return configRecord(Gameplay.class, defaults, writeDefaults)
@@ -52,14 +53,20 @@ public record WorldConfiguration(Gameplay gameplay) {
                     .build();
         }
 
-        private static Codec<Location> spawnCodec(final Location defaults, final boolean writeDefaults) {
-            return configRecord(Location.class, defaults, writeDefaults)
-                    .field("x", Location::x, Codec.DOUBLE)
-                    .field("y", Location::y, Codec.DOUBLE)
-                    .field("z", Location::z, Codec.DOUBLE)
-                    .field("yaw", Location::yaw, Codec.FLOAT)
-                    .field("pitch", Location::pitch, Codec.FLOAT)
+        private static Codec<Spawn> spawnCodec(final Spawn defaults, final boolean writeDefaults) {
+            return configRecord(Spawn.class, defaults, writeDefaults)
+                    .field("x", Spawn::x, Codec.DOUBLE)
+                    .field("y", Spawn::y, Codec.DOUBLE)
+                    .field("z", Spawn::z, Codec.DOUBLE)
+                    .field("yaw", Spawn::yaw, Codec.FLOAT)
+                    .field("pitch", Spawn::pitch, Codec.FLOAT)
                     .build();
+        }
+
+        public record Spawn(double x, double y, double z, float yaw, float pitch) {
+            public Location location(final World world) {
+                return Location.of(world, x, y, z, yaw, pitch);
+            }
         }
     }
 }

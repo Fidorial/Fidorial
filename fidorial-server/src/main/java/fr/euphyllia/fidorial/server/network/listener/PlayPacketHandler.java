@@ -105,14 +105,14 @@ import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockPlaceContext;
 import net.kyori.adventure.chat.ChatType;
@@ -242,20 +242,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn();
+        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld);
 
-        ServerWorld world = defaultWorld;
-        Location spawn = defaultSpawn;
-
-        if (data.hasLastLocation()) {
-            final ServerWorld saved = server.worldManager().world(data.world());
-            if (saved != null) {
-                world = saved;
-                spawn = data.location();
-            } else {
-                LOGGER.warn("{} last played in the unloaded world {}, world spawn used instead", profile.name(), data.world());
-            }
-        }
+        final Location spawn = data.lastLocation() != null ? data.lastLocation() : defaultSpawn;
 
         final ServerPlayer created = new ServerPlayer(
                 server.entityIds().allocate(),
@@ -264,25 +253,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 loadEnderChest(profile),
                 data.gameMode(),
                 connection,
-                world,
                 spawn);
-        created.setRespawnPoint(restoreRespawnPoint(profile, data));
+        if (data.respawnLocation() != null) {
+            created.setRespawnPoint(data.respawnLocation());
+        }
         return created;
-    }
-
-    private @Nullable RespawnPoint restoreRespawnPoint(
-            final PlayerProfile profile, final PlayerDataStorage.PlayerData data) {
-        final Key worldKey = data.respawnWorld();
-        final Location location = data.respawnLocation();
-        if (worldKey == null || location == null) {
-            return null;
-        }
-        final ServerWorld world = server.worldManager().world(worldKey);
-        if (world == null) {
-            LOGGER.warn("Respawn point of {} targets the unknown world {}, dropped", profile.name(), worldKey);
-            return null;
-        }
-        return new RespawnPoint(world, location);
     }
 
     private EnderChestInventory loadEnderChest(final PlayerProfile profile) {
@@ -308,12 +283,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private PlayerDataStorage.PlayerData loadPlayerData(final PlayerProfile profile) {
-        final PlayerDataStorage.PlayerData defaults = new PlayerDataStorage.PlayerData(worldOrDisconnect().configuration().gameplay().defaultGameMode(), null, null, null, null);
         try {
-            return server.playerDataStorage().load(profile.uuid(), defaults);
+            return server.playerDataStorage().load(profile.uuid());
         } catch (final Exception e) {
             LOGGER.error("Chargement des donnees de {} impossible, valeurs par defaut utilisees", profile.name(), e);
-            return defaults;
+            return new PlayerDataStorage.PlayerData(worldOrDisconnect().configuration().gameplay().defaultGameMode(), null, null);
         }
     }
 
@@ -326,7 +300,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 dimensions,
                 worldId(),
                 dimensionType,
-                worldManager().levelData().hashedSeed(),
                 config.general().viewDistance(),
                 config.general().viewDistance(),
                 player.gameMode().id(),
@@ -613,8 +586,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         final ServerPlayer acting = player;
         final ServerWorld world = serverWorld();
-        final BlockPos clicked = packet.target();
-        final ChunkPos chunkPos = ChunkPos.fromBlock(clicked.x(), clicked.z());
+        final BlockPosition clicked = packet.target();
+        final ChunkPos chunkPos = clicked.chunk();
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
             if (interactWithBlock(clicked)) {
@@ -622,7 +595,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 return;
             }
             final BlockFace clickedFace = BlockFace.byId(packet.face());
-            final BlockPos target = clicked.relative(clickedFace);
+            final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(acting.selectedSlot());
             final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
@@ -641,7 +614,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private @Nullable BlockState blockToPlace(
-            final ItemStack held, final BlockPos target, final BlockFace clickedFace, final float cursorY) {
+            final ItemStack held, final BlockPosition target, final BlockFace clickedFace, final float cursorY) {
         final BlockState state = server.blockStateRegistry().blockForItem(held.id());
         if (state == null) {
             return null;
@@ -652,10 +625,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
         return server.blockStateRegistry().placementState(state, context);
     }
 
-    private boolean interactWithBlock(final BlockPos pos) {
+    private boolean interactWithBlock(final BlockPosition pos) {
         final BlockState state;
         try {
-            state = serverWorld().getBlock(pos.x(), pos.y(), pos.z());
+            state = serverWorld().getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
         } catch (final IOException e) {
             LOGGER.debug("Lecture du bloc {} impossible", pos, e);
             return false;
@@ -667,7 +640,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         return true;
     }
 
-    private void openEnderChest(final BlockPos pos) {
+    private void openEnderChest(final BlockPosition pos) {
         if (EnderChestBlock.isBlockedAbove(serverWorld(), pos)) {
             return;
         }
@@ -685,12 +658,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
         broadcastChestSound(pos, "block.ender_chest.open");
     }
 
-    private void broadcastLid(final BlockPos pos, final int viewers) {
+    private void broadcastLid(final BlockPosition pos, final int viewers) {
         server.broadcast(ClientboundBlockEventPacket.chestViewers(pos, viewers));
     }
 
     @SuppressWarnings("PatternValidation")
-    private void broadcastChestSound(final BlockPos pos, final String soundId) {
+    private void broadcastChestSound(final BlockPosition pos, final String soundId) {
         final Sound sound = Sound.sound(Key.key(soundId), Sound.Source.BLOCK, 0.5f, 1.0f);
         server.broadcast(new ClientboundSoundPacket(sound, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));
     }
@@ -778,7 +751,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
 
         final ServerWorld world = serverWorld();
-        final ChunkPos chunkPos = ChunkPos.fromBlock(packet.position().x(), packet.position().z());
+        final ChunkPos chunkPos = packet.position().chunk();
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
@@ -791,7 +764,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         });
     }
 
-    private void onBlockDestroyed(final BlockPos position) {
+    private void onBlockDestroyed(final BlockPosition position) {
         final ContainerMenu menu = player.openMenu();
         if (menu instanceof final EnderChestMenu enderChest && enderChest.position().equals(position)) {
             closeOpenMenu(true);
@@ -828,7 +801,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
     }
 
-    private boolean instantMine(final BlockPos position) {
+    private boolean instantMine(final BlockPosition position) {
         return false;
     }
 
@@ -856,7 +829,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final boolean isOnGround = (flags & 0x01) != 0;
 
         world.scheduler().execute(world.key(), fromChunk, () -> {
-            final Location current = new Location(x, y, z, yaw, pitch);
+            final Location current = Location.of(world, x, y, z, yaw, pitch);
             trackFall(previous, current, wasOnGround, isOnGround);
             moving.setLocation(current);
             moving.setOnGround(isOnGround);
@@ -879,18 +852,16 @@ public final class PlayPacketHandler implements PlayPacketListener {
         });
     }
 
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
         if (player == null) {
             return CompletableFuture.completedFuture(false);
         }
         final ServerPlayer teleporting = player;
-        final World from = teleporting.world();
+        final ServerWorld from = ((ServerWorld) teleporting.world());
         final ChunkPos destChunk = location.chunk();
 
-        if (from.equals(destination)) {
-            if (!(destination instanceof final ServerWorld target)) {
-                return CompletableFuture.completedFuture(false);
-            }
+        final ServerWorld target = ((ServerWorld) location.world());
+        if (from.equals(target)) {
             final Location previous = teleporting.location();
             final ChunkPos fromChunk = previous.chunk();
             final CompletableFuture<Boolean> result = new CompletableFuture<>();
@@ -931,11 +902,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return result;
         }
 
-        if (!(from instanceof final ServerWorld fromWorld) || !(destination instanceof final ServerWorld target)) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        final CompletableFuture<Boolean> arrival = teleportCrossWorld(fromWorld, target, location, destChunk);
+        final CompletableFuture<Boolean> arrival = teleportCrossWorld(from, target, location, destChunk);
         arrival.thenAccept(succeeded -> {
             if (!succeeded) {
                 LOGGER.warn("{} did not fully complete a cross-world teleport into {}", teleporting.name(), target.key());
@@ -969,7 +936,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
                 final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
                     try {
-                        teleporting.setWorld(target);
                         teleporting.setLocation(location);
                         target.addEntity(teleporting);
 
@@ -977,7 +943,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         connection.send(new ClientboundRespawnPacket(
                                 target.dimension().id(),
                                 dimensionType,
-                                worldManager().levelData().hashedSeed(),
                                 teleporting.gameMode().id(),
                                 ClientboundRespawnPacket.KEEP_ALL,
                                 describeGenerator(target) instanceof ChunkGeneratorConfig.Debug,
@@ -1179,7 +1144,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return CompletableFuture.completedFuture(false);
         }
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn();
+        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld);
 
         ServerWorld requestedWorld = defaultWorld;
         Location requestedSpawn = defaultSpawn;
@@ -1190,7 +1155,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             final ServerWorld target = server.worldManager().world(point.world().key());
             if (target != null) {
                 requestedWorld = target;
-                requestedSpawn = point.location();
+                requestedSpawn = point.position().toLocation(point.world());
                 usedRespawnPoint = true;
             } else {
                 LOGGER.warn(
@@ -1203,10 +1168,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
 
         final PlayerRespawnEvent event = server.events()
-                .post(new PlayerRespawnEvent(player, requestedWorld, requestedSpawn, cause, usedRespawnPoint));
-        final ServerWorld world =
-                event.world() instanceof final ServerWorld target ? target : defaultWorld;
+                .post(new PlayerRespawnEvent(player, requestedSpawn, cause, usedRespawnPoint));
         final Location spawn = event.location();
+        final ServerWorld world = ((ServerWorld) spawn.world());
 
         player.resetOnRespawn();
 
@@ -1214,7 +1178,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
         connection.send(new ClientboundRespawnPacket(
                 world.dimension().id(),
                 dimensionType,
-                worldManager().levelData().hashedSeed(),
                 player.gameMode().id(),
                 ClientboundRespawnPacket.KEEP_NOTHING,
                 describeGenerator(world) instanceof ChunkGeneratorConfig.Debug,
@@ -1300,7 +1263,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
                 final boolean arrivalScheduled = world.scheduler().execute(world.key(), destination, () -> {
                     try {
-                        respawning.setWorld(world);
                         respawning.setLocation(spawn);
                         world.addEntity(respawning);
                         openChunkView(world, destination);

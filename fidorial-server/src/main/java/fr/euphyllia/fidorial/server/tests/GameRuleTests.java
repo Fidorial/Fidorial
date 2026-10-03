@@ -11,11 +11,11 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.event.Subscription;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
@@ -161,7 +161,7 @@ public final class GameRuleTests {
     @ScenarioTest(timeoutTicks = 40)
     public static void fallDamageRuleProtectsPlayers(final ScenarioTestHelper helper) {
         final FidorialGameRules rules = FidorialServer.getInstance().gameRules();
-        final Player player = helper.summonPlayer("NoFallDamage", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final Player player = helper.summonPlayer("NoFallDamage", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final AtomicBoolean hurtWhileDisabled = new AtomicBoolean(true);
         final AtomicBoolean hurtWhileEnabled = new AtomicBoolean(false);
 
@@ -228,14 +228,14 @@ public final class GameRuleTests {
     @ScenarioTest(timeoutTicks = 60)
     public static void overriddenDamageRuleOnlyAppliesInItsWorld(final ScenarioTestHelper helper) {
         final World other = overridingWorld();
-        final Player player = helper.summonPlayer("NoFallInOtherWorld", new Location(0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final Location destination = new Location(0.5, 65, 0.5, 0f, 0f);
+        final Player player = helper.summonPlayer("NoFallInOtherWorld", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        final Location destination = Location.of(other, 0.5, 65, 0.5, 0f, 0f);
         final AtomicReference<CompletableFuture<Boolean>> teleport = new AtomicReference<>();
         final CompletableFuture<Boolean> hurt = new CompletableFuture<>();
         final AtomicBoolean hurtWhenOverriddenToTrue = new AtomicBoolean(false);
 
         helper.sequence()
-                .execute(() -> teleport.set(player.teleport(other, destination)))
+                .execute(() -> teleport.set(player.teleport(destination)))
                 .waitUntil(() -> teleport.get().isDone() && player.world().equals(other),
                         "Expected the player to reach the world overriding fall_damage")
                 .execute(() -> helper.assertTrue(other.scheduler().execute(other.key(), new ChunkPos(0, 0), () -> {

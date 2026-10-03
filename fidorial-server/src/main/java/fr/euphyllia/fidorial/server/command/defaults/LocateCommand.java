@@ -8,7 +8,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -60,16 +61,16 @@ public final class LocateCommand {
             context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.invalid", Component.text(id.asString())));
             return 0;
         }
-        final BlockPos origin = StructureCommands.here(context);
+        final Position origin = context.getSource().location();
         context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.searching", Component.text(id.asString())));
         service.locate(world, origin, id, radiusCells).whenComplete((found, failure) -> {
             if (failure != null || found == null || found.isEmpty()) {
                 context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.notfound", Component.text(id.asString())));
                 return;
             }
-            final BlockPos pos = found.get();
-            final long dx = pos.x() - origin.x();
-            final long dz = pos.z() - origin.z();
+            final BlockPosition pos = found.get();
+            final long dx = pos.blockX() - origin.blockX();
+            final long dz = pos.blockZ() - origin.blockZ();
             final int distance = (int) Math.round(Math.sqrt(dx * dx + dz * dz));
             final Component coordinates = Component.text("[" + pos.x() + ", ~, " + pos.z() + "]", NamedTextColor.GREEN)
                     .clickEvent(ClickEvent.suggestCommand("/tp @s " + pos.x() + " ~ " + pos.z()))

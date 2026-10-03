@@ -32,6 +32,7 @@ public final class DataFixersRegistry {
         register("1.21.11", fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V1_21_11.DataFixers::buildDataFixers); // for our gamerule API
         register("26.3", fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_3.DataFixers::buildDataFixers);
         register("fidorial-26.3", fr.euphyllia.fidorial.server.world.storage.datafixers.fidorial.V26_3.DataFixers::buildDataFixers);
+        register("26.4", fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.DataFixers::buildDataFixers);
     }
 
     public static int latestDataFixerVersion() {
@@ -60,7 +61,10 @@ public final class DataFixersRegistry {
         for (int i = 0, len = list.size(); i < len; ++i) {
             final MapType element = list.getMap(i, null);
             if (element != null) {
-                update(type, element, sourceDataVersion);
+                final MapType updated = update(type, element, sourceDataVersion);
+                if (updated != null) {
+                    list.setMap(i, updated);
+                }
             }
         }
     }

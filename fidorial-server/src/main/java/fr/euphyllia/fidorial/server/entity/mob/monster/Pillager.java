@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob.monster;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 
@@ -12,7 +11,7 @@ public final class Pillager extends AbstractMob implements Category.Monster {
 
     public static final float MAX_HEALTH = 24f;
 
-    public Pillager(int entityId, World world, Location location) {
-        super(entityId, UUID.randomUUID(), EntityTypes.PILLAGER, world, location, MAX_HEALTH);
+    public Pillager(final int entityId, final Location location) {
+        super(entityId, UUID.randomUUID(), EntityTypes.PILLAGER, location, MAX_HEALTH);
     }
 }

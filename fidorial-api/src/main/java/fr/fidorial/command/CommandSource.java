@@ -2,7 +2,7 @@ package fr.fidorial.command;
 
 import fr.fidorial.Server;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 /**
