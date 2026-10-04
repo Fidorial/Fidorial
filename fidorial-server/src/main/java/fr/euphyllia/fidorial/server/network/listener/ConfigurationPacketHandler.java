@@ -183,6 +183,11 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             }
         }
         sendTags();
+        /* not allowed by the vanilla client in CONFIG phase even though a packet exists for it
+        if (!connection.postEffects().isEmpty()) {
+            connection.sendPostEffects(connection.postEffects());
+        }
+         */
         connection.send(new ClientboundFinishConfigurationPacket());
     }
 

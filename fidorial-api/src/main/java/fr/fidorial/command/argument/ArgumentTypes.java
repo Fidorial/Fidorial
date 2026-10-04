@@ -30,6 +30,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -636,6 +637,28 @@ public final class ArgumentTypes {
     }
 
     /**
+     * Wraps an {@link ArgumentType} so the client computes its suggestions locally from
+     * {@code suggestionSource} instead of asking the server. Parsing and the client-side grammar
+     * stay those of {@code type}.
+     * <p>
+     * Whenever the server has to answer instead, such as during console tab completion or when a
+     * client doesn't know {@code suggestionSource}, it uses {@code fallbackSuggestions}, or
+     * {@code type}'s own suggestions when that is {@code null}.
+     *
+     * @param type                the argument type
+     * @param suggestionSource    the client-side suggestion source
+     * @param fallbackSuggestions suggestions computed by the server when the client can't, or
+     *                            {@code null} to use {@code type}'s own
+     * @param <T>                 the parsed value type
+     * @return argument with client-side suggestions
+     * @see #withServerSuggestions(ArgumentType)
+     * @since 0.1.0
+     */
+    public static <T> ArgumentType<T> withClientSuggestions(final ArgumentType<T> type, final Key suggestionSource, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
+        return provider().withClientSuggestions(type, suggestionSource, fallbackSuggestions);
+    }
+
+    /**
      * An NBT path argument, resolvable against any root {@link BinaryTag}.
      *
      * @return argument
@@ -653,5 +676,16 @@ public final class ArgumentTypes {
      */
     public static ArgumentType<SwingAnimation.SwingAnimationType> swingAnimationType() {
         return provider().swingAnimationType();
+    }
+
+    /**
+     * A post effect argument.
+     * When possible, players are suggested the post effects available in their own loaded resource packs.
+     *
+     * @return argument
+     * @since 0.1.0
+     */
+    public static ArgumentType<Key> postEffect() {
+        return provider().postEffect();
     }
 }

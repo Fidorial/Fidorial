@@ -49,6 +49,7 @@ public final class DefaultPermissions {
                 command("tps", "View per-region TPS."),
                 command("weather", "Change the weather."),
                 command("whitelist", "Manage the whitelist."),
+                command("posteffect", "Manage the active post effects on a player."),
                 PermissionDefinition.operatorOnly("spark", "Use the built-in spark profiler."),
                 PermissionDefinition.operatorOnly("spark.*", "Every spark subcommand."),
                 PermissionDefinition.operatorOnly(

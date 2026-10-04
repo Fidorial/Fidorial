@@ -244,5 +244,17 @@
   "commands.gamerule.inherit": "Gamerule <arg:0> in <arg:1> follows the overworld again: <arg:2>",
   "commands.gamerule.inherit.none": "<red>Gamerule <arg:0> is not overridden in <arg:1>",
   "commands.gamerule.cancelled": "<red>The change of gamerule <arg:0> was cancelled",
-  "commands.gamerule.unsupported": "<red>Gamerule <arg:0> is not supported by this server yet; its value was left unchanged"
+  "commands.gamerule.unsupported": "<red>Gamerule <arg:0> is not supported by this server yet; its value was left unchanged",
+
+  "command.posteffect.added" : "Applied post effect <arg:0> to <arg:1>",
+  "command.posteffect.added.many" : "Applied post effect <arg:0> to <arg:1> player(s)",
+  "command.posteffect.removed" : "Removed post effect <arg:0> from <arg:1>",
+  "command.posteffect.removed.many" : "Removed post effect <arg:0> from <arg:1> player(s)",
+  "command.posteffect.cleared" : "Cleared all post effects from <arg:0>",
+  "command.posteffect.cleared.many" : "Cleared all post effects from <arg:0> player(s)",
+  "command.posteffect.add.unchanged" : "<red>Nothing changed. Post effect <arg:0> could not be applied to any target",
+  "command.posteffect.remove.unchanged" : "<red>Nothing changed. Post effect <arg:0> could not be removed from any target",
+  "command.posteffect.clear.unchanged" : "<red>Nothing changed. No target had post effects to clear",
+  "command.posteffect.list" : "<arg:0> has <arg:1> active post effect(s): <arg:2>",
+  "command.posteffect.list.none" : "<arg:0> has no active post effects"
 }

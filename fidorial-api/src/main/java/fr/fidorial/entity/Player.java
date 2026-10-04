@@ -14,11 +14,15 @@ import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.identity.Identified;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.object.ObjectContentsLike;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
+import java.util.List;
+import java.util.SequencedCollection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -236,4 +240,51 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * @since 0.1.0
      */
     void updateInventory();
+
+    /**
+     * {@return the active post effects, in order}
+     *
+     * @since 0.1.0
+     */
+    @Unmodifiable
+    List<Key> postEffects();
+
+    /**
+     * Replaces the currently active post effects.
+     *
+     * @param effects the effect keys, in order
+     * @return a future completing with {@code true} if the active effects changed, or {@code false} if
+     * they were already {@code effects}, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> setPostEffects(SequencedCollection<Key> effects);
+
+    /**
+     * Activates an effect if it is not already active.
+     *
+     * @param effect the effect key
+     * @return a future completing with {@code true} if it was activated, or {@code false} if it was
+     * already active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> activatePostEffect(Key effect);
+
+    /**
+     * Disables a post effect if it is active.
+     *
+     * @param effect the effect key
+     * @return a future completing with {@code true} if it was disabled, or {@code false} if it was not
+     * active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> disablePostEffect(Key effect);
+
+    /**
+     * Deactivates every effect.
+     *
+     * @return a future completing with {@code true} if any effect was disabled, or {@code false} if
+     * none were active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> clearPostEffects();
 }

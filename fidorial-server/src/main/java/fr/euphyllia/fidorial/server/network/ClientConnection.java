@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPack
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundClearDialogPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundPostEffectsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundShowDialogPacket;
@@ -77,6 +78,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.SequencedCollection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,6 +125,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private volatile @Nullable SignedMessageChain chatChain;
     private final LastSeenMessages lastSeenMessages = new LastSeenMessages();
     private final AtomicInteger nextGlobalChatIndex = new AtomicInteger();
+    private volatile List<Key> postEffects = List.of();
 
     private volatile long pendingKeepAliveId;
     private volatile int latencyMillis;
@@ -745,5 +748,20 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             this.exemptPackets = new ArrayList<>();
         }
         this.exemptPackets.add(packet);
+    }
+
+    public List<Key> postEffects() {
+        return postEffects;
+    }
+
+    public void updatePostEffects(final SequencedCollection<Key> effects) {
+        this.postEffects = List.copyOf(effects);
+        this.sendPostEffects(effects);
+    }
+
+    public void sendPostEffects(final SequencedCollection<Key> postEffects) {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.POST_EFFECTS : ConfigurationClientboundPackets.POST_EFFECTS;
+        send(new ClientboundPostEffectsPacket(packetKey, postEffects));
     }
 }

@@ -5,9 +5,11 @@ import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.brigadier.tree.RootCommandNode;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ForceServerSuggestions;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ForcedSuggestionsArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ClientSuggestions;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ClientSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.MappedArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSuggestions;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistry;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NetworkArgumentIds;
@@ -16,6 +18,7 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 import fr.fidorial.command.CommandSource;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -34,6 +37,8 @@ public final class CommandTreeSerializer {
     private static final byte FLAG_REDIRECT = 8;
     private static final byte FLAG_CUSTOM_SUGGESTIONS = 16;
     private static final byte FLAG_RESTRICTED = 32;
+
+    private static final Key ASK_SERVER = Key.key("ask_server");
 
     private static final CommandSource NO_PERMISSION_SOURCE = PermissionlessCommandSource.instance();
 
@@ -113,10 +118,11 @@ public final class CommandTreeSerializer {
             flags |= FLAG_RESTRICTED;
         }
 
-        final boolean customSuggestions = node instanceof final ArgumentCommandNode<?, ?> argument
-                && (argument.getCustomSuggestions() != null || forcesSuggestions(argument.getType()));
+        final Key suggestionSource = node instanceof final ArgumentCommandNode<?, ?> argument
+                ? suggestionSource(argument)
+                : null;
 
-        if (customSuggestions) {
+        if (suggestionSource != null) {
             flags |= FLAG_CUSTOM_SUGGESTIONS;
         }
 
@@ -140,8 +146,8 @@ public final class CommandTreeSerializer {
 
                 writeArgumentType(buf, argument.getType());
 
-                if (customSuggestions) {
-                    buf.writeKey(Key.key("ask_server"));
+                if (suggestionSource != null) {
+                    buf.writeKey(suggestionSource);
                 }
             }
 
@@ -151,9 +157,24 @@ public final class CommandTreeSerializer {
         }
     }
 
+    private static @Nullable Key suggestionSource(final ArgumentCommandNode<?, ?> argument) {
+        if (argument.getCustomSuggestions() != null || forcesSuggestions(argument.getType())) {
+            return ASK_SERVER;
+        }
+        return clientSuggestionSource(argument.getType());
+    }
+
     private static boolean forcesSuggestions(final ArgumentType<?> type) {
-        return type instanceof final ForceServerSuggestions forced
+        return type instanceof final ServerSuggestions forced
                 && forced.suggestionProvider() != null;
+    }
+
+    private static @Nullable Key clientSuggestionSource(final ArgumentType<?> type) {
+        return switch (type) {
+            case final ClientSuggestions client -> client.suggestionSource();
+            case final MappedArgumentType<?, ?> mapped -> clientSuggestionSource(mapped.nativeType());
+            default -> null;
+        };
     }
 
     public static RootCommandNode<CommandSource> filter(final RootCommandNode<CommandSource> root, final CommandSource source) {
@@ -199,13 +220,12 @@ public final class CommandTreeSerializer {
     }
 
     private static ArgumentType<?> unwrap(final ArgumentType<?> type) {
-        if (type instanceof final MappedArgumentType<?, ?> mapped) {
-            return unwrap(mapped.nativeType());
-        }
-        if (type instanceof final ForcedSuggestionsArgumentType<?> forced) {
-            return unwrap(forced.delegate());
-        }
-        return type;
+        return switch (type) {
+            case final MappedArgumentType<?, ?> mapped -> unwrap(mapped.nativeType());
+            case final ServerSuggestionsArgumentType<?> forced -> unwrap(forced.delegate());
+            case final ClientSuggestionsArgumentType<?> client -> unwrap(client.delegate());
+            default -> type;
+        };
     }
 
     private static <A extends ArgumentType<?>, S extends ArgumentTypeRegistrar.Spec<A>> void writeArgumentTypeCaptured(
