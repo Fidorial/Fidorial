@@ -12,10 +12,10 @@ import java.util.stream.Stream;
 
 public final class PostEffectArgument {
 
-    public static final Key SOURCE = Key.key("post_effects");
+    public static final Key SUGGESTION_SOURCE = Key.key("post_effects");
 
     // https://minecraft.wiki/w/Shader#List_of_post-processing_effects
-    private static final List<Key> BUILTIN = Stream.of("blur", "creeper", "entity_outline", "invert", "spider")
+    private static final List<Key> DEFAULT = Stream.of("blur", "creeper", "entity_outline", "invert", "spider")
             .map(Key::key)
             .toList();
 
@@ -24,7 +24,7 @@ public final class PostEffectArgument {
 
     public static CompletableFuture<Suggestions> suggestBuiltin(final CommandContext<CommandSource> context, final SuggestionsBuilder builder) {
         final String remaining = builder.getRemainingLowerCase();
-        for (final Key effect : BUILTIN) {
+        for (final Key effect : DEFAULT) {
             if (effect.asString().startsWith(remaining) || effect.value().startsWith(remaining)) {
                 builder.suggest(effect.asString());
             }

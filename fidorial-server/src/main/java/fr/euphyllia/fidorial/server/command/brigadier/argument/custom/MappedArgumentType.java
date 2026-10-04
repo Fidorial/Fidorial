@@ -36,7 +36,9 @@ public final class MappedArgumentType<N, T> implements ArgumentType<T>, ServerSu
         this.customSuggestions = customSuggestions;
     }
 
-    public ArgumentType<N> nativeType() { return nativeType; }
+    public ArgumentType<N> nativeType() {
+        return nativeType;
+    }
 
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
@@ -60,6 +62,6 @@ public final class MappedArgumentType<N, T> implements ArgumentType<T>, ServerSu
     @Override
     public @Nullable SuggestionProvider<CommandSource> suggestionProvider() {
         if (customSuggestions != null) return customSuggestions;
-        return nativeType instanceof final ServerSuggestions forced ? forced.suggestionProvider() : null;
+        return nativeType instanceof final ServerSuggestions server ? server.suggestionProvider() : null;
     }
 }

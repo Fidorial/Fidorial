@@ -362,6 +362,6 @@ public class ArgumentProviderImpl implements ArgumentProvider {
 
     @Override
     public ArgumentType<Key> postEffect() {
-        return withClientSuggestions(KeyArgument.key(), PostEffectArgument.SOURCE, PostEffectArgument::suggestBuiltin);
+        return withClientSuggestions(KeyArgument.key(), PostEffectArgument.SUGGESTION_SOURCE, PostEffectArgument::suggestBuiltin);
     }
 }

@@ -24,13 +24,13 @@ public final class ClientSuggestionsArgumentType<T> implements ArgumentType<T>, 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ClientSuggestionsArgumentType.class);
 
     private final ArgumentType<T> delegate;
-    private final Key source;
-    private final @Nullable SuggestionProvider<CommandSource> fallback;
+    private final Key suggestionSource;
+    private final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions;
 
     public ClientSuggestionsArgumentType(final ArgumentType<T> delegate, final Key suggestionSource, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
         this.delegate = delegate;
-        this.source = suggestionSource;
-        this.fallback = fallbackSuggestions;
+        this.suggestionSource = suggestionSource;
+        this.fallbackSuggestions = fallbackSuggestions;
     }
 
     @Override
@@ -41,11 +41,11 @@ public final class ClientSuggestionsArgumentType<T> implements ArgumentType<T>, 
     @Override
     @SuppressWarnings("unchecked")
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        if (fallback != null && context.getSource() instanceof CommandSource) {
+        if (fallbackSuggestions != null && context.getSource() instanceof CommandSource) {
             try {
-                return fallback.getSuggestions((CommandContext<CommandSource>) context, builder);
+                return fallbackSuggestions.getSuggestions((CommandContext<CommandSource>) context, builder);
             } catch (final CommandSyntaxException e) {
-                LOGGER.warn("Fallback suggestions for client-suggested argument '{}' threw while computing suggestions", source.asString(), e);
+                LOGGER.warn("Fallback suggestions for client-suggested argument '{}' threw while computing suggestions", suggestionSource.asString(), e);
                 return Suggestions.empty();
             }
         }
@@ -59,7 +59,7 @@ public final class ClientSuggestionsArgumentType<T> implements ArgumentType<T>, 
 
     @Override
     public Key suggestionSource() {
-        return source;
+        return suggestionSource;
     }
 
     public ArgumentType<T> delegate() {

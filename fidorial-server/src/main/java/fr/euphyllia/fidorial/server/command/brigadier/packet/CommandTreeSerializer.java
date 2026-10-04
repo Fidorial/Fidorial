@@ -158,15 +158,15 @@ public final class CommandTreeSerializer {
     }
 
     private static @Nullable Key suggestionSource(final ArgumentCommandNode<?, ?> argument) {
-        if (argument.getCustomSuggestions() != null || forcesSuggestions(argument.getType())) {
+        if (argument.getCustomSuggestions() != null || serverSuggestionProvider(argument.getType())) {
             return ASK_SERVER;
         }
         return clientSuggestionSource(argument.getType());
     }
 
-    private static boolean forcesSuggestions(final ArgumentType<?> type) {
-        return type instanceof final ServerSuggestions forced
-                && forced.suggestionProvider() != null;
+    private static boolean serverSuggestionProvider(final ArgumentType<?> type) {
+        return type instanceof final ServerSuggestions server
+                && server.suggestionProvider() != null;
     }
 
     private static @Nullable Key clientSuggestionSource(final ArgumentType<?> type) {
@@ -222,7 +222,7 @@ public final class CommandTreeSerializer {
     private static ArgumentType<?> unwrap(final ArgumentType<?> type) {
         return switch (type) {
             case final MappedArgumentType<?, ?> mapped -> unwrap(mapped.nativeType());
-            case final ServerSuggestionsArgumentType<?> forced -> unwrap(forced.delegate());
+            case final ServerSuggestionsArgumentType<?> server -> unwrap(server.delegate());
             case final ClientSuggestionsArgumentType<?> client -> unwrap(client.delegate());
             default -> type;
         };
