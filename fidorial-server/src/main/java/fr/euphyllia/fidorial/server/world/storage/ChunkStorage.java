@@ -66,23 +66,20 @@ public final class ChunkStorage implements AutoCloseable {
 
     public @Nullable ChunkColumn load(final Dimension dim, final int chunkX, final int chunkZ, final int minY, final int height) throws IOException {
         final RegionFile rf = region(dim, chunkX, chunkZ);
-        synchronized (rf) {
-            if (!rf.hasChunk(chunkX, chunkZ)) return null;
-            final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
-            if (read == null) return null;
-            CompoundBinaryTag nbt = read.tag();
-            convertIfNeeded(rf, dim, chunkX, chunkZ, read);
+        final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
+        if (read == null) return null;
+        CompoundBinaryTag nbt = read.tag();
+        convertIfNeeded(rf, dim, chunkX, chunkZ, read.compression());
 
-            final int sourceVersion = nbt.getInt("DataVersion");
-            final int latest = DataFixersRegistry.latestDataFixerVersion();
-            if (sourceVersion < latest) {
-                final MapType fixed = DataFixersRegistry.update(
-                        DataFixerType.CHUNK, NbtMapType.of(nbt), sourceVersion);
-                nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
-            }
-
-            return serializer.fromNbt(nbt, minY, height, defaultBlock, defaultBiome);
+        final int sourceVersion = nbt.getInt("DataVersion");
+        final int latest = DataFixersRegistry.latestDataFixerVersion();
+        if (sourceVersion < latest) {
+            final MapType fixed = DataFixersRegistry.update(
+                    DataFixerType.CHUNK, NbtMapType.of(nbt), sourceVersion);
+            nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
         }
+
+        return serializer.fromNbt(nbt, minY, height, defaultBlock, defaultBiome);
     }
 
     /**
@@ -91,14 +88,14 @@ public final class ChunkStorage implements AutoCloseable {
      * the chunk from loading.
      */
     private void convertIfNeeded(final RegionFile rf, final Dimension dim, final int chunkX, final int chunkZ,
-                                 final RegionFile.ChunkRead read) {
+                                 final RegionCompression stored) {
         final RegionCompression target = compression.apply(dim.id());
-        if (read.compression() == target) return;
+        if (stored == target) return;
         try {
-            rf.writeChunk(chunkX, chunkZ, read.tag(), target);
+            rf.recompress(chunkX, chunkZ, target);
         } catch (final IOException e) {
             LOGGER.warn("Could not convert chunk {},{} of {} from {} to {}: {}", chunkX, chunkZ, dim.id().asString(),
-                    read.compression().configName(), target.configName(), e.getMessage());
+                    stored.configName(), target.configName(), e.getMessage());
         }
     }
 
@@ -115,19 +112,15 @@ public final class ChunkStorage implements AutoCloseable {
         chunk.setLastUpdate(System.currentTimeMillis() / 20L); // roughly, in ticks
         final CompoundBinaryTag nbt = serializer.toNbt(chunk);
         final RegionFile rf = region(dim, chunk.chunkX(), chunk.chunkZ());
-        synchronized (rf) {
-            rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
-        }
+        rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
     }
 
     @Override
     public void close() {
         for (final RegionFile rf : regionCache.values()) {
-            synchronized (rf) {
-                try {
-                    rf.close();
-                } catch (final IOException ignored) {
-                }
+            try {
+                rf.close();
+            } catch (final IOException ignored) {
             }
         }
         regionCache.clear();

@@ -5,6 +5,7 @@ import com.github.luben.zstd.ZstdOutputStreamNoFinalizer;
 import com.github.luben.zstd.util.Native;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
+import net.jpountz.lz4.LZ4Factory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -14,9 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -40,12 +43,12 @@ public enum RegionCompression {
     GZIP(RegionConstants.COMPRESSION_GZIP, null, "gzip") {
         @Override
         public InputStream decompress(final InputStream in) throws IOException {
-            return new GZIPInputStream(in);
+            return new GZIPInputStream(in, BUFFER_SIZE);
         }
 
         @Override
         public OutputStream compress(final OutputStream out) throws IOException {
-            return new GZIPOutputStream(out);
+            return new GZIPOutputStream(out, BUFFER_SIZE);
         }
     },
 
@@ -55,12 +58,16 @@ public enum RegionCompression {
     ZLIB(RegionConstants.COMPRESSION_ZLIB, null, "zlib", "deflate") {
         @Override
         public InputStream decompress(final InputStream in) {
-            return new InflaterInputStream(in);
+            final Inflater inflater = INFLATERS.get();
+            inflater.reset();
+            return new InflaterInputStream(in, inflater, BUFFER_SIZE);
         }
 
         @Override
         public OutputStream compress(final OutputStream out) {
-            return new DeflaterOutputStream(out);
+            final Deflater deflater = DEFLATERS.get();
+            deflater.reset();
+            return new DeflaterOutputStream(out, deflater, BUFFER_SIZE);
         }
     },
 
@@ -86,13 +93,13 @@ public enum RegionCompression {
     LZ4(RegionConstants.COMPRESSION_LZ4, null, "lz4") {
         @Override
         public InputStream decompress(final InputStream in) {
-            // The builder uses the safe decompressor: region files are not trusted input.
-            return LZ4BlockInputStream.newBuilder().build(in);
+            // The safe decompressor: region files are not trusted input.
+            return LZ4BlockInputStream.newBuilder().withDecompressor(Lz4.FACTORY.safeDecompressor()).build(in);
         }
 
         @Override
         public OutputStream compress(final OutputStream out) {
-            return new LZ4BlockOutputStream(out);
+            return new LZ4BlockOutputStream(out, Lz4.BLOCK_SIZE, Lz4.FACTORY.fastCompressor());
         }
     },
 
@@ -127,6 +134,36 @@ public enum RegionCompression {
      * {@code storage.region-compression} existed.
      */
     public static final RegionCompression DEFAULT = ZLIB;
+    private static final int BUFFER_SIZE = 8192;
+
+    /*
+     * Creating an Inflater or a Deflater allocates native zlib state (about 256 KiB for a Deflater): reuse one per
+     * thread instead of creating one per chunk. Streams given an Inflater or a Deflater never end it when closed.
+     */
+    private static final ThreadLocal<Inflater> INFLATERS = ThreadLocal.withInitial(Inflater::new);
+    private static final ThreadLocal<Deflater> DEFLATERS = ThreadLocal.withInitial(Deflater::new);
+
+    private static final class Lz4 {
+
+        /**
+         * The block size of {@link LZ4BlockOutputStream#LZ4BlockOutputStream(OutputStream)}, used by Vanilla.
+         */
+        static final int BLOCK_SIZE = 1 << 16;
+
+        /**
+         * {@link LZ4Factory#fastestInstance()} only uses the native library when lz4-java is loaded by the system class
+         * loader, which is never the case behind the bootstrap: ask for it explicitly, falling back to Java.
+         */
+        static final LZ4Factory FACTORY = factory();
+
+        private static LZ4Factory factory() {
+            try {
+                return LZ4Factory.nativeInstance();
+            } catch (final Throwable unavailable) {
+                return LZ4Factory.fastestJavaInstance();
+            }
+        }
+    }
 
     private static final RegionCompression[] BY_ID = new RegionCompression[128];
 

@@ -49,51 +49,43 @@ public final class EntityRegionStorage implements AutoCloseable {
     }
 
     public boolean hasChunk(final Dimension dim, final int chunkX, final int chunkZ) {
-        final RegionFile rf = region(dim, chunkX, chunkZ);
-        synchronized (rf) {
-            return rf.hasChunk(chunkX, chunkZ);
-        }
+        return region(dim, chunkX, chunkZ).hasChunk(chunkX, chunkZ);
     }
 
     public @Nullable CompoundBinaryTag load(final Dimension dim, final int chunkX, final int chunkZ) throws IOException {
         final RegionFile rf = region(dim, chunkX, chunkZ);
-        synchronized (rf) {
-            if (!rf.hasChunk(chunkX, chunkZ)) {
-                return null;
-            }
-            final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
-            if (read == null) {
-                return null;
-            }
-            CompoundBinaryTag nbt = read.tag();
-            convertIfNeeded(rf, dim, chunkX, chunkZ, read);
-
-            final int sourceVersion = nbt.getInt("DataVersion");
-            final int latest = DataFixersRegistry.latestDataFixerVersion();
-            if (sourceVersion < latest) {
-                final MapType fixed = DataFixersRegistry.update(
-                        DataFixerType.ENTITY, NbtMapType.of(nbt), sourceVersion);
-                nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
-            }
-
-            return nbt;
+        final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
+        if (read == null) {
+            return null;
         }
+        CompoundBinaryTag nbt = read.tag();
+        convertIfNeeded(rf, dim, chunkX, chunkZ, read.compression());
+
+        final int sourceVersion = nbt.getInt("DataVersion");
+        final int latest = DataFixersRegistry.latestDataFixerVersion();
+        if (sourceVersion < latest) {
+            final MapType fixed = DataFixersRegistry.update(
+                    DataFixerType.ENTITY, NbtMapType.of(nbt), sourceVersion);
+            nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
+        }
+
+        return nbt;
     }
 
     /**
      * Rewrites entities stored with another compression than the configured one; see {@link ChunkStorage}.
      */
     private void convertIfNeeded(final RegionFile rf, final Dimension dim, final int chunkX, final int chunkZ,
-                                 final RegionFile.ChunkRead read) {
+                                 final RegionCompression stored) {
         final RegionCompression target = compression.apply(dim.id());
-        if (read.compression() == target) {
+        if (stored == target) {
             return;
         }
         try {
-            rf.writeChunk(chunkX, chunkZ, read.tag(), target);
+            rf.recompress(chunkX, chunkZ, target);
         } catch (final IOException e) {
             LOGGER.warn("Could not convert the entities of chunk {},{} of {} from {} to {}: {}", chunkX, chunkZ,
-                    dim.id().asString(), read.compression().configName(), target.configName(), e.getMessage());
+                    dim.id().asString(), stored.configName(), target.configName(), e.getMessage());
         }
     }
 
@@ -107,20 +99,15 @@ public final class EntityRegionStorage implements AutoCloseable {
     }
 
     public void save(final Dimension dim, final int chunkX, final int chunkZ, final CompoundBinaryTag nbt) throws IOException {
-        final RegionFile rf = region(dim, chunkX, chunkZ);
-        synchronized (rf) {
-            rf.writeChunk(chunkX, chunkZ, nbt, compression.apply(dim.id()));
-        }
+        region(dim, chunkX, chunkZ).writeChunk(chunkX, chunkZ, nbt, compression.apply(dim.id()));
     }
 
     @Override
     public void close() {
         for (final RegionFile rf : regionCache.values()) {
-            synchronized (rf) {
-                try {
-                    rf.close();
-                } catch (final IOException ignored) {
-                }
+            try {
+                rf.close();
+            } catch (final IOException ignored) {
             }
         }
         regionCache.clear();

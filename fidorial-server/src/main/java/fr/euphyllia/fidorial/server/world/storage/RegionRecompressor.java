@@ -102,7 +102,7 @@ public final class RegionRecompressor {
 
     /**
      * Converts every region file of {@code directory}. No other file of this directory may be opened during the call;
-     * the files already open ({@code open}) are used while holding their lock.
+     * the files already open ({@code open}) are reused.
      */
     static Result convertDirectory(final Path directory, final RegionCompression target, final OpenRegions open) throws IOException {
         if (!Files.isDirectory(directory)) {
@@ -123,9 +123,7 @@ public final class RegionRecompressor {
             }
             final RegionFile cached = open.cached(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
             if (cached != null) {
-                synchronized (cached) {
-                    total = total.plus(convertFile(cached, file, target));
-                }
+                total = total.plus(convertFile(cached, file, target));
             } else {
                 try (final RegionFile region = new RegionFile(file)) {
                     total = total.plus(convertFile(region, file, target));
