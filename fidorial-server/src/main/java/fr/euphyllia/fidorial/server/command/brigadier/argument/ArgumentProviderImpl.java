@@ -17,8 +17,9 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.ComponentArg
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.HexColorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.NamedColorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.StyleArgument;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ForcedSuggestionsArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ClientSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.MappedArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityArgumentInternal;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.UuidArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.DurationArgument;
@@ -33,6 +34,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.location.Vec3Argu
 import fr.euphyllia.fidorial.server.command.brigadier.argument.nbt.NbtDataArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.player.GameModeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.player.PlayerProfileArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.player.PostEffectArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeBounds;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.KeyArgument;
@@ -68,6 +70,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.List;
@@ -328,7 +331,12 @@ public class ArgumentProviderImpl implements ArgumentProvider {
 
     @Override
     public <T> ArgumentType<T> withServerSuggestions(final ArgumentType<T> type) {
-        return new ForcedSuggestionsArgumentType<>(type);
+        return new ServerSuggestionsArgumentType<>(type);
+    }
+
+    @Override
+    public <T> ArgumentType<T> withClientSuggestions(final ArgumentType<T> type, final Key suggestionSource, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
+        return new ClientSuggestionsArgumentType<>(type, suggestionSource, fallbackSuggestions);
     }
 
     @Override
@@ -350,5 +358,10 @@ public class ArgumentProviderImpl implements ArgumentProvider {
     @Override
     public ArgumentType<SwingAnimation.SwingAnimationType> swingAnimationType() {
         return SwingAnimationTypeArgument.swingAnimationType();
+    }
+
+    @Override
+    public ArgumentType<Key> postEffect() {
+        return withClientSuggestions(KeyArgument.key(), PostEffectArgument.SUGGESTION_SOURCE, PostEffectArgument::suggestBuiltin);
     }
 }

@@ -29,6 +29,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -279,7 +280,20 @@ public interface ArgumentProvider {
     /**
      * @since 0.1.0
      */
+    <T> ArgumentType<T> withClientSuggestions(ArgumentType<T> type, Key suggestionSource, @Nullable SuggestionProvider<CommandSource> fallbackSuggestions);
+
+    /**
+     * @since 0.1.0
+     */
     ArgumentType<NbtPathResolver> nbtPath();
 
+    /**
+     * @since 0.1.0
+     */
     ArgumentType<SwingAnimation.SwingAnimationType> swingAnimationType();
+
+    /**
+     * @since 0.1.0
+     */
+    ArgumentType<Key> postEffect();
 }

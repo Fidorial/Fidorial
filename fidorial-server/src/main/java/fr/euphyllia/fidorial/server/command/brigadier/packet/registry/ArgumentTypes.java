@@ -5,7 +5,8 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.ComponentArg
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.HexColorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.NamedColorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.StyleArgument;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ForcedSuggestionsArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ClientSuggestionsArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.UuidArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.TimeArgument;
@@ -68,7 +69,9 @@ public final class ArgumentTypes {
         register(new SwingAnimationTypeArgument.Info(), ArgumentTypeIds.SWING_ANIMATION_ARGUMENT_ID);
         register(new UuidArgument.Info(), ArgumentTypeIds.UUID_ARGUMENT_ID);
 
-        ArgumentTypeRegistry.register(new ForcedSuggestionsArgumentType.Info()); // custom arguments
+        // custom arguments
+        ArgumentTypeRegistry.register(new ServerSuggestionsArgumentType.Info());
+        ArgumentTypeRegistry.register(new ClientSuggestionsArgumentType.Info());
     }
 
     private static <A extends ArgumentType<?>> void register(final ArgumentTypeRegistrar<A, ?> registrar, final int networkId) {

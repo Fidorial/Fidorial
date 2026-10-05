@@ -1,0 +1,10 @@
+--- a/module-info.java
++++ b/module-info.java
+@@ -16,6 +_,7 @@
+   exports net.kyori.adventure.chat;
+   exports net.kyori.adventure.dialog;
+   exports net.kyori.adventure.identity;
++  exports net.kyori.adventure.internal.properties to fr.fidorial.server; // Fidorial - supply our own defaults for properties
+   exports net.kyori.adventure.inventory;
+   exports net.kyori.adventure.nbt.api;
+   exports net.kyori.adventure.permission;

@@ -40,6 +40,7 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
@@ -59,6 +60,7 @@ import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.pointer.PointersSupplier;
@@ -76,9 +78,12 @@ import org.jspecify.annotations.Nullable;
 import java.net.InetAddress;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -87,6 +92,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.ToDoubleFunction;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 public final class ServerPlayer extends AbstractLivingEntity implements Player, PermissionStateHolder {
 
@@ -717,6 +723,67 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             return;
         }
         connection.send(menu.buildSyncPacket(connection.server().registries().network()));
+    }
+
+    @Override
+    public List<Key> activePostEffects() {
+        return connection.postEffects();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setActivePostEffects(final SequencedCollection<Key> effects) {
+        final List<Key> requested = List.copyOf(effects);
+        return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API, _ -> requested);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> activatePostEffect(final Key effect) {
+        Objects.requireNonNull(effect, "effect");
+        return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API,
+                current -> Stream.concat(current.stream(), Stream.of(effect)).toList());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> deactivatePostEffect(final Key effect) {
+        Objects.requireNonNull(effect, "effect");
+        return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API,
+                current -> current.stream().filter(active -> !active.equals(effect)).toList());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> clearActivePostEffects() {
+        return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API, _ -> List.of());
+    }
+
+    public CompletableFuture<Boolean> modifyPostEffects(final PlayerPostEffectsModifyEvent.Cause cause, final UnaryOperator<List<Key>> change) {
+        final CompletableFuture<Boolean> result = new CompletableFuture<>();
+        final boolean scheduled = execute(() -> {
+            try {
+                if (isRemoved()) {
+                    result.complete(false);
+                    return;
+                }
+                final List<Key> current = connection.postEffects();
+                final List<Key> next = List.copyOf(new LinkedHashSet<>(change.apply(current)));
+                if (next.equals(current)) {
+                    result.complete(false);
+                    return;
+                }
+                final PlayerPostEffectsModifyEvent event = connection.server().events().post(new PlayerPostEffectsModifyEvent(this, cause, current, next));
+                if (event.isCancelled()) {
+                    result.complete(false);
+                    return;
+                }
+                connection.updatePostEffects(next);
+                result.complete(true);
+            } catch (final Throwable t) {
+                result.completeExceptionally(t);
+            }
+        });
+        if (!scheduled) {
+            result.complete(false);
+        }
+        return result;
     }
 
     public int nextTeleportId() {

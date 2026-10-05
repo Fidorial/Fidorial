@@ -15,12 +15,12 @@ import fr.fidorial.command.CommandSource;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class ForcedSuggestionsArgumentType<T> implements ArgumentType<T>, ForceServerSuggestions {
+public final class ServerSuggestionsArgumentType<T> implements ArgumentType<T>, ServerSuggestions {
 
     private final ArgumentType<T> delegate;
     private final SuggestionProvider<CommandSource> suggestions;
 
-    public ForcedSuggestionsArgumentType(final ArgumentType<T> delegate) {
+    public ServerSuggestionsArgumentType(final ArgumentType<T> delegate) {
         this.delegate = delegate;
         this.suggestions = this::listSuggestions;
     }
@@ -44,7 +44,7 @@ public final class ForcedSuggestionsArgumentType<T> implements ArgumentType<T>, 
         return delegate;
     }
 
-    public static final class Info implements ArgumentTypeRegistrar<ForcedSuggestionsArgumentType<?>, Info.Spec> {
+    public static final class Info implements ArgumentTypeRegistrar<ServerSuggestionsArgumentType<?>, Info.Spec> {
 
         @Override
         public void serialize(final Spec spec, final PacketBuffer buf) {
@@ -61,20 +61,20 @@ public final class ForcedSuggestionsArgumentType<T> implements ArgumentType<T>, 
         }
 
         @Override
-        public Spec access(final ForcedSuggestionsArgumentType<?> argument) {
+        public Spec access(final ServerSuggestionsArgumentType<?> argument) {
             return new Spec();
         }
 
-        public record Spec() implements ArgumentTypeRegistrar.Spec<ForcedSuggestionsArgumentType<?>> {
+        public record Spec() implements ArgumentTypeRegistrar.Spec<ServerSuggestionsArgumentType<?>> {
 
             @Override
-            public ForcedSuggestionsArgumentType<?> instantiate() {
+            public ServerSuggestionsArgumentType<?> instantiate() {
                 throw new UnsupportedOperationException(
-                        "ForcedSuggestionsArgumentType cannot be reconstructed from network data");
+                        "ServerSuggestionsArgumentType cannot be reconstructed from network data");
             }
 
             @Override
-            public ArgumentTypeRegistrar<ForcedSuggestionsArgumentType<?>, ?> type() {
+            public ArgumentTypeRegistrar<ServerSuggestionsArgumentType<?>, ?> type() {
                 return new Info();
             }
         }

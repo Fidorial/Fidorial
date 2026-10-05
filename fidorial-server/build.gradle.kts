@@ -272,4 +272,15 @@ dependencyPatcher {
             compileOnly(libs.configurate.yaml)
         }
     }
+
+    patchSet("adventure-api") {
+        library.set(libs.adventure.api)
+        module = "net.kyori.adventure.api"
+        autoRebuild = true
+        dependencies {
+            compileOnly(libs.adventure.key)
+            compileOnly(libs.jspecify)
+            compileOnly(libs.jetbrains.annotations)
+        }
+    }
 }

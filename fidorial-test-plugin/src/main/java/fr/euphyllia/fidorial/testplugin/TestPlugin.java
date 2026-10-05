@@ -40,6 +40,8 @@ import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.chat.SignedMessage;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -49,6 +51,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jspecify.annotations.Nullable;
 
+import java.net.URI;
 import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
@@ -69,6 +72,7 @@ public final class TestPlugin implements Plugin {
     private @Nullable PluginContext context;
     private volatile @Nullable PregenTask task;
     private @Nullable OverworldGenerator generator;
+    private @Nullable ResourcePackRequest resourcePackRequest;
 
     private static long resolveSeed(final ComponentLogger logger) {
         final String property = System.getProperty(SEED_PROPERTY);
@@ -160,6 +164,7 @@ public final class TestPlugin implements Plugin {
         registerEvents();
         registerCommands();
         TestPluginTranslations.register(context);
+        createResourcePack();
 
         logger.info("[TestPlugin] Ready. Type /apitest to launch the interactive tests.");
     }
@@ -183,6 +188,20 @@ public final class TestPlugin implements Plugin {
 
     private void msg(final Player player, final String miniMessageText) {
         player.sendMessage(MM.deserialize(miniMessageText));
+    }
+
+    private void createResourcePack() {
+        final ResourcePackInfo pack = ResourcePackInfo.resourcePackInfo(
+                UUID.fromString("b1c885f3-aea8-4b82-8aca-dedd715cda5f"),
+                URI.create("https://download.mc-packs.net/pack/afcc460c660db5a960e987a23f8f7257177620b3.zip"),
+                "afcc460c660db5a960e987a23f8f7257177620b3");
+
+        this.resourcePackRequest = ResourcePackRequest.resourcePackRequest()
+                .packs(pack)
+                .required(false)
+                .prompt(MiniMessage.miniMessage().deserialize(
+                        "<gradient:blue:white:red>[TestPlugin] Try out our custom post-effect resource pack!</gradient>"))
+                .build();
     }
 
     private void registerServices() {
@@ -232,6 +251,9 @@ public final class TestPlugin implements Plugin {
 
             final var chatType = TestChatTypes.ARRIVAL.bind(e.player().displayName());
             server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text("Hi!"), chatType));
+            if (resourcePackRequest != null) {
+                e.player().sendResourcePacks(resourcePackRequest);
+            }
         });
 
         events.subscribe(PlayerQuitEvent.class, e -> {

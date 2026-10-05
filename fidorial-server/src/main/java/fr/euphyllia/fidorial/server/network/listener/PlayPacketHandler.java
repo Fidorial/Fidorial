@@ -318,6 +318,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 Entry.ofByte(ServerPlayer.MD_DISPLAYED_SKIN_PARTS, connection.displayedSkinParts())));
         player.invalidatePermissions();
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
+        if (!connection.postEffects().isEmpty()) {
+            connection.sendPostEffects(connection.postEffects());
+        }
         server.weatherEngine().syncTo(serverWorld(), connection::send);
         server.dayNightEngine().syncTo(serverWorld(), connection::send);
         server.bossBarRegistry().syncTo(player);
@@ -956,6 +959,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                                         LocationPositionData.vec3(location),
                                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                                         LocationPositionData.floatRotation(location))));
+                        if (!connection.postEffects().isEmpty()) {
+                            connection.sendPostEffects(connection.postEffects());
+                        }
                         server.dayNightEngine().syncTo(target, connection::send);
                         server.weatherEngine().syncTo(target, connection::send);
                         server.gameRules().syncTo(target, teleporting.entityId(), connection::send);
@@ -1194,6 +1200,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         LocationPositionData.vec3(spawn),
                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                         LocationPositionData.floatRotation(spawn))));
+        if (!connection.postEffects().isEmpty()) {
+            connection.sendPostEffects(connection.postEffects());
+        }
         server.dayNightEngine().syncTo(world, connection::send);
         server.weatherEngine().syncTo(world, connection::send);
         server.gameRules().syncTo(world, player.entityId(), connection::send);
