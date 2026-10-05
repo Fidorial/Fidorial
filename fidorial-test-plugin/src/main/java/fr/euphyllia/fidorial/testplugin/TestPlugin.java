@@ -72,7 +72,7 @@ public final class TestPlugin implements Plugin {
     private @Nullable PluginContext context;
     private volatile @Nullable PregenTask task;
     private @Nullable OverworldGenerator generator;
-    private @Nullable ResourcePackRequest  resourcePackRequest;
+    private @Nullable ResourcePackRequest resourcePackRequest;
 
     private static long resolveSeed(final ComponentLogger logger) {
         final String property = System.getProperty(SEED_PROPERTY);
