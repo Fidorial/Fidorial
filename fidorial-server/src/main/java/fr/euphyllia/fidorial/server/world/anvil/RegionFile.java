@@ -13,6 +13,8 @@ import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,50 +79,157 @@ public final class RegionFile implements Closeable {
         return offsets[i] != 0 && sectorCounts[i] != 0;
     }
 
+    /**
+     * A chunk that was read, with the algorithm it was stored with.
+     */
+    public record ChunkRead(CompoundBinaryTag tag, RegionCompression compression) {
+    }
+
+    /**
+     * The raw bytes of a chunk: {@code payload} holds the compressed data from {@code dataOffset} on (before it is the
+     * name of a custom algorithm).
+     */
+    private record Stored(RegionCompression compression, byte[] payload, int dataOffset) {
+
+        InputStream decompressed() throws IOException {
+            return compression.decompress(new ByteArrayInputStream(payload, dataOffset, payload.length - dataOffset));
+        }
+    }
+
     public @Nullable CompoundBinaryTag readChunk(final int chunkX, final int chunkZ) throws IOException {
+        final ChunkRead read = read(chunkX, chunkZ);
+        return read == null ? null : read.tag();
+    }
+
+    /**
+     * Reads a chunk, and tells which algorithm it was stored with so that it can be rewritten with another one.
+     */
+    public @Nullable ChunkRead read(final int chunkX, final int chunkZ) throws IOException {
+        final Stored stored = readStored(chunkX, chunkZ);
+        if (stored == null) return null;
+        try (final DataInputStream in = new DataInputStream(stored.decompressed())) {
+            return new ChunkRead(BinaryTagIO.reader().readNamed((DataInput) in).getValue(), stored.compression());
+        }
+    }
+
+    /**
+     * {@return the algorithm the chunk is stored with, without decompressing it, or {@code null} if there is no chunk}
+     */
+    public @Nullable RegionCompression compression(final int chunkX, final int chunkZ) throws IOException {
+        final int i = RegionConstants.headerIndex(chunkX, chunkZ);
+        if (offsets[i] == 0 || sectorCounts[i] == 0) return null;
+        raf.seek((long) offsets[i] * RegionConstants.SECTOR_BYTES);
+        final int length = raf.readInt();
+        if (length <= 0) return null;
+        final int compressionByte = raf.readUnsignedByte();
+        final RegionCompression vanilla = vanillaCompression(compressionByte, chunkX, chunkZ);
+        return vanilla != null ? vanilla : customCompression(raf.readUTF(), chunkX, chunkZ);
+    }
+
+    /**
+     * Rewrites a chunk with {@code target} if it is stored with another algorithm. The NBT data is copied as is
+     * (decompressed, then compressed again) without being parsed.
+     *
+     * @return whether the chunk was rewritten
+     */
+    public boolean recompress(final int chunkX, final int chunkZ, final RegionCompression target) throws IOException {
+        final Stored stored = readStored(chunkX, chunkZ);
+        if (stored == null || stored.compression() == target) return false;
+        final byte[] nbt;
+        try (final InputStream in = stored.decompressed()) {
+            nbt = in.readAllBytes();
+        }
+        writeFrame(chunkX, chunkZ, buildFrame(nbt, target));
+        return true;
+    }
+
+    private @Nullable Stored readStored(final int chunkX, final int chunkZ) throws IOException {
         final int i = RegionConstants.headerIndex(chunkX, chunkZ);
         if (offsets[i] == 0 || sectorCounts[i] == 0) return null;
 
         raf.seek((long) offsets[i] * RegionConstants.SECTOR_BYTES);
         final int length = raf.readInt();
         if (length <= 0) return null;
-        final byte compression = raf.readByte();
+        if (length > sectorCounts[i] * RegionConstants.SECTOR_BYTES - 4) {
+            throw new IOException("Chunk " + chunkX + "," + chunkZ + " is corrupted: its length " + length
+                    + " exceeds its " + sectorCounts[i] + " allocated sector(s)");
+        }
+        final int compressionByte = raf.readUnsignedByte();
 
         final byte[] payload = new byte[length - 1];
         raf.readFully(payload);
 
-        final DataInputStream in =
-                switch (compression) {
-                    case RegionConstants.COMPRESSION_ZLIB ->
-                            new DataInputStream(new InflaterInputStream(new ByteArrayInputStream(payload)));
-                    case RegionConstants.COMPRESSION_GZIP ->
-                            new DataInputStream(new GZIPInputStream(new ByteArrayInputStream(payload)));
-                    case RegionConstants.COMPRESSION_NONE ->
-                            new DataInputStream(new BufferedInputStream(new ByteArrayInputStream(payload)));
-                    default ->
-                            throw new IOException("Unsupported " + compression + " compression (external .mcc chunk?) for "
-                                    + chunkX + "," + chunkZ);
-                };
-        try (in) {
-            return BinaryTagIO.reader().readNamed((DataInput) in).getValue();
+        final RegionCompression vanilla = vanillaCompression(compressionByte, chunkX, chunkZ);
+        if (vanilla != null) {
+            return new Stored(vanilla, payload, 0);
         }
+        final ByteArrayInputStream bytes = new ByteArrayInputStream(payload);
+        final String name = new DataInputStream(bytes).readUTF();
+        return new Stored(customCompression(name, chunkX, chunkZ), payload, payload.length - bytes.available());
+    }
+
+    /**
+     * {@return the Vanilla algorithm of this byte, or {@code null} for a custom algorithm (127)}
+     */
+    private static @Nullable RegionCompression vanillaCompression(final int compressionByte, final int chunkX, final int chunkZ)
+            throws IOException {
+        if ((compressionByte & RegionConstants.EXTERNAL_FLAG) != 0) {
+            throw new IOException("Chunk " + chunkX + "," + chunkZ + " is stored in an external .mcc file, which is not supported");
+        }
+        if (compressionByte == RegionConstants.COMPRESSION_CUSTOM) {
+            return null;
+        }
+        final RegionCompression compression = RegionCompression.byId(compressionByte);
+        if (compression == null) {
+            throw new IOException("Unknown compression " + compressionByte + " for chunk " + chunkX + "," + chunkZ
+                    + " (supported: " + RegionCompression.names() + ")");
+        }
+        return compression;
+    }
+
+    private static RegionCompression customCompression(final String name, final int chunkX, final int chunkZ) throws IOException {
+        final RegionCompression compression = RegionCompression.byCustomName(name);
+        if (compression == null) {
+            throw new IOException("Chunk " + chunkX + "," + chunkZ + " uses an unknown custom compression: " + name);
+        }
+        return compression;
     }
 
     public int timestamp(final int chunkX, final int chunkZ) {
         return timestamps[RegionConstants.headerIndex(chunkX, chunkZ)];
     }
 
+    /**
+     * Writes a chunk with the default compression ({@link RegionCompression#DEFAULT}).
+     */
     public void writeChunk(final int chunkX, final int chunkZ, final CompoundBinaryTag chunk) throws IOException {
-        final byte[] frame = buildFrame(chunk);
+        writeChunk(chunkX, chunkZ, chunk, RegionCompression.DEFAULT);
+    }
+
+    public void writeChunk(final int chunkX, final int chunkZ, final CompoundBinaryTag chunk,
+                           final RegionCompression compression) throws IOException {
+        final ByteArrayOutputStream nbt = new ByteArrayOutputStream(16384);
+        try (final DataOutputStream out = new DataOutputStream(nbt)) {
+            BinaryTagIO.writer().writeNamed(Map.entry("", chunk), (DataOutput) out);
+        }
+        writeFrame(chunkX, chunkZ, buildFrame(nbt.toByteArray(), compression));
+    }
+
+    /**
+     * Writes a frame to new sectors, updates the header, and only then frees the old sectors, so that the previous
+     * version of the chunk stays intact if the server stops in the middle of the write.
+     */
+    private void writeFrame(final int chunkX, final int chunkZ, final byte[] frame) throws IOException {
         final int neededSectors = (frame.length + RegionConstants.SECTOR_BYTES - 1) / RegionConstants.SECTOR_BYTES;
         if (neededSectors >= 256) {
-            throw new IOException("Chunk " + chunkX + "," + chunkZ + " trop volumineux (" + neededSectors
-                    + " secteurs) : nécessiterait un fichier .mcc externe");
+            throw new IOException("Chunk " + chunkX + "," + chunkZ + " is too large (" + neededSectors
+                    + " sectors): it would need an external .mcc file");
         }
 
         final int i = RegionConstants.headerIndex(chunkX, chunkZ);
 
-        freeSectors(offsets[i], sectorCounts[i]);
+        final int oldOffset = offsets[i];
+        final int oldCount = sectorCounts[i];
 
         final int start = allocateSectors(neededSectors);
 
@@ -134,20 +243,31 @@ public final class RegionFile implements Closeable {
         sectorCounts[i] = neededSectors;
         timestamps[i] = (int) (System.currentTimeMillis() / 1000L);
         writeHeaderEntry(i);
+
+        freeSectors(oldOffset, oldCount);
     }
 
-    private byte[] buildFrame(final CompoundBinaryTag chunk) throws IOException {
-        final ByteArrayOutputStream compressed = new ByteArrayOutputStream(8192);
-        try (final DataOutputStream nbtOut = new DataOutputStream(new DeflaterOutputStream(compressed))) {
-            BinaryTagIO.writer().writeNamed(Map.entry("", chunk), (DataOutput) nbtOut);
+    private static byte[] buildFrame(final byte[] nbt, final RegionCompression compression) throws IOException {
+        final ByteArrayOutputStream compressed = new ByteArrayOutputStream(Math.max(1024, nbt.length / 4));
+        try (final OutputStream out = compression.compress(compressed)) {
+            out.write(nbt);
         }
-        final byte[] data = compressed.toByteArray();
 
-        final ByteArrayOutputStream frame = new ByteArrayOutputStream(data.length + 5);
-        final DataOutputStream out = new DataOutputStream(frame);
-        out.writeInt(data.length + 1);
-        out.writeByte(RegionConstants.COMPRESSION_ZLIB);
-        out.write(data);
+        // [length][compression byte][name, if custom][data]
+        final ByteArrayOutputStream body = new ByteArrayOutputStream(compressed.size() + 32);
+        final DataOutputStream bodyOut = new DataOutputStream(body);
+        bodyOut.writeByte(compression.id());
+        final String customName = compression.customName();
+        if (customName != null) {
+            bodyOut.writeUTF(customName);
+        }
+        compressed.writeTo(bodyOut);
+
+        final ByteArrayOutputStream frame = new ByteArrayOutputStream(body.size() + 4);
+        final DataOutputStream frameOut = new DataOutputStream(frame);
+        frameOut.writeInt(body.size());
+        body.writeTo(frameOut);
+
         return frame.toByteArray();
     }
 
@@ -174,7 +294,7 @@ public final class RegionFile implements Closeable {
                 run = 0;
             }
         }
-        // Pas assez d'espace : on ajoute des secteurs à la fin.
+        // Not enough free space: append sectors at the end.
         final int newStart = usedSectors.length;
         final int newLength = newStart + count;
         usedSectors = Arrays.copyOf(usedSectors, newLength);
