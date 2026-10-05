@@ -17,6 +17,7 @@ import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.object.ObjectContentsLike;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
@@ -247,6 +248,7 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * @since 0.1.0
      */
     @Unmodifiable
+    @Contract(pure = true)
     List<Key> postEffects();
 
     /**
@@ -260,7 +262,7 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
     CompletableFuture<Boolean> setPostEffects(SequencedCollection<Key> effects);
 
     /**
-     * Activates an effect if it is not already active.
+     * Activates an effect if it is not already active, adding it to the end of the list.
      *
      * @param effect the effect key
      * @return a future completing with {@code true} if it was activated, or {@code false} if it was
