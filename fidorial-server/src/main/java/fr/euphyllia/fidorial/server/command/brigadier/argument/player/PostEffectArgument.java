@@ -8,16 +8,19 @@ import net.kyori.adventure.key.Key;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 public final class PostEffectArgument {
 
     public static final Key SUGGESTION_SOURCE = Key.key("post_effects");
 
     // https://minecraft.wiki/w/Shader#List_of_post-processing_effects
-    private static final List<Key> DEFAULT = Stream.of("blur", "creeper", "entity_outline", "invert", "spider")
-            .map(Key::key)
-            .toList();
+    private static final List<Key> DEFAULT = List.of(
+            Key.key("blur"),
+            Key.key("creeper"),
+            Key.key("entity_outline"),
+            Key.key("invert"),
+            Key.key("spider")
+    );
 
     private PostEffectArgument() {
     }
