@@ -7,7 +7,6 @@ import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import org.jspecify.annotations.Nullable;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,7 +70,7 @@ public enum RegionCompression {
     NONE(RegionConstants.COMPRESSION_NONE, null, "none") {
         @Override
         public InputStream decompress(final InputStream in) {
-            return new BufferedInputStream(in);
+            return in;
         }
 
         @Override

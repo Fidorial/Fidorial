@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
+import fr.euphyllia.fidorial.server.world.storage.RegionRecompressor;
 import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
@@ -126,7 +127,7 @@ public final class WorldManager implements AutoCloseable {
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
         if (!worlds.containsKey(dim.id())) {
             final WorldConfiguration.Storage storageConfig = configurations.loadWorld(dim.id(), paths.configFile(dim)).storage();
-            RegionCompressionMigration.apply(paths, dim, storage, entityStorage,
+            RegionRecompressor.convertIfChanged(paths, dim, storage, entityStorage,
                     storageConfig.regionCompression(), storageConfig.convertExistingChunks());
         }
         final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));

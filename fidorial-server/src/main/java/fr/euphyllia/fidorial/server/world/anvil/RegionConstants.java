@@ -4,6 +4,8 @@ import java.io.DataOutput;
 
 /**
  * Constants of the Region / Anvil format ({@code r.X.Z.mca} files).
+ *
+ * @see <a href="https://minecraft.wiki/w/Region_file_format">Region file format</a>
  */
 public final class RegionConstants {
 

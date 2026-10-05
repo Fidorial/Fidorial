@@ -30,7 +30,8 @@ final class LegacyConfigurationMigration {
         WorldConfigurationContainer.defaultsFile(ServerConfiguration.DIRECTORY).save(new WorldConfiguration(
                 new WorldConfiguration.Gameplay(
                         legacy.pvp(), legacy.defaultGameMode(), legacy.generateStructures(),
-                        new Location(legacy.spawnX(), legacy.spawnY(), legacy.spawnZ(), 0f, 0f))));
+                        new Location(legacy.spawnX(), legacy.spawnY(), legacy.spawnZ(), 0f, 0f)),
+                WorldConfiguration.Storage.DEFAULTS));
 
         final Path backup = LEGACY_FILE.resolveSibling(LEGACY_FILE.getFileName() + "_old");
         Files.move(LEGACY_FILE, backup, StandardCopyOption.REPLACE_EXISTING);

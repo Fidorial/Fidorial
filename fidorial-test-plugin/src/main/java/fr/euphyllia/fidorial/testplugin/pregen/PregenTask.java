@@ -14,7 +14,7 @@ public class PregenTask {
 
     private static final int MAX_IN_FLIGHT = 64;
 
-    private static final long REPORT_PERIOD_MS = 5_000;
+    private static final long REPORT_PERIOD_MS = 1_000;
 
     private final World world;
     private final ComponentLogger logger;

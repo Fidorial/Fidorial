@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * compression Fidorial wrote before the setting existed. When the world loads with another compression configured,
  * every chunk stored with a different one is rewritten, then the file is updated. This happens once per change.
  * <p>
- * Chunks already in the target compression are skipped (only their compression byte is read), so an interrupted
+ * Chunks already in the target compression are skipped (only their header is read), so an interrupted
  * conversion resumes where it stopped. A chunk that cannot be read is left as it is, and the conversion is tried
  * again the next time the world loads.
  * <p>
@@ -150,7 +150,7 @@ public final class RegionRecompressor {
                 continue;
             }
             try {
-                if (region.compression(localX, localZ) != target && region.recompress(localX, localZ, target)) {
+                if (region.recompress(localX, localZ, target)) {
                     converted++;
                 }
             } catch (final IOException e) {
