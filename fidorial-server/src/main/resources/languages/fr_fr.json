@@ -244,5 +244,17 @@
   "commands.gamerule.inherit": "La règle <arg:0> dans <arg:1> suit de nouveau l'overworld : <arg:2>",
   "commands.gamerule.inherit.none": "<red>La règle <arg:0> n'est pas surchargée dans <arg:1>",
   "commands.gamerule.cancelled": "<red>Le changement de la règle <arg:0> a été annulé",
-  "commands.gamerule.unsupported": "<red>La règle <arg:0> n'est pas encore prise en charge par ce serveur ; sa valeur n'a pas été modifiée"
+  "commands.gamerule.unsupported": "<red>La règle <arg:0> n'est pas encore prise en charge par ce serveur ; sa valeur n'a pas été modifiée",
+
+  "command.posteffect.added" : "Effet de post-traitement <arg:0> appliqué à <arg:1>",
+  "command.posteffect.added.many" : "Effet de post-traitement <arg:0> appliqué à <arg:1> joueur(s)",
+  "command.posteffect.removed" : "Effet de post-traitement <arg:0> retiré de <arg:1>",
+  "command.posteffect.removed.many" : "Effet de post-traitement <arg:0> retiré de <arg:1> joueur(s)",
+  "command.posteffect.cleared" : "Tous les effets de post-traitement de <arg:0> ont été retirés",
+  "command.posteffect.cleared.many" : "Tous les effets de post-traitement de <arg:0> joueur(s) ont été retirés",
+  "command.posteffect.add.unchanged" : "<red>Aucun changement. L'effet de post-traitement <arg:0> n'a pu être appliqué à aucune cible",
+  "command.posteffect.remove.unchanged" : "<red>Aucun changement. L'effet de post-traitement <arg:0> n'a pu être retiré d'aucune cible",
+  "command.posteffect.clear.unchanged" : "<red>Aucun changement. Aucune cible n'avait d'effet de post-traitement à retirer",
+  "command.posteffect.list" : "<arg:0> a <arg:1> effet(s) de post-traitement actif(s) : <arg:2>",
+  "command.posteffect.list.none" : "<arg:0> n'a aucun effet de post-traitement actif"
 }

@@ -14,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class MappedArgumentType<N, T> implements ArgumentType<T>, ForceServerSuggestions {
+public final class MappedArgumentType<N, T> implements ArgumentType<T>, ServerSuggestions {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(MappedArgumentType.class);
 
@@ -36,7 +36,9 @@ public final class MappedArgumentType<N, T> implements ArgumentType<T>, ForceSer
         this.customSuggestions = customSuggestions;
     }
 
-    public ArgumentType<N> nativeType() { return nativeType; }
+    public ArgumentType<N> nativeType() {
+        return nativeType;
+    }
 
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
@@ -60,6 +62,6 @@ public final class MappedArgumentType<N, T> implements ArgumentType<T>, ForceSer
     @Override
     public @Nullable SuggestionProvider<CommandSource> suggestionProvider() {
         if (customSuggestions != null) return customSuggestions;
-        return nativeType instanceof final ForceServerSuggestions forced ? forced.suggestionProvider() : null;
+        return nativeType instanceof final ServerSuggestions server ? server.suggestionProvider() : null;
     }
 }
