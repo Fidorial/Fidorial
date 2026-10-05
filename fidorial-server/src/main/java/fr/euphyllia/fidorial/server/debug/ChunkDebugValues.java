@@ -7,7 +7,7 @@ import fr.euphyllia.fidorial.server.world.structure.gen.StructureChunkGenerator;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.PlacedPiece;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.StructureStart;
 import fr.euphyllia.fidorial.server.world.structure.math.Box;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public final class ChunkDebugValues {
 
     private static DebugValues.StructuresInfo.Bounds bounds(final Box box) {
         return new DebugValues.StructuresInfo.Bounds(
-                new BlockPos(box.minX(), box.minY(), box.minZ()),
-                new BlockPos(box.maxX(), box.maxY(), box.maxZ()));
+                Position.block(box.minX(), box.minY(), box.minZ()),
+                Position.block(box.maxX(), box.maxY(), box.maxZ()));
     }
 }

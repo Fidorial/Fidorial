@@ -96,7 +96,7 @@ public final class BlockStateRegistry {
     public BlockGetter view(final ServerWorld world) {
         return pos -> {
             try {
-                return resolve(world.getBlock(pos.x(), pos.y(), pos.z()));
+                return resolve(world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ()));
             } catch (final IOException exception) {
                 return null;
             }

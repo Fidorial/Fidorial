@@ -105,13 +105,13 @@ import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockPlaceContext;
@@ -589,8 +589,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         final ServerPlayer acting = player;
         final ServerWorld world = serverWorld();
-        final BlockPos clicked = packet.target();
-        final ChunkPos chunkPos = ChunkPos.fromBlock(clicked.x(), clicked.z());
+        final BlockPosition clicked = packet.target();
+        final ChunkPos chunkPos = clicked.chunk();
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
             if (interactWithBlock(clicked)) {
@@ -598,7 +598,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 return;
             }
             final BlockFace clickedFace = BlockFace.byId(packet.face());
-            final BlockPos target = clicked.relative(clickedFace);
+            final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(acting.selectedSlot());
             final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
@@ -617,7 +617,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private @Nullable BlockState blockToPlace(
-            final ItemStack held, final BlockPos target, final BlockFace clickedFace, final float cursorY) {
+            final ItemStack held, final BlockPosition target, final BlockFace clickedFace, final float cursorY) {
         final BlockState state = server.blockStateRegistry().blockForItem(held.id());
         if (state == null) {
             return null;
@@ -628,10 +628,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
         return server.blockStateRegistry().placementState(state, context);
     }
 
-    private boolean interactWithBlock(final BlockPos pos) {
+    private boolean interactWithBlock(final BlockPosition pos) {
         final BlockState state;
         try {
-            state = serverWorld().getBlock(pos.x(), pos.y(), pos.z());
+            state = serverWorld().getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
         } catch (final IOException e) {
             LOGGER.debug("Lecture du bloc {} impossible", pos, e);
             return false;
@@ -643,7 +643,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         return true;
     }
 
-    private void openEnderChest(final BlockPos pos) {
+    private void openEnderChest(final BlockPosition pos) {
         if (EnderChestBlock.isBlockedAbove(serverWorld(), pos)) {
             return;
         }
@@ -661,12 +661,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
         broadcastChestSound(pos, "block.ender_chest.open");
     }
 
-    private void broadcastLid(final BlockPos pos, final int viewers) {
+    private void broadcastLid(final BlockPosition pos, final int viewers) {
         server.broadcast(ClientboundBlockEventPacket.chestViewers(pos, viewers));
     }
 
     @SuppressWarnings("PatternValidation")
-    private void broadcastChestSound(final BlockPos pos, final String soundId) {
+    private void broadcastChestSound(final BlockPosition pos, final String soundId) {
         final Sound sound = Sound.sound(Key.key(soundId), Sound.Source.BLOCK, 0.5f, 1.0f);
         server.broadcast(new ClientboundSoundPacket(sound, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));
     }
@@ -754,7 +754,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
 
         final ServerWorld world = serverWorld();
-        final ChunkPos chunkPos = ChunkPos.fromBlock(packet.position().x(), packet.position().z());
+        final ChunkPos chunkPos = packet.position().chunk();
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
@@ -767,7 +767,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         });
     }
 
-    private void onBlockDestroyed(final BlockPos position) {
+    private void onBlockDestroyed(final BlockPosition position) {
         final ContainerMenu menu = player.openMenu();
         if (menu instanceof final EnderChestMenu enderChest && enderChest.position().equals(position)) {
             closeOpenMenu(true);
@@ -804,7 +804,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
     }
 
-    private boolean instantMine(final BlockPos position) {
+    private boolean instantMine(final BlockPosition position) {
         return false;
     }
 

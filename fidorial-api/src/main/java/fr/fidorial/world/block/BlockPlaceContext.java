@@ -1,9 +1,9 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @param cursorY     the height of the click on the clicked face, from {@code 0} to {@code 1}
  * @since 0.1.0
  */
-public record BlockPlaceContext(BlockPos pos, BlockFace clickedFace, Location placer, BlockGetter world,
+public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Location placer, BlockGetter world,
                                 float cursorY) {
 
     private static final Key WATER = BlockTypeKeys.WATER.key();

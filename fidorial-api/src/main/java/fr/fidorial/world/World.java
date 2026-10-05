@@ -2,6 +2,7 @@ package fr.fidorial.world;
 
 import fr.fidorial.entity.Entity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.time.DayNightCycle;
@@ -210,7 +211,7 @@ public interface World extends Keyed, ForwardingAudience {
      * @return the block key, or empty for any kind of air
      * @since 0.1.0
      */
-    Optional<Key> blockKeyAt(BlockPos pos);
+    Optional<Key> blockKeyAt(BlockPosition pos);
 
     /**
      * Gets the block state at a position, loading the chunk when needed.
@@ -221,42 +222,42 @@ public interface World extends Keyed, ForwardingAudience {
      * @see fr.fidorial.world.block.BlockRegistry#fromNetworkId(int)
      * @since 0.1.0
      */
-    int blockStateId(BlockPos pos);
+    int blockStateId(BlockPosition pos);
 
     /**
      * Replaces the block state at a position, on the region thread owning it.
      *
-     * @param pos     the block position
-     * @param stateId the network identifier of the new block state
+     * @param position the block position
+     * @param stateId  the network identifier of the new block state
      * @return a future completing with {@code true} if the block changed, {@code false} if it
      * already held that state or the write could not be scheduled
      * @since 0.1.0
      */
-    CompletableFuture<Boolean> setBlockStateId(BlockPos pos, int stateId);
+    CompletableFuture<Boolean> setBlockStateId(BlockPosition position, int stateId);
 
     /**
      * {@return the block light level at a position, between {@code 0} and {@code 15}}
      *
-     * @param pos the block position
+     * @param position the block position
      * @since 0.1.0
      */
-    int blockLight(BlockPos pos);
+    int blockLight(BlockPosition position);
 
     /**
      * {@return the sky light level at a position, between {@code 0} and {@code 15}}
      *
-     * @param pos the block position
+     * @param position the block position
      * @since 0.1.0
      */
-    int skyLight(BlockPos pos);
+    int skyLight(BlockPosition position);
 
     /**
      * {@return the effective light level at a position, the highest of block and sky light}
      *
-     * @param pos the block position
+     * @param position the block position
      * @since 0.1.0
      */
-    int lightLevel(BlockPos pos);
+    int lightLevel(BlockPosition position);
 
     /**
      * {@return the entities currently in this world, players included}

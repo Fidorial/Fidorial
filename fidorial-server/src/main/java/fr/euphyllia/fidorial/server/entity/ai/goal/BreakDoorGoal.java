@@ -9,11 +9,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.ai.Goal;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.BlockPos;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -35,7 +36,7 @@ public final class BreakDoorGoal implements Goal {
     private final AbstractPathfinderMob mob;
     private final int priority;
 
-    private @Nullable BlockPos door;
+    private @Nullable BlockPosition door;
     private int progress;
     private int sentStage = NO_DESTROY_STAGE;
 
@@ -71,7 +72,7 @@ public final class BreakDoorGoal implements Goal {
                 || !world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
             return false;
         }
-        final BlockPos found = findDoor();
+        final BlockPosition found = findDoor();
         if (found == null) {
             return false;
         }
@@ -81,14 +82,14 @@ public final class BreakDoorGoal implements Goal {
 
     @Override
     public boolean shouldContinue() {
-        final BlockPos pos = this.door;
+        final BlockPosition pos = this.door;
         if (mob.target() == null || pos == null || !(mob.world() instanceof final ServerWorld world)) {
             return false;
         }
         if (!world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
             return false;
         }
-        final BlockState state = BlockView.blockAt(world, pos.x(), pos.y(), pos.z());
+        final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
         return state != null && isBreakableDoor(state) && isClosed(state) && progress < BREAK_TICKS;
     }
 
@@ -108,7 +109,7 @@ public final class BreakDoorGoal implements Goal {
 
     @Override
     public void tick() {
-        final BlockPos target = this.door;
+        final BlockPosition target = this.door;
         if (target == null) {
             return;
         }
@@ -133,19 +134,19 @@ public final class BreakDoorGoal implements Goal {
         }
     }
 
-    private void breakDoor(final BlockPos pos) {
+    private void breakDoor(final BlockPosition pos) {
         if (!(mob.world() instanceof final ServerWorld world)) {
             return;
         }
         final FidorialServer server = FidorialServer.getInstance();
-        final BlockState state = BlockView.blockAt(world, pos.x(), pos.y(), pos.z());
+        final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
         if (state == null) {
             return;
         }
 
         clearDestroyStage();
 
-        final BlockPos other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
+        final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
         server.blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()));
         server.blockEdits().set(world, other, BlockState.of(BlockTypeKeys.AIR.key()));
 
@@ -157,7 +158,7 @@ public final class BreakDoorGoal implements Goal {
         progress = 0;
     }
 
-    private @Nullable BlockPos findDoor() {
+    private @Nullable BlockPosition  findDoor() {
         if (!(mob.world() instanceof final ServerWorld world)) {
             return null;
         }
@@ -166,7 +167,7 @@ public final class BreakDoorGoal implements Goal {
         final int baseY = (int) Math.floor(loc.y());
         final int baseZ = (int) Math.floor(loc.z());
 
-        BlockPos best = null;
+        BlockPosition best = null;
         double bestDistSq = Double.MAX_VALUE;
 
         for (int dx = -SEARCH_RADIUS; dx <= SEARCH_RADIUS; dx++) {
@@ -183,7 +184,7 @@ public final class BreakDoorGoal implements Goal {
                     final double distSq = dx * dx + dy * dy + dz * dz;
                     if (distSq < bestDistSq) {
                         bestDistSq = distSq;
-                        best = new BlockPos(x, y, z);
+                        best = Position.block(x, y, z);
                     }
                 }
             }
@@ -191,13 +192,13 @@ public final class BreakDoorGoal implements Goal {
         return best;
     }
 
-    private void sendDestroyStage(final BlockPos pos, final int stage) {
+    private void sendDestroyStage(final BlockPosition pos, final int stage) {
         sentStage = stage;
         mob.sendToTrackers(new ClientboundBlockDestructionPacket(mob.entityId(), pos, stage));
     }
 
     private void clearDestroyStage() {
-        final BlockPos pos = this.door;
+        final BlockPosition pos = this.door;
         final boolean needsClear = pos != null && sentStage != NO_DESTROY_STAGE;
         sentStage = NO_DESTROY_STAGE;
         if (needsClear) {
@@ -206,7 +207,7 @@ public final class BreakDoorGoal implements Goal {
     }
 
     private void playSound(final Sound.Type type, final float volume) {
-        final BlockPos pos = this.door;
+        final BlockPosition pos = this.door;
         if (pos == null) {
             return;
         }

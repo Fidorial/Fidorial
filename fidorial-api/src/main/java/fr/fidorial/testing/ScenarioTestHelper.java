@@ -2,9 +2,9 @@ package fr.fidorial.testing;
 
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.testing.annotation.ScenarioTest;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -97,14 +97,14 @@ public final class ScenarioTestHelper {
     /**
      * Fails the test unless a block of the expected type sits at a position.
      *
-     * @param pos      the block position
+     * @param position the block position
      * @param expected the expected block key; {@code minecraft:air} matches any kind of air
      * @since 0.1.0
      */
-    public void assertBlockAt(final BlockPos pos, final Key expected) {
-        final Key actual = world.blockKeyAt(pos).orElse(Key.key("air"));
+    public void assertBlockAt(final BlockPosition position, final Key expected) {
+        final Key actual = world.blockKeyAt(position).orElse(Key.key("air"));
         assertTrue(expected.equals(actual),
-                "Expected " + expected + " at " + pos + " but found " + actual);
+                "Expected " + expected + " at " + position + " but found " + actual);
     }
 
     /**

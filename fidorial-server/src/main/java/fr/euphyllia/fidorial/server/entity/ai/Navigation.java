@@ -5,8 +5,9 @@ import fr.euphyllia.fidorial.server.debug.DebugValues;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.ai.Path;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class Navigation implements Navigator {
     private @Nullable PathPenalty pathPenalty;
     private @Nullable Path path;
     private int waypointIndex;
-    private @Nullable BlockPos requestedGoal;
+    private @Nullable Position requestedGoal;
 
     private long age;
     private long lastRequestTick = -REPATH_COOLDOWN_TICKS;
@@ -43,7 +44,7 @@ public class Navigation implements Navigator {
         this.world = world;
     }
 
-    private static double distanceSq(final BlockPos a, final BlockPos b) {
+    private static double distanceSq(final BlockPosition a, final BlockPosition b) {
         final double dx = a.x() - b.x();
         final double dy = a.y() - b.y();
         final double dz = a.z() - b.z();
@@ -55,11 +56,11 @@ public class Navigation implements Navigator {
     }
 
     @Override
-    public void moveTo(final Location from, final BlockPos goal) {
+    public void moveTo(final Location from, final Position goal) {
         if (requestInFlight) {
             return;
         }
-        final boolean sameGoal = requestedGoal != null && distanceSq(requestedGoal, goal) < REPATH_TARGET_MOVED_SQ;
+        final boolean sameGoal = requestedGoal != null && requestedGoal.distanceSquared(goal) < REPATH_TARGET_MOVED_SQ;
         if (sameGoal && path != null) {
             return;
         }
@@ -67,15 +68,13 @@ public class Navigation implements Navigator {
             return;
         }
 
-        final BlockPos start =
-                new BlockPos((int) Math.floor(from.x()), (int) Math.floor(from.y()), (int) Math.floor(from.z()));
         requestedGoal = goal;
         lastRequestTick = age;
         final PathPenalty penalty = this.pathPenalty;
         requestInFlight = FidorialServer.getInstance()
                 .aiWorker()
                 .submit(() -> pendingResult.set(
-                        new PathResult(AStarPathfinder.find(world, start, goal, MAX_NODES, penalty))));
+                        new PathResult(AStarPathfinder.find(world, from, goal, MAX_NODES, penalty))));
     }
 
     public void tick(final double x, final double z) {
@@ -92,7 +91,7 @@ public class Navigation implements Navigator {
             return;
         }
 
-        final BlockPos waypoint = currentWaypoint();
+        final Position waypoint = currentWaypoint();
         if (waypoint == null) {
             return;
         }
@@ -119,7 +118,7 @@ public class Navigation implements Navigator {
     }
 
     @Override
-    public @Nullable BlockPos currentWaypoint() {
+    public @Nullable Position currentWaypoint() {
         if (path == null || waypointIndex >= path.waypoints().size()) {
             return null;
         }
@@ -136,10 +135,10 @@ public class Navigation implements Navigator {
         if (current == null || current.waypoints().isEmpty()) {
             return null;
         }
-        final List<BlockPos> waypoints = current.waypoints();
-        final BlockPos target = requestedGoal != null ? requestedGoal : waypoints.getLast();
+        final List<BlockPosition> waypoints = current.waypoints();
+        final Position target = requestedGoal != null ? requestedGoal : waypoints.getLast();
         final List<DebugValues.PathInfo.Node> nodes = new ArrayList<>(waypoints.size());
-        for (final BlockPos waypoint : waypoints) {
+        for (final Position waypoint : waypoints) {
             nodes.add(DebugValues.PathInfo.Node.walkable(waypoint));
         }
         return new DebugValues.PathInfo(

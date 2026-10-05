@@ -3,10 +3,9 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 
 import java.util.concurrent.ThreadLocalRandom;
-
 
 public final class PanicGoal implements Goal {
 
@@ -102,7 +101,7 @@ public final class PanicGoal implements Goal {
             if (targetX == originX && targetZ == originZ) {
                 continue;
             }
-            mob.navigation().moveTo(from, new BlockPos(targetX, originY, targetZ));
+            mob.navigation().moveTo(from, Position.block(targetX, originY, targetZ));
             return;
         }
     }

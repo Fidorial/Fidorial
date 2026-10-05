@@ -10,11 +10,10 @@ import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import fr.fidorial.world.structure.StructureRotation;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -76,11 +75,11 @@ public final class PlaceCommand {
                 .build();
     }
 
-    private static BlockPos position(final CommandContext<CommandSource> context, final boolean explicit)
+    private static Position position(final CommandContext<CommandSource> context, final boolean explicit)
             throws CommandSyntaxException {
         return explicit
                 ? context.getArgument("pos", BlockPosResolver.class).resolve(context.getSource())
-                : StructureCommands.here(context);
+                : context.getSource().location();
     }
 
     private static int template(final CommandContext<CommandSource> context, final boolean explicitPos,
@@ -106,7 +105,7 @@ public final class PlaceCommand {
             context.getSource().sender().sendMessage(Component.translatable("command.place.template.invalid", Component.text(id.asString())));
             return 0;
         }
-        final BlockPos pos = position(context, explicitPos);
+        final Position pos = position(context, explicitPos);
         report(context, service.placeTemplate(world, pos, id, rotation), id, pos,
                 "command.place.template.success", "command.place.template.failed");
         return Command.SINGLE_SUCCESS;
@@ -125,7 +124,7 @@ public final class PlaceCommand {
             context.getSource().sender().sendMessage(Component.translatable("command.place.structure.invalid", Component.text(id.asString())));
             return 0;
         }
-        final BlockPos pos = position(context, explicitPos);
+        final Position pos = position(context, explicitPos);
         report(context, service.placeStructure(world, pos, id), id, pos,
                 "command.place.structure.success", "command.place.structure.failed");
         return Command.SINGLE_SUCCESS;
@@ -146,16 +145,16 @@ public final class PlaceCommand {
             context.getSource().sender().sendMessage(Component.translatable("command.place.jigsaw.invalid", Component.text(pool.asString())));
             return 0;
         }
-        final BlockPos pos = position(context, explicitPos);
+        final Position pos = position(context, explicitPos);
         report(context, service.placeJigsaw(world, pos, pool, target, depth), pool, pos,
                 "command.place.jigsaw.success", "command.place.jigsaw.failed");
         return Command.SINGLE_SUCCESS;
     }
 
     private static void report(final CommandContext<CommandSource> context, final CompletableFuture<Integer> future,
-                               final Key id, final BlockPos pos, final String success, final String failed) {
+                               final Key id, final Position pos, final String success, final String failed) {
         future.whenComplete((count, failure) -> {
-            final @Nullable Integer placed = failure == null ? count : null;
+            final Integer placed = failure == null ? count : null;
             if (placed == null || placed == 0) {
                 context.getSource().sender().sendMessage(Component.translatable(failed, Component.text(id.asString()),
                         Component.text(failure == null ? "-" : StructureCommands.rootMessage(failure))));

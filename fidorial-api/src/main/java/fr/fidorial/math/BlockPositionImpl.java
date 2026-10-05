@@ -1,5 +1,6 @@
 package fr.fidorial.math;
 
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 
 record BlockPositionImpl(int blockX, int blockY, int blockZ) implements BlockPosition {
@@ -61,6 +62,16 @@ record BlockPositionImpl(int blockX, int blockY, int blockZ) implements BlockPos
     @Override
     public Location toLocation(final World world) {
         return Location.of(world, blockX, blockY, blockZ);
+    }
+
+    @Override
+    public BlockPosition relative(final BlockFace face, final int distance) {
+        return offset(distance * face.dx(), distance * face.dy(), distance * face.dz());
+    }
+
+    @Override
+    public BlockPosition relative(final BlockFace face) {
+        return relative(face, 1);
     }
 
     @Override
