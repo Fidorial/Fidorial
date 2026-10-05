@@ -113,7 +113,7 @@ public final class PostEffectCommand {
         final Player target = context.getArgument("target", PlayerSelectorArgumentResolver.class)
                 .resolve(context.getSource())
                 .getFirst();
-        final List<Key> effects = target.postEffects();
+        final List<Key> effects = target.activePostEffects();
         final CommandSender sender = context.getSource().sender();
 
         if (effects.isEmpty()) {

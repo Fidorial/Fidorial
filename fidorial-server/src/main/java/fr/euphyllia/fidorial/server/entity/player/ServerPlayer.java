@@ -728,12 +728,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public List<Key> postEffects() {
+    public List<Key> activePostEffects() {
         return connection.postEffects();
     }
 
     @Override
-    public CompletableFuture<Boolean> setPostEffects(final SequencedCollection<Key> effects) {
+    public CompletableFuture<Boolean> setActivePostEffects(final SequencedCollection<Key> effects) {
         final List<Key> requested = List.copyOf(effects);
         return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API, _ -> requested);
     }
@@ -746,14 +746,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public CompletableFuture<Boolean> disablePostEffect(final Key effect) {
+    public CompletableFuture<Boolean> deactivatePostEffect(final Key effect) {
         Objects.requireNonNull(effect, "effect");
         return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API,
                 current -> current.stream().filter(active -> !active.equals(effect)).toList());
     }
 
     @Override
-    public CompletableFuture<Boolean> clearPostEffects() {
+    public CompletableFuture<Boolean> clearActivePostEffects() {
         return modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.API, _ -> List.of());
     }
 

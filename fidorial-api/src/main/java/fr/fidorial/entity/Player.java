@@ -249,22 +249,22 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      */
     @Unmodifiable
     @Contract(pure = true)
-    List<Key> postEffects();
+    List<Key> activePostEffects();
 
     /**
      * Replaces the currently active post effects.
      *
-     * @param effects the effect keys, in order
-     * @return a future completing with {@code true} if the active effects changed, or {@code false} if
+     * @param effects the post effect keys, in order
+     * @return a future completing with {@code true} if the active post effects changed, or {@code false} if
      * they were already {@code effects}, the change was cancelled, or the player left first
      * @since 0.1.0
      */
-    CompletableFuture<Boolean> setPostEffects(SequencedCollection<Key> effects);
+    CompletableFuture<Boolean> setActivePostEffects(SequencedCollection<Key> effects);
 
     /**
-     * Activates an effect if it is not already active, adding it to the end of the list.
+     * Activates a post effect if it is not already active, adding it to the end of the list.
      *
-     * @param effect the effect key
+     * @param effect the post effect key
      * @return a future completing with {@code true} if it was activated, or {@code false} if it was
      * already active, the change was cancelled, or the player left first
      * @since 0.1.0
@@ -272,21 +272,21 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
     CompletableFuture<Boolean> activatePostEffect(Key effect);
 
     /**
-     * Disables a post effect if it is active.
+     * Deactivates a post effect if it is active.
      *
-     * @param effect the effect key
-     * @return a future completing with {@code true} if it was disabled, or {@code false} if it was not
+     * @param effect the post effect key
+     * @return a future completing with {@code true} if it was deactivated, or {@code false} if it was not
      * active, the change was cancelled, or the player left first
      * @since 0.1.0
      */
-    CompletableFuture<Boolean> disablePostEffect(Key effect);
+    CompletableFuture<Boolean> deactivatePostEffect(Key effect);
 
     /**
-     * Deactivates every effect.
+     * Deactivates every active post effect.
      *
-     * @return a future completing with {@code true} if any effect was disabled, or {@code false} if
+     * @return a future completing with {@code true} if any post effect was deactivated, or {@code false} if
      * none were active, the change was cancelled, or the player left first
      * @since 0.1.0
      */
-    CompletableFuture<Boolean> clearPostEffects();
+    CompletableFuture<Boolean> clearActivePostEffects();
 }
