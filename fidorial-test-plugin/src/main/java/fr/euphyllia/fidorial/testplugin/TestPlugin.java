@@ -39,6 +39,7 @@ import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
 import fr.fidorial.world.generation.WorldGenerator;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
@@ -182,12 +183,8 @@ public final class TestPlugin implements Plugin {
         TestPluginTranslations.unregister();
     }
 
-    public void msg(final CommandSender sender, final String miniMessageText) {
-        sender.sendMessage(MM.deserialize(miniMessageText));
-    }
-
-    private void msg(final Player player, final String miniMessageText) {
-        player.sendMessage(MM.deserialize(miniMessageText));
+    public void msg(final Audience audience, final String miniMessageText) {
+        audience.sendMessage(MM.deserialize(miniMessageText));
     }
 
     private void createResourcePack() {

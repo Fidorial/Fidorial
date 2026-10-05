@@ -1,6 +1,6 @@
 package fr.fidorial.entity;
 
-import fr.fidorial.command.CommandSource;
+import fr.fidorial.Server;
 import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.SchedulerSource;
 import fr.fidorial.world.ChunkPos;
@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @since 0.1.0
  */
-public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowEntity>, Sound.Emitter, Sound.Source.Provider, SchedulerSource {
+public interface Entity extends HoverEventSource<HoverEvent.ShowEntity>, Sound.Emitter, Sound.Source.Provider, SchedulerSource {
 
     /**
      * {@return the network identifier of this entity, unique while the server runs}
@@ -74,6 +74,13 @@ public interface Entity extends CommandSource, HoverEventSource<HoverEvent.ShowE
     default ChunkPos chunk() {
         return location().chunk();
     }
+
+    /**
+     * {@return the server this entity belongs to}
+     *
+     * @since 0.1.0
+     */
+    Server server();
 
     /**
      * {@return {@code true} once this entity has left its world for good}

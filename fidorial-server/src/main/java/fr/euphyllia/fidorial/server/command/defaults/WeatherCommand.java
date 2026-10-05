@@ -8,7 +8,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.entity.Entity;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.weather.Weather;
 import net.kyori.adventure.text.Component;
@@ -69,7 +69,7 @@ public final class WeatherCommand {
             if (requested.weather().hasCycle()) {
                 return requested;
             }
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "command.weather.noweather", Component.text(requested.key().asString())));
             return null;
         }
@@ -81,14 +81,8 @@ public final class WeatherCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandSource source) {
-        if (source.sender() instanceof final Entity entity && entity.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        final Entity executor = source.executor();
-        if (executor != null && executor.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        return null;
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     private static int get(final CommandSource source, final @Nullable ServerWorld requested) {
@@ -96,7 +90,7 @@ public final class WeatherCommand {
         if (world == null) {
             return 0;
         }
-        source.sender().sendMessage(Component.translatable(
+        source.sendMessage(Component.translatable(
                 "command.weather.current",
                 describe(world.weather().weather()),
                 Component.text(world.key().asString())));
@@ -117,10 +111,10 @@ public final class WeatherCommand {
 
         final Component worldName = Component.text(world.key().asString());
         if (durationTicks > 0) {
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "command.weather.changed.duration", describe(target), Component.text(durationTicks / 20), worldName));
         } else {
-            source.sender().sendMessage(Component.translatable("command.weather.changed", describe(target), worldName));
+            source.sendMessage(Component.translatable("command.weather.changed", describe(target), worldName));
         }
         return Command.SINGLE_SUCCESS;
     }

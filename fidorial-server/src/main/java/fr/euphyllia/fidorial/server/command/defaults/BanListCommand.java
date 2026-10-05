@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.command.defaults;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.moderation.BanEntry;
 import fr.fidorial.moderation.BanManager;
@@ -35,22 +34,22 @@ public final class BanListCommand {
             final CommandContext<CommandSource> context,
             final Function<BanManager, Stream<? extends BanEntry>> selector
     ) {
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
         final BanManager bans = context.getSource().server().bans();
 
         final List<? extends BanEntry> entries = selector.apply(bans).toList();
 
 
         if (entries.isEmpty()) {
-            sender.sendMessage(Component.translatable("commands.banlist.none"));
+            source.sendMessage(Component.translatable("commands.banlist.none"));
             return Command.SINGLE_SUCCESS;
         }
 
-        sender.sendMessage(Component.translatable(
+        source.sendMessage(Component.translatable(
                 "commands.banlist.header", Component.text(entries.size())));
 
         for (final BanEntry entry : entries) {
-            sender.sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "commands.banlist.entry",
                     Component.text(entry.label()),
                     BanCommand.sourceOf(entry),

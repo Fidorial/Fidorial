@@ -34,7 +34,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
@@ -800,11 +799,6 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return connection.teleport(location);
     }
 
-    @Override
-    public CommandSender sender() {
-        return this;
-    }
-
     public DebugSubscriptionState debugSubscriptions() {
         return debugSubscriptions.get();
     }
@@ -870,7 +864,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (message == null) {
             return null;
         }
-        final Component resolved = ComponentResolver.resolve(message, this);
+        final Component resolved = ComponentResolver.resolve(message, this.commandSource());
         return TranslationStore.render(resolved, locale());
     }
 

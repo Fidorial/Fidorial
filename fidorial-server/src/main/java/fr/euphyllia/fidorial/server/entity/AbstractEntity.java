@@ -9,7 +9,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
@@ -19,7 +18,6 @@ import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -125,16 +123,6 @@ public abstract class AbstractEntity implements Entity {
     @Override
     public String toString() {
         return type.key() + "#" + entityId;
-    }
-
-    @Override
-    public CommandSender sender() {
-        return null;
-    }
-
-    @Override
-    public @Nullable Entity executor() {
-        return this;
     }
 
     @Override

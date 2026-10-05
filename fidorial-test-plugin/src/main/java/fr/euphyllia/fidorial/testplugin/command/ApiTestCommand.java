@@ -11,7 +11,6 @@ import fr.euphyllia.fidorial.testplugin.command.argument.BaguetteArgument;
 import fr.euphyllia.fidorial.testplugin.terrain.HillsGenerator;
 import fr.euphyllia.fidorial.testplugin.terrain.SwamplandGenerator;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.MessageComponentSerializer;
 import fr.fidorial.command.argument.ArgumentTypes;
@@ -60,6 +59,8 @@ import static fr.fidorial.command.Commands.literal;
 
 public final class ApiTestCommand {
     private static TestPlugin plugin;
+
+    private static final String REQUIRES_PLAYER = "<red>[TestPlugin] This command must run as a player.</red>";
 
     private final Map<UUID, Map<Key, BossBar>> playerBossBars = new ConcurrentHashMap<>();
 
@@ -183,26 +184,15 @@ public final class ApiTestCommand {
                                                                 .then(argument("flag", ArgumentTypes.bossBarFlag())
                                                                         .executes(this::bossBarShowCustom)))))))
                         .then(literal("hide")
-                                .requires(source -> {
-                                    final CommandSender sender = source.sender();
-                                    if (!(sender instanceof final Player player)) {
-                                        return false;
-                                    }
-
-                                    return !bossBarsOf(player).isEmpty();
-                                })
+                                .requires(source -> source.executor() instanceof final Player player
+                                        && !bossBarsOf(player).isEmpty())
                                 .then(argument("name", ArgumentTypes.key())
                                         .suggests((ctx, builder) -> {
-                                            final CommandSender sender = ctx.getSource().sender();
-
-                                            if (!(sender instanceof final Player player)) {
-                                                return builder.buildFuture();
+                                            if (ctx.getSource().executor() instanceof final Player player) {
+                                                bossBarsOf(player).keySet().forEach(key ->
+                                                        builder.suggest(key.asString())
+                                                );
                                             }
-
-                                            bossBarsOf(player).keySet().forEach(key ->
-                                                    builder.suggest(key.asString())
-                                            );
-
                                             return builder.buildFuture();
                                         })
                                         .executes(this::bossBarHide)))
@@ -228,7 +218,7 @@ public final class ApiTestCommand {
     }
 
     private static int tabListBroadcast(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final Component header = MiniMessage.miniMessage().deserialize(
                 "<gradient:aqua:blue><bold>Fidorial</bold></gradient> <gray>| Test Plugin</gray>");
@@ -237,7 +227,7 @@ public final class ApiTestCommand {
 
         plugin.server().sendPlayerListHeaderAndFooter(header, footer);
 
-        plugin.msg(sender, "[TestPlugin] Broadcasted tab list header/footer to "
+        plugin.msg(source, "[TestPlugin] Broadcasted tab list header/footer to "
                 + plugin.server().playerCount() + " player(s).");
 
         return Command.SINGLE_SUCCESS;
@@ -253,9 +243,9 @@ public final class ApiTestCommand {
     }
 
     private static int nbtEntity(final CommandContext<CommandSource> ctx, final String path) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return 0;
         }
 
@@ -279,13 +269,13 @@ public final class ApiTestCommand {
     }
 
     private static int nbtBlock(final CommandContext<CommandSource> ctx, final String path) throws CommandSyntaxException {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return 0;
         }
 
-        final BlockPosition pos = ctx.getArgument("pos", BlockPosResolver.class).resolve(ctx.getSource());
+        final BlockPosition pos = ctx.getArgument("pos", BlockPosResolver.class).resolve(source);
 
         final BlockNBTComponent nbtComponent = Component.blockNBT()
                 .absoluteWorldPos(pos.blockX(), pos.blockY(), pos.blockZ())
@@ -298,7 +288,7 @@ public final class ApiTestCommand {
     }
 
     private static int nbtStorage(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final Component nbtComponent = Component.storageNBT()
                 .storage(Key.key("fidorial", "test"))
@@ -306,7 +296,7 @@ public final class ApiTestCommand {
                 .interpret(true)
                 .build();
 
-        sender.sendMessage(nbtComponent);
+        source.sendMessage(nbtComponent);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -328,10 +318,10 @@ public final class ApiTestCommand {
     }
 
     private static int playSound(final CommandContext<CommandSource> ctx, final float volume, final float pitch) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -340,16 +330,16 @@ public final class ApiTestCommand {
 
         player.playSound(Sound.sound(soundKey, Sound.Source.MASTER, volume, pitch));
 
-        plugin.msg(player, "[TestPlugin] Played sound " + soundKey + " (volume=" + volume + ", pitch=" + pitch + ")");
+        plugin.msg(source, "[TestPlugin] Played sound " + soundKey + " (volume=" + volume + ", pitch=" + pitch + ")");
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int soundDemo(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -362,16 +352,16 @@ public final class ApiTestCommand {
         player.playSound(
                 Sound.sound(Key.key("block.bell.use"), Sound.Source.BLOCK, 1.0f, 0.8f), 0.0, 64.0, 0.0);
 
-        plugin.msg(player, "[TestPlugin] Sound demo executed.");
+        plugin.msg(source, "[TestPlugin] Sound demo executed.");
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int stopSound(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -379,31 +369,31 @@ public final class ApiTestCommand {
 
         player.stopSound(SoundStop.named(key));
 
-        plugin.msg(player, "[TestPlugin] Stopped sound " + key);
+        plugin.msg(source, "[TestPlugin] Stopped sound " + key);
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int stopAllSound(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
         player.stopSound(SoundStop.all());
 
-        plugin.msg(player, "[TestPlugin] Stopped all sounds.");
+        plugin.msg(source, "[TestPlugin] Stopped all sounds.");
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int info(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         plugin.msg(
-                sender,
+                source,
                 "[TestPlugin] MC " + plugin.server().minecraftVersion()
                         + " | protocol " + plugin.server().protocolVersion()
                         + " | running=" + plugin.server().isRunning()
@@ -414,18 +404,18 @@ public final class ApiTestCommand {
     }
 
     private static int tps(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final List<? extends RegionTps> snapshots = plugin.server().scheduler().tpsSnapshots();
 
         if (snapshots.isEmpty()) {
-            plugin.msg(sender, "[TestPlugin] No active region.");
+            plugin.msg(source, "[TestPlugin] No active region.");
             return Command.SINGLE_SUCCESS;
         }
 
         for (final RegionTps tps : snapshots) {
             plugin.msg(
-                    sender,
+                    source,
                     String.format(
                             Locale.ROOT,
                             "[TestPlugin] %s section(%d,%d) tps=%.1f mspt=%.2f queued=%d",
@@ -441,21 +431,20 @@ public final class ApiTestCommand {
     }
 
     private static int worlds(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final String worlds =
                 plugin.server().worlds().stream().map(w -> w.key().toString()).collect(Collectors.joining(", "));
 
-        plugin.msg(sender, "[TestPlugin] " + plugin.server().worlds().size() + " world(s): " + worlds);
+        plugin.msg(source, "[TestPlugin] " + plugin.server().worlds().size() + " world(s): " + worlds);
 
         return Command.SINGLE_SUCCESS;
     }
 
-
     private static int forceLoad(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -466,7 +455,7 @@ public final class ApiTestCommand {
                 .map(Chunk::isForceLoaded)
                 .orElse(false);
 
-        plugin.msg(player, "[TestPlugin] Chunk " + pos.x() + ", " + pos.z()
+        plugin.msg(source, "[TestPlugin] Chunk " + pos.x() + ", " + pos.z()
                 + " force-loaded: " + forced
                 + " (Chunk#isForceLoaded: " + chunkForced + ") | "
                 + world.forceLoadedChunks().size() + " force-loaded chunk(s) in " + world.key().asString());
@@ -474,9 +463,9 @@ public final class ApiTestCommand {
     }
 
     private static int tp(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -485,27 +474,26 @@ public final class ApiTestCommand {
         final double z = ctx.getArgument("z", Double.class);
 
         player.teleport(x, y, z).whenComplete((ok, _) ->
-                plugin.msg(player, "[TestPlugin] Teleporting " + (ok ? "OK" : "refusee") + " to " + x + ", " + y + ", " + z));
+                plugin.msg(source, "[TestPlugin] Teleporting " + (ok ? "OK" : "refused") + " to " + x + ", " + y + ", " + z));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int tpWorld(
             final TestPlugin plugin, final CommandContext<CommandSource> ctx, final Key key) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
         final Collection<? extends World> worlds = plugin.server().worlds();
         final World target = plugin.server().world(key).orElse(null);
         if (target == null) {
-
-            plugin.msg(player, "[TestPlugin] World " + key + " does not exist.");
-            plugin.msg(player, "Loaded worlds: ");
+            plugin.msg(source, "[TestPlugin] World " + key + " does not exist.");
+            plugin.msg(source, "Loaded worlds: ");
 
             for (final World world : worlds) {
-                plugin.msg(player, world.key().asString());
+                plugin.msg(source, world.key().asString());
             }
 
             return Command.SINGLE_SUCCESS;
@@ -513,17 +501,17 @@ public final class ApiTestCommand {
 
         final Location destination = Location.of(target, 8.5, 100.0, 8.5, 0f, 0f);
         player.teleport(destination).whenComplete((ok, _) ->
-                plugin.msg(player, "[TestPlugin] Cross-world teleport " + (ok ? "OK" : "refusee") + " to " + key));
+                plugin.msg(source, "[TestPlugin] Cross-world teleport " + (ok ? "OK" : "refused") + " to " + key));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int players(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final var players = plugin.server().onlinePlayers();
 
         plugin.msg(
-                sender,
+                source,
                 "[TestPlugin] "
                         + players.size()
                         + " player(s): "
@@ -533,47 +521,47 @@ public final class ApiTestCommand {
     }
 
     private static int service(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final var service = plugin.server().services().find(CounterService.class);
 
         if (service.isEmpty()) {
-            plugin.msg(sender, "<red>CounterService is not registered.</red>");
+            plugin.msg(source, "<red>CounterService is not registered.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
-        plugin.msg(sender, "[TestPlugin] counter = " + service.get().increment());
+        plugin.msg(source, "[TestPlugin] counter = " + service.get().increment());
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int schedule(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final World world = plugin.server().worlds().stream().findFirst().orElse(null);
 
         if (world == null) {
-            plugin.msg(sender, "[TestPlugin] No world is loaded.");
+            plugin.msg(source, "[TestPlugin] No world is loaded.");
             return Command.SINGLE_SUCCESS;
         }
 
         plugin.server()
                 .scheduler()
                 .executeDelayed(
-                        world.key(), new ChunkPos(0, 0), () -> plugin.msg(sender, "[TestPlugin] Scheduler OK"), 40L);
+                        world.key(), new ChunkPos(0, 0), () -> plugin.msg(source, "[TestPlugin] Scheduler OK"), 40L);
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int perms(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         plugin.msg(
-                sender,
-                sender.name()
-                        + " | console=" + sender.name().equals("Console")
-                        + " | testplugin.use=" + sender.hasPermission("testplugin.use")
-                        + " | testplugin.admin=" + sender.hasPermission("testplugin.admin"));
+                source,
+                source.sender().name()
+                        + " | console=" + source.sender().name().equals("Console")
+                        + " | testplugin.use=" + source.sender().hasPermission("testplugin.use")
+                        + " | testplugin.admin=" + source.sender().hasPermission("testplugin.admin"));
 
         return Command.SINGLE_SUCCESS;
     }
@@ -589,10 +577,10 @@ public final class ApiTestCommand {
 
     private static int createWorld(
             final CommandContext<CommandSource> ctx, final Key key, final String generatorName) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         if (plugin.server().world(key).isPresent()) {
-            plugin.msg(sender, "[TestPlugin] The world " + key + " already exists (idempotence test OK).");
+            plugin.msg(source, "[TestPlugin] The world " + key + " already exists (idempotence test OK).");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -606,7 +594,7 @@ public final class ApiTestCommand {
         final World world = plugin.server().createWorld(spec);
 
         plugin.msg(
-                sender,
+                source,
                 "[TestPlugin] World created: " + world.key()
                         + " | minY=" + world.minY()
                         + " | height=" + world.height()
@@ -618,17 +606,17 @@ public final class ApiTestCommand {
 
     private static int unloadWorld(
             final CommandContext<CommandSource> ctx, final Key key) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final boolean unloaded = plugin.server().unloadWorld(key, true);
         if (unloaded) {
             plugin.msg(
-                    sender,
+                    source,
                     "[TestPlugin] World unloaded: " + key
                             + " | total=" + plugin.server().worlds().size());
         } else {
             plugin.msg(
-                    sender,
+                    source,
                     "[TestPlugin] Unload refused for " + key
                             + " (unknown world, last loaded world, or players still in it).");
         }
@@ -649,12 +637,12 @@ public final class ApiTestCommand {
                 .build();
 
         final Component callbackComponent = Component.text("[Click me!]", NamedTextColor.GREEN).clickEvent(ClickEvent.callback(callback, options));
-        ctx.getSource().sender().sendMessage(callbackComponent);
+        ctx.getSource().sendMessage(callbackComponent);
         return Command.SINGLE_SUCCESS;
     }
 
     private static int itemHover(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         final ItemStack diamond = ItemStack.of(Key.key("diamond"), 64);
 
@@ -662,31 +650,32 @@ public final class ApiTestCommand {
                 .color(NamedTextColor.AQUA)
                 .hoverEvent(diamond);
 
-        sender.sendMessage(Component.text("[TestPlugin] Hover me: ").append(item));
+        source.sendMessage(Component.text("[TestPlugin] Hover me: ").append(item));
 
-        plugin.msg(sender, "[TestPlugin] Translation key = " + diamond.translationKey());
-        sender.sendMessage(Component.text("[TestPlugin] Rendered key = ").append(Component.translatable(diamond.translationKey())));
+        plugin.msg(source, "[TestPlugin] Translation key = " + diamond.translationKey());
+        source.sendMessage(Component.text("[TestPlugin] Rendered key = ").append(Component.translatable(diamond.translationKey())));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int playerHead(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
         final Component head = Component.object(player);
 
-        sender.sendMessage(Component.text("[TestPlugin] Your head: ").append(head));
+        source.sendMessage(Component.text("[TestPlugin] Head of " + player.name() + ": ").append(head));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int resourcePackBroadcast(final CommandContext<CommandSource> ctx) {
-        final var server = ctx.getSource().server();
+        final CommandSource source = ctx.getSource();
+        final var server = source.server();
 
         final ResourcePackInfo pack = ResourcePackInfo.resourcePackInfo(
                 UUID.fromString("2e26aec4-e14c-4947-bdc1-99c391d6d257"),
@@ -705,7 +694,7 @@ public final class ApiTestCommand {
 
         server.sendResourcePacks(request);
 
-        plugin.msg(ctx.getSource().sender(), "[TestPlugin] Resource pack request sent to " + server.playerCount() + " player(s).");
+        plugin.msg(source, "[TestPlugin] Resource pack request sent to " + server.playerCount() + " player(s).");
 
         return Command.SINGLE_SUCCESS;
     }
@@ -748,10 +737,10 @@ public final class ApiTestCommand {
             final BossBar.Overlay overlay,
             final Set<BossBar.Flag> flags
     ) throws CommandSyntaxException {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -776,7 +765,7 @@ public final class ApiTestCommand {
         player.showBossBar(bar);
         player.refreshCommands();
 
-        player.sendMessage(
+        source.sendMessage(
                 Component.translatable(
                         "commands.bossbar.create.success",
                         Component.text(name.toString())
@@ -787,10 +776,10 @@ public final class ApiTestCommand {
     }
 
     private int bossBarHide(final CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
@@ -806,7 +795,7 @@ public final class ApiTestCommand {
         player.hideBossBar(bar);
         player.refreshCommands();
 
-        player.sendMessage(
+        source.sendMessage(
                 Component.translatable(
                         "commands.bossbar.hide.success",
                         Component.text(key.toString())
@@ -817,31 +806,31 @@ public final class ApiTestCommand {
     }
 
     private static int baguette(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final BaguetteArgument.Baguette baguette = ctx.getArgument("type", BaguetteArgument.Baguette.class);
 
-        plugin.msg(sender, "[TestPlugin] You chose: " + baguette.name().toLowerCase(Locale.ROOT));
+        plugin.msg(source, "[TestPlugin] You chose: " + baguette.name().toLowerCase(Locale.ROOT));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int getDefaultWorld(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         plugin.server().defaultWorld().ifPresentOrElse(
-                key -> plugin.msg(sender, "[TestPlugin] Configured default world: " + key.asString()),
-                () -> plugin.msg(sender, "[TestPlugin] No default world is configured."));
+                key -> plugin.msg(source, "[TestPlugin] Configured default world: " + key.asString()),
+                () -> plugin.msg(source, "[TestPlugin] No default world is configured."));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int setDefaultWorld(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final World world = ctx.getArgument("world", World.class);
 
         plugin.server().defaultWorld(world.key());
 
-        plugin.msg(sender, "[TestPlugin] Default world set to " + world.key().asString());
+        plugin.msg(source, "[TestPlugin] Default world set to " + world.key().asString());
         return Command.SINGLE_SUCCESS;
     }
 }

@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.world.biome.BiomeDefinition;
@@ -70,17 +69,17 @@ public final class BiomeCommand {
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final BiomeRegistry biomes = biomes();
 
         if (biomes.definitions().isEmpty()) {
-            plugin.msg(sender, "<yellow>No biome is defined by the server.");
+            plugin.msg(source, "<yellow>No biome is defined by the server.");
             return Command.SINGLE_SUCCESS;
         }
 
-        plugin.msg(sender, "<gold>Biomes defined by the server:");
+        plugin.msg(source, "<gold>Biomes defined by the server:");
         for (final BiomeDefinition biome : biomes.definitions()) {
-            plugin.msg(sender, "<gray> - <white>%s <gray>(network id <aqua>%d<gray>)"
+            plugin.msg(source, "<gray> - <white>%s <gray>(network id <aqua>%d<gray>)"
                     .formatted(biome.key().asString(), biomes.networkId(biome.key())));
         }
         return Command.SINGLE_SUCCESS;
@@ -88,7 +87,7 @@ public final class BiomeCommand {
 
     private static int count(final CommandContext<CommandSource> ctx) {
         final BiomeRegistry biomes = biomes();
-        plugin.msg(ctx.getSource().sender(),
+        plugin.msg(ctx.getSource(),
                 "<gold>%d biomes registered, <aqua>%d<gold> of them defined here. Fallback: <white>%s"
                         .formatted(biomes.totalRegistered(), biomes.definitions().size(),
                                 biomes.fallback().asString()));
@@ -96,102 +95,102 @@ public final class BiomeCommand {
     }
 
     private static int info(final CommandContext<CommandSource> ctx, final Key key) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final BiomeRegistry biomes = biomes();
 
         if (!biomes.contains(key)) {
-            plugin.msg(sender, "<red>Unknown biome: " + key.asString());
+            plugin.msg(source, "<red>Unknown biome: " + key.asString());
             return 0;
         }
 
-        plugin.msg(sender, "<gold>%s <gray>- network id <aqua>%d<gray>, custom: <white>%s"
+        plugin.msg(source, "<gold>%s <gray>- network id <aqua>%d<gray>, custom: <white>%s"
                 .formatted(key.asString(), biomes.networkId(key), biomes.isCustom(key)));
 
         biomes.definition(key).ifPresentOrElse(
-                biome -> describe(sender, biome),
-                () -> plugin.msg(sender,
+                biome -> describe(source, biome),
+                () -> plugin.msg(source,
                         "<gray>Vanilla biome: the client resolves it from its own pack, "
                                 + "the server only keeps the key."));
 
         return Command.SINGLE_SUCCESS;
     }
 
-    private static void describe(final CommandSender sender, final BiomeDefinition biome) {
-        plugin.msg(sender, "<gray>  temperature <white>%s<gray> (%s), downfall <white>%s<gray>, precipitation <white>%s"
+    private static void describe(final CommandSource source, final BiomeDefinition biome) {
+        plugin.msg(source, "<gray>  temperature <white>%s<gray> (%s), downfall <white>%s<gray>, precipitation <white>%s"
                 .formatted(biome.temperature(), biome.temperatureModifier().id(),
                         biome.downfall(), biome.hasPrecipitation()));
 
-        plugin.msg(sender, "<gray>  water <white>#%06x<gray>, grass <white>%s<gray>, modifier <white>%s"
+        plugin.msg(source, "<gray>  water <white>#%06x<gray>, grass <white>%s<gray>, modifier <white>%s"
                 .formatted(biome.effects().waterColor(),
                         hex(biome.effects().grassColor()),
                         biome.effects().grassColorModifier().id()));
 
         final EnvironmentAttributes attributes = biome.attributes();
         if (attributes.isEmpty()) {
-            plugin.msg(sender, "<gray>  no environment attribute");
+            plugin.msg(source, "<gray>  no environment attribute");
             return;
         }
 
-        plugin.msg(sender, "<gray>  sky <white>%s<gray>, fog <white>%s<gray>, water fog <white>%s"
+        plugin.msg(source, "<gray>  sky <white>%s<gray>, fog <white>%s<gray>, water fog <white>%s"
                 .formatted(attribute(attributes.skyColor()),
                         attribute(attributes.fogColor()),
                         attribute(attributes.waterFogColor())));
 
         if (!attributes.ambientParticles().isEmpty()) {
-            plugin.msg(sender, "<gray>  particles <white>%s".formatted(
+            plugin.msg(source, "<gray>  particles <white>%s".formatted(
                     attributes.ambientParticles().stream()
                             .map(particle -> particle.type().asString() + " @ " + particle.probability())
                             .collect(Collectors.joining(", "))));
         }
 
         if (attributes.ambientSounds() != null) {
-            plugin.msg(sender, "<gray>  ambient sounds present");
+            plugin.msg(source, "<gray>  ambient sounds present");
         }
 
         final Attribute<Float> distance = attributes.waterFogEndDistance();
         if (distance != null) {
-            plugin.msg(sender, "<gray>  water fog distance <white>%s<gray> via <white>%s"
+            plugin.msg(source, "<gray>  water fog distance <white>%s<gray> via <white>%s"
                     .formatted(distance.value(), distance.modifier().id()));
         }
     }
 
     private static int register(final CommandContext<CommandSource> ctx, final Key key) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final BiomeRegistry biomes = biomes();
 
         if (biomes.contains(key)) {
-            plugin.msg(sender, "<red>" + key.asString() + " already exists.");
+            plugin.msg(source, "<red>" + key.asString() + " already exists.");
             return 0;
         }
 
         final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(key).build();
         biomes.register(clone);
 
-        plugin.msg(sender, "<green>%s registered (network id %d). Reconnect to see it."
+        plugin.msg(source, "<green>%s registered (network id %d). Reconnect to see it."
                 .formatted(key.asString(), biomes.networkId(key)));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int unregister(final CommandContext<CommandSource> ctx, final Key key) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
 
         try {
             if (!biomes().unregister(key)) {
-                plugin.msg(sender, "<red>No biome registered under " + key.asString());
+                plugin.msg(source, "<red>No biome registered under " + key.asString());
                 return 0;
             }
         } catch (final IllegalArgumentException refused) {
-            plugin.msg(sender, "<red>" + refused.getMessage());
+            plugin.msg(source, "<red>" + refused.getMessage());
             return 0;
         }
 
-        plugin.msg(sender, "<green>%s removed. Every following network id shifted down by one."
+        plugin.msg(source, "<green>%s removed. Every following network id shifted down by one."
                 .formatted(key.asString()));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int fromJson(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final Key key = Key.key("fidorial", "datapack_sample");
         final BiomeRegistry biomes = biomes();
 
@@ -201,11 +200,11 @@ public final class BiomeCommand {
 
         try {
             final BiomeDefinition biome = biomes.registerFromJson(key, SAMPLE_JSON);
-            plugin.msg(sender, "<green>JSON read: %s, temperature %s, sky %s"
+            plugin.msg(source, "<green>JSON read: %s, temperature %s, sky %s"
                     .formatted(biome.key().asString(), biome.temperature(),
                             attribute(biome.attributes().skyColor())));
         } catch (final IllegalArgumentException invalid) {
-            plugin.msg(sender, "<red>JSON rejected: " + invalid.getMessage());
+            plugin.msg(source, "<red>JSON rejected: " + invalid.getMessage());
             return 0;
         }
 

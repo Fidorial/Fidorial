@@ -51,10 +51,10 @@ public final class SpawnPointCommand {
     }
 
     private static List<Player> selfOrFail(final CommandContext<CommandSource> context) {
-        if (context.getSource().sender() instanceof final Player sender) {
-            return List.of(sender);
+        if (context.getSource().executor() instanceof final Player player) {
+            return List.of(player);
         }
-        context.getSource().sender().sendMessage(Component.translatable("command.spawnpoint.console"));
+        context.getSource().sendMessage(Component.translatable("command.spawnpoint.not_player"));
         return List.of();
     }
 
@@ -72,7 +72,6 @@ public final class SpawnPointCommand {
 
             if (context.getSource().sender() != target) {
                 context.getSource()
-                        .sender()
                         .sendMessage(Component.translatable(
                                 "command.spawnpoint.set.other", Component.text(target.name()), where));
             }
@@ -89,7 +88,6 @@ public final class SpawnPointCommand {
 
             if (context.getSource().sender() != target) {
                 context.getSource()
-                        .sender()
                         .sendMessage(Component.translatable(
                                 "command.spawnpoint.cleared.other", Component.text(target.name())));
             }

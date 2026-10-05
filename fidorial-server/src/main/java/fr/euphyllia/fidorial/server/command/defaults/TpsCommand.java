@@ -32,7 +32,7 @@ public final class TpsCommand {
                 FidorialServer.getInstance().regionizer().tpsSnapshots();
 
         if (snapshots.isEmpty()) {
-            context.getSource().sender().sendMessage(Component.translatable("command.tps.noregion"));
+            context.getSource().sendMessage(Component.translatable("command.tps.noregion"));
             return 0;
         }
 
@@ -45,7 +45,6 @@ public final class TpsCommand {
         }
 
         context.getSource()
-                .sender()
                 .sendMessage(Component.translatable(
                         "command.tps.summary",
                         Component.text(snapshots.size()),
@@ -58,7 +57,6 @@ public final class TpsCommand {
             final RegionTpsSnapshot snapshot = snapshots.get(i);
 
             context.getSource()
-                    .sender()
                     .sendMessage(Component.translatable(
                             "command.tps.line",
                             Component.text(snapshot.world().asString()),
@@ -75,7 +73,6 @@ public final class TpsCommand {
 
         if (snapshots.size() > shown) {
             context.getSource()
-                    .sender()
                     .sendMessage(Component.translatable("command.tps.more", Component.text(snapshots.size() - shown)));
         }
 

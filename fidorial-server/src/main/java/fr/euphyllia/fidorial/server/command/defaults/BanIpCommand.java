@@ -87,7 +87,7 @@ public final class BanIpCommand {
             final boolean added = bans.ban(entry);
             final int kicked = kickBanned(entry);
 
-            source.sender()
+            source
                     .sendMessage(Component.translatable(
                             added ? "commands.banip.success" : "commands.banip.updated",
                             Component.text(entry.label()),

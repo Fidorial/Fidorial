@@ -52,20 +52,20 @@ public final class LocateCommand {
     private static int locate(final CommandContext<CommandSource> context, final int radiusCells) {
         final ServerWorld world = StructureCommands.worldOf(context);
         if (world == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.locate.console"));
+            context.getSource().sendMessage(Component.translatable("command.locate.no_world"));
             return 0;
         }
         final Key id = context.getArgument("structure", Key.class);
         final StructureService service = StructureCommands.service();
         if (!service.structures().contains(id)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.invalid", Component.text(id.asString())));
+            context.getSource().sendMessage(Component.translatable("command.locate.structure.invalid", Component.text(id.asString())));
             return 0;
         }
         final Position origin = context.getSource().location();
-        context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.searching", Component.text(id.asString())));
+        context.getSource().sendMessage(Component.translatable("command.locate.structure.searching", Component.text(id.asString())));
         service.locate(world, origin, id, radiusCells).whenComplete((found, failure) -> {
             if (failure != null || found == null || found.isEmpty()) {
-                context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.notfound", Component.text(id.asString())));
+                context.getSource().sendMessage(Component.translatable("command.locate.structure.notfound", Component.text(id.asString())));
                 return;
             }
             final BlockPosition pos = found.get();
@@ -75,10 +75,10 @@ public final class LocateCommand {
             final Component coordinates = Component.text("[" + pos.x() + ", ~, " + pos.z() + "]", NamedTextColor.GREEN)
                     .clickEvent(ClickEvent.suggestCommand("/tp @s " + pos.x() + " ~ " + pos.z()))
                     .hoverEvent(HoverEvent.showText(Component.translatable("command.locate.structure.teleport")));
-            context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.success",
+            context.getSource().sendMessage(Component.translatable("command.locate.structure.success",
                     Component.text(id.asString()), coordinates, Component.text(distance)));
         }).exceptionally(failure -> {
-            context.getSource().sender().sendMessage(Component.translatable("command.locate.structure.error", Component.text(id.asString()), Component.text(failure.getMessage())));
+            context.getSource().sendMessage(Component.translatable("command.locate.structure.error", Component.text(id.asString()), Component.text(failure.getMessage())));
             return Optional.empty();
         });
         return Command.SINGLE_SUCCESS;

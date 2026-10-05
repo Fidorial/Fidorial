@@ -41,7 +41,7 @@ public class ConsoleCommandReader {
     }
 
     private void run() {
-        Supplier<CommandSource> consoleSource = () -> FidorialServer.getInstance().getConsole();
+        Supplier<CommandSource> consoleSource = () -> FidorialServer.getInstance().getConsole().commandSource();
 
         try (final Terminal terminal = TerminalBuilder.builder().system(true).build()) {
             final LineReader lineReader = LineReaderBuilder.builder()
@@ -68,7 +68,7 @@ public class ConsoleCommandReader {
                 line = line.stripTrailing();
                 if (line.isBlank()) continue;
 
-                commandManager.dispatchAsync(FidorialServer.getInstance().getConsole(), line);
+                commandManager.dispatchAsync(FidorialServer.getInstance().getConsole().commandSource(), line);
             }
         } catch (final IOException e) {
             LOGGER.warn("Console reading interrupted: {}", e.getMessage());
