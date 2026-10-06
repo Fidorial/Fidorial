@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.command.brigadier.packet.util;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.command.CommandSender;
+import fr.fidorial.command.CommandSource;
 import fr.fidorial.permission.PermissionGrant;
 import fr.fidorial.permission.PermissionNode;
 import fr.fidorial.plugin.Plugin;
@@ -21,7 +23,8 @@ import java.util.Map;
  */
 public final class PermissionlessCommandSender implements CommandSender {
 
-    static final PermissionlessCommandSender INSTANCE = new PermissionlessCommandSender();
+    public static final PermissionlessCommandSender INSTANCE = new PermissionlessCommandSender();
+    private static final CommandSource SOURCE = CommandSource.of(INSTANCE);
     private static final PointersSupplier<PermissionlessCommandSender> pointers = PointersSupplier.<PermissionlessCommandSender>builder()
             .resolving(Identity.NAME, PermissionlessCommandSender::name)
             .resolving(PermissionChecker.POINTER, sender -> sender::permissionState)
@@ -53,6 +56,16 @@ public final class PermissionlessCommandSender implements CommandSender {
     @Override
     public String name() {
         return "Permissionless";
+    }
+
+    @Override
+    public CommandSource commandSource() {
+        return SOURCE;
+    }
+
+    @Override
+    public FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 
     @Override

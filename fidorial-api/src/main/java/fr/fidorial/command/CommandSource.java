@@ -1,47 +1,78 @@
 package fr.fidorial.command;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.Server;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.math.Location;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.audience.ForwardingAudience;
 import org.jspecify.annotations.Nullable;
 
 /**
+ * The context a command runs in. {@literal /execute} can change the executor and location,
+ * but never the sender. Messages sent to a source go to its sender.
+ *
  * @since 0.1.0
  */
-public interface CommandSource {
-    /**
-     * Gets the location that this command is being executed at.
-     *
-     * @return a cloned location instance.
-     * @since 0.1.0
-     */
-    Location location();
+public sealed interface CommandSource extends ForwardingAudience.Single permits CommandSourceImpl {
 
     /**
-     * Gets the {@link CommandSender} that executed this command.
-     * The sender of a command is the one that triggered the execution of a command.
-     * It differs to {@link #executor()} as the executor can be changed by a command, e.g. {@literal /execute}.
+     * {@return a source for {@code sender}, with no executor or location}
      *
-     * @return the command sender instance
+     * @param sender who runs the command
+     * @since 0.1.0
+     */
+    static CommandSource of(final CommandSender sender) {
+        Preconditions.checkArgument(sender != null, "sender cannot be null");
+        return new CommandSourceImpl(sender, null, null);
+    }
+
+    /**
+     * {@return who ran the command}
+     *
      * @since 0.1.0
      */
     CommandSender sender();
 
     /**
-     * Gets the entity that executes this command.
-     * May not always be {@link #sender()} as the executor of a command can be changed to a different entity
-     * than the one that triggered the command.
+     * {@return the entity the command acts as, or {@code null} if none}
      *
-     * @return entity that executes this command
      * @since 0.1.0
      */
     @Nullable Entity executor();
 
     /**
-     * Gets the server associated with this source.
+     * {@return where the command runs, or {@code null} if no world is loaded}
      *
-     * @return the server
      * @since 0.1.0
      */
-    Server server();
+    @Nullable Location location();
+
+    /**
+     * {@return a copy of this source acting as {@code executor}, like {@literal /execute as}}
+     *
+     * @since 0.1.0
+     */
+    CommandSource as(Entity executor);
+
+    /**
+     * {@return a copy of this source running at {@code location}, like {@literal /execute at}}
+     *
+     * @since 0.1.0
+     */
+    CommandSource at(Location location);
+
+    /**
+     * {@return the server the command runs on}
+     *
+     * @since 0.1.0
+     */
+    default Server server() {
+        return sender().server();
+    }
+
+    @Override
+    default Audience audience() {
+        return sender();
+    }
 }

@@ -28,11 +28,11 @@ public final class RespawnCommand {
     }
 
     private static int executeSelf(final CommandContext<CommandSource> context) {
-        if (!(context.getSource().sender() instanceof final Player sender)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.respawn.console"));
+        if (!(context.getSource().executor() instanceof final Player player)) {
+            context.getSource().sendMessage(Component.translatable("command.respawn.not_player"));
             return 0;
         }
-        return respawn(context, List.of(sender));
+        return respawn(context, List.of(player));
     }
 
     private static int executeTargets(final CommandContext<CommandSource> context) throws CommandSyntaxException {
@@ -42,16 +42,17 @@ public final class RespawnCommand {
     }
 
     private static int respawn(final CommandContext<CommandSource> context, final List<Player> targets) {
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
+        final CommandSender sender = source.sender();
 
         for (final Player target : targets) {
             target.respawn().whenComplete((succeeded, _) -> {
                 if (!Boolean.TRUE.equals(succeeded)) {
-                    sender.sendMessage(Component.translatable("command.respawn.alive", Component.text(target.name())));
+                    source.sendMessage(Component.translatable("command.respawn.alive", Component.text(target.name())));
                     return;
                 }
                 if (sender != target) {
-                    sender.sendMessage(Component.translatable("command.respawn.done", Component.text(target.name())));
+                    source.sendMessage(Component.translatable("command.respawn.done", Component.text(target.name())));
                 }
             });
         }

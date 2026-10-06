@@ -337,7 +337,7 @@ public final class CommandManager implements CommandRegistry {
             final boolean isConsole = source.sender() instanceof ConsoleSender;
 
             if (exception != null) {
-                source.sender().sendMessage(convert(exception.getRawMessage(), isConsole).color(NamedTextColor.RED));
+                source.sendMessage(convert(exception.getRawMessage(), isConsole).color(NamedTextColor.RED));
                 sendContext(source, exception, cmdLine, isConsole);
                 return new CommandResult(0);
             }
@@ -345,7 +345,7 @@ public final class CommandManager implements CommandRegistry {
             try {
                 return new CommandResult(dispatcher.execute(parse));
             } catch (final CommandSyntaxException e) {
-                source.sender().sendMessage(convert(e.getRawMessage(), isConsole).color(NamedTextColor.RED));
+                source.sendMessage(convert(e.getRawMessage(), isConsole).color(NamedTextColor.RED));
                 return new CommandResult(0);
             }
         }, commandExecutor).exceptionally(ex -> {
@@ -420,7 +420,7 @@ public final class CommandManager implements CommandRegistry {
                         .color(NamedTextColor.RED)
                         .decorate(TextDecoration.ITALIC));
 
-        source.sender().sendMessage(context);
+        source.sendMessage(context);
     }
 
     @Override
@@ -491,7 +491,7 @@ public final class CommandManager implements CommandRegistry {
     public ClientboundCommandsPacket createCommandsPacket(final ServerPlayer player) {
         lock.readLock().lock();
         try {
-            return new ClientboundCommandsPacket(dispatcher, player);
+            return new ClientboundCommandsPacket(dispatcher, player.commandSource());
         } finally {
             lock.readLock().unlock();
         }

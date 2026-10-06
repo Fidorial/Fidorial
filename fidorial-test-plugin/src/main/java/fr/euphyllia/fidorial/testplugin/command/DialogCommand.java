@@ -7,7 +7,6 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.dialog.Dialog;
 import fr.fidorial.dialog.DialogAction;
@@ -66,15 +65,16 @@ public final class DialogCommand {
             return 0;
         }
 
+        final CommandSource source = ctx.getSource();
         final DialogDefinition dialog = TestDialogs.byName(name);
         if (dialog == null) {
-            plugin.msg(player, "<red>Dialogue unknown : " + name);
+            plugin.msg(source, "<red>Dialogue unknown : " + name);
             return 0;
         }
 
         // Sent in full: no registration needed, works at any time.
         player.showDialog(dialog);
-        plugin.msg(player, "<green>Dialogue <white>" + name + "<green> sent inline.");
+        plugin.msg(source, "<green>Dialogue <white>" + name + "<green> sent inline.");
         return Command.SINGLE_SUCCESS;
     }
 
@@ -84,16 +84,17 @@ public final class DialogCommand {
             return 0;
         }
 
+        final CommandSource source = ctx.getSource();
         final Key key = Key.key(TestDialogs.NAMESPACE, name);
         final DialogRegistry dialogs = plugin.server().dialogs();
         if (!dialogs.contains(key)) {
-            plugin.msg(player, "<red>Nothing is recorded under" + key.asString());
+            plugin.msg(source, "<red>Nothing is recorded under" + key.asString());
             return 0;
         }
 
         // Sent as a single id: only works because the entry reached the client at configuration time.
         player.showDialog(Dialog.reference(key));
-        plugin.msg(player, "<green>Reference <white>%s<green> sent (network id <aqua>%d<green>)."
+        plugin.msg(source, "<green>Reference <white>%s<green> sent (network id <aqua>%d<green>)."
                 .formatted(key.asString(), dialogs.networkId(key)));
         return Command.SINGLE_SUCCESS;
     }
@@ -108,18 +109,18 @@ public final class DialogCommand {
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
+        final CommandSource source = ctx.getSource();
         final DialogRegistry dialogs = plugin.server().dialogs();
 
-        plugin.msg(sender, "<gold>%d dialogue(s) in the log:".formatted(dialogs.keys().size()));
+        plugin.msg(source, "<gold>%d dialogue(s) in the log:".formatted(dialogs.keys().size()));
         for (final Key key : dialogs.keys()) {
             final String origin = dialogs.definition(key).isPresent() ? "server" : "vanilla";
-            plugin.msg(sender, "<gray> - <white>%s <gray>(id <aqua>%d<gray>, %s)"
+            plugin.msg(source, "<gray> - <white>%s <gray>(id <aqua>%d<gray>, %s)"
                     .formatted(key.asString(), dialogs.networkId(key), origin));
         }
 
-        plugin.msg(sender, "<gray>Break menu: <white>" + dialogs.pauseScreenAdditions());
-        plugin.msg(sender, "<gray>Quick actions:<white>" + dialogs.quickActions());
+        plugin.msg(source, "<gray>Break menu: <white>" + dialogs.pauseScreenAdditions());
+        plugin.msg(source, "<gray>Quick actions:<white>" + dialogs.quickActions());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -149,10 +150,11 @@ public final class DialogCommand {
     }
 
     private static @Nullable Player requirePlayer(final CommandContext<CommandSource> ctx) {
-        if (ctx.getSource().sender() instanceof final Player player) {
+        final CommandSource source = ctx.getSource();
+        if (source.executor() instanceof final Player player) {
             return player;
         }
-        plugin.msg(ctx.getSource().sender(), "<red>This command must be executed by a player.");
+        plugin.msg(source, "<red>This command must be executed by a player.");
         return null;
     }
 

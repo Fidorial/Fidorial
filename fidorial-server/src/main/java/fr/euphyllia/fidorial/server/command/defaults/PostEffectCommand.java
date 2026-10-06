@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
@@ -84,7 +83,7 @@ public final class PostEffectCommand {
         final List<CompletableFuture<Boolean>> results = players.stream()
                 .map(player -> player.modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.COMMAND, change))
                 .toList();
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
         final List<Component> effectArg = effect == null ? List.of() : List.of(Component.text(effect.asString()));
 
         CompletableFuture.allOf(results.toArray(CompletableFuture[]::new)).whenComplete((_, _) -> {
@@ -96,7 +95,7 @@ public final class PostEffectCommand {
                 }
             }
             if (changed.isEmpty()) {
-                sender.sendMessage(Component.translatable(messages.unchanged(), effectArg));
+                source.sendMessage(Component.translatable(messages.unchanged(), effectArg));
                 return;
             }
             final boolean single = changed.size() == 1;
@@ -104,7 +103,7 @@ public final class PostEffectCommand {
                     ? Component.text(changed.getFirst().name())
                     : Component.text(changed.size());
             final List<Component> args = Stream.concat(effectArg.stream(), Stream.of(subject)).toList();
-            sender.sendMessage(Component.translatable(single ? messages.single() : messages.many(), args));
+            source.sendMessage(Component.translatable(single ? messages.single() : messages.many(), args));
         });
         return Command.SINGLE_SUCCESS;
     }
@@ -114,14 +113,14 @@ public final class PostEffectCommand {
                 .resolve(context.getSource())
                 .getFirst();
         final List<Key> effects = target.activePostEffects();
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
 
         if (effects.isEmpty()) {
-            sender.sendMessage(Component.translatable("command.posteffect.list.none", Component.text(target.name())));
+            source.sendMessage(Component.translatable("command.posteffect.list.none", Component.text(target.name())));
         } else {
             final Component joined = Component.join(JoinConfiguration.commas(true),
                     effects.stream().map(effect -> Component.text(effect.asString())).toList());
-            sender.sendMessage(Component.translatable("command.posteffect.list",
+            source.sendMessage(Component.translatable("command.posteffect.list",
                     Component.text(target.name()), Component.text(effects.size()), joined));
         }
         return effects.size();

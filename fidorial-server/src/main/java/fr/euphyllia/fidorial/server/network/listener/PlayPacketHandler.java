@@ -437,7 +437,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleChatCommand(final ServerboundChatCommandPacket packet) {
-        server.commandManager().dispatchAsync(player, packet.command());
+        server.commandManager().dispatchAsync(player.commandSource(), packet.command());
     }
 
     @Override
@@ -786,7 +786,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         final int offset = slash ? 1 : 0;
 
-        server.commandManager().offerSuggestions(player, input).thenAccept(suggestions -> {
+        server.commandManager().offerSuggestions(player.commandSource(), input).thenAccept(suggestions -> {
             final var entries = suggestions.getList().stream()
                     .map(suggestion -> new ClientboundCommandSuggestionsPacket.Entry(
                             suggestion.getText(), suggestion.getTooltip()))

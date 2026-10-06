@@ -12,8 +12,8 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.entity.Entity;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Biome;
 import fr.fidorial.registry.keys.GameRuleKeys;
@@ -71,14 +71,14 @@ public final class FillBiomeCommand {
         final Key biome = target.key();
 
         if (filter != null && !biomes.contains(filter)) {
-            context.getSource().sender().sendMessage(
+            context.getSource().sendMessage(
                     Component.translatable("command.fillbiome.unknown", Component.text(filter.asString())));
             return 0;
         }
 
         final ServerWorld world = worldOf(context);
         if (world == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.fillbiome.console"));
+            context.getSource().sendMessage(Component.translatable("command.fillbiome.no_world"));
             return 0;
         }
         final BlockPosition from = context.getArgument("from", BlockPosResolver.class).resolve(context.getSource());
@@ -87,7 +87,7 @@ public final class FillBiomeCommand {
         final long volume = span(from.blockX(), to.blockX()) * span(from.blockY(), to.blockY()) * span(from.blockZ(), to.blockZ());
         final int limit = world.gameRuleValues().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
         if (volume > limit) {
-            context.getSource().sender().sendMessage(Component.translatable(
+            context.getSource().sendMessage(Component.translatable(
                     "command.fillbiome.toobig", Component.text(limit), Component.text(volume)));
             return 0;
         }
@@ -103,7 +103,7 @@ public final class FillBiomeCommand {
         final int maxY = Math.min(ceiling, Math.max(from.blockY(), to.blockY()));
 
         if (minY > maxY) {
-            context.getSource().sender().sendMessage(Component.translatable("command.fillbiome.outofworld"));
+            context.getSource().sendMessage(Component.translatable("command.fillbiome.outofworld"));
             return 0;
         }
 
@@ -150,14 +150,14 @@ public final class FillBiomeCommand {
 
         CompletableFuture.allOf(pending.toArray(new CompletableFuture[0])).whenComplete((_, failure) -> {
             if (failure != null) {
-                context.getSource().sender().sendMessage(Component.translatable(
+                context.getSource().sendMessage(Component.translatable(
                         "command.fillbiome.failed", Component.text(rootMessage(failure))));
                 return;
             }
 
             resend(server, world, touched);
 
-            context.getSource().sender().sendMessage(Component.translatable(
+            context.getSource().sendMessage(Component.translatable(
                     "command.fillbiome.success",
                     Component.text(changed.get()),
                     Component.text(biome.asString())));
@@ -206,16 +206,8 @@ public final class FillBiomeCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
-        if (context.getSource().sender() instanceof final ServerPlayer player
-                && player.world() instanceof final ServerWorld world) {
-            return world;
-        }
-
-        final Entity executor = context.getSource().executor();
-        if (executor != null && executor.world() instanceof final ServerWorld world) {
-            return world;
-        }
-
-        return null;
+        final CommandSource source = context.getSource();
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 }

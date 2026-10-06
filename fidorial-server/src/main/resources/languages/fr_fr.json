@@ -11,7 +11,7 @@
   "command.gamemode.current" : "Mode de jeu actuel : <arg:0>",
   "command.gamemode.usage" : "Utilisation : /<arg:0> <survival|creative|adventure|spectator> [joueur]",
   "command.gamemode.unknown" : "Mode de jeu inconnu : <arg:0> (survival, creative, adventure, spectator)",
-  "command.gamemode.console" : "Depuis la console : /<arg:0> <mode> <joueur>",
+  "command.gamemode.not_player" : "<red>Une cible est requise lorsque la commande n'est pas exécutée par un joueur",
   "command.gamemode.changed.self" : "Mode de jeu défini sur : <arg:0>",
   "command.gamemode.changed.other" : "Mode de jeu de <arg:0> changé : <arg:1>",
 
@@ -47,7 +47,6 @@
   "weather.rain" : "pluvieux",
   "weather.thunder" : "orageux",
 
-  "command.summon.console" : "Depuis la console, les coordonnées sont requises : /<arg:0> <type> <x> <y> <z>",
   "command.summon.done" : "Un <arg:0> a été invoqué (entité #<arg:1>).",
   "command.summon.notmob" : "<arg:0> n'est pas (encore) un mob invocable.",
   "command.summon.unknown" : "Type d'entité inconnu : <arg:0>",
@@ -56,12 +55,12 @@
 
   "command.fillbiome.success" : "<arg:0> cellule(s) de biome définie(s) sur <arg:1>",
   "command.fillbiome.unknown" : "<red>Biome inconnu : <arg:0>",
-  "command.fillbiome.console" : "<red>Lance cette commande en tant que joueur, ou via /execute dans un monde.",
+  "command.fillbiome.no_world" : "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
   "command.fillbiome.outofworld" : "<red>La region est entièrement hors du monde.",
   "command.fillbiome.failed" : "<red>Impossible de charger un chunk de la region : <arg:0>",
   "command.fillbiome.toobig" : "<red>Trop de blocs dans le volume indiqué (maximum <arg:0>, demandé <arg:1>)",
 
-  "command.place.console" : "<red>Lance cette commande en tant que joueur, ou via /execute dans un monde.",
+  "command.place.no_world" : "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
   "command.place.rotation.invalid" : "<red>Rotation inconnue : <arg:0> (none, clockwise_90, clockwise_180, counterclockwise_90)",
   "command.place.template.invalid" : "<red>Structure (template) inconnue : <arg:0>",
   "command.place.template.success" : "Template <arg:0> placé en <arg:1> (<arg:2> blocs)",
@@ -73,7 +72,7 @@
   "command.place.jigsaw.success" : "Jigsaw généré depuis <arg:0> en <arg:1> (<arg:2> pièces)",
   "command.place.jigsaw.failed" : "<red>Impossible de générer un jigsaw depuis <arg:0> : <arg:1>",
 
-  "command.locate.console" : "<red>Lance cette commande en tant que joueur, ou via /execute dans un monde.",
+  "command.locate.no_world" : "<red>Aucun monde n'est actuellement disponible pour exécuter cette commande",
   "command.locate.structure.invalid" : "<red>Structure jigsaw inconnue : <arg:0>",
   "command.locate.structure.searching" : "<gray>Recherche de <arg:0>...",
   "command.locate.structure.success" : "La structure <arg:0> la plus proche est en <arg:1> (à <arg:2> blocs)",
@@ -88,14 +87,14 @@
   "command.datapack.reload.success" : "Datapacks rechargés : <arg:0> pack(s), <arg:1> structure(s), <arg:2> set(s) de structures générés. Les chunks déjà générés ne changent pas.",
   "command.datapack.reload.failed" : "<red>Impossible de recharger les datapacks : <arg:0>",
 
-  "command.spawnpoint.console" : "Depuis la console, une cible est requise : /<arg:0> <joueur> [x y z]",
+  "command.spawnpoint.not_player" : "<red>Une cible est requise lorsque la commande n'est pas exécutée par un joueur",
   "command.spawnpoint.set.self" : "Point de réapparition défini en <arg:0>.",
   "command.spawnpoint.set.other" : "Point de réapparition de <arg:0> défini en <arg:1>.",
   "command.spawnpoint.cleared.self" : "Point de réapparition retiré, retour au spawn du monde.",
   "command.spawnpoint.cleared.other" : "Point de réapparition de <arg:0> retiré, retour au spawn du monde.",
   "command.spawnpoint.usage" : "Utilisation : /<arg:0> [joueur] [x y z] | /<arg:0> clear [joueur]",
 
-  "command.respawn.console" : "Depuis la console, une cible est requise : /<arg:0> <joueur>",
+  "command.respawn.not_player" : "<red>Une cible est requise lorsque la commande n'est pas exécutée par un joueur",
   "command.respawn.done" : "<arg:0> a été réapparu.",
   "command.respawn.alive" : "<arg:0> n'attend pas de réapparition.",
   "command.respawn.usage" : "Utilisation : /<arg:0> [joueur]",
