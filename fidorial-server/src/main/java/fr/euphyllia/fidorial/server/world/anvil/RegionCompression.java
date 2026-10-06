@@ -159,7 +159,7 @@ public enum RegionCompression {
         private static LZ4Factory factory() {
             try {
                 return LZ4Factory.nativeInstance();
-            } catch (final Throwable unavailable) {
+            } catch (final LinkageError | UnsupportedOperationException | AssertionError unavailable) {
                 return LZ4Factory.fastestJavaInstance();
             }
         }

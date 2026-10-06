@@ -102,7 +102,35 @@ public final class RegionFile implements Closeable {
     /**
      * A chunk that was read, with the algorithm it was stored with.
      */
-    public record ChunkRead(CompoundBinaryTag tag, RegionCompression compression) {
+    public static final class ChunkRead {
+
+        private final int chunkX;
+        private final int chunkZ;
+        private final CompoundBinaryTag tag;
+        private final StoredChunk stored;
+
+        private ChunkRead(final int chunkX, final int chunkZ, final CompoundBinaryTag tag, final StoredChunk stored) {
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            this.tag = tag;
+            this.stored = stored;
+        }
+
+        public CompoundBinaryTag tag() {
+            return tag;
+        }
+
+        public RegionCompression compression() {
+            return stored.compression();
+        }
+
+        public int chunkX() {
+            return chunkX;
+        }
+
+        public int chunkZ() {
+            return chunkZ;
+        }
     }
 
     /**
@@ -124,7 +152,7 @@ public final class RegionFile implements Closeable {
         final StoredChunk stored = readStored(chunkX, chunkZ);
         if (stored == null) return null;
         try (final DataInputStream in = new DataInputStream(stored.decompressed())) {
-            return new ChunkRead(BinaryTagIO.reader().readNamed((DataInput) in).getValue(), stored.compression());
+            return new ChunkRead(chunkX, chunkZ, BinaryTagIO.reader().readNamed((DataInput) in).getValue(), stored);
         }
     }
 
@@ -145,7 +173,12 @@ public final class RegionFile implements Closeable {
      */
     public boolean recompress(final int chunkX, final int chunkZ, final RegionCompression target) throws IOException {
         final StoredChunk stored = readStored(chunkX, chunkZ);
-        if (stored == null || stored.compression() == target) return false;
+        return stored != null && recompress(chunkX, chunkZ, stored, target);
+    }
+
+    private boolean recompress(final int chunkX, final int chunkZ, final StoredChunk stored, final RegionCompression target)
+            throws IOException {
+        if (stored.compression() == target) return false;
         final byte[] frame;
         try (final InputStream in = stored.decompressed()) {
             frame = buildFrame(target, in::transferTo);

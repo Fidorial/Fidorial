@@ -59,7 +59,7 @@ public final class EntityRegionStorage implements AutoCloseable {
             return null;
         }
         CompoundBinaryTag nbt = read.tag();
-        convertIfNeeded(rf, dim, chunkX, chunkZ, read.compression());
+        convertIfNeeded(rf, dim, chunkX, chunkZ, read);
 
         final int sourceVersion = nbt.getInt("DataVersion");
         final int latest = DataFixersRegistry.latestDataFixerVersion();
@@ -76,16 +76,16 @@ public final class EntityRegionStorage implements AutoCloseable {
      * Rewrites entities stored with another compression than the configured one; see {@link ChunkStorage}.
      */
     private void convertIfNeeded(final RegionFile rf, final Dimension dim, final int chunkX, final int chunkZ,
-                                 final RegionCompression stored) {
+                                 final RegionFile.ChunkRead read) {
         final RegionCompression target = compression.apply(dim.id());
-        if (stored == target) {
+        if (read.compression() == target) {
             return;
         }
         try {
             rf.recompress(chunkX, chunkZ, target);
         } catch (final IOException e) {
             LOGGER.warn("Could not convert the entities of chunk {},{} of {} from {} to {}: {}", chunkX, chunkZ,
-                    dim.id().asString(), stored.configName(), target.configName(), e.getMessage());
+                    dim.id().asString(), read.compression().configName(), target.configName(), e.getMessage());
         }
     }
 

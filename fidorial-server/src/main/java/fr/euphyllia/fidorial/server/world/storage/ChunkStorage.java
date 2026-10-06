@@ -69,7 +69,7 @@ public final class ChunkStorage implements AutoCloseable {
         final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
         if (read == null) return null;
         CompoundBinaryTag nbt = read.tag();
-        convertIfNeeded(rf, dim, chunkX, chunkZ, read.compression());
+        convertIfNeeded(rf, dim, chunkX, chunkZ, read);
 
         final int sourceVersion = nbt.getInt("DataVersion");
         final int latest = DataFixersRegistry.latestDataFixerVersion();
@@ -88,14 +88,14 @@ public final class ChunkStorage implements AutoCloseable {
      * the chunk from loading.
      */
     private void convertIfNeeded(final RegionFile rf, final Dimension dim, final int chunkX, final int chunkZ,
-                                 final RegionCompression stored) {
+                                 final RegionFile.ChunkRead read) {
         final RegionCompression target = compression.apply(dim.id());
-        if (stored == target) return;
+        if (read.compression() == target) return;
         try {
             rf.recompress(chunkX, chunkZ, target);
         } catch (final IOException e) {
             LOGGER.warn("Could not convert chunk {},{} of {} from {} to {}: {}", chunkX, chunkZ, dim.id().asString(),
-                    stored.configName(), target.configName(), e.getMessage());
+                    read.compression().configName(), target.configName(), e.getMessage());
         }
     }
 

@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -21,10 +22,13 @@ import java.util.stream.Stream;
 /**
  * Rewrites the saved chunks and entities of a dimension when {@code storage.region-compression} changes.
  * <p>
- * The last compression fully applied to a dimension is recorded in {@code data/fidorial/region-compression}, next
- * to its {@code fidorial-world.yaml}; a dimension without this file is in {@link RegionCompression#DEFAULT}, the only
- * compression Fidorial wrote before the setting existed. When the world loads with another compression configured,
- * every chunk stored with a different one is rewritten, then the file is updated. This happens once per change.
+ * The compression every chunk of a dimension is known to be in is recorded in {@code data/fidorial/region-compression},
+ * next to its {@code fidorial-world.yaml}; a dimension without this file is in {@link RegionCompression#DEFAULT}, the
+ * only compression Fidorial wrote before the setting existed. When the world loads with another compression
+ * configured, the file is first set to {@code mixed}, since chunks are rewritten as they load from then on. Then every
+ * chunk stored with a different compression is rewritten, and the file is set to the new compression. A world left
+ * {@code mixed}, because {@code convert-existing-chunks} is off or some chunks could not be converted, is scanned
+ * again in full the next time it loads with the conversion enabled, whatever compression is configured then.
  * <p>
  * Chunks already in the target compression are skipped (only their header is read), so an interrupted
  * conversion resumes where it stopped. A chunk that cannot be read is left as it is, and the conversion is tried
@@ -37,6 +41,7 @@ public final class RegionRecompressor {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(RegionRecompressor.class);
     private static final String COMPRESSION_FILE = "region-compression";
+    private static final String MIXED = "mixed";
     private static final Pattern REGION_FILE = Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
     private static final long PROGRESS_INTERVAL = TimeUnit.SECONDS.toNanos(10);
 
@@ -70,30 +75,35 @@ public final class RegionRecompressor {
     public static void convertIfChanged(final WorldPaths paths, final Dimension dim, final ChunkStorage chunks,
                                         final EntityRegionStorage entities, final RegionCompression target, final boolean convertExisting) {
         target.checkAvailable();
-        if (!convertExisting) {
-            return;
-        }
         final Path compressionFile = paths.configFile(dim).resolveSibling(COMPRESSION_FILE);
-        final RegionCompression current = readCompression(compressionFile);
+        final @Nullable RegionCompression current = readCompression(compressionFile);
         if (current == target) {
             return;
         }
         final String world = dim.id().asString();
         try {
-            if (Files.isDirectory(paths.regionDir(dim)) || Files.isDirectory(paths.entitiesDir(dim))) {
-                LOGGER.info("Converting the saved chunks of {} to {} compression (was {}). This only happens once, but may take a while on a large world",
-                        world, target.configName(), current == null ? "unknown" : current.configName());
-                final long start = System.nanoTime();
-                final Result result = chunks.convertAll(dim, target).plus(entities.convertAll(dim, target));
-                LOGGER.info("Converted {}: {} chunk(s) rewritten in {} region file(s) in {} s", world, result.converted(),
-                        result.files(), TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
-                if (result.failed() > 0) {
-                    LOGGER.warn("{} chunk(s) of {} could not be converted and were left as they were; "
-                            + "the conversion will be tried again the next time the world loads", result.failed(), world);
-                    return;
-                }
+            if (!Files.isDirectory(paths.regionDir(dim)) && !Files.isDirectory(paths.entitiesDir(dim))) {
+                writeCompression(compressionFile, target.configName());
+                return;
             }
-            writeCompression(compressionFile, target);
+            if (current != null) {
+                writeCompression(compressionFile, MIXED);
+            }
+            if (!convertExisting) {
+                return;
+            }
+            LOGGER.info("Converting the saved chunks of {} to {} compression (was {}). This only happens once, but may take a while on a large world",
+                    world, target.configName(), current == null ? MIXED : current.configName());
+            final long start = System.nanoTime();
+            final Result result = chunks.convertAll(dim, target).plus(entities.convertAll(dim, target));
+            LOGGER.info("Converted {}: {} chunk(s) rewritten in {} region file(s) in {} s", world, result.converted(),
+                    result.files(), TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+            if (result.failed() > 0) {
+                LOGGER.warn("{} chunk(s) of {} could not be converted and were left as they were; "
+                        + "the conversion will be tried again the next time the world loads", result.failed(), world);
+                return;
+            }
+            writeCompression(compressionFile, target.configName());
         } catch (final IOException e) {
             LOGGER.error("Could not convert the saved chunks of {} to {} compression; they will be converted as they load",
                     world, target.configName(), e);
@@ -161,15 +171,16 @@ public final class RegionRecompressor {
 
     /**
      * {@return the compression recorded in {@code file}, {@link RegionCompression#DEFAULT} if there is no file, or
-     * {@code null} if it cannot be read, which forces a full conversion}
+     * {@code null} if the chunks may be in several compressions, which forces a full conversion}
      */
     private static @Nullable RegionCompression readCompression(final Path file) {
         if (!Files.isRegularFile(file)) {
             return RegionCompression.DEFAULT;
         }
         try {
-            final RegionCompression recorded = RegionCompression.byName(Files.readString(file, StandardCharsets.UTF_8));
-            if (recorded != null) {
+            final String content = Files.readString(file, StandardCharsets.UTF_8).strip();
+            final RegionCompression recorded = RegionCompression.byName(content);
+            if (recorded != null || content.equals(MIXED)) {
                 return recorded;
             }
             LOGGER.warn("Ignoring {}: unknown compression", file);
@@ -179,10 +190,14 @@ public final class RegionRecompressor {
         return null;
     }
 
-    private static void writeCompression(final Path file, final RegionCompression compression) throws IOException {
+    private static void writeCompression(final Path file, final String content) throws IOException {
         Files.createDirectories(file.getParent());
         final Path temp = file.resolveSibling(COMPRESSION_FILE + ".tmp");
-        Files.writeString(temp, compression.configName() + "\n", StandardCharsets.UTF_8);
-        Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        Files.writeString(temp, content + "\n", StandardCharsets.UTF_8);
+        try {
+            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (final AtomicMoveNotSupportedException e) {
+            Files.move(temp, file, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 }
