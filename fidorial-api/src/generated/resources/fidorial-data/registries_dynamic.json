@@ -518,7 +518,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -735,7 +734,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -1017,7 +1015,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -1202,7 +1199,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -1401,7 +1397,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -1615,7 +1610,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -1952,7 +1946,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -2136,7 +2129,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -2353,7 +2345,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -2460,7 +2451,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -2587,6 +2577,11 @@
                       "type": "minecraft:drowned",
                       "count": 1,
                       "weight": 5
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 25
                     }
                   ],
                   "underground_water_creature": [
@@ -2663,7 +2658,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -2894,7 +2888,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -3111,7 +3104,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -3308,7 +3300,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -3479,7 +3470,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -3785,7 +3775,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -3982,7 +3971,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4174,7 +4162,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4304,6 +4291,11 @@
                       "type": "minecraft:drowned",
                       "count": 1,
                       "weight": 5
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 25
                     }
                   ],
                   "underground_water_creature": [
@@ -4380,7 +4372,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4470,6 +4461,11 @@
                   ],
                   "monster": [
                     {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 25
+                    },
+                    {
                       "type": "minecraft:spider",
                       "count": 4,
                       "weight": 100
@@ -4557,7 +4553,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4687,6 +4682,11 @@
                       "type": "minecraft:drowned",
                       "count": 1,
                       "weight": 1
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 25
                     }
                   ],
                   "underground_water_creature": [
@@ -4754,7 +4754,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4944,7 +4943,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -4993,6 +4991,177 @@
           ],
           "has_precipitation": true,
           "temperature": -0.2
+        }
+      },
+      {
+        "id": "minecraft:ice_caves",
+        "data": {
+          "attributes": {
+            "minecraft:audio/background_music": {
+              "default": {
+                "max_delay": 24000,
+                "min_delay": 12000,
+                "sound": "minecraft:music.overworld.sulfur_caves"
+              }
+            },
+            "minecraft:gameplay/natural_mob_spawns": {
+              "argument": {
+                "spawn_costs": {},
+                "spawns_by_category": {
+                  "ambient": [
+                    {
+                      "type": "minecraft:bat",
+                      "count": 8,
+                      "weight": 10
+                    }
+                  ],
+                  "monster": [
+                    {
+                      "type": "minecraft:creeper",
+                      "count": 4,
+                      "weight": 100
+                    },
+                    {
+                      "type": "minecraft:skeleton",
+                      "count": 4,
+                      "weight": 90
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 10
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 50
+                    },
+                    {
+                      "type": "minecraft:slime",
+                      "count": 4,
+                      "weight": 100
+                    },
+                    {
+                      "type": "minecraft:spider",
+                      "count": 4,
+                      "weight": 100
+                    },
+                    {
+                      "type": "minecraft:zombie",
+                      "count": 4,
+                      "weight": 50
+                    },
+                    {
+                      "type": "minecraft:enderman",
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 4,
+                        "min_inclusive": 1
+                      },
+                      "weight": 10
+                    },
+                    {
+                      "type": "minecraft:witch",
+                      "count": 1,
+                      "weight": 5
+                    },
+                    {
+                      "type": "minecraft:zombie_villager",
+                      "count": 1,
+                      "weight": 5
+                    }
+                  ],
+                  "underground_water_creature": [
+                    {
+                      "type": "minecraft:glow_squid",
+                      "count": {
+                        "type": "minecraft:uniform",
+                        "max_inclusive": 4,
+                        "min_inclusive": 2
+                      },
+                      "weight": 10
+                    }
+                  ]
+                }
+              },
+              "modifier": "overlay"
+            },
+            "minecraft:visual/fog_color": "#14559b",
+            "minecraft:visual/sky_color": "#7fa1ff",
+            "minecraft:visual/water_fog_color": "#14559b"
+          },
+          "carvers": [
+            "minecraft:cave",
+            "minecraft:cave_extra_underground",
+            "minecraft:canyon"
+          ],
+          "downfall": 0.0,
+          "effects": {
+            "water_color": "#14559b"
+          },
+          "features": [
+            [],
+            [
+              "minecraft:lake_lava_underground",
+              "minecraft:lake_lava_surface"
+            ],
+            [
+              "minecraft:amethyst_geode",
+              "minecraft:large_icicle"
+            ],
+            [
+              "minecraft:monster_room",
+              "minecraft:monster_room_deep"
+            ],
+            [],
+            [],
+            [
+              "minecraft:ore_diorite_upper",
+              "minecraft:ore_diorite_lower",
+              "minecraft:ore_andesite_upper",
+              "minecraft:ore_andesite_lower",
+              "minecraft:ore_tuff",
+              "minecraft:ice_cave_ore_coal_upper",
+              "minecraft:ice_cave_ore_coal_lower",
+              "minecraft:ice_cave_ore_iron_upper",
+              "minecraft:ice_cave_ore_iron_middle",
+              "minecraft:ice_cave_ore_iron_small",
+              "minecraft:ice_cave_ore_gold",
+              "minecraft:ice_cave_ore_gold_lower",
+              "minecraft:ice_cave_ore_redstone",
+              "minecraft:ice_cave_ore_redstone_lower",
+              "minecraft:ice_cave_ore_diamond",
+              "minecraft:ice_cave_ore_diamond_medium",
+              "minecraft:ice_cave_ore_diamond_large",
+              "minecraft:ice_cave_ore_diamond_buried",
+              "minecraft:ice_cave_ore_lapis",
+              "minecraft:ice_cave_ore_lapis_buried",
+              "minecraft:ice_cave_ore_copper",
+              "minecraft:ice_cave_ore_gravel",
+              "minecraft:ice_cave_ore_diorite_upper",
+              "minecraft:ice_cave_ore_diorite_lower",
+              "minecraft:ice_cave_ore_andesite_upper",
+              "minecraft:ice_cave_ore_andesite_lower",
+              "minecraft:disk_sand",
+              "minecraft:disk_clay",
+              "minecraft:disk_gravel"
+            ],
+            [
+              "minecraft:snow_layers",
+              "minecraft:ice_crystals",
+              "minecraft:icicle_cluster"
+            ],
+            [
+              "minecraft:spring_water",
+              "minecraft:spring_lava"
+            ],
+            [],
+            [
+              "minecraft:freeze_top_layer"
+            ]
+          ],
+          "has_precipitation": true,
+          "temperature": 0.0
         }
       },
       {
@@ -5080,6 +5249,11 @@
                       "type": "minecraft:stray",
                       "count": 4,
                       "weight": 80
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 25
                     }
                   ],
                   "underground_water_creature": [
@@ -5128,7 +5302,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -5217,6 +5390,11 @@
                   ],
                   "monster": [
                     {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 10
+                    },
+                    {
                       "type": "minecraft:spider",
                       "count": 4,
                       "weight": 100
@@ -5304,7 +5482,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -5519,7 +5696,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -5752,7 +5928,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -5936,7 +6111,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -6141,7 +6315,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -6331,7 +6504,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -6455,7 +6627,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -6780,7 +6951,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -6968,7 +7138,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -7181,7 +7350,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -7396,7 +7564,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -7565,7 +7732,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -7767,7 +7933,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -7970,7 +8135,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -8180,7 +8344,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -8403,7 +8566,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -8595,7 +8757,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -8737,6 +8898,11 @@
                       "type": "minecraft:stray",
                       "count": 4,
                       "weight": 80
+                    },
+                    {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 10
                     }
                   ],
                   "underground_water_creature": [
@@ -8782,7 +8948,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -8880,6 +9045,11 @@
                   ],
                   "monster": [
                     {
+                      "type": "minecraft:frostbite",
+                      "count": 4,
+                      "weight": 10
+                    },
+                    {
                       "type": "minecraft:spider",
                       "count": 4,
                       "weight": 100
@@ -8967,7 +9137,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -9166,7 +9335,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -9499,7 +9667,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -9665,7 +9832,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -9817,7 +9983,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -9979,7 +10144,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -10177,7 +10341,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -10395,7 +10558,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -10601,7 +10763,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -10912,7 +11073,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -11214,7 +11374,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -11406,7 +11565,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -11598,7 +11756,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -11810,7 +11967,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -12018,7 +12174,6 @@
             [],
             [
               "minecraft:ore_dirt",
-              "minecraft:ore_gravel",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
               "minecraft:ore_diorite_upper",
@@ -12386,6 +12541,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:jungle",
@@ -12454,6 +12610,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:jungle",
@@ -12606,6 +12763,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:jungle",
@@ -12700,6 +12858,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:old_growth_pine_taiga",
@@ -12726,6 +12885,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:small_end_islands",
@@ -12746,12 +12906,16 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:snowy_beach",
         "minecraft:snowy_plains",
         "minecraft:snowy_slopes",
         "minecraft:snowy_taiga"
+      ],
+      "minecraft:spawns_strays_without_powder_snow": [
+        "minecraft:ice_caves"
       ],
       "minecraft:spawns_warm_variant_farm_animals": [
         "minecraft:badlands",
@@ -12798,6 +12962,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:snowy_beach",

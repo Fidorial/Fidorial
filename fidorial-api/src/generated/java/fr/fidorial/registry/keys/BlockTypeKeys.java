@@ -2502,6 +2502,16 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> ICE = create("ice");
 
     /**
+     * Key for {@code minecraft:ice_crystal}.
+     */
+    public static final TypedKey<BlockType> ICE_CRYSTAL = create("ice_crystal");
+
+    /**
+     * Key for {@code minecraft:icicle}.
+     */
+    public static final TypedKey<BlockType> ICICLE = create("icicle");
+
+    /**
      * Key for {@code minecraft:infested_chiseled_stone_bricks}.
      */
     public static final TypedKey<BlockType> INFESTED_CHISELED_STONE_BRICKS = create("infested_chiseled_stone_bricks");
@@ -6940,6 +6950,8 @@ public final class BlockTypeKeys {
         HORN_CORAL_FAN,
         HORN_CORAL_WALL_FAN,
         ICE,
+        ICE_CRYSTAL,
+        ICICLE,
         INFESTED_CHISELED_STONE_BRICKS,
         INFESTED_COBBLESTONE,
         INFESTED_CRACKED_STONE_BRICKS,

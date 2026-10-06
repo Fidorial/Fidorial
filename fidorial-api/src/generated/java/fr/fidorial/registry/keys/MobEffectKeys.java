@@ -52,6 +52,11 @@ public final class MobEffectKeys {
     public static final TypedKey<MobEffect> FIRE_RESISTANCE = create("fire_resistance");
 
     /**
+     * Key for {@code minecraft:freezing}.
+     */
+    public static final TypedKey<MobEffect> FREEZING = create("freezing");
+
+    /**
      * Key for {@code minecraft:glowing}.
      */
     public static final TypedKey<MobEffect> GLOWING = create("glowing");
@@ -220,6 +225,7 @@ public final class MobEffectKeys {
         DARKNESS,
         DOLPHINS_GRACE,
         FIRE_RESISTANCE,
+        FREEZING,
         GLOWING,
         HASTE,
         HEALTH_BOOST,
