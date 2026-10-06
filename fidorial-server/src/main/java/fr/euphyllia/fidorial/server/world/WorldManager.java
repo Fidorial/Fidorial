@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
+import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.chunk.AnvilChunkSerializer;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
@@ -16,6 +17,7 @@ import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
+import fr.euphyllia.fidorial.server.world.storage.RegionRecompressor;
 import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
@@ -41,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.IntSupplier;
 
 public final class WorldManager implements AutoCloseable {
@@ -96,19 +99,22 @@ public final class WorldManager implements AutoCloseable {
         final LevelData levelData;
         if (paths.levelDat().toFile().isFile()) {
             levelData = LevelData.read(paths.dataDir(), paths.levelDat());
-            LOGGER.info("Monde chargé : {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
+            LOGGER.info("World loaded: {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
         } else {
             levelData = new LevelData();
             levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
             levelData.applyInitialPacks(initialPacks);
             levelData.write(paths.dataDir(), paths.levelDat());
-            LOGGER.info("Nouveau monde créé dans {}", worldRoot);
+            LOGGER.info("New world created in {}", worldRoot);
         }
 
-        final AnvilChunkSerializer serializer = new AnvilChunkSerializer();
-        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.of(BlockTypeKeys.AIR.key()), Key.key("plains"));
+        final Function<Key, RegionCompression> compression =
+                dimension -> configurations.resolve(dimension).storage().regionCompression();
 
-        final EntityRegionStorage entityStorage = new EntityRegionStorage(paths);
+        final AnvilChunkSerializer serializer = new AnvilChunkSerializer();
+        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.of(BlockTypeKeys.AIR.key()), Key.key("plains"), compression);
+
+        final EntityRegionStorage entityStorage = new EntityRegionStorage(paths, compression);
         final AnvilEntitySerializer entitySerializer = new AnvilEntitySerializer();
 
         return new WorldManager(paths, levelData, storage, entityStorage, entitySerializer, blockStates, scheduler, configurations);
@@ -119,6 +125,11 @@ public final class WorldManager implements AutoCloseable {
     }
 
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator, final long seed) {
+        if (!worlds.containsKey(dim.id())) {
+            final WorldConfiguration.Storage storageConfig = configurations.loadWorld(dim.id(), paths.configFile(dim)).storage();
+            RegionRecompressor.convertIfChanged(paths, dim, storage, entityStorage,
+                    storageConfig.regionCompression(), storageConfig.convertExistingChunks());
+        }
         final ServerWorld world = worlds.computeIfAbsent(dim.id(), _ -> newWorld(dim, generator, seed));
         restoreForcedChunks(world);
         restoreGameRuleOverrides(world);

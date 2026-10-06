@@ -43,6 +43,8 @@ dependencies {
     implementation(projects.fidorialAuth)
     implementation(libs.dfu)
     implementation(libs.adventure.nbt.dfu)
+    implementation(libs.lz4.java)
+    implementation(libs.zstd.jni)
     implementation(libs.spark.common) {
         exclude(group = "net.kyori", module = "adventure-api")
         exclude(group = "net.kyori", module = "adventure-key")

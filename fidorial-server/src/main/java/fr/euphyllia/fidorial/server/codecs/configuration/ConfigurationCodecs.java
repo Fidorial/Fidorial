@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
+import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.fidorial.entity.GameMode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -53,6 +54,16 @@ public final class ConfigurationCodecs {
                         : DataResult.error(() -> "Unknown game mode '" + raw + "', expected one of: " + GAME_MODES);
             },
             mode -> mode.name().toLowerCase(Locale.ROOT));
+
+    public static final Codec<RegionCompression> REGION_COMPRESSION = Codec.STRING.comapFlatMap(
+            raw -> {
+                final RegionCompression compression = RegionCompression.byName(raw);
+                return compression != null
+                        ? DataResult.success(compression)
+                        : DataResult.error(() -> "Unknown region compression '" + raw + "', expected one of: " + RegionCompression.names());
+            },
+            RegionCompression::configName);
+
 
     public static final Codec<Optional<Long>> SEED = Codec.either(Codec.LONG, Codec.STRING).xmap(
             either -> either.map(Optional::of, ConfigurationCodecs::seedFromText),

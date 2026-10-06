@@ -172,6 +172,9 @@ public final class TestPlugin implements Plugin {
     @Override
     public void onDisable() {
         logger.info("[TestPlugin] onDisable - {} event(s) observed during the session", eventCount.get());
+        if (task != null && task.isRunning()) {
+            task.cancel();
+        }
         server.commands().unregisterNamespace(context.meta());
         TestBiomes.unregisterAll(server.biomes());
         TestDialogs.unregisterAll(server.dialogs());
