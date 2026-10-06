@@ -38,6 +38,8 @@ module fr.fidorial.server {
     requires io.papermc.adventurex.nbt.dfu;
     requires java.logging;
     requires java.instrument;
+    requires org.lz4.java;
+    requires com.github.luben.zstd_jni;
     requires fr.fidorial.bootstrap;
 
     opens fr.euphyllia.fidorial.server.tests to fr.fidorial;

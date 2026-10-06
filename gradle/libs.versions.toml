@@ -22,6 +22,8 @@ spark-api = "0.1-SNAPSHOT"
 leafpile = "1.2.4"
 configurate = "4.3.0-SNAPSHOT"
 configurate-geyser = "4.2.0-GeyserMC-SNAPSHOT"
+lz4 = "1.12.0"
+zstd-jni = "1.5.7-21"
 
 [libraries]
 netty-all = { module = "io.netty:netty-all", version.ref = "netty" }
@@ -63,6 +65,8 @@ leafpile-converter = { module = "ca.spottedleaf.leafpile:converter" }
 leafpile-concurrentutil = { module = "ca.spottedleaf.leafpile:concurrentutil" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate-geyser" }
 configurate-extra-dfu = { module = "org.spongepowered:configurate-extra-dfu7", version.ref = "configurate" }
+lz4-java = { module = "at.yawk.lz4:lz4-java", version.ref = "lz4" }
+zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
