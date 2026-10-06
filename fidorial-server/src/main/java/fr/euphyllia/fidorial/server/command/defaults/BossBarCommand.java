@@ -148,7 +148,7 @@ public final class BossBarCommand {
         }
         mutate.run();
         final BossBarRegistry.BossBarEntry updated = bossBars().getEntry(entry.id()).orElse(entry);
-        ctx.getSource().sender().sendMessage(Component.translatable(successKey, displayNameOf(updated)));
+        ctx.getSource().sendMessage(Component.translatable(successKey, displayNameOf(updated)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -170,25 +170,25 @@ public final class BossBarCommand {
         }
 
         final BossBarRegistry.BossBarEntry created = bossBars().getEntry(id).orElseThrow();
-        ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.create.success", displayNameOf(created)));
+        ctx.getSource().sendMessage(Component.translatable("commands.bossbar.create.success", displayNameOf(created)));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int deleteBossBar(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
         final Component displayName = displayNameOf(entry);
         bossBars().unregister(entry.id());
-        ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.remove.success", displayName));
+        ctx.getSource().sendMessage(Component.translatable("commands.bossbar.remove.success", displayName));
         return bossBars().entries().size();
     }
 
     private static int listBossBars(final CommandContext<CommandSource> ctx) {
         final var entries = bossBars().entries();
         if (entries.isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.list.bars.none"));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.list.bars.none"));
         } else {
             final Component joined = Component.join(JoinConfiguration.commas(true),
                     entries.stream().map(BossBarCommand::displayNameOf).toList());
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.list.bars.some", Component.text(entries.size()), joined));
         }
 
@@ -222,7 +222,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setValue(entry.id(), value);
-        ctx.getSource().sender().sendMessage(
+        ctx.getSource().sendMessage(
                 Component.translatable("commands.bossbar.set.value.success", displayNameOf(entry), Component.text(value)));
         return value;
     }
@@ -233,7 +233,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setMax(entry.id(), max);
-        ctx.getSource().sender().sendMessage(
+        ctx.getSource().sendMessage(
                 Component.translatable("commands.bossbar.set.max.success", displayNameOf(entry), Component.text(max)));
         return max;
     }
@@ -244,7 +244,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setVisible(entry.id(), visible);
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 visible ? "commands.bossbar.set.visible.success.visible" : "commands.bossbar.set.visible.success.hidden",
                 displayNameOf(entry)));
         return Command.SINGLE_SUCCESS;
@@ -258,9 +258,9 @@ public final class BossBarCommand {
         bossBars().setPlayers(entry.id(), targetIds);
 
         if (targetIds.isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.set.players.success.none", displayNameOf(entry)));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.set.players.success.none", displayNameOf(entry)));
         } else {
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.set.players.success.some",
                     displayNameOf(entry), Component.text(targetIds.size()), joinPlayerNames(targetIds)));
         }
@@ -280,19 +280,19 @@ public final class BossBarCommand {
     }
 
     private static int reportValue(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 "commands.bossbar.get.value", displayNameOf(entry), Component.text(entry.value())));
         return entry.value();
     }
 
     private static int reportMax(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 "commands.bossbar.get.max", displayNameOf(entry), Component.text(entry.max())));
         return entry.max();
     }
 
     private static int reportVisibility(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 entry.visible() ? "commands.bossbar.get.visible.visible" : "commands.bossbar.get.visible.hidden",
                 displayNameOf(entry)));
         return entry.visible() ? 1 : 0;
@@ -300,9 +300,9 @@ public final class BossBarCommand {
 
     private static int reportTargets(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
         if (entry.players().isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.get.players.none", displayNameOf(entry)));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.get.players.none", displayNameOf(entry)));
         } else {
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.get.players.some",
                     displayNameOf(entry), Component.text(entry.players().size()), joinPlayerNames(entry.players())));
         }

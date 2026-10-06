@@ -4,7 +4,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemDefaults;
@@ -43,9 +42,9 @@ public final class ItemCommand {
     }
 
     private static int give(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, "<red>[TestPlugin] Run this command in-game.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -68,21 +67,21 @@ public final class ItemCommand {
         player.inventory().set(player.selectedSlot(), sword);
         player.updateInventory();
 
-        plugin.msg(player, "[TestPlugin] You receive " + sword.translationKey());
+        plugin.msg(source, "[TestPlugin] You receive " + sword.translationKey());
         return Command.SINGLE_SUCCESS;
     }
 
     private static int info(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, "<red>[TestPlugin] Run this command in-game.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
         final ItemStack held = player.inventory().get(player.selectedSlot());
 
         if (held.isEmpty()) {
-            plugin.msg(player, "[TestPlugin] You aren't holding anything..");
+            plugin.msg(source, "[TestPlugin] You aren't holding anything..");
             return Command.SINGLE_SUCCESS;
         }
         final DataComponentMap components = held.components();
@@ -93,27 +92,25 @@ public final class ItemCommand {
         final Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
         final SwingAnimation customAnimation = components.get(DataComponentTypes.ATTACK_ANIMATION);
 
-        player.sendMessage(Component.text("[TestPlugin] Item info:"));
-        player.sendMessage(Component.text("  - Translation key: " + held.translationKey()));
-        player.sendMessage(Component.text("  - Item name: " + (itemName != null ? itemName : "<none>")));
+        source.sendMessage(Component.text("[TestPlugin] Item info:"));
+        source.sendMessage(Component.text("  - Translation key: " + held.translationKey()));
+        source.sendMessage(Component.text("  - Item name: " + (itemName != null ? itemName : "<none>")));
         for (final Component line : lore.lines()) {
-            player.sendMessage(Component.text("    - Lore line: " + line));
+            source.sendMessage(Component.text("    - Lore line: " + line));
         }
-        player.sendMessage(Component.text("  - Lore: "+ (lore != null ? lore.lines() : "<none>")));
-        player.sendMessage(Component.text("  - Damage: " + (damage != -1 ? damage : "<none>")));
-        player.sendMessage(Component.text("  - Max damage: " + (maxDamage != -1 ? maxDamage : "<none>")));
-        player.sendMessage(Component.text("  - Custom name: " + (customName != null ? customName : "<none>")));
-        player.sendMessage(Component.text("  - Attack animation : " + (customAnimation != null ? customAnimation.toString() : "<none>")));
-
-
+        source.sendMessage(Component.text("  - Lore: " + (lore != null ? lore.lines() : "<none>")));
+        source.sendMessage(Component.text("  - Damage: " + (damage != -1 ? damage : "<none>")));
+        source.sendMessage(Component.text("  - Max damage: " + (maxDamage != -1 ? maxDamage : "<none>")));
+        source.sendMessage(Component.text("  - Custom name: " + (customName != null ? customName : "<none>")));
+        source.sendMessage(Component.text("  - Attack animation : " + (customAnimation != null ? customAnimation.toString() : "<none>")));
 
         return Command.SINGLE_SUCCESS;
     }
 
     private static int edit(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, "<red>[TestPlugin] Run this command in-game.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -121,10 +118,9 @@ public final class ItemCommand {
         final ItemStack held = player.inventory().get(slot);
 
         if (held.isEmpty()) {
-            plugin.msg(player, "[TestPlugin] You aren't holding anything..");
+            plugin.msg(source, "[TestPlugin] You aren't holding anything..");
             return Command.SINGLE_SUCCESS;
         }
-
 
         final ItemStack edited = held.edit(components -> {
             components.set(DataComponentTypes.CUSTOM_NAME, Component.text("Renamed via edit", NamedTextColor.GOLD)
@@ -146,9 +142,9 @@ public final class ItemCommand {
     }
 
     private static int damage(final CommandContext<CommandSource> ctx) {
-        final CommandSender sender = ctx.getSource().sender();
-        if (!(sender instanceof final Player player)) {
-            plugin.msg(sender, "<red>[TestPlugin] Run this command in-game.</red>");
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, "<red>[TestPlugin] Run this command in-game.</red>");
             return Command.SINGLE_SUCCESS;
         }
 
@@ -158,19 +154,19 @@ public final class ItemCommand {
         final int maxDamage = ItemDefaults.maxDamage(held.id(), held);
 
         if (held.isEmpty() || maxDamage <= 0) {
-            plugin.msg(player, "[TestPlugin] This item cannot be damaged..");
+            plugin.msg(source, "[TestPlugin] This item cannot be damaged..");
             return Command.SINGLE_SUCCESS;
         }
 
         final ItemStack damaged = held.edit(
-                components ->{
+                components -> {
                     final int currentDamage = components.getOrDefault(DataComponentTypes.DAMAGE, 0);
                     components.set(DataComponentTypes.DAMAGE, currentDamage + 1);
                 });
         player.inventory().set(slot, damaged);
 
         final int currentDamage = damaged.components().getOrDefault(DataComponentTypes.DAMAGE, 0);
-        plugin.msg(player, "[TestPlugin] Damaged item: " + damaged.translationKey() + " (Damage: " + currentDamage + "/" + maxDamage + ")");
+        plugin.msg(source, "[TestPlugin] Damaged item: " + damaged.translationKey() + " (Damage: " + currentDamage + "/" + maxDamage + ")");
 
         return Command.SINGLE_SUCCESS;
     }

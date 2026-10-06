@@ -37,12 +37,11 @@ public final class GameModeCommand {
     }
 
     private static int executeSelf(final CommandContext<CommandSource> context) {
-        if (!(context.getSource().sender() instanceof final Player sender)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.gamemode.console"));
+        if (!(context.getSource().executor() instanceof final Player player)) {
+            context.getSource().sendMessage(Component.translatable("command.gamemode.not_player"));
             return 0;
         }
-
-        return change(context, List.of(sender));
+        return change(context, List.of(player));
     }
 
     private static int executeTarget(final CommandContext<CommandSource> context) throws CommandSyntaxException {
@@ -60,7 +59,6 @@ public final class GameModeCommand {
 
             if (context.getSource().sender() != target) {
                 context.getSource()
-                        .sender()
                         .sendMessage(Component.translatable(
                                 "command.gamemode.changed.other", Component.text(target.name()), describe(mode)));
             }

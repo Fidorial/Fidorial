@@ -86,7 +86,7 @@ public final class PlaceCommand {
                                 final boolean explicitRotation) throws CommandSyntaxException {
         final ServerWorld world = StructureCommands.worldOf(context);
         if (world == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.console"));
+            context.getSource().sendMessage(Component.translatable("command.place.no_world"));
             return 0;
         }
         final Key id = context.getArgument("template", Key.class);
@@ -95,14 +95,14 @@ public final class PlaceCommand {
             final String raw = context.getArgument("rotation", String.class);
             final StructureRotation parsed = StructureRotation.byName(raw);
             if (parsed == null) {
-                context.getSource().sender().sendMessage(Component.translatable("command.place.rotation.invalid", Component.text(raw)));
+                context.getSource().sendMessage(Component.translatable("command.place.rotation.invalid", Component.text(raw)));
                 return 0;
             }
             rotation = parsed;
         }
         final StructureService service = StructureCommands.service();
         if (service.template(id).isEmpty()) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.template.invalid", Component.text(id.asString())));
+            context.getSource().sendMessage(Component.translatable("command.place.template.invalid", Component.text(id.asString())));
             return 0;
         }
         final Position pos = position(context, explicitPos);
@@ -115,13 +115,13 @@ public final class PlaceCommand {
             throws CommandSyntaxException {
         final ServerWorld world = StructureCommands.worldOf(context);
         if (world == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.console"));
+            context.getSource().sendMessage(Component.translatable("command.place.no_world"));
             return 0;
         }
         final Key id = context.getArgument("structure", Key.class);
         final StructureService service = StructureCommands.service();
         if (!service.structures().contains(id)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.structure.invalid", Component.text(id.asString())));
+            context.getSource().sendMessage(Component.translatable("command.place.structure.invalid", Component.text(id.asString())));
             return 0;
         }
         final Position pos = position(context, explicitPos);
@@ -134,7 +134,7 @@ public final class PlaceCommand {
             throws CommandSyntaxException {
         final ServerWorld world = StructureCommands.worldOf(context);
         if (world == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.console"));
+            context.getSource().sendMessage(Component.translatable("command.place.no_world"));
             return 0;
         }
         final Key pool = context.getArgument("pool", Key.class);
@@ -142,7 +142,7 @@ public final class PlaceCommand {
         final int depth = context.getArgument("max_depth", Integer.class);
         final StructureService service = StructureCommands.service();
         if (service.registry().pool(pool) == null) {
-            context.getSource().sender().sendMessage(Component.translatable("command.place.jigsaw.invalid", Component.text(pool.asString())));
+            context.getSource().sendMessage(Component.translatable("command.place.jigsaw.invalid", Component.text(pool.asString())));
             return 0;
         }
         final Position pos = position(context, explicitPos);
@@ -156,11 +156,11 @@ public final class PlaceCommand {
         future.whenComplete((count, failure) -> {
             final Integer placed = failure == null ? count : null;
             if (placed == null || placed == 0) {
-                context.getSource().sender().sendMessage(Component.translatable(failed, Component.text(id.asString()),
+                context.getSource().sendMessage(Component.translatable(failed, Component.text(id.asString()),
                         Component.text(failure == null ? "-" : StructureCommands.rootMessage(failure))));
                 return;
             }
-            context.getSource().sender().sendMessage(Component.translatable(success,
+            context.getSource().sendMessage(Component.translatable(success,
                     Component.text(id.asString()),
                     Component.text(pos.x() + ", " + pos.y() + ", " + pos.z()),
                     Component.text(placed)));

@@ -6,7 +6,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobFactories;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentTypes;
@@ -31,27 +30,22 @@ public final class SummonCommand {
     }
 
     private static int executeSelf(final CommandContext<CommandSource> context) {
-
-        if (!(context.getSource().sender() instanceof final ServerPlayer player)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.summon.console"));
+        final CommandSource source = context.getSource();
+        final Location location = source.location();
+        if (location == null) {
+            source.sendMessage(Component.translatable("command.summon.no_world"));
             return 0;
         }
-
         return summon(
                 context,
-                player.world() instanceof final ServerWorld world
-                        ? world
-                        : FidorialServer.getInstance().worldManager().defaultWorld().orElse(null),
-                player.location());
+                worldOf(context),
+                location);
     }
 
     private static int executeCoordinates(final CommandContext<CommandSource> context) {
         final Location location = context.getArgument("position", PositionResolver.class).resolve(context.getSource());
 
-        final ServerWorld world = context.getSource().sender() instanceof final ServerPlayer player
-                && player.world() instanceof final ServerWorld serverWorld
-                ? serverWorld
-                : FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
+        final ServerWorld world = worldOf(context);
 
         return summon(context, world, location);
     }
@@ -61,7 +55,6 @@ public final class SummonCommand {
 
         if (!MobFactories.isMob(entity)) {
             context.getSource()
-                    .sender()
                     .sendMessage(Component.translatable(
                             "command.summon.notmob", Component.text(entity.key().asString())));
             return 0;
@@ -70,17 +63,23 @@ public final class SummonCommand {
         final FidorialServer server = FidorialServer.getInstance();
         final CommandSource source = context.getSource();
         if (world == null) {
-            source.sender().sendMessage(Component.translatable("command.summon.no_world"));
+            source.sendMessage(Component.translatable("command.summon.no_world"));
             return 0;
         }
         world.scheduler().execute(world.key(), location.chunk(), () -> {
             final AbstractMob mob = MobFactories.create(entity, server.entityIds().allocate(), location);
             server.spawnEntity(mob);
 
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "command.summon.done", Component.text(entity.key().value()), Component.text(mob.entityId())));
         });
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
+        final CommandSource source = context.getSource();
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 }

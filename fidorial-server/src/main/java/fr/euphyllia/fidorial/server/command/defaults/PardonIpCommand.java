@@ -49,18 +49,18 @@ public final class PardonIpCommand {
         final String address = context.getArgument("address", String.class);
 
         if (!InetAddresses.isInetAddress(address)) {
-            source.sender()
+            source
                     .sendMessage(Component.translatable("commands.pardonip.invalid", Component.text(address)));
             return 0;
         }
 
         if (!server.bans().pardon(InetAddresses.forString(address))) {
-            source.sender()
+            source
                     .sendMessage(Component.translatable("commands.pardonip.failed", Component.text(address)));
             return 0;
         }
 
-        source.sender()
+        source
                 .sendMessage(Component.translatable("commands.pardonip.success", Component.text(address)));
 
         return Command.SINGLE_SUCCESS;

@@ -3,12 +3,10 @@ package fr.euphyllia.fidorial.server.command.defaults;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.ColumnPosArgument;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Entity;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -62,7 +60,7 @@ public final class ForceLoadCommand {
         final int maxX = Math.max(from.x(), to.x());
         final int maxZ = Math.max(from.z(), to.z());
         if (minX < -WORLD_LIMIT || minZ < -WORLD_LIMIT || maxX >= WORLD_LIMIT || maxZ >= WORLD_LIMIT) {
-            source.sender().sendMessage(Component.translatable("argument.pos.outofworld"));
+            source.sendMessage(Component.translatable("argument.pos.outofworld"));
             return 0;
         }
 
@@ -72,12 +70,12 @@ public final class ForceLoadCommand {
         final int maxChunkZ = maxZ >> 4;
         final long count = ((long) (maxChunkX - minChunkX) + 1L) * ((long) (maxChunkZ - minChunkZ) + 1L);
         if (count > MAX_CHUNKS) {
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "commands.forceload.toobig", Component.text(MAX_CHUNKS), Component.text(count)));
             return 0;
         }
 
-        final ServerWorld world = worldOf(source);
+        final ServerWorld world = worldOf(context);
         if (handleMissingWorld(source, world)) {
             return 0;
         }
@@ -96,15 +94,15 @@ public final class ForceLoadCommand {
         final String action = add ? "added" : "removed";
         final Component dimension = dimension(world);
         if (changed == 0) {
-            source.sender().sendMessage(Component.translatable("commands.forceload." + action + ".failure"));
+            source.sendMessage(Component.translatable("commands.forceload." + action + ".failure"));
             return 0;
         }
 
         if (changed == 1) {
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "commands.forceload." + action + ".single", chunk(firstX, firstZ), dimension));
         } else {
-            source.sender().sendMessage(Component.translatable(
+            source.sendMessage(Component.translatable(
                     "commands.forceload." + action + ".multiple",
                     Component.text(changed),
                     dimension,
@@ -115,20 +113,20 @@ public final class ForceLoadCommand {
     }
 
     private static int removeAll(final CommandContext<CommandSource> context) {
-        final ServerWorld world = worldOf(context.getSource());
+        final ServerWorld world = worldOf(context);
         if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         for (final ChunkPos pos : world.forceLoadedChunks()) {
             world.setChunkForceLoaded(pos.x(), pos.z(), false);
         }
-        context.getSource().sender().sendMessage(
+        context.getSource().sendMessage(
                 Component.translatable("commands.forceload.removed.all", dimension(world)));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int list(final CommandContext<CommandSource> context) {
-        final ServerWorld world = worldOf(context.getSource());
+        final ServerWorld world = worldOf(context);
         if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
@@ -136,7 +134,7 @@ public final class ForceLoadCommand {
         final Set<ChunkPos> forced = world.forceLoadedChunks();
 
         if (forced.isEmpty()) {
-            context.getSource().sender().sendMessage(
+            context.getSource().sendMessage(
                     Component.translatable("commands.forceload.added.none", dimension));
             return 0;
         }
@@ -146,7 +144,7 @@ public final class ForceLoadCommand {
                 .map(pos -> format(pos.x(), pos.z()))
                 .collect(Collectors.joining(", "));
 
-        context.getSource().sender().sendMessage(forced.size() == 1
+        context.getSource().sendMessage(forced.size() == 1
                 ? Component.translatable("commands.forceload.list.single", dimension, Component.text(joined))
                 : Component.translatable(
                 "commands.forceload.list.multiple", Component.text(forced.size()), dimension, Component.text(joined)));
@@ -154,14 +152,14 @@ public final class ForceLoadCommand {
     }
 
     private static int query(final CommandContext<CommandSource> context) {
-        final ServerWorld world = worldOf(context.getSource());
+        final ServerWorld world = worldOf(context);
         if (handleMissingWorld(context.getSource(), world)) {
             return 0;
         }
         final ChunkPos pos = column(context, "pos").chunk();
         final boolean forced = world.isChunkForceLoaded(pos);
 
-        context.getSource().sender().sendMessage(Component.translatable(
+        context.getSource().sendMessage(Component.translatable(
                 forced ? "commands.forceload.query.success" : "commands.forceload.query.failure",
                 chunk(pos.x(), pos.z()),
                 dimension(world)));
@@ -184,20 +182,15 @@ public final class ForceLoadCommand {
         return Component.text(world.key().asString());
     }
 
-    private static @Nullable ServerWorld worldOf(final CommandSource source) {
-        if (source.sender() instanceof final ServerPlayer player && player.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        final Entity executor = source.executor();
-        if (executor != null && executor.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        return FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
+    private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
+        final CommandSource source = context.getSource();
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     private static boolean handleMissingWorld(final CommandSource source, final @Nullable ServerWorld world) {
         if (world == null) {
-            source.sender().sendMessage(Component.translatable("commands.forceload.no_world"));
+            source.sendMessage(Component.translatable("commands.forceload.no_world"));
             return true;
         }
         return false;

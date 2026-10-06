@@ -85,7 +85,7 @@ public final class BanCommand {
 
             kickBanned(entry);
 
-            source.sender()
+            source
                     .sendMessage(Component.translatable(
                             added ? "commands.ban.success" : "commands.ban.updated",
                             Component.text(entry.label()),

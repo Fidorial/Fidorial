@@ -50,11 +50,11 @@ public final class PardonCommand {
             final Component name = Component.text(target.name());
 
             if (!bans.pardon(target.uuid())) {
-                source.sender().sendMessage(Component.translatable("commands.pardon.failed", name));
+                source.sendMessage(Component.translatable("commands.pardon.failed", name));
                 continue;
             }
 
-            source.sender().sendMessage(Component.translatable("commands.pardon.success", name));
+            source.sendMessage(Component.translatable("commands.pardon.success", name));
             pardoned++;
         }
 
