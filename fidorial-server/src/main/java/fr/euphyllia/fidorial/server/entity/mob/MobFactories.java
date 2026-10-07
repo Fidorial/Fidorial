@@ -52,6 +52,7 @@ import fr.euphyllia.fidorial.server.entity.mob.monster.EnderDragon;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Enderman;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Endermite;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Evoker;
+import fr.euphyllia.fidorial.server.entity.mob.monster.Frostbite;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Ghast;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Giant;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Guardian;
@@ -130,6 +131,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.EVOKER.key(), Evoker::new),
             Map.entry(EntityTypes.FOX.key(), Fox::new),
             Map.entry(EntityTypes.FROG.key(), Frog::new),
+            Map.entry(EntityTypes.FROSTBITE.key(), Frostbite::new),
             Map.entry(EntityTypes.GHAST.key(), Ghast::new),
             Map.entry(EntityTypes.GIANT.key(), Giant::new),
             Map.entry(EntityTypes.GLOW_SQUID.key(), GlowSquid::new),

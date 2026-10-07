@@ -79,6 +79,9 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     private static final int DROWNED_CONVERSION_TICKS = 300;
 
+    private static final int POWDER_SNOW_TICKS_BEFORE_CONVERSION = 140;
+    private static final int FROSTBITE_CONVERSION_TICKS = 300;
+
     private static final Key BURN_IN_DAYLIGHT = Key.key("burn_in_daylight");
     private static final int AMBIENT_CHANCE = 80;
 
@@ -99,6 +102,8 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private int fireTicks;
     private int inWaterTicks = -1;
     private int drownedConversionTicks = -1;
+    private int powderSnowTicks;
+    private int frostbiteConversionTicks = -1;
     private boolean metadataSent;
     private boolean sentOnFire;
 
@@ -182,6 +187,14 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         return SoundEvents.ZOMBIE_CONVERTED_TO_DROWNED;
     }
 
+    protected @Nullable EntityType powderSnowConversionType() {
+        return EntityTypes.FROSTBITE;
+    }
+
+    protected Sound.Type powderSnowConversionSound() {
+        return SoundEvents.ZOMBIE_CONVERTED_TO_FROSTBITE;
+    }
+
     @Override
     public double movementSpeed() {
         return baby ? BABY_SPEED : ADULT_SPEED;
@@ -227,6 +240,10 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         tickAmbientSound();
         tickSunlight(currentTick);
         tickDrowning();
+        if (isRemoved()) {
+            return;
+        }
+        tickPowderSnow();
         if (isRemoved()) {
             return;
         }
@@ -301,6 +318,30 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         playSound(waterConversionSound(), 2.0f, voicePitch());
     }
 
+    private void tickPowderSnow() {
+        final EntityType conversion = powderSnowConversionType();
+        if (conversion == null || drownedConversionTicks >= 0) {
+            return;
+        }
+        if (frostbiteConversionTicks >= 0) {
+            if (--frostbiteConversionTicks <= 0) {
+                playPositionalSound(powderSnowConversionSound(), 2.0f, voicePitch());
+                convertTo(conversion);
+            }
+            return;
+        }
+
+        if (isInPowderSnow()) {
+            if (++powderSnowTicks >= POWDER_SNOW_TICKS_BEFORE_CONVERSION) {
+                powderSnowTicks = 0;
+                fireTicks = 0;
+                frostbiteConversionTicks = FROSTBITE_CONVERSION_TICKS;
+            }
+        } else {
+            powderSnowTicks = 0;
+        }
+    }
+
     protected void convertTo(final EntityType type) {
         final Location loc = location();
         final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(), loc);
@@ -325,7 +366,6 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     }
 
     protected void onAttackLanded(final ServerPlayer target) {
-
     }
 
     @Override

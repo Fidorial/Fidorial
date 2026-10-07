@@ -28,7 +28,9 @@ import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.world.ChunkPos;
+import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private static final double DEFAULT_HALF_WIDTH = 0.3;
     private static final double DEFAULT_HEIGHT = 1.7;
     private static final double DEFAULT_MOVEMENT_SPEED = 0.25;
+
+    private static final Key POWDER_SNOW_WALKABLE = Key.key("powder_snow_walkable_mobs");
 
     protected final GoalSelector goals = new GoalSelector();
 
@@ -66,6 +70,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private float sentPitch;
     private float sentHeadYaw;
     private int ticksSinceSync;
+    private final boolean walksOnPowderSnow;
     private final EntityDebugState debugState = new EntityDebugState();
 
     protected AbstractMovingMob(final int entityId, final UUID uuid, final EntityType type,
@@ -79,6 +84,8 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         this.sentYaw = yaw;
         this.sentPitch = pitch;
         this.sentHeadYaw = yaw;
+        this.walksOnPowderSnow = server().registries().frozen()
+                .isTagged(RegistryKey.ENTITY_TYPE.key(), POWDER_SNOW_WALKABLE, type.key());
     }
 
     public final ServerWorld serverWorld() {
@@ -163,11 +170,49 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         final int maxBlockY = (int) Math.floor(y + height() - 0.01);
         final ServerWorld world = serverWorld();
         for (int blockY = minBlockY; blockY <= maxBlockY; blockY++) {
-            if (!BlockView.isPassable(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z - half))
-                    || !BlockView.isPassable(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z - half))
-                    || !BlockView.isPassable(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z + half))
-                    || !BlockView.isPassable(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z + half))) {
+            if (isBlocking(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z - half))
+                    || isBlocking(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z - half))
+                    || isBlocking(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z + half))
+                    || isBlocking(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z + half))) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isBlocking(final ServerWorld world, final int x, final int y, final int z) {
+        final BlockState state = BlockView.blockAt(world, x, y, z);
+        if (state == null) {
+            return true;
+        }
+        if (BlockView.isPassable(state)) {
+            return false;
+        }
+        return walksOnPowderSnow || !BlockView.isPowderSnow(state);
+    }
+
+    public final boolean walksOnPowderSnow() {
+        return walksOnPowderSnow;
+    }
+
+    public final boolean isInPowderSnow() {
+        final Location loc = location();
+        final double half = halfWidth() - 1.0E-5;
+        final int minX = (int) Math.floor(loc.x() - half);
+        final int maxX = (int) Math.floor(loc.x() + half);
+        final int minY = (int) Math.floor(loc.y() + 1.0E-5);
+        final int maxY = (int) Math.floor(loc.y() + height() - 1.0E-5);
+        final int minZ = (int) Math.floor(loc.z() - half);
+        final int maxZ = (int) Math.floor(loc.z() + half);
+        final ServerWorld world = serverWorld();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    final BlockState state = BlockView.blockAt(world, x, y, z);
+                    if (state != null && BlockView.isPowderSnow(state)) {
+                        return true;
+                    }
+                }
             }
         }
         return false;

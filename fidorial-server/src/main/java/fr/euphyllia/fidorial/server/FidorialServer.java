@@ -72,7 +72,11 @@ import fr.euphyllia.fidorial.server.world.FlatChunkGenerator;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.block.ClusterBlock;
+import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
+import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
@@ -290,8 +294,21 @@ public final class FidorialServer implements Server {
         BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
         Blocks.bootstrap(registry);
+        registerBlockBehaviours(registry);
         LOGGER.debug("{} blocks defined in code", registry.definedCount());
         return registry;
+    }
+
+    private static void registerBlockBehaviours(final FidorialBlockRegistry registry) {
+        registry.register(EnderChestBlock.INSTANCE);
+        registry.register(ClusterBlock.AMETHYST_CLUSTER);
+        registry.register(ClusterBlock.LARGE_AMETHYST_BUD);
+        registry.register(ClusterBlock.MEDIUM_AMETHYST_BUD);
+        registry.register(ClusterBlock.SMALL_AMETHYST_BUD);
+        registry.register(ClusterBlock.ICE_CRYSTAL);
+        registry.register(SpeleothemBlock.POINTED_DRIPSTONE);
+        registry.register(SpeleothemBlock.SULFUR_SPIKE);
+        registry.register(IcicleBlock.INSTANCE);
     }
 
     public void start() throws Exception {

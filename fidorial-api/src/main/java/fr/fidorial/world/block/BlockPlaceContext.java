@@ -97,6 +97,18 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
     }
 
     /**
+     * {@return {@code true} when the block on that side can hold the placed block: it is loaded, and neither
+     * air nor a fluid}
+     *
+     * @param side the side the placed block would be attached to
+     * @since 0.1.0
+     */
+    public boolean canAttachTo(final BlockFace side) {
+        final BlockData neighbour = relative(side);
+        return neighbour != null && !neighbour.isAir() && !neighbour.isFluid();
+    }
+
+    /**
      * {@return {@code true} when the block replaces a water source, and should be waterlogged}
      *
      * @since 0.1.0

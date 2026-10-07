@@ -226,6 +226,26 @@ public final class DamageSource {
     }
 
     /**
+     * {@return a source for damage dealt by freezing, as in powder snow or under the Freezing effect}
+     *
+     * @since 0.1.0
+     */
+    public static DamageSource freeze() {
+        return of(DamageTypeKeys.FREEZE);
+    }
+
+    /**
+     * {@return a source for damage dealt by a thrown projectile, such as a snowball or an ice ball}
+     *
+     * @param projectile the projectile that hit, or {@code null} if it is unknown
+     * @param thrower    the entity that threw it, or {@code null} if there is none
+     * @since 0.1.0
+     */
+    public static DamageSource thrown(final @Nullable Entity projectile, final @Nullable Entity thrower) {
+        return of(DamageTypeKeys.THROWN, thrower, projectile);
+    }
+
+    /**
      * {@return a source for damage dealt by an unspecified cause}
      *
      * @since 0.1.0

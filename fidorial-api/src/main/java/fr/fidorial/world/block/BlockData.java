@@ -1,5 +1,6 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.world.fluid.FluidType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -91,6 +92,15 @@ public interface BlockData {
     default boolean isAir() {
         final Key name = key();
         return name.equals(AIR) || name.equals(CAVE_AIR) || name.equals(VOID_AIR);
+    }
+
+    /**
+     * {@return {@code true} for a block of fluid: water or lava, but not a waterlogged block}
+     *
+     * @since 0.1.0
+     */
+    default boolean isFluid() {
+        return FluidType.byBlockKey(key()) != null;
     }
 
     /**

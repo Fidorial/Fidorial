@@ -222,6 +222,13 @@ public final class SoundEvents {
      */
     public static final Sound.Type ZOMBIE_CONVERTED_TO_DROWNED = of("entity.zombie.converted_to_drowned");
 
+    /**
+     * The {@code minecraft:entity.zombie.converted_to_frostbite} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ZOMBIE_CONVERTED_TO_FROSTBITE = of("entity.zombie.converted_to_frostbite");
+
     // --- Husk ---
     /**
      * The {@code minecraft:entity.husk.ambient} sound event.
@@ -257,6 +264,57 @@ public final class SoundEvents {
      * @since 0.1.0
      */
     public static final Sound.Type HUSK_CONVERTED_TO_ZOMBIE = of("entity.husk.converted_to_zombie");
+
+    // --- Frostbite ---
+    /**
+     * The {@code minecraft:entity.frostbite.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FROSTBITE_AMBIENT = of("entity.frostbite.ambient");
+
+    /**
+     * The {@code minecraft:entity.frostbite.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FROSTBITE_HURT = of("entity.frostbite.hurt");
+
+    /**
+     * The {@code minecraft:entity.frostbite.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FROSTBITE_DEATH = of("entity.frostbite.death");
+
+    /**
+     * The {@code minecraft:entity.frostbite.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FROSTBITE_STEP = of("entity.frostbite.step");
+
+    /**
+     * The {@code minecraft:entity.frostbite.converted_to_zombie} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FROSTBITE_CONVERTED_TO_ZOMBIE = of("entity.frostbite.converted_to_zombie");
+
+    // --- Ice Ball ---
+    /**
+     * The {@code minecraft:entity.ice_ball.throw} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ICE_BALL_THROW = of("entity.ice_ball.throw");
+
+    /**
+     * The {@code minecraft:entity.ice_ball.break} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ICE_BALL_BREAK = of("entity.ice_ball.break");
 
     // --- Generic ---
     /**
