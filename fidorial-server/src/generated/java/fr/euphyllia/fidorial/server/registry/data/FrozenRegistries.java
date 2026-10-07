@@ -11893,13 +11893,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("oozing"));
         entries.add(Key.key("infested"));
         entries.add(Key.key("breath_of_the_nautilus"));
+        entries.add(Key.key("freezing"));
     }
 
     /**
      * @return {@code minecraft:mob_effect}, indexed by network ID
      */
     private static List<Key> mobEffect() {
-        final List<Key> entries = new ArrayList<>(40);
+        final List<Key> entries = new ArrayList<>(41);
         mobEffect0(entries);
         return List.copyOf(entries);
     }

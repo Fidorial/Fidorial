@@ -19,11 +19,10 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -304,8 +303,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     protected void convertTo(final EntityType type) {
         final Location loc = location();
-        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(),
-                world(), loc);
+        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(), loc);
         server().despawnEntity(this);
         server().spawnEntity(converted);
     }
