@@ -222,6 +222,42 @@ public final class SoundEvents {
      */
     public static final Sound.Type ZOMBIE_CONVERTED_TO_DROWNED = of("entity.zombie.converted_to_drowned");
 
+    // --- Husk ---
+    /**
+     * The {@code minecraft:entity.husk.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type HUSK_AMBIENT = of("entity.husk.ambient");
+
+    /**
+     * The {@code minecraft:entity.husk.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type HUSK_HURT = of("entity.husk.hurt");
+
+    /**
+     * The {@code minecraft:entity.husk.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type HUSK_DEATH = of("entity.husk.death");
+
+    /**
+     * The {@code minecraft:entity.husk.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type HUSK_STEP = of("entity.husk.step");
+
+    /**
+     * The {@code minecraft:entity.husk.converted_to_zombie} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type HUSK_CONVERTED_TO_ZOMBIE = of("entity.husk.converted_to_zombie");
+
     // --- Generic ---
     /**
      * The {@code minecraft:entity.generic.explode} sound event.

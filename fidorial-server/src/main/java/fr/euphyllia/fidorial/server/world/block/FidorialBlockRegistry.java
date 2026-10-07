@@ -36,8 +36,14 @@ public final class FidorialBlockRegistry implements BlockRegistry {
 
     @Override
     public void register(final BlockBehaviour behaviour) {
-        register(behaviour.type());
-        behaviours.put(behaviour.key(), behaviour);
+        final Key key = behaviour.key();
+        if (!types.containsKey(key)) {
+            register(behaviour.type());
+        }
+        if (behaviours.putIfAbsent(key, behaviour) != null) {
+            throw new IllegalStateException("Block '" + key.asString() + "' already has a behaviour");
+        }
+        fallbackBehaviours.remove(key);
     }
 
     @Override

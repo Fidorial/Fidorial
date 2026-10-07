@@ -19,10 +19,14 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
+import fr.fidorial.world.Location;
+import fr.fidorial.world.World;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,6 +80,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     private static final int DROWNED_CONVERSION_TICKS = 300;
 
+    private static final Key BURN_IN_DAYLIGHT = Key.key("burn_in_daylight");
     private static final int AMBIENT_CHANCE = 80;
 
     private static final int MD_SHARED_FLAGS = 0;
@@ -88,6 +93,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private final boolean canBreakDoors;
     private final double knockbackResistance;
     private final double followRange;
+    private final boolean burnsInDaylight;
 
     private double reinforcementChance;
 
@@ -110,6 +116,8 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         this.knockbackResistance = data.knockbackResistance();
         this.followRange = data.followRange();
         this.reinforcementChance = data.reinforcementChance();
+        this.burnsInDaylight = server().registries().frozen()
+                .isTagged(RegistryKey.ENTITY_TYPE.key(), BURN_IN_DAYLIGHT, type.key());
 
         if (canBreakDoors) {
             goals.add(new BreakDoorGoal(this, 0));
@@ -159,6 +167,22 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         return SoundEvents.ZOMBIE_DEATH;
     }
 
+    protected Sound.Type ambientSound() {
+        return SoundEvents.ZOMBIE_AMBIENT;
+    }
+
+    protected Sound.Type stepSound() {
+        return SoundEvents.ZOMBIE_STEP;
+    }
+
+    protected @Nullable EntityType waterConversionType() {
+        return EntityTypes.DROWNED;
+    }
+
+    protected Sound.Type waterConversionSound() {
+        return SoundEvents.ZOMBIE_CONVERTED_TO_DROWNED;
+    }
+
     @Override
     public double movementSpeed() {
         return baby ? BABY_SPEED : ADULT_SPEED;
@@ -204,17 +228,20 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         tickAmbientSound();
         tickSunlight(currentTick);
         tickDrowning();
+        if (isRemoved()) {
+            return;
+        }
         tickFire();
     }
 
     private void tickAmbientSound() {
         if (ThreadLocalRandom.current().nextInt(AMBIENT_CHANCE) == 0) {
-            playSound(SoundEvents.ZOMBIE_AMBIENT, 1.0f, voicePitch());
+            playSound(ambientSound(), 1.0f, voicePitch());
         }
     }
 
     private void tickSunlight(final long currentTick) {
-        if (currentTick % SUN_CHECK_INTERVAL != 0 || drownedConversionTicks >= 0) {
+        if (!burnsInDaylight || currentTick % SUN_CHECK_INTERVAL != 0 || drownedConversionTicks >= 0) {
             return;
         }
         if (!isDaylight() || isHeadInWater() || !canSeeSky()) {
@@ -245,9 +272,13 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     }
 
     private void tickDrowning() {
+        final EntityType conversion = waterConversionType();
+        if (conversion == null) {
+            return;
+        }
         if (drownedConversionTicks >= 0) {
             if (--drownedConversionTicks <= 0) {
-                convertToDrowned();
+                convertTo(conversion);
             }
             return;
         }
@@ -268,13 +299,15 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         fireTicks = 0;
         sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_CONVERTING_TO_DROWNED, true)));
-        playSound(SoundEvents.ZOMBIE_CONVERTED_TO_DROWNED, 2.0f, voicePitch());
+        playSound(waterConversionSound(), 2.0f, voicePitch());
     }
 
-    protected void convertToDrowned() {
-        final AbstractMob drowned = MobFactories.create(EntityTypes.DROWNED, server().entityIds().allocate(), location());
+    protected void convertTo(final EntityType type) {
+        final Location loc = location();
+        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(),
+                world(), loc);
         server().despawnEntity(this);
-        server().spawnEntity(drowned);
+        server().spawnEntity(converted);
     }
 
     protected void attack(final ServerPlayer target) {
@@ -282,13 +315,19 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         if (damage <= 0f) {
             return;
         }
-        server().combat().damage(target, DamageSource.mobAttack(this), damage);
+        if (server().combat().damage(target, DamageSource.mobAttack(this), damage)) {
+            onAttackLanded(target);
+        }
 
         if (fireTicks > 0
                 && ThreadLocalRandom.current().nextDouble() < 0.30 * clampedRegionalDifficulty()) {
             // TODO : Apply the fire effect to the player
             playSound(SoundEvents.GENERIC_BURN, 1.0f, 1.0f);
         }
+    }
+
+    protected void onAttackLanded(final ServerPlayer target) {
+
     }
 
     @Override
@@ -388,7 +427,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     @Override
     protected void onStep() {
-        playSound(SoundEvents.ZOMBIE_STEP, 0.15f, 1.0f);
+        playSound(stepSound(), 0.15f, 1.0f);
     }
 
     private LevelData levelData() {
