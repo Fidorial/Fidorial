@@ -41,6 +41,7 @@ module fr.fidorial {
     exports fr.fidorial.command;
     exports fr.fidorial.dialog;
     exports fr.fidorial.entity.ai;
+    exports fr.fidorial.entity.effect;
     exports fr.fidorial.entity.mob;
     exports fr.fidorial.entity;
     exports fr.fidorial.event.entity;

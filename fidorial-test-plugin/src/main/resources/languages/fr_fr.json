@@ -5,5 +5,6 @@
   "fidorial.chat.arrival": "<green><italic><arg:0> a rejoint le serveur</italic></green>",
   "fidorial.chat.arrival.narrate": "<arg:0> a rejoint le serveur",
   "fidorial.chat.departure": "<yellow><italic><arg:0> a quitté le serveur</italic></yellow>",
-  "fidorial.chat.departure.narrate": "<arg:0> a quitté le serveur"
+  "fidorial.chat.departure.narrate": "<arg:0> a quitté le serveur",
+  "effect.fidorialtest.bleeding": "Saignement"
 }

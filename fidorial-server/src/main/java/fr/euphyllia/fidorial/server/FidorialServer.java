@@ -23,6 +23,7 @@ import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityIdAllocator;
 import fr.euphyllia.fidorial.server.entity.EntityTickHandler;
 import fr.euphyllia.fidorial.server.entity.EntityTracker;
+import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.FidorialMobRegistry;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
@@ -216,6 +217,7 @@ public final class FidorialServer implements Server {
     private final FidorialPermissionRegistry permissionRegistry = new FidorialPermissionRegistry();
     private final FidorialItemRegistry itemRegistry = new FidorialItemRegistry();
     private final FidorialMobRegistry mobRegistry = new FidorialMobRegistry();
+    private final FidorialMobEffectRegistry effectRegistry = new FidorialMobEffectRegistry();
     private final JavaPluginManager pluginManager =
             new JavaPluginManager(this, events, services, permissionRegistry, config.general().pluginsPath());
     private final OperatorList operators = new OperatorList(Path.of("ops.json"));
@@ -650,6 +652,11 @@ public final class FidorialServer implements Server {
     @Override
     public FidorialMobRegistry mobs() {
         return mobRegistry;
+    }
+
+    @Override
+    public FidorialMobEffectRegistry effects() {
+        return effectRegistry;
     }
 
     @Override

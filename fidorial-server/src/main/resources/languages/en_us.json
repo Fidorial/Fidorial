@@ -256,5 +256,15 @@
   "command.posteffect.remove.unchanged" : "<red>Nothing changed. Post effect <arg:0> could not be removed from any target",
   "command.posteffect.clear.unchanged" : "<red>Nothing changed. No target had post effects to clear",
   "command.posteffect.list" : "<arg:0> has <arg:1> active post effect(s): <arg:2>",
-  "command.posteffect.list.none" : "<arg:0> has no active post effects"
+  "command.posteffect.list.none" : "<arg:0> has no active post effects",
+
+  "commands.effect.give.success.single" : "Applied effect <arg:0> to <arg:1>",
+  "commands.effect.give.success.multiple" : "Applied effect <arg:0> to <arg:1> targets",
+  "commands.effect.give.failed" : "<red>Unable to apply this effect (target is either immune to effects, or has something stronger)",
+  "commands.effect.clear.everything.success.single" : "Removed every effect from <arg:0>",
+  "commands.effect.clear.everything.success.multiple" : "Removed every effect from <arg:0> targets",
+  "commands.effect.clear.everything.failed" : "<red>Target has no effects to remove",
+  "commands.effect.clear.specific.success.single" : "Removed effect <arg:0> from <arg:1>",
+  "commands.effect.clear.specific.success.multiple" : "Removed effect <arg:0> from <arg:1> targets",
+  "commands.effect.clear.specific.failed" : "<red>Target doesn't have the requested effect"
 }

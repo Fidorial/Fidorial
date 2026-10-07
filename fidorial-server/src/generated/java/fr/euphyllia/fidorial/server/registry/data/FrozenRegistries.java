@@ -25,7 +25,8 @@ public final class FrozenRegistries {
         Map.entry(Key.key("fluid"), fluid()),
         Map.entry(Key.key("game_event"), gameEvent()),
         Map.entry(Key.key("item"), item()),
-        Map.entry(Key.key("menu"), menu())
+        Map.entry(Key.key("menu"), menu()),
+        Map.entry(Key.key("mob_effect"), mobEffect())
     );
 
     private static final Map<Key, Map<Key, List<Key>>> TAGS = Map.ofEntries(
@@ -37,7 +38,8 @@ public final class FrozenRegistries {
         Map.entry(Key.key("fluid"), fluidTags()),
         Map.entry(Key.key("game_event"), gameEventTags()),
         Map.entry(Key.key("item"), itemTags()),
-        Map.entry(Key.key("menu"), menuTags())
+        Map.entry(Key.key("menu"), menuTags()),
+        Map.entry(Key.key("mob_effect"), mobEffectTags())
     );
 
     private FrozenRegistries() {
@@ -11787,6 +11789,65 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:menu}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> menuTags() {
+        return Map.of();
+    }
+
+    private static void mobEffect0(final List<Key> entries) {
+        entries.add(Key.key("speed"));
+        entries.add(Key.key("slowness"));
+        entries.add(Key.key("haste"));
+        entries.add(Key.key("mining_fatigue"));
+        entries.add(Key.key("strength"));
+        entries.add(Key.key("instant_health"));
+        entries.add(Key.key("instant_damage"));
+        entries.add(Key.key("jump_boost"));
+        entries.add(Key.key("nausea"));
+        entries.add(Key.key("regeneration"));
+        entries.add(Key.key("resistance"));
+        entries.add(Key.key("fire_resistance"));
+        entries.add(Key.key("water_breathing"));
+        entries.add(Key.key("invisibility"));
+        entries.add(Key.key("blindness"));
+        entries.add(Key.key("night_vision"));
+        entries.add(Key.key("hunger"));
+        entries.add(Key.key("weakness"));
+        entries.add(Key.key("poison"));
+        entries.add(Key.key("wither"));
+        entries.add(Key.key("health_boost"));
+        entries.add(Key.key("absorption"));
+        entries.add(Key.key("saturation"));
+        entries.add(Key.key("glowing"));
+        entries.add(Key.key("levitation"));
+        entries.add(Key.key("luck"));
+        entries.add(Key.key("unluck"));
+        entries.add(Key.key("slow_falling"));
+        entries.add(Key.key("conduit_power"));
+        entries.add(Key.key("dolphins_grace"));
+        entries.add(Key.key("bad_omen"));
+        entries.add(Key.key("hero_of_the_village"));
+        entries.add(Key.key("darkness"));
+        entries.add(Key.key("trial_omen"));
+        entries.add(Key.key("raid_omen"));
+        entries.add(Key.key("wind_charged"));
+        entries.add(Key.key("weaving"));
+        entries.add(Key.key("oozing"));
+        entries.add(Key.key("infested"));
+        entries.add(Key.key("breath_of_the_nautilus"));
+    }
+
+    /**
+     * @return {@code minecraft:mob_effect}, indexed by network ID
+     */
+    private static List<Key> mobEffect() {
+        final List<Key> entries = new ArrayList<>(40);
+        mobEffect0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:mob_effect}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> mobEffectTags() {
         return Map.of();
     }
 }

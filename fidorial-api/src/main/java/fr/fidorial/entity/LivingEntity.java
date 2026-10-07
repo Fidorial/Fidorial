@@ -2,7 +2,14 @@ package fr.fidorial.entity;
 
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
+import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MobEffect;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * An entity with health that can be hurt and killed.
@@ -76,6 +83,57 @@ public interface LivingEntity extends Entity {
      * @param ticks the burning ticks to set; {@code 0} extinguishes the entity
      */
     void setFireTicks(int ticks);
+
+    /**
+     * Applies a status effect. When the entity already has an effect of the same type, the two are
+     * merged the vanilla way: a higher amplifier replaces it, and an equal one only refreshes a longer
+     * duration. Fires an {@link EntityEffectEvent}.
+     *
+     * @param effect the effect to apply
+     * @return {@code true} if the effects of the entity changed
+     * @since 0.1.0
+     */
+    boolean addEffect(MobEffectInstance effect);
+
+    /**
+     * {@return the running effect of a type, or empty when the entity does not have it}
+     *
+     * @param type the effect, for instance {@code MobEffectKeys.SPEED}
+     * @since 0.1.0
+     */
+    Optional<MobEffectInstance> effect(TypedKey<MobEffect> type);
+
+    /**
+     * {@return {@code true} if the entity has an effect of this type}
+     *
+     * @param type the effect, for instance {@code MobEffectKeys.SPEED}
+     * @since 0.1.0
+     */
+    boolean hasEffect(TypedKey<MobEffect> type);
+
+    /**
+     * {@return a snapshot of the running effects}
+     *
+     * @since 0.1.0
+     */
+    Collection<MobEffectInstance> activeEffects();
+
+    /**
+     * Removes an effect. Fires an {@link EntityEffectEvent}.
+     *
+     * @param type the effect to remove
+     * @return {@code true} if the entity had the effect and it was removed
+     * @since 0.1.0
+     */
+    boolean removeEffect(TypedKey<MobEffect> type);
+
+    /**
+     * Removes every effect, firing an {@link EntityEffectEvent} for each.
+     *
+     * @return {@code true} if at least one effect was removed
+     * @since 0.1.0
+     */
+    boolean clearEffects();
 
     /**
      * Hurts this entity, running the full pipeline: invulnerability frames, armor, absorption,
