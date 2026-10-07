@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @param action  what pressing the button does, or {@code null} to only close the dialog
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record DialogActionButton(
         Component label,
         @Nullable Component tooltip,

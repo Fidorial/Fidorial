@@ -19,6 +19,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoGameModePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoUpdatePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRemoveMobEffectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetActionBarTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
@@ -31,6 +32,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStopSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundTabListPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
@@ -39,6 +41,7 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -48,6 +51,7 @@ import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.keys.GameEventKeys;
@@ -104,6 +108,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public static final int MD_DISPLAYED_SKIN_PARTS =
             16; // The Displayed Skin Parts bit mask that is sent in Client Information
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
+    private static final Key MOB_EFFECT_REGISTRY = RegistryKey.MOB_EFFECT.key();
     private static final int[] ARMOR_SLOTS = {36, 37, 38, 39};
     private static final int VOID_MARGIN = 64;
     private static final float VOID_DAMAGE = 4.0f;
@@ -425,7 +430,35 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setInvulnerableTicks(0);
         setAirSupply(MAX_AIR_SUPPLY);
         setFallDistance(0.0);
+        clearEffectsSilently();
         this.ticksSinceLastAttack.set(MAX_TRACKED_ATTACK_TICKS);
+    }
+
+    @Override
+    protected void onEffectUpdated(final MobEffectInstance effect) {
+        final int id = effectNetworkId(effect);
+        if (id >= 0) {
+            connection.send(ClientboundUpdateMobEffectPacket.of(entityId(), id, effect));
+        }
+    }
+
+    @Override
+    protected void onEffectRemoved(final MobEffectInstance effect) {
+        final int id = effectNetworkId(effect);
+        if (id < 0) {
+            return;
+        }
+        for (final MobEffectInstance other : activeEffects()) {
+            if (effectNetworkId(other) == id) {
+                connection.send(ClientboundUpdateMobEffectPacket.of(entityId(), id, other));
+                return;
+            }
+        }
+        connection.send(new ClientboundRemoveMobEffectPacket(entityId(), id));
+    }
+
+    private int effectNetworkId(final MobEffectInstance effect) {
+        return connection.server().effects().clientNetworkId(this, effect.type().key());
     }
 
     @Override
@@ -851,7 +884,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             return;
         }
         heal(REGENERATION_AMOUNT);
-        connection.send(new ClientboundSetHealthPacket(health(), 20, 5.0f));
+    }
+
+    @Override
+    public void heal(final float amount) {
+        final float before = health();
+        Player.super.heal(amount);
+        if (health() != before) {
+            connection.send(new ClientboundSetHealthPacket(health(), 20, 5.0f));
+        }
     }
 
     @Override

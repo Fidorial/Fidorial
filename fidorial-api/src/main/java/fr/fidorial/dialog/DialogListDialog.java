@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -15,9 +16,9 @@ import java.util.List;
  * @param columns     how many buttons sit side by side
  * @param buttonWidth the width of each button, between 1 and
  *                    {@value DialogActionButton#MAX_WIDTH}
- * @sinceMinecraft 1.21.6
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record DialogListDialog(
         DialogBase base,
         List<Dialog> dialogs,

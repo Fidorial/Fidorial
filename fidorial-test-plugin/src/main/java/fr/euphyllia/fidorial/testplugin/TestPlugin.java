@@ -4,10 +4,12 @@ import fr.euphyllia.fidorial.testplugin.command.ApiTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.BiomeCommand;
 import fr.euphyllia.fidorial.testplugin.command.CustomMobCommand;
 import fr.euphyllia.fidorial.testplugin.command.DialogCommand;
+import fr.euphyllia.fidorial.testplugin.command.EffectTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.ItemCommand;
 import fr.euphyllia.fidorial.testplugin.command.PregenCommand;
 import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
+import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
@@ -129,6 +131,7 @@ public final class TestPlugin implements Plugin {
 //        BullMobs.attachToCows(context.server().mobs(), this, context.logger());
         BullMobs.registerBull(context.server().mobs(), this, context.logger());
         CompanionMobs.register(context.server().mobs(), this, context.logger());
+        TestEffects.registerAll(context.server().effects(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
         this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
@@ -183,6 +186,7 @@ public final class TestPlugin implements Plugin {
         TestChatTypes.unregisterAll(server.chatTypes());
         BullMobs.unregisterAll(server.mobs(), this);
         server.mobs().unregisterAll(this);
+        TestEffects.unregisterAll(server.effects(), this);
         TestPluginTranslations.unregister();
     }
 
@@ -225,6 +229,8 @@ public final class TestPlugin implements Plugin {
 
     private void registerEvents() {
         final var events = context.events();
+
+        TestEffects.capAmplifier(events, logger);
 
         events.subscribe(ServerStatusRequestEvent.class, event -> event.status(event.status().toBuilder()
                 .description(Component.text("HELLO!!!"))
@@ -404,5 +410,6 @@ public final class TestPlugin implements Plugin {
         registry.register(context.meta(), new DialogCommand(this).create());
         registry.register(context.meta(), new CustomMobCommand(this).create());
         registry.register(context.meta(), new ItemCommand(this).create());
+        registry.register(context.meta(), new EffectTestCommand(this).create());
     }
 }

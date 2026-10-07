@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -16,6 +17,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public sealed interface DialogAction
         permits DialogAction.Static, DialogAction.ShowDialog, DialogAction.DynamicRunCommand, DialogAction.DynamicCustom {
 

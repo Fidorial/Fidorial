@@ -255,5 +255,15 @@
   "command.posteffect.remove.unchanged" : "<red>Aucun changement. L'effet de post-traitement <arg:0> n'a pu être retiré d'aucune cible",
   "command.posteffect.clear.unchanged" : "<red>Aucun changement. Aucune cible n'avait d'effet de post-traitement à retirer",
   "command.posteffect.list" : "<arg:0> a <arg:1> effet(s) de post-traitement actif(s) : <arg:2>",
-  "command.posteffect.list.none" : "<arg:0> n'a aucun effet de post-traitement actif"
+  "command.posteffect.list.none" : "<arg:0> n'a aucun effet de post-traitement actif",
+
+  "commands.effect.give.success.single" : "Effet <arg:0> appliqué à <arg:1>",
+  "commands.effect.give.success.multiple" : "Effet <arg:0> appliqué à <arg:1> cibles",
+  "commands.effect.give.failed" : "<red>Impossible d'appliquer cet effet (la cible est insensible aux effets ou subit déjà un effet plus puissant)",
+  "commands.effect.clear.everything.success.single" : "Tous les effets de <arg:0> ont été retirés",
+  "commands.effect.clear.everything.success.multiple" : "Tous les effets de <arg:0> cibles ont été retirés",
+  "commands.effect.clear.everything.failed" : "<red>La cible n'a aucun effet à retirer",
+  "commands.effect.clear.specific.success.single" : "Effet <arg:0> retiré de <arg:1>",
+  "commands.effect.clear.specific.success.multiple" : "Effet <arg:0> retiré de <arg:1> cibles",
+  "commands.effect.clear.specific.failed" : "<red>La cible n'a pas l'effet demandé"
 }

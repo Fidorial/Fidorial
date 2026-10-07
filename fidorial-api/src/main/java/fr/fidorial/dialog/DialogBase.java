@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
@@ -25,6 +26,7 @@ import java.util.Set;
  * @param afterAction        what the client does with the screen once a button has been pressed
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record DialogBase(
         Component title,
         @Nullable Component externalTitle,

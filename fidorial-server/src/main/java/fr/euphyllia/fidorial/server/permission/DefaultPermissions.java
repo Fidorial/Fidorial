@@ -30,6 +30,7 @@ public final class DefaultPermissions {
                 command("banip", "Ban an IP, permanently or for a set time."),
                 command("banlist", "List the banned players."),
                 command("bossbar", "Create a bossbar."),
+                command("effect", "Applies a potion effect to an entity"),
                 command("datapack", "List and reload the datapacks of the world."),
                 command("fillbiome", "Repaint the biomes of a region."),
                 command("forceload", "Keep chunks loaded without any player nearby."),

@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 
 /**
  * A dialog with two buttons in its footer.
@@ -8,9 +9,9 @@ import com.google.common.base.Preconditions;
  * @param base the shared title, contents and behaviour
  * @param yes  the button for the positive outcome
  * @param no   the button for the negative outcome
- * @sinceMinecraft 1.21.6
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record ConfirmationDialog(DialogBase base, DialogActionButton yes, DialogActionButton no)
         implements DialogDefinition {
 

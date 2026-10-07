@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import fr.fidorial.Server;
+import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -14,6 +15,7 @@ import java.util.Optional;
  * @see Server#dialogs()
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public interface DialogRegistry {
 
     /**

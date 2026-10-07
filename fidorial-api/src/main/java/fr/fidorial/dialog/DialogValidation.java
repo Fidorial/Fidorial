@@ -1,10 +1,14 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 
 /**
  * Argument checks shared by the dialog records.
+ *
+ * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 final class DialogValidation {
 
     private DialogValidation() {

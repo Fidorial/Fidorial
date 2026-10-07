@@ -1,5 +1,6 @@
 package fr.fidorial.dialog;
 
+import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.key.Key;
@@ -13,6 +14,7 @@ import java.util.List;
  *
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public sealed interface Dialog extends DialogLike permits DialogDefinition, DialogReference {
 
     /**

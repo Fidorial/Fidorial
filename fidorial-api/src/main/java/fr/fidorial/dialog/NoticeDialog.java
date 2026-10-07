@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 
@@ -10,9 +11,10 @@ import org.jetbrains.annotations.Contract;
  *
  * @param base   the shared title, contents and behaviour
  * @param action the only button of the dialog
- * @sinceMinecraft 1.21.6
+ *
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record NoticeDialog(DialogBase base, DialogActionButton action) implements DialogDefinition {
 
     /**

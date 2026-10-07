@@ -5,6 +5,8 @@ import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.entity.OfflinePlayers;
 import fr.fidorial.entity.Player;
+import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.entity.effect.MobEffectRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRules;
@@ -88,6 +90,19 @@ public interface Server extends ForwardingAudience {
      * @since 0.1.0
      */
     void shutdown();
+
+    /**
+     * Gets the server-wide effect registry.
+     *
+     * <p>Where plugins create the {@linkplain MobEffectInstance effects} they
+     * apply, {@linkplain MobEffectRegistry#attach give behaviour} to vanilla effects and
+     * {@linkplain MobEffectRegistry#register add} effects of their own.</p>
+     *
+     * @return the effect registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    MobEffectRegistry effects();
 
     /**
      * Gets the server's favicon shown in the status ping.
