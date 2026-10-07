@@ -7,10 +7,10 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
 import net.kyori.adventure.key.Key;
-import fr.fidorial.math.Location;
 
 import java.util.Collection;
 import java.util.List;
