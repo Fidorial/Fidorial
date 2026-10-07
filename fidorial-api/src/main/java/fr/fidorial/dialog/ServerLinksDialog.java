@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -13,9 +14,10 @@ import org.jspecify.annotations.Nullable;
  * @param columns     how many links sit side by side
  * @param buttonWidth the width of each link button, between 1 and
  *                    {@value DialogActionButton#MAX_WIDTH}
- * @sinceMinecraft 1.21.6
+ *
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record ServerLinksDialog(
         DialogBase base,
         @Nullable DialogActionButton exitAction,

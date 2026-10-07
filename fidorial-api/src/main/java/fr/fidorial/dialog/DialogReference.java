@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.key.Key;
 
 
@@ -11,6 +12,7 @@ import net.kyori.adventure.key.Key;
  * @see Dialog#reference(Key)
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record DialogReference(Key key) implements Dialog {
 
     /**

@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import org.jetbrains.annotations.Contract;
@@ -14,6 +15,7 @@ import java.util.List;
  *
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public sealed interface DialogInput
         permits DialogInput.Text, DialogInput.Bool, DialogInput.SingleOption, DialogInput.NumberRange {
     /**

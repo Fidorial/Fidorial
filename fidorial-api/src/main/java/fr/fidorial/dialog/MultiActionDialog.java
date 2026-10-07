@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -15,6 +16,7 @@ import java.util.List;
  * @param exitAction the footer button, or {@code null} for no footer
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record MultiActionDialog(
         DialogBase base,
         List<DialogActionButton> actions,

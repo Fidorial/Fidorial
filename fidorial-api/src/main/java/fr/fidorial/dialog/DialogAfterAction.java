@@ -1,10 +1,14 @@
 package fr.fidorial.dialog;
 
+import fr.fidorial.annotation.SinceMinecraft;
+
 /**
  * What the client does with a dialog screen once a click or submit action has been performed.
  *
  * @since 0.1.0
+ * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public enum DialogAfterAction {
 
     /**

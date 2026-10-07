@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -18,6 +19,7 @@ import java.util.Set;
  * @param values the raw payload received from the client
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record DialogResponse(CompoundBinaryTag values) {
     /**
      * A response carrying nothing, as sent by a dialog with no input control.

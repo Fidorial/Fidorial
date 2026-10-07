@@ -1,6 +1,7 @@
 package fr.fidorial.event.player;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.Player;
@@ -12,9 +13,9 @@ import net.kyori.adventure.key.Key;
  * {@link DialogAction#custom(Key) custom} or
  * {@link DialogAction#dynamicCustom(Key) dynamic custom} action.
  *
- * @sinceMinecraft 1.21.6
  * @since 0.1.0
  */
+@SinceMinecraft("1.21.6")
 public record PlayerDialogActionEvent(Player player, Key id, DialogResponse response) implements PlayerEvent {
 
     /**
