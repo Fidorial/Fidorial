@@ -109,7 +109,7 @@ public final class ChunkStorage implements AutoCloseable {
     }
 
     public void save(final Dimension dim, final ChunkColumn chunk) throws IOException {
-        chunk.setLastUpdate(System.currentTimeMillis() / 20L); // roughly, in ticks
+        chunk.setLastUpdate(System.currentTimeMillis() / 50L);
         final CompoundBinaryTag nbt = serializer.toNbt(chunk);
         final RegionFile rf = region(dim, chunk.chunkX(), chunk.chunkZ());
         rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
