@@ -13,11 +13,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 
@@ -96,10 +97,10 @@ public final class Explosion {
     }
 
     private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final Location center, final float power) {
-        final Set<BlockPos> toDestroy = collectExplodedBlocks(world, center, power);
-        final List<BlockPos> destroyed = new ArrayList<>(toDestroy.size());
+        final Set<BlockPosition> toDestroy = collectExplodedBlocks(world, center, power);
+        final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
 
-        for (final BlockPos pos : toDestroy) {
+        for (final BlockPosition pos : toDestroy) {
             if (server.blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
                 destroyed.add(pos);
             }
@@ -109,15 +110,15 @@ public final class Explosion {
         }
 
         for (int i = 0; i < destroyed.size(); i += 5) {
-            final BlockPos broken = destroyed.get(i);
+            final BlockPosition broken = destroyed.get(i);
             server.broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
                     new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false));
         }
     }
 
-    private static Set<BlockPos> collectExplodedBlocks(final ServerWorld world, final Location center, final float power) {
-        final Set<BlockPos> out = new HashSet<>();
+    private static Set<BlockPosition> collectExplodedBlocks(final ServerWorld world, final Location center, final float power) {
+        final Set<BlockPosition> out = new HashSet<>();
         final var random = ThreadLocalRandom.current();
         final double ox = center.x();
         final double oy = center.y();
@@ -148,7 +149,7 @@ public final class Explosion {
                         if (state != null && !state.isAir()) {
                             intensity -= (resistanceOf(state) + 0.3f) * 0.3f;
                             if (intensity > 0.0f) {
-                                out.add(new BlockPos(bx, by, bz));
+                                out.add(Position.block(bx, by, bz));
                             }
                         }
                         px += dx * STEP;

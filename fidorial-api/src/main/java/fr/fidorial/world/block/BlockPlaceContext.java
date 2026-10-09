@@ -1,9 +1,9 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
  * @param cursorY     the height of the click on the clicked face, from {@code 0} to {@code 1}
  * @since 0.1.0
  */
-public record BlockPlaceContext(BlockPos pos, BlockFace clickedFace, Location placer, BlockGetter world,
+public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Location placer, BlockGetter world,
                                 float cursorY) {
 
     private static final Key WATER = BlockTypeKeys.WATER.key();
@@ -94,6 +94,18 @@ public record BlockPlaceContext(BlockPos pos, BlockFace clickedFace, Location pl
      */
     public @Nullable BlockData relative(final BlockFace face) {
         return world.blockAt(pos.relative(face));
+    }
+
+    /**
+     * {@return {@code true} when the block on that side can hold the placed block: it is loaded, and neither
+     * air nor a fluid}
+     *
+     * @param side the side the placed block would be attached to
+     * @since 0.1.0
+     */
+    public boolean canAttachTo(final BlockFace side) {
+        final BlockData neighbour = relative(side);
+        return neighbour != null && !neighbour.isAir() && !neighbour.isFluid();
     }
 
     /**

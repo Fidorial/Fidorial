@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.configuration.migration;
 
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
-import fr.euphyllia.fidorial.server.configuration.migration.schemas.LegacyToV1Schema;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 
@@ -16,7 +15,7 @@ public final class ConfigurationSchemas {
 
     public static final ConfigurationSchemas SERVER = new ConfigurationSchemas(
             "config-version",
-            LegacyToV1Schema.VERSION,
+            1,
             List.of(
                     // V2 and later go here
             ));

@@ -7,10 +7,9 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -40,10 +39,9 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             final int entityId,
             final UUID uuid,
             final EntityType type,
-            final World world,
             final Location location,
             final float maxHealth) {
-        super(entityId, uuid, type, world, location);
+        super(entityId, uuid, type, location);
         this.maxHealth = maxHealth;
         this.health = maxHealth;
     }

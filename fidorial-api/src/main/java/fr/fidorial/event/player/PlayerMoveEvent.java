@@ -2,7 +2,7 @@ package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 /**
  * Fired when a player moves or turns, before the new position is applied.

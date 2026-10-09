@@ -2867,6 +2867,11 @@ public final class ItemKeys {
     public static final TypedKey<Item> FROGSPAWN = create("frogspawn");
 
     /**
+     * Key for {@code minecraft:frostbite_spawn_egg}.
+     */
+    public static final TypedKey<Item> FROSTBITE_SPAWN_EGG = create("frostbite_spawn_egg");
+
+    /**
      * Key for {@code minecraft:furnace}.
      */
     public static final TypedKey<Item> FURNACE = create("furnace");
@@ -3425,6 +3430,21 @@ public final class ItemKeys {
      * Key for {@code minecraft:ice}.
      */
     public static final TypedKey<Item> ICE = create("ice");
+
+    /**
+     * Key for {@code minecraft:ice_ball}.
+     */
+    public static final TypedKey<Item> ICE_BALL = create("ice_ball");
+
+    /**
+     * Key for {@code minecraft:ice_crystal}.
+     */
+    public static final TypedKey<Item> ICE_CRYSTAL = create("ice_crystal");
+
+    /**
+     * Key for {@code minecraft:icicle}.
+     */
+    public static final TypedKey<Item> ICICLE = create("icicle");
 
     /**
      * Key for {@code minecraft:infested_chiseled_stone_bricks}.
@@ -8873,6 +8893,7 @@ public final class ItemKeys {
         FRIEND_POTTERY_SHERD,
         FROG_SPAWN_EGG,
         FROGSPAWN,
+        FROSTBITE_SPAWN_EGG,
         FURNACE,
         FURNACE_MINECART,
         GHAST_SPAWN_EGG,
@@ -8985,6 +9006,9 @@ public final class ItemKeys {
         HOWL_POTTERY_SHERD,
         HUSK_SPAWN_EGG,
         ICE,
+        ICE_BALL,
+        ICE_CRYSTAL,
+        ICICLE,
         INFESTED_CHISELED_STONE_BRICKS,
         INFESTED_COBBLESTONE,
         INFESTED_CRACKED_STONE_BRICKS,

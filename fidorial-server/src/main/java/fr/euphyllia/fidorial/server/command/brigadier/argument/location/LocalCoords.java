@@ -4,7 +4,7 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.euphyllia.fidorial.server.world.CoordMath;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 public record LocalCoords(LocalCoord x, LocalCoord y, LocalCoord z) {
 

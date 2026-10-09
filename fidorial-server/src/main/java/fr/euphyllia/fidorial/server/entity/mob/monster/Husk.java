@@ -2,17 +2,16 @@ package fr.euphyllia.fidorial.server.entity.mob.monster;
 
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.sound.Sound;
 
 public final class Husk extends Zombie {
 
     public static final float MAX_HEALTH = 20f;
 
-    public Husk(final int entityId, final World world, final Location location) {
-        super(entityId, EntityTypes.HUSK, world, location, SpawnData.roll());
+    public Husk(final int entityId, final Location location) {
+        super(entityId, EntityTypes.HUSK, location, SpawnData.roll());
     }
 
     @Override

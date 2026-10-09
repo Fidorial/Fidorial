@@ -59,7 +59,6 @@ public final class OpCommand {
                         Component.translatable(grant ? "command.op.granted.self" : "command.op.revoked.self"));
 
                 context.getSource()
-                        .sender()
                         .sendMessage(Component.translatable(
                                 grant ? "command.op.granted.other" : "command.op.revoked.other",
                                 Component.text(target.name())));

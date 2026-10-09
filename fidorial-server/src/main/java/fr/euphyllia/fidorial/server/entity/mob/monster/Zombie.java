@@ -19,11 +19,10 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -80,6 +79,9 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     private static final int DROWNED_CONVERSION_TICKS = 300;
 
+    private static final int POWDER_SNOW_TICKS_BEFORE_CONVERSION = 140;
+    private static final int FROSTBITE_CONVERSION_TICKS = 300;
+
     private static final Key BURN_IN_DAYLIGHT = Key.key("burn_in_daylight");
     private static final int AMBIENT_CHANCE = 80;
 
@@ -100,16 +102,17 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private int fireTicks;
     private int inWaterTicks = -1;
     private int drownedConversionTicks = -1;
+    private int powderSnowTicks;
+    private int frostbiteConversionTicks = -1;
     private boolean metadataSent;
     private boolean sentOnFire;
 
-    public Zombie(final int entityId, final World world, final Location location) {
-        this(entityId, EntityTypes.ZOMBIE, world, location, SpawnData.roll());
+    public Zombie(final int entityId, final Location location) {
+        this(entityId, EntityTypes.ZOMBIE, location, SpawnData.roll());
     }
 
-    protected Zombie(final int entityId, final EntityType type, final World world,
-                     final Location location, final SpawnData data) {
-        super(entityId, UUID.randomUUID(), type, world, location, data.maxHealth());
+    protected Zombie(final int entityId, final EntityType type, final Location location, final SpawnData data) {
+        super(entityId, UUID.randomUUID(), type, location, data.maxHealth());
 
         this.baby = data.baby();
         this.leader = data.leader();
@@ -184,6 +187,14 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         return SoundEvents.ZOMBIE_CONVERTED_TO_DROWNED;
     }
 
+    protected @Nullable EntityType powderSnowConversionType() {
+        return EntityTypes.FROSTBITE;
+    }
+
+    protected Sound.Type powderSnowConversionSound() {
+        return SoundEvents.ZOMBIE_CONVERTED_TO_FROSTBITE;
+    }
+
     @Override
     public double movementSpeed() {
         return baby ? BABY_SPEED : ADULT_SPEED;
@@ -229,6 +240,10 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         tickAmbientSound();
         tickSunlight(currentTick);
         tickDrowning();
+        if (isRemoved()) {
+            return;
+        }
+        tickPowderSnow();
         if (isRemoved()) {
             return;
         }
@@ -303,10 +318,33 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         playSound(waterConversionSound(), 2.0f, voicePitch());
     }
 
+    private void tickPowderSnow() {
+        final EntityType conversion = powderSnowConversionType();
+        if (conversion == null || drownedConversionTicks >= 0) {
+            return;
+        }
+        if (frostbiteConversionTicks >= 0) {
+            if (--frostbiteConversionTicks <= 0) {
+                playPositionalSound(powderSnowConversionSound(), 2.0f, voicePitch());
+                convertTo(conversion);
+            }
+            return;
+        }
+
+        if (isInPowderSnow()) {
+            if (++powderSnowTicks >= POWDER_SNOW_TICKS_BEFORE_CONVERSION) {
+                powderSnowTicks = 0;
+                fireTicks = 0;
+                frostbiteConversionTicks = FROSTBITE_CONVERSION_TICKS;
+            }
+        } else {
+            powderSnowTicks = 0;
+        }
+    }
+
     protected void convertTo(final EntityType type) {
         final Location loc = location();
-        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(),
-                world(), loc);
+        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(), loc);
         server().despawnEntity(this);
         server().spawnEntity(converted);
     }
@@ -328,7 +366,6 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     }
 
     protected void onAttackLanded(final ServerPlayer target) {
-
     }
 
     @Override
@@ -384,8 +421,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
                 continue;
             }
 
-            final Zombie reinforcement = new Zombie(server().entityIds().allocate(), world,
-                    new Location(x, y, z, 0f, 0f));
+            final Zombie reinforcement = new Zombie(server().entityIds().allocate(), Location.of(world, x, y, z, 0f, 0f));
             reinforcement.reinforcementChance =
                     Math.max(0.0, reinforcement.reinforcementChance - REINFORCEMENT_DECAY);
             reinforcement.setTarget(attacker);

@@ -107,6 +107,7 @@ public final class EntityProperties {
         register(Key.key("fishing_bobber"), 0.25f, 0.25f);
         register(Key.key("fox"), 0.6f, 0.7f);
         register(Key.key("frog"), 0.5f, 0.5f);
+        register(Key.key("frostbite"), 0.6f, 1.95f);
         register(Key.key("furnace_minecart"), 0.98f, 0.7f);
         register(Key.key("ghast"), 4.0f, 4.0f);
         register(Key.key("giant"), 3.6f, 12.0f);
@@ -119,6 +120,7 @@ public final class EntityProperties {
         register(Key.key("hopper_minecart"), 0.98f, 0.7f);
         register(Key.key("horse"), 1.3964844f, 1.6f);
         register(Key.key("husk"), 0.6f, 1.95f);
+        register(Key.key("ice_ball"), 0.25f, 0.25f);
         register(Key.key("illusioner"), 0.6f, 1.95f);
         register(Key.key("interaction"), 0.0f, 0.0f);
         register(Key.key("iron_golem"), 1.4f, 2.7f);

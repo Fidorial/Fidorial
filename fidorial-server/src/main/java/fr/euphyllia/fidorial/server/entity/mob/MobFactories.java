@@ -52,6 +52,7 @@ import fr.euphyllia.fidorial.server.entity.mob.monster.EnderDragon;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Enderman;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Endermite;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Evoker;
+import fr.euphyllia.fidorial.server.entity.mob.monster.Frostbite;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Ghast;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Giant;
 import fr.euphyllia.fidorial.server.entity.mob.monster.Guardian;
@@ -93,8 +94,7 @@ import fr.euphyllia.fidorial.server.entity.mob.water_creature.Squid;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Tadpole;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.TropicalFish;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
@@ -131,6 +131,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.EVOKER.key(), Evoker::new),
             Map.entry(EntityTypes.FOX.key(), Fox::new),
             Map.entry(EntityTypes.FROG.key(), Frog::new),
+            Map.entry(EntityTypes.FROSTBITE.key(), Frostbite::new),
             Map.entry(EntityTypes.GHAST.key(), Ghast::new),
             Map.entry(EntityTypes.GIANT.key(), Giant::new),
             Map.entry(EntityTypes.GLOW_SQUID.key(), GlowSquid::new),
@@ -216,16 +217,16 @@ public final class MobFactories {
     }
 
 
-    public static AbstractMob create(final EntityType type, final int entityId, final World world, final Location location) {
+    public static AbstractMob create(final EntityType type, final int entityId, final Location location) {
         final FidorialMobRegistry registry = registry();
 
-        AbstractMob mob = registry.createDefined(type, entityId, world, location);
+        AbstractMob mob = registry.createDefined(type, entityId, location);
         if (mob == null) {
             final MobFactory factory = FACTORIES.get(type.key());
             if (factory == null) {
                 throw new IllegalArgumentException("No mob implemented for " + type.key());
             }
-            mob = factory.create(entityId, world, location);
+            mob = factory.create(entityId, location);
         }
 
         registry.applyBehaviours(mob);
@@ -238,6 +239,6 @@ public final class MobFactories {
 
     @FunctionalInterface
     public interface MobFactory {
-        AbstractMob create(int entityId, World world, Location location);
+        AbstractMob create(int entityId, Location location);
     }
 }

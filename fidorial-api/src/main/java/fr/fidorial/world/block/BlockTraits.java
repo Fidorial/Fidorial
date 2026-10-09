@@ -12,8 +12,10 @@ import fr.fidorial.world.block.data.Rotatable;
 import fr.fidorial.world.block.data.Snowable;
 import fr.fidorial.world.block.data.Waterlogged;
 import fr.fidorial.world.block.data.type.Door;
+import fr.fidorial.world.block.data.type.Icicle;
 import fr.fidorial.world.block.data.type.NoteBlock;
 import fr.fidorial.world.block.data.type.Slab;
+import fr.fidorial.world.block.data.type.Speleothem;
 import fr.fidorial.world.block.data.type.Stairs;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
@@ -31,6 +33,8 @@ final class BlockTraits {
     private static final Set<String> AXES = Set.of("x", "y", "z");
     private static final Set<String> HALVES = Set.of("top", "bottom", "upper", "lower");
     private static final Set<String> SLAB_TYPES = Set.of("top", "bottom", "double");
+    private static final Set<String> SPELEOTHEM_THICKNESSES = Set.of("tip_merge", "tip", "frustum", "middle", "base");
+    private static final Set<String> VERTICAL_DIRECTIONS = Set.of("up", "down");
     private static final Key NOTE_BLOCK = Key.key("note_block");
 
     private BlockTraits() {
@@ -91,6 +95,15 @@ final class BlockTraits {
         }
         if (facing != null && half != null && find(properties, "hinge") != null && find(properties, "open") != null) {
             traits.add(Door.class);
+        }
+        final BlockProperty thickness = find(properties, "thickness");
+        final BlockProperty verticalDirection = find(properties, "vertical_direction");
+        if (thickness != null
+                && SPELEOTHEM_THICKNESSES.containsAll(thickness.values())
+                && verticalDirection != null
+                && VERTICAL_DIRECTIONS.containsAll(verticalDirection.values())
+                && find(properties, "waterlogged") != null) {
+            traits.add(find(properties, "attached") != null ? Icicle.class : Speleothem.class);
         }
 
         return traits;

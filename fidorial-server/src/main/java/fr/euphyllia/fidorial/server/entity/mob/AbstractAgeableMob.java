@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -22,9 +21,9 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
     private boolean growthFrozen;
     private boolean babyMetadataSent;
 
-    protected AbstractAgeableMob(final int entityId, final UUID uuid, final EntityType type, final World world,
+    protected AbstractAgeableMob(final int entityId, final UUID uuid, final EntityType type,
                                  final Location location, final float maxHealth, final boolean baby) {
-        super(entityId, uuid, type, world, location, maxHealth);
+        super(entityId, uuid, type, location, maxHealth);
         this.baby = baby;
         this.growthTicks = baby ? GROW_UP_TICKS : 0;
     }

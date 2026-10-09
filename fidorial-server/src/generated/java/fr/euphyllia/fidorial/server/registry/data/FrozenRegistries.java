@@ -1207,6 +1207,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("red_candle_cake"));
         entries.add(Key.key("black_candle_cake"));
         entries.add(Key.key("amethyst_block"));
+        entries.add(Key.key("ice_crystal"));
         entries.add(Key.key("budding_amethyst"));
         entries.add(Key.key("amethyst_cluster"));
         entries.add(Key.key("large_amethyst_bud"));
@@ -1337,10 +1338,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("waxed_weathered_copper_bulb"));
         entries.add(Key.key("waxed_oxidized_copper_bulb"));
         entries.add(Key.key("copper_chest"));
-        entries.add(Key.key("exposed_copper_chest"));
     }
 
     private static void block6(final List<Key> entries) {
+        entries.add(Key.key("exposed_copper_chest"));
         entries.add(Key.key("weathered_copper_chest"));
         entries.add(Key.key("oxidized_copper_chest"));
         entries.add(Key.key("waxed_copper_chest"));
@@ -1364,6 +1365,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("waxed_weathered_lightning_rod"));
         entries.add(Key.key("waxed_oxidized_lightning_rod"));
         entries.add(Key.key("dripstone_block"));
+        entries.add(Key.key("icicle"));
         entries.add(Key.key("pointed_dripstone"));
         entries.add(Key.key("sulfur_spike"));
         entries.add(Key.key("cave_vines"));
@@ -1433,7 +1435,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:block}, indexed by network ID
      */
     private static List<Key> block() {
-        final List<Key> entries = new ArrayList<>(1286);
+        final List<Key> entries = new ArrayList<>(1288);
         block0(entries);
         block1(entries);
         block2(entries);
@@ -1760,7 +1762,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -2187,7 +2189,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -2615,7 +2617,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -3037,7 +3039,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -3459,7 +3461,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -3879,7 +3881,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -4297,7 +4299,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -4607,8 +4609,7 @@ public final class FrozenRegistries {
                 Key.key("rooted_dirt")));
         tags.put(Key.key("cannot_support_kelp"), List.of(Key.key("magma_block")));
         tags.put(Key.key("cannot_support_seagrass"), List.of(Key.key("magma_block")));
-        tags.put(Key.key("cannot_support_snow_layer"), List.of(Key.key("barrier"), Key.key("ice"),
-                Key.key("packed_ice")));
+        tags.put(Key.key("cannot_support_snow_layer"), List.of(Key.key("barrier"), Key.key("ice")));
         tags.put(Key.key("cat_does_not_teleport_to"), List.of(Key.key("cactus"),
                 Key.key("campfire"), Key.key("fire"), Key.key("lava_cauldron"),
                 Key.key("magma_block"), Key.key("pointed_dripstone"), Key.key("powder_snow"),
@@ -4626,11 +4627,11 @@ public final class FrozenRegistries {
                 Key.key("light_gray_bed"), Key.key("lime_bed"), Key.key("magenta_bed"),
                 Key.key("orange_bed"), Key.key("pink_bed"), Key.key("purple_bed"),
                 Key.key("red_bed"), Key.key("white_bed"), Key.key("yellow_bed")));
+        tags.put(Key.key("cauldrons"), List.of(Key.key("cauldron"), Key.key("lava_cauldron"),
+                Key.key("powder_snow_cauldron"), Key.key("water_cauldron")));
     }
 
     private static void blockTags10(final Map<Key, List<Key>> tags) {
-        tags.put(Key.key("cauldrons"), List.of(Key.key("cauldron"), Key.key("lava_cauldron"),
-                Key.key("powder_snow_cauldron"), Key.key("water_cauldron")));
         tags.put(Key.key("causes_continuous_geyser_eruptions"), List.of(Key.key("lava")));
         tags.put(Key.key("causes_periodic_geyser_eruptions"), List.of(Key.key("magma_block")));
         tags.put(Key.key("causes_suffocation"), List.of(Key.key("acacia_door"),
@@ -4794,7 +4795,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -5457,7 +5458,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -5822,8 +5823,8 @@ public final class FrozenRegistries {
                 Key.key("waxed_weathered_copper_chest"), Key.key("weathered_copper_chest"),
                 Key.key("white_shulker_box"), Key.key("yellow_shulker_box")));
         tags.put(Key.key("happy_ghast_avoids"), List.of(Key.key("cactus"), Key.key("fire"),
-                Key.key("magma_block"), Key.key("pointed_dripstone"), Key.key("sulfur_spike"),
-                Key.key("sweet_berry_bush"), Key.key("wither_rose")));
+                Key.key("icicle"), Key.key("magma_block"), Key.key("pointed_dripstone"),
+                Key.key("sulfur_spike"), Key.key("sweet_berry_bush"), Key.key("wither_rose")));
         tags.put(Key.key("height_specific_ore_replaceables"), List.of(Key.key("tuff")));
         tags.put(Key.key("hoglin_repellents"), List.of(Key.key("nether_portal"),
                 Key.key("potted_warped_fungus"), Key.key("respawn_anchor"),
@@ -5840,6 +5841,8 @@ public final class FrozenRegistries {
                 Key.key("rooted_dirt"), Key.key("warped_nylium")));
         tags.put(Key.key("ice"), List.of(Key.key("blue_ice"), Key.key("frosted_ice"),
                 Key.key("ice"), Key.key("packed_ice")));
+        tags.put(Key.key("ice_cave_ore_replaceables"), List.of(Key.key("calcite"),
+                Key.key("packed_ice")));
         tags.put(Key.key("ice_melts_when_destroyed_above"), List.of(Key.key("acacia_door"),
                 Key.key("acacia_fence"), Key.key("acacia_fence_gate"),
                 Key.key("acacia_hanging_sign"), Key.key("acacia_leaves"), Key.key("acacia_log"),
@@ -6001,7 +6004,7 @@ public final class FrozenRegistries {
                 Key.key("green_wool_stairs"), Key.key("grindstone"), Key.key("hay_block"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("honey_block"),
                 Key.key("honeycomb_block"), Key.key("hopper"), Key.key("horn_coral_block"),
-                Key.key("ice"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("ice"), Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
                 Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
                 Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
                 Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
@@ -6429,6 +6432,8 @@ public final class FrozenRegistries {
                 Key.key("weathered_copper_lantern")));
         tags.put(Key.key("lapis_ores"), List.of(Key.key("deepslate_lapis_ore"),
                 Key.key("lapis_ore")));
+        tags.put(Key.key("large_icicle_replaceable"), List.of(Key.key("calcite"),
+                Key.key("deepslate"), Key.key("packed_ice"), Key.key("stone")));
         tags.put(Key.key("lava_pool_stone_cannot_replace"), List.of(Key.key("acacia_leaves"),
                 Key.key("acacia_log"), Key.key("acacia_wood"), Key.key("azalea_leaves"),
                 Key.key("bedrock"), Key.key("birch_leaves"), Key.key("birch_log"),
@@ -6535,6 +6540,7 @@ public final class FrozenRegistries {
         tags.put(Key.key("mangrove_roots_can_grow_through"), List.of(Key.key("mangrove_propagule"),
                 Key.key("mangrove_roots"), Key.key("moss_carpet"), Key.key("mud"),
                 Key.key("muddy_mangrove_roots"), Key.key("snow"), Key.key("vine")));
+        tags.put(Key.key("melts_icicle_above"), List.of(Key.key("magma_block")));
         tags.put(Key.key("mineable/axe"), List.of(Key.key("acacia_button"), Key.key("acacia_door"),
                 Key.key("acacia_fence"), Key.key("acacia_fence_gate"),
                 Key.key("acacia_hanging_sign"), Key.key("acacia_log"), Key.key("acacia_planks"),
@@ -6761,22 +6767,22 @@ public final class FrozenRegistries {
                 Key.key("green_glazed_terracotta"), Key.key("green_shulker_box"),
                 Key.key("green_terracotta"), Key.key("grindstone"), Key.key("heavy_core"),
                 Key.key("heavy_weighted_pressure_plate"), Key.key("hopper"),
-                Key.key("horn_coral_block"), Key.key("ice"),
-                Key.key("infested_chiseled_stone_bricks"), Key.key("infested_cobblestone"),
-                Key.key("infested_cracked_stone_bricks"), Key.key("infested_deepslate"),
-                Key.key("infested_mossy_stone_bricks"), Key.key("infested_stone"),
-                Key.key("infested_stone_bricks"), Key.key("iron_bars"), Key.key("iron_block"),
-                Key.key("iron_chain"), Key.key("iron_door"), Key.key("iron_ore"),
-                Key.key("iron_trapdoor"), Key.key("lantern"), Key.key("lapis_block"),
-                Key.key("lapis_ore"), Key.key("large_amethyst_bud"), Key.key("lava_cauldron"),
-                Key.key("light_blue_concrete"), Key.key("light_blue_concrete_slab"),
-                Key.key("light_blue_concrete_stairs"), Key.key("light_blue_glazed_terracotta"),
-                Key.key("light_blue_shulker_box"), Key.key("light_blue_terracotta"),
-                Key.key("light_gray_concrete"), Key.key("light_gray_concrete_slab"),
-                Key.key("light_gray_concrete_stairs"), Key.key("light_gray_glazed_terracotta"),
-                Key.key("light_gray_shulker_box"), Key.key("light_gray_terracotta"),
-                Key.key("light_weighted_pressure_plate"), Key.key("lightning_rod"),
-                Key.key("lime_concrete"), Key.key("lime_concrete_slab"),
+                Key.key("horn_coral_block"), Key.key("ice"), Key.key("ice_crystal"),
+                Key.key("icicle"), Key.key("infested_chiseled_stone_bricks"),
+                Key.key("infested_cobblestone"), Key.key("infested_cracked_stone_bricks"),
+                Key.key("infested_deepslate"), Key.key("infested_mossy_stone_bricks"),
+                Key.key("infested_stone"), Key.key("infested_stone_bricks"), Key.key("iron_bars"),
+                Key.key("iron_block"), Key.key("iron_chain"), Key.key("iron_door"),
+                Key.key("iron_ore"), Key.key("iron_trapdoor"), Key.key("lantern"),
+                Key.key("lapis_block"), Key.key("lapis_ore"), Key.key("large_amethyst_bud"),
+                Key.key("lava_cauldron"), Key.key("light_blue_concrete"),
+                Key.key("light_blue_concrete_slab"), Key.key("light_blue_concrete_stairs"),
+                Key.key("light_blue_glazed_terracotta"), Key.key("light_blue_shulker_box"),
+                Key.key("light_blue_terracotta"), Key.key("light_gray_concrete"),
+                Key.key("light_gray_concrete_slab"), Key.key("light_gray_concrete_stairs"),
+                Key.key("light_gray_glazed_terracotta"), Key.key("light_gray_shulker_box"),
+                Key.key("light_gray_terracotta"), Key.key("light_weighted_pressure_plate"),
+                Key.key("lightning_rod"), Key.key("lime_concrete"), Key.key("lime_concrete_slab"),
                 Key.key("lime_concrete_stairs"), Key.key("lime_glazed_terracotta"),
                 Key.key("lime_shulker_box"), Key.key("lime_terracotta"), Key.key("lodestone"),
                 Key.key("magenta_concrete"), Key.key("magenta_concrete_slab"),
@@ -7063,6 +7069,38 @@ public final class FrozenRegistries {
                 Key.key("stripped_spruce_wood"), Key.key("stripped_warped_hyphae"),
                 Key.key("stripped_warped_stem"), Key.key("warped_hyphae"), Key.key("warped_stem"),
                 Key.key("yellow_poplar_leaves")));
+        tags.put(Key.key("pathfinding/avoid_in_air"), List.of(Key.key("cocoa")));
+        tags.put(Key.key("pathfinding/damage_cautious"), List.of(Key.key("icicle"),
+                Key.key("pointed_dripstone"), Key.key("sulfur_spike"), Key.key("wither_rose")));
+        tags.put(Key.key("pathfinding/damaging"), List.of(Key.key("cactus"),
+                Key.key("sweet_berry_bush")));
+        tags.put(Key.key("pathfinding/drop_down"), List.of(Key.key("acacia_trapdoor"),
+                Key.key("bamboo_trapdoor"), Key.key("big_dripleaf"), Key.key("birch_trapdoor"),
+                Key.key("cherry_trapdoor"), Key.key("copper_trapdoor"), Key.key("crimson_trapdoor"),
+                Key.key("dark_oak_trapdoor"), Key.key("exposed_copper_trapdoor"),
+                Key.key("iron_trapdoor"), Key.key("jungle_trapdoor"), Key.key("lily_pad"),
+                Key.key("mangrove_trapdoor"), Key.key("oak_trapdoor"),
+                Key.key("oxidized_copper_trapdoor"), Key.key("pale_oak_trapdoor"),
+                Key.key("poplar_trapdoor"), Key.key("spruce_trapdoor"), Key.key("warped_trapdoor"),
+                Key.key("waxed_copper_trapdoor"), Key.key("waxed_exposed_copper_trapdoor"),
+                Key.key("waxed_oxidized_copper_trapdoor"),
+                Key.key("waxed_weathered_copper_trapdoor"), Key.key("weathered_copper_trapdoor")));
+    }
+
+    private static void blockTags24(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("pathfinding/leaves"), List.of(Key.key("acacia_leaves"),
+                Key.key("azalea_leaves"), Key.key("birch_leaves"), Key.key("cherry_leaves"),
+                Key.key("dark_oak_leaves"), Key.key("flowering_azalea_leaves"),
+                Key.key("jungle_leaves"), Key.key("mangrove_leaves"), Key.key("oak_leaves"),
+                Key.key("orange_poplar_leaves"), Key.key("pale_oak_leaves"),
+                Key.key("red_poplar_leaves"), Key.key("spruce_leaves"),
+                Key.key("yellow_poplar_leaves")));
+        tags.put(Key.key("pathfinding/open"), List.of(Key.key("air"), Key.key("cave_air"),
+                Key.key("void_air")));
+        tags.put(Key.key("pathfinding/powder_snow"), List.of(Key.key("powder_snow")));
+        tags.put(Key.key("pathfinding/rails"), List.of(Key.key("activator_rail"),
+                Key.key("detector_rail"), Key.key("powered_rail"), Key.key("rail")));
+        tags.put(Key.key("pathfinding/sticky"), List.of(Key.key("honey_block")));
         tags.put(Key.key("piglin_repellents"), List.of(Key.key("soul_campfire"),
                 Key.key("soul_fire"), Key.key("soul_lantern"), Key.key("soul_torch"),
                 Key.key("soul_wall_torch")));
@@ -7077,9 +7115,6 @@ public final class FrozenRegistries {
                 Key.key("stripped_poplar_log"), Key.key("stripped_poplar_wood")));
         tags.put(Key.key("portals"), List.of(Key.key("end_gateway"), Key.key("end_portal"),
                 Key.key("nether_portal")));
-    }
-
-    private static void blockTags24(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("pressure_plates"), List.of(Key.key("acacia_pressure_plate"),
                 Key.key("bamboo_pressure_plate"), Key.key("birch_pressure_plate"),
                 Key.key("cherry_pressure_plate"), Key.key("crimson_pressure_plate"),
@@ -7128,6 +7163,9 @@ public final class FrozenRegistries {
                 Key.key("soul_fire"), Key.key("structure_void"), Key.key("tall_dry_grass"),
                 Key.key("tall_grass"), Key.key("tall_seagrass"), Key.key("vine"),
                 Key.key("void_air"), Key.key("warped_roots"), Key.key("water")));
+    }
+
+    private static void blockTags25(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("replaceable_by_mushrooms"), List.of(Key.key("acacia_leaves"),
                 Key.key("allium"), Key.key("azalea_leaves"), Key.key("azure_bluet"),
                 Key.key("birch_leaves"), Key.key("blue_orchid"), Key.key("brown_mushroom"),
@@ -7149,9 +7187,6 @@ public final class FrozenRegistries {
                 Key.key("tall_dry_grass"), Key.key("tall_grass"), Key.key("tall_seagrass"),
                 Key.key("torchflower"), Key.key("vine"), Key.key("warped_roots"), Key.key("water"),
                 Key.key("white_tulip"), Key.key("wither_rose"), Key.key("yellow_poplar_leaves")));
-    }
-
-    private static void blockTags25(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("replaceable_by_trees"), List.of(Key.key("acacia_leaves"),
                 Key.key("allium"), Key.key("azalea_leaves"), Key.key("azure_bluet"),
                 Key.key("birch_leaves"), Key.key("blue_orchid"), Key.key("bush"),
@@ -7204,6 +7239,9 @@ public final class FrozenRegistries {
                 Key.key("stone"), Key.key("sulfur"), Key.key("terracotta"), Key.key("tuff"),
                 Key.key("warped_nylium"), Key.key("white_terracotta"),
                 Key.key("yellow_terracotta")));
+    }
+
+    private static void blockTags26(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sculk_replaceable_world_gen"), List.of(Key.key("andesite"),
                 Key.key("basalt"), Key.key("black_terracotta"), Key.key("blackstone"),
                 Key.key("blue_terracotta"), Key.key("brown_terracotta"), Key.key("calcite"),
@@ -7226,9 +7264,6 @@ public final class FrozenRegistries {
                 Key.key("soul_soil"), Key.key("stone"), Key.key("sulfur"), Key.key("terracotta"),
                 Key.key("tuff"), Key.key("warped_nylium"), Key.key("white_terracotta"),
                 Key.key("yellow_terracotta")));
-    }
-
-    private static void blockTags26(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("shears_extreme_breaking_speed"), List.of(Key.key("acacia_leaves"),
                 Key.key("azalea_leaves"), Key.key("birch_leaves"), Key.key("cherry_leaves"),
                 Key.key("dark_oak_leaves"), Key.key("flowering_azalea_leaves"),
@@ -7276,6 +7311,9 @@ public final class FrozenRegistries {
                 Key.key("oak_wall_sign"), Key.key("pale_oak_sign"), Key.key("pale_oak_wall_sign"),
                 Key.key("poplar_sign"), Key.key("poplar_wall_sign"), Key.key("spruce_sign"),
                 Key.key("spruce_wall_sign"), Key.key("warped_sign"), Key.key("warped_wall_sign")));
+    }
+
+    private static void blockTags27(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("skulls"), List.of(Key.key("creeper_head"), Key.key("dragon_head"),
                 Key.key("piglin_head"), Key.key("player_head"), Key.key("skeleton_skull"),
                 Key.key("wither_skeleton_skull"), Key.key("zombie_head")));
@@ -7323,9 +7361,6 @@ public final class FrozenRegistries {
                 Key.key("waxed_weathered_cut_copper_slab"), Key.key("weathered_cut_copper_slab"),
                 Key.key("white_concrete_slab"), Key.key("white_wool_slab"),
                 Key.key("yellow_concrete_slab"), Key.key("yellow_wool_slab")));
-    }
-
-    private static void blockTags27(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("small_flowers"), List.of(Key.key("allium"), Key.key("azure_bluet"),
                 Key.key("blue_orchid"), Key.key("closed_eyeblossom"), Key.key("cornflower"),
                 Key.key("dandelion"), Key.key("golden_dandelion"), Key.key("lily_of_the_valley"),
@@ -7343,6 +7378,9 @@ public final class FrozenRegistries {
                 Key.key("grass_block"), Key.key("moss_block"), Key.key("mud"),
                 Key.key("muddy_mangrove_roots"), Key.key("pale_moss_block"), Key.key("podzol"),
                 Key.key("rooted_dirt")));
+    }
+
+    private static void blockTags28(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sniffer_egg_hatch_boost"), List.of(Key.key("moss_block")));
         tags.put(Key.key("snow"), List.of(Key.key("powder_snow"), Key.key("snow"),
                 Key.key("snow_block")));
@@ -7356,7 +7394,7 @@ public final class FrozenRegistries {
                 Key.key("light_gray_bed"), Key.key("lime_bed"), Key.key("magenta_bed"),
                 Key.key("orange_bed"), Key.key("pink_bed"), Key.key("purple_bed"),
                 Key.key("red_bed"), Key.key("white_bed"), Key.key("yellow_bed")));
-        tags.put(Key.key("speleothems"), List.of(Key.key("pointed_dripstone"),
+        tags.put(Key.key("speleothems"), List.of(Key.key("icicle"), Key.key("pointed_dripstone"),
                 Key.key("sulfur_spike")));
         tags.put(Key.key("spruce_logs"), List.of(Key.key("spruce_log"), Key.key("spruce_wood"),
                 Key.key("stripped_spruce_log"), Key.key("stripped_spruce_wood")));
@@ -7408,9 +7446,6 @@ public final class FrozenRegistries {
                 Key.key("weathered_cut_copper_stairs"), Key.key("white_concrete_stairs"),
                 Key.key("white_wool_stairs"), Key.key("yellow_concrete_stairs"),
                 Key.key("yellow_wool_stairs")));
-    }
-
-    private static void blockTags28(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("standing_signs"), List.of(Key.key("acacia_sign"), Key.key("bamboo_sign"),
                 Key.key("birch_sign"), Key.key("cherry_sign"), Key.key("crimson_sign"),
                 Key.key("dark_oak_sign"), Key.key("jungle_sign"), Key.key("mangrove_sign"),
@@ -7423,6 +7458,9 @@ public final class FrozenRegistries {
                 Key.key("stone_button")));
         tags.put(Key.key("stone_ore_replaceables"), List.of(Key.key("andesite"), Key.key("diorite"),
                 Key.key("granite"), Key.key("stone")));
+    }
+
+    private static void blockTags29(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("stone_pressure_plates"), List.of(Key.key("polished_blackstone_pressure_plate"),
                 Key.key("stone_pressure_plate")));
         tags.put(Key.key("stray_immune_to"), List.of(Key.key("powder_snow")));
@@ -7482,9 +7520,6 @@ public final class FrozenRegistries {
                 Key.key("red_sand"), Key.key("red_terracotta"), Key.key("rooted_dirt"),
                 Key.key("sand"), Key.key("suspicious_sand"), Key.key("terracotta"),
                 Key.key("white_terracotta"), Key.key("yellow_terracotta")));
-    }
-
-    private static void blockTags29(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("supports_frogspawn"), List.<Key>of());
         tags.put(Key.key("supports_hanging_mangrove_propagule"), List.of(Key.key("mangrove_leaves")));
         tags.put(Key.key("supports_lily_pad"), List.of(Key.key("frosted_ice"), Key.key("ice")));
@@ -7498,6 +7533,9 @@ public final class FrozenRegistries {
                 Key.key("dirt"), Key.key("farmland"), Key.key("grass_block"), Key.key("moss_block"),
                 Key.key("mud"), Key.key("muddy_mangrove_roots"), Key.key("mycelium"),
                 Key.key("pale_moss_block"), Key.key("podzol"), Key.key("rooted_dirt")));
+    }
+
+    private static void blockTags30(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("supports_nether_sprouts"), List.of(Key.key("coarse_dirt"),
                 Key.key("crimson_nylium"), Key.key("dirt"), Key.key("farmland"),
                 Key.key("grass_block"), Key.key("moss_block"), Key.key("mud"),
@@ -7555,9 +7593,6 @@ public final class FrozenRegistries {
                 Key.key("orange_poplar_leaves"), Key.key("pale_oak_leaves"), Key.key("pumpkin"),
                 Key.key("red_poplar_leaves"), Key.key("spruce_leaves"), Key.key("vine"),
                 Key.key("yellow_poplar_leaves")));
-    }
-
-    private static void blockTags30(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sword_instantly_mines"), List.of(Key.key("bamboo"),
                 Key.key("bamboo_sapling")));
         tags.put(Key.key("terracotta"), List.of(Key.key("black_terracotta"),
@@ -7568,6 +7603,9 @@ public final class FrozenRegistries {
                 Key.key("orange_terracotta"), Key.key("pink_terracotta"),
                 Key.key("purple_terracotta"), Key.key("red_terracotta"), Key.key("terracotta"),
                 Key.key("white_terracotta"), Key.key("yellow_terracotta")));
+    }
+
+    private static void blockTags31(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("trail_ruins_replaceable"), List.of(Key.key("gravel")));
         tags.put(Key.key("trapdoors"), List.of(Key.key("acacia_trapdoor"),
                 Key.key("bamboo_trapdoor"), Key.key("birch_trapdoor"), Key.key("cherry_trapdoor"),
@@ -7637,9 +7675,6 @@ public final class FrozenRegistries {
                 Key.key("mangrove_wall_hanging_sign"), Key.key("oak_wall_hanging_sign"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("poplar_wall_hanging_sign"),
                 Key.key("spruce_wall_hanging_sign"), Key.key("warped_wall_hanging_sign")));
-    }
-
-    private static void blockTags31(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wall_post_override"), List.of(Key.key("acacia_pressure_plate"),
                 Key.key("acacia_sign"), Key.key("acacia_wall_sign"),
                 Key.key("bamboo_pressure_plate"), Key.key("bamboo_sign"),
@@ -7674,6 +7709,9 @@ public final class FrozenRegistries {
                 Key.key("warped_pressure_plate"), Key.key("warped_sign"),
                 Key.key("warped_wall_sign"), Key.key("white_banner"), Key.key("white_wall_banner"),
                 Key.key("yellow_banner"), Key.key("yellow_wall_banner")));
+    }
+
+    private static void blockTags32(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wall_signs"), List.of(Key.key("acacia_wall_sign"),
                 Key.key("bamboo_wall_sign"), Key.key("birch_wall_sign"),
                 Key.key("cherry_wall_sign"), Key.key("crimson_wall_sign"),
@@ -7799,7 +7837,7 @@ public final class FrozenRegistries {
                 Key.key("yellow_carpet"), Key.key("zombie_head"), Key.key("zombie_wall_head")));
     }
 
-    private static void blockTags32(final Map<Key, List<Key>> tags) {
+    private static void blockTags33(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wither_immune"), List.of(Key.key("barrier"), Key.key("bedrock"),
                 Key.key("chain_command_block"), Key.key("command_block"), Key.key("end_gateway"),
                 Key.key("end_portal"), Key.key("end_portal_frame"), Key.key("jigsaw"),
@@ -7869,7 +7907,7 @@ public final class FrozenRegistries {
                 Key.key("white_carpet"), Key.key("yellow_carpet")));
     }
 
-    private static void blockTags33(final Map<Key, List<Key>> tags) {
+    private static void blockTags34(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wool_slabs"), List.of(Key.key("black_wool_slab"),
                 Key.key("blue_wool_slab"), Key.key("brown_wool_slab"), Key.key("cyan_wool_slab"),
                 Key.key("gray_wool_slab"), Key.key("green_wool_slab"),
@@ -7892,7 +7930,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:block}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> blockTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(300);
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(312);
         blockTags0(tags);
         blockTags1(tags);
         blockTags2(tags);
@@ -7927,6 +7965,7 @@ public final class FrozenRegistries {
         blockTags31(tags);
         blockTags32(tags);
         blockTags33(tags);
+        blockTags34(tags);
         return Map.copyOf(tags);
     }
 
@@ -8164,6 +8203,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("firework_rocket"));
         entries.add(Key.key("fox"));
         entries.add(Key.key("frog"));
+        entries.add(Key.key("frostbite"));
         entries.add(Key.key("furnace_minecart"));
         entries.add(Key.key("ghast"));
         entries.add(Key.key("happy_ghast"));
@@ -8176,6 +8216,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("hopper_minecart"));
         entries.add(Key.key("horse"));
         entries.add(Key.key("husk"));
+        entries.add(Key.key("ice_ball"));
         entries.add(Key.key("illusioner"));
         entries.add(Key.key("interaction"));
         entries.add(Key.key("iron_golem"));
@@ -8274,7 +8315,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:entity_type}, indexed by network ID
      */
     private static List<Key> entityType() {
-        final List<Key> entries = new ArrayList<>(161);
+        final List<Key> entries = new ArrayList<>(163);
         entityType0(entries);
         return List.copyOf(entries);
     }
@@ -8300,17 +8341,18 @@ public final class FrozenRegistries {
                 Key.key("jungle_boat"), Key.key("mangrove_boat"), Key.key("oak_boat"),
                 Key.key("pale_oak_boat"), Key.key("poplar_boat"), Key.key("spruce_boat")));
         tags.put(Key.key("burn_in_daylight"), List.of(Key.key("bogged"), Key.key("drowned"),
-                Key.key("phantom"), Key.key("skeleton"), Key.key("stray"),
+                Key.key("frostbite"), Key.key("phantom"), Key.key("skeleton"), Key.key("stray"),
                 Key.key("wither_skeleton"), Key.key("zombie"), Key.key("zombie_horse"),
                 Key.key("zombie_nautilus"), Key.key("zombie_villager")));
         tags.put(Key.key("can_breathe_under_water"), List.of(Key.key("armor_stand"),
                 Key.key("axolotl"), Key.key("bogged"), Key.key("camel_husk"), Key.key("cod"),
                 Key.key("copper_golem"), Key.key("drowned"), Key.key("elder_guardian"),
-                Key.key("frog"), Key.key("glow_squid"), Key.key("guardian"), Key.key("husk"),
-                Key.key("nautilus"), Key.key("parched"), Key.key("phantom"), Key.key("pufferfish"),
-                Key.key("salmon"), Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("squid"),
-                Key.key("stray"), Key.key("tadpole"), Key.key("tropical_fish"), Key.key("turtle"),
-                Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("frog"), Key.key("frostbite"), Key.key("glow_squid"), Key.key("guardian"),
+                Key.key("husk"), Key.key("nautilus"), Key.key("parched"), Key.key("phantom"),
+                Key.key("pufferfish"), Key.key("salmon"), Key.key("skeleton"),
+                Key.key("skeleton_horse"), Key.key("squid"), Key.key("stray"), Key.key("tadpole"),
+                Key.key("tropical_fish"), Key.key("turtle"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
                 Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
                 Key.key("zombified_piglin")));
         tags.put(Key.key("can_equip_harness"), List.of(Key.key("happy_ghast")));
@@ -8358,15 +8400,16 @@ public final class FrozenRegistries {
                 Key.key("strider"), Key.key("villager"), Key.key("wolf")));
         tags.put(Key.key("freeze_hurts_extra_types"), List.of(Key.key("blaze"),
                 Key.key("magma_cube"), Key.key("strider")));
-        tags.put(Key.key("freeze_immune_entity_types"), List.of(Key.key("polar_bear"),
-                Key.key("snow_golem"), Key.key("stray"), Key.key("wither")));
+        tags.put(Key.key("freeze_immune_entity_types"), List.of(Key.key("frostbite"),
+                Key.key("polar_bear"), Key.key("snow_golem"), Key.key("stray"), Key.key("wither")));
         tags.put(Key.key("frog_food"), List.of(Key.key("magma_cube"), Key.key("slime")));
         tags.put(Key.key("ignores_poison_and_regen"), List.of(Key.key("bogged"),
-                Key.key("camel_husk"), Key.key("drowned"), Key.key("husk"), Key.key("parched"),
-                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
-                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
-                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
-                Key.key("zombie_villager"), Key.key("zombified_piglin")));
+                Key.key("camel_husk"), Key.key("drowned"), Key.key("frostbite"), Key.key("husk"),
+                Key.key("parched"), Key.key("phantom"), Key.key("skeleton"),
+                Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
         tags.put(Key.key("illager"), List.of(Key.key("evoker"), Key.key("illusioner"),
                 Key.key("pillager"), Key.key("vindicator")));
         tags.put(Key.key("illager_friends"), List.of(Key.key("evoker"), Key.key("illusioner"),
@@ -8375,19 +8418,20 @@ public final class FrozenRegistries {
         tags.put(Key.key("immune_to_oozing"), List.of(Key.key("slime")));
         tags.put(Key.key("impact_projectiles"), List.of(Key.key("arrow"),
                 Key.key("breeze_wind_charge"), Key.key("dragon_fireball"), Key.key("egg"),
-                Key.key("fireball"), Key.key("firework_rocket"), Key.key("small_fireball"),
-                Key.key("snowball"), Key.key("spectral_arrow"), Key.key("trident"),
-                Key.key("wind_charge"), Key.key("wither_skull")));
+                Key.key("fireball"), Key.key("firework_rocket"), Key.key("ice_ball"),
+                Key.key("small_fireball"), Key.key("snowball"), Key.key("spectral_arrow"),
+                Key.key("trident"), Key.key("wind_charge"), Key.key("wither_skull")));
         tags.put(Key.key("inverted_healing_and_harm"), List.of(Key.key("bogged"),
-                Key.key("camel_husk"), Key.key("drowned"), Key.key("husk"), Key.key("parched"),
-                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
-                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
-                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
-                Key.key("zombie_villager"), Key.key("zombified_piglin")));
+                Key.key("camel_husk"), Key.key("drowned"), Key.key("frostbite"), Key.key("husk"),
+                Key.key("parched"), Key.key("phantom"), Key.key("skeleton"),
+                Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
         tags.put(Key.key("nautilus_hostiles"), List.of(Key.key("pufferfish")));
         tags.put(Key.key("no_anger_from_wind_charge"), List.of(Key.key("bogged"), Key.key("breeze"),
-                Key.key("cave_spider"), Key.key("husk"), Key.key("skeleton"), Key.key("slime"),
-                Key.key("spider"), Key.key("stray"), Key.key("zombie")));
+                Key.key("cave_spider"), Key.key("frostbite"), Key.key("husk"), Key.key("skeleton"),
+                Key.key("slime"), Key.key("spider"), Key.key("stray"), Key.key("zombie")));
         tags.put(Key.key("non_controlling_rider"), List.of(Key.key("magma_cube"), Key.key("slime"),
                 Key.key("sulfur_cube")));
         tags.put(Key.key("not_affected_by_geysers"), List.of(Key.key("ender_dragon")));
@@ -8397,7 +8441,7 @@ public final class FrozenRegistries {
                 Key.key("sulfur_cube"), Key.key("tadpole"), Key.key("tropical_fish"),
                 Key.key("turtle"), Key.key("zombie_nautilus")));
         tags.put(Key.key("powder_snow_walkable_mobs"), List.of(Key.key("endermite"), Key.key("fox"),
-                Key.key("rabbit"), Key.key("silverfish")));
+                Key.key("frostbite"), Key.key("rabbit"), Key.key("silverfish")));
         tags.put(Key.key("raiders"), List.of(Key.key("evoker"), Key.key("illusioner"),
                 Key.key("pillager"), Key.key("ravager"), Key.key("vindicator"), Key.key("witch")));
         tags.put(Key.key("redirectable_projectile"), List.of(Key.key("breeze_wind_charge"),
@@ -8414,29 +8458,29 @@ public final class FrozenRegistries {
 
     private static void entityTypeTags2(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sensitive_to_smite"), List.of(Key.key("bogged"), Key.key("camel_husk"),
-                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
-                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
-                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
-                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
-                Key.key("zombified_piglin")));
+                Key.key("drowned"), Key.key("frostbite"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
+                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
+                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
+                Key.key("zombie_villager"), Key.key("zombified_piglin")));
         tags.put(Key.key("skeletons"), List.of(Key.key("bogged"), Key.key("parched"),
                 Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"),
                 Key.key("wither_skeleton")));
         tags.put(Key.key("undead"), List.of(Key.key("bogged"), Key.key("camel_husk"),
-                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
-                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
-                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
-                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
-                Key.key("zombified_piglin")));
+                Key.key("drowned"), Key.key("frostbite"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
+                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
+                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
+                Key.key("zombie_villager"), Key.key("zombified_piglin")));
         tags.put(Key.key("wither_friends"), List.of(Key.key("bogged"), Key.key("camel_husk"),
-                Key.key("drowned"), Key.key("husk"), Key.key("parched"), Key.key("phantom"),
-                Key.key("skeleton"), Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
-                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
-                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
-                Key.key("zombified_piglin")));
+                Key.key("drowned"), Key.key("frostbite"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
+                Key.key("stray"), Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"),
+                Key.key("zombie"), Key.key("zombie_horse"), Key.key("zombie_nautilus"),
+                Key.key("zombie_villager"), Key.key("zombified_piglin")));
         tags.put(Key.key("zombies"), List.of(Key.key("camel_husk"), Key.key("drowned"),
-                Key.key("husk"), Key.key("zoglin"), Key.key("zombie"), Key.key("zombie_horse"),
-                Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("frostbite"), Key.key("husk"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
                 Key.key("zombified_piglin")));
     }
 
@@ -9769,6 +9813,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("lava_bucket"));
         entries.add(Key.key("powder_snow_bucket"));
         entries.add(Key.key("snowball"));
+        entries.add(Key.key("ice_ball"));
         entries.add(Key.key("leather"));
         entries.add(Key.key("milk_bucket"));
         entries.add(Key.key("pufferfish_bucket"));
@@ -9835,10 +9880,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("ink_sac"));
         entries.add(Key.key("glow_ink_sac"));
         entries.add(Key.key("cocoa_beans"));
-        entries.add(Key.key("white_dye"));
     }
 
     private static void item6(final List<Key> entries) {
+        entries.add(Key.key("white_dye"));
         entries.add(Key.key("orange_dye"));
         entries.add(Key.key("magenta_dye"));
         entries.add(Key.key("light_blue_dye"));
@@ -9965,6 +10010,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("bogged_spawn_egg"));
         entries.add(Key.key("camel_husk_spawn_egg"));
         entries.add(Key.key("drowned_spawn_egg"));
+        entries.add(Key.key("frostbite_spawn_egg"));
         entries.add(Key.key("husk_spawn_egg"));
         entries.add(Key.key("parched_spawn_egg"));
         entries.add(Key.key("skeleton_spawn_egg"));
@@ -10037,11 +10083,11 @@ public final class FrozenRegistries {
         entries.add(Key.key("enchanted_book"));
         entries.add(Key.key("nether_brick"));
         entries.add(Key.key("resin_brick"));
-        entries.add(Key.key("prismarine_shard"));
-        entries.add(Key.key("prismarine_crystals"));
     }
 
     private static void item7(final List<Key> entries) {
+        entries.add(Key.key("prismarine_shard"));
+        entries.add(Key.key("prismarine_crystals"));
         entries.add(Key.key("rabbit"));
         entries.add(Key.key("cooked_rabbit"));
         entries.add(Key.key("rabbit_stew"));
@@ -10213,6 +10259,8 @@ public final class FrozenRegistries {
         entries.add(Key.key("medium_amethyst_bud"));
         entries.add(Key.key("large_amethyst_bud"));
         entries.add(Key.key("amethyst_cluster"));
+        entries.add(Key.key("ice_crystal"));
+        entries.add(Key.key("icicle"));
         entries.add(Key.key("pointed_dripstone"));
         entries.add(Key.key("sulfur_spike"));
         entries.add(Key.key("ochre_froglight"));
@@ -10238,13 +10286,13 @@ public final class FrozenRegistries {
         entries.add(Key.key("silence_armor_trim_smithing_template"));
         entries.add(Key.key("raiser_armor_trim_smithing_template"));
         entries.add(Key.key("host_armor_trim_smithing_template"));
+    }
+
+    private static void item8(final List<Key> entries) {
         entries.add(Key.key("flow_armor_trim_smithing_template"));
         entries.add(Key.key("bolt_armor_trim_smithing_template"));
         entries.add(Key.key("angler_pottery_sherd"));
         entries.add(Key.key("archer_pottery_sherd"));
-    }
-
-    private static void item8(final List<Key> entries) {
         entries.add(Key.key("arms_up_pottery_sherd"));
         entries.add(Key.key("blade_pottery_sherd"));
         entries.add(Key.key("brewer_pottery_sherd"));
@@ -10309,7 +10357,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:item}, indexed by network ID
      */
     private static List<Key> item() {
-        final List<Key> entries = new ArrayList<>(1658);
+        final List<Key> entries = new ArrayList<>(1662);
         item0(entries);
         item1(entries);
         item2(entries);
@@ -10857,6 +10905,7 @@ public final class FrozenRegistries {
                 Key.key("leather_chestplate"), Key.key("leather_helmet"),
                 Key.key("leather_horse_armor"), Key.key("leather_leggings")));
         tags.put(Key.key("frog_food"), List.of(Key.key("slime_ball")));
+        tags.put(Key.key("frostbite_preferred_weapons"), List.of(Key.key("ice_ball")));
         tags.put(Key.key("furnace_fuel_bottom_takeable"), List.of(Key.key("bucket"),
                 Key.key("water_bucket")));
         tags.put(Key.key("furnace_minecart_fuel"), List.of(Key.key("charcoal"), Key.key("coal")));
@@ -10919,6 +10968,7 @@ public final class FrozenRegistries {
         tags.put(Key.key("iron_tool_materials"), List.of(Key.key("iron_ingot")));
         tags.put(Key.key("jungle_logs"), List.of(Key.key("jungle_log"), Key.key("jungle_wood"),
                 Key.key("stripped_jungle_log"), Key.key("stripped_jungle_wood")));
+        tags.put(Key.key("knocks_back_players_even_with_zero_damage"), List.of(Key.key("snowball")));
         tags.put(Key.key("lanterns"), List.of(Key.key("copper_lantern"),
                 Key.key("exposed_copper_lantern"), Key.key("lantern"),
                 Key.key("oxidized_copper_lantern"), Key.key("soul_lantern"),
@@ -11120,6 +11170,12 @@ public final class FrozenRegistries {
                 Key.key("poplar_sapling"), Key.key("spruce_sapling")));
         tags.put(Key.key("shearable_from_copper_golem"), List.of(Key.key("poppy")));
         tags.put(Key.key("sheep_food"), List.of(Key.key("wheat")));
+        tags.put(Key.key("sheep_wool_dyes"), List.of(Key.key("black_dye"), Key.key("blue_dye"),
+                Key.key("brown_dye"), Key.key("cyan_dye"), Key.key("gray_dye"),
+                Key.key("green_dye"), Key.key("light_blue_dye"), Key.key("light_gray_dye"),
+                Key.key("lime_dye"), Key.key("magenta_dye"), Key.key("orange_dye"),
+                Key.key("pink_dye"), Key.key("purple_dye"), Key.key("red_dye"),
+                Key.key("white_dye"), Key.key("yellow_dye")));
         tags.put(Key.key("shovels"), List.of(Key.key("copper_shovel"), Key.key("diamond_shovel"),
                 Key.key("golden_shovel"), Key.key("iron_shovel"), Key.key("netherite_shovel"),
                 Key.key("stone_shovel"), Key.key("wooden_shovel")));
@@ -11141,6 +11197,9 @@ public final class FrozenRegistries {
         tags.put(Key.key("skulls"), List.of(Key.key("creeper_head"), Key.key("dragon_head"),
                 Key.key("piglin_head"), Key.key("player_head"), Key.key("skeleton_skull"),
                 Key.key("wither_skeleton_skull"), Key.key("zombie_head")));
+    }
+
+    private static void itemTags10(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("slabs"), List.of(Key.key("acacia_slab"), Key.key("andesite_slab"),
                 Key.key("bamboo_mosaic_slab"), Key.key("bamboo_slab"), Key.key("birch_slab"),
                 Key.key("black_concrete_slab"), Key.key("black_wool_slab"),
@@ -11185,9 +11244,6 @@ public final class FrozenRegistries {
                 Key.key("waxed_weathered_cut_copper_slab"), Key.key("weathered_cut_copper_slab"),
                 Key.key("white_concrete_slab"), Key.key("white_wool_slab"),
                 Key.key("yellow_concrete_slab"), Key.key("yellow_wool_slab")));
-    }
-
-    private static void itemTags10(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("small_flowers"), List.of(Key.key("allium"), Key.key("azure_bluet"),
                 Key.key("blue_orchid"), Key.key("closed_eyeblossom"), Key.key("cornflower"),
                 Key.key("dandelion"), Key.key("golden_dandelion"), Key.key("lily_of_the_valley"),
@@ -11251,6 +11307,9 @@ public final class FrozenRegistries {
                 Key.key("weathered_cut_copper_stairs"), Key.key("white_concrete_stairs"),
                 Key.key("white_wool_stairs"), Key.key("yellow_concrete_stairs"),
                 Key.key("yellow_wool_stairs")));
+    }
+
+    private static void itemTags11(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("stone_bricks"), List.of(Key.key("chiseled_stone_bricks"),
                 Key.key("cracked_stone_bricks"), Key.key("mossy_stone_bricks"),
                 Key.key("stone_bricks")));
@@ -11289,9 +11348,6 @@ public final class FrozenRegistries {
                 Key.key("stripped_spruce_log"), Key.key("stripped_spruce_wood"),
                 Key.key("stripped_warped_hyphae"), Key.key("stripped_warped_stem"),
                 Key.key("warped_hyphae"), Key.key("warped_planks"), Key.key("warped_stem")));
-    }
-
-    private static void itemTags11(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sulfur_cube_archetype/explosive"), List.of(Key.key("tnt")));
         tags.put(Key.key("sulfur_cube_archetype/fast_flat"), List.of(Key.key("brain_coral_block"),
                 Key.key("bubble_coral_block"), Key.key("carved_pumpkin"),
@@ -11328,6 +11384,9 @@ public final class FrozenRegistries {
                 Key.key("purple_concrete_powder"), Key.key("red_concrete_powder"),
                 Key.key("rooted_dirt"), Key.key("white_concrete_powder"),
                 Key.key("yellow_concrete_powder")));
+    }
+
+    private static void itemTags12(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sulfur_cube_archetype/slow_bouncy"), List.of(Key.key("amethyst_block"),
                 Key.key("andesite"), Key.key("basalt"), Key.key("black_concrete"),
                 Key.key("black_glazed_terracotta"), Key.key("black_terracotta"),
@@ -11389,9 +11448,6 @@ public final class FrozenRegistries {
                 Key.key("white_glazed_terracotta"), Key.key("white_terracotta"),
                 Key.key("yellow_concrete"), Key.key("yellow_glazed_terracotta"),
                 Key.key("yellow_terracotta")));
-    }
-
-    private static void itemTags12(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sulfur_cube_archetype/slow_flat"), List.of(Key.key("ancient_debris"),
                 Key.key("chiseled_copper"), Key.key("copper_block"), Key.key("copper_bulb"),
                 Key.key("copper_ore"), Key.key("cut_copper"), Key.key("deepslate_copper_ore"),
@@ -11413,6 +11469,9 @@ public final class FrozenRegistries {
                 Key.key("waxed_weathered_copper_bulb"), Key.key("waxed_weathered_cut_copper"),
                 Key.key("weathered_chiseled_copper"), Key.key("weathered_copper"),
                 Key.key("weathered_copper_bulb"), Key.key("weathered_cut_copper")));
+    }
+
+    private static void itemTags13(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sulfur_cube_archetype/slow_sliding"), List.of(Key.key("brown_mushroom_block"),
                 Key.key("mushroom_stem"), Key.key("mycelium"), Key.key("nether_wart_block"),
                 Key.key("red_mushroom_block"), Key.key("shroomlight"),
@@ -11558,7 +11617,7 @@ public final class FrozenRegistries {
                 Key.key("yellow_terracotta"), Key.key("yellow_wool")));
     }
 
-    private static void itemTags13(final Map<Key, List<Key>> tags) {
+    private static void itemTags14(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("swords"), List.of(Key.key("copper_sword"), Key.key("diamond_sword"),
                 Key.key("golden_sword"), Key.key("iron_sword"), Key.key("netherite_sword"),
                 Key.key("stone_sword"), Key.key("wooden_sword")));
@@ -11635,7 +11694,7 @@ public final class FrozenRegistries {
                 Key.key("white_dye"), Key.key("yellow_dye")));
     }
 
-    private static void itemTags14(final Map<Key, List<Key>> tags) {
+    private static void itemTags15(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wolf_food"), List.of(Key.key("beef"), Key.key("chicken"), Key.key("cod"),
                 Key.key("cooked_beef"), Key.key("cooked_chicken"), Key.key("cooked_cod"),
                 Key.key("cooked_mutton"), Key.key("cooked_porkchop"), Key.key("cooked_rabbit"),
@@ -11698,7 +11757,7 @@ public final class FrozenRegistries {
                 Key.key("white_wool"), Key.key("yellow_wool")));
     }
 
-    private static void itemTags15(final Map<Key, List<Key>> tags) {
+    private static void itemTags16(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("wool_carpets"), List.of(Key.key("black_carpet"), Key.key("blue_carpet"),
                 Key.key("brown_carpet"), Key.key("cyan_carpet"), Key.key("gray_carpet"),
                 Key.key("green_carpet"), Key.key("light_blue_carpet"), Key.key("light_gray_carpet"),
@@ -11728,7 +11787,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:item}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> itemTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(236);
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(239);
         itemTags0(tags);
         itemTags1(tags);
         itemTags2(tags);
@@ -11745,6 +11804,7 @@ public final class FrozenRegistries {
         itemTags13(tags);
         itemTags14(tags);
         itemTags15(tags);
+        itemTags16(tags);
         return Map.copyOf(tags);
     }
 
@@ -11833,13 +11893,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("oozing"));
         entries.add(Key.key("infested"));
         entries.add(Key.key("breath_of_the_nautilus"));
+        entries.add(Key.key("freezing"));
     }
 
     /**
      * @return {@code minecraft:mob_effect}, indexed by network ID
      */
     private static List<Key> mobEffect() {
-        final List<Key> entries = new ArrayList<>(40);
+        final List<Key> entries = new ArrayList<>(41);
         mobEffect0(entries);
         return List.copyOf(entries);
     }

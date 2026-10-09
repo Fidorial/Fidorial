@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.network;
 
 import fr.euphyllia.fidorial.server.network.nbt.NbtIo;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.world.BlockPos;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
@@ -374,12 +375,12 @@ public final class PacketBuffer {
         return this;
     }
 
-    public BlockPos readPosition() {
+    public BlockPosition readPosition() {
         final long packed = buf.readLong();
         final int x = (int) (packed >> 38);
         final int y = (int) (packed << 52 >> 52);
         final int z = (int) (packed << 26 >> 38);
-        return new BlockPos(x, y, z);
+        return Position.block(x, y, z);
     }
 
     public PacketBuffer writePosition(final int x, final int y, final int z) {

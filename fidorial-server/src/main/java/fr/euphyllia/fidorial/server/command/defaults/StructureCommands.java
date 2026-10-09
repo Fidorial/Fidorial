@@ -5,13 +5,10 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Entity;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -50,20 +47,9 @@ final class StructureCommands {
     }
 
     static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
-        if (context.getSource().sender() instanceof final ServerPlayer player
-                && player.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        final Entity executor = context.getSource().executor();
-        if (executor != null && executor.world() instanceof final ServerWorld world) {
-            return world;
-        }
-        return null;
-    }
-
-    static BlockPos here(final CommandContext<CommandSource> context) {
-        final Location location = context.getSource().location();
-        return new BlockPos((int) Math.floor(location.x()), (int) Math.floor(location.y()), (int) Math.floor(location.z()));
+        final CommandSource source = context.getSource();
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     static String rootMessage(final Throwable failure) {

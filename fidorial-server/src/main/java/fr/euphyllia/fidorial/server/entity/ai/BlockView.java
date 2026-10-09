@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.entity.ai;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.ServerChunk;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.Chunk;
 import net.kyori.adventure.key.Key;
@@ -14,6 +16,8 @@ import java.util.Set;
 public class BlockView {
 
     private static final Set<Key> PASSABLE = Set.of(Key.key("water"));
+    private static final Key BLOCKS = RegistryKey.BLOCK.key();
+    private static final Key POWDER_SNOW = Key.key("pathfinding/powder_snow");
 
     private BlockView() {
     }
@@ -39,6 +43,14 @@ public class BlockView {
         }
         final Key name = state.name();
         return PASSABLE.contains(name);
+    }
+
+    public static boolean isPowderSnow(final BlockState state) {
+        return isTagged(POWDER_SNOW, state);
+    }
+
+    public static boolean isTagged(final Key tag, final BlockState state) {
+        return FidorialServer.getInstance().registries().frozen().isTagged(BLOCKS, tag, state.name());
     }
 
     public static boolean isSolidGround(final ServerWorld world, final int x, final int y, final int z) {

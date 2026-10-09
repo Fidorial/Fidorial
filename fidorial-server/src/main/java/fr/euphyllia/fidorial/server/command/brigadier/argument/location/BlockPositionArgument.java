@@ -12,8 +12,8 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -53,12 +53,7 @@ public final class BlockPositionArgument implements ArgumentType<BlockPosResolve
             final LocalCoords coords = LocalCoords.parse(reader);
             return source -> {
                 final Location loc = coords.resolve(source);
-
-                return new BlockPos(
-                        (int) Math.floor(loc.x()),
-                        (int) Math.floor(loc.y()),
-                        (int) Math.floor(loc.z())
-                );
+                return Position.block(loc.blockX(), loc.blockY(), loc.blockZ());
             };
         }
 
@@ -70,15 +65,10 @@ public final class BlockPositionArgument implements ArgumentType<BlockPosResolve
 
         return source -> {
             final Location origin = source.location();
-
-            final double px = x.resolve(origin.x());
-            final double py = y.resolve(origin.y());
-            final double pz = z.resolve(origin.z());
-
-            return new BlockPos(
-                    (int) Math.floor(px),
-                    (int) Math.floor(py),
-                    (int) Math.floor(pz)
+            return Position.block(
+                    (int) Math.floor(x.resolve(origin.x())),
+                    (int) Math.floor(y.resolve(origin.y())),
+                    (int) Math.floor(z.resolve(origin.z()))
             );
         };
     }

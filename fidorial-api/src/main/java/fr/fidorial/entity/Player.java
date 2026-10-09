@@ -8,8 +8,7 @@ import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
-import fr.fidorial.permission.PermissionHolder;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.identity.Identified;
@@ -40,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @since 0.1.0
  */
-public interface Player extends LivingEntity, PermissionHolder, CommandSource, CommandSender, Identified, BossBarViewer, ObjectContentsLike {
+public interface Player extends LivingEntity, CommandSender, Identified, BossBarViewer, ObjectContentsLike {
 
     /**
      * Resends the command tree to the client, after permissions or registered commands changed.
@@ -289,4 +288,11 @@ public interface Player extends LivingEntity, PermissionHolder, CommandSource, C
      * @since 0.1.0
      */
     CompletableFuture<Boolean> clearActivePostEffects();
+
+    @Override
+    default CommandSource commandSource() {
+        return CommandSource.of(this)
+                .as(this)
+                .at(this.location());
+    }
 }

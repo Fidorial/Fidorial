@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.fidorial.combat.CombatService;
@@ -30,13 +31,14 @@ import fr.fidorial.event.entity.EntityDeathEvent;
 import fr.fidorial.event.player.PlayerAttackEntityEvent;
 import fr.fidorial.event.player.PlayerDeathEvent;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -67,6 +69,11 @@ public final class CombatEngine implements CombatService {
     private static final double MAX_UPWARD_KNOCKBACK = 0.4;
 
     private static final byte ENTITY_EVENT_DEATH = 3;
+
+    private static final Key ENTITY_TYPES = RegistryKey.ENTITY_TYPE.key();
+    private static final Key FREEZE_IMMUNE = Key.key("freeze_immune_entity_types");
+    private static final Key FREEZE_HURTS_EXTRA = Key.key("freeze_hurts_extra_types");
+    private static final float FREEZE_HURTS_EXTRA_MULTIPLIER = 5.0f;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(CombatEngine.class);
 
@@ -137,6 +144,25 @@ public final class CombatEngine implements CombatService {
     }
 
     private boolean applyDamage(
+            final AbstractLivingEntity victim,
+            final DamageSource source,
+            final float amount,
+            final double knockback) {
+        if (!source.type().equals(DamageTypeKeys.FREEZE)) {
+            return applyScaledDamage(victim, source, amount, knockback);
+        }
+        final RegistryHolder registries = server.registries().frozen();
+        final Key victimType = victim.type().key();
+        if (registries.isTagged(ENTITY_TYPES, FREEZE_IMMUNE, victimType)) {
+            return false;
+        }
+        final float scaled = registries.isTagged(ENTITY_TYPES, FREEZE_HURTS_EXTRA, victimType)
+                ? amount * FREEZE_HURTS_EXTRA_MULTIPLIER
+                : amount;
+        return applyScaledDamage(victim, source, scaled, knockback);
+    }
+
+    private boolean applyScaledDamage(
             final AbstractLivingEntity victim,
             final DamageSource source,
             final float amount,

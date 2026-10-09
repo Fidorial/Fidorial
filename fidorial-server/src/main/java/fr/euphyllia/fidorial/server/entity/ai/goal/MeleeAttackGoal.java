@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 public class MeleeAttackGoal implements Goal {
 
@@ -72,10 +71,7 @@ public class MeleeAttackGoal implements Goal {
         if (--pathDelay <= 0) {
             pathDelay = PATH_INTERVAL_TICKS;
             final Location goal = target.location();
-            mob.navigation().moveTo(mob.location(), new BlockPos(
-                    (int) Math.floor(goal.x()),
-                    (int) Math.floor(goal.y()),
-                    (int) Math.floor(goal.z())));
+            mob.navigation().moveTo(mob.location(), goal);
         }
 
         if (attackCooldown > 0) {

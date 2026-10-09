@@ -33,7 +33,7 @@ public final class WorldConfigurationContainer {
     public static WorldConfigurationContainer load(final Path configDirectory) throws IOException {
         final ConfigurationCodecs.YamlFile<WorldConfiguration> file = defaultsFile(configDirectory);
         final WorldConfigurationContainer container = new WorldConfigurationContainer(file.load());
-        LOGGER.info("Default world configuration loaded from {}", file.path());
+        LOGGER.debug("Default world configuration loaded from {}", file.path());
         return container;
     }
 
@@ -82,7 +82,7 @@ public final class WorldConfigurationContainer {
         try {
             final WorldConfiguration configuration =
                     new ConfigurationCodecs.YamlFile<>(file, overrideCodec, ConfigurationSchemas.WORLD, header).loadSparse();
-            LOGGER.info("Configuration overrides for {} loaded from {}", world.asString(), file);
+            LOGGER.debug("Configuration overrides for {} loaded from {}", world.asString(), file);
             return configuration;
         } catch (final IOException e) {
             throw new UncheckedIOException("Could not read the configuration of " + world.asString(), e);

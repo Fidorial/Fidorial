@@ -72,7 +72,11 @@ import fr.euphyllia.fidorial.server.world.FlatChunkGenerator;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
 import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.block.ClusterBlock;
+import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
+import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
@@ -92,6 +96,7 @@ import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
 import fr.fidorial.item.ItemDefaults;
+import fr.fidorial.math.Location;
 import fr.fidorial.moderation.BanManager;
 import fr.fidorial.moderation.WhitelistManager;
 import fr.fidorial.permission.PermissionRegistry;
@@ -105,7 +110,6 @@ import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.storage.player.PlayerEnderChestStorage;
 import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.biome.BiomeRegistry;
@@ -290,8 +294,21 @@ public final class FidorialServer implements Server {
         BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
         Blocks.bootstrap(registry);
-        LOGGER.info("{} blocks defined in code", registry.definedCount());
+        registerBlockBehaviours(registry);
+        LOGGER.debug("{} blocks defined in code", registry.definedCount());
         return registry;
+    }
+
+    private static void registerBlockBehaviours(final FidorialBlockRegistry registry) {
+        registry.register(EnderChestBlock.INSTANCE);
+        registry.register(ClusterBlock.AMETHYST_CLUSTER);
+        registry.register(ClusterBlock.LARGE_AMETHYST_BUD);
+        registry.register(ClusterBlock.MEDIUM_AMETHYST_BUD);
+        registry.register(ClusterBlock.SMALL_AMETHYST_BUD);
+        registry.register(ClusterBlock.ICE_CRYSTAL);
+        registry.register(SpeleothemBlock.POINTED_DRIPSTONE);
+        registry.register(SpeleothemBlock.SULFUR_SPIKE);
+        registry.register(IcicleBlock.INSTANCE);
     }
 
     public void start() throws Exception {
@@ -366,7 +383,7 @@ public final class FidorialServer implements Server {
         closeQuietly("worlds", worldManager::close);
         closeQuietly("metrics", metrics::shutdown);
 
-        LOGGER.info("Fidorial shut down correctly.");
+        LOGGER.debug("Fidorial shut down correctly.");
     }
 
     private @Nullable Favicon loadFavicon() {

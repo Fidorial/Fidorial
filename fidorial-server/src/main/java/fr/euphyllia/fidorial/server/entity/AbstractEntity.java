@@ -9,17 +9,15 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -34,14 +32,12 @@ public abstract class AbstractEntity implements Entity {
     private final EntityType type;
     private final AtomicBoolean removed = new AtomicBoolean(false);
     private UUID uuid;
-    private volatile World world;
     private volatile Location location;
 
-    protected AbstractEntity(final int entityId, final UUID uuid, final EntityType type, final World world, final Location location) {
+    protected AbstractEntity(final int entityId, final UUID uuid, final EntityType type, final Location location) {
         this.entityId = entityId;
         this.uuid = uuid;
         this.type = type;
-        this.world = world;
         this.location = location;
     }
 
@@ -71,7 +67,7 @@ public abstract class AbstractEntity implements Entity {
 
     @Override
     public final World world() {
-        return world;
+        return location.world();
     }
 
     @Override
@@ -81,10 +77,6 @@ public abstract class AbstractEntity implements Entity {
 
     public void setLocation(final Location location) {
         this.location = location;
-    }
-
-    public void setWorld(final World world) {
-        this.world = world;
     }
 
     @Override
@@ -134,23 +126,8 @@ public abstract class AbstractEntity implements Entity {
     }
 
     @Override
-    public CommandSender sender() {
-        return null;
-    }
-
-    @Override
-    public @Nullable Entity executor() {
-        return this;
-    }
-
-    @Override
     public CompletableFuture<Boolean> teleport(final Location location) {
-        return teleport(world(), location);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
-        if (isRemoved() || !(destination instanceof final ServerWorld target)) {
+        if (isRemoved() || !(location.world() instanceof final ServerWorld target)) {
             return CompletableFuture.completedFuture(false);
         }
 
@@ -191,7 +168,6 @@ public abstract class AbstractEntity implements Entity {
 
             final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
                 try {
-                    setWorld(target);
                     setLocation(location);
                     target.addEntity(this);
                     if (this instanceof AbstractMob) {
