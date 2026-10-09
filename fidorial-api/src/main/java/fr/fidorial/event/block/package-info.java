@@ -1,5 +1,5 @@
 /**
- * Events fired when blocks are placed or broken.
+ * Events triggered during an interaction with a block
  *
  * @since 0.1.0
  */
