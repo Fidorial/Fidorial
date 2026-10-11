@@ -4,6 +4,8 @@ import ca.spottedleaf.converter.types.ListType;
 import ca.spottedleaf.converter.types.MapType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixer;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -33,6 +35,7 @@ public final class DataFixersRegistry {
         register("26.3", fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_3.DataFixers::buildDataFixers);
         register("fidorial-26.3", fr.euphyllia.fidorial.server.world.storage.datafixers.fidorial.V26_3.DataFixers::buildDataFixers);
         register("26.4", fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.DataFixers::buildDataFixers);
+        register("fidorial-26.4", fr.euphyllia.fidorial.server.world.storage.datafixers.fidorial.V26_4.DataFixers::buildDataFixers);
     }
 
     public static int latestDataFixerVersion() {
@@ -67,6 +70,22 @@ public final class DataFixersRegistry {
                 }
             }
         }
+    }
+
+    /**
+     * Upgrades a compound carrying its own {@code DataVersion}.
+     *
+     * @param stamp whether to stamp the updated data with the current {@code DataVersion}
+     * @return the upgraded compound, or {@code tag} if already current
+     */
+    public static CompoundBinaryTag update(final DataFixerType type, final CompoundBinaryTag tag, final boolean stamp) {
+        final int source = tag.getInt("DataVersion");
+        final int latest = latestDataFixerVersion();
+        if (source >= latest || !(update(type, NbtMapType.of(tag), source) instanceof final NbtMapType fixed)) {
+            return tag;
+        }
+        final CompoundBinaryTag result = fixed.toCompound();
+        return stamp ? result.putInt("DataVersion", latest) : result;
     }
 
     private static void register(final String name, final Supplier<DataFixer> builder) {

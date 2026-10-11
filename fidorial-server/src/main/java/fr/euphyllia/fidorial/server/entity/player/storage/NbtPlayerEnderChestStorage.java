@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.codecs.container.PlayerEnderChestCodec;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.storage.player.PlayerEnderChestStorage;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,8 +17,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * File-based implementation of {@link PlayerEnderChestStorage}, one file per player in
- * {@code <world>/playerdata/enderchests/}.
+ * {@link PlayerEnderChestStorage}, stored as {@code EnderItems} in {@code <world>/players/data/<uuid>.dat}.
  */
 public class NbtPlayerEnderChestStorage implements PlayerEnderChestStorage {
 
@@ -27,7 +27,7 @@ public class NbtPlayerEnderChestStorage implements PlayerEnderChestStorage {
     private final boolean gzip;
 
     public NbtPlayerEnderChestStorage(final Path playerRoot, final boolean gzip) {
-        this.enderChestsDir = playerRoot.resolve("enderchests");
+        this.enderChestsDir = playerRoot.resolve("data");
         this.gzip = gzip;
     }
 
@@ -46,20 +46,23 @@ public class NbtPlayerEnderChestStorage implements PlayerEnderChestStorage {
     }
 
     private Path fileFor(final UUID uuid) {
-        return enderChestsDir.resolve(uuid.toString());
+        return enderChestsDir.resolve(uuid + ".dat");
+    }
+
+    private static byte @Nullable [] readFile(final Path file) throws IOException {
+        if (!Files.isRegularFile(file)) {
+            return null;
+        }
+        final byte[] data = Files.readAllBytes(file);
+        final boolean isGzip = data.length >= 2 && data[0] == (byte) 0x1F && data[1] == (byte) 0x8B;
+        return isGzip ? gunzip(data) : data;
     }
 
     @Override
     public EnderChestInventory load(final UUID uuid) throws IOException {
-        final Path file = fileFor(uuid);
-        if (!Files.isRegularFile(file)) {
+        final byte[] data = readFile(fileFor(uuid));
+        if (data == null) {
             return new EnderChestInventory();
-        }
-
-        byte[] data = Files.readAllBytes(file);
-        final boolean isGzip = data.length >= 2 && data[0] == (byte) 0x1F && data[1] == (byte) 0x8B;
-        if (isGzip) {
-            data = gunzip(data);
         }
         return PlayerEnderChestCodec.decode(data);
     }
@@ -68,12 +71,12 @@ public class NbtPlayerEnderChestStorage implements PlayerEnderChestStorage {
     public void save(final UUID uuid, final EnderChestInventory enderChest) throws IOException {
         Files.createDirectories(enderChestsDir);
 
-        byte[] data = PlayerEnderChestCodec.encode(enderChest);
+        final Path file = fileFor(uuid);
+        byte[] data = PlayerEnderChestCodec.encode(readFile(file), enderChest);
         if (gzip) {
             data = gzip(data);
         }
 
-        final Path file = fileFor(uuid);
         final Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
         Files.write(tmp, data);
         try {

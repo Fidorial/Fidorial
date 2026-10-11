@@ -6,5 +6,6 @@ public enum DataFixerType {
     CHUNK,
     ENTITY,
     PLAYER,
-    LEVEL
+    LEVEL,
+    WORLD_DATA
 }
