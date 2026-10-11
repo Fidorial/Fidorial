@@ -75,6 +75,8 @@ public final class CommandManager implements CommandRegistry {
     private final ExecutorService commandExecutor =
             Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("fidorial-command-worker-", 0).factory());
 
+    private static final ThreadLocal<Boolean> IN_COMMAND_WORKER = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
     public CommandManager() {
         this.lock = new ReentrantReadWriteLock();
         this.dispatcher = new CommandDispatcher<>();
@@ -326,34 +328,42 @@ public final class CommandManager implements CommandRegistry {
     @Override
     public CompletableFuture<CommandResult> dispatchAsyncResult(final CommandSource source, final String cmdLine) {
         return CompletableFuture.supplyAsync(() -> {
-            final ParseResults<CommandSource> parse;
-
-            lock.readLock().lock();
+            IN_COMMAND_WORKER.set(Boolean.TRUE);
             try {
-                parse = dispatcher.parse(cmdLine, source);
+                return dispatchNow(source, cmdLine);
             } finally {
-                lock.readLock().unlock();
-            }
-
-            final CommandSyntaxException exception = getParseException(parse);
-            final boolean isConsole = source.sender() instanceof ConsoleSender;
-
-            if (exception != null) {
-                source.sender().sendMessage(convert(exception.getRawMessage(), isConsole).color(NamedTextColor.RED));
-                sendContext(source, exception, cmdLine, isConsole);
-                return new CommandResult(0);
-            }
-
-            try {
-                return new CommandResult(dispatcher.execute(parse));
-            } catch (final CommandSyntaxException e) {
-                source.sender().sendMessage(convert(e.getRawMessage(), isConsole).color(NamedTextColor.RED));
-                return new CommandResult(0);
+                IN_COMMAND_WORKER.remove();
             }
         }, commandExecutor).exceptionally(ex -> {
             FidorialServer.LOGGER.error("Encountered an exception while executing command: \"/{}\"", cmdLine, ex);
             return new CommandResult(0);
         });
+    }
+
+    private CommandResult dispatchNow(final CommandSource source, final String cmdLine) {
+        final ParseResults<CommandSource> parse;
+        lock.readLock().lock();
+        try {
+            parse = dispatcher.parse(cmdLine, source);
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        final CommandSyntaxException exception = getParseException(parse);
+        final boolean isConsole = source.sender() instanceof ConsoleSender;
+
+        if (exception != null) {
+            source.sender().sendMessage(convert(exception.getRawMessage(), isConsole).color(NamedTextColor.RED));
+            sendContext(source, exception, cmdLine, isConsole);
+            return new CommandResult(0);
+        }
+
+        try {
+            return new CommandResult(dispatcher.execute(parse));
+        } catch (final CommandSyntaxException e) {
+            source.sender().sendMessage(convert(e.getRawMessage(), isConsole).color(NamedTextColor.RED));
+            return new CommandResult(0);
+        }
     }
 
     private static boolean hasExecutableNode(final ParseResults<CommandSource> parse) {
@@ -501,6 +511,11 @@ public final class CommandManager implements CommandRegistry {
 
     public void shutdown() {
         commandExecutor.shutdown();
+        if (IN_COMMAND_WORKER.get()) {
+            FidorialServer.LOGGER.warn("Server shutdown requested from a command worker; "
+                    + "run it on a dedicated thread instead (see StopCommand).");
+            return;
+        }
         try {
             if (!commandExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 commandExecutor.shutdownNow();

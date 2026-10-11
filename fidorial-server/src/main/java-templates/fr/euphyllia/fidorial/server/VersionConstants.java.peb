@@ -9,6 +9,8 @@ public final class VersionConstants {
     public static final String MINECRAFT_VERSION_NAME = "{{ minecraftVersionName }}";
     public static final boolean IS_RELEASE = {{ isRelease }};
 
+    public static final String FIDORIAL_VERSION = "{{ fidorialVersion }}";
+
     public static final int PROTOCOL_VERSION = {{ protocolVersion }};
     public static final int DATA_VERSION = {{ dataVersion }};
 

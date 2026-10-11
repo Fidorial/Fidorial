@@ -18,10 +18,10 @@ public class StopCommand {
     }
 
     private static int stop(final CommandContext<CommandSource> context) {
-        FidorialServer.getInstance()
-                .audiences()
+        final FidorialServer server = FidorialServer.getInstance();
+        server.audiences()
                 .forEach(audience -> audience.sendMessage(Component.translatable("command.stop.disabling")));
-        FidorialServer.getInstance().shutdown();
+        Thread.ofPlatform().name("fidorial-shutdown").daemon(false).start(server::shutdown);
         return Command.SINGLE_SUCCESS;
     }
 }
