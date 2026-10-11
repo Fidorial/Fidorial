@@ -192,11 +192,11 @@ public final class FidorialServer implements Server {
             r -> Thread.ofPlatform().name("fidorial-autosave").unstarted(r));
 
     private final NbtPlayerInventoryStorage defaultInventoryStorage =
-            new NbtPlayerInventoryStorage(config.worlds().path().resolve("player"), false);
+            new NbtPlayerInventoryStorage(config.worlds().path().resolve("players"), false);
     private final NbtPlayerDataStorage defaultPlayerDataStorage =
-            new NbtPlayerDataStorage(config.worlds().path().resolve("player"), false);
+            new NbtPlayerDataStorage(config.worlds().path().resolve("players"), false);
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
-            new NbtPlayerEnderChestStorage(config.worlds().path().resolve("player"), false);
+            new NbtPlayerEnderChestStorage(config.worlds().path().resolve("players"), false);
     private final ChestViewerTracker chestViewers = new ChestViewerTracker();
     private final WorldManager worldManager = WorldManager.openOrCreate(
             config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), config.worlds().initialEnabledPacks(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
@@ -229,7 +229,7 @@ public final class FidorialServer implements Server {
     private final FidorialWhitelist fidorialWhitelist = new FidorialWhitelist(Path.of("whitelist.json"));
     private final FidorialOfflinePlayers offlinePlayers = new FidorialOfflinePlayers(
             this,
-            config.worlds().path().resolve("player").resolve("profiles.fop"),
+            config.worlds().path().resolve("players").resolve("profiles.fop"),
             PROFILE_CACHE_TTL,
             PROFILE_CACHE_MAX_ENTRIES,
             config.network().onlineMode());

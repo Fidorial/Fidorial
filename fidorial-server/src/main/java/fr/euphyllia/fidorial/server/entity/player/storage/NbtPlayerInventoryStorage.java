@@ -23,7 +23,7 @@ public class NbtPlayerInventoryStorage implements PlayerInventoryStorage {
     private final boolean gzip;
 
     public NbtPlayerInventoryStorage(final Path playerRoot, final boolean gzip) {
-        this.inventoriesDir = playerRoot.resolve("inventories");
+        this.inventoriesDir = playerRoot.resolve("data");
         this.gzip = gzip;
     }
 
@@ -42,23 +42,25 @@ public class NbtPlayerInventoryStorage implements PlayerInventoryStorage {
     }
 
     private Path fileFor(final UUID uuid) {
-        return inventoriesDir.resolve(uuid.toString());
+        return inventoriesDir.resolve(uuid + ".dat");
+    }
+
+    private static byte[] readFile(final Path file) throws IOException {
+        if (!Files.isRegularFile(file)) {
+            return null;
+        }
+        final byte[] data = Files.readAllBytes(file);
+        final boolean isGzip = data.length >= 2
+                && data[0] == (byte) 0x1F
+                && data[1] == (byte) 0x8B;
+        return isGzip ? gunzip(data) : data;
     }
 
     @Override
     public PlayerInventory load(final UUID uuid) throws IOException {
-        final Path file = fileFor(uuid);
-        if (!Files.isRegularFile(file)) {
+        final byte[] data = readFile(fileFor(uuid));
+        if (data == null) {
             return new PlayerInventory();
-        }
-
-        byte[] data = Files.readAllBytes(file);
-
-        final boolean isGzip = data.length >= 2
-                && data[0] == (byte) 0x1F
-                && data[1] == (byte) 0x8B;
-        if (isGzip) {
-            data = gunzip(data);
         }
         return PlayerInventoryCodec.decode(data);
     }
@@ -67,12 +69,12 @@ public class NbtPlayerInventoryStorage implements PlayerInventoryStorage {
     public void save(final UUID uuid, final PlayerInventory inventory) throws IOException {
         Files.createDirectories(inventoriesDir);
 
-        byte[] data = PlayerInventoryCodec.encode(inventory);
+        final Path file = fileFor(uuid);
+        byte[] data = PlayerInventoryCodec.encode(readFile(file), inventory);
         if (gzip) {
             data = gzip(data);
         }
 
-        final Path file = fileFor(uuid);
         final Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
         Files.write(tmp, data);
         try {

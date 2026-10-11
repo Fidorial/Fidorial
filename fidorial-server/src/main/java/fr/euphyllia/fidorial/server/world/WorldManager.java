@@ -19,6 +19,7 @@ import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.euphyllia.fidorial.server.world.storage.RegionRecompressor;
 import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.WorldFileFixer;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
@@ -95,6 +96,7 @@ public final class WorldManager implements AutoCloseable {
     public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
                                             final @Nullable Long newWorldSeed, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
         final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
+        WorldFileFixer.run(paths);
 
         final LevelData levelData;
         if (paths.levelDat().toFile().isFile()) {
@@ -143,6 +145,7 @@ public final class WorldManager implements AutoCloseable {
         final ChunkGenerator effective = structureService == null
                 ? generator
                 : structureService.wrap(dim.id(), generator, seed, configuration.gameplay()::generateStructures);
+        levelData.generators.put(dim.id(), new LevelData.DimensionGenerator(dim, effective.describeForSave()));
         final boolean overworld = Dimension.OVERWORLD.id().equals(dim.id());
         final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler,
                 levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration);
