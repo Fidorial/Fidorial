@@ -2,6 +2,7 @@ package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.BlockTrait;
 
 /**
  * A block state carrying the {@code age} property: the growth stage of crops and similar blocks.
@@ -11,6 +12,7 @@ import fr.fidorial.world.block.BlockProperty;
  *
  * @since 0.1.0
  */
+@BlockTrait(properties = "age")
 public interface Ageable extends BlockData {
 
     /**

@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Waterlogged;
 
 /**
@@ -7,6 +8,7 @@ import fr.fidorial.world.block.data.Waterlogged;
  *
  * @since 0.1.0
  */
+@BlockTrait(values = @BlockTrait.Values(property = "type", allowed = {"top", "bottom", "double"}, exactly = true))
 public interface Slab extends Waterlogged {
 
     @Override

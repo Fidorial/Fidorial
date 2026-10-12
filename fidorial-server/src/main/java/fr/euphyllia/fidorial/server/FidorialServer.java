@@ -2,7 +2,6 @@ package fr.euphyllia.fidorial.server;
 
 import com.google.common.collect.Iterables;
 import dev.faststats.ErrorTracker;
-import dev.faststats.Metrics;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.auth.MojangChatSigningKeys;
 import fr.euphyllia.fidorial.auth.MojangSessionService;
@@ -35,6 +34,7 @@ import fr.euphyllia.fidorial.server.events.SimpleEventBus;
 import fr.euphyllia.fidorial.server.inventory.ChestViewerTracker;
 import fr.euphyllia.fidorial.server.item.FidorialItemRegistry;
 import fr.euphyllia.fidorial.server.metrics.FidorialContext;
+import fr.euphyllia.fidorial.server.metrics.FidorialMetrics;
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
 import fr.euphyllia.fidorial.server.moderation.FidorialBanManager;
 import fr.euphyllia.fidorial.server.moderation.FidorialWhitelist;
@@ -151,6 +151,7 @@ public final class FidorialServer implements Server {
 
     public static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialServer.class);
     private static final ErrorTracker ERROR_TRACKER = ErrorTracker.contextAware();
+    private static final String FASTSTATS_TOKEN = "6c8c21fe427163e998ea50f54a0ce855";
 
     private static final Duration PROFILE_CACHE_TTL = Duration.ofDays(30);
     private static final int PROFILE_CACHE_MAX_ENTRIES = 65_536;
@@ -234,9 +235,10 @@ public final class FidorialServer implements Server {
             PROFILE_CACHE_MAX_ENTRIES,
             config.network().onlineMode());
     private final NettyServer network = new NettyServer(this, config.network().port());
-    private final FidorialContext metrics = new FidorialContext.Factory("6c8c21fe427163e998ea50f54a0ce855")
+    private final FidorialMetrics metricsCollector = new FidorialMetrics(this);
+    private final FidorialContext metrics = new FidorialContext.Factory(this, FASTSTATS_TOKEN)
             .errorTrackerService(ERROR_TRACKER)
-            .metrics(Metrics.Factory::create)
+            .metrics(metricsCollector::create)
             .create();
     private final ConsoleSender console = new ConsoleSender(this);
     private final @Nullable SparkService spark =
@@ -325,6 +327,9 @@ public final class FidorialServer implements Server {
             openWorlds();
             regionizer.registerTickHandler(new EntityTickHandler(worldManager, this));
             regionizer.addTickProfiler(new DebugSampleBroadcaster(debugSubscribers, this::players));
+            if (metrics.metrics().isPresent()) {
+                regionizer.addTickProfiler(metricsCollector.tickProfiler());
+            }
             syncServerStatusToRegistries(true);
             DebugChannels.bootstrap();
             if (!headless) {
@@ -338,6 +343,7 @@ public final class FidorialServer implements Server {
                 pluginManager.enableAll();
             }
             events.post(new ServerStartedEvent(this));
+            metricsCollector.onServerStarted();
         } catch (final InvalidConfigurationException e) {
             shutdown();
             throw e;
@@ -907,6 +913,7 @@ public final class FidorialServer implements Server {
 
     public void addPlayerConnection(final ClientConnection connection) {
         connections.add(connection);
+        metricsCollector.recordPlayerCount(connections.size());
         refreshPlayerSnapshot();
         debugSubscribers.recompute();
     }
@@ -919,6 +926,10 @@ public final class FidorialServer implements Server {
         entityTracker.removeViewer(connection);
         refreshPlayerSnapshot();
         debugSubscribers.recompute();
+    }
+
+    public NettyServer network() {
+        return network;
     }
 
     public EntityTracker entityTracker() {

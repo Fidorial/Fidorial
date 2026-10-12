@@ -2,6 +2,7 @@ package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockTrait;
 
 import java.util.Locale;
 
@@ -13,6 +14,7 @@ import java.util.Locale;
  *
  * @since 0.1.0
  */
+@BlockTrait(values = @BlockTrait.Values(property = "facing", allowed = {"north", "south", "east", "west", "up", "down"}))
 public interface Directional extends BlockData {
 
     /**

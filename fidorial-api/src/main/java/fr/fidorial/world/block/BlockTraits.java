@@ -1,120 +1,88 @@
 package fr.fidorial.world.block;
 
-import fr.fidorial.world.block.data.Ageable;
-import fr.fidorial.world.block.data.Bisected;
-import fr.fidorial.world.block.data.Directional;
-import fr.fidorial.world.block.data.Levelled;
-import fr.fidorial.world.block.data.Lightable;
-import fr.fidorial.world.block.data.Openable;
-import fr.fidorial.world.block.data.Orientable;
-import fr.fidorial.world.block.data.Powerable;
-import fr.fidorial.world.block.data.Rotatable;
-import fr.fidorial.world.block.data.Snowable;
-import fr.fidorial.world.block.data.Waterlogged;
-import fr.fidorial.world.block.data.type.Door;
-import fr.fidorial.world.block.data.type.Icicle;
-import fr.fidorial.world.block.data.type.NoteBlock;
-import fr.fidorial.world.block.data.type.Slab;
-import fr.fidorial.world.block.data.type.Speleothem;
-import fr.fidorial.world.block.data.type.Stairs;
-import net.kyori.adventure.key.Key;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * Detects the trait interfaces a block type implements from its properties.
+ *
+ * <p>The rules live on the traits themselves, as {@link BlockTrait} annotations; this class only evaluates them.
+ * The list of traits, {@code BlockTraitIndex}, is generated at compile time by the {@code BlockTraitIndexProcessor}
+ * of fidorial-annotation-processor: adding a trait only means annotating its interface.</p>
  */
 final class BlockTraits {
 
-    private static final Set<String> FACES = Set.of("north", "south", "east", "west", "up", "down");
-    private static final Set<String> AXES = Set.of("x", "y", "z");
-    private static final Set<String> HALVES = Set.of("top", "bottom", "upper", "lower");
-    private static final Set<String> SLAB_TYPES = Set.of("top", "bottom", "double");
-    private static final Set<String> SPELEOTHEM_THICKNESSES = Set.of("tip_merge", "tip", "frustum", "middle", "base");
-    private static final Set<String> VERTICAL_DIRECTIONS = Set.of("up", "down");
-    private static final Key NOTE_BLOCK = Key.key("note_block");
+    private static final List<Rule> RULES = BlockTraitIndex.TRAITS.stream().map(BlockTraits::rule).toList();
 
     private BlockTraits() {
     }
 
-    static List<Class<? extends BlockData>> detect(final Key key, final List<BlockProperty> properties) {
+    static List<Class<? extends BlockData>> detect(final List<BlockProperty> properties) {
+        final Map<String, List<String>> declared = new HashMap<>();
+        for (final BlockProperty property : properties) {
+            declared.put(property.name(), property.values());
+        }
         final List<Class<? extends BlockData>> traits = new ArrayList<>();
-
-        final BlockProperty facing = find(properties, "facing");
-        final BlockProperty half = find(properties, "half");
-        final BlockProperty type = find(properties, "type");
-
-        if (facing != null && FACES.containsAll(facing.values())) {
-            traits.add(Directional.class);
+        for (final Rule rule : RULES) {
+            if (rule.matches(declared)) {
+                traits.add(rule.trait());
+            }
         }
-        final BlockProperty axis = find(properties, "axis");
-        if (axis != null && AXES.containsAll(axis.values())) {
-            traits.add(Orientable.class);
-        }
-        if (half != null && HALVES.containsAll(half.values())) {
-            traits.add(Bisected.class);
-        }
-        if (find(properties, "waterlogged") != null) {
-            traits.add(Waterlogged.class);
-        }
-        if (find(properties, "powered") != null) {
-            traits.add(Powerable.class);
-        }
-        if (find(properties, "open") != null) {
-            traits.add(Openable.class);
-        }
-        if (find(properties, "lit") != null) {
-            traits.add(Lightable.class);
-        }
-        if (find(properties, "snowy") != null) {
-            traits.add(Snowable.class);
-        }
-        if (find(properties, "age") != null) {
-            traits.add(Ageable.class);
-        }
-        if (find(properties, "level") != null) {
-            traits.add(Levelled.class);
-        }
-        if (find(properties, "rotation") != null) {
-            traits.add(Rotatable.class);
-        }
-
-        if (key.equals(NOTE_BLOCK)) {
-            traits.add(NoteBlock.class);
-        }
-        if (facing != null && half != null && find(properties, "shape") != null && traits.contains(Bisected.class)) {
-            traits.add(Stairs.class);
-        }
-        if (type != null
-                && SLAB_TYPES.containsAll(type.values())
-                && type.values().size() == 3) {
-            traits.add(Slab.class);
-        }
-        if (facing != null && half != null && find(properties, "hinge") != null && find(properties, "open") != null) {
-            traits.add(Door.class);
-        }
-        final BlockProperty thickness = find(properties, "thickness");
-        final BlockProperty verticalDirection = find(properties, "vertical_direction");
-        if (thickness != null
-                && SPELEOTHEM_THICKNESSES.containsAll(thickness.values())
-                && verticalDirection != null
-                && VERTICAL_DIRECTIONS.containsAll(verticalDirection.values())
-                && find(properties, "waterlogged") != null) {
-            traits.add(find(properties, "attached") != null ? Icicle.class : Speleothem.class);
-        }
-
         return traits;
     }
 
-    private static @Nullable BlockProperty find(final List<BlockProperty> properties, final String name) {
-        for (final BlockProperty property : properties) {
-            if (property.name().equals(name)) {
-                return property;
+    /**
+     * Merges the {@link BlockTrait} of a trait with the ones of every trait it extends.
+     */
+    private static Rule rule(final Class<? extends BlockData> trait) {
+        if (!trait.isAnnotationPresent(BlockTrait.class)) {
+            throw new IllegalStateException(trait.getName() + " is listed as a block trait but has no @BlockTrait");
+        }
+        final Set<String> required = new LinkedHashSet<>();
+        final List<BlockTrait.Values> restrictions = new ArrayList<>();
+        collect(trait, required, restrictions, new LinkedHashSet<>());
+        return new Rule(trait, List.copyOf(required), List.copyOf(restrictions));
+    }
+
+    private static void collect(final Class<?> type, final Set<String> required,
+                                final List<BlockTrait.Values> restrictions, final Set<Class<?>> visited) {
+        if (!visited.add(type)) {
+            return;
+        }
+        final BlockTrait spec = type.getAnnotation(BlockTrait.class);
+        if (spec != null) {
+            required.addAll(List.of(spec.properties()));
+            for (final BlockTrait.Values values : spec.values()) {
+                required.add(values.property());
+                restrictions.add(values);
             }
         }
-        return null;
+        for (final Class<?> parent : type.getInterfaces()) {
+            collect(parent, required, restrictions, visited);
+        }
+    }
+
+    private record Rule(Class<? extends BlockData> trait, List<String> required, List<BlockTrait.Values> restrictions) {
+
+        boolean matches(final Map<String, List<String>> declared) {
+            for (final String property : required) {
+                if (!declared.containsKey(property)) {
+                    return false;
+                }
+            }
+            for (final BlockTrait.Values restriction : restrictions) {
+                final List<String> values = declared.get(restriction.property());
+                final Set<String> allowed = Set.of(restriction.allowed());
+                if (!allowed.containsAll(values)
+                        || (restriction.exactly() && !Set.copyOf(values).equals(allowed))) {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

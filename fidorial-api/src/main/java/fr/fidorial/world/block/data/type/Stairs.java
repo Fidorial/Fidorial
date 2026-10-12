@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Waterlogged;
@@ -10,6 +11,7 @@ import fr.fidorial.world.block.data.Waterlogged;
  *
  * @since 0.1.0
  */
+@BlockTrait(properties = "shape")
 public interface Stairs extends Directional, Bisected, Waterlogged {
 
     @Override
