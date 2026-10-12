@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockTrait;
 
 /**
  * A block state carrying the {@code axis} property: the axis the block is aligned on, like logs and pillars.
@@ -10,6 +11,7 @@ import fr.fidorial.world.block.BlockData;
  *
  * @since 0.1.0
  */
+@BlockTrait(values = @BlockTrait.Values(property = "axis", allowed = {"x", "y", "z"}))
 public interface Orientable extends BlockData {
 
     /**

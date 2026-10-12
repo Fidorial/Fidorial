@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Powerable;
 
 /**
@@ -7,6 +8,7 @@ import fr.fidorial.world.block.data.Powerable;
  *
  * @since 0.1.0
  */
+@BlockTrait(properties = {"instrument", "note"})
 public interface NoteBlock extends Powerable {
 
     @Override

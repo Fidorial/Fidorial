@@ -71,7 +71,7 @@ public final class BlockType {
      * @since 0.1.0
      */
     public static BlockType of(final Key key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal) {
-        return new BlockType(key, properties, stateIds, defaultOrdinal, BlockTraits.detect(key, properties));
+        return new BlockType(key, properties, stateIds, defaultOrdinal, BlockTraits.detect(properties));
     }
 
     /**
@@ -492,7 +492,7 @@ public final class BlockType {
             } else {
                 ids = stateIds;
             }
-            final List<Class<? extends BlockData>> traits = new ArrayList<>(BlockTraits.detect(key, properties));
+            final List<Class<? extends BlockData>> traits = new ArrayList<>(BlockTraits.detect(properties));
             traits.addAll(extraTraits);
 
             return new BlockType(key, properties, ids, ordinalOf(key, properties, defaultValues), traits);

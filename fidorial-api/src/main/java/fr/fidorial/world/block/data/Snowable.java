@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockTrait;
 
 /**
  * A block state carrying the {@code snowy} property: whether snow covers the block, like grass and podzol.
@@ -10,6 +11,7 @@ import fr.fidorial.world.block.BlockData;
  *
  * @since 0.1.0
  */
+@BlockTrait(properties = "snowy")
 public interface Snowable extends BlockData {
 
     /**

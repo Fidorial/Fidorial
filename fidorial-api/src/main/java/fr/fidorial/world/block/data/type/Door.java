@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Openable;
@@ -13,6 +14,7 @@ import java.util.Locale;
  *
  * @since 0.1.0
  */
+@BlockTrait(properties = "hinge")
 public interface Door extends Directional, Bisected, Openable, Powerable {
 
     @Override

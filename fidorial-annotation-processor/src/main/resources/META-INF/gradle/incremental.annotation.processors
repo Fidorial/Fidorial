@@ -1,1 +1,2 @@
 fr.euphyllia.fidorial.server.util.annotations.processor.NeedsToBeRevisitedProcessor,isolating
+fr.euphyllia.fidorial.server.util.annotations.processor.BlockTraitIndexProcessor,aggregating

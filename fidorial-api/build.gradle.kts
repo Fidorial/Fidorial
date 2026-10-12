@@ -18,6 +18,8 @@ dependencies {
     api(libs.fastutil)
     api(libs.configurate.yaml)
     compileOnly(libs.jetbrains.annotations)
+
+    annotationProcessor(projects.fidorialAnnotationProcessor)
 }
 
 fidorialBuild {
