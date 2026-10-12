@@ -87,6 +87,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf> implements Audience {
 
@@ -418,12 +419,17 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         saveInventoryOnDisconnect();
     }
 
-    public void enterConfiguration() {
-        execute(() -> {
-            if (listener instanceof final PlayPacketHandler play) {
-                play.enterConfiguration();
-            }
-        });
+    public CompletableFuture<Boolean> enterConfiguration() {
+        return isActive()
+                ? CompletableFuture.supplyAsync(this::startConfiguration, this::execute).thenCompose(Function.identity())
+                : CompletableFuture.completedFuture(false);
+    }
+
+    private CompletableFuture<Boolean> startConfiguration() {
+        if (isActive() && rejectedState != ConnectionState.PLAY && listener instanceof final PlayPacketHandler play) {
+            return play.enterConfiguration();
+        }
+        return CompletableFuture.completedFuture(false);
     }
 
     public CompletableFuture<Void> saveInventoryOnDisconnect() {
