@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.testplugin.command.argument.BaguetteArgument;
 import fr.euphyllia.fidorial.testplugin.terrain.HillsGenerator;
 import fr.euphyllia.fidorial.testplugin.terrain.SwamplandGenerator;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
+import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.MessageComponentSerializer;
 import fr.fidorial.command.argument.ArgumentTypes;
@@ -51,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -209,11 +211,20 @@ public final class ApiTestCommand {
     }
 
     private static int reenterConfigurationPhase(final CommandContext<CommandSource> ctx) {
-        plugin.server().sendMessage(Component.text("[TestPlugin] Resending all players to the CONFIGURATION phase..."));
-        plugin.server().onlinePlayers().forEach(Player::enterConfigurationPhase);
-        plugin.server().sendMessage(Component.text("[TestPlugin] Resent ")
-                .append(Component.text(plugin.server().onlinePlayers().size()).decorate(TextDecoration.BOLD)
-                        .append(Component.text(" player(s)."))).color(NamedTextColor.GREEN));
+        final Server server = plugin.server();
+        server.sendMessage(Component.text("[TestPlugin] Resending all players to the CONFIGURATION phase..."));
+
+        final List<CompletableFuture<Boolean>> switches = server.onlinePlayers().stream()
+                .map(player -> player.enterConfigurationPhase().exceptionally(_ -> false))
+                .toList();
+
+        CompletableFuture.allOf(switches.toArray(CompletableFuture[]::new)).thenRun(() -> {
+            final long resent = switches.stream().filter(CompletableFuture::join).count();
+            server.sendMessage(Component.text("[TestPlugin] Resent ")
+                    .append(Component.text(resent).decorate(TextDecoration.BOLD))
+                    .append(Component.text(" player(s)."))
+                    .color(NamedTextColor.GREEN));
+        });
         return Command.SINGLE_SUCCESS;
     }
 

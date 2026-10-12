@@ -220,15 +220,18 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     }
 
     /**
-     * Switches this player's connection status from PLAY to CONFIGURATION.
+     * Switches this player's connection state from PLAY to CONFIGURATION.
      * Useful for resending data synced during the CONFIGURATION phase.
      *
      * @apiNote This removes the player from the world fully and creates them anew,
      * firing {@link PlayerQuitEvent}, {@link PlayerJoinEvent}, and saving their data to disk.
      * Any reference to this {@link Player} held before this call should be considered stale.
+     * @return a future completing with {@code true} once the player's data is saved and the client
+     * has been told to switch, or {@code false} if the player is already switching, not in play,
+     * or cannot be switched
      * @since 0.1.0
      */
-    void enterConfigurationPhase();
+    CompletableFuture<Boolean> enterConfigurationPhase();
 
     /**
      * Updates the player's inventory on the client side.

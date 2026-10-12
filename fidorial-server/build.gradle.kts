@@ -38,7 +38,7 @@ dependencies {
     implementation(libs.jline.ffm)
     implementation(libs.jline.reader)
     implementation(libs.logback.classic)
-    implementation(libs.netty.all)
+    implementation(libs.bundles.netty)
     implementation(libs.classgraph)
     implementation(projects.fidorialAuth)
     implementation(libs.dfu)
@@ -55,12 +55,15 @@ dependencies {
         exclude(group = "org.jspecify", module = "jspecify")
     }
     implementation(libs.spark.api)
-    implementation(platform(libs.leafpile.bom))
     implementation(libs.bundles.leafpile)
 
-    runtimeOnly(libs.netty.epoll)
-    runtimeOnly(libs.netty.iouring)
-    runtimeOnly(libs.netty.kqueue)
+    for (platform in listOf("linux-x86_64", "linux-aarch_64")) {
+        runtimeOnly(variantOf(libs.netty.epoll) { classifier(platform) })
+        runtimeOnly(variantOf(libs.netty.iouring) { classifier(platform) })
+    }
+    for (platform in listOf("osx-x86_64", "osx-aarch_64")) {
+        runtimeOnly(variantOf(libs.netty.kqueue) { classifier(platform) })
+    }
 
     annotationProcessor(projects.fidorialAnnotationProcessor)
 

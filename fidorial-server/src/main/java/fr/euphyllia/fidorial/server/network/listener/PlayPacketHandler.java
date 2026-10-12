@@ -361,15 +361,19 @@ public final class PlayPacketHandler implements PlayPacketListener {
         // Confirmation du client : rien a faire tant que l'anti-cheat n'existe pas.
     }
 
-    public void enterConfiguration() {
+    public CompletableFuture<Boolean> enterConfiguration() {
+        if (player == null) {
+            return CompletableFuture.completedFuture(false);
+        }
         LOGGER.debug("Switching player {}, uuid {} from PLAY -> CONFIGURATION phase", player.name(), player.uuid());
         connection.addExemptPacket(ServerboundAcknowledgeConfigurationPacket.class);
         connection.setRejectedState(ConnectionState.PLAY);
         // vanilla removes the player fully and creates a new one, so we do the same
         onDisconnect();
         connection.pauseKeepAlive();
-        connection.saveInventoryOnDisconnect().thenRunAsync(() -> {
+        return connection.saveInventoryOnDisconnect().thenApplyAsync(_ -> {
             connection.send(new ClientboundStartConfigurationPacket(), true);
+            return connection.isActive(); // check if the client disconnected while saving
         }, connection::execute);
     }
 

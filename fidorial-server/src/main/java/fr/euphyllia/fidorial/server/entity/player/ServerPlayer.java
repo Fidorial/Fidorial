@@ -739,8 +739,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public void enterConfigurationPhase() {
-        connection.enterConfiguration();
+    public CompletableFuture<Boolean> enterConfigurationPhase() {
+        return connection.enterConfiguration();
     }
 
     @Override
