@@ -14,7 +14,6 @@ dependencies {
     api(libs.guava)
     api(libs.jspecify)
     api(libs.slf4j.api)
-    api(platform(libs.adventure.bom))
     api(libs.fastutil)
     api(libs.configurate.yaml)
     compileOnly(libs.jetbrains.annotations)
