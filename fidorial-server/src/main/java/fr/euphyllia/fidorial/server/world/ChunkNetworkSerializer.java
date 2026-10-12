@@ -23,6 +23,7 @@ import java.util.List;
 public final class ChunkNetworkSerializer {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ChunkNetworkSerializer.class);
+    private static final boolean BIKINI_BOTTOM = Boolean.getBoolean("Fidorial.bikiniBottom");
 
     private final BlockStateRegistry blockRegistry;
     private static final byte[] FULL_LIGHT = fullLight();
@@ -88,7 +89,7 @@ public final class ChunkNetworkSerializer {
     }
 
     private void writeHeightmaps(final PacketBuffer p, final ChunkColumn chunk) {
-        if (false) { // Todo :activate this active condition: Bikini Bottom
+        if (BIKINI_BOTTOM) {
             p.writeVarInt(0);
             return;
         }
