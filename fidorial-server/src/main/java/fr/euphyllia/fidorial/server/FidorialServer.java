@@ -63,6 +63,7 @@ import fr.euphyllia.fidorial.server.schedulers.ThreadedChunkWorker;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.service.SimpleServiceRegistry;
 import fr.euphyllia.fidorial.server.spark.SparkService;
+import fr.euphyllia.fidorial.server.status.FidorialServerListing;
 import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
@@ -155,6 +156,7 @@ public final class FidorialServer implements Server {
     private static @Nullable FidorialServer instance;
 
     private final ServerConfiguration config = ServerConfiguration.load();
+    private final FidorialServerListing listing;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     private final KeyPair keyPair = EncryptionUtils.generateServerKeyPair();
@@ -256,6 +258,7 @@ public final class FidorialServer implements Server {
         }
         bootstrapItems();
         this.headless = headless;
+        this.listing = new FidorialServerListing(config);
         instance = this;
         commandManager = new CommandManager();
         gameRules.addListener(this::syncGameRule);
@@ -587,36 +590,6 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public Optional<Favicon> favicon() {
-        return Optional.ofNullable(favicon);
-    }
-
-    @Override
-    public void favicon(final Favicon favicon) {
-        this.favicon = favicon;
-    }
-
-    @Override
-    public Component description() {
-        return description;
-    }
-
-    @Override
-    public void description(final Component description) {
-        this.description = description;
-    }
-
-    @Override
-    public int maxPlayers() {
-        return maxPlayers;
-    }
-
-    @Override
-    public void maxPlayers(final int maxPlayers) {
-        this.maxPlayers = maxPlayers;
-    }
-
-    @Override
     public ServiceRegistry services() {
         return services;
     }
@@ -663,6 +636,11 @@ public final class FidorialServer implements Server {
     @Override
     public FidorialMobEffectRegistry effects() {
         return effectRegistry;
+    }
+
+    @Override
+    public FidorialServerListing listing() {
+        return listing;
     }
 
     @Override

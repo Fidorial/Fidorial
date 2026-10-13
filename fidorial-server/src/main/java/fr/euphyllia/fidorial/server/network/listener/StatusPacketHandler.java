@@ -24,9 +24,9 @@ public final class StatusPacketHandler implements StatusPacketListener {
     public void handleStatusRequest(final ServerboundStatusRequestPacket packet) {
         final FidorialServer server = FidorialServer.getInstance();
         final ServerStatus status = ServerStatus.builder()
-                .favicon(server.favicon().orElse(null))
-                .description(server.description())
-                .maxPlayers(server.maxPlayers())
+                .favicon(server.listing().favicon().orElse(null))
+                .description(server.listing().description())
+                .maxPlayers(server.listing().maxPlayers())
                 .players(server.playerCount())
                 .version(new ServerStatus.Version(
                         server.brandName() + " " + server.minecraftVersion(),
