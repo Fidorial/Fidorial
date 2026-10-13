@@ -18,7 +18,7 @@ import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.plugin.PluginManager;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServiceRegistry;
-import fr.fidorial.status.Favicon;
+import fr.fidorial.status.ServerListing;
 import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
@@ -28,7 +28,6 @@ import fr.fidorial.world.generation.WorldGenerator;
 import fr.fidorial.world.structure.StructureManager;
 import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -105,58 +104,14 @@ public interface Server extends ForwardingAudience {
     MobEffectRegistry effects();
 
     /**
-     * Gets the server's favicon shown in the status ping.
+     * Gets how the server shows up in the multiplayer server list (description, favicon, maximum
+     * player count).
      *
-     * @return the server favicon
+     * @return the server listing
      * @since 0.1.0
      */
     @Contract(pure = true)
-    Optional<Favicon> favicon();
-
-    /**
-     * Sets the server's favicon shown in the status ping.
-     *
-     * @param favicon the server favicon
-     * @since 0.1.0
-     */
-    @Contract(mutates = "this")
-    void favicon(Favicon favicon);
-
-    /**
-     * Gets the server description shown in the status ping.
-     *
-     * @return server description
-     * @since 0.1.0
-     */
-    @Contract(pure = true)
-    Component description();
-
-    /**
-     * Sets the server description shown in the status ping.
-     *
-     * @param description server description
-     * @since 0.1.0
-     */
-    @Contract(mutates = "this")
-    void description(Component description);
-
-    /**
-     * Gets the maximum player count shown in the status ping.
-     *
-     * @return maximum player count
-     * @since 0.1.0
-     */
-    @Contract(pure = true)
-    int maxPlayers();
-
-    /**
-     * Sets the maximum player count shown in the status ping.
-     *
-     * @param maxPlayers maximum player count
-     * @since 0.1.0
-     */
-    @Contract(mutates = "this")
-    void maxPlayers(int maxPlayers);
+    ServerListing listing();
 
     /**
      * Gets the current online player count.
