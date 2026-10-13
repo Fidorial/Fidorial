@@ -89,7 +89,7 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
             final String dimension = respawn.getString(RESPAWN_DIMENSION, "minecraft:overworld");
             final int[] pos = respawn.getIntArray(RESPAWN_POS);
             final Key parsed = Key.parseable(dimension) ? Key.key(dimension) : null;
-            final World world = parsed != null ? server.world(parsed).orElse(null) : null;
+            final World world = parsed != null ? server.worlds().get(parsed).orElse(null) : null;
 
             if (world == null) {
                 LOGGER.warn("Unknown respawn world '{}' for {}, spawn location used instead", dimension, uuid);
@@ -106,7 +106,7 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
             final String dimension = root.getString(DIMENSION);
             final Key parsed = Key.parseable(dimension) ? Key.key(dimension) : null;
-            final World world = parsed != null ? server.world(parsed).orElse(null) : null;
+            final World world = parsed != null ? server.worlds().get(parsed).orElse(null) : null;
             final ListBinaryTag pos = root.getList(POS, BinaryTagTypes.DOUBLE);
 
             if (world == null) {

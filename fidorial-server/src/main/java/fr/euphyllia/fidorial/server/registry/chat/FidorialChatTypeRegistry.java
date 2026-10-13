@@ -201,7 +201,7 @@ public final class FidorialChatTypeRegistry implements ChatTypeRegistry, Registr
         if (started.get()) {
             LOGGER.warn("Chat type {} {} after startup: clients will be sent to the configuration phase to see the change.",
                     key.asString(), action);
-            FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
+            FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);
         } else {
             LOGGER.debug("Chat type {} {}.", key.asString(), action);
         }

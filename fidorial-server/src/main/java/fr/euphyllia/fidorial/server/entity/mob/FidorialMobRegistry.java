@@ -133,8 +133,8 @@ public final class FidorialMobRegistry implements MobRegistry {
             return Optional.empty();
         }
         final FidorialServer server = FidorialServer.getInstance();
-        final AbstractMob mob = MobFactories.create(type, server.entityIds().allocate(), location);
-        server.spawnEntity(mob);
+        final AbstractMob mob = MobFactories.create(type, server.entities().ids().allocate(), location);
+        server.entities().spawn(mob);
         return mob instanceof final Mob handle ? Optional.of(handle) : Optional.empty();
     }
 

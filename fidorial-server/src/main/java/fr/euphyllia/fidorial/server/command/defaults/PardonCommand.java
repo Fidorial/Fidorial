@@ -20,7 +20,6 @@ import static fr.fidorial.command.Commands.literal;
 public final class PardonCommand {
 
     private static final String PERMISSION = "fidorial.command.pardon";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private PardonCommand() {
     }
@@ -28,7 +27,7 @@ public final class PardonCommand {
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> playerArgument =
                 ArgumentTypes.playerProfiles(player ->
-                        server.bans().isBanned(player.uuid()));
+                        server().players().bans().isBanned(player.uuid()));
 
         return literal("pardon")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
@@ -39,7 +38,7 @@ public final class PardonCommand {
 
     private static int pardon(final CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource source = context.getSource();
-        final BanManager bans = server.bans();
+        final BanManager bans = server().players().bans();
 
         final Collection<PlayerProfile> targets =
                 context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
@@ -59,5 +58,9 @@ public final class PardonCommand {
         }
 
         return pardoned;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

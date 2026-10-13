@@ -86,7 +86,7 @@ public final class DialogCommand {
 
         final CommandSource source = ctx.getSource();
         final Key key = Key.key(TestDialogs.NAMESPACE, name);
-        final DialogRegistry dialogs = plugin.server().dialogs();
+        final DialogRegistry dialogs = plugin.server().registries().dialogs();
         if (!dialogs.contains(key)) {
             plugin.msg(source, "<red>Nothing is recorded under" + key.asString());
             return 0;
@@ -110,7 +110,7 @@ public final class DialogCommand {
 
     private static int list(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
-        final DialogRegistry dialogs = plugin.server().dialogs();
+        final DialogRegistry dialogs = plugin.server().registries().dialogs();
 
         plugin.msg(source, "<gold>%d dialogue(s) in the log:".formatted(dialogs.keys().size()));
         for (final Key key : dialogs.keys()) {

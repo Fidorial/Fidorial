@@ -49,7 +49,7 @@ public final class EffectTestCommand {
         if (player == null) {
             return 0;
         }
-        final MobEffectRegistry effects = plugin.server().effects();
+        final MobEffectRegistry effects = plugin.server().registries().effects();
         final MobEffectInstance effect = effects.instance(type, DURATION_TICKS, amplifier);
         player.execute(() -> {
             final boolean applied = player.addEffect(effect);

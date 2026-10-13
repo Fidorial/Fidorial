@@ -89,7 +89,7 @@ public final class Frostbite extends Zombie {
         if (duration <= 0 || target.isDead()) {
             return;
         }
-        target.addEffect(server().effects().builder(MobEffectKeys.FREEZING).duration(duration).build());
+        target.addEffect(server().registries().effects().builder(MobEffectKeys.FREEZING).duration(duration).build());
     }
 
     private void throwIceBall(final ServerPlayer target) {
@@ -101,9 +101,9 @@ public final class Frostbite extends Zombie {
         final Location self = location();
         final Location from = Location.of(world(), self.x(), self.y() + height() * 0.85, self.z(), yaw(), pitch());
         final Location aim = target.location();
-        final IceBall ball = IceBall.thrownAt(server().entityIds().allocate(), from, this,
+        final IceBall ball = IceBall.thrownAt(server().entities().ids().allocate(), from, this,
                 aim.x(), aim.y() + TARGET_AIM_HEIGHT, aim.z(), THROW_SPEED);
         playSound(SoundEvents.ICE_BALL_THROW, 1.0f, 0.4f / (ThreadLocalRandom.current().nextFloat() * 0.4f + 0.8f));
-        server().spawnEntity(ball);
+        server().entities().spawn(ball);
     }
 }

@@ -65,7 +65,7 @@ public final class FillBiomeCommand {
     ) throws CommandSyntaxException {
 
         final FidorialServer server = FidorialServer.getInstance();
-        final BiomeRegistry biomes = server.biomes();
+        final BiomeRegistry biomes = server.registries().biomes();
 
         final Biome target = context.getArgument("biome", Biome.class);
         final Key biome = target.key();
@@ -196,9 +196,9 @@ public final class FillBiomeCommand {
         }
 
         final ClientboundChunksBiomesPacket packet =
-                new ClientboundChunksBiomesPacket(server.chunkSerializer(), columns);
+                new ClientboundChunksBiomesPacket(server.worlds().chunkSerializer(), columns);
 
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server.players().online()) {
             if (!player.isRemoved() && player.world().equals(world)) {
                 player.connection().send(packet);
             }

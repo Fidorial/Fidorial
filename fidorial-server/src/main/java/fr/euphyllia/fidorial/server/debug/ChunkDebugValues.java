@@ -32,7 +32,7 @@ public final class ChunkDebugValues {
 
     private static DebugValues.@Nullable StructuresInfo structures(final ClientConnection connection, final ServerWorld world,
                                                                    final int chunkX, final int chunkZ) {
-        final StructureChunkGenerator generator = connection.server().structures().generator(world);
+        final StructureChunkGenerator generator = connection.server().worlds().structures().generator(world);
         if (generator == null) {
             return null;
         }

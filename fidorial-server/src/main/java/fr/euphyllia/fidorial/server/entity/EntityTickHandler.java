@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.fidorial.scheduler.RegionTickHandler;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -18,11 +18,11 @@ public final class EntityTickHandler implements RegionTickHandler {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(EntityTickHandler.class);
 
-    private final WorldManager worldManager;
+    private final ServerWorldManager worldManager;
     private final Map<Key, ServerWorld> worldsById = new ConcurrentHashMap<>();
     private final FidorialServer server;
 
-    public EntityTickHandler(final WorldManager worldManager, final FidorialServer fidorialServer) {
+    public EntityTickHandler(final ServerWorldManager worldManager, final FidorialServer fidorialServer) {
         this.worldManager = worldManager;
         this.server = fidorialServer;
     }
@@ -33,8 +33,8 @@ public final class EntityTickHandler implements RegionTickHandler {
         if (world == null) {
             return;
         }
-        final EntityTracker tracker = server.entityTracker();
-        final List<ServerPlayer> players = server.players();
+        final EntityTracker tracker = server.entities().tracker();
+        final List<ServerPlayer> players = server.players().online();
 
         for (final AbstractEntity entity : world.entityManager().inSection(sectionX, sectionZ)) {
             if (entity.isRemoved()) {
@@ -43,7 +43,7 @@ public final class EntityTickHandler implements RegionTickHandler {
             try {
                 entity.tick(currentTick);
                 if (entity instanceof final AbstractMovingMob mob) {
-                    server.entityDebug().tick(mob);
+                    server.debug().entities().tick(mob);
                 }
             } catch (final Throwable t) {
                 LOGGER.error("Error during tick of {}", entity, t);

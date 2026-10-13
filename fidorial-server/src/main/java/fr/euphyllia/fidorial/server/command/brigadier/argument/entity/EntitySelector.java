@@ -139,7 +139,7 @@ public final class EntitySelector {
         final FidorialServer server = (FidorialServer) source.server();
         final Collection<? extends Entity> entities;
         final Entity executor = source.executor();
-        final ServerWorld defaultWorld = server.worldManager().defaultWorld().orElse(null);
+        final ServerWorld defaultWorld = server.worlds().manager().defaultWorld().orElse(null);
 
         final Collection<? extends Entity> worldEntities = executor != null
                 ? ((ServerWorld) executor.world()).entityManager().all()
@@ -153,15 +153,15 @@ public final class EntitySelector {
             if (entity.isPresent()) {
                 final Entity found = entity.get();
                 includesEntities = !(found instanceof Player);
-                entities = includesEntities ? List.of(found) : server.onlinePlayers();
+                entities = includesEntities ? List.of(found) : server.players().online();
             } else {
                 includesEntities = false;
-                entities = server.onlinePlayers();
+                entities = server.players().online();
             }
 
         } else if (targetName != null) {
             includesEntities = false;
-            entities = server.onlinePlayers();
+            entities = server.players().online();
 
         } else if (selfSelector && source.sender() instanceof final Player player) {
             includesEntities = false;
@@ -170,7 +170,7 @@ public final class EntitySelector {
         } else if (includesEntities) {
             entities = worldEntities;
         } else {
-            entities = server.onlinePlayers();
+            entities = server.players().online();
         }
 
         final List<Entity> result = entities.stream()

@@ -103,7 +103,7 @@ public abstract class AbstractEntity implements Entity {
     }
 
     public final void sendToTrackers(final ClientboundPacket packet) {
-        server().entityTracker().sendToViewers(this, packet);
+        server().entities().tracker().sendToViewers(this, packet);
     }
 
     public void sendSpawnPackets(final ClientConnection connection) {
@@ -163,7 +163,7 @@ public abstract class AbstractEntity implements Entity {
         final boolean departureScheduled = old.scheduler().execute(old.key(), fromChunk, () -> {
             old.removeEntity(this);
             if (this instanceof AbstractMob) {
-                server().regionizer().removeTicket(old.key(), fromChunk);
+                server().workers().regionizer().removeTicket(old.key(), fromChunk);
             }
 
             final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
@@ -171,7 +171,7 @@ public abstract class AbstractEntity implements Entity {
                     setLocation(location);
                     target.addEntity(this);
                     if (this instanceof AbstractMob) {
-                        server().regionizer().addTicket(target.key(), destChunk);
+                        server().workers().regionizer().addTicket(target.key(), destChunk);
                     }
                     finishTeleport(location);
                     result.complete(true);
@@ -200,7 +200,7 @@ public abstract class AbstractEntity implements Entity {
                 new PositionData.LinearPositionPath(LocationPositionData.vec3(location)),
                 LocationPositionData.floatRotation(location),
                 false));
-        server().entityTracker().update(this, server().players());
+        server().entities().tracker().update(this, server().players().online());
     }
 
     @Override

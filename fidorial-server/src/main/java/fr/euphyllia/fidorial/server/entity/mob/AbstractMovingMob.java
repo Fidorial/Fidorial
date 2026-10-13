@@ -287,7 +287,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
 
     @Override
     public final @Nullable ServerPlayer nearestPlayer(final double maxDistance) {
-        final List<ServerPlayer> players = server().players();
+        final List<ServerPlayer> players = server().players().online();
         final double maxDistSq = maxDistance < 0.0 ? Double.MAX_VALUE : maxDistance * maxDistance;
         ServerPlayer best = null;
         double bestDistSq = Double.MAX_VALUE;
@@ -373,7 +373,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         final ChunkPos toChunk = after.chunk();
         if (!fromChunk.equals(toChunk)) {
             serverWorld().entityMoved(this, fromChunk, toChunk);
-            server().regionizer().moveTicket(serverWorld().dimension().id(), fromChunk, toChunk);
+            server().workers().regionizer().moveTicket(serverWorld().dimension().id(), fromChunk, toChunk);
         }
     }
 
@@ -436,6 +436,6 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     @Override
     public void sendSpawnPackets(final ClientConnection connection) {
         super.sendSpawnPackets(connection);
-        server().entityDebug().sendCurrent(this, connection);
+        server().debug().entities().sendCurrent(this, connection);
     }
 }

@@ -72,7 +72,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         syncToClients();
 
         if (after.y() < serverWorld().minY() - 64) {
-            server().despawnEntity(this);
+            server().entities().despawn(this);
         }
     }
 
@@ -86,7 +86,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     @Override
     protected void onDeathAnimationFinished() {
-        server().despawnEntity(this);
+        server().entities().despawn(this);
     }
 
     private double dropRangeSq() {
@@ -95,7 +95,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     private void updateTarget() {
-        final List<ServerPlayer> players = server().players();
+        final List<ServerPlayer> players = server().players().online();
         if (players.isEmpty()) {
             setTarget(null);
             return;
@@ -236,7 +236,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             stepDistance += Math.sqrt(stepDx * stepDx + stepDz * stepDz);
             if (stepDistance >= STEP_INTERVAL) {
                 stepDistance = 0.0;
-                server().debugGameEvents().emit(world(), GameEventKeys.STEP, new PositionData.Vec3D(newX, newY, newZ));
+                server().debug().gameEvents().emit(world(), GameEventKeys.STEP, new PositionData.Vec3D(newX, newY, newZ));
                 onStep();
             }
 

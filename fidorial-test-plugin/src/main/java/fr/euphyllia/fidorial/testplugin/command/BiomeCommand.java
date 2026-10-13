@@ -65,7 +65,7 @@ public final class BiomeCommand {
     }
 
     private static BiomeRegistry biomes() {
-        return plugin.server().biomes();
+        return plugin.server().registries().biomes();
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {

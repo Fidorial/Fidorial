@@ -147,10 +147,10 @@ public final class BreakDoorGoal implements Goal {
         clearDestroyStage();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
-        server.blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()));
-        server.blockEdits().set(world, other, BlockState.of(BlockTypeKeys.AIR.key()));
+        server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()));
+        server.worlds().blockEdits().set(world, other, BlockState.of(BlockTypeKeys.AIR.key()));
 
-        server.broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
+        server.players().broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
                 new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos, 0, false));
         playSound(SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 2.0f);
 

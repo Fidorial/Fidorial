@@ -91,7 +91,7 @@ public final class TemptGoal implements Goal {
     }
 
     private @Nullable ServerPlayer findTempter(final double maxDistSq) {
-        final List<ServerPlayer> players = mob.server().players();
+        final List<ServerPlayer> players = mob.server().players().online();
         ServerPlayer best = null;
         double bestDistSq = Double.MAX_VALUE;
         for (int i = 0, size = players.size(); i < size; i++) {

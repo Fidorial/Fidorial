@@ -48,7 +48,7 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         syncToClients();
 
         if (after.y() < serverWorld().minY() - VOID_MARGIN) {
-            server().despawnEntity(this);
+            server().entities().despawn(this);
         }
     }
 
@@ -60,7 +60,7 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
 
     @Override
     protected void onDeathAnimationFinished() {
-        server().despawnEntity(this);
+        server().entities().despawn(this);
     }
 
     protected void tickFlight(final long currentTick) {

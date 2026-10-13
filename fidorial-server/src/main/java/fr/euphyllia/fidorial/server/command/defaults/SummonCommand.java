@@ -67,8 +67,8 @@ public final class SummonCommand {
             return 0;
         }
         world.scheduler().execute(world.key(), location.chunk(), () -> {
-            final AbstractMob mob = MobFactories.create(entity, server.entityIds().allocate(), location);
-            server.spawnEntity(mob);
+            final AbstractMob mob = MobFactories.create(entity, server.entities().ids().allocate(), location);
+            server.entities().spawn(mob);
 
             source.sendMessage(Component.translatable(
                     "command.summon.done", Component.text(entity.key().value()), Component.text(mob.entityId())));

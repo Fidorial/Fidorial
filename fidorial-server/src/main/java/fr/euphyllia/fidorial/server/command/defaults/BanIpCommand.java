@@ -27,7 +27,6 @@ import static fr.fidorial.command.Commands.literal;
 public final class BanIpCommand {
 
     private static final String PERMISSION = "fidorial.command.banip";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private BanIpCommand() {
     }
@@ -63,7 +62,7 @@ public final class BanIpCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.bans();
+        final BanManager bans = server().players().bans();
 
         final List<Player> targets =
                 context.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(source);
@@ -104,13 +103,17 @@ public final class BanIpCommand {
     private static int kickBanned(final BanEntry.Address entry) {
         int kicked = 0;
 
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server().players().online()) {
             if (player.address().equals(entry.address())) {
-                player.kick(server.bans().disconnectMessage(entry));
+                player.kick(server().players().bans().disconnectMessage(entry));
                 kicked++;
             }
         }
 
         return kicked;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

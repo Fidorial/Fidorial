@@ -214,7 +214,7 @@ public final class ApiTestCommand {
         final Server server = plugin.server();
         server.sendMessage(Component.text("[TestPlugin] Resending all players to the CONFIGURATION phase..."));
 
-        final List<CompletableFuture<Boolean>> switches = server.onlinePlayers().stream()
+        final List<CompletableFuture<Boolean>> switches = server.players().online().stream()
                 .map(player -> player.enterConfigurationPhase().exceptionally(_ -> false))
                 .toList();
 
@@ -234,12 +234,12 @@ public final class ApiTestCommand {
         final Component header = MiniMessage.miniMessage().deserialize(
                 "<gradient:aqua:blue><bold>Fidorial</bold></gradient> <gray>| Test Plugin</gray>");
         final Component footer = Component.text(
-                "Online: " + plugin.server().playerCount(), NamedTextColor.DARK_GRAY);
+                "Online: " + plugin.server().players().count(), NamedTextColor.DARK_GRAY);
 
         plugin.server().sendPlayerListHeaderAndFooter(header, footer);
 
         plugin.msg(source, "[TestPlugin] Broadcasted tab list header/footer to "
-                + plugin.server().playerCount() + " player(s).");
+                + plugin.server().players().count() + " player(s).");
 
         return Command.SINGLE_SUCCESS;
     }
@@ -445,9 +445,9 @@ public final class ApiTestCommand {
         final CommandSource source = ctx.getSource();
 
         final String worlds =
-                plugin.server().worlds().stream().map(w -> w.key().toString()).collect(Collectors.joining(", "));
+                plugin.server().worlds().all().stream().map(w -> w.key().toString()).collect(Collectors.joining(", "));
 
-        plugin.msg(source, "[TestPlugin] " + plugin.server().worlds().size() + " world(s): " + worlds);
+        plugin.msg(source, "[TestPlugin] " + plugin.server().worlds().all().size() + " world(s): " + worlds);
 
         return Command.SINGLE_SUCCESS;
     }
@@ -497,8 +497,8 @@ public final class ApiTestCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        final Collection<? extends World> worlds = plugin.server().worlds();
-        final World target = plugin.server().world(key).orElse(null);
+        final Collection<? extends World> worlds = plugin.server().worlds().all();
+        final World target = plugin.server().worlds().get(key).orElse(null);
         if (target == null) {
             plugin.msg(source, "[TestPlugin] World " + key + " does not exist.");
             plugin.msg(source, "Loaded worlds: ");
@@ -519,7 +519,7 @@ public final class ApiTestCommand {
     private static int players(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
 
-        final var players = plugin.server().onlinePlayers();
+        final var players = plugin.server().players().online();
 
         plugin.msg(
                 source,
@@ -549,7 +549,7 @@ public final class ApiTestCommand {
     private static int schedule(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
 
-        final World world = plugin.server().worlds().stream().findFirst().orElse(null);
+        final World world = plugin.server().worlds().all().stream().findFirst().orElse(null);
 
         if (world == null) {
             plugin.msg(source, "[TestPlugin] No world is loaded.");
@@ -590,7 +590,7 @@ public final class ApiTestCommand {
             final CommandContext<CommandSource> ctx, final Key key, final String generatorName) {
         final CommandSource source = ctx.getSource();
 
-        if (plugin.server().world(key).isPresent()) {
+        if (plugin.server().worlds().get(key).isPresent()) {
             plugin.msg(source, "[TestPlugin] The world " + key + " already exists (idempotence test OK).");
             return Command.SINGLE_SUCCESS;
         }
@@ -602,7 +602,7 @@ public final class ApiTestCommand {
                 .generator(generator)
                 .build();
 
-        final World world = plugin.server().createWorld(spec);
+        final World world = plugin.server().worlds().create(spec);
 
         plugin.msg(
                 source,
@@ -610,7 +610,7 @@ public final class ApiTestCommand {
                         + " | minY=" + world.minY()
                         + " | height=" + world.height()
                         + " | type=" + world.dimensionType().key()
-                        + " | total=" + plugin.server().worlds().size());
+                        + " | total=" + plugin.server().worlds().all().size());
 
         return Command.SINGLE_SUCCESS;
     }
@@ -619,12 +619,12 @@ public final class ApiTestCommand {
             final CommandContext<CommandSource> ctx, final Key key) {
         final CommandSource source = ctx.getSource();
 
-        final boolean unloaded = plugin.server().unloadWorld(key, true);
+        final boolean unloaded = plugin.server().worlds().unload(key, true);
         if (unloaded) {
             plugin.msg(
                     source,
                     "[TestPlugin] World unloaded: " + key
-                            + " | total=" + plugin.server().worlds().size());
+                            + " | total=" + plugin.server().worlds().all().size());
         } else {
             plugin.msg(
                     source,
@@ -705,7 +705,7 @@ public final class ApiTestCommand {
 
         server.sendResourcePacks(request);
 
-        plugin.msg(source, "[TestPlugin] Resource pack request sent to " + server.playerCount() + " player(s).");
+        plugin.msg(source, "[TestPlugin] Resource pack request sent to " + server.players().count() + " player(s).");
 
         return Command.SINGLE_SUCCESS;
     }
@@ -828,7 +828,7 @@ public final class ApiTestCommand {
     private static int getDefaultWorld(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
 
-        plugin.server().defaultWorld().ifPresentOrElse(
+        plugin.server().worlds().defaultWorld().ifPresentOrElse(
                 key -> plugin.msg(source, "[TestPlugin] Configured default world: " + key.asString()),
                 () -> plugin.msg(source, "[TestPlugin] No default world is configured."));
 
@@ -839,7 +839,7 @@ public final class ApiTestCommand {
         final CommandSource source = ctx.getSource();
         final World world = ctx.getArgument("world", World.class);
 
-        plugin.server().defaultWorld(world.key());
+        plugin.server().worlds().defaultWorld(world.key());
 
         plugin.msg(source, "[TestPlugin] Default world set to " + world.key().asString());
         return Command.SINGLE_SUCCESS;

@@ -4,8 +4,8 @@ import fr.euphyllia.fidorial.auth.GameProfile;
 import fr.euphyllia.fidorial.auth.MojangProfileRepository;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.entity.OfflinePlayer;
+import fr.fidorial.entity.OfflinePlayerManager;
 import fr.fidorial.entity.OfflinePlayerSnapshot;
-import fr.fidorial.entity.OfflinePlayers;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -33,9 +33,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
-public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
+public final class FidorialOfflinePlayerManager implements OfflinePlayerManager, Closeable {
 
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialOfflinePlayers.class);
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialOfflinePlayerManager.class);
     private static final Pattern VALID_NAME = Pattern.compile("[A-Za-z0-9_]{1,16}");
 
     private static final long NEGATIVE_TTL_MILLIS = Duration.ofMinutes(5).toMillis();
@@ -59,7 +59,7 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
      * @param onlineMode whether the server authenticates logins, which determines if identities are
      *                   resolved remotely or derived from the name
      */
-    public FidorialOfflinePlayers(
+    public FidorialOfflinePlayerManager(
             final FidorialServer server,
             final Path cacheFile,
             final Duration ttl,
@@ -226,7 +226,7 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
 
     @Override
     public CompletableFuture<OfflinePlayer> refresh(final UUID uuid) {
-        final Optional<? extends Player> live = server.player(uuid);
+        final Optional<? extends Player> live = server.players().get(uuid);
         if (live.isPresent()) {
             return CompletableFuture.completedFuture(of(live.get()));
         }
@@ -248,34 +248,34 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
 
     @Override
     public Optional<? extends Player> online(final UUID uuid) {
-        return server.player(uuid);
+        return server.players().get(uuid);
     }
 
     @Override
     public boolean isOperator(final UUID uuid) {
-        return server.operators().isOp(uuid);
+        return server.moderation().operators().isOp(uuid);
     }
 
     @Override
     public void setOperator(final UUID uuid, final boolean operator) {
         final String name = cache.byId(uuid).map(ProfileEntry::name).orElseGet(uuid::toString);
-        server.operators().setOp(uuid, name, operator);
-        server.player(uuid).ifPresent(Player::invalidatePermissions);
+        server.moderation().operators().setOp(uuid, name, operator);
+        server.players().get(uuid).ifPresent(Player::invalidatePermissions);
     }
 
     @Override
     public boolean isBanned(final UUID uuid) {
-        return server.bans().isBanned(uuid);
+        return server.players().bans().isBanned(uuid);
     }
 
     @Override
     public boolean isWhitelisted(final UUID uuid) {
-        return server.whitelist().contains(uuid);
+        return server.players().whitelist().contains(uuid);
     }
 
     @Override
     public CompletableFuture<Optional<OfflinePlayerSnapshot>> snapshot(final UUID uuid) {
-        final Optional<? extends Player> live = server.player(uuid);
+        final Optional<? extends Player> live = server.players().get(uuid);
         if (live.isPresent()) {
             final Player player = live.get();
             return CompletableFuture.completedFuture(Optional.of(new OfflinePlayerSnapshot(
@@ -288,7 +288,7 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                final PlayerDataStorage data = server.playerDataStorage();
+                final PlayerDataStorage data = server.players().dataStorage();
                 if (!data.exists(uuid)) {
                     return Optional.empty();
                 }
@@ -296,8 +296,8 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
                 return Optional.of(new OfflinePlayerSnapshot(
                         uuid,
                         loaded.gameMode(),
-                        server.playerInventoryStorage().load(uuid),
-                        server.playerEnderChestStorage().load(uuid),
+                        server.players().inventoryStorage().load(uuid),
+                        server.players().enderChestStorage().load(uuid),
                         false));
             } catch (final IOException e) {
                 LOGGER.error("Unable to read the saved data of {}", uuid, e);
@@ -322,7 +322,7 @@ public final class FidorialOfflinePlayers implements OfflinePlayers, Closeable {
     }
 
     private Optional<? extends Player> onlineByName(final String name) {
-        return server.player(name);
+        return server.players().get(name);
     }
 
     private static PlayerInventory copyOf(final PlayerInventory source) {

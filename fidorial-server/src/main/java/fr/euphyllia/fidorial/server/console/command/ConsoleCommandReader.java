@@ -34,14 +34,14 @@ public class ConsoleCommandReader {
 
     public void start() {
         if (!started.compareAndSet(false, true)) return;
-        Thread thread = new Thread(this::run, "fidorial-console");
+        final Thread thread = new Thread(this::run, "fidorial-console");
         thread.setDaemon(true);
         thread.start();
         LOGGER.debug("Interactive console ready");
     }
 
     private void run() {
-        Supplier<CommandSource> consoleSource = () -> FidorialServer.getInstance().getConsole().commandSource();
+        final Supplier<CommandSource> consoleSource = () -> FidorialServer.getInstance().commands().console().commandSource();
 
         try (final Terminal terminal = TerminalBuilder.builder().system(true).build()) {
             final LineReader lineReader = LineReaderBuilder.builder()
@@ -58,7 +58,7 @@ public class ConsoleCommandReader {
                 String line;
                 try {
                     line = lineReader.readLine(prompt);
-                } catch (UserInterruptException | EndOfFileException e) {
+                } catch (final UserInterruptException | EndOfFileException e) {
                     FidorialServer.getInstance().shutdown();
                     break;
                 }
@@ -68,7 +68,7 @@ public class ConsoleCommandReader {
                 line = line.stripTrailing();
                 if (line.isBlank()) continue;
 
-                commandManager.dispatchAsync(FidorialServer.getInstance().getConsole().commandSource(), line);
+                commandManager.dispatchAsync(FidorialServer.getInstance().commands().console().commandSource(), line);
             }
         } catch (final IOException e) {
             LOGGER.warn("Console reading interrupted: {}", e.getMessage());

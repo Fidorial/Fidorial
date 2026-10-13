@@ -27,7 +27,6 @@ import static fr.fidorial.command.Commands.literal;
 public final class BanCommand {
 
     private static final String PERMISSION = "fidorial.command.ban";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private BanCommand() {
     }
@@ -35,7 +34,7 @@ public final class BanCommand {
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> playerArgument =
                 ArgumentTypes.playerProfiles(player ->
-                        !server.bans().isBanned(player.uuid()));
+                        !server().players().bans().isBanned(player.uuid()));
 
         return literal("ban")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
@@ -67,7 +66,7 @@ public final class BanCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.bans();
+        final BanManager bans = server().players().bans();
 
         final Collection<PlayerProfile> targets =
                 context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
@@ -113,7 +112,7 @@ public final class BanCommand {
         if (source == null) {
             return Component.translatable("commands.ban.source.server");
         }
-        return Component.text(server.offlinePlayers().cached(source)
+        return Component.text(server().players().offline().cached(source)
                 .map(OfflinePlayer::label)
                 .orElseGet(source::toString));
     }
@@ -121,13 +120,17 @@ public final class BanCommand {
     private static int kickBanned(final BanEntry.Profile entry) {
         int kicked = 0;
 
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server().players().online()) {
             if (player.uuid().equals(entry.uuid())) {
-                player.kick(server.bans().disconnectMessage(entry));
+                player.kick(server().players().bans().disconnectMessage(entry));
                 kicked++;
             }
         }
 
         return kicked;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

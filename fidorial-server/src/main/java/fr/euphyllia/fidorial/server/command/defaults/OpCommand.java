@@ -45,7 +45,7 @@ public final class OpCommand {
         final Collection<PlayerProfile> targets = resolver.resolve(context.getSource());
 
         for (final PlayerProfile targetProfile : targets) {
-            final List<? extends Player> players = context.getSource().server().onlinePlayers().stream()
+            final List<? extends Player> players = context.getSource().server().players().online().stream()
                     .filter(player -> player.uuid().equals(targetProfile.uuid()))
                     .toList();
 

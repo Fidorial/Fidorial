@@ -58,7 +58,7 @@ public final class PlayerTests {
     private static World crossWorldDestination() {
         final FidorialServer server = FidorialServer.getInstance();
         final Key key = Key.key("scenario_test", "cross_world_destination");
-        final World world = server.worldManager().world((key));
-        return world != null ? world : server.createWorld(WorldSpec.builder(key).build());
+        final World world = server.worlds().manager().world((key));
+        return world != null ? world : server.worlds().create(WorldSpec.builder(key).build());
     }
 }

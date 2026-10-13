@@ -120,18 +120,18 @@ public final class TestPlugin implements Plugin {
         this.logger = context.logger();
         this.server = context.server();
 
-        TestBiomes.registerAll(context.server().biomes(), context.logger());
+        TestBiomes.registerAll(context.server().registries().biomes(), context.logger());
 
-        TestDialogs.registerAll(context.server().dialogs(), context.logger());
+        TestDialogs.registerAll(context.server().registries().dialogs(), context.logger());
 
-        TestDimensionTypes.registerAll(context.server().dimensionTypes(), context.logger());
+        TestDimensionTypes.registerAll(context.server().registries().dimensionTypes(), context.logger());
 
-        TestChatTypes.registerAll(context.server().chatTypes(), context.logger());
+        TestChatTypes.registerAll(context.server().registries().chatTypes(), context.logger());
 
-//        BullMobs.attachToCows(context.server().mobs(), this, context.logger());
-        BullMobs.registerBull(context.server().mobs(), this, context.logger());
-        CompanionMobs.register(context.server().mobs(), this, context.logger());
-        TestEffects.registerAll(context.server().effects(), this, context.logger());
+//        BullMobs.attachToCows(context.server().registries().mobs(), this, context.logger());
+        BullMobs.registerBull(context.server().registries().mobs(), this, context.logger());
+        CompanionMobs.register(context.server().registries().mobs(), this, context.logger());
+        TestEffects.registerAll(context.server().registries().effects(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
         this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
@@ -180,13 +180,13 @@ public final class TestPlugin implements Plugin {
             task.cancel();
         }
         server.commands().unregisterNamespace(context.meta());
-        TestBiomes.unregisterAll(server.biomes());
-        TestDialogs.unregisterAll(server.dialogs());
-        TestDimensionTypes.unregisterAll(context.server().dimensionTypes());
-        TestChatTypes.unregisterAll(server.chatTypes());
-        BullMobs.unregisterAll(server.mobs(), this);
-        server.mobs().unregisterAll(this);
-        TestEffects.unregisterAll(server.effects(), this);
+        TestBiomes.unregisterAll(server.registries().biomes());
+        TestDialogs.unregisterAll(server.registries().dialogs());
+        TestDimensionTypes.unregisterAll(context.server().registries().dimensionTypes());
+        TestChatTypes.unregisterAll(server.registries().chatTypes());
+        BullMobs.unregisterAll(server.registries().mobs(), this);
+        server.registries().mobs().unregisterAll(this);
+        TestEffects.unregisterAll(server.registries().effects(), this);
         TestPluginTranslations.unregister();
     }
 
@@ -256,7 +256,7 @@ public final class TestPlugin implements Plugin {
             msg(e.player(), "[TestPlugin] Welcome " + e.player().name() + "! Type /apitest to test the API.");
 
             final var chatType = TestChatTypes.ARRIVAL.bind(e.player().displayName());
-            server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text("Hi!"), chatType));
+            server.players().online().forEach(viewer -> viewer.sendMessage(Component.text("Hi!"), chatType));
             if (resourcePackRequest != null) {
                 e.player().sendResourcePacks(resourcePackRequest);
             }
@@ -267,7 +267,7 @@ public final class TestPlugin implements Plugin {
             logger.info("[TestPlugin][event] PlayerQuit de {}", e.player().name());
 
             final var chatType = TestChatTypes.DEPARTURE.bind(e.player().displayName());
-            server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text("Bye!"), chatType));
+            server.players().online().forEach(viewer -> viewer.sendMessage(Component.text("Bye!"), chatType));
         });
 
         events.subscribe(PlayerChatEvent.class, EventPriority.HIGH, e -> {
@@ -289,7 +289,7 @@ public final class TestPlugin implements Plugin {
                 e.setCancelled(true);
                 final String content = raw.substring(4);
                 final var chatType = TestChatTypes.EMOTE.bind(Component.text(e.player().name()));
-                server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
+                server.players().online().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
                 return;
             }
 
@@ -297,7 +297,7 @@ public final class TestPlugin implements Plugin {
                 e.setCancelled(true);
                 final String content = raw.substring(7);
                 final var chatType = TestChatTypes.ANNOUNCEMENT.bind(Component.text(e.player().name()));
-                server.onlinePlayers().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
+                server.players().online().forEach(viewer -> viewer.sendMessage(Component.text(content), chatType));
                 return;
             }
 
@@ -311,7 +311,7 @@ public final class TestPlugin implements Plugin {
                 }
                 final String targetName = rest.substring(0, space);
                 final String content = rest.substring(space + 1);
-                final Player target = server.player(targetName).orElse(null);
+                final Player target = server.players().get(targetName).orElse(null);
                 if (target == null) {
                     msg(e.player(), "[TestPlugin] No player named '" + targetName + "' online.");
                     return;

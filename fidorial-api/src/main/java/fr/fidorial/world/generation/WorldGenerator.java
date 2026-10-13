@@ -1,7 +1,7 @@
 package fr.fidorial.world.generation;
 
-import fr.fidorial.Server;
 import fr.fidorial.service.ServiceRegistry;
+import fr.fidorial.world.WorldManager;
 import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
@@ -9,7 +9,7 @@ import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 /**
  * Fills the chunks of a world when they are generated for the first time.
  *
- * <p>Plugins provide one through {@link Server#createWorld(WorldSpec)}, or
+ * <p>Plugins provide one through {@link WorldManager#create(WorldSpec)}, or
  * replace the default one by registering it as a {@linkplain ServiceRegistry service}.
  * Generation runs on chunk worker threads: implementations must be thread-safe.</p>
  *

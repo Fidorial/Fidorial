@@ -29,7 +29,7 @@ public final class TpsCommand {
 
     private static int execute(final CommandContext<CommandSource> context) {
         final List<RegionTpsSnapshot> snapshots =
-                FidorialServer.getInstance().regionizer().tpsSnapshots();
+                FidorialServer.getInstance().workers().regionizer().tpsSnapshots();
 
         if (snapshots.isEmpty()) {
             context.getSource().sendMessage(Component.translatable("command.tps.noregion"));

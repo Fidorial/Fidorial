@@ -73,7 +73,7 @@ public final class ItemStackWriter {
     }
 
     private static @Nullable ItemDefinition definition(final ItemStack stack) {
-        return FidorialServer.getInstance().items().definition(stack.id()).orElse(null);
+        return FidorialServer.getInstance().registries().items().definition(stack.id()).orElse(null);
     }
 
     private static List<Map.Entry<DataComponentType<?>, Object>> encodableAdditions(

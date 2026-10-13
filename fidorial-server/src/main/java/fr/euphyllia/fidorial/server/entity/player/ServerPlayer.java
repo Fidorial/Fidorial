@@ -167,7 +167,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.locale = connection.locale();
         this.permissions = new PermissionState(
                 this,
-                connection.server().permissions(),
+                connection.server().registries().permissions(),
                 () -> connection.server()
                         .services()
                         .find(PermissionResolver.class)
@@ -190,12 +190,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public boolean isOperator() {
-        return connection.server().operators().isOp(profile.uuid());
+        return connection.server().moderation().operators().isOp(profile.uuid());
     }
 
     @Override
     public void setOperator(final boolean operator) {
-        connection.server().operators().setOp(profile.uuid(), profile.name(), operator);
+        connection.server().moderation().operators().setOp(profile.uuid(), profile.name(), operator);
         invalidatePermissions();
     }
 
@@ -209,7 +209,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         permissions.invalidate();
         updateClientPermissionLevel();
         refreshCommands();
-        connection.server().debugSubscribers().refresh(this);
+        connection.server().debug().subscribers().refresh(this);
     }
 
     private void updateClientPermissionLevel() {
@@ -219,7 +219,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void refreshCommands() {
-        connection.send(connection.server().commandManager().createCommandsPacket(this));
+        connection.send(connection.server().commands().manager().createCommandsPacket(this));
     }
 
     @Override
@@ -289,7 +289,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private void emitContainerEvent(final TypedKey<GameEvent> event, final ContainerMenu menu) {
-        final var events = connection.server().debugGameEvents();
+        final var events = connection.server().debug().gameEvents();
         if (menu instanceof final EnderChestMenu enderChestMenu) {
             events.emit(world(), event, enderChestMenu.position());
         } else {
@@ -458,7 +458,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private int effectNetworkId(final MobEffectInstance effect) {
-        return connection.server().effects().clientNetworkId(this, effect.type().key());
+        return connection.server().registries().effects().clientNetworkId(this, effect.type().key());
     }
 
     @Override
@@ -483,7 +483,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setFallDistance(0.0);
         setFalling(false);
         if (distance > 0.0) {
-            connection.server().debugGameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
+            connection.server().debug().gameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
         }
         if (distance <= SAFE_FALL_DISTANCE || isInvulnerableToDamage()) {
             return 0f;
@@ -709,7 +709,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.gameMode = gameMode;
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, gameMode.id()));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(gameMode));
-        connection.server().broadcast(new ClientboundPlayerInfoGameModePacket(uuid(), gameMode.id()));
+        connection.server().players().broadcast(new ClientboundPlayerInfoGameModePacket(uuid(), gameMode.id()));
     }
 
     @Override

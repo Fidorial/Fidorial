@@ -344,9 +344,9 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     protected void convertTo(final EntityType type) {
         final Location loc = location();
-        final AbstractMob converted = MobFactories.create(type, server().entityIds().allocate(), loc);
-        server().despawnEntity(this);
-        server().spawnEntity(converted);
+        final AbstractMob converted = MobFactories.create(type, server().entities().ids().allocate(), loc);
+        server().entities().despawn(this);
+        server().entities().spawn(converted);
     }
 
     protected void attack(final ServerPlayer target) {
@@ -354,7 +354,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         if (damage <= 0f) {
             return;
         }
-        if (server().combat().damage(target, DamageSource.mobAttack(this), damage)) {
+        if (server().entities().combat().damage(target, DamageSource.mobAttack(this), damage)) {
             onAttackLanded(target);
         }
 
@@ -410,7 +410,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         final Location self = location();
         final ThreadLocalRandom random = ThreadLocalRandom.current();
 
-        final List<ServerPlayer> players = server().players();
+        final List<ServerPlayer> players = server().players().online();
 
         for (int attempt = 0; attempt < REINFORCEMENT_ATTEMPTS; attempt++) {
             final int x = (int) Math.floor(self.x()) + randomOffset(random);
@@ -421,11 +421,11 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
                 continue;
             }
 
-            final Zombie reinforcement = new Zombie(server().entityIds().allocate(), Location.of(world, x, y, z, 0f, 0f));
+            final Zombie reinforcement = new Zombie(server().entities().ids().allocate(), Location.of(world, x, y, z, 0f, 0f));
             reinforcement.reinforcementChance =
                     Math.max(0.0, reinforcement.reinforcementChance - REINFORCEMENT_DECAY);
             reinforcement.setTarget(attacker);
-            server().spawnEntity(reinforcement);
+            server().entities().spawn(reinforcement);
 
             this.reinforcementChance = Math.max(0.0, this.reinforcementChance - REINFORCEMENT_DECAY);
             return;
@@ -469,7 +469,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     }
 
     private LevelData levelData() {
-        return server().worldManager().levelData();
+        return server().worlds().manager().levelData();
     }
 
     protected int difficulty() {
@@ -590,7 +590,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
         static int current() {
             return FidorialServer.getInstance()
-                    .worldManager().levelData().difficulty;
+                    .worlds().manager().levelData().difficulty;
         }
     }
 }

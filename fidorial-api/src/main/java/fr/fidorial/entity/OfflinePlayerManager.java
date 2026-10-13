@@ -1,6 +1,5 @@
 package fr.fidorial.entity;
 
-import fr.fidorial.Server;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collection;
@@ -12,10 +11,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * The directory of every player identity the server knows of, connected or not.
  *
- * @see Server#offlinePlayers()
+ * @see PlayerManager#offline()
  * @since 0.1.0
  */
-public interface OfflinePlayers {
+public interface OfflinePlayerManager {
 
     /**
      * Gets the handle for an identity, whether or not the server has ever observed it.

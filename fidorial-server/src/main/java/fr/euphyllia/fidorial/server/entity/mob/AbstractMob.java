@@ -40,7 +40,7 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     protected void onDeath() {
-        server().debugGameEvents().emit(world(), GameEventKeys.ENTITY_DIE, location());
+        server().debug().gameEvents().emit(world(), GameEventKeys.ENTITY_DIE, location());
         sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_DEATH));
         startDeathAnimation();
         dispatch(MobBehaviour::onDeath, "onDeath");

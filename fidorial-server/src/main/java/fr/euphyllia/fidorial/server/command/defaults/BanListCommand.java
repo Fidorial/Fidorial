@@ -35,7 +35,7 @@ public final class BanListCommand {
             final Function<BanManager, Stream<? extends BanEntry>> selector
     ) {
         final CommandSource source = context.getSource();
-        final BanManager bans = context.getSource().server().bans();
+        final BanManager bans = context.getSource().server().players().bans();
 
         final List<? extends BanEntry> entries = selector.apply(bans).toList();
 

@@ -1,10 +1,8 @@
 package fr.fidorial.world.biome;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.world.environment.EnvironmentAttributes;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
-
 
 /**
  * The client-side tinting a biome applies.
@@ -49,19 +47,6 @@ public record BiomeEffects(
     @Contract(value = "_ -> new", pure = true)
     public static Builder builder(final BiomeEffects effects) {
         return new Builder(effects);
-    }
-
-    /**
-     * Computes the sky color the vanilla generator derives from a given temperature.
-     *
-     * @param temperature the biome temperature
-     * @return the packed RGB sky color
-     * @deprecated moved alongside the attribute it feeds; use
-     * {@link EnvironmentAttributes#skyColorFor(float)}
-     */
-    @Deprecated(since = "0.1.0", forRemoval = true)
-    public static int skyColorFor(final float temperature) {
-        return EnvironmentAttributes.skyColorFor(temperature);
     }
 
     /**

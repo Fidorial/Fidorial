@@ -23,17 +23,16 @@ import static fr.fidorial.command.Commands.literal;
 public final class WhitelistCommand {
 
     private static final String PERMISSION = "fidorial.command.whitelist";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private WhitelistCommand() {
     }
 
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> unlistedArgument =
-                ArgumentTypes.playerProfiles(player -> !server.whitelist().contains(player.uuid()));
+                ArgumentTypes.playerProfiles(player -> !server().players().whitelist().contains(player.uuid()));
 
         final ArgumentType<PlayerProfileListResolver> listedArgument =
-                ArgumentTypes.playerProfiles(player -> server.whitelist().contains(player.uuid()));
+                ArgumentTypes.playerProfiles(player -> server().players().whitelist().contains(player.uuid()));
 
         return literal("whitelist")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
@@ -52,7 +51,7 @@ public final class WhitelistCommand {
 
     private static int enforce(final CommandContext<CommandSource> context, final boolean enabled) {
         final CommandSource source = context.getSource();
-        final WhitelistManager whitelist = server.whitelist();
+        final WhitelistManager whitelist = server().players().whitelist();
 
         if (!whitelist.enabled(enabled)) {
             source.sendMessage(Component.translatable(
@@ -70,7 +69,7 @@ public final class WhitelistCommand {
 
     private static int add(final CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource source = context.getSource();
-        final WhitelistManager whitelist = server.whitelist();
+        final WhitelistManager whitelist = server().players().whitelist();
 
         final Collection<PlayerProfile> targets =
                 context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
@@ -94,7 +93,7 @@ public final class WhitelistCommand {
 
     private static int remove(final CommandContext<CommandSource> context) throws CommandSyntaxException {
         final CommandSource source = context.getSource();
-        final WhitelistManager whitelist = server.whitelist();
+        final WhitelistManager whitelist = server().players().whitelist();
 
         final Collection<PlayerProfile> targets =
                 context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
@@ -122,7 +121,7 @@ public final class WhitelistCommand {
 
     private static int list(final CommandContext<CommandSource> context) {
         final CommandSource source = context.getSource();
-        final WhitelistManager whitelist = server.whitelist();
+        final WhitelistManager whitelist = server().players().whitelist();
 
         final List<PlayerProfile> entries = whitelist.entries().toList();
 
@@ -140,7 +139,7 @@ public final class WhitelistCommand {
     }
 
     private static int reload(final CommandContext<CommandSource> context) {
-        server.whitelist().load();
+        server().players().whitelist().load();
 
         context.getSource().sendMessage(Component.translatable("commands.whitelist.reloaded"));
 
@@ -159,14 +158,14 @@ public final class WhitelistCommand {
     }
 
     private static int enforceWhitelist() {
-        if (!server.whitelist().enabled()) {
+        if (!server().players().whitelist().enabled()) {
             return 0;
         }
 
         int kicked = 0;
 
-        for (final ServerPlayer player : server.players()) {
-            if (server.whitelist().contains(player.uuid())) {
+        for (final ServerPlayer player : server().players().online()) {
+            if (server().players().whitelist().contains(player.uuid())) {
                 continue;
             }
 
@@ -175,5 +174,9 @@ public final class WhitelistCommand {
         }
 
         return kicked;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

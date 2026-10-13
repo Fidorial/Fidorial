@@ -20,7 +20,7 @@ public final class BlockStateTests {
     @ScenarioTest(timeoutTicks = 20)
     public static void belowWorldIsAir(final ScenarioTestHelper helper) {
         final World world = helper.world();
-        final BlockStateRegistry registry = FidorialServer.getInstance().blockStateRegistry();
+        final BlockStateRegistry registry = FidorialServer.getInstance().registries().blockStates();
         final BlockPosition pos = Position.block(0, world.dimensionType().minY() - 1, 0);
 
         final BlockState actual = registry.byId(world.blockStateId(pos));
@@ -43,7 +43,7 @@ public final class BlockStateTests {
     //@ScenarioTest(timeoutTicks = 80) disabled for now as setBlockStateId doesnt send light updates
     public static void reopeningVerticalShaftRestoresSkylight(final ScenarioTestHelper helper) {
         final World world = helper.world();
-        final int airId = FidorialServer.getInstance().blockStateRegistry().networkId(BlockState.of(BlockTypeKeys.AIR.key()));
+        final int airId = FidorialServer.getInstance().registries().blockStates().networkId(BlockState.of(BlockTypeKeys.AIR.key()));
         final int cobblestoneId = cobblestoneId();
         final int x = 8;
         final int z = 8;
@@ -65,12 +65,12 @@ public final class BlockStateTests {
     }
 
     private static int stoneId() {
-        final BlockStateRegistry registry = FidorialServer.getInstance().blockStateRegistry();
+        final BlockStateRegistry registry = FidorialServer.getInstance().registries().blockStates();
         return registry.networkId(BlockState.of(STONE));
     }
 
     private static int cobblestoneId() {
-        final BlockStateRegistry registry = FidorialServer.getInstance().blockStateRegistry();
+        final BlockStateRegistry registry = FidorialServer.getInstance().registries().blockStates();
         return registry.networkId(BlockState.of(COBBLESTONE));
     }
 

@@ -373,7 +373,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
         }
         final ServerPlayer nearest = nearestPlayer(-1.0);
         if (nearest == null || distanceSqTo(nearest) > DESPAWN_DISTANCE * DESPAWN_DISTANCE) {
-            server().despawnEntity(this);
+            server().entities().despawn(this);
         }
     }
 

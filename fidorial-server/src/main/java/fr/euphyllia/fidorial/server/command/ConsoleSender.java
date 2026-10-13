@@ -4,9 +4,11 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
+import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.translation.TranslationStore;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.permission.PermissionChecker;
@@ -31,12 +33,18 @@ public final class ConsoleSender implements CommandSender, PermissionStateHolder
     private final PermissionState permissions;
     private Locale locale = Locale.US;
 
-    public ConsoleSender(final FidorialServer server) {
+    /**
+     * @param server             the server, only used once it is running (default world)
+     * @param permissionRegistry the known permissions
+     * @param services           where to look for plugin permission resolvers
+     */
+    public ConsoleSender(
+            final FidorialServer server, final PermissionRegistry permissionRegistry, final ServiceRegistry services) {
         this.server = server;
         this.permissions = new PermissionState(
                 this,
-                server.permissions(),
-                () -> server.services()
+                permissionRegistry,
+                () -> services
                         .find(PermissionResolver.class)
                         .map(List::of)
                         .orElseGet(List::of));
@@ -93,7 +101,7 @@ public final class ConsoleSender implements CommandSender, PermissionStateHolder
     @Override
     public CommandSource commandSource() {
         final CommandSource source = CommandSource.of(this);
-        return server.worldManager().defaultWorld()
+        return server.worlds().manager().defaultWorld()
                 .map(world -> source.at(world.configuration().gameplay().spawn().location(world)))
                 .orElse(source);
     }

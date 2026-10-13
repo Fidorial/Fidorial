@@ -4,6 +4,7 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.scheduler.RegionizedScheduler;
+import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.time.DayNightCycle;
 import fr.fidorial.world.weather.WeatherManager;
@@ -11,6 +12,7 @@ import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
  * currently holds. Block reads may be issued from any thread; block writes are queued on the
  * region thread owning the position and complete asynchronously.</p>
  *
- * @see fr.fidorial.Server#worlds()
+ * @see WorldManager#all()
  * @since 0.1.0
  */
 public interface World extends Keyed, ForwardingAudience {
@@ -218,8 +220,8 @@ public interface World extends Keyed, ForwardingAudience {
      *
      * @param pos the block position
      * @return the network identifier of the block state
-     * @throws java.io.UncheckedIOException if the chunk could not be read
-     * @see fr.fidorial.world.block.BlockRegistry#fromNetworkId(int)
+     * @throws UncheckedIOException if the chunk could not be read
+     * @see BlockRegistry#fromNetworkId(int)
      * @since 0.1.0
      */
     int blockStateId(BlockPosition pos);

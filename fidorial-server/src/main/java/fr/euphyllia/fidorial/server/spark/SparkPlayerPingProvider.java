@@ -41,7 +41,7 @@ public final class SparkPlayerPingProvider implements PlayerPingProvider {
     @Override
     public Map<String, Integer> poll() {
         final Map<String, Integer> pings = new HashMap<>();
-        for (final Player player : this.server.onlinePlayers()) {
+        for (final Player player : this.server.players().online()) {
             pings.put(player.name(), player.ping());
         }
         return pings;

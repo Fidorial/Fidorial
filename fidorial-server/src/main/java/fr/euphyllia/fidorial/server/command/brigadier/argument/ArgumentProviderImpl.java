@@ -60,7 +60,6 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
-import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.World;
@@ -262,7 +261,7 @@ public class ArgumentProviderImpl implements ArgumentProvider {
 
     @Override
     public ArgumentType<World> world() {
-        return DimensionArgument.dimension(key -> FidorialServer.getInstance().worldManager().world(key));
+        return DimensionArgument.dimension(key -> FidorialServer.getInstance().worlds().manager().world(key));
     }
 
     @Override
@@ -341,11 +340,11 @@ public class ArgumentProviderImpl implements ArgumentProvider {
 
     @Override
     public <T> ArgumentType<T> serverResource(final RegistryKey<T> registryKey) {
-        final Registry<T> registryLookup = FidorialServer.getInstance().registries().registry(registryKey);
         final ResourceKeyArgument<T> nativeType = ResourceKeyArgument.resourceKey(registryKey);
 
+        // The registry is resolved on parse, so this can be called while the server is being built.
         return withServerSuggestions(new MappedArgumentType<>(nativeType, (typedKey, reader) ->
-                registryLookup.find(typedKey)
+                FidorialServer.getInstance().registries().registry(registryKey).find(typedKey)
                         .orElseThrow(() -> ResourceArgument.ERROR_UNKNOWN_RESOURCE
                                 .createWithContext(reader, typedKey.key().asString(), registryKey.key().asString()))));
     }

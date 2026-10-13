@@ -133,7 +133,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     public ClientConnection(final FidorialServer server) {
         this.server = server;
-        this.protocol = server.protocolMap();
+        this.protocol = server.network().protocolMap();
         this.state = ConnectionState.HANDSHAKE;
         this.listener = new HandshakePacketHandler(this);
     }
@@ -415,7 +415,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         } catch (final Throwable t) {
             LOGGER.error("Error during onDisconnect", t);
         }
-        server.removePlayerConnection(this);
+        server.players().disconnect(this);
         saveInventoryOnDisconnect();
     }
 
@@ -440,15 +440,15 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         this.player = null;
         return CompletableFuture.runAsync(() -> {
             try {
-                server.playerInventoryStorage().save(disconnecting.uuid(), disconnecting.inventory());
-                server.playerEnderChestStorage().save(disconnecting.uuid(), disconnecting.enderChest());
+                server.players().inventoryStorage().save(disconnecting.uuid(), disconnecting.inventory());
+                server.players().enderChestStorage().save(disconnecting.uuid(), disconnecting.enderChest());
                 final RespawnPoint point = disconnecting.respawnPoint();
-                server.playerDataStorage().save(
-                                disconnecting.uuid(),
-                                new PlayerDataStorage.PlayerData(
-                                        disconnecting.gameMode(),
-                                        point == null ? null : point.position().toLocation(point.world()),
-                                        disconnecting.location()));
+                server.players().dataStorage().save(
+                        disconnecting.uuid(),
+                        new PlayerDataStorage.PlayerData(
+                                disconnecting.gameMode(),
+                                point == null ? null : point.position().toLocation(point.world()),
+                                disconnecting.location()));
                 LOGGER.debug("Inventory + Ender Chest and data for {} saved", disconnecting.name());
             } catch (final Exception e) {
                 LOGGER.error("Unable to save inventory for {}", disconnecting.name(), e);
@@ -687,7 +687,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         switch (dialog) {
             case final DialogDefinition definition -> send(ClientboundShowDialogPacket.inline(packetKey, definition));
             case final DialogReference reference -> {
-                final int id = server.dialogs().networkId(reference.key());
+                final int id = server.registries().dialogs().networkId(reference.key());
                 if (id < 0) {
                     LOGGER.warn(
                             "{} cannot be shown dialog {}: nothing is registered under that key.",

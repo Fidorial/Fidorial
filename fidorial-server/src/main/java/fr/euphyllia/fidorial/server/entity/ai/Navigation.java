@@ -72,7 +72,7 @@ public class Navigation implements Navigator {
         lastRequestTick = age;
         final PathPenalty penalty = this.pathPenalty;
         requestInFlight = FidorialServer.getInstance()
-                .aiWorker()
+                .workers().aiWorker()
                 .submit(() -> pendingResult.set(
                         new PathResult(AStarPathfinder.find(world, from, goal, MAX_NODES, penalty))));
     }

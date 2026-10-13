@@ -118,8 +118,8 @@ public final class SparkService implements SparkPlugin {
             return;
         }
 
-        this.server.regionizer().addTickProfiler(this.tickBridge);
-        this.server.dayNightEngine().setTickProfiler(this.tickBridge);
+        this.server.workers().regionizer().addTickProfiler(this.tickBridge);
+        this.server.worlds().dayNight().setTickProfiler(this.tickBridge);
 
         final SparkPlatform platform = new SparkPlatform(this);
         platform.enable();
@@ -127,7 +127,7 @@ public final class SparkService implements SparkPlugin {
 
         try {
             this.server
-                    .commandManager()
+                    .commands().manager()
                     .registerInternal(
                             SparkCommand.create(platform, COMMAND_NAME, this.scheduler), COMMAND_ALIASES);
         } catch (final Throwable t) {
@@ -146,7 +146,7 @@ public final class SparkService implements SparkPlugin {
     public void disable() {
         if (this.platform != null) {
             try {
-                this.server.commandManager().unregister("minecraft", COMMAND_NAME);
+                this.server.commands().manager().unregister("minecraft", COMMAND_NAME);
             } catch (final Throwable t) {
                 log(Level.WARNING, "Could not unregister the spark command", t);
             }
@@ -159,8 +159,8 @@ public final class SparkService implements SparkPlugin {
 
     private void detachTickProfiler() {
         try {
-            this.server.regionizer().removeTickProfiler(this.tickBridge);
-            this.server.dayNightEngine().setTickProfiler(null);
+            this.server.workers().regionizer().removeTickProfiler(this.tickBridge);
+            this.server.worlds().dayNight().setTickProfiler(null);
         } catch (final Throwable t) {
             log(Level.WARNING, "Could not detach the spark tick profiler", t);
         }
@@ -214,8 +214,8 @@ public final class SparkService implements SparkPlugin {
 
     @Override
     public Stream<SparkCommandSender> getCommandSenders() {
-        final Stream<? extends CommandSender> players = this.server.onlinePlayers().stream();
-        return Stream.concat(players, Stream.of(this.server.getConsole())).map(SparkCommandSender::new);
+        final Stream<? extends CommandSender> players = this.server.players().online().stream();
+        return Stream.concat(players, Stream.of(this.server.commands().console())).map(SparkCommandSender::new);
     }
 
     @Override

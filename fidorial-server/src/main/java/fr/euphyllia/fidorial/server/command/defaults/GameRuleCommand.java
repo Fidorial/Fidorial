@@ -27,7 +27,6 @@ public final class GameRuleCommand {
     private static final String PERMISSION = "fidorial.command.gamerule";
     private static final String VALUE = "value";
     private static final String WORLD = "world";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private GameRuleCommand() {
     }
@@ -77,7 +76,7 @@ public final class GameRuleCommand {
         final ServerWorld world = source.location() instanceof final Location location
                 && location.world() instanceof final ServerWorld sourceWorld ? sourceWorld : null;
         final Integer override = world == null ? null : world.gameRuleValues().override(rule);
-        final int base = server.gameRules().get(rule);
+        final int base = server().worlds().gameRules().get(rule);
 
         if (override == null) {
             source.sendMessage(Component.translatable(
@@ -102,7 +101,7 @@ public final class GameRuleCommand {
             final @Nullable ServerWorld world) {
         final CommandSource source = context.getSource();
         final CommandSender sender = source.sender();
-        final FidorialGameRules rules = server.gameRules();
+        final FidorialGameRules rules = server().worlds().gameRules();
         final boolean override = world != null && !FidorialGameRules.holdsBaseValues(world);
 
         final FidorialGameRules.Result outcome = rules.apply(world, rule, value, GameRuleChangeEvent.Cause.COMMAND, sender);
@@ -140,7 +139,7 @@ public final class GameRuleCommand {
         final Component id = Component.text(rule.id());
         final Component worldName = Component.text(world.key().asString());
 
-        switch (server.gameRules().removeOverride(world, rule, GameRuleChangeEvent.Cause.COMMAND, sender)) {
+        switch (server().worlds().gameRules().removeOverride(world, rule, GameRuleChangeEvent.Cause.COMMAND, sender)) {
             case CANCELLED -> {
                 source.sendMessage(Component.translatable("commands.gamerule.cancelled", id));
                 return 0;
@@ -161,5 +160,9 @@ public final class GameRuleCommand {
 
     private static int result(final GameRuleDefinition rule, final int value) {
         return rule.isBoolean() ? (value != 0 ? 1 : 0) : value;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

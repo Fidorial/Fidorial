@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
@@ -38,7 +38,7 @@ public final class FluidEngine implements FluidManager {
             BlockFace.WEST, BlockFace.EAST
     };
 
-    private final WorldManager worlds;
+    private final ServerWorldManager worlds;
     private final ThreadedRegionRegionizer regionizer;
     private final BlockStateRegistry blockRegistry;
     private final Consumer<ClientboundPacket> broadcaster;
@@ -48,7 +48,7 @@ public final class FluidEngine implements FluidManager {
     private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
-            final WorldManager worlds,
+            final ServerWorldManager worlds,
             final ThreadedRegionRegionizer regionizer,
             final BlockStateRegistry blockRegistry,
             final Consumer<ClientboundPacket> broadcaster

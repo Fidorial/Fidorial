@@ -1,6 +1,5 @@
 package fr.fidorial.entity;
 
-import fr.fidorial.Server;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.event.player.PlayerJoinEvent;
@@ -35,7 +34,7 @@ import java.util.concurrent.CompletableFuture;
  * before that point.
  * {@code Player} references should not be cached, as a reference obtained from an event or lookup is only
  * guaranteed valid for the duration of that call. Instead, re-fetch by UUID or name via
- * {@link Server#player(UUID)} or {@link Server#player(String)}.
+ * {@link PlayerManager#get(UUID)} or {@link PlayerManager#get(String)}.
  *
  * @since 0.1.0
  */
@@ -62,7 +61,7 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @since 0.1.0
      */
     default OfflinePlayer offline() {
-        return server().offlinePlayers().of(this);
+        return server().players().offline().of(this);
     }
 
     @Override

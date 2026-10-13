@@ -77,7 +77,7 @@ public final class WeatherCommand {
         if (current != null && current.weather().hasCycle()) {
             return current;
         }
-        return FidorialServer.getInstance().weatherEngine().primaryWorld();
+        return FidorialServer.getInstance().worlds().weather().primaryWorld();
     }
 
     private static @Nullable ServerWorld worldOf(final CommandSource source) {

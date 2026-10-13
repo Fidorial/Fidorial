@@ -63,7 +63,7 @@ public final class Creeper extends AbstractPathfinderMob implements Category.Mon
     private void explode() {
         final Location center = location();
         setPrimed(false);
-        server().despawnEntity(this);
+        server().entities().despawn(this);
         Explosion.explode(serverWorld(), center, EXPLOSION_POWER, this);
     }
 

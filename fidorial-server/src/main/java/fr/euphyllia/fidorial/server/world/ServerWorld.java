@@ -348,7 +348,7 @@ public final class ServerWorld implements World {
 
     @Override
     public WorldGameRules gameRules() {
-        return FidorialServer.getInstance().gameRules().world(this);
+        return FidorialServer.getInstance().worlds().gameRules().world(this);
     }
 
     @Override

@@ -123,7 +123,7 @@ public final class BossBarCommand {
     }
 
     private static BossBarRegistry bossBars() {
-        return FidorialServer.getInstance().bossBarRegistry();
+        return FidorialServer.getInstance().worlds().bossBars();
     }
 
     private static Key bossBarId(final CommandContext<CommandSource> ctx) {
@@ -312,7 +312,7 @@ public final class BossBarCommand {
 
     private static Component joinPlayerNames(final Set<UUID> ids) {
         final List<TextComponent> names = ids.stream()
-                .map(id -> FidorialServer.getInstance().onlinePlayers().stream()
+                .map(id -> FidorialServer.getInstance().players().online().stream()
                         .filter(p -> p.uuid().equals(id))
                         .map(Player::name)
                         .findFirst()

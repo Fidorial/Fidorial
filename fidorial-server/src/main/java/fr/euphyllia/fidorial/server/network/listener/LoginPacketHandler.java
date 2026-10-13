@@ -130,7 +130,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
     private void sendEncryptionRequest(final boolean shouldAuthenticate) {
         this.encryptionRequested = true;
         this.verifyToken = EncryptionUtils.generateVerifyToken();
-        final byte[] publicKey = server.keyPair().getPublic().getEncoded();
+        final byte[] publicKey = server.network().keyPair().getPublic().getEncoded();
         connection.send(new ClientboundHelloPacket("", publicKey, verifyToken, shouldAuthenticate));
     }
 
@@ -141,17 +141,17 @@ public final class LoginPacketHandler implements LoginPacketListener {
             return;
         }
         try {
-            final byte[] token = EncryptionUtils.decryptRsa(server.keyPair().getPrivate(), packet.encryptedToken());
+            final byte[] token = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedToken());
             if (!Arrays.equals(token, verifyToken)) {
                 disconnect(Component.translatable("disconnect.loginFailedInfo.invalidSession"));
                 return;
             }
-            final byte[] sharedSecret = EncryptionUtils.decryptRsa(server.keyPair().getPrivate(), packet.encryptedSecret());
+            final byte[] sharedSecret = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedSecret());
             final SecretKey key = EncryptionUtils.toAesKey(sharedSecret);
             connection.installEncryption(key);
 
             final String serverHash = EncryptionUtils.computeServerHash(
-                    "", sharedSecret, server.keyPair().getPublic());
+                    "", sharedSecret, server.network().keyPair().getPublic());
             final String username = pendingUsername;
             Thread.startVirtualThread(() -> authenticate(username, serverHash));
         } catch (final Exception e) {
@@ -162,7 +162,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
 
     private void authenticate(final String username, final String serverHash) {
         try {
-            final Optional<GameProfile> profile = server.sessionService().hasJoined(username, serverHash);
+            final Optional<GameProfile> profile = server.network().sessionService().hasJoined(username, serverHash);
             connection.execute(() -> {
                 if (!server.config().network().onlineMode()) {
                     enableCompression();
@@ -226,9 +226,9 @@ public final class LoginPacketHandler implements LoginPacketListener {
     }
 
     private Optional<Component> loginRefusal(final PlayerProfile profile, @Nullable final InetAddress address) {
-        return server.bans().findAny(profile.uuid(), address)
-                .map(server.bans()::disconnectMessage)
-                .or(() -> server.whitelist().allows(profile.uuid())
+        return server.players().bans().findAny(profile.uuid(), address)
+                .map(server.players().bans()::disconnectMessage)
+                .or(() -> server.players().whitelist().allows(profile.uuid())
                         ? Optional.empty()
                         : Optional.of(Component.translatable("multiplayer.disconnect.not_whitelisted")));
     }
@@ -237,7 +237,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
         this.loginComplete = true;
         LOGGER.info("Authenticated: {} ({})", profile.name(), profile.uuid());
         connection.setProfile(playerProfile);
-        server.offlinePlayers().remember(playerProfile);
+        server.players().offline().remember(playerProfile);
         connection.send(new ClientboundLoginFinishedPacket(profile));
     }
 

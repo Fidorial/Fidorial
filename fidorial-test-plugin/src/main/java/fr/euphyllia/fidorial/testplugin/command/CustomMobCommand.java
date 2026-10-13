@@ -46,7 +46,7 @@ public final class CustomMobCommand {
             return 0;
         }
 
-        final Optional<Mob> mob = plugin.server().mobs().spawn(key, location);
+        final Optional<Mob> mob = plugin.server().registries().mobs().spawn(key, location);
         if (mob.isEmpty()) {
             plugin.msg(source, "<red>[TestPlugin] Impossible d'invoquer <white>" + key.asString() + "<red>.");
             return 0;

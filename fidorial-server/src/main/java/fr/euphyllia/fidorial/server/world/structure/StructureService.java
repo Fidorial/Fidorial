@@ -190,7 +190,7 @@ public final class StructureService implements StructureManager {
 
     @Override
     public CompletableFuture<Optional<BlockPosition>> locate(final World world, final Position origin, final Key structure,
-                                                        final int radiusCells) {
+                                                             final int radiusCells) {
         final StructureChunkGenerator generator = generator(world);
         if (generator == null) {
             return CompletableFuture.completedFuture(Optional.empty());
@@ -259,10 +259,10 @@ public final class StructureService implements StructureManager {
         final ClientboundLevelChunkWithLightPacket packet;
         synchronized (world.lightManager()) {
             packet = new ClientboundLevelChunkWithLightPacket(
-                    server.chunkSerializer(), column, world.generator.dimensionType().hasSkylight());
+                    server.worlds().chunkSerializer(), column, world.generator.dimensionType().hasSkylight());
         }
         final int range = server.config().general().viewDistance() + 1;
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server.players().online()) {
             if (player.isRemoved() || !player.world().equals(world)) {
                 continue;
             }

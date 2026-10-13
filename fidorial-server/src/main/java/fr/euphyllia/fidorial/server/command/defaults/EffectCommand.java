@@ -114,7 +114,7 @@ public final class EffectCommand {
             duration = instantaneous ? seconds : seconds * TICKS_PER_SECOND;
         }
 
-        final MobEffectInstance effect = context.getSource().server().effects().builder(type)
+        final MobEffectInstance effect = context.getSource().server().registries().effects().builder(type)
                 .duration(duration)
                 .amplifier(amplifier)
                 .visible(!hideParticles)
@@ -211,7 +211,7 @@ public final class EffectCommand {
         return ArgumentTypes.withServerSuggestions(ArgumentTypes.map(
                 ArgumentTypes.resourceKey(RegistryKey.MOB_EFFECT),
                 (type, reader) -> {
-                    if (!FidorialServer.getInstance().effects().isEffect(type)) {
+                    if (!FidorialServer.getInstance().registries().effects().isEffect(type)) {
                         throw ResourceArgument.ERROR_UNKNOWN_RESOURCE.createWithContext(
                                 reader, type.key().asString(), RegistryKey.MOB_EFFECT.key().asString());
                     }
@@ -219,7 +219,7 @@ public final class EffectCommand {
                 },
                 (context, builder) -> {
                     final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-                    FidorialServer.getInstance().effects().types().stream()
+                    FidorialServer.getInstance().registries().effects().types().stream()
                             .map(type -> type.key().asString())
                             .filter(key -> key.contains(remaining))
                             .sorted()

@@ -132,7 +132,7 @@ public final class PregenCommand {
 
     public static void resendCommands() {
         final Server server = plugin.server();
-        for (final Player player : server.onlinePlayers()) {
+        for (final Player player : server.players().online()) {
             player.refreshCommands();
         }
     }

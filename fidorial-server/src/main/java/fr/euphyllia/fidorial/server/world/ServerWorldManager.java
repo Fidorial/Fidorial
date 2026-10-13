@@ -47,9 +47,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 
-public final class WorldManager implements AutoCloseable {
+public final class ServerWorldManager implements AutoCloseable {
 
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(WorldManager.class);
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerWorldManager.class);
 
     private final WorldPaths paths;
     private final LevelData levelData;
@@ -69,7 +69,7 @@ public final class WorldManager implements AutoCloseable {
     private volatile @Nullable Key defaultWorldKey;
     private final WorldConfigurationContainer configurations;
 
-    private WorldManager(
+    private ServerWorldManager(
             final WorldPaths paths,
             final LevelData levelData,
             final ChunkStorage storage,
@@ -89,12 +89,12 @@ public final class WorldManager implements AutoCloseable {
         this.configurations = configurations;
     }
 
-    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
+    public static ServerWorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
         return openOrCreate(worldRoot, blockStates, scheduler, null, initialPacks, configurations);
     }
 
-    public static WorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
-                                            final @Nullable Long newWorldSeed, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
+    public static ServerWorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
+                                                  final @Nullable Long newWorldSeed, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
         final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
         WorldFileFixer.run(paths);
 
@@ -119,7 +119,7 @@ public final class WorldManager implements AutoCloseable {
         final EntityRegionStorage entityStorage = new EntityRegionStorage(paths, compression);
         final AnvilEntitySerializer entitySerializer = new AnvilEntitySerializer();
 
-        return new WorldManager(paths, levelData, storage, entityStorage, entitySerializer, blockStates, scheduler, configurations);
+        return new ServerWorldManager(paths, levelData, storage, entityStorage, entitySerializer, blockStates, scheduler, configurations);
     }
 
     public ServerWorld registerDimension(final Dimension dim, final ChunkGenerator generator) {
@@ -329,7 +329,7 @@ public final class WorldManager implements AutoCloseable {
         }
 
         final Object2IntOpenHashMap<Key> population = new Object2IntOpenHashMap<>();
-        for (final ServerPlayer player : FidorialServer.getInstance().players()) {
+        for (final ServerPlayer player : FidorialServer.getInstance().players().online()) {
             population.addTo(player.world().key(), 1);
         }
 
@@ -367,7 +367,7 @@ public final class WorldManager implements AutoCloseable {
                     generator != null ? generator.getClass().getName() : "flat");
         }
         // resend worlds
-        FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
+        FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);
         return world;
     }
 
@@ -384,7 +384,7 @@ public final class WorldManager implements AutoCloseable {
             return null;
         }
 
-        final boolean hasPlayers = FidorialServer.getInstance().players().stream().anyMatch(player -> player.world().equals(world));
+        final boolean hasPlayers = FidorialServer.getInstance().players().online().stream().anyMatch(player -> player.world().equals(world));
         if (hasPlayers) {
             LOGGER.warn("Refusal to unload {}: players are still present there.", key);
             return null;
@@ -394,7 +394,7 @@ public final class WorldManager implements AutoCloseable {
             if (entity instanceof ServerPlayer) {
                 continue;
             }
-            FidorialServer.getInstance().despawnEntity(entity);
+            FidorialServer.getInstance().entities().despawn(entity);
         }
 
         if (save) {
@@ -416,7 +416,7 @@ public final class WorldManager implements AutoCloseable {
             structureService.forget(key);
         }
         LOGGER.debug("Removing world '{}' from manager (save={})", key, save);
-        FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
+        FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);
 
         return world;
     }

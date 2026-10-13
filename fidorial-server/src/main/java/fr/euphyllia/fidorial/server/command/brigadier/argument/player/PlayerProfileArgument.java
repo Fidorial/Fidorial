@@ -89,7 +89,7 @@ public class PlayerProfileArgument<T> implements ArgumentType<T> {
             result = source -> {
                 final FidorialServer server = (FidorialServer) source.server();
 
-                final Optional<? extends Player> player = server.player(name);
+                final Optional<? extends Player> player = server.players().get(name);
 
                 if (player.isEmpty() || !filter.test(player.get())) {
                     throw ERROR_UNKNOWN_PLAYER.create();
@@ -113,7 +113,7 @@ public class PlayerProfileArgument<T> implements ArgumentType<T> {
 
         final String remaining = builder.getRemainingLowerCase();
 
-        source.server().onlinePlayers().stream()
+        source.server().players().online().stream()
                 .filter(filter)
                 .map(Player::name)
                 .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(remaining))

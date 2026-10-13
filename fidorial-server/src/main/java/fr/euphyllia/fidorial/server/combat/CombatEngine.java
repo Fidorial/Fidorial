@@ -214,7 +214,7 @@ public final class CombatEngine implements CombatService {
             victim.setHealth(victim.health() - dealt);
         }
         syncHealth(victim);
-        server.debugGameEvents().emit(victim.world(), GameEventKeys.ENTITY_DAMAGE, victim.location());
+        server.debug().gameEvents().emit(victim.world(), GameEventKeys.ENTITY_DAMAGE, victim.location());
 
         if (event.knockback() > 0.0) {
             final Location origin = knockbackOrigin(source, victim);
@@ -355,7 +355,7 @@ public final class CombatEngine implements CombatService {
                 player.entityId(), shown == null ? Component.empty() : shown));
 
         if (shown != null) {
-            server.broadcast(new ClientboundSystemChatPacket(shown, false));
+            server.players().broadcast(new ClientboundSystemChatPacket(shown, false));
         }
     }
 
@@ -374,7 +374,7 @@ public final class CombatEngine implements CombatService {
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
         final int damageTypeId =
-                server.dynamicRegistries().networkId(Key.key("minecraft", "damage_type"), source.type().key());
+                server.registries().dynamic().networkId(Key.key("minecraft", "damage_type"), source.type().key());
         if (damageTypeId >= 0) {
             sendToViewersAndSelf(victim, new ClientboundDamageEventPacket(
                     victim.entityId(),
@@ -431,7 +431,7 @@ public final class CombatEngine implements CombatService {
 
     private List<AbstractLivingEntity> nearbyLivingEntities(final ServerPlayer attacker, final Location center) {
         final List<AbstractLivingEntity> found = new ArrayList<>();
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server.players().online()) {
             if (player.world().equals(attacker.world()) && withinSweepBox(center, player.location())) {
                 found.add(player);
             }
@@ -487,7 +487,7 @@ public final class CombatEngine implements CombatService {
 
     @Override
     public boolean pvpEnabled(final World world) {
-        return server.worldManager().configurations().resolve(world.key()).gameplay().pvp()
+        return server.worlds().manager().configurations().resolve(world.key()).gameplay().pvp()
                 && ((ServerWorld) world).gameRuleValues().getBoolean(GameRuleKeys.PVP);
     }
 

@@ -88,7 +88,7 @@ public final class Explosion {
                 - ThreadLocalRandom.current().nextFloat())
                 * 0.2f)
                 * 0.7f;
-        server.broadcastNear(world, center.x(), center.y(), center.z(),
+        server.players().broadcastNear(world, center.x(), center.y(), center.z(),
                 new ClientboundSoundPacket(
                         Sound.sound(SoundEvents.GENERIC_EXPLODE, Sound.Source.BLOCK, 4.0f, pitch),
                         center.x(),
@@ -101,7 +101,7 @@ public final class Explosion {
         final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
 
         for (final BlockPosition pos : toDestroy) {
-            if (server.blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
                 destroyed.add(pos);
             }
             if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
@@ -111,7 +111,7 @@ public final class Explosion {
 
         for (int i = 0; i < destroyed.size(); i += 5) {
             final BlockPosition broken = destroyed.get(i);
-            server.broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
+            server.players().broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
                     new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false));
         }
@@ -233,7 +233,7 @@ public final class Explosion {
                     player.connection().send(new ClientboundSetHealthPacket(player.health(), 20, 5f));
                     player.connection()
                             .send(new ClientboundSetEntityMotionPacket(player.entityId(), new PositionData.VelocityVec3D(knockX, knockY, knockZ)));
-                    server.broadcastNear(world, pos.x(), pos.y(), pos.z(),
+                    server.players().broadcastNear(world, pos.x(), pos.y(), pos.z(),
                             new ClientboundHurtAnimationPacket(player.entityId(), pos.yaw()));
                 }
                 case final AbstractMob mob -> {

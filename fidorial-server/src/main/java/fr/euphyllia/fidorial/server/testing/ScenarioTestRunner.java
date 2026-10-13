@@ -61,10 +61,10 @@ final class ScenarioTestRunner {
         final String group = test.group().toLowerCase(Locale.ROOT).replace("/", "_");
         final String id = test.id().toLowerCase(Locale.ROOT).replace("/", "_");
         final Key key = Key.key("scenario_test", group + "/" + id);
-        final World existing = server.world(key).orElse(null);
+        final World existing = server.worlds().get(key).orElse(null);
         final World world = existing != null
                 ? existing
-                : server.createWorldSilent(WorldSpec.builder(key).build());
+                : server.worlds().createWorldSilent(WorldSpec.builder(key).build());
         return (ServerWorld) world;
     }
 
@@ -73,8 +73,8 @@ final class ScenarioTestRunner {
         final int originSectionX = origin.x() >> ThreadedRegionRegionizer.SECTION_SHIFT;
         final int originSectionZ = origin.z() >> ThreadedRegionRegionizer.SECTION_SHIFT;
 
-        server.regionizer().addTicket(world.key(), origin);
-        server.regionizer().registerTickHandler((worldKey, sectionX, sectionZ, tick) -> {
+        server.workers().regionizer().addTicket(world.key(), origin);
+        server.workers().regionizer().registerTickHandler((worldKey, sectionX, sectionZ, tick) -> {
             if (!worldKey.equals(world.key())
                     || sectionX != originSectionX
                     || sectionZ != originSectionZ

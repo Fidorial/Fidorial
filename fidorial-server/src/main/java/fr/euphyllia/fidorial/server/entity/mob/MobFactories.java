@@ -234,7 +234,7 @@ public final class MobFactories {
     }
 
     private static FidorialMobRegistry registry() {
-        return FidorialServer.getInstance().mobs();
+        return FidorialServer.getInstance().registries().mobs();
     }
 
     @FunctionalInterface

@@ -27,7 +27,7 @@ final class StructureCommands {
     }
 
     static StructureService service() {
-        return FidorialServer.getInstance().structures();
+        return FidorialServer.getInstance().worlds().structures();
     }
 
     static SuggestionProvider<CommandSource> keys(final Supplier<Collection<Key>> keys) {

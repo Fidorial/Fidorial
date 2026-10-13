@@ -110,7 +110,7 @@ public final class IceBall extends AbstractEntity {
             return;
         }
         if (++age > MAX_LIFETIME_TICKS || !(world() instanceof final ServerWorld world)) {
-            server().despawnEntity(this);
+            server().entities().despawn(this);
             return;
         }
 
@@ -130,7 +130,7 @@ public final class IceBall extends AbstractEntity {
                     (int) Math.floor(nextX), (int) Math.floor(nextY), (int) Math.floor(nextZ));
             if (state == null) {
                 // Flew out of the loaded chunks.
-                server().despawnEntity(this);
+                server().entities().despawn(this);
                 return;
             }
             if (!BlockView.isPassable(state)) {
@@ -146,7 +146,7 @@ public final class IceBall extends AbstractEntity {
             final AbstractLivingEntity hit = findHit(world, x, y, z);
             if (hit != null) {
                 moveTo(world, from, x, y, z);
-                server().combat().damage(hit, DamageSource.thrown(this, owner), damage());
+                server().entities().combat().damage(hit, DamageSource.thrown(this, owner), damage());
                 shatter();
                 return;
             }
@@ -228,7 +228,7 @@ public final class IceBall extends AbstractEntity {
         sendToTrackers(new ClientboundSoundPacket(
                 Sound.sound(SoundEvents.ICE_BALL_BREAK, soundSource(), 1.0f, 1.0f),
                 location.x(), location.y(), location.z()));
-        server().despawnEntity(this);
+        server().entities().despawn(this);
     }
 
     @Override

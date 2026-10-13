@@ -102,7 +102,7 @@ public final class GameRuleTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void invalidValuesAreRejected(final ScenarioTestHelper helper) {
-        final FidorialGameRules rules = FidorialServer.getInstance().gameRules();
+        final FidorialGameRules rules = FidorialServer.getInstance().worlds().gameRules();
         helper.assertTrue(rejects(() -> rules.set(GameRuleKeys.MAX_SNOW_ACCUMULATION_HEIGHT, "9")), "9 is above the maximum of 8");
         helper.assertTrue(rejects(() -> rules.set(GameRuleKeys.RANDOM_TICK_SPEED, "fast")), "Non-numeric values must be rejected");
         helper.assertTrue(rejects(() -> rules.set(GameRuleKeys.PVP, "yes")), "Only true/false are valid booleans");
@@ -113,7 +113,7 @@ public final class GameRuleTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void changeEventDescribesTheChange(final ScenarioTestHelper helper) {
-        final FidorialGameRules rules = FidorialServer.getInstance().gameRules();
+        final FidorialGameRules rules = FidorialServer.getInstance().worlds().gameRules();
         final List<GameRuleChangeEvent> seen = new ArrayList<>();
         final Subscription subscription = FidorialServer.getInstance().events().subscribe(GameRuleChangeEvent.class, event -> {
             if (event.rule().key().equals(GameRuleKeys.SPAWN_PATROLS)) {
@@ -137,7 +137,7 @@ public final class GameRuleTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void listenersCanCancelOrAlterAChange(final ScenarioTestHelper helper) {
-        final FidorialGameRules rules = FidorialServer.getInstance().gameRules();
+        final FidorialGameRules rules = FidorialServer.getInstance().worlds().gameRules();
         final Subscription subscription = FidorialServer.getInstance().events().subscribe(GameRuleChangeEvent.class, event -> {
             if (event.rule().key().equals(GameRuleKeys.SPAWN_WARDENS)) {
                 event.setCancelled(true);
@@ -160,7 +160,7 @@ public final class GameRuleTests {
 
     @ScenarioTest(timeoutTicks = 40)
     public static void fallDamageRuleProtectsPlayers(final ScenarioTestHelper helper) {
-        final FidorialGameRules rules = FidorialServer.getInstance().gameRules();
+        final FidorialGameRules rules = FidorialServer.getInstance().worlds().gameRules();
         final Player player = helper.summonPlayer("NoFallDamage", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final AtomicBoolean hurtWhileDisabled = new AtomicBoolean(true);
         final AtomicBoolean hurtWhileEnabled = new AtomicBoolean(false);
@@ -190,7 +190,7 @@ public final class GameRuleTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void worldsFollowTheBaseValueUnlessTheyOverrideIt(final ScenarioTestHelper helper) {
-        final FidorialGameRules base = FidorialServer.getInstance().gameRules();
+        final FidorialGameRules base = FidorialServer.getInstance().worlds().gameRules();
         final World other = overridingWorld();
         final WorldGameRules otherRules = other.gameRules();
         final List<GameRuleChangeEvent> seen = new ArrayList<>();
@@ -262,8 +262,8 @@ public final class GameRuleTests {
     private static World overridingWorld() {
         final FidorialServer server = FidorialServer.getInstance();
         final Key key = Key.key("scenario_test", "game_rule_overrides");
-        final World world = server.worldManager().world(key);
-        return world != null ? world : server.createWorld(WorldSpec.builder(key).build());
+        final World world = server.worlds().manager().world(key);
+        return world != null ? world : server.worlds().create(WorldSpec.builder(key).build());
     }
 
     private static boolean rejects(final Runnable action) {

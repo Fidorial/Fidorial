@@ -1,6 +1,5 @@
 package fr.fidorial.entity.effect;
 
-import fr.fidorial.Server;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
@@ -10,13 +9,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
-/**
- * Where effects are declared: the vanilla ones, the ones plugins give behaviour to, and the ones they
- * add. It also creates the {@link MobEffectInstance}s to apply.
- *
- * @see Server#effects()
- * @since 0.1.0
- */
 public interface MobEffectRegistry {
 
     /**
