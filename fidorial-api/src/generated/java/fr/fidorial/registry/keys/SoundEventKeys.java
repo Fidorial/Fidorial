@@ -567,6 +567,31 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> BLOCK_BLASTFURNACE_FIRE_CRACKLE = create("block.blastfurnace.fire_crackle");
 
     /**
+     * Key for {@code minecraft:block.blue_ice.break}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BLUE_ICE_BREAK = create("block.blue_ice.break");
+
+    /**
+     * Key for {@code minecraft:block.blue_ice.fall}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BLUE_ICE_FALL = create("block.blue_ice.fall");
+
+    /**
+     * Key for {@code minecraft:block.blue_ice.hit}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BLUE_ICE_HIT = create("block.blue_ice.hit");
+
+    /**
+     * Key for {@code minecraft:block.blue_ice.place}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BLUE_ICE_PLACE = create("block.blue_ice.place");
+
+    /**
+     * Key for {@code minecraft:block.blue_ice.step}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BLUE_ICE_STEP = create("block.blue_ice.step");
+
+    /**
      * Key for {@code minecraft:block.bone_block.break}.
      */
     public static final TypedKey<SoundEvent> BLOCK_BONE_BLOCK_BREAK = create("block.bone_block.break");
@@ -595,6 +620,36 @@ public final class SoundEventKeys {
      * Key for {@code minecraft:block.brewing_stand.brew}.
      */
     public static final TypedKey<SoundEvent> BLOCK_BREWING_STAND_BREW = create("block.brewing_stand.brew");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.break}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_BREAK = create("block.brittle_ice.break");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.crack}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_CRACK = create("block.brittle_ice.crack");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.fall}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_FALL = create("block.brittle_ice.fall");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.hit}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_HIT = create("block.brittle_ice.hit");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.place}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_PLACE = create("block.brittle_ice.place");
+
+    /**
+     * Key for {@code minecraft:block.brittle_ice.step}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_BRITTLE_ICE_STEP = create("block.brittle_ice.step");
 
     /**
      * Key for {@code minecraft:block.bubble_column.bubble_pop}.
@@ -1680,6 +1735,31 @@ public final class SoundEventKeys {
      * Key for {@code minecraft:block.frogspawn.step}.
      */
     public static final TypedKey<SoundEvent> BLOCK_FROGSPAWN_STEP = create("block.frogspawn.step");
+
+    /**
+     * Key for {@code minecraft:block.frosted_ice.break}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_FROSTED_ICE_BREAK = create("block.frosted_ice.break");
+
+    /**
+     * Key for {@code minecraft:block.frosted_ice.fall}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_FROSTED_ICE_FALL = create("block.frosted_ice.fall");
+
+    /**
+     * Key for {@code minecraft:block.frosted_ice.hit}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_FROSTED_ICE_HIT = create("block.frosted_ice.hit");
+
+    /**
+     * Key for {@code minecraft:block.frosted_ice.place}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_FROSTED_ICE_PLACE = create("block.frosted_ice.place");
+
+    /**
+     * Key for {@code minecraft:block.frosted_ice.step}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_FROSTED_ICE_STEP = create("block.frosted_ice.step");
 
     /**
      * Key for {@code minecraft:block.fungus.break}.
@@ -2795,6 +2875,31 @@ public final class SoundEventKeys {
      * Key for {@code minecraft:block.nylium.step}.
      */
     public static final TypedKey<SoundEvent> BLOCK_NYLIUM_STEP = create("block.nylium.step");
+
+    /**
+     * Key for {@code minecraft:block.packed_ice.break}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_PACKED_ICE_BREAK = create("block.packed_ice.break");
+
+    /**
+     * Key for {@code minecraft:block.packed_ice.fall}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_PACKED_ICE_FALL = create("block.packed_ice.fall");
+
+    /**
+     * Key for {@code minecraft:block.packed_ice.hit}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_PACKED_ICE_HIT = create("block.packed_ice.hit");
+
+    /**
+     * Key for {@code minecraft:block.packed_ice.place}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_PACKED_ICE_PLACE = create("block.packed_ice.place");
+
+    /**
+     * Key for {@code minecraft:block.packed_ice.step}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_PACKED_ICE_STEP = create("block.packed_ice.step");
 
     /**
      * Key for {@code minecraft:block.packed_mud.break}.
@@ -5252,6 +5357,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> ENTITY_CHICKEN_PICKY_HURT = create("entity.chicken_picky.hurt");
 
     /**
+     * Key for {@code minecraft:entity.chicken_picky.step}.
+     */
+    public static final TypedKey<SoundEvent> ENTITY_CHICKEN_PICKY_STEP = create("entity.chicken_picky.step");
+
+    /**
      * Key for {@code minecraft:entity.cod.ambient}.
      */
     public static final TypedKey<SoundEvent> ENTITY_COD_AMBIENT = create("entity.cod.ambient");
@@ -5600,6 +5710,11 @@ public final class SoundEventKeys {
      * Key for {@code minecraft:entity.drowned.ambient_water}.
      */
     public static final TypedKey<SoundEvent> ENTITY_DROWNED_AMBIENT_WATER = create("entity.drowned.ambient_water");
+
+    /**
+     * Key for {@code minecraft:entity.drowned.converted_to_zombie}.
+     */
+    public static final TypedKey<SoundEvent> ENTITY_DROWNED_CONVERTED_TO_ZOMBIE = create("entity.drowned.converted_to_zombie");
 
     /**
      * Key for {@code minecraft:entity.drowned.death}.
@@ -9167,11 +9282,6 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> EVENT_RAID_HORN = create("event.raid.horn");
 
     /**
-     * Key for {@code minecraft:intentionally_empty}.
-     */
-    public static final TypedKey<SoundEvent> INTENTIONALLY_EMPTY = create("intentionally_empty");
-
-    /**
      * Key for {@code minecraft:item.armor.equip_chain}.
      */
     public static final TypedKey<SoundEvent> ITEM_ARMOR_EQUIP_CHAIN = create("item.armor.equip_chain");
@@ -10208,12 +10318,23 @@ public final class SoundEventKeys {
         BLOCK_BIG_DRIPLEAF_TILT_DOWN,
         BLOCK_BIG_DRIPLEAF_TILT_UP,
         BLOCK_BLASTFURNACE_FIRE_CRACKLE,
+        BLOCK_BLUE_ICE_BREAK,
+        BLOCK_BLUE_ICE_FALL,
+        BLOCK_BLUE_ICE_HIT,
+        BLOCK_BLUE_ICE_PLACE,
+        BLOCK_BLUE_ICE_STEP,
         BLOCK_BONE_BLOCK_BREAK,
         BLOCK_BONE_BLOCK_FALL,
         BLOCK_BONE_BLOCK_HIT,
         BLOCK_BONE_BLOCK_PLACE,
         BLOCK_BONE_BLOCK_STEP,
         BLOCK_BREWING_STAND_BREW,
+        BLOCK_BRITTLE_ICE_BREAK,
+        BLOCK_BRITTLE_ICE_CRACK,
+        BLOCK_BRITTLE_ICE_FALL,
+        BLOCK_BRITTLE_ICE_HIT,
+        BLOCK_BRITTLE_ICE_PLACE,
+        BLOCK_BRITTLE_ICE_STEP,
         BLOCK_BUBBLE_COLUMN_BUBBLE_POP,
         BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT,
         BLOCK_BUBBLE_COLUMN_UPWARDS_INSIDE,
@@ -10431,6 +10552,11 @@ public final class SoundEventKeys {
         BLOCK_FROGSPAWN_HIT,
         BLOCK_FROGSPAWN_PLACE,
         BLOCK_FROGSPAWN_STEP,
+        BLOCK_FROSTED_ICE_BREAK,
+        BLOCK_FROSTED_ICE_FALL,
+        BLOCK_FROSTED_ICE_HIT,
+        BLOCK_FROSTED_ICE_PLACE,
+        BLOCK_FROSTED_ICE_STEP,
         BLOCK_FUNGUS_BREAK,
         BLOCK_FUNGUS_FALL,
         BLOCK_FUNGUS_HIT,
@@ -10654,6 +10780,11 @@ public final class SoundEventKeys {
         BLOCK_NYLIUM_HIT,
         BLOCK_NYLIUM_PLACE,
         BLOCK_NYLIUM_STEP,
+        BLOCK_PACKED_ICE_BREAK,
+        BLOCK_PACKED_ICE_FALL,
+        BLOCK_PACKED_ICE_HIT,
+        BLOCK_PACKED_ICE_PLACE,
+        BLOCK_PACKED_ICE_STEP,
         BLOCK_PACKED_MUD_BREAK,
         BLOCK_PACKED_MUD_FALL,
         BLOCK_PACKED_MUD_HIT,
@@ -11145,6 +11276,7 @@ public final class SoundEventKeys {
         ENTITY_CHICKEN_PICKY_AMBIENT,
         ENTITY_CHICKEN_PICKY_DEATH,
         ENTITY_CHICKEN_PICKY_HURT,
+        ENTITY_CHICKEN_PICKY_STEP,
         ENTITY_COD_AMBIENT,
         ENTITY_COD_DEATH,
         ENTITY_COD_FLOP,
@@ -11215,6 +11347,7 @@ public final class SoundEventKeys {
         ENTITY_DRAGON_FIREBALL_EXPLODE,
         ENTITY_DROWNED_AMBIENT,
         ENTITY_DROWNED_AMBIENT_WATER,
+        ENTITY_DROWNED_CONVERTED_TO_ZOMBIE,
         ENTITY_DROWNED_DEATH,
         ENTITY_DROWNED_DEATH_WATER,
         ENTITY_DROWNED_HURT,
@@ -11928,7 +12061,6 @@ public final class SoundEventKeys {
         EVENT_MOB_EFFECT_RAID_OMEN,
         EVENT_MOB_EFFECT_TRIAL_OMEN,
         EVENT_RAID_HORN,
-        INTENTIONALLY_EMPTY,
         ITEM_ARMOR_EQUIP_CHAIN,
         ITEM_ARMOR_EQUIP_COPPER,
         ITEM_ARMOR_EQUIP_DIAMOND,

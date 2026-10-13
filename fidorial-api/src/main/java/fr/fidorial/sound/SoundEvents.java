@@ -1,5 +1,6 @@
 package fr.fidorial.sound;
 
+import fr.fidorial.annotation.SinceMinecraft;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
 import net.kyori.adventure.sound.Sound;
@@ -265,12 +266,50 @@ public final class SoundEvents {
      */
     public static final Sound.Type HUSK_CONVERTED_TO_ZOMBIE = of("entity.husk.converted_to_zombie");
 
+    // --- Drowned ---
+    /**
+     * The {@code minecraft:entity.drowned.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_AMBIENT = of("entity.drowned.ambient");
+
+    /**
+     * The {@code minecraft:entity.drowned.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_HURT = of("entity.drowned.hurt");
+
+    /**
+     * The {@code minecraft:entity.drowned.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_DEATH = of("entity.drowned.death");
+
+    /**
+     * The {@code minecraft:entity.drowned.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_STEP = of("entity.drowned.step");
+
+    /**
+     * The {@code minecraft:entity.drowned.converted_to_zombie} sound event.
+     *
+     * @since 0.1.0
+     */
+    @SinceMinecraft("26.4")
+    public static final Sound.Type DROWNED_CONVERTED_TO_ZOMBIE = of("entity.drowned.converted_to_zombie");
+
     // --- Frostbite ---
     /**
      * The {@code minecraft:entity.frostbite.ambient} sound event.
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type FROSTBITE_AMBIENT = of("entity.frostbite.ambient");
 
     /**
@@ -278,6 +317,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type FROSTBITE_HURT = of("entity.frostbite.hurt");
 
     /**
@@ -285,6 +325,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type FROSTBITE_DEATH = of("entity.frostbite.death");
 
     /**
@@ -292,6 +333,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type FROSTBITE_STEP = of("entity.frostbite.step");
 
     /**
@@ -299,6 +341,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type FROSTBITE_CONVERTED_TO_ZOMBIE = of("entity.frostbite.converted_to_zombie");
 
     // --- Ice Ball ---
@@ -307,6 +350,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type ICE_BALL_THROW = of("entity.ice_ball.throw");
 
     /**
@@ -314,6 +358,7 @@ public final class SoundEvents {
      *
      * @since 0.1.0
      */
+    @SinceMinecraft("26.4")
     public static final Sound.Type ICE_BALL_BREAK = of("entity.ice_ball.break");
 
     // --- Generic ---

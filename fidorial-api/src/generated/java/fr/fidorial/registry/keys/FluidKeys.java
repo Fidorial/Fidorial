@@ -17,16 +17,6 @@ public final class FluidKeys {
     public static final TypedKey<Fluid> EMPTY = create("empty");
 
     /**
-     * Key for {@code minecraft:flowing_lava}.
-     */
-    public static final TypedKey<Fluid> FLOWING_LAVA = create("flowing_lava");
-
-    /**
-     * Key for {@code minecraft:flowing_water}.
-     */
-    public static final TypedKey<Fluid> FLOWING_WATER = create("flowing_water");
-
-    /**
      * Key for {@code minecraft:lava}.
      */
     public static final TypedKey<Fluid> LAVA = create("lava");
@@ -38,8 +28,6 @@ public final class FluidKeys {
 
     private static final List<TypedKey<Fluid>> VALUES = List.of(
         EMPTY,
-        FLOWING_LAVA,
-        FLOWING_WATER,
         LAVA,
         WATER
     );

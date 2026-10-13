@@ -697,6 +697,11 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> BRICKS = create("bricks");
 
     /**
+     * Key for {@code minecraft:brittle_ice}.
+     */
+    public static final TypedKey<BlockType> BRITTLE_ICE = create("brittle_ice");
+
+    /**
      * Key for {@code minecraft:brown_banner}.
      */
     public static final TypedKey<BlockType> BROWN_BANNER = create("brown_banner");
@@ -6589,6 +6594,7 @@ public final class BlockTypeKeys {
         BRICK_STAIRS,
         BRICK_WALL,
         BRICKS,
+        BRITTLE_ICE,
         BROWN_BANNER,
         BROWN_BED,
         BROWN_CANDLE,

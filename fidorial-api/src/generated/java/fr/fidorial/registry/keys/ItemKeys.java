@@ -877,6 +877,11 @@ public final class ItemKeys {
     public static final TypedKey<Item> BRICKS = create("bricks");
 
     /**
+     * Key for {@code minecraft:brittle_ice}.
+     */
+    public static final TypedKey<Item> BRITTLE_ICE = create("brittle_ice");
+
+    /**
      * Key for {@code minecraft:brown_banner}.
      */
     public static final TypedKey<Item> BROWN_BANNER = create("brown_banner");
@@ -8495,6 +8500,7 @@ public final class ItemKeys {
         BRICK_STAIRS,
         BRICK_WALL,
         BRICKS,
+        BRITTLE_ICE,
         BROWN_BANNER,
         BROWN_BED,
         BROWN_BUNDLE,

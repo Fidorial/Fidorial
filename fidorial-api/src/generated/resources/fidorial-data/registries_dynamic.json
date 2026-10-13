@@ -520,6 +520,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -736,6 +737,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -1017,6 +1019,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -1201,6 +1204,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -1399,6 +1403,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -1612,6 +1617,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -1948,6 +1954,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -2131,6 +2138,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -2347,6 +2355,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -2453,6 +2462,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -2660,6 +2670,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -2890,6 +2901,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -3106,6 +3118,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -3302,6 +3315,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -3472,6 +3486,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -3542,7 +3557,9 @@
                 }
               },
               "modifier": "overlay"
-            }
+            },
+            "minecraft:visual/fog_color": "#181318",
+            "minecraft:visual/sky_color": "#000000"
           },
           "carvers": [],
           "downfall": 0.5,
@@ -3572,7 +3589,9 @@
                 }
               },
               "modifier": "overlay"
-            }
+            },
+            "minecraft:visual/fog_color": "#181318",
+            "minecraft:visual/sky_color": "#000000"
           },
           "carvers": [],
           "downfall": 0.5,
@@ -3617,7 +3636,9 @@
                 }
               },
               "modifier": "overlay"
-            }
+            },
+            "minecraft:visual/fog_color": "#181318",
+            "minecraft:visual/sky_color": "#000000"
           },
           "carvers": [],
           "downfall": 0.5,
@@ -3777,6 +3798,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -3973,6 +3995,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -4164,6 +4187,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -4374,6 +4398,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -4555,6 +4580,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -4756,6 +4782,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -4945,6 +4972,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -5116,6 +5144,7 @@
             [],
             [],
             [
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -5149,7 +5178,8 @@
             [
               "minecraft:snow_layers",
               "minecraft:ice_crystals",
-              "minecraft:icicle_cluster"
+              "minecraft:icicle_cluster",
+              "minecraft:ice_crevasse"
             ],
             [
               "minecraft:spring_water",
@@ -5304,6 +5334,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -5484,6 +5515,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -5698,6 +5730,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -5930,6 +5963,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -6113,6 +6147,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -6317,6 +6352,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -6506,6 +6542,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -6629,6 +6666,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -6953,6 +6991,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -7140,6 +7179,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -7352,6 +7392,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -7566,6 +7607,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -7734,6 +7776,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -7935,6 +7978,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -8137,6 +8181,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -8346,6 +8391,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -8568,6 +8614,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -8637,7 +8684,9 @@
                 }
               },
               "modifier": "overlay"
-            }
+            },
+            "minecraft:visual/fog_color": "#181318",
+            "minecraft:visual/sky_color": "#000000"
           },
           "carvers": [],
           "downfall": 0.5,
@@ -8759,6 +8808,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -8950,6 +9000,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -9139,6 +9190,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -9337,6 +9389,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -9669,6 +9722,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -9834,6 +9888,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -9985,6 +10040,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -10146,6 +10202,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -10343,6 +10400,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -10560,6 +10618,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -10765,6 +10824,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -10835,7 +10895,9 @@
                 }
               },
               "modifier": "overlay"
-            }
+            },
+            "minecraft:visual/fog_color": "#181318",
+            "minecraft:visual/sky_color": "#000000"
           },
           "carvers": [],
           "downfall": 0.5,
@@ -11075,6 +11137,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -11376,6 +11439,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -11567,6 +11631,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -11758,6 +11823,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -11969,6 +12035,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -12176,6 +12243,7 @@
               "minecraft:ore_dirt",
               "minecraft:ore_granite_upper",
               "minecraft:ore_granite_lower",
+              "minecraft:ore_gravel",
               "minecraft:ore_diorite_upper",
               "minecraft:ore_diorite_lower",
               "minecraft:ore_andesite_upper",
@@ -12241,6 +12309,7 @@
       "minecraft:generated_in_below_zero_retrogen": [
         "minecraft:deep_dark",
         "minecraft:dripstone_caves",
+        "minecraft:ice_caves",
         "minecraft:lush_caves",
         "minecraft:sulfur_caves"
       ],
@@ -12347,6 +12416,7 @@
         "minecraft:frozen_peaks",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:jungle",
@@ -12678,6 +12748,7 @@
       "minecraft:is_cave": [
         "minecraft:deep_dark",
         "minecraft:dripstone_caves",
+        "minecraft:ice_caves",
         "minecraft:lush_caves",
         "minecraft:sulfur_caves"
       ],
@@ -13036,7 +13107,7 @@
   "minecraft:block_sound_set": {
     "entries": [
       {
-        "id": "minecraft:amethyst",
+        "id": "minecraft:amethyst_block",
         "data": {
           "break_sound": "minecraft:block.amethyst_block.break",
           "fall_sound": "minecraft:block.amethyst_block.fall",
@@ -13157,6 +13228,16 @@
         }
       },
       {
+        "id": "minecraft:blue_ice",
+        "data": {
+          "break_sound": "minecraft:block.blue_ice.break",
+          "fall_sound": "minecraft:block.blue_ice.fall",
+          "hit_sound": "minecraft:block.blue_ice.hit",
+          "place_sound": "minecraft:block.blue_ice.place",
+          "step_sound": "minecraft:block.blue_ice.step"
+        }
+      },
+      {
         "id": "minecraft:bone_block",
         "data": {
           "break_sound": "minecraft:block.bone_block.break",
@@ -13164,6 +13245,16 @@
           "hit_sound": "minecraft:block.bone_block.hit",
           "place_sound": "minecraft:block.bone_block.place",
           "step_sound": "minecraft:block.bone_block.step"
+        }
+      },
+      {
+        "id": "minecraft:brittle_ice",
+        "data": {
+          "break_sound": "minecraft:block.brittle_ice.break",
+          "fall_sound": "minecraft:block.brittle_ice.fall",
+          "hit_sound": "minecraft:block.brittle_ice.hit",
+          "place_sound": "minecraft:block.brittle_ice.place",
+          "step_sound": "minecraft:block.brittle_ice.step"
         }
       },
       {
@@ -13449,6 +13540,16 @@
           "hit_sound": "minecraft:block.frogspawn.hit",
           "place_sound": "minecraft:block.frogspawn.place",
           "step_sound": "minecraft:block.frogspawn.step"
+        }
+      },
+      {
+        "id": "minecraft:frosted_ice",
+        "data": {
+          "break_sound": "minecraft:block.frosted_ice.break",
+          "fall_sound": "minecraft:block.frosted_ice.fall",
+          "hit_sound": "minecraft:block.frosted_ice.hit",
+          "place_sound": "minecraft:block.frosted_ice.place",
+          "step_sound": "minecraft:block.frosted_ice.step"
         }
       },
       {
@@ -13840,6 +13941,16 @@
           "hit_sound": "minecraft:block.nylium.hit",
           "place_sound": "minecraft:block.nylium.place",
           "step_sound": "minecraft:block.nylium.step"
+        }
+      },
+      {
+        "id": "minecraft:packed_ice",
+        "data": {
+          "break_sound": "minecraft:block.packed_ice.break",
+          "fall_sound": "minecraft:block.packed_ice.fall",
+          "hit_sound": "minecraft:block.packed_ice.hit",
+          "place_sound": "minecraft:block.packed_ice.place",
+          "step_sound": "minecraft:block.packed_ice.step"
         }
       },
       {
@@ -17025,7 +17136,7 @@
             "ambient_sound": "minecraft:entity.chicken_picky.ambient",
             "death_sound": "minecraft:entity.chicken_picky.death",
             "hurt_sound": "minecraft:entity.chicken_picky.hurt",
-            "step_sound": "minecraft:entity.chicken.step"
+            "step_sound": "minecraft:entity.chicken_picky.step"
           },
           "baby_sounds": {
             "ambient_sound": "minecraft:entity.baby_chicken.ambient",
@@ -17773,6 +17884,7 @@
       "minecraft:no_anger": [
         "minecraft:mob_attack_no_aggro"
       ],
+      "minecraft:no_hurt_sound": [],
       "minecraft:no_impact": [
         "minecraft:drown"
       ],
@@ -19104,7 +19216,10 @@
                       },
                       {
                         "type": "minecraft:matching_fluids",
-                        "fluids": "minecraft:water"
+                        "fluids": "minecraft:water",
+                        "state": {
+                          "source": "true"
+                        }
                       },
                       {
                         "type": "minecraft:unobstructed"

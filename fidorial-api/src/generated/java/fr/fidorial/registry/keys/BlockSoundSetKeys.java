@@ -12,9 +12,9 @@ import net.kyori.adventure.key.KeyPattern;
  */
 public final class BlockSoundSetKeys {
     /**
-     * Key for {@code minecraft:amethyst}.
+     * Key for {@code minecraft:amethyst_block}.
      */
-    public static final TypedKey<BlockSoundSet> AMETHYST = create("amethyst");
+    public static final TypedKey<BlockSoundSet> AMETHYST_BLOCK = create("amethyst_block");
 
     /**
      * Key for {@code minecraft:amethyst_cluster}.
@@ -72,9 +72,19 @@ public final class BlockSoundSetKeys {
     public static final TypedKey<BlockSoundSet> BIG_DRIPLEAF = create("big_dripleaf");
 
     /**
+     * Key for {@code minecraft:blue_ice}.
+     */
+    public static final TypedKey<BlockSoundSet> BLUE_ICE = create("blue_ice");
+
+    /**
      * Key for {@code minecraft:bone_block}.
      */
     public static final TypedKey<BlockSoundSet> BONE_BLOCK = create("bone_block");
+
+    /**
+     * Key for {@code minecraft:brittle_ice}.
+     */
+    public static final TypedKey<BlockSoundSet> BRITTLE_ICE = create("brittle_ice");
 
     /**
      * Key for {@code minecraft:cactus_flower}.
@@ -220,6 +230,11 @@ public final class BlockSoundSetKeys {
      * Key for {@code minecraft:frogspawn}.
      */
     public static final TypedKey<BlockSoundSet> FROGSPAWN = create("frogspawn");
+
+    /**
+     * Key for {@code minecraft:frosted_ice}.
+     */
+    public static final TypedKey<BlockSoundSet> FROSTED_ICE = create("frosted_ice");
 
     /**
      * Key for {@code minecraft:fungus}.
@@ -415,6 +430,11 @@ public final class BlockSoundSetKeys {
      * Key for {@code minecraft:nylium}.
      */
     public static final TypedKey<BlockSoundSet> NYLIUM = create("nylium");
+
+    /**
+     * Key for {@code minecraft:packed_ice}.
+     */
+    public static final TypedKey<BlockSoundSet> PACKED_ICE = create("packed_ice");
 
     /**
      * Key for {@code minecraft:packed_mud}.
@@ -677,7 +697,7 @@ public final class BlockSoundSetKeys {
     public static final TypedKey<BlockSoundSet> WOOL = create("wool");
 
     private static final List<TypedKey<BlockSoundSet>> VALUES = List.of(
-        AMETHYST,
+        AMETHYST_BLOCK,
         AMETHYST_CLUSTER,
         ANCIENT_DEBRIS,
         ANVIL,
@@ -689,7 +709,9 @@ public final class BlockSoundSetKeys {
         BAMBOO_WOOD_HANGING_SIGN,
         BASALT,
         BIG_DRIPLEAF,
+        BLUE_ICE,
         BONE_BLOCK,
+        BRITTLE_ICE,
         CACTUS_FLOWER,
         CALCITE,
         CANDLE,
@@ -719,6 +741,7 @@ public final class BlockSoundSetKeys {
         FLOWERING_AZALEA,
         FROGLIGHT,
         FROGSPAWN,
+        FROSTED_ICE,
         FUNGUS,
         GILDED_BLACKSTONE,
         GLASS,
@@ -758,6 +781,7 @@ public final class BlockSoundSetKeys {
         NETHERITE_BLOCK,
         NETHERRACK,
         NYLIUM,
+        PACKED_ICE,
         PACKED_MUD,
         PINK_PETALS,
         POINTED_DRIPSTONE,
