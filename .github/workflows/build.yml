@@ -57,8 +57,8 @@ jobs:
       - name: Read version
         id: version
         run: |
-          version=$(grep -m1 '^version=' gradle.properties | cut -d= -f2)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          fidorialVersion=$(grep -m1 '^fidorialVersion=' gradle.properties | cut -d= -f2)
+          echo "version=$fidorialVersion" >> "$GITHUB_OUTPUT"
 
       - name: Format check
         run: ./gradlew spotlessCheck --no-daemon
