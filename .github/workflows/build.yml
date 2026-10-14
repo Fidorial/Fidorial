@@ -57,7 +57,11 @@ jobs:
       - name: Read version
         id: version
         run: |
-          fidorialVersion=$(grep -m1 '^fidorialVersion=' gradle.properties | cut -d= -f2)
+          fidorialVersion=$(grep -m1 -E '^fidorialVersion[[:space:]]*=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          if [ -z "$fidorialVersion" ]; then
+            echo "::error::fidorialVersion not found in gradle.properties"
+            exit 1
+          fi
           echo "version=$fidorialVersion" >> "$GITHUB_OUTPUT"
 
       - name: Format check

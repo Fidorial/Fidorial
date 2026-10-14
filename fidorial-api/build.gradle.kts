@@ -74,9 +74,24 @@ tasks.javadoc {
     )
 }
 
+val apiVersion =
+    providers
+        .gradleProperty("fidorialVersion")
+        .get()
+        .trim()
+        .let { base ->
+            val release =
+                providers
+                    .gradleProperty("fidorial.release")
+                    .map { it.trim().toBoolean() }
+                    .getOrElse(false)
+            if (release) base else "$base-SNAPSHOT"
+        }
+
 publishing {
     publications {
         register<MavenPublication>("maven") {
+            version = apiVersion
             from(components["java"])
             pom {
                 name = "fidorial-api"
@@ -90,7 +105,7 @@ publishing {
             name = "Euphyllia"
             val releases = uri("https://repo.euphyllia.moe/repository/maven-releases/")
             val snapshots = uri("https://repo.euphyllia.moe/repository/maven-snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshots else releases
+            url = if (apiVersion.endsWith("SNAPSHOT")) snapshots else releases
             credentials {
                 username = providers.environmentVariable("NEXUS_USERNAME").orNull ?: ""
                 password = providers.environmentVariable("NEXUS_PASSWORD").orNull ?: ""
