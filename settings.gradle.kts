@@ -21,3 +21,16 @@ include("fidorial-bootstrap")
 include("fidorial-server")
 include("fidorial-test-plugin")
 include("fidorial-annotation-processor")
+
+gradle.lifecycle.beforeProject {
+    val minecraftVersion = providers.gradleProperty("minecraftVersion").get().trim()
+    val fidorialVersion = providers.gradleProperty("fidorialVersion").get().trim()
+    val build = providers.environmentVariable("BUILD_NUMBER").orNull?.trim()?.toIntOrNull()
+    // CI -> <minecraft version>-build.<build>+<fidorial version>
+    // local -> <minecraft version>-local+<fidorial version>
+    val versionString = when (build) {
+        null -> "$minecraftVersion-local+$fidorialVersion"
+        else -> "$minecraftVersion-build.$build+$fidorialVersion"
+    }
+    version = versionString
+}
