@@ -18,7 +18,7 @@ import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.euphyllia.fidorial.server.world.storage.RegionRecompressor;
-import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
+import fr.euphyllia.fidorial.server.world.storage.WorldPathsImpl;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.WorldFileFixer;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
@@ -51,7 +51,7 @@ public final class ServerWorldManager implements AutoCloseable {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerWorldManager.class);
 
-    private final WorldPaths paths;
+    private final WorldPathsImpl paths;
     private final LevelData levelData;
     private final ChunkStorage storage;
     private final EntityRegionStorage entityStorage;
@@ -70,7 +70,7 @@ public final class ServerWorldManager implements AutoCloseable {
     private final WorldConfigurationContainer configurations;
 
     private ServerWorldManager(
-            final WorldPaths paths,
+            final WorldPathsImpl paths,
             final LevelData levelData,
             final ChunkStorage storage,
             final EntityRegionStorage entityStorage,
@@ -95,7 +95,7 @@ public final class ServerWorldManager implements AutoCloseable {
 
     public static ServerWorldManager openOrCreate(final Path worldRoot, final BlockStateRegistry blockStates, final ThreadedRegionRegionizer scheduler,
                                                   final @Nullable Long newWorldSeed, final List<Key> initialPacks, final WorldConfigurationContainer configurations) throws IOException {
-        final WorldPaths paths = new WorldPaths(worldRoot, WorldPaths.Layout.MODERN);
+        final WorldPathsImpl paths = new WorldPathsImpl(worldRoot, WorldPathsImpl.Layout.MODERN);
         WorldFileFixer.run(paths);
 
         final LevelData levelData;
@@ -148,7 +148,7 @@ public final class ServerWorldManager implements AutoCloseable {
         levelData.generators.put(dim.id(), new LevelData.DimensionGenerator(dim, effective.describeForSave()));
         final boolean overworld = Dimension.OVERWORLD.id().equals(dim.id());
         final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler,
-                levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration);
+                levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration, paths.forDimension(dim));
         if (chunkLoader != null) {
             world.setChunkLoader(chunkLoader);
         }
@@ -467,7 +467,7 @@ public final class ServerWorldManager implements AutoCloseable {
         return levelData;
     }
 
-    public WorldPaths paths() {
+    public WorldPathsImpl paths() {
         return paths;
     }
 

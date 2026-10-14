@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.storage.datafixers;
 
 import fr.euphyllia.fidorial.server.world.storage.LevelData;
-import fr.euphyllia.fidorial.server.world.storage.WorldPaths;
+import fr.euphyllia.fidorial.server.world.storage.WorldPathsImpl;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -23,7 +23,7 @@ public final class WorldFileFixer {
         throw new UnsupportedOperationException("WorldFileFixer cannot be instantiated.");
     }
 
-    public static void run(final WorldPaths paths) throws IOException {
+    public static void run(final WorldPathsImpl paths) throws IOException {
         moveWorldClocks(paths.dataDir());
         movePlayerFiles(paths.worldRoot());
     }

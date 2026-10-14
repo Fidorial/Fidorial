@@ -53,6 +53,13 @@ public interface World extends Keyed, ForwardingAudience {
     DimensionTypeDefinition dimensionType();
 
     /**
+     * {@return the paths on disk where this world is stored}
+     *
+     * @since 0.1.0
+     */
+    WorldPaths paths();
+
+    /**
      * {@return the clock driving the time of day of this world}
      *
      * @since 0.1.0

@@ -72,7 +72,7 @@ public final class RegionRecompressor {
      * @param convertExisting {@code false} to only convert chunks as they load
      * @throws IllegalStateException if {@code target} cannot be used on this machine
      */
-    public static void convertIfChanged(final WorldPaths paths, final Dimension dim, final ChunkStorage chunks,
+    public static void convertIfChanged(final WorldPathsImpl paths, final Dimension dim, final ChunkStorage chunks,
                                         final EntityRegionStorage entities, final RegionCompression target, final boolean convertExisting) {
         target.checkAvailable();
         final Path compressionFile = paths.configFile(dim).resolveSibling(COMPRESSION_FILE);

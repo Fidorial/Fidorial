@@ -20,11 +20,11 @@ public final class EntityRegionStorage implements AutoCloseable {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(EntityRegionStorage.class);
 
-    private final WorldPaths paths;
+    private final WorldPathsImpl paths;
     private final Function<Key, RegionCompression> compression;
     private final Map<RegionKey, RegionFile> regionCache = new ConcurrentHashMap<>();
 
-    public EntityRegionStorage(final WorldPaths paths, final Function<Key, RegionCompression> compression) {
+    public EntityRegionStorage(final WorldPathsImpl paths, final Function<Key, RegionCompression> compression) {
         this.paths = paths;
         this.compression = compression;
     }

@@ -23,7 +23,7 @@ public final class ChunkStorage implements AutoCloseable {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ChunkStorage.class);
 
-    private final WorldPaths paths;
+    private final WorldPathsImpl paths;
     private final AnvilChunkSerializer serializer;
     private final BlockState defaultBlock;
     private final Key defaultBiome;
@@ -32,7 +32,7 @@ public final class ChunkStorage implements AutoCloseable {
     private final Map<RegionKey, RegionFile> regionCache = new ConcurrentHashMap<>();
 
     public ChunkStorage(
-            final WorldPaths paths,
+            final WorldPathsImpl paths,
             final AnvilChunkSerializer serializer,
             final BlockState defaultBlock,
             final Key defaultBiome,
