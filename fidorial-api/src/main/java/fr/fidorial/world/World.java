@@ -1,5 +1,6 @@
 package fr.fidorial.world;
 
+import fr.fidorial.Server;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.scheduler.RegionizedScheduler;
@@ -23,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * currently holds. Block reads may be issued from any thread; block writes are queued on the
  * region thread owning the position and complete asynchronously.</p>
  *
- * @see fr.fidorial.Server#worlds()
+ * @see Server#worlds()
  * @since 0.1.0
  */
 public interface World extends Keyed, ForwardingAudience {
@@ -48,6 +49,13 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     DimensionTypeDefinition dimensionType();
+
+    /**
+     * {@return the paths on disk where this world is stored}
+     *
+     * @since 0.1.0
+     */
+    WorldPaths paths();
 
     /**
      * {@return the clock driving the time of day of this world}

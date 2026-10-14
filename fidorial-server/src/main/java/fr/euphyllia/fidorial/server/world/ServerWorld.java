@@ -40,6 +40,7 @@ import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
+import fr.fidorial.world.WorldPaths;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -88,6 +89,7 @@ public final class ServerWorld implements World {
     private final GameRuleOverrides gameRuleValues;
     private final WorldWeather weather;
     private final WorldConfiguration configuration;
+    private final WorldPaths paths;
 
     private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
@@ -112,7 +114,8 @@ public final class ServerWorld implements World {
             final ThreadedRegionRegionizer scheduler,
             final GameRuleValues baseGameRules,
             final WeatherState weatherState,
-            final WorldConfiguration configuration
+            final WorldConfiguration configuration,
+            final WorldPaths paths
     ) {
         this.dimension = dimension;
         this.storage = storage;
@@ -123,6 +126,7 @@ public final class ServerWorld implements World {
         this.dayNightCycle = new WorldTimeEngine(WorldClocks.forDimension(dimension));
         this.dimensionType = generator.dimensionType();
         this.configuration = configuration;
+        this.paths = paths;
         this.minY = dimensionType.minY();
         this.height = dimensionType.height();
         this.lightManager = new WorldLightManager(new WorldLightAccess());
@@ -169,6 +173,11 @@ public final class ServerWorld implements World {
     @Override
     public DimensionTypeDefinition dimensionType() {
         return dimensionType;
+    }
+
+    @Override
+    public WorldPaths paths() {
+        return paths;
     }
 
     public void setChunkLoader(final AsyncChunkLoader loader) {
