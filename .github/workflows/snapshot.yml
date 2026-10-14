@@ -54,52 +54,5 @@ jobs:
           files: dist/*.jar
           generate_release_notes: true
           body: |
-            Automated development build from `${{ github.ref_name }}`.
+            Automated development build from `master`.
             Commit: ${{ steps.meta.outputs.short_sha }}
-  publish-api:
-    name: Publish fidorial-api (SNAPSHOT)
-    needs: build
-    # Only the main branch feeds the shared SNAPSHOT, a manual run on another
-    # branch must not overwrite it. Keep in sync with on.push.branches above.
-    if: github.ref == 'refs/heads/dev/26.3'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      BUILD_NUMBER: ${{ github.run_number }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 25
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 25
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Publish to repo.euphyllia.moe
-        env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-        run: |
-          if [ -z "$NEXUS_USERNAME" ] || [ -z "$NEXUS_PASSWORD" ]; then
-            echo "::error::NEXUS_USERNAME / NEXUS_PASSWORD secrets are not set (Settings > Secrets and variables > Actions)."
-            exit 1
-          fi
-          ./gradlew :fidorial-api:publish --no-daemon
-
-      - name: Summary
-        run: |
-          version=$(grep -m1 '^fidorialVersion' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
-          {
-            echo "### fidorial-api published"
-            echo
-            echo '```kotlin'
-            echo 'maven("https://repo.euphyllia.moe/repository/maven-public/")'
-            echo "compileOnly(\"fr.fidorial:fidorial-api:${version}-SNAPSHOT\")"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
