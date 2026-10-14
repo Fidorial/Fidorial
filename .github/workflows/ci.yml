@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+    env:
+        BUILD_NUMBER: ${{ github.run_number }}
     outputs:
       skip: ${{ steps.check.outputs.skip }}
 

@@ -92,7 +92,7 @@ sourceSets.main {
                 .gradleProperty("minecraftVersion")
                 .map { it.matches(Regex("\\d+\\.\\d+(?:\\.\\d+)?")).toString() },
         ) // MAJOR.MINOR or MAJOR.MINOR.PATCH
-        property("fidorialVersion", project.version.toString())
+        property("fidorialVersion", providers.gradleProperty("fidorialVersion"))
         property("protocolVersion", providers.gradleProperty("protocolVersion"))
         property("dataVersion", providers.gradleProperty("dataVersion"))
     }
