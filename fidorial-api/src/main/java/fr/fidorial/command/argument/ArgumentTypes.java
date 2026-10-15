@@ -30,6 +30,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
@@ -42,8 +43,11 @@ import static fr.fidorial.command.argument.ArgumentProvider.provider;
  * Modeled after Paper's <a href="https://github.com/PaperMC/Paper/blob/main/paper-api/src/main/java/io/papermc/paper/command/brigadier/argument/ArgumentTypes.java">ArgumentTypes</a>
  * Originally contributed in <a href="https://github.com/PaperMC/Paper/pull/8235">#8235</a>, licensed under the MIT license.
  *
+ * @deprecated use {@link Arguments}
  * @since 0.1.0
  */
+@Deprecated(forRemoval = true)
+@ApiStatus.ScheduledForRemoval(inVersion = "26.4")
 public final class ArgumentTypes {
     /**
      * Represents a selector that can capture any
@@ -208,7 +212,7 @@ public final class ArgumentTypes {
      * @since 0.1.0
      */
     public static ArgumentType<ItemStackPredicate> itemPredicate() {
-        return provider().itemStackPredicate();
+        return provider().itemPredicate();
     }
 
     /**

@@ -5,7 +5,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.text.Component;
@@ -14,6 +13,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class RespawnCommand {
 
@@ -23,7 +23,7 @@ public final class RespawnCommand {
         return literal("respawn")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .executes(RespawnCommand::executeSelf)
-                .then(argument("targets", ArgumentTypes.players()).executes(RespawnCommand::executeTargets))
+                .then(argument("targets", arguments().players()).executes(RespawnCommand::executeTargets))
                 .build();
     }
 

@@ -4,7 +4,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
@@ -17,6 +16,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class SpawnPointCommand {
 
@@ -28,11 +28,11 @@ public final class SpawnPointCommand {
                 .executes(SpawnPointCommand::executeSelf)
                 .then(literal("clear")
                         .executes(context -> clear(context, selfOrFail(context)))
-                        .then(argument("targets", ArgumentTypes.players())
+                        .then(argument("targets", arguments().players())
                                 .executes(context -> clear(context, targets(context)))))
-                .then(argument("targets", ArgumentTypes.players())
+                .then(argument("targets", arguments().players())
                         .executes(context -> set(context, targets(context), null))
-                        .then(argument("position", ArgumentTypes.position())
+                        .then(argument("position", arguments().position())
                                 .executes(context -> set(
                                         context,
                                         targets(context),

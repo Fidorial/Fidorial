@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
@@ -16,6 +15,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class OpCommand {
 
@@ -31,7 +31,7 @@ public final class OpCommand {
     }
 
     private static LiteralCommandNode<CommandSource> create(final String name, final boolean grant) {
-        final ArgumentType<PlayerProfileListResolver> playerArgument = ArgumentTypes.playerProfiles(player -> player.isOperator() != grant);
+        final ArgumentType<PlayerProfileListResolver> playerArgument = arguments().playerProfiles(player -> player.isOperator() != grant);
         return literal(name)
                 .requires(source ->
                         source.sender().hasPermission(grant ? "fidorial.command.op" : "fidorial.command.deop"))

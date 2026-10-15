@@ -1,0 +1,24 @@
+--- a/com/mojang/brigadier/Message.java
++++ b/com/mojang/brigadier/Message.java
+@@ -3,6 +_,20 @@
+ 
+ package com.mojang.brigadier;
+ 
+-public interface Message {
++import net.kyori.adventure.text.Component;
++import net.kyori.adventure.text.ComponentLike;
++
++public interface Message extends ComponentLike { // Fidorial - adventure interop
+     String getString();
++
++    // Fidorial start - adventure interop
++    @Override
++    default Component asComponent() {
++        return Component.text(getString());
++    }
++
++    static Message component(final ComponentLike component) {
++        return new ComponentMessage(component.asComponent());
++    }
++    // Fidorial end - adventure interop
+ }

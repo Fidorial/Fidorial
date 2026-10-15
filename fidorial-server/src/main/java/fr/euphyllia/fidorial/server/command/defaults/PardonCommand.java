@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.moderation.BanManager;
@@ -16,6 +15,7 @@ import java.util.Collection;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PardonCommand {
 
@@ -26,7 +26,7 @@ public final class PardonCommand {
 
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> playerArgument =
-                ArgumentTypes.playerProfiles(player ->
+                arguments().playerProfiles(player ->
                         server().players().bans().isBanned(player.uuid()));
 
         return literal("pardon")

@@ -9,7 +9,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
-import fr.fidorial.command.argument.ArgumentTypes;
+import fr.fidorial.command.argument.Arguments;
 import net.kyori.adventure.bossbar.BossBar;
 
 import java.util.Locale;
@@ -23,7 +23,7 @@ public final class BossBarFlagArgument {
     }
 
     public static ArgumentType<BossBar.Flag> bossBarFlag() {
-        return ArgumentTypes.map(StringArgumentType.word(), BossBarFlagArgument::parse, BossBarFlagArgument::suggest);
+        return Arguments.arguments().map(StringArgumentType.word(), BossBarFlagArgument::parse, BossBarFlagArgument::suggest);
     }
 
     private static BossBar.Flag parse(final String value, final StringReader reader) throws CommandSyntaxException {

@@ -40,8 +40,10 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeBounds
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.KeyArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceKeyArgument;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.ArgumentProvider;
+import fr.fidorial.command.argument.Arguments;
 import fr.fidorial.command.argument.custom.ArgumentMapper;
 import fr.fidorial.command.argument.predicate.ItemStackPredicate;
 import fr.fidorial.command.argument.range.DoubleRangeProvider;
@@ -77,7 +79,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class ArgumentProviderImpl implements ArgumentProvider {
+@NeedsToBeRevisited("ArgumentProvider needs to be removed before 26.4 release")
+public final class FidorialArguments implements Arguments, ArgumentProvider {
 
     @Override
     public ArgumentType<EntitySelectorArgumentResolver> entity() {
@@ -142,7 +145,7 @@ public class ArgumentProviderImpl implements ArgumentProvider {
     }
 
     @Override
-    public ArgumentType<ItemStackPredicate> itemStackPredicate() {
+    public ArgumentType<ItemStackPredicate> itemPredicate() {
         return ItemPredicateArgument.itemPredicate(predicate -> apiStack -> predicate.test(
                 ItemStack.of(apiStack.id(), apiStack.count())));
     }

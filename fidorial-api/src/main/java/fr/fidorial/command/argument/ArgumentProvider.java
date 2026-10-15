@@ -41,9 +41,12 @@ import java.util.function.Predicate;
  * Modeled after Paper's <a href="https://github.com/PaperMC/Paper/blob/main/paper-api/src/main/java/io/papermc/paper/command/brigadier/argument/VanillaArgumentProvider.java">ArgumentTypes</a>
  * Originally contributed in <a href="https://github.com/PaperMC/Paper/pull/8235">#8235</a>, licensed under the MIT license.
  *
+ * @deprecated use {@link Arguments}
  * @since 0.1.0
  */
 @ApiStatus.Internal
+@Deprecated(forRemoval = true)
+@ApiStatus.ScheduledForRemoval(inVersion = "26.4")
 public interface ArgumentProvider {
 
     Optional<ArgumentProvider> PROVIDER = ServiceLoader.load(ArgumentProvider.class, ArgumentProvider.class.getClassLoader()).findFirst();
@@ -113,7 +116,7 @@ public interface ArgumentProvider {
     /**
      * @since 0.1.0
      */
-    ArgumentType<ItemStackPredicate> itemStackPredicate();
+    ArgumentType<ItemStackPredicate> itemPredicate();
 
     /**
      * @since 0.1.0

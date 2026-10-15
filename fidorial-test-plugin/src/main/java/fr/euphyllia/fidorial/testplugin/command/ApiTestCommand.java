@@ -13,10 +13,9 @@ import fr.euphyllia.fidorial.testplugin.terrain.SwamplandGenerator;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.MessageComponentSerializer;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.command.argument.resolvers.NbtPathResolver;
+import fr.fidorial.command.serializers.MessageComponentSerializer;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
@@ -58,6 +57,7 @@ import java.util.stream.Collectors;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class ApiTestCommand {
     private static TestPlugin plugin;
@@ -109,19 +109,19 @@ public final class ApiTestCommand {
                 .then(literal("schedule").executes(ctx -> schedule(plugin, ctx)))
                 .then(literal("perms").executes(ApiTestCommand::perms))
                 .then(literal("teleport")
-                        .then(argument("x", ArgumentTypes.doubleArg())
-                                .then(argument("y", ArgumentTypes.doubleArg())
-                                        .then(argument("z", ArgumentTypes.doubleArg())
+                        .then(argument("x", arguments().doubleArg())
+                                .then(argument("y", arguments().doubleArg())
+                                        .then(argument("z", arguments().doubleArg())
                                                 .executes(ApiTestCommand::tp)))))
                 .then(literal("tpworld")
                         .executes(ctx -> tpWorld(plugin, ctx, Key.key("overworld")))
-                        .then(argument("name", ArgumentTypes.world())
+                        .then(argument("name", arguments().world())
                                 .executes(ctx -> tpWorld(plugin, ctx, ctx.getArgument("name", World.class).key()))))
                 .then(literal("createworld")
                         .executes(ctx -> createWorld(ctx, Key.key(UUID.randomUUID().toString()), "overworld"))
-                        .then(argument("name", ArgumentTypes.key())
+                        .then(argument("name", arguments().key())
                                 .executes(ctx -> createWorld(ctx, ctx.getArgument("name", Key.class), "overworld"))
-                                .then(argument("generator", ArgumentTypes.greedyString())
+                                .then(argument("generator", arguments().greedyString())
                                         .suggests((_, builder) -> {
                                             final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
                                             for (final String name : GENERATOR_NAMES) {
@@ -137,19 +137,19 @@ public final class ApiTestCommand {
                                                 ctx.getArgument("generator", String.class))))))
                 .then(literal("unloadworld")
                         .executes(ctx -> unloadWorld(ctx, Key.key(UUID.randomUUID().toString())))
-                        .then(argument("name", ArgumentTypes.world())
+                        .then(argument("name", arguments().world())
                                 .executes(ctx -> unloadWorld(ctx, ctx.getArgument("name", World.class).key()))))
                 .then(literal("sound")
                         .executes(ApiTestCommand::soundDemo)
-                        .then(argument("key", ArgumentTypes.resource(RegistryKey.SOUND_EVENT))
+                        .then(argument("key", arguments().resource(RegistryKey.SOUND_EVENT))
                                 .executes(ApiTestCommand::soundDefault)
-                                .then(argument("volume", ArgumentTypes.floatArg())
+                                .then(argument("volume", arguments().floatArg())
                                         .executes(ApiTestCommand::soundVolume)
-                                        .then(argument("pitch", ArgumentTypes.floatArg())
+                                        .then(argument("pitch", arguments().floatArg())
                                                 .executes(ApiTestCommand::soundPitch)))))
                 .then(literal("stopsound")
                         .executes(ApiTestCommand::stopAllSound)
-                        .then(argument("key", ArgumentTypes.key()).executes(ApiTestCommand::stopSound)))
+                        .then(argument("key", arguments().key()).executes(ApiTestCommand::stopSound)))
                 .then(literal("callback")
                         .executes(ApiTestCommand::clickCallback))
                 .then(literal("baguette")
@@ -165,30 +165,30 @@ public final class ApiTestCommand {
                 .then(literal("nbt")
                         .then(literal("entity")
                                 .executes(ApiTestCommand::nbtEntitySelf)
-                                .then(argument("path", ArgumentTypes.nbtPath())
+                                .then(argument("path", arguments().nbtPath())
                                         .executes(ApiTestCommand::nbtEntityPath)))
                         .then(literal("block")
-                                .then(argument("pos", ArgumentTypes.blockPosition())
+                                .then(argument("pos", arguments().blockPosition())
                                         .executes(ApiTestCommand::nbtBlockAtPos)
-                                        .then(argument("path", ArgumentTypes.nbtPath())
+                                        .then(argument("path", arguments().nbtPath())
                                                 .executes(ApiTestCommand::nbtBlockAtPosWithPath))))
                         .then(literal("storage")
                                 .executes(ApiTestCommand::nbtStorage))
                 )
                 .then(literal("bossbar")
                         .then(literal("show")
-                                .then(argument("name", ArgumentTypes.key())
+                                .then(argument("name", arguments().key())
                                         .executes(this::bossBarShow)
-                                        .then(argument("progress", ArgumentTypes.floatArg(0f, 1f))
+                                        .then(argument("progress", arguments().floatArg(0f, 1f))
                                                 .executes(this::bossBarShowWithProgress)
-                                                .then(argument("color", ArgumentTypes.bossBarColor())
-                                                        .then(argument("overlay", ArgumentTypes.bossBarOverlay())
-                                                                .then(argument("flag", ArgumentTypes.bossBarFlag())
+                                                .then(argument("color", arguments().bossBarColor())
+                                                        .then(argument("overlay", arguments().bossBarOverlay())
+                                                                .then(argument("flag", arguments().bossBarFlag())
                                                                         .executes(this::bossBarShowCustom)))))))
                         .then(literal("hide")
                                 .requires(source -> source.executor() instanceof final Player player
                                         && !bossBarsOf(player).isEmpty())
-                                .then(argument("name", ArgumentTypes.key())
+                                .then(argument("name", arguments().key())
                                         .suggests((ctx, builder) -> {
                                             if (ctx.getSource().executor() instanceof final Player player) {
                                                 bossBarsOf(player).keySet().forEach(key ->
@@ -205,7 +205,7 @@ public final class ApiTestCommand {
                         .then(literal("get")
                                 .executes(ApiTestCommand::getDefaultWorld))
                         .then(literal("set")
-                                .then(argument("world", ArgumentTypes.world())
+                                .then(argument("world", arguments().world())
                                         .executes(ApiTestCommand::setDefaultWorld))))
                 .build();
     }

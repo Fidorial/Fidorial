@@ -6,7 +6,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.moderation.BanEntry;
@@ -23,6 +22,7 @@ import java.util.UUID;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BanIpCommand {
 
@@ -34,15 +34,15 @@ public final class BanIpCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("ban-ip")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
-                .then(argument("player", ArgumentTypes.players())
+                .then(argument("player", arguments().players())
                         .executes(context -> ban(context, null, null))
                         .then(literal("duration")
-                                .then(argument("duration", ArgumentTypes.duration())
+                                .then(argument("duration", arguments().duration())
                                         .executes(context -> ban(context, duration(context), null))
-                                        .then(argument("reason", ArgumentTypes.component())
+                                        .then(argument("reason", arguments().component())
                                                 .executes(context -> ban(context, duration(context), reason(context))))))
                         .then(literal("reason")
-                                .then(argument("reason", ArgumentTypes.component())
+                                .then(argument("reason", arguments().component())
                                         .executes(context -> ban(context, null, reason(context))))))
                 .build();
     }

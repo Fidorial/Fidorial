@@ -4,7 +4,6 @@ import com.mojang.brigadier.Message;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.command.MessageComponentSerializer;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -31,7 +30,7 @@ public record ClientboundCommandSuggestionsPacket(int id, int start, int length,
 
             if (entry.tooltip() != null) {
                 buf.writeBoolean(true);
-                buf.writeComponent(MessageComponentSerializer.message().deserialize(entry.tooltip()));
+                buf.writeComponent(entry.tooltip().asComponent());
             } else {
                 buf.writeBoolean(false);
             }

@@ -10,7 +10,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -35,6 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class FillBiomeCommand {
 
@@ -47,12 +47,12 @@ public final class FillBiomeCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("fillbiome")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
-                .then(argument("from", ArgumentTypes.blockPosition())
-                        .then(argument("to", ArgumentTypes.blockPosition())
-                                .then(argument("biome", ArgumentTypes.resource(RegistryKey.BIOME))
+                .then(argument("from", arguments().blockPosition())
+                        .then(argument("to", arguments().blockPosition())
+                                .then(argument("biome", arguments().resource(RegistryKey.BIOME))
                                         .executes(context -> fill(context, null))
                                         .then(literal("replace")
-                                                .then(argument("filter", ArgumentTypes.resource(RegistryKey.BIOME))
+                                                .then(argument("filter", arguments().resource(RegistryKey.BIOME))
                                                         .executes(context -> fill(
                                                                 context,
                                                                 context.getArgument("filter", Biome.class).key())))))))

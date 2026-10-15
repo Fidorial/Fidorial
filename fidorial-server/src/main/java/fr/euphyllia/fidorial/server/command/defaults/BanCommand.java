@@ -7,7 +7,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
 import fr.fidorial.entity.OfflinePlayer;
 import fr.fidorial.entity.Player;
@@ -23,6 +22,7 @@ import java.util.UUID;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BanCommand {
 
@@ -33,7 +33,7 @@ public final class BanCommand {
 
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> playerArgument =
-                ArgumentTypes.playerProfiles(player ->
+                arguments().playerProfiles(player ->
                         !server().players().bans().isBanned(player.uuid()));
 
         return literal("ban")
@@ -41,12 +41,12 @@ public final class BanCommand {
                 .then(argument("player", playerArgument)
                         .executes(context -> ban(context, null, null))
                         .then(literal("duration")
-                                .then(argument("duration", ArgumentTypes.duration())
+                                .then(argument("duration", arguments().duration())
                                         .executes(context -> ban(context, duration(context), null))
-                                        .then(argument("reason", ArgumentTypes.component())
+                                        .then(argument("reason", arguments().component())
                                                 .executes(context -> ban(context, duration(context), reason(context))))))
                         .then(literal("reason")
-                                .then(argument("reason", ArgumentTypes.component())
+                                .then(argument("reason", arguments().component())
                                         .executes(context -> ban(context, null, reason(context))))))
                 .build();
     }

@@ -6,7 +6,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.environment.Attribute;
@@ -18,6 +17,7 @@ import java.util.stream.Collectors;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BiomeCommand {
 
@@ -53,13 +53,13 @@ public final class BiomeCommand {
                 .then(literal("count").executes(BiomeCommand::count))
                 .then(literal("json").executes(BiomeCommand::fromJson))
                 .then(literal("info")
-                        .then(argument("key", ArgumentTypes.key())
+                        .then(argument("key", arguments().key())
                                 .executes(ctx -> info(ctx, ctx.getArgument("key", Key.class)))))
                 .then(literal("register")
-                        .then(argument("key", ArgumentTypes.key())
+                        .then(argument("key", arguments().key())
                                 .executes(ctx -> register(ctx, ctx.getArgument("key", Key.class)))))
                 .then(literal("unregister")
-                        .then(argument("key", ArgumentTypes.key())
+                        .then(argument("key", arguments().key())
                                 .executes(ctx -> unregister(ctx, ctx.getArgument("key", Key.class)))))
                 .build();
     }
