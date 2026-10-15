@@ -12,7 +12,7 @@
      public static final int CONTEXT_AMOUNT = 10;
      public static boolean ENABLE_COMMAND_STACK_TRACES = true;
      public static BuiltInExceptionProvider BUILT_IN_EXCEPTIONS = new BuiltInExceptions();
-@@ -73,4 +_,11 @@
+@@ -73,4 +_,14 @@
      public int getCursor() {
          return cursor;
      }
@@ -20,7 +20,10 @@
 +    // Fidorial start - adventure interop
 +    @Override
 +    public Component componentMessage() {
-+        return message.asComponent();
++        final String context = getContext();
++        return context == null
++                ? message.asComponent()
++                : message.asComponent().append(Component.text(" at position " + cursor + ": " + context)); // keep in line with getMessage
 +    }
 +    // Fidorial end - adventure interop
  }
