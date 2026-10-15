@@ -43,8 +43,10 @@ import java.util.function.Predicate;
  *
  * <pre>{@code argument("targets", Arguments.arguments().players())}</pre>
  *
+ * @apiNote Subject to ABI and/or API breakage.
  * @since 0.1.0
  */
+@ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface Arguments {
 
