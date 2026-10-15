@@ -15,6 +15,9 @@ import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.InventorySlots;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.block.BlockBreakEventImpl;
+import fr.euphyllia.fidorial.server.events.block.BlockPlaceEventImpl;
+import fr.euphyllia.fidorial.server.events.player.PlayerOpenEnderChestEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
@@ -636,7 +639,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
             if (state != null) {
                 final BlockPlaceEvent event = server.events()
-                        .post(new BlockPlaceEvent(acting, target, server.blockStateRegistry().networkId(state)));
+                        .post(new BlockPlaceEventImpl(acting, target, server.blockStateRegistry().networkId(state)));
                 if (!event.isCancelled()) {
                     server.blockEdits().set(world, target, state);
                     server.debugGameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
@@ -680,7 +683,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
 
         final PlayerOpenEnderChestEvent event =
-                server.events().post(new PlayerOpenEnderChestEvent(player, pos, player.enderChest()));
+                server.events().post(new PlayerOpenEnderChestEventImpl(player, pos, player.enderChest()));
         if (event.isCancelled()) {
             return;
         }
@@ -788,7 +791,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos chunkPos = ChunkPos.fromBlock(packet.position().x(), packet.position().z());
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
-            final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
+            final BlockBreakEvent event = server.events().post(new BlockBreakEventImpl(acting, packet.position()));
             if (!event.isCancelled()) {
                 onBlockDestroyed(packet.position());
                 server.blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
