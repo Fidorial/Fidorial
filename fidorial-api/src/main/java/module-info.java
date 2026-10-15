@@ -95,7 +95,6 @@ module fr.fidorial {
     exports fr.fidorial.command.serializers;
 
     uses fr.fidorial.command.argument.Arguments;
-    uses fr.fidorial.command.argument.ArgumentProvider;
     uses fr.fidorial.command.serializers.MessageComponentSerializer;
 
     requires com.google.common;

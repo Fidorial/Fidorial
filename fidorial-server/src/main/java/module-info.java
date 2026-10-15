@@ -47,6 +47,5 @@ module fr.fidorial.server {
     opens fr.euphyllia.fidorial.server.tests to fr.fidorial;
 
     provides fr.fidorial.command.argument.Arguments with FidorialArguments;
-    provides fr.fidorial.command.argument.ArgumentProvider with FidorialArguments;
     provides fr.fidorial.command.serializers.MessageComponentSerializer with MessageComponentSerializerImpl;
 }
