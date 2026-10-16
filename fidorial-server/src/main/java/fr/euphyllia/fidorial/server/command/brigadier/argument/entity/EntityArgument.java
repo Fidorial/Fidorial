@@ -13,16 +13,31 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFac
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.command.argument.resolvers.EntitiesResolver;
+import fr.fidorial.command.argument.resolvers.EntityResolver;
+import fr.fidorial.command.argument.resolvers.PlayerResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.Player;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public final class EntityArgument<T> implements ArgumentType<T> {
+/**
+ * A selector, name or UUID, parsed once and resolved per source by {@code resolver}.
+ *
+ * @param filter   extra condition every match must satisfy, also applied to suggested names
+ * @param resolver turns the parsed selector into what commands read
+ */
+public record EntityArgument<R>(
+        boolean single,
+        boolean playersOnly,
+        Predicate<Entity> filter,
+        Function<EntitySelector, R> resolver
+) implements ArgumentType<R> {
 
     public static final SimpleCommandExceptionType ERROR_NOT_SINGLE_ENTITY = ExceptionFactory.simple("argument.entity.toomany");
     public static final SimpleCommandExceptionType ERROR_NOT_SINGLE_PLAYER = ExceptionFactory.simple("argument.player.toomany");
@@ -31,124 +46,49 @@ public final class EntityArgument<T> implements ArgumentType<T> {
     public static final SimpleCommandExceptionType NO_PLAYERS_FOUND = ExceptionFactory.simple("argument.entity.notfound.player");
     public static final SimpleCommandExceptionType SELECTORS_NOT_PERMITTED = ExceptionFactory.simple("argument.entity.selector.not_allowed");
 
-    private final boolean single;
-    private final boolean playersOnly;
-
-    private final Predicate<Entity> predicate;
-    private final Function<EntitySelector, T> converter;
-
-    public EntityArgument(
-            final boolean single,
-            final boolean playersOnly,
-            final Predicate<Entity> predicate,
-            final Function<EntitySelector, T> converter
-    ) {
-        this.single = single;
-        this.playersOnly = playersOnly;
-        this.predicate = predicate;
-        this.converter = converter;
-
+    public static EntityArgument<EntityResolver> entity(final Predicate<Entity> filter) {
+        return new EntityArgument<>(true, false, filter, selector -> selector::findSingleEntity);
     }
 
-    // Identity-converter factories: used internally, where the parsed EntitySelector
-    // itself is what commands want (see getEntity/getPlayer/... below).
-
-    public static EntityArgument<EntitySelector> entity() {
-        return new EntityArgument<>(true, false, _ -> true, Function.identity());
+    public static EntityArgument<EntitiesResolver> entities(final Predicate<Entity> filter) {
+        return new EntityArgument<>(false, false, filter,
+                selector -> source -> nonEmpty(selector.findEntities(source), NO_ENTITIES_FOUND));
     }
 
-    public static EntityArgument<EntitySelector> entities() {
-        return new EntityArgument<>(false, false, _ -> true, Function.identity());
+    public static EntityArgument<PlayerResolver> player(final Predicate<Player> filter) {
+        return new EntityArgument<>(true, true, asEntityFilter(filter), selector -> selector::findSinglePlayer);
     }
 
-    public static EntityArgument<EntitySelector> player() {
-        return new EntityArgument<>(true, true, Player.class::isInstance, Function.identity());
+    public static EntityArgument<PlayersResolver> players(final Predicate<Player> filter) {
+        return new EntityArgument<>(false, true, asEntityFilter(filter),
+                selector -> source -> nonEmpty(selector.findPlayers(source), NO_PLAYERS_FOUND));
     }
 
-    public static EntityArgument<EntitySelector> players() {
-        return new EntityArgument<>(false, true, Player.class::isInstance, Function.identity());
+    private static Predicate<Entity> asEntityFilter(final Predicate<Player> filter) {
+        return entity -> entity instanceof final Player player && filter.test(player);
     }
 
-    public boolean single() {
-        return single;
-    }
-
-    public boolean playersOnly() {
-        return playersOnly;
+    private static <T> List<T> nonEmpty(final List<T> found, final SimpleCommandExceptionType empty) throws CommandSyntaxException {
+        if (found.isEmpty()) {
+            throw empty.create();
+        }
+        return found;
     }
 
     @Override
-    public T parse(final StringReader reader) throws CommandSyntaxException {
-
+    public R parse(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
-
         final EntitySelector selector = new EntitySelectorParser(reader).parse();
 
-        if (selector.maxResults() > 1 && single) {
-
+        if (single && selector.maxResults() > 1) {
             reader.setCursor(start);
-
-            if (playersOnly) {
-                throw ERROR_NOT_SINGLE_PLAYER.createWithContext(reader);
-            }
-
-            throw ERROR_NOT_SINGLE_ENTITY.createWithContext(reader);
+            throw (playersOnly ? ERROR_NOT_SINGLE_PLAYER : ERROR_NOT_SINGLE_ENTITY).createWithContext(reader);
         }
-
-        if (selector.includesEntities() && playersOnly && !selector.selfSelector()) {
-
+        if (playersOnly && selector.includesEntities() && !selector.selfSelector()) {
             reader.setCursor(start);
-
             throw ERROR_ONLY_PLAYERS_ALLOWED.createWithContext(reader);
         }
-
-        return converter.apply(selector.withPredicate(predicate));
-    }
-
-    public static Entity getEntity(final CommandContext<CommandSource> context, final String name) throws CommandSyntaxException {
-
-        return context.getArgument(name, EntitySelector.class).findSingleEntity(context.getSource());
-    }
-
-    public static Collection<? extends Entity> getEntities(final CommandContext<CommandSource> context, final String name)
-            throws CommandSyntaxException {
-
-        final Collection<? extends Entity> entities = getOptionalEntities(context, name);
-
-        if (entities.isEmpty()) {
-            throw NO_ENTITIES_FOUND.create();
-        }
-
-        return entities;
-    }
-
-    public static Collection<? extends Entity> getOptionalEntities(final CommandContext<CommandSource> context, final String name)
-            throws CommandSyntaxException {
-
-        return context.getArgument(name, EntitySelector.class).findEntities(context.getSource());
-    }
-
-    public static Player getPlayer(final CommandContext<CommandSource> context, final String name) throws CommandSyntaxException {
-
-        return context.getArgument(name, EntitySelector.class).findSinglePlayer(context.getSource());
-    }
-
-    public static Collection<Player> getOptionalPlayers(final CommandContext<CommandSource> context, final String name)
-            throws CommandSyntaxException {
-
-        return context.getArgument(name, EntitySelector.class).findPlayers(context.getSource());
-    }
-
-    public static Collection<Player> getPlayers(final CommandContext<CommandSource> context, final String name)
-            throws CommandSyntaxException {
-
-        final Collection<Player> players = getOptionalPlayers(context, name);
-
-        if (players.isEmpty()) {
-            throw NO_PLAYERS_FOUND.create();
-        }
-
-        return players;
+        return resolver.apply(selector.withPredicate(filter));
     }
 
     @Override
@@ -159,49 +99,37 @@ public final class EntityArgument<T> implements ArgumentType<T> {
 
         final StringReader reader = new StringReader(builder.getInput());
         reader.setCursor(builder.getStart());
-
         final EntitySelectorParser parser = new EntitySelectorParser(reader);
-
         try {
             parser.parse();
         } catch (final CommandSyntaxException _) {
+            // suggest from wherever parsing stopped
         }
 
-        return parser.fillSuggestions(builder, suggestionsBuilder -> {
-            final Collection<String> playerNames = source.server().players().online().stream()
-                    .filter(this.predicate)
+        return parser.fillSuggestions(builder, names -> {
+            final String remaining = names.getRemaining().toLowerCase(Locale.ROOT);
+            source.server().players().online().stream()
+                    .filter(filter)
                     .map(Player::name)
-                    .toList();
-
-            final Iterable<String> suggestedNames = this.playersOnly
-                    ? playerNames
-                    : playerNames; // extend here in the future
-
-            for (final String name : suggestedNames) {
-                if (name.toLowerCase(Locale.ROOT).startsWith(suggestionsBuilder.getRemaining().toLowerCase(Locale.ROOT))) {
-                    suggestionsBuilder.suggest(name);
-                }
-            }
+                    .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(remaining))
+                    .forEach(names::suggest);
         });
     }
 
     public static final class Info implements ArgumentTypeRegistrar<EntityArgument<?>, Info.Spec> {
 
+        private static final int SINGLE = 1;
+        private static final int PLAYERS_ONLY = 2;
+
         @Override
         public void serialize(final Spec spec, final PacketBuffer buf) {
-            int flags = 0;
-
-            if (spec.single()) flags |= 1;
-
-            if (spec.playersOnly()) flags |= 2;
-
-            buf.writeByte(flags);
+            buf.writeByte((spec.single() ? SINGLE : 0) | (spec.playersOnly() ? PLAYERS_ONLY : 0));
         }
 
         @Override
         public Spec deserialize(final PacketBuffer buf) {
             final int flags = buf.readByte();
-            return new Spec((flags & 1) != 0, (flags & 2) != 0);
+            return new Spec((flags & SINGLE) != 0, (flags & PLAYERS_ONLY) != 0);
         }
 
         @Override

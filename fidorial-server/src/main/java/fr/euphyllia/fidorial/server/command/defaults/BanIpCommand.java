@@ -6,7 +6,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.moderation.BanEntry;
 import fr.fidorial.moderation.BanManager;
@@ -64,8 +64,7 @@ public final class BanIpCommand {
         final CommandSource source = context.getSource();
         final BanManager bans = server().players().bans();
 
-        final List<Player> targets =
-                context.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(source);
+        final List<Player> targets = PlayersResolver.players(context, "player");
 
         final UUID issuer = source.sender() instanceof final Player player ? player.uuid() : null;
         final Set<InetAddress> seen = new LinkedHashSet<>();
@@ -86,13 +85,12 @@ public final class BanIpCommand {
             final boolean added = bans.ban(entry);
             final int kicked = kickBanned(entry);
 
-            source
-                    .sendMessage(Component.translatable(
-                            added ? "commands.banip.success" : "commands.banip.updated",
-                            Component.text(entry.label()),
-                            Component.text(kicked),
-                            BanCommand.expiryOf(entry),
-                            BanCommand.reasonOf(entry)));
+            source.sendMessage(Component.translatable(
+                    added ? "commands.banip.success" : "commands.banip.updated",
+                    Component.text(entry.label()),
+                    Component.text(kicked),
+                    BanCommand.expiryOf(entry),
+                    BanCommand.reasonOf(entry)));
 
             banned++;
         }

@@ -1,13 +1,17 @@
 package fr.euphyllia.fidorial.server.command.brigadier.argument.selector.options;
 
-public class SingleUseOption {
+/**
+ * An option that may appear once, like {@code limit=} or {@code sort=}.
+ */
+public final class SingleUseOption {
+
     private boolean consumed;
 
     public boolean available() {
-        return !this.consumed;
+        return !consumed;
     }
 
     public void consume() {
-        this.consumed = true;
+        consumed = true;
     }
 }

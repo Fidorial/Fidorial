@@ -1,25 +1,26 @@
 package fr.fidorial.command.argument.resolvers;
 
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.fidorial.command.CommandSource;
-import org.jetbrains.annotations.ApiStatus;
 
 /**
- * An {@link ArgumentResolver} capable of resolving
- * an angle value using a {@link CommandSource}.
+ * Resolves an angle in degrees, wrapped to {@code [-180, 180)}, absolute or relative ({@code ~}).
  *
  * @since 0.1.0
  */
-@ApiStatus.NonExtendable
-public interface AngleResolver {
+@FunctionalInterface
+public non-sealed interface AngleResolver extends ArgumentResolver<Float> {
 
     /**
-     * Resolves the argument with the given
-     * command source.
+     * {@return the angle argument {@code name} in degrees, resolved for the source of {@code context}}
      *
-     * @param source source
-     * @return the resolved angle in degrees.
-     * @throws CommandSyntaxException if an error occurs while parsing
+     * @param context the command context
+     * @param name    the argument name
+     * @throws CommandSyntaxException if it can't be resolved for the source
+     * @since 0.1.0
      */
-    float resolve(CommandSource source) throws CommandSyntaxException;
+    static float angle(final CommandContext<CommandSource> context, final String name) throws CommandSyntaxException {
+        return context.getArgument(name, AngleResolver.class).resolve(context.getSource());
+    }
 }

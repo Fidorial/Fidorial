@@ -10,7 +10,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -81,8 +81,8 @@ public final class FillBiomeCommand {
             context.getSource().sendMessage(Component.translatable("command.fillbiome.no_world"));
             return 0;
         }
-        final BlockPosition from = context.getArgument("from", BlockPosResolver.class).resolve(context.getSource());
-        final BlockPosition to = context.getArgument("to", BlockPosResolver.class).resolve(context.getSource());
+        final BlockPosition from = BlockPositionResolver.blockPosition(context, "from");
+        final BlockPosition to = BlockPositionResolver.blockPosition(context, "to");
 
         final long volume = span(from.blockX(), to.blockX()) * span(from.blockY(), to.blockY()) * span(from.blockZ(), to.blockZ());
         final int limit = world.gameRuleValues().getInt(GameRuleKeys.MAX_BLOCK_MODIFICATIONS);
@@ -110,7 +110,7 @@ public final class FillBiomeCommand {
         final Map<ChunkPos, List<int[]>> byChunk = new LinkedHashMap<>();
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
-                final ChunkPos chunkPos = new ChunkPos(x >> 4, z >> 4);
+                final ChunkPos chunkPos = ChunkPos.fromBlock(x, z);
                 for (int y = minY; y <= maxY; y++) {
                     byChunk.computeIfAbsent(chunkPos, _ -> new ArrayList<>()).add(new int[]{x, y, z});
                 }

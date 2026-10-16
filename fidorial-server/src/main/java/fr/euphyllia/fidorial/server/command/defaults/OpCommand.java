@@ -5,12 +5,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
+import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import net.kyori.adventure.text.Component;
 
-import java.util.Collection;
 import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
@@ -31,7 +30,7 @@ public final class OpCommand {
     }
 
     private static LiteralCommandNode<CommandSource> create(final String name, final boolean grant) {
-        final ArgumentType<PlayerProfileListResolver> playerArgument = arguments().playerProfiles(player -> player.isOperator() != grant);
+        final ArgumentType<PlayerProfilesResolver> playerArgument = arguments().playerProfiles(player -> player.isOperator() != grant);
         return literal(name)
                 .requires(source ->
                         source.sender().hasPermission(grant ? "fidorial.command.op" : "fidorial.command.deop"))
@@ -40,18 +39,14 @@ public final class OpCommand {
     }
 
     private static int execute(final CommandContext<CommandSource> context, final boolean grant) throws CommandSyntaxException {
+        final List<PlayerProfile> targets = PlayerProfilesResolver.playerProfiles(context, "player");
 
-        final PlayerProfileListResolver resolver = context.getArgument("player", PlayerProfileListResolver.class);
-        final Collection<PlayerProfile> targets = resolver.resolve(context.getSource());
+        int changed = 0;
 
         for (final PlayerProfile targetProfile : targets) {
             final List<? extends Player> players = context.getSource().server().players().online().stream()
                     .filter(player -> player.uuid().equals(targetProfile.uuid()))
                     .toList();
-
-            if (players.isEmpty()) {
-                continue;
-            }
 
             for (final Player target : players) {
                 target.setOperator(grant);
@@ -62,9 +57,10 @@ public final class OpCommand {
                         .sendMessage(Component.translatable(
                                 grant ? "command.op.granted.other" : "command.op.revoked.other",
                                 Component.text(target.name())));
+                changed++;
             }
-            return players.size();
         }
-        return 0;
+
+        return changed;
     }
 }

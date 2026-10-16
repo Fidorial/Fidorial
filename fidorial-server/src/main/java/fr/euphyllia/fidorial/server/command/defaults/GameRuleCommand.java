@@ -18,6 +18,8 @@ import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -49,8 +51,8 @@ public final class GameRuleCommand {
                 .executes(context -> query(context, rule));
 
         final RequiredArgumentBuilder<CommandSource, ?> value = rule.isBoolean()
-                ? argument(VALUE, arguments().bool())
-                : argument(VALUE, arguments().integer(rule.minValue(), rule.maxValue()));
+                ? argument(VALUE, bool())
+                : argument(VALUE, integer(rule.minValue(), rule.maxValue()));
         value.executes(context -> set(context, rule, typedValue(context, rule), null))
                 .then(argument(WORLD, arguments().world())
                         .executes(context -> set(context, rule, typedValue(context, rule), targetWorld(context))));

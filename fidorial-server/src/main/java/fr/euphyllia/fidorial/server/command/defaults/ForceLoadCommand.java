@@ -2,10 +2,12 @@ package fr.euphyllia.fidorial.server.command.defaults;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.location.ColumnPosArgument;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.command.argument.resolvers.ColumnPositionResolver;
+import fr.fidorial.math.ColumnPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.text.Component;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class ForceLoadCommand {
 
@@ -32,28 +35,29 @@ public final class ForceLoadCommand {
         return literal("forceload")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("add")
-                        .then(argument("from", ColumnPosArgument.columnPos())
+                        .then(argument("from", arguments().columnPosition())
                                 .executes(context -> change(context, "from", true))
-                                .then(argument("to", ColumnPosArgument.columnPos())
+                                .then(argument("to", arguments().columnPosition())
                                         .executes(context -> change(context, "to", true)))))
                 .then(literal("remove")
                         .then(literal("all")
                                 .executes(ForceLoadCommand::removeAll))
-                        .then(argument("from", ColumnPosArgument.columnPos())
+                        .then(argument("from", arguments().columnPosition())
                                 .executes(context -> change(context, "from", false))
-                                .then(argument("to", ColumnPosArgument.columnPos())
+                                .then(argument("to", arguments().columnPosition())
                                         .executes(context -> change(context, "to", false)))))
                 .then(literal("query")
                         .executes(ForceLoadCommand::list)
-                        .then(argument("pos", ColumnPosArgument.columnPos())
+                        .then(argument("pos", arguments().columnPosition())
                                 .executes(ForceLoadCommand::query)))
                 .build();
     }
 
-    private static int change(final CommandContext<CommandSource> context, final String toArgument, final boolean add) {
+    private static int change(final CommandContext<CommandSource> context, final String toArgument, final boolean add)
+            throws CommandSyntaxException {
         final CommandSource source = context.getSource();
-        final ColumnPosArgument.Column from = column(context, "from");
-        final ColumnPosArgument.Column to = column(context, toArgument);
+        final ColumnPosition from = column(context, "from");
+        final ColumnPosition to = column(context, toArgument);
 
         final int minX = Math.min(from.x(), to.x());
         final int minZ = Math.min(from.z(), to.z());
@@ -151,7 +155,7 @@ public final class ForceLoadCommand {
         return forced.size();
     }
 
-    private static int query(final CommandContext<CommandSource> context) {
+    private static int query(final CommandContext<CommandSource> context) throws CommandSyntaxException {
         final ServerWorld world = worldOf(context);
         if (handleMissingWorld(context.getSource(), world)) {
             return 0;
@@ -166,8 +170,9 @@ public final class ForceLoadCommand {
         return forced ? Command.SINGLE_SUCCESS : 0;
     }
 
-    private static ColumnPosArgument.Column column(final CommandContext<CommandSource> context, final String name) {
-        return context.getArgument(name, ColumnPosArgument.Resolver.class).resolve(context.getSource());
+    private static ColumnPosition column(final CommandContext<CommandSource> context, final String name)
+            throws CommandSyntaxException {
+        return ColumnPositionResolver.columnPosition(context, name);
     }
 
     private static Component chunk(final int x, final int z) {

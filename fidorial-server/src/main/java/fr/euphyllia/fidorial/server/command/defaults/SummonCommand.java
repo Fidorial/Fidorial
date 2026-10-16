@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.command.defaults;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
@@ -42,8 +43,8 @@ public final class SummonCommand {
                 location);
     }
 
-    private static int executeCoordinates(final CommandContext<CommandSource> context) {
-        final Location location = context.getArgument("position", PositionResolver.class).resolve(context.getSource());
+    private static int executeCoordinates(final CommandContext<CommandSource> context) throws CommandSyntaxException {
+        final Location location = PositionResolver.position(context, "position");
 
         final ServerWorld world = worldOf(context);
 

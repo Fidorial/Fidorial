@@ -4,7 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.text.Component;
@@ -45,9 +45,7 @@ public final class GameModeCommand {
     }
 
     private static int executeTarget(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final var resolver = context.getArgument("target", PlayerSelectorArgumentResolver.class);
-        final List<Player> targets = resolver.resolve(context.getSource());
-        return change(context, targets);
+        return change(context, PlayersResolver.players(context, "target"));
     }
 
     private static int change(final CommandContext<CommandSource> context, final List<Player> targets) {

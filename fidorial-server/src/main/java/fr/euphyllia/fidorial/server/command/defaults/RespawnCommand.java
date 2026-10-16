@@ -5,7 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.text.Component;
 
@@ -36,9 +36,7 @@ public final class RespawnCommand {
     }
 
     private static int executeTargets(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final List<Player> targets = context.getArgument("targets", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource());
-        return respawn(context, targets);
+        return respawn(context, PlayersResolver.players(context, "targets"));
     }
 
     private static int respawn(final CommandContext<CommandSource> context, final List<Player> targets) {

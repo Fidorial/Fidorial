@@ -8,7 +8,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.math.Position;
 import fr.fidorial.world.structure.StructureRotation;
 import net.kyori.adventure.key.Key;
@@ -16,6 +16,8 @@ import net.kyori.adventure.text.Component;
 
 import java.util.concurrent.CompletableFuture;
 
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
+import static com.mojang.brigadier.arguments.StringArgumentType.word;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -55,7 +57,7 @@ public final class PlaceCommand {
                                 .executes(context -> template(context, false, false))
                                 .then(argument("pos", arguments().blockPosition())
                                         .executes(context -> template(context, true, false))
-                                        .then(argument("rotation", arguments().word())
+                                        .then(argument("rotation", word())
                                                 .suggests(ROTATIONS)
                                                 .executes(context -> template(context, true, true))))))
                 .then(literal("structure")
@@ -68,7 +70,7 @@ public final class PlaceCommand {
                         .then(argument("pool", arguments().key())
                                 .suggests(POOLS)
                                 .then(argument("target", arguments().key())
-                                        .then(argument("max_depth", arguments().integer(1, 20))
+                                        .then(argument("max_depth", integer(1, 20))
                                                 .executes(context -> jigsaw(context, false))
                                                 .then(argument("pos", arguments().blockPosition())
                                                         .executes(context -> jigsaw(context, true)))))))
@@ -78,7 +80,7 @@ public final class PlaceCommand {
     private static Position position(final CommandContext<CommandSource> context, final boolean explicit)
             throws CommandSyntaxException {
         return explicit
-                ? context.getArgument("pos", BlockPosResolver.class).resolve(context.getSource())
+                ? BlockPositionResolver.blockPosition(context, "pos")
                 : context.getSource().location();
     }
 

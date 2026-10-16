@@ -11,12 +11,13 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.command.argument.resolvers.ColumnPositionResolver;
+import fr.fidorial.math.ColumnPosition;
 import fr.fidorial.math.Location;
-import fr.fidorial.world.ChunkPos;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class ColumnPosArgument implements ArgumentType<ColumnPosArgument.Resolver> {
+public final class ColumnPosArgument implements ArgumentType<ColumnPositionResolver> {
 
     public static ColumnPosArgument columnPos() {
         return new ColumnPosArgument();
@@ -50,33 +51,15 @@ public final class ColumnPosArgument implements ArgumentType<ColumnPosArgument.R
     }
 
     @Override
-    public Resolver parse(final StringReader reader) throws CommandSyntaxException {
+    public ColumnPositionResolver parse(final StringReader reader) throws CommandSyntaxException {
         final Coordinate x = Coordinate.parse(reader);
         reader.expect(' ');
         final Coordinate z = Coordinate.parse(reader);
 
         return source -> {
             final Location origin = source.location();
-            return new Column(x.resolve(origin.x()), z.resolve(origin.z()));
+            return ColumnPosition.column(x.resolve(origin.x()), z.resolve(origin.z()));
         };
-    }
-
-    /**
-     * Resolves the parsed column against the location of a {@link CommandSource}.
-     */
-    @FunctionalInterface
-    public interface Resolver {
-        Column resolve(CommandSource source);
-    }
-
-    /**
-     * A block column, without height.
-     */
-    public record Column(int x, int z) {
-
-        public ChunkPos chunk() {
-            return ChunkPos.fromBlock(x, z);
-        }
     }
 
     private record Coordinate(double value, boolean relative) {
