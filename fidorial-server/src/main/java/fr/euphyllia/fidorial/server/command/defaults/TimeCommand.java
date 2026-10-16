@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.time.DayNightCycle;
@@ -16,6 +15,7 @@ import java.util.Locale;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * /time set day|noon|sunset|night|midnight|sunrise|&lt;ticks&gt;
@@ -40,15 +40,15 @@ public final class TimeCommand {
                         .then(preset("night", DayNightCycle.NIGHT_START))
                         .then(preset("midnight", DayNightCycle.MIDNIGHT))
                         .then(preset("sunrise", DayNightCycle.SUNRISE))
-                        .then(argument("ticks", ArgumentTypes.time(0))
+                        .then(argument("ticks", arguments().time(0))
                                 .executes(context -> set(context, context.getArgument("ticks", Integer.class)))
-                                .then(argument("world", ArgumentTypes.world())
+                                .then(argument("world", arguments().world())
                                         .executes(context ->
                                                 set(context, context.getArgument("ticks", Integer.class))))))
                 .then(literal("add")
-                        .then(argument("ticks", ArgumentTypes.time(Integer.MIN_VALUE))
+                        .then(argument("ticks", arguments().time(Integer.MIN_VALUE))
                                 .executes(TimeCommand::add)
-                                .then(argument("world", ArgumentTypes.world())
+                                .then(argument("world", arguments().world())
                                         .executes(TimeCommand::add))))
                 .then(literal("query")
                         .then(query("daytime"))
@@ -63,7 +63,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> preset(final String name, final int ticks) {
         return literal(name)
                 .executes(context -> set(context, ticks))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> set(context, ticks)))
                 .build();
     }
@@ -71,7 +71,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> toggle(final String name, final boolean running) {
         return literal(name)
                 .executes(context -> freeze(context, running))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> freeze(context, running)))
                 .build();
     }
@@ -79,7 +79,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> query(final String kind) {
         return literal(kind)
                 .executes(context -> query(context, kind))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> query(context, kind)))
                 .build();
     }

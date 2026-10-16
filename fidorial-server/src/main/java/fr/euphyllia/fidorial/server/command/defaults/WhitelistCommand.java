@@ -8,7 +8,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.moderation.WhitelistManager;
@@ -19,6 +18,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class WhitelistCommand {
 
@@ -29,10 +29,10 @@ public final class WhitelistCommand {
 
     public static LiteralCommandNode<CommandSource> create() {
         final ArgumentType<PlayerProfileListResolver> unlistedArgument =
-                ArgumentTypes.playerProfiles(player -> !server().players().whitelist().contains(player.uuid()));
+                arguments().playerProfiles(player -> !server().players().whitelist().contains(player.uuid()));
 
         final ArgumentType<PlayerProfileListResolver> listedArgument =
-                ArgumentTypes.playerProfiles(player -> server().players().whitelist().contains(player.uuid()));
+                arguments().playerProfiles(player -> server().players().whitelist().contains(player.uuid()));
 
         return literal("whitelist")
                 .requires(source -> source.sender().hasPermission(PERMISSION))

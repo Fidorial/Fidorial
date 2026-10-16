@@ -8,7 +8,6 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobFactories;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
@@ -18,14 +17,15 @@ import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class SummonCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("summon")
                 .requires(source -> source.sender().hasPermission("fidorial.command.summon"))
-                .then(argument("entity", ArgumentTypes.serverResource(RegistryKey.ENTITY_TYPE))
+                .then(argument("entity", arguments().serverResource(RegistryKey.ENTITY_TYPE))
                         .executes(SummonCommand::executeSelf)
-                        .then(argument("position", ArgumentTypes.position())
+                        .then(argument("position", arguments().position())
                                 .executes(SummonCommand::executeCoordinates))).build();
     }
 

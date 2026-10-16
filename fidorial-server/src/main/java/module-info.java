@@ -1,3 +1,5 @@
+import fr.euphyllia.fidorial.server.command.brigadier.MessageComponentSerializerImpl;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.FidorialArguments;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
@@ -43,4 +45,7 @@ module fr.fidorial.server {
     requires fr.fidorial.bootstrap;
 
     opens fr.euphyllia.fidorial.server.tests to fr.fidorial;
+
+    provides fr.fidorial.command.argument.Arguments with FidorialArguments;
+    provides fr.fidorial.command.serializers.MessageComponentSerializer with MessageComponentSerializerImpl;
 }

@@ -7,7 +7,6 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.weather.Weather;
@@ -16,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class WeatherCommand {
 
@@ -38,7 +38,7 @@ public final class WeatherCommand {
                 .requires(source -> source.sender().hasPermission("fidorial.command.weather"))
                 .then(literal("get")
                         .executes(context -> get(context.getSource(), null))
-                        .then(argument(WORLD, ArgumentTypes.world())
+                        .then(argument(WORLD, arguments().world())
                                 .executes(context -> get(context.getSource(), targetWorld(context)))))
                 .then(weather("clear", Weather.CLEAR))
                 .then(weather("rain", Weather.RAIN))
@@ -49,9 +49,9 @@ public final class WeatherCommand {
     private static LiteralCommandNode<CommandSource> weather(final String name, final Weather weather) {
         return literal(name)
                 .executes(context -> set(context.getSource(), weather, 0, null))
-                .then(argument(DURATION, ArgumentTypes.time(0))
+                .then(argument(DURATION, arguments().time(0))
                         .executes(context -> set(context.getSource(), weather, duration(context), null))
-                        .then(argument(WORLD, ArgumentTypes.world())
+                        .then(argument(WORLD, arguments().world())
                                 .executes(context -> set(context.getSource(), weather, duration(context), targetWorld(context)))))
                 .build();
     }

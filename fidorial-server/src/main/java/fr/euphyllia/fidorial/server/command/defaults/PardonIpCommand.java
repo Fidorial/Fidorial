@@ -7,7 +7,6 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.moderation.BanEntry;
 import net.kyori.adventure.text.Component;
 
@@ -15,6 +14,7 @@ import java.util.Locale;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PardonIpCommand {
 
@@ -37,7 +37,7 @@ public final class PardonIpCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("pardon-ip")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
-                .then(argument("address", ArgumentTypes.word())
+                .then(argument("address", arguments().word())
                         .suggests(BANNED)
                         .executes(PardonIpCommand::pardon))
                 .build();
@@ -48,19 +48,16 @@ public final class PardonIpCommand {
         final String address = context.getArgument("address", String.class);
 
         if (!InetAddresses.isInetAddress(address)) {
-            source
-                    .sendMessage(Component.translatable("commands.pardonip.invalid", Component.text(address)));
+            source.sendMessage(Component.translatable("commands.pardonip.invalid", Component.text(address)));
             return 0;
         }
 
         if (!server().players().bans().pardon(InetAddresses.forString(address))) {
-            source
-                    .sendMessage(Component.translatable("commands.pardonip.failed", Component.text(address)));
+            source.sendMessage(Component.translatable("commands.pardonip.failed", Component.text(address)));
             return 0;
         }
 
-        source
-                .sendMessage(Component.translatable("commands.pardonip.success", Component.text(address)));
+        source.sendMessage(Component.translatable("commands.pardonip.success", Component.text(address)));
 
         return Command.SINGLE_SUCCESS;
     }

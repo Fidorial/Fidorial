@@ -7,7 +7,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import net.kyori.adventure.key.Key;
@@ -20,6 +19,7 @@ import java.util.Optional;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * {@code /locate structure <structure>}: nearest start of a datapack structure.
@@ -41,10 +41,10 @@ public final class LocateCommand {
         return literal("locate")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("structure")
-                        .then(argument("structure", ArgumentTypes.key())
+                        .then(argument("structure", arguments().key())
                                 .suggests(STRUCTURES)
                                 .executes(context -> locate(context, DEFAULT_RADIUS_CELLS))
-                                .then(argument("radius", ArgumentTypes.integer(1, MAX_RADIUS_CELLS))
+                                .then(argument("radius", arguments().integer(1, MAX_RADIUS_CELLS))
                                         .executes(context -> locate(context, context.getArgument("radius", Integer.class))))))
                 .build();
     }

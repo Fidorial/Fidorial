@@ -268,6 +268,10 @@ dependencyPatcher {
     patchSet("brigadier") {
         library.set(libs.brigadier)
         autoRebuild = true
+        dependencies {
+            compileOnly(libs.adventure.api)
+            compileOnly(libs.adventure.text.serializer.plain)
+        }
     }
 
     patchSet("configurate-extra-dfu") {

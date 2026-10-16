@@ -166,6 +166,7 @@ public final class CommandManager implements CommandRegistry {
         } finally {
             lock.writeLock().unlock();
         }
+        refreshOnlinePlayers();
     }
 
     @GuardedBy("lock") private void registerNamespacedNode(
@@ -249,33 +250,15 @@ public final class CommandManager implements CommandRegistry {
         Preconditions.checkArgument(namespace != null, "The namespace of the command to unregister must not be null");
         Preconditions.checkArgument(alias != null, "The alias of the command to unregister must not be null");
 
-        final String ns = namespace.toLowerCase(Locale.ROOT);
-        final String aliasKey = alias.toLowerCase(Locale.ROOT);
-        final String namespacedName = ns + ":" + aliasKey;
-
+        final boolean removed;
         lock.writeLock().lock();
         try {
-            final RegisteredCommand registered = namespacedCommands.remove(namespacedName);
-            if (registered == null) {
-                return;
-            }
-            dispatcher.getRoot().removeChild(namespacedName);
-
-            final LinkedHashSet<RegisteredCommand> candidates = plainCandidates.get(aliasKey);
-            if (candidates != null) {
-                candidates.remove(registered);
-                if (candidates.isEmpty()) {
-                    plainCandidates.remove(aliasKey, candidates);
-                }
-            }
-
-            if (plainCommands.get(aliasKey) == registered) {
-                dispatcher.getRoot().removeChild(aliasKey);
-                plainCommands.remove(aliasKey);
-                promoteNextPlainCandidate(aliasKey);
-            }
+            removed = unregisterAlias(namespace.toLowerCase(Locale.ROOT), alias.toLowerCase(Locale.ROOT));
         } finally {
             lock.writeLock().unlock();
+        }
+        if (removed) {
+            refreshOnlinePlayers();
         }
     }
 
@@ -285,6 +268,7 @@ public final class CommandManager implements CommandRegistry {
         final String ns = namespace.toLowerCase(Locale.ROOT);
         final String prefix = ns + ":";
 
+        boolean removed = false;
         lock.writeLock().lock();
         try {
             final Set<String> aliasKeys = new HashSet<>();
@@ -294,11 +278,47 @@ public final class CommandManager implements CommandRegistry {
                 }
             }
             for (final String aliasKey : aliasKeys) {
-                unregister(ns, aliasKey);
+                removed |= unregisterAlias(ns, aliasKey);
             }
         } finally {
             lock.writeLock().unlock();
         }
+        if (removed) {
+            refreshOnlinePlayers();
+        }
+    }
+
+    @GuardedBy("lock") private boolean unregisterAlias(final String ns, final String aliasKey) {
+        final String namespacedName = ns + ":" + aliasKey;
+
+        final RegisteredCommand registered = namespacedCommands.remove(namespacedName);
+        if (registered == null) {
+            return false;
+        }
+        dispatcher.getRoot().removeChild(namespacedName);
+
+        final LinkedHashSet<RegisteredCommand> candidates = plainCandidates.get(aliasKey);
+        if (candidates != null) {
+            candidates.remove(registered);
+            if (candidates.isEmpty()) {
+                plainCandidates.remove(aliasKey, candidates);
+            }
+        }
+
+        if (plainCommands.get(aliasKey) == registered) {
+            dispatcher.getRoot().removeChild(aliasKey);
+            plainCommands.remove(aliasKey);
+            promoteNextPlainCandidate(aliasKey);
+        }
+        return true;
+    }
+
+    private static void refreshOnlinePlayers() {
+        // the built-in commands are registered while the server is still being constructed
+        if (!FidorialServer.isInitialized()) {
+            return;
+        }
+        FidorialServer.getInstance().players().online().forEach(ServerPlayer::refreshCommands);
     }
 
     @GuardedBy("lock") private void promoteNextPlainCandidate(final String aliasKey) {

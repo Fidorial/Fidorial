@@ -11,7 +11,6 @@ import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.gamerule.VanillaGameRules;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.math.Location;
@@ -21,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class GameRuleCommand {
 
@@ -49,15 +49,15 @@ public final class GameRuleCommand {
                 .executes(context -> query(context, rule));
 
         final RequiredArgumentBuilder<CommandSource, ?> value = rule.isBoolean()
-                ? argument(VALUE, ArgumentTypes.bool())
-                : argument(VALUE, ArgumentTypes.integer(rule.minValue(), rule.maxValue()));
+                ? argument(VALUE, arguments().bool())
+                : argument(VALUE, arguments().integer(rule.minValue(), rule.maxValue()));
         value.executes(context -> set(context, rule, typedValue(context, rule), null))
-                .then(argument(WORLD, ArgumentTypes.world())
+                .then(argument(WORLD, arguments().world())
                         .executes(context -> set(context, rule, typedValue(context, rule), targetWorld(context))));
         return node
                 .then(value)
                 .then(literal("inherit")
-                        .then(argument(WORLD, ArgumentTypes.world())
+                        .then(argument(WORLD, arguments().world())
                                 .executes(context -> inherit(context, rule, targetWorld(context)))));
     }
 

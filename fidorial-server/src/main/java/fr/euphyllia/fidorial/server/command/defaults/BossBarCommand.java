@@ -12,7 +12,6 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.world.BossBarRegistry;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.bossbar.BossBar;
@@ -33,6 +32,7 @@ import java.util.function.Predicate;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BossBarCommand {
 
@@ -72,48 +72,48 @@ public final class BossBarCommand {
     };
 
     public static LiteralCommandNode<CommandSource> create() {
-        final ArgumentType<PlayerSelectorArgumentResolver> targetsArgument = ArgumentTypes.players();
+        final ArgumentType<PlayerSelectorArgumentResolver> targetsArgument = arguments().players();
 
         return literal("bossbar")
                 .requires(source -> source.sender().hasPermission("fidorial.command.bossbar"))
                 .then(literal("add")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .executes(ctx -> createBossBar(ctx, bossBarId(ctx), Component.text(bossBarId(ctx).asString())))
-                                .then(argument("name", ArgumentTypes.component())
+                                .then(argument("name", arguments().component())
                                         .executes(ctx -> createBossBar(ctx, bossBarId(ctx), ctx.getArgument("name", Component.class))))))
                 .then(literal("remove")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .executes(ctx -> deleteBossBar(ctx, requireEntry(ctx)))))
                 .then(literal("list")
                         .executes(BossBarCommand::listBossBars))
                 .then(literal("set")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .then(literal("name")
-                                        .then(argument("name", ArgumentTypes.component())
+                                        .then(argument("name", arguments().component())
                                                 .executes(ctx -> updateName(ctx, requireEntry(ctx), ctx.getArgument("name", Component.class)))))
                                 .then(literal("color")
-                                        .then(argument("color", ArgumentTypes.bossBarColor())
+                                        .then(argument("color", arguments().bossBarColor())
                                                 .executes(ctx -> updateColor(ctx, requireEntry(ctx), ctx.getArgument("color", BossBar.Color.class)))))
                                 .then(literal("style")
-                                        .then(argument("style", ArgumentTypes.bossBarOverlay())
+                                        .then(argument("style", arguments().bossBarOverlay())
                                                 .executes(ctx -> updateOverlay(ctx, requireEntry(ctx), ctx.getArgument("style", BossBar.Overlay.class)))))
                                 .then(literal("value")
-                                        .then(argument("value", ArgumentTypes.integer(0, Integer.MAX_VALUE))
+                                        .then(argument("value", arguments().integer(0, Integer.MAX_VALUE))
                                                 .executes(ctx -> updateValue(ctx, requireEntry(ctx), ctx.getArgument("value", Integer.class)))))
                                 .then(literal("max")
-                                        .then(argument("max", ArgumentTypes.integer(1, Integer.MAX_VALUE))
+                                        .then(argument("max", arguments().integer(1, Integer.MAX_VALUE))
                                                 .executes(ctx -> updateMax(ctx, requireEntry(ctx), ctx.getArgument("max", Integer.class)))))
                                 .then(literal("visible")
-                                        .then(argument("visible", ArgumentTypes.bool())
+                                        .then(argument("visible", arguments().bool())
                                                 .executes(ctx -> updateVisibility(ctx, requireEntry(ctx), ctx.getArgument("visible", Boolean.class)))))
                                 .then(literal("players")
                                         .executes(ctx -> updateTargets(ctx, requireEntry(ctx), Set.of()))
                                         .then(argument("targets", targetsArgument)
                                                 .executes(ctx -> updateTargets(ctx, requireEntry(ctx), resolveTargetIds(ctx)))))))
                 .then(literal("get")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .then(literal("value").executes(ctx -> reportValue(ctx, requireEntry(ctx))))
                                 .then(literal("max").executes(ctx -> reportMax(ctx, requireEntry(ctx))))

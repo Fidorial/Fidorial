@@ -8,7 +8,6 @@ import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Biome;
@@ -17,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class WorldgenCommand {
 
@@ -34,7 +34,7 @@ public final class WorldgenCommand {
                 .then(literal("info").executes(this::info))
                 .then(literal("spawn").executes(this::spawn))
                 .then(literal("locate")
-                        .then(argument("biome", ArgumentTypes.resource(RegistryKey.BIOME))
+                        .then(argument("biome", arguments().resource(RegistryKey.BIOME))
                                 .executes(ctx -> locate(ctx, ctx.getArgument("biome", Biome.class).key(), DEFAULT_RADIUS))
                                 .then(argument("radius", IntegerArgumentType.integer(16, 30000))
                                         .executes(ctx -> locate(

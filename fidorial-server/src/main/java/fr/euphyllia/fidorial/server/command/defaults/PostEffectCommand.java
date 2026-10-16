@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
@@ -23,6 +22,7 @@ import java.util.stream.Stream;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PostEffectCommand {
 
@@ -43,18 +43,18 @@ public final class PostEffectCommand {
         return literal("posteffect")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("add")
-                        .then(argument("targets", ArgumentTypes.players())
-                                .then(argument("effect", ArgumentTypes.postEffect())
+                        .then(argument("targets", arguments().players())
+                                .then(argument("effect", arguments().postEffect())
                                         .executes(PostEffectCommand::add))))
                 .then(literal("remove")
-                        .then(argument("targets", ArgumentTypes.players())
-                                .then(argument("effect", ArgumentTypes.postEffect())
+                        .then(argument("targets", arguments().players())
+                                .then(argument("effect", arguments().postEffect())
                                         .executes(PostEffectCommand::remove))))
                 .then(literal("clear")
-                        .then(argument("targets", ArgumentTypes.players())
+                        .then(argument("targets", arguments().players())
                                 .executes(PostEffectCommand::clear)))
                 .then(literal("list")
-                        .then(argument("target", ArgumentTypes.player())
+                        .then(argument("target", arguments().player())
                                 .executes(PostEffectCommand::list)))
                 .build();
     }

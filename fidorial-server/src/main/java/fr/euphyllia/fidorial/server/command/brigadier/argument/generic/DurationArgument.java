@@ -11,7 +11,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
+import fr.fidorial.command.argument.Arguments;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -51,7 +51,7 @@ public final class DurationArgument {
     }
 
     public static ArgumentType<Duration> duration() {
-        return ArgumentTypes.map(StringArgumentType.word(), DurationArgument::parse, SUGGESTIONS);
+        return Arguments.arguments().map(StringArgumentType.word(), DurationArgument::parse, SUGGESTIONS);
     }
 
     public static Duration getDuration(final CommandContext<CommandSource> context, final String name) {

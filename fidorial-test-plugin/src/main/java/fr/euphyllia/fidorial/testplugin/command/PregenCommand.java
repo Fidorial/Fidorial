@@ -8,7 +8,6 @@ import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.entity.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
@@ -16,6 +15,7 @@ import fr.fidorial.world.World;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PregenCommand {
 
@@ -29,7 +29,7 @@ public final class PregenCommand {
         return literal("pregen")
                 .then(literal("start")
                         .requires(_ -> !isTaskRunning())
-                        .then(argument("radius", ArgumentTypes.integer(1, Integer.MAX_VALUE))
+                        .then(argument("radius", arguments().integer(1, Integer.MAX_VALUE))
                                 .executes(PregenCommand::startDefault)
                                 .then(argument("centerX", IntegerArgumentType.integer())
                                         .then(argument("centerZ", IntegerArgumentType.integer())

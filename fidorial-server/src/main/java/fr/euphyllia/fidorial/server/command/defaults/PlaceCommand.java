@@ -8,7 +8,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.BlockPosResolver;
 import fr.fidorial.math.Position;
 import fr.fidorial.world.structure.StructureRotation;
@@ -19,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * {@code /place template|structure|jigsaw}, with the datapacks of {@code <world>/datapacks}.
@@ -50,27 +50,27 @@ public final class PlaceCommand {
         return literal("place")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("template")
-                        .then(argument("template", ArgumentTypes.key())
+                        .then(argument("template", arguments().key())
                                 .suggests(TEMPLATES)
                                 .executes(context -> template(context, false, false))
-                                .then(argument("pos", ArgumentTypes.blockPosition())
+                                .then(argument("pos", arguments().blockPosition())
                                         .executes(context -> template(context, true, false))
-                                        .then(argument("rotation", ArgumentTypes.word())
+                                        .then(argument("rotation", arguments().word())
                                                 .suggests(ROTATIONS)
                                                 .executes(context -> template(context, true, true))))))
                 .then(literal("structure")
-                        .then(argument("structure", ArgumentTypes.key())
+                        .then(argument("structure", arguments().key())
                                 .suggests(STRUCTURES)
                                 .executes(context -> structure(context, false))
-                                .then(argument("pos", ArgumentTypes.blockPosition())
+                                .then(argument("pos", arguments().blockPosition())
                                         .executes(context -> structure(context, true)))))
                 .then(literal("jigsaw")
-                        .then(argument("pool", ArgumentTypes.key())
+                        .then(argument("pool", arguments().key())
                                 .suggests(POOLS)
-                                .then(argument("target", ArgumentTypes.key())
-                                        .then(argument("max_depth", ArgumentTypes.integer(1, 20))
+                                .then(argument("target", arguments().key())
+                                        .then(argument("max_depth", arguments().integer(1, 20))
                                                 .executes(context -> jigsaw(context, false))
-                                                .then(argument("pos", ArgumentTypes.blockPosition())
+                                                .then(argument("pos", arguments().blockPosition())
                                                         .executes(context -> jigsaw(context, true)))))))
                 .build();
     }
