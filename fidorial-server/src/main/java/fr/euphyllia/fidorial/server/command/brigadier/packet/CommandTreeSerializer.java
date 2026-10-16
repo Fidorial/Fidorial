@@ -13,7 +13,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSugg
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistry;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NetworkArgumentIds;
-import fr.euphyllia.fidorial.server.command.brigadier.packet.util.PermissionlessCommandSource;
+import fr.euphyllia.fidorial.server.command.brigadier.packet.util.PermissionlessCommandSender;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 import fr.fidorial.command.CommandSource;
@@ -40,7 +40,7 @@ public final class CommandTreeSerializer {
 
     private static final Key ASK_SERVER = Key.key("ask_server");
 
-    private static final CommandSource NO_PERMISSION_SOURCE = PermissionlessCommandSource.instance();
+    private static final CommandSource NO_PERMISSION_SOURCE = PermissionlessCommandSender.INSTANCE.commandSource();
 
     private CommandTreeSerializer() {
     }

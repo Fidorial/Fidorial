@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.fidorial.world.ChunkPos;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,6 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class EntityManager {
 
@@ -96,6 +98,23 @@ public final class EntityManager {
 
     public Collection<AbstractEntity> all() {
         return Collections.unmodifiableCollection(byId.values());
+    }
+
+    public @Nullable AbstractEntity findInChunkRange(final int chunkX, final int chunkZ, final int chunkRadius, final Predicate<AbstractEntity> filter) {
+        for (int x = chunkX - chunkRadius; x <= chunkX + chunkRadius; x++) {
+            for (int z = chunkZ - chunkRadius; z <= chunkZ + chunkRadius; z++) {
+                final Set<AbstractEntity> entitySet = byChunk.get(ChunkPos.chunkKey(x, z));
+                if (entitySet == null) {
+                    continue;
+                }
+                for (final AbstractEntity entity : entitySet) {
+                    if (filter.test(entity)) {
+                        return entity;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public void forEachInChunkRange(final int chunkX, final int chunkZ, final int chunkRadius, final Consumer<AbstractEntity> action) {

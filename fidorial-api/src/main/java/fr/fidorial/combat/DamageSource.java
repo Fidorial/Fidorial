@@ -3,10 +3,10 @@ package fr.fidorial.combat;
 import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
-import fr.fidorial.world.Location;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -223,6 +223,26 @@ public final class DamageSource {
      */
     public static DamageSource outOfWorld() {
         return of(DamageTypeKeys.OUT_OF_WORLD);
+    }
+
+    /**
+     * {@return a source for damage dealt by freezing, as in powder snow or under the Freezing effect}
+     *
+     * @since 0.1.0
+     */
+    public static DamageSource freeze() {
+        return of(DamageTypeKeys.FREEZE);
+    }
+
+    /**
+     * {@return a source for damage dealt by a thrown projectile, such as a snowball or an ice ball}
+     *
+     * @param projectile the projectile that hit, or {@code null} if it is unknown
+     * @param thrower    the entity that threw it, or {@code null} if there is none
+     * @since 0.1.0
+     */
+    public static DamageSource thrown(final @Nullable Entity projectile, final @Nullable Entity thrower) {
+        return of(DamageTypeKeys.THROWN, thrower, projectile);
     }
 
     /**

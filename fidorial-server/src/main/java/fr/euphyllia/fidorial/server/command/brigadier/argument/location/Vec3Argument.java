@@ -12,7 +12,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -57,7 +57,7 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
                 pz += 0.5;
             }
 
-            return new Location(px, py, pz, origin.yaw(), origin.pitch());
+            return origin.with(px, py, pz, origin.yaw(), origin.pitch());
         };
     }
 

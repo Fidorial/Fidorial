@@ -1,9 +1,8 @@
 package fr.fidorial.storage.player;
 
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.Location;
 import fr.fidorial.service.ServiceRegistry;
-import fr.fidorial.world.Location;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -23,12 +22,11 @@ public interface PlayerDataStorage {
      * Loads the data of a player.
      *
      * @param uuid     the player identity
-     * @param defaults the values to return when nothing was saved
      * @return the saved data, or {@code defaults}
      * @throws IOException if the data cannot be read
      * @since 0.1.0
      */
-    PlayerData load(UUID uuid, PlayerData defaults) throws IOException;
+    PlayerData load(UUID uuid) throws IOException;
 
     /**
      * Saves the data of a player.
@@ -56,33 +54,14 @@ public interface PlayerDataStorage {
      * The persisted state of a player.
      *
      * @param gameMode        the mode the player left in
-     * @param respawnWorld    the key of the world the player respawns in, or {@code null} for the
-     *                        world spawn
-     * @param respawnLocation the position the player respawns at, or {@code null} for the world
-     *                        spawn
-     * @param world           the key of the world the player was last in, or {@code null} if
-     *                        never saved (i.e. a first join)
-     * @param location        the position the player was last at, or {@code null} if never saved
+     * @param respawnLocation the position the player respawns at, or {@code null} for the world spawn
+     * @param lastLocation    the position the player was last at, or {@code null} if never saved
      * @since 0.1.0
      */
-    record PlayerData(GameMode gameMode,
-                      @Nullable Key respawnWorld,
-                      @Nullable Location respawnLocation,
-                      @Nullable Key world,
-                      @Nullable Location location) {
-
-        /**
-         * @return {@code true} when a custom respawn point was saved
-         */
-        public boolean hasRespawnPoint() {
-            return respawnWorld != null && respawnLocation != null;
-        }
-
-        /**
-         * @return {@code true} when a last-played position was saved
-         */
-        public boolean hasLastLocation() {
-            return world != null && location != null;
-        }
+    record PlayerData(
+            GameMode gameMode,
+            @Nullable Location respawnLocation,
+            @Nullable Location lastLocation
+    ) {
     }
 }

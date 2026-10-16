@@ -64,7 +64,7 @@ public final class DimensionArgument<T> implements ArgumentType<T> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        for (final World world : FidorialServer.getInstance().worldManager().worlds()) {
+        for (final World world : FidorialServer.getInstance().worlds().manager().worlds()) {
             builder.suggest(world.key().asString());
         }
         return builder.buildFuture();

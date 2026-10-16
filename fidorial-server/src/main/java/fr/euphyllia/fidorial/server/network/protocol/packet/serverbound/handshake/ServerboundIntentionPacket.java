@@ -10,7 +10,7 @@ public record ServerboundIntentionPacket(int protocolVersion, String hostname, i
 
     public static ServerboundIntentionPacket read(final PacketBuffer buf) {
         final int protocolVersion = buf.readVarInt();
-        final String hostname = buf.readString(255);
+        final String hostname = buf.readString(1024);
         final int port = buf.readUShort();
         final int nextState = buf.readVarInt();
         return new ServerboundIntentionPacket(protocolVersion, hostname, port, nextState);

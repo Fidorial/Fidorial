@@ -1,7 +1,7 @@
 package fr.fidorial.command.argument.resolvers;
 
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -11,5 +11,5 @@ import org.jetbrains.annotations.ApiStatus;
  * @since 0.1.0
  */
 @ApiStatus.NonExtendable
-public interface BlockPosResolver extends ArgumentResolver<BlockPos> {
+public interface BlockPosResolver extends ArgumentResolver<BlockPosition> {
 }

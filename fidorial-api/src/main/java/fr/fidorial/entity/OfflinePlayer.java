@@ -14,20 +14,20 @@ import java.util.function.Consumer;
 /**
  * A handle on a player identity, whether or not it is connected.
  *
- * <p>Obtained from {@link OfflinePlayers}. Two handles are equal when they share the same uuid.</p>
+ * <p>Obtained from {@link OfflinePlayerManager}. Two handles are equal when they share the same uuid.</p>
  *
  * @since 0.1.0
  */
 public final class OfflinePlayer {
 
-    private final OfflinePlayers registry;
+    private final OfflinePlayerManager registry;
     private final UUID uuid;
     private final @Nullable String name;
     private final long firstSeen;
     private final long lastSeen;
 
     private OfflinePlayer(
-            final OfflinePlayers registry,
+            final OfflinePlayerManager registry,
             final UUID uuid,
             final @Nullable String name,
             final long firstSeen,
@@ -57,7 +57,7 @@ public final class OfflinePlayer {
     @ApiStatus.Internal
     @Contract(value = "_, _, _, _, _ -> new", pure = true)
     public static OfflinePlayer of(
-            final OfflinePlayers registry,
+            final OfflinePlayerManager registry,
             final UUID uuid,
             final @Nullable String name,
             final long firstSeen,

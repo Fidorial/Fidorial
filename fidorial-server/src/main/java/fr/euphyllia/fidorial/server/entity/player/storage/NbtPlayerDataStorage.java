@@ -1,18 +1,22 @@
 package fr.euphyllia.fidorial.server.entity.player.storage;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
+import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.Location;
 import fr.fidorial.storage.player.PlayerDataStorage;
-import fr.fidorial.world.Location;
+import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTagIO;
+import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.DoubleBinaryTag;
 import net.kyori.adventure.nbt.FloatBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,7 +24,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class NbtPlayerDataStorage implements PlayerDataStorage {
@@ -29,16 +32,17 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
     private static final String ROOT_NAME = "PlayerData";
 
     // https://minecraft.wiki/w/Player.dat_format
-    private static final String SPAWN_DIMENSION = "SpawnDimension";
-    private static final String SPAWN_X = "SpawnX";
-    private static final String SPAWN_Y = "SpawnY";
-    private static final String SPAWN_Z = "SpawnZ";
-    private static final String SPAWN_ANGLE = "SpawnAngle";
-    private static final String SPAWN_PITCH = "SpawnPitch";
+    private static final String RESPAWN = "respawn";
+    private static final String RESPAWN_DIMENSION = "dimension";
+    private static final String RESPAWN_POS = "pos";
+    private static final String RESPAWN_YAW = "yaw";
+    private static final String RESPAWN_PITCH = "pitch";
 
     private static final String DIMENSION = "Dimension";
     private static final String POS = "Pos";
     private static final String ROTATION = "Rotation";
+
+    private static final String GAMEMODE_TYPE = "playerGameType";
 
     private final Path dataDir;
     private final boolean gzip;
@@ -56,14 +60,8 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
         return baos.toByteArray();
     }
 
-    private static byte[] gunzip(final byte[] compressed) throws IOException {
-        try (final GZIPInputStream in = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
-            return in.readAllBytes();
-        }
-    }
-
     private Path fileFor(final UUID uuid) {
-        return dataDir.resolve(uuid.toString());
+        return dataDir.resolve(uuid + ".dat");
     }
 
     @Override
@@ -72,69 +70,69 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
     }
 
     @Override
-    public PlayerData load(final UUID uuid, final PlayerData defaults) throws IOException {
+    @SuppressWarnings("PatternValidation")
+    public PlayerData load(final UUID uuid) throws IOException {
+        final FidorialServer server = FidorialServer.getInstance();
+        final GameMode defaultGameMode = GameMode.SURVIVAL; // todo: reintroduce config option
+
         final Path file = fileFor(uuid);
         if (!Files.isRegularFile(file)) {
-            return defaults;
+            return new PlayerData(defaultGameMode, null, null);
         }
 
-        byte[] data = Files.readAllBytes(file);
+        final CompoundBinaryTag root = DataFixersRegistry.update(DataFixerType.PLAYER, tryReadNamed(file), false);
 
-        final boolean isGzip = data.length >= 2 && data[0] == (byte) 0x1F && data[1] == (byte) 0x8B;
-        if (isGzip) {
-            data = gunzip(data);
-        }
+        final GameMode gameMode = GameMode.byId(root.getInt(GAMEMODE_TYPE, 0));
 
-        final CompoundBinaryTag root = BinaryTagIO.reader().readNamed(new ByteArrayInputStream(data)).getValue();
+        Location respawnLocation = null;
+        if (root.get(RESPAWN) instanceof final CompoundBinaryTag respawn) {
+            final String dimension = respawn.getString(RESPAWN_DIMENSION, "minecraft:overworld");
+            final int[] pos = respawn.getIntArray(RESPAWN_POS);
+            final Key parsed = Key.parseable(dimension) ? Key.key(dimension) : null;
+            final World world = parsed != null ? server.worlds().get(parsed).orElse(null) : null;
 
-        GameMode gameMode = defaults.gameMode();
-        if (root.contains("playerGameModeId")) {
-            final GameMode stored = GameMode.byId(root.getInt("playerGameModeId"));
-            if (stored != null) {
-                gameMode = stored;
-            }
-        }
-
-        Key respawnWorld = defaults.respawnWorld();
-        Location respawnLocation = defaults.respawnLocation();
-        if (root.contains(SPAWN_DIMENSION) && root.contains(SPAWN_X)) {
-            final Key parsed = Key.parseable(root.getString(SPAWN_DIMENSION))
-                    ? Key.key(root.getString(SPAWN_DIMENSION))
-                    : null;
-            if (parsed == null) {
-                LOGGER.warn("Invalid respawn dimension for {}, respawn point dropped", uuid);
+            if (world == null) {
+                LOGGER.warn("Unknown respawn world '{}' for {}, spawn location used instead", dimension, uuid);
+            } else if (pos.length != 3) {
+                LOGGER.warn("Malformed respawn position for {}, spawn location used instead", uuid);
             } else {
-                respawnWorld = parsed;
-                respawnLocation = new Location(
-                        root.getDouble(SPAWN_X),
-                        root.getDouble(SPAWN_Y),
-                        root.getDouble(SPAWN_Z),
-                        root.contains(SPAWN_ANGLE) ? root.getFloat(SPAWN_ANGLE) : 0f,
-                        root.contains(SPAWN_PITCH) ? root.getFloat(SPAWN_PITCH) : 0f);
+                respawnLocation = Location.of(world, pos[0] + 0.5, pos[1], pos[2] + 0.5,
+                        respawn.getFloat(RESPAWN_YAW, 0), respawn.getFloat(RESPAWN_PITCH, 0));
             }
         }
 
-        Key world = defaults.world();
-        Location location = defaults.location();
-        if (root.contains(DIMENSION) && root.contains(POS)) {
+        Location location = null;
+        if (root.contains(DIMENSION) && root.contains(POS, BinaryTagTypes.LIST)) {
+
             final String dimension = root.getString(DIMENSION);
-            if (!Key.parseable(dimension)) {
-                LOGGER.warn("Invalid last-played dimension for {}, spawn location used instead", uuid);
+            final Key parsed = Key.parseable(dimension) ? Key.key(dimension) : null;
+            final World world = parsed != null ? server.worlds().get(parsed).orElse(null) : null;
+            final ListBinaryTag pos = root.getList(POS, BinaryTagTypes.DOUBLE);
+
+            if (world == null) {
+                LOGGER.warn("Unknown last-played dimension '{}' for {}, spawn location used instead", dimension, uuid);
+            } else if (pos.size() < 3) {
+                LOGGER.warn("Malformed last-played position for {}, spawn location used instead", uuid);
             } else {
-                final ListBinaryTag pos = root.getList(POS);
-                if (pos.size() != 3) {
-                    LOGGER.warn("Malformed last-played position for {}, spawn location used instead", uuid);
-                } else {
-                    final ListBinaryTag rotation = root.getList(ROTATION);
-                    world = Key.key(dimension);
-                    location = new Location(
-                            doubleAt(pos, 0), doubleAt(pos, 1), doubleAt(pos, 2),
-                            floatAt(rotation, 0), floatAt(rotation, 1));
-                }
+                final ListBinaryTag rotation = root.getList(ROTATION);
+                final var x = pos.getDouble(0);
+                final var y = pos.getDouble(1);
+                final var z = pos.getDouble(2);
+                final var yaw = rotation.getFloat(0, 0);
+                final var pitch = rotation.getFloat(1, 0);
+                location = Location.of(world, x, y, z, yaw, pitch);
             }
         }
 
-        return new PlayerData(gameMode, respawnWorld, respawnLocation, world, location);
+        return new PlayerData(gameMode != null ? gameMode : defaultGameMode, respawnLocation, location);
+    }
+
+    private CompoundBinaryTag tryReadNamed(final Path file) throws IOException {
+        try {
+            return BinaryTagIO.reader().readNamed(file, BinaryTagIO.Compression.GZIP).getValue();
+        } catch (final IOException e) {
+            return BinaryTagIO.reader().readNamed(file).getValue();
+        }
     }
 
     @Override
@@ -143,35 +141,43 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
         final CompoundBinaryTag.Builder root = CompoundBinaryTag.builder();
         root.putInt("DataVersion", VersionConstants.DATA_VERSION);
-        root.putInt("playerGameModeId", data.gameMode().id());
+        root.putInt(GAMEMODE_TYPE, data.gameMode().id());
 
-        final Key respawnWorld = data.respawnWorld();
         final Location respawnLocation = data.respawnLocation();
-        if (respawnWorld != null && respawnLocation != null) {
-            root.putString(SPAWN_DIMENSION, respawnWorld.asString());
-            root.putDouble(SPAWN_X, respawnLocation.x());
-            root.putDouble(SPAWN_Y, respawnLocation.y());
-            root.putDouble(SPAWN_Z, respawnLocation.z());
-            root.putFloat(SPAWN_ANGLE, respawnLocation.yaw());
-            root.putFloat(SPAWN_PITCH, respawnLocation.pitch());
+        if (respawnLocation != null) {
+            root.put(RESPAWN, CompoundBinaryTag.builder()
+                    .putString(RESPAWN_DIMENSION, respawnLocation.world().key().asString())
+                    .putIntArray(RESPAWN_POS, new int[] {
+                            (int) Math.floor(respawnLocation.x()),
+                            (int) Math.floor(respawnLocation.y()),
+                            (int) Math.floor(respawnLocation.z())})
+                    .putFloat(RESPAWN_YAW, respawnLocation.yaw())
+                    .putFloat(RESPAWN_PITCH, respawnLocation.pitch())
+                    .build());
         }
 
-        final Key world = data.world();
-        final Location location = data.location();
-        if (world != null && location != null) {
-            root.putString(DIMENSION, world.asString());
+        final Location location = data.lastLocation();
+        if (location != null) {
+            root.putString(DIMENSION, location.world().key().asString());
             root.put(POS, doubleList(location.x(), location.y(), location.z()));
             root.put(ROTATION, floatList(location.yaw(), location.pitch()));
         }
 
+        final Path file = fileFor(uuid);
+        final CompoundBinaryTag existing = Files.isRegularFile(file)
+                ? DataFixersRegistry.update(DataFixerType.PLAYER, tryReadNamed(file), false)
+                : CompoundBinaryTag.empty();
+        final CompoundBinaryTag merged = existing
+                .remove(RESPAWN).remove(DIMENSION).remove(POS).remove(ROTATION)
+                .put(root.build());
+
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BinaryTagIO.writer().writeNamed(Map.entry(ROOT_NAME, root.build()), baos);
+        BinaryTagIO.writer().writeNamed(Map.entry(ROOT_NAME, merged), baos);
         byte[] bytes = baos.toByteArray();
         if (gzip) {
             bytes = gzip(bytes);
         }
 
-        final Path file = fileFor(uuid);
         final Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
         Files.write(tmp, bytes);
         try {
@@ -184,14 +190,6 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
     public Path dataDir() {
         return dataDir;
-    }
-
-    private static double doubleAt(final ListBinaryTag list, final int index) {
-        return index < list.size() && list.get(index) instanceof final DoubleBinaryTag tag ? tag.value() : 0.0;
-    }
-
-    private static float floatAt(final ListBinaryTag list, final int index) {
-        return index < list.size() && list.get(index) instanceof final FloatBinaryTag tag ? tag.value() : 0f;
     }
 
     private static ListBinaryTag doubleList(final double a, final double b, final double c) {

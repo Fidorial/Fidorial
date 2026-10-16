@@ -1,7 +1,6 @@
 package fr.fidorial.world;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.Server;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -11,7 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * An immutable description of a world to create through {@link Server#createWorld(WorldSpec)}.
+ * An immutable description of a world to create through {@link WorldManager#create(WorldSpec)}.
  *
  * <p>Instances are obtained from {@link #builder(Key)}; {@link #toBuilder()} derives a modified copy.</p>
  *
@@ -46,7 +45,7 @@ public final class WorldSpec {
      * Returns the namespaced identifier of the world.
      *
      * <p>This is the value that will be exposed as {@link World#key()} once the world exists and the
-     * value used to look the world up again through {@link fr.fidorial.Server#world(Key)}.</p>
+     * value used to look the world up again through {@link WorldManager#get(Key)}.</p>
      *
      * @return the world key
      * @since 0.1.0

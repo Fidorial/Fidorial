@@ -54,7 +54,7 @@ public final class SparkWorldInfoProvider implements WorldInfoProvider {
         int blockEntities = 0;
         int chunks = 0;
 
-        for (final ServerWorld world : this.server.worldManager().worlds()) {
+        for (final ServerWorld world : this.server.worlds().manager().worlds()) {
             entities += world.entityManager().count();
             chunks += world.loadedChunkCount();
 
@@ -63,14 +63,14 @@ public final class SparkWorldInfoProvider implements WorldInfoProvider {
             blockEntities += worldBlockEntities.get();
         }
 
-        return new CountsResult(this.server.playerCount(), entities, blockEntities, chunks);
+        return new CountsResult(this.server.players().count(), entities, blockEntities, chunks);
     }
 
     @Override
     public ChunksResult<FidorialChunkInfo> pollChunks() {
         final ChunksResult<FidorialChunkInfo> result = new ChunksResult<>();
 
-        for (final ServerWorld world : this.server.worldManager().worlds()) {
+        for (final ServerWorld world : this.server.worlds().manager().worlds()) {
             final List<FidorialChunkInfo> chunks = new ArrayList<>(world.loadedChunkCount());
             world.forEachLoadedChunk(column -> chunks.add(new FidorialChunkInfo(world, column)));
             result.put(world.key().asString(), chunks);
@@ -83,10 +83,10 @@ public final class SparkWorldInfoProvider implements WorldInfoProvider {
     public GameRulesResult pollGameRules() {
         final GameRulesResult result = new GameRulesResult();
 
-        for (final GameRuleDefinition rule : this.server.gameRules().definitions()) {
+        for (final GameRuleDefinition rule : this.server.worlds().gameRules().definitions()) {
             final String name = rule.id();
             result.putDefault(name, rule.format(rule.defaultValue()));
-            for (final ServerWorld world : this.server.worldManager().worlds()) {
+            for (final ServerWorld world : this.server.worlds().manager().worlds()) {
                 result.put(name, world.key().asString(), rule.format(world.gameRuleValues().get(rule)));
             }
         }

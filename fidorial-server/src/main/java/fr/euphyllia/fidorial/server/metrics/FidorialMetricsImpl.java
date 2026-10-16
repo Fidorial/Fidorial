@@ -23,7 +23,7 @@ public final class FidorialMetricsImpl extends SimpleMetrics {
         metrics.addProperty("game_version", MINECRAFT_VERSION_ID);
         metrics.addProperty("online_mode", isOnlineMode());
         metrics.addProperty("platform_version", FIDORIAL_VERSION);
-        metrics.addProperty("player_count", server.playerCount());
+        metrics.addProperty("player_count", server.players().count());
         metrics.addProperty("plugin_version", FIDORIAL_VERSION);
         metrics.addProperty("server_type", SERVER_TYPE);
     }

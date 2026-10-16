@@ -292,7 +292,7 @@ public interface EntityTypeIds {
     /**
      * {@code minecraft:fishing_bobber}
      */
-    int FISHING_BOBBER_ENTITY_ID = 160;
+    int FISHING_BOBBER_ENTITY_ID = 162;
 
     /**
      * {@code minecraft:fox}
@@ -305,519 +305,529 @@ public interface EntityTypeIds {
     int FROG_ENTITY_ID = 56;
 
     /**
+     * {@code minecraft:frostbite}
+     */
+    int FROSTBITE_ENTITY_ID = 57;
+
+    /**
      * {@code minecraft:furnace_minecart}
      */
-    int FURNACE_MINECART_ENTITY_ID = 57;
+    int FURNACE_MINECART_ENTITY_ID = 58;
 
     /**
      * {@code minecraft:ghast}
      */
-    int GHAST_ENTITY_ID = 58;
+    int GHAST_ENTITY_ID = 59;
 
     /**
      * {@code minecraft:giant}
      */
-    int GIANT_ENTITY_ID = 60;
+    int GIANT_ENTITY_ID = 61;
 
     /**
      * {@code minecraft:glow_item_frame}
      */
-    int GLOW_ITEM_FRAME_ENTITY_ID = 61;
+    int GLOW_ITEM_FRAME_ENTITY_ID = 62;
 
     /**
      * {@code minecraft:glow_squid}
      */
-    int GLOW_SQUID_ENTITY_ID = 62;
+    int GLOW_SQUID_ENTITY_ID = 63;
 
     /**
      * {@code minecraft:goat}
      */
-    int GOAT_ENTITY_ID = 63;
+    int GOAT_ENTITY_ID = 64;
 
     /**
      * {@code minecraft:guardian}
      */
-    int GUARDIAN_ENTITY_ID = 64;
+    int GUARDIAN_ENTITY_ID = 65;
 
     /**
      * {@code minecraft:happy_ghast}
      */
-    int HAPPY_GHAST_ENTITY_ID = 59;
+    int HAPPY_GHAST_ENTITY_ID = 60;
 
     /**
      * {@code minecraft:hoglin}
      */
-    int HOGLIN_ENTITY_ID = 65;
+    int HOGLIN_ENTITY_ID = 66;
 
     /**
      * {@code minecraft:hopper_minecart}
      */
-    int HOPPER_MINECART_ENTITY_ID = 66;
+    int HOPPER_MINECART_ENTITY_ID = 67;
 
     /**
      * {@code minecraft:horse}
      */
-    int HORSE_ENTITY_ID = 67;
+    int HORSE_ENTITY_ID = 68;
 
     /**
      * {@code minecraft:husk}
      */
-    int HUSK_ENTITY_ID = 68;
+    int HUSK_ENTITY_ID = 69;
+
+    /**
+     * {@code minecraft:ice_ball}
+     */
+    int ICE_BALL_ENTITY_ID = 70;
 
     /**
      * {@code minecraft:illusioner}
      */
-    int ILLUSIONER_ENTITY_ID = 69;
+    int ILLUSIONER_ENTITY_ID = 71;
 
     /**
      * {@code minecraft:interaction}
      */
-    int INTERACTION_ENTITY_ID = 70;
+    int INTERACTION_ENTITY_ID = 72;
 
     /**
      * {@code minecraft:iron_golem}
      */
-    int IRON_GOLEM_ENTITY_ID = 71;
+    int IRON_GOLEM_ENTITY_ID = 73;
 
     /**
      * {@code minecraft:item}
      */
-    int ITEM_ENTITY_ID = 72;
+    int ITEM_ENTITY_ID = 74;
 
     /**
      * {@code minecraft:item_display}
      */
-    int ITEM_DISPLAY_ENTITY_ID = 73;
+    int ITEM_DISPLAY_ENTITY_ID = 75;
 
     /**
      * {@code minecraft:item_frame}
      */
-    int ITEM_FRAME_ENTITY_ID = 74;
+    int ITEM_FRAME_ENTITY_ID = 76;
 
     /**
      * {@code minecraft:jungle_boat}
      */
-    int JUNGLE_BOAT_ENTITY_ID = 75;
+    int JUNGLE_BOAT_ENTITY_ID = 77;
 
     /**
      * {@code minecraft:jungle_chest_boat}
      */
-    int JUNGLE_CHEST_BOAT_ENTITY_ID = 76;
+    int JUNGLE_CHEST_BOAT_ENTITY_ID = 78;
 
     /**
      * {@code minecraft:leash_knot}
      */
-    int LEASH_KNOT_ENTITY_ID = 77;
+    int LEASH_KNOT_ENTITY_ID = 79;
 
     /**
      * {@code minecraft:lightning_bolt}
      */
-    int LIGHTNING_BOLT_ENTITY_ID = 78;
+    int LIGHTNING_BOLT_ENTITY_ID = 80;
 
     /**
      * {@code minecraft:lingering_potion}
      */
-    int LINGERING_POTION_ENTITY_ID = 109;
+    int LINGERING_POTION_ENTITY_ID = 111;
 
     /**
      * {@code minecraft:llama}
      */
-    int LLAMA_ENTITY_ID = 79;
+    int LLAMA_ENTITY_ID = 81;
 
     /**
      * {@code minecraft:llama_spit}
      */
-    int LLAMA_SPIT_ENTITY_ID = 80;
+    int LLAMA_SPIT_ENTITY_ID = 82;
 
     /**
      * {@code minecraft:magma_cube}
      */
-    int MAGMA_CUBE_ENTITY_ID = 81;
+    int MAGMA_CUBE_ENTITY_ID = 83;
 
     /**
      * {@code minecraft:mangrove_boat}
      */
-    int MANGROVE_BOAT_ENTITY_ID = 82;
+    int MANGROVE_BOAT_ENTITY_ID = 84;
 
     /**
      * {@code minecraft:mangrove_chest_boat}
      */
-    int MANGROVE_CHEST_BOAT_ENTITY_ID = 83;
+    int MANGROVE_CHEST_BOAT_ENTITY_ID = 85;
 
     /**
      * {@code minecraft:mannequin}
      */
-    int MANNEQUIN_ENTITY_ID = 84;
+    int MANNEQUIN_ENTITY_ID = 86;
 
     /**
      * {@code minecraft:marker}
      */
-    int MARKER_ENTITY_ID = 85;
+    int MARKER_ENTITY_ID = 87;
 
     /**
      * {@code minecraft:minecart}
      */
-    int MINECART_ENTITY_ID = 86;
+    int MINECART_ENTITY_ID = 88;
 
     /**
      * {@code minecraft:mooshroom}
      */
-    int MOOSHROOM_ENTITY_ID = 87;
+    int MOOSHROOM_ENTITY_ID = 89;
 
     /**
      * {@code minecraft:mule}
      */
-    int MULE_ENTITY_ID = 88;
+    int MULE_ENTITY_ID = 90;
 
     /**
      * {@code minecraft:nautilus}
      */
-    int NAUTILUS_ENTITY_ID = 89;
+    int NAUTILUS_ENTITY_ID = 91;
 
     /**
      * {@code minecraft:oak_boat}
      */
-    int OAK_BOAT_ENTITY_ID = 90;
+    int OAK_BOAT_ENTITY_ID = 92;
 
     /**
      * {@code minecraft:oak_chest_boat}
      */
-    int OAK_CHEST_BOAT_ENTITY_ID = 91;
+    int OAK_CHEST_BOAT_ENTITY_ID = 93;
 
     /**
      * {@code minecraft:ocelot}
      */
-    int OCELOT_ENTITY_ID = 92;
+    int OCELOT_ENTITY_ID = 94;
 
     /**
      * {@code minecraft:ominous_item_spawner}
      */
-    int OMINOUS_ITEM_SPAWNER_ENTITY_ID = 93;
+    int OMINOUS_ITEM_SPAWNER_ENTITY_ID = 95;
 
     /**
      * {@code minecraft:painting}
      */
-    int PAINTING_ENTITY_ID = 94;
+    int PAINTING_ENTITY_ID = 96;
 
     /**
      * {@code minecraft:pale_oak_boat}
      */
-    int PALE_OAK_BOAT_ENTITY_ID = 95;
+    int PALE_OAK_BOAT_ENTITY_ID = 97;
 
     /**
      * {@code minecraft:pale_oak_chest_boat}
      */
-    int PALE_OAK_CHEST_BOAT_ENTITY_ID = 96;
+    int PALE_OAK_CHEST_BOAT_ENTITY_ID = 98;
 
     /**
      * {@code minecraft:panda}
      */
-    int PANDA_ENTITY_ID = 97;
+    int PANDA_ENTITY_ID = 99;
 
     /**
      * {@code minecraft:parched}
      */
-    int PARCHED_ENTITY_ID = 98;
+    int PARCHED_ENTITY_ID = 100;
 
     /**
      * {@code minecraft:parrot}
      */
-    int PARROT_ENTITY_ID = 99;
+    int PARROT_ENTITY_ID = 101;
 
     /**
      * {@code minecraft:phantom}
      */
-    int PHANTOM_ENTITY_ID = 100;
+    int PHANTOM_ENTITY_ID = 102;
 
     /**
      * {@code minecraft:pig}
      */
-    int PIG_ENTITY_ID = 101;
+    int PIG_ENTITY_ID = 103;
 
     /**
      * {@code minecraft:piglin}
      */
-    int PIGLIN_ENTITY_ID = 102;
+    int PIGLIN_ENTITY_ID = 104;
 
     /**
      * {@code minecraft:piglin_brute}
      */
-    int PIGLIN_BRUTE_ENTITY_ID = 103;
+    int PIGLIN_BRUTE_ENTITY_ID = 105;
 
     /**
      * {@code minecraft:pillager}
      */
-    int PILLAGER_ENTITY_ID = 104;
+    int PILLAGER_ENTITY_ID = 106;
 
     /**
      * {@code minecraft:player}
      */
-    int PLAYER_ENTITY_ID = 159;
+    int PLAYER_ENTITY_ID = 161;
 
     /**
      * {@code minecraft:polar_bear}
      */
-    int POLAR_BEAR_ENTITY_ID = 105;
+    int POLAR_BEAR_ENTITY_ID = 107;
 
     /**
      * {@code minecraft:poplar_boat}
      */
-    int POPLAR_BOAT_ENTITY_ID = 106;
+    int POPLAR_BOAT_ENTITY_ID = 108;
 
     /**
      * {@code minecraft:poplar_chest_boat}
      */
-    int POPLAR_CHEST_BOAT_ENTITY_ID = 107;
+    int POPLAR_CHEST_BOAT_ENTITY_ID = 109;
 
     /**
      * {@code minecraft:pufferfish}
      */
-    int PUFFERFISH_ENTITY_ID = 110;
+    int PUFFERFISH_ENTITY_ID = 112;
 
     /**
      * {@code minecraft:rabbit}
      */
-    int RABBIT_ENTITY_ID = 111;
+    int RABBIT_ENTITY_ID = 113;
 
     /**
      * {@code minecraft:ravager}
      */
-    int RAVAGER_ENTITY_ID = 112;
+    int RAVAGER_ENTITY_ID = 114;
 
     /**
      * {@code minecraft:salmon}
      */
-    int SALMON_ENTITY_ID = 113;
+    int SALMON_ENTITY_ID = 115;
 
     /**
      * {@code minecraft:sheep}
      */
-    int SHEEP_ENTITY_ID = 114;
+    int SHEEP_ENTITY_ID = 116;
 
     /**
      * {@code minecraft:shulker}
      */
-    int SHULKER_ENTITY_ID = 115;
+    int SHULKER_ENTITY_ID = 117;
 
     /**
      * {@code minecraft:shulker_bullet}
      */
-    int SHULKER_BULLET_ENTITY_ID = 116;
+    int SHULKER_BULLET_ENTITY_ID = 118;
 
     /**
      * {@code minecraft:silverfish}
      */
-    int SILVERFISH_ENTITY_ID = 117;
+    int SILVERFISH_ENTITY_ID = 119;
 
     /**
      * {@code minecraft:skeleton}
      */
-    int SKELETON_ENTITY_ID = 118;
+    int SKELETON_ENTITY_ID = 120;
 
     /**
      * {@code minecraft:skeleton_horse}
      */
-    int SKELETON_HORSE_ENTITY_ID = 119;
+    int SKELETON_HORSE_ENTITY_ID = 121;
 
     /**
      * {@code minecraft:slime}
      */
-    int SLIME_ENTITY_ID = 120;
+    int SLIME_ENTITY_ID = 122;
 
     /**
      * {@code minecraft:small_fireball}
      */
-    int SMALL_FIREBALL_ENTITY_ID = 121;
+    int SMALL_FIREBALL_ENTITY_ID = 123;
 
     /**
      * {@code minecraft:sniffer}
      */
-    int SNIFFER_ENTITY_ID = 122;
+    int SNIFFER_ENTITY_ID = 124;
 
     /**
      * {@code minecraft:snow_golem}
      */
-    int SNOW_GOLEM_ENTITY_ID = 124;
+    int SNOW_GOLEM_ENTITY_ID = 126;
 
     /**
      * {@code minecraft:snowball}
      */
-    int SNOWBALL_ENTITY_ID = 123;
+    int SNOWBALL_ENTITY_ID = 125;
 
     /**
      * {@code minecraft:spawner_minecart}
      */
-    int SPAWNER_MINECART_ENTITY_ID = 125;
+    int SPAWNER_MINECART_ENTITY_ID = 127;
 
     /**
      * {@code minecraft:spectral_arrow}
      */
-    int SPECTRAL_ARROW_ENTITY_ID = 126;
+    int SPECTRAL_ARROW_ENTITY_ID = 128;
 
     /**
      * {@code minecraft:spider}
      */
-    int SPIDER_ENTITY_ID = 127;
+    int SPIDER_ENTITY_ID = 129;
 
     /**
      * {@code minecraft:splash_potion}
      */
-    int SPLASH_POTION_ENTITY_ID = 108;
+    int SPLASH_POTION_ENTITY_ID = 110;
 
     /**
      * {@code minecraft:spruce_boat}
      */
-    int SPRUCE_BOAT_ENTITY_ID = 128;
+    int SPRUCE_BOAT_ENTITY_ID = 130;
 
     /**
      * {@code minecraft:spruce_chest_boat}
      */
-    int SPRUCE_CHEST_BOAT_ENTITY_ID = 129;
+    int SPRUCE_CHEST_BOAT_ENTITY_ID = 131;
 
     /**
      * {@code minecraft:squid}
      */
-    int SQUID_ENTITY_ID = 130;
+    int SQUID_ENTITY_ID = 132;
 
     /**
      * {@code minecraft:stray}
      */
-    int STRAY_ENTITY_ID = 131;
+    int STRAY_ENTITY_ID = 133;
 
     /**
      * {@code minecraft:strider}
      */
-    int STRIDER_ENTITY_ID = 132;
+    int STRIDER_ENTITY_ID = 134;
 
     /**
      * {@code minecraft:sulfur_cube}
      */
-    int SULFUR_CUBE_ENTITY_ID = 133;
+    int SULFUR_CUBE_ENTITY_ID = 135;
 
     /**
      * {@code minecraft:tadpole}
      */
-    int TADPOLE_ENTITY_ID = 134;
+    int TADPOLE_ENTITY_ID = 136;
 
     /**
      * {@code minecraft:text_display}
      */
-    int TEXT_DISPLAY_ENTITY_ID = 135;
+    int TEXT_DISPLAY_ENTITY_ID = 137;
 
     /**
      * {@code minecraft:tnt}
      */
-    int TNT_ENTITY_ID = 136;
+    int TNT_ENTITY_ID = 138;
 
     /**
      * {@code minecraft:tnt_minecart}
      */
-    int TNT_MINECART_ENTITY_ID = 137;
+    int TNT_MINECART_ENTITY_ID = 139;
 
     /**
      * {@code minecraft:trader_llama}
      */
-    int TRADER_LLAMA_ENTITY_ID = 138;
+    int TRADER_LLAMA_ENTITY_ID = 140;
 
     /**
      * {@code minecraft:trident}
      */
-    int TRIDENT_ENTITY_ID = 139;
+    int TRIDENT_ENTITY_ID = 141;
 
     /**
      * {@code minecraft:tropical_fish}
      */
-    int TROPICAL_FISH_ENTITY_ID = 140;
+    int TROPICAL_FISH_ENTITY_ID = 142;
 
     /**
      * {@code minecraft:turtle}
      */
-    int TURTLE_ENTITY_ID = 141;
+    int TURTLE_ENTITY_ID = 143;
 
     /**
      * {@code minecraft:vex}
      */
-    int VEX_ENTITY_ID = 142;
+    int VEX_ENTITY_ID = 144;
 
     /**
      * {@code minecraft:villager}
      */
-    int VILLAGER_ENTITY_ID = 143;
+    int VILLAGER_ENTITY_ID = 145;
 
     /**
      * {@code minecraft:vindicator}
      */
-    int VINDICATOR_ENTITY_ID = 144;
+    int VINDICATOR_ENTITY_ID = 146;
 
     /**
      * {@code minecraft:wandering_trader}
      */
-    int WANDERING_TRADER_ENTITY_ID = 145;
+    int WANDERING_TRADER_ENTITY_ID = 147;
 
     /**
      * {@code minecraft:warden}
      */
-    int WARDEN_ENTITY_ID = 146;
+    int WARDEN_ENTITY_ID = 148;
 
     /**
      * {@code minecraft:wind_charge}
      */
-    int WIND_CHARGE_ENTITY_ID = 147;
+    int WIND_CHARGE_ENTITY_ID = 149;
 
     /**
      * {@code minecraft:witch}
      */
-    int WITCH_ENTITY_ID = 148;
+    int WITCH_ENTITY_ID = 150;
 
     /**
      * {@code minecraft:wither}
      */
-    int WITHER_ENTITY_ID = 149;
+    int WITHER_ENTITY_ID = 151;
 
     /**
      * {@code minecraft:wither_skeleton}
      */
-    int WITHER_SKELETON_ENTITY_ID = 150;
+    int WITHER_SKELETON_ENTITY_ID = 152;
 
     /**
      * {@code minecraft:wither_skull}
      */
-    int WITHER_SKULL_ENTITY_ID = 151;
+    int WITHER_SKULL_ENTITY_ID = 153;
 
     /**
      * {@code minecraft:wolf}
      */
-    int WOLF_ENTITY_ID = 152;
+    int WOLF_ENTITY_ID = 154;
 
     /**
      * {@code minecraft:zoglin}
      */
-    int ZOGLIN_ENTITY_ID = 153;
+    int ZOGLIN_ENTITY_ID = 155;
 
     /**
      * {@code minecraft:zombie}
      */
-    int ZOMBIE_ENTITY_ID = 154;
+    int ZOMBIE_ENTITY_ID = 156;
 
     /**
      * {@code minecraft:zombie_horse}
      */
-    int ZOMBIE_HORSE_ENTITY_ID = 155;
+    int ZOMBIE_HORSE_ENTITY_ID = 157;
 
     /**
      * {@code minecraft:zombie_nautilus}
      */
-    int ZOMBIE_NAUTILUS_ENTITY_ID = 156;
+    int ZOMBIE_NAUTILUS_ENTITY_ID = 158;
 
     /**
      * {@code minecraft:zombie_villager}
      */
-    int ZOMBIE_VILLAGER_ENTITY_ID = 157;
+    int ZOMBIE_VILLAGER_ENTITY_ID = 159;
 
     /**
      * {@code minecraft:zombified_piglin}
      */
-    int ZOMBIFIED_PIGLIN_ENTITY_ID = 158;
+    int ZOMBIFIED_PIGLIN_ENTITY_ID = 160;
 
     /**
      * Immutable identifier to protocol ID lookup table.
@@ -881,6 +891,7 @@ public interface EntityTypeIds {
         Map.entry(Key.key("fishing_bobber"), FISHING_BOBBER_ENTITY_ID),
         Map.entry(Key.key("fox"), FOX_ENTITY_ID),
         Map.entry(Key.key("frog"), FROG_ENTITY_ID),
+        Map.entry(Key.key("frostbite"), FROSTBITE_ENTITY_ID),
         Map.entry(Key.key("furnace_minecart"), FURNACE_MINECART_ENTITY_ID),
         Map.entry(Key.key("ghast"), GHAST_ENTITY_ID),
         Map.entry(Key.key("giant"), GIANT_ENTITY_ID),
@@ -893,6 +904,7 @@ public interface EntityTypeIds {
         Map.entry(Key.key("hopper_minecart"), HOPPER_MINECART_ENTITY_ID),
         Map.entry(Key.key("horse"), HORSE_ENTITY_ID),
         Map.entry(Key.key("husk"), HUSK_ENTITY_ID),
+        Map.entry(Key.key("ice_ball"), ICE_BALL_ENTITY_ID),
         Map.entry(Key.key("illusioner"), ILLUSIONER_ENTITY_ID),
         Map.entry(Key.key("interaction"), INTERACTION_ENTITY_ID),
         Map.entry(Key.key("iron_golem"), IRON_GOLEM_ENTITY_ID),

@@ -2,8 +2,7 @@ package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.RespawnPoint;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -16,7 +15,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     private final Player player;
     private final Cause cause;
     private final boolean usedRespawnPoint;
-    private World world;
     private Location location;
 
 
@@ -24,7 +22,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * Creates an event.
      *
      * @param player           the player about to respawn
-     * @param world            the world they are about to respawn in
      * @param location         the position they are about to respawn at
      * @param cause            what triggered the respawn
      * @param usedRespawnPoint whether the position comes from the player's respawn point
@@ -32,12 +29,10 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      */
     public PlayerRespawnEvent(
             final Player player,
-            final World world,
             final Location location,
             final Cause cause,
             final boolean usedRespawnPoint) {
         this.player = player;
-        this.world = world;
         this.location = location;
         this.cause = cause;
         this.usedRespawnPoint = usedRespawnPoint;
@@ -47,14 +42,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     @Override
     public Player player() {
         return player;
-    }
-
-    /**
-     * @return the world the player is about to respawn in
-     */
-    @Contract(pure = true)
-    public World world() {
-        return world;
     }
 
     /**
@@ -83,15 +70,6 @@ public final class PlayerRespawnEvent implements PlayerEvent {
     }
 
     /**
-     * @param world    the world to respawn in instead
-     * @param location the position to respawn at instead
-     */
-    public void setRespawnLocation(final World world, final Location location) {
-        this.world = world;
-        this.location = location;
-    }
-
-    /**
      * @param location the position to respawn at instead, in the same world
      */
     public void setRespawnLocation(final Location location) {
@@ -103,8 +81,7 @@ public final class PlayerRespawnEvent implements PlayerEvent {
      * @since 0.1.0
      */
     public void setRespawnLocation(final RespawnPoint point) {
-        this.world = point.world();
-        this.location = point.location();
+        this.location = point.position().toLocation(point.world());
     }
 
     /**

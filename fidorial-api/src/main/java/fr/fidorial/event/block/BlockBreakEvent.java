@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.player.PlayerEvent;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.world.World;
 
 
@@ -18,7 +18,7 @@ import fr.fidorial.world.World;
 public final class BlockBreakEvent implements PlayerEvent, Cancellable {
 
     private final Player player;
-    private final BlockPos position;
+    private final BlockPosition position;
     private boolean cancelled;
 
     /**
@@ -28,7 +28,7 @@ public final class BlockBreakEvent implements PlayerEvent, Cancellable {
      * @param position the position of the block, in the player's world
      * @since 0.1.0
      */
-    public BlockBreakEvent(final Player player, final BlockPos position) {
+    public BlockBreakEvent(final Player player, final BlockPosition position) {
         Preconditions.checkArgument(player != null, "The player of a block break event must not be null");
         Preconditions.checkArgument(position != null, "The position of a block break event must not be null");
         this.player = player;
@@ -54,7 +54,7 @@ public final class BlockBreakEvent implements PlayerEvent, Cancellable {
      *
      * @since 0.1.0
      */
-    public BlockPos position() {
+    public BlockPosition position() {
         return position;
     }
 

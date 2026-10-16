@@ -6,7 +6,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.moderation.BanEntry;
@@ -23,11 +22,11 @@ import java.util.UUID;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BanIpCommand {
 
     private static final String PERMISSION = "fidorial.command.banip";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private BanIpCommand() {
     }
@@ -35,15 +34,15 @@ public final class BanIpCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("ban-ip")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
-                .then(argument("player", ArgumentTypes.players())
+                .then(argument("player", arguments().players())
                         .executes(context -> ban(context, null, null))
                         .then(literal("duration")
-                                .then(argument("duration", ArgumentTypes.duration())
+                                .then(argument("duration", arguments().duration())
                                         .executes(context -> ban(context, duration(context), null))
-                                        .then(argument("reason", ArgumentTypes.component())
+                                        .then(argument("reason", arguments().component())
                                                 .executes(context -> ban(context, duration(context), reason(context))))))
                         .then(literal("reason")
-                                .then(argument("reason", ArgumentTypes.component())
+                                .then(argument("reason", arguments().component())
                                         .executes(context -> ban(context, null, reason(context))))))
                 .build();
     }
@@ -63,7 +62,7 @@ public final class BanIpCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.bans();
+        final BanManager bans = server().players().bans();
 
         final List<Player> targets =
                 context.getArgument("player", PlayerSelectorArgumentResolver.class).resolve(source);
@@ -87,7 +86,7 @@ public final class BanIpCommand {
             final boolean added = bans.ban(entry);
             final int kicked = kickBanned(entry);
 
-            source.sender()
+            source
                     .sendMessage(Component.translatable(
                             added ? "commands.banip.success" : "commands.banip.updated",
                             Component.text(entry.label()),
@@ -104,13 +103,17 @@ public final class BanIpCommand {
     private static int kickBanned(final BanEntry.Address entry) {
         int kicked = 0;
 
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server().players().online()) {
             if (player.address().equals(entry.address())) {
-                player.kick(server.bans().disconnectMessage(entry));
+                player.kick(server().players().bans().disconnectMessage(entry));
                 kicked++;
             }
         }
 
         return kicked;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

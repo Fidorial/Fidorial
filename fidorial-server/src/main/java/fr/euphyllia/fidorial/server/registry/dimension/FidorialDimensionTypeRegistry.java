@@ -19,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -200,7 +201,7 @@ public final class FidorialDimensionTypeRegistry implements DimensionTypeRegistr
         if (started.get()) {
             LOGGER.warn("Dimension type {} {} after startup: clients will be sent to the configuration phase to see the change.",
                     key.asString(), action);
-            FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
+            FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);
         } else {
             LOGGER.debug("Dimension type {} {}.", key.asString(), action);
         }
@@ -242,7 +243,7 @@ public final class FidorialDimensionTypeRegistry implements DimensionTypeRegistr
             return new Snapshot(
                     List.copyOf(order),
                     Map.copyOf(ids),
-                    java.util.Collections.unmodifiableMap(definitions),
+                    Collections.unmodifiableMap(definitions),
                     Map.copyOf(payloads),
                     Map.copyOf(values),
                     List.copyOf(valueList));

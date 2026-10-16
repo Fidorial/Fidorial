@@ -10,7 +10,6 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.Resource
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.EntitySelectorArgumentResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
@@ -32,6 +31,7 @@ import java.util.function.Predicate;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * The vanilla {@code /effect} command.
@@ -73,28 +73,28 @@ public final class EffectCommand {
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("clear")
                         .executes(context -> clear(context, List.of(self(context)), null))
-                        .then(argument("targets", ArgumentTypes.entities())
+                        .then(argument("targets", arguments().entities())
                                 .executes(context -> clear(context, targets(context), null))
                                 .then(argument("effect", effectArgument())
                                         .executes(context -> clear(context, targets(context), effect(context))))))
                 .then(literal("give")
-                        .then(argument("targets", ArgumentTypes.entities())
+                        .then(argument("targets", arguments().entities())
                                 .then(argument("effect", effectArgument())
                                         .executes(context -> give(context, null, 0, false))
-                                        .then(argument("seconds", ArgumentTypes.integer(1, MAX_SECONDS))
+                                        .then(argument("seconds", arguments().integer(1, MAX_SECONDS))
                                                 .executes(context -> give(context, seconds(context), 0, false))
-                                                .then(argument("amplifier", ArgumentTypes.integer(0, MobEffectInstance.MAX_AMPLIFIER))
+                                                .then(argument("amplifier", arguments().integer(0, MobEffectInstance.MAX_AMPLIFIER))
                                                         .executes(context -> give(context, seconds(context),
                                                                 amplifier(context), false))
-                                                        .then(argument("hideParticles", ArgumentTypes.bool())
+                                                        .then(argument("hideParticles", arguments().bool())
                                                                 .executes(context -> give(context, seconds(context),
                                                                         amplifier(context), hideParticles(context))))))
                                         .then(literal("infinite")
                                                 .executes(context -> give(context, MobEffectInstance.INFINITE_DURATION, 0, false))
-                                                .then(argument("amplifier", ArgumentTypes.integer(0, MobEffectInstance.MAX_AMPLIFIER))
+                                                .then(argument("amplifier", arguments().integer(0, MobEffectInstance.MAX_AMPLIFIER))
                                                         .executes(context -> give(context, MobEffectInstance.INFINITE_DURATION,
                                                                 amplifier(context), false))
-                                                        .then(argument("hideParticles", ArgumentTypes.bool())
+                                                        .then(argument("hideParticles", arguments().bool())
                                                                 .executes(context -> give(context,
                                                                         MobEffectInstance.INFINITE_DURATION,
                                                                         amplifier(context), hideParticles(context)))))))))
@@ -114,7 +114,7 @@ public final class EffectCommand {
             duration = instantaneous ? seconds : seconds * TICKS_PER_SECOND;
         }
 
-        final MobEffectInstance effect = context.getSource().server().effects().builder(type)
+        final MobEffectInstance effect = context.getSource().server().registries().effects().builder(type)
                 .duration(duration)
                 .amplifier(amplifier)
                 .visible(!hideParticles)
@@ -208,10 +208,10 @@ public final class EffectCommand {
      * it does not check against its own registry, so the server validates and suggests the effects.
      */
     private static ArgumentType<TypedKey<MobEffect>> effectArgument() {
-        return ArgumentTypes.withServerSuggestions(ArgumentTypes.map(
-                ArgumentTypes.resourceKey(RegistryKey.MOB_EFFECT),
+        return arguments().withServerSuggestions(arguments().map(
+                arguments().resourceKey(RegistryKey.MOB_EFFECT),
                 (type, reader) -> {
-                    if (!FidorialServer.getInstance().effects().isEffect(type)) {
+                    if (!FidorialServer.getInstance().registries().effects().isEffect(type)) {
                         throw ResourceArgument.ERROR_UNKNOWN_RESOURCE.createWithContext(
                                 reader, type.key().asString(), RegistryKey.MOB_EFFECT.key().asString());
                     }
@@ -219,7 +219,7 @@ public final class EffectCommand {
                 },
                 (context, builder) -> {
                     final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-                    FidorialServer.getInstance().effects().types().stream()
+                    FidorialServer.getInstance().registries().effects().types().stream()
                             .map(type -> type.key().asString())
                             .filter(key -> key.contains(remaining))
                             .sorted()

@@ -70,7 +70,7 @@ public class PluginGeneratedChunk implements GeneratedChunk {
         checkLocal(x, z);
         checkY(y);
         final ChunkSection section = column.sections()[(y >> 4) - column.minSectionY()];
-        section.setBiome(x >> 2, (y & 15) >> 2, z >> 2, biome);
+        section.setBiome(x, y & 15, z, biome);
     }
 
     private void checkLocal(final int x, final int z) {

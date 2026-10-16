@@ -34,6 +34,7 @@ import java.util.List;
  * @param waterFogColor                    underwater fog color, packed RGB — {@code minecraft:visual/water_fog_color}
  * @param waterFogStartDistance            distance in blocks at which underwater fog begins — {@code minecraft:visual/water_fog_start_distance}
  * @param waterFogEndDistance              distance in blocks at which underwater fog reaches full density — {@code minecraft:visual/water_fog_end_distance}
+ * @param hasSkyOccluder                    whether the lower half of the skybox hides the sun, moon and stars — {@code minecraft:visual/has_sky_occluder}
  * @param musicVolume                      volume music fades to, within {@code [0, 1]} — {@code minecraft:audio/music_volume}
  * @param fireflyBushSounds                whether firefly bushes emit ambient sound — {@code minecraft:audio/firefly_bush_sounds}
  * @param canStartRaid                     whether a raid can begin here — {@code minecraft:gameplay/can_start_raid}
@@ -87,6 +88,7 @@ public record EnvironmentAttributes(
         @Nullable Attribute<Integer> waterFogColor,
         @Nullable Attribute<Float> waterFogStartDistance,
         @Nullable Attribute<Float> waterFogEndDistance,
+        @Nullable Attribute<Boolean> hasSkyOccluder,
         @Nullable Attribute<Float> musicVolume,
         @Nullable Attribute<Boolean> fireflyBushSounds,
         @Nullable Attribute<Boolean> canStartRaid,
@@ -191,6 +193,7 @@ public record EnvironmentAttributes(
         private @Nullable Attribute<Integer> waterFogColor;
         private @Nullable Attribute<Float> waterFogStartDistance;
         private @Nullable Attribute<Float> waterFogEndDistance;
+        private @Nullable Attribute<Boolean> hasSkyOccluder;
         private @Nullable Attribute<Float> musicVolume;
         private @Nullable Attribute<Boolean> fireflyBushSounds;
         private @Nullable Attribute<Boolean> canStartRaid;
@@ -245,6 +248,7 @@ public record EnvironmentAttributes(
             this.waterFogColor = attributes.waterFogColor;
             this.waterFogStartDistance = attributes.waterFogStartDistance;
             this.waterFogEndDistance = attributes.waterFogEndDistance;
+            this.hasSkyOccluder = attributes.hasSkyOccluder;
             this.musicVolume = attributes.musicVolume;
             this.fireflyBushSounds = attributes.fireflyBushSounds;
             this.canStartRaid = attributes.canStartRaid;
@@ -846,6 +850,31 @@ public record EnvironmentAttributes(
         @Contract("_, _ -> this")
         public Builder waterFogEndDistance(final Float value, final Modifier modifier) {
             this.waterFogEndDistance = Attribute.of(value, modifier);
+            return this;
+        }
+
+        /**
+         * Sets {@code minecraft:visual/has_sky_occluder} as a plain override.
+         *
+         * @param value whether the lower half of the skybox hides the sun, moon and stars, or {@code null} to leave unset
+         * @return this builder
+         */
+        @Contract("_ -> this")
+        public Builder hasSkyOccluder(final @Nullable Boolean value) {
+            this.hasSkyOccluder = value == null ? null : Attribute.of(value);
+            return this;
+        }
+
+        /**
+         * Sets {@code minecraft:visual/has_sky_occluder}, deriving from the dimension's value.
+         *
+         * @param value    the modifier argument
+         * @param modifier how to combine it
+         * @return this builder
+         */
+        @Contract("_, _ -> this")
+        public Builder hasSkyOccluder(final Boolean value, final Modifier modifier) {
+            this.hasSkyOccluder = Attribute.of(value, modifier);
             return this;
         }
 
@@ -1528,6 +1557,7 @@ public record EnvironmentAttributes(
                     waterFogColor,
                     waterFogStartDistance,
                     waterFogEndDistance,
+                    hasSkyOccluder,
                     musicVolume,
                     fireflyBushSounds,
                     canStartRaid,

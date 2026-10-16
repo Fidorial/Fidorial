@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.weather.Weather;
@@ -22,10 +22,10 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(WeatherEngine.class);
 
-    private final WorldManager worldManager;
+    private final ServerWorldManager worldManager;
     private final ScheduledExecutorService ticker;
 
-    public WeatherEngine(final WorldManager worldManager) {
+    public WeatherEngine(final ServerWorldManager worldManager) {
         this.worldManager = Objects.requireNonNull(worldManager, "The world manager whose worlds get a weather cycle must not be null");
         this.ticker = Executors.newSingleThreadScheduledExecutor(
                 r -> Thread.ofPlatform().name("fidorial-weather").unstarted(r));
@@ -63,7 +63,7 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
     }
 
     private static void broadcast(final ServerWorld world, final ClientboundPacket packet) {
-        final List<ServerPlayer> players = FidorialServer.getInstance().players();
+        final List<ServerPlayer> players = FidorialServer.getInstance().players().online();
         for (int i = 0, size = players.size(); i < size; i++) {
             final ServerPlayer player = players.get(i);
             if (player.world().equals(world) && player.connection().isInPlayState()) {

@@ -147,6 +147,11 @@ public final class BiomeKeys {
     public static final TypedKey<Biome> GROVE = create("grove");
 
     /**
+     * Key for {@code minecraft:ice_caves}.
+     */
+    public static final TypedKey<Biome> ICE_CAVES = create("ice_caves");
+
+    /**
      * Key for {@code minecraft:ice_spikes}.
      */
     public static final TypedKey<Biome> ICE_SPIKES = create("ice_spikes");
@@ -374,6 +379,7 @@ public final class BiomeKeys {
         FROZEN_PEAKS,
         FROZEN_RIVER,
         GROVE,
+        ICE_CAVES,
         ICE_SPIKES,
         JAGGED_PEAKS,
         JUNGLE,

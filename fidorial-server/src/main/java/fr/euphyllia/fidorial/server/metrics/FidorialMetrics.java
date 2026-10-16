@@ -32,17 +32,17 @@ public final class FidorialMetrics {
                 .addMetric(Metric.number("plugin_count", () -> plugins.length))
 
                 // World load
-                .addMetric(Metric.number("world_count", () -> server.worldManager().worlds().size()))
+                .addMetric(Metric.number("world_count", () -> server.worlds().manager().worlds().size()))
                 .addMetric(Metric.number("loaded_chunks", this::loadedChunks))
                 .addMetric(Metric.number("entity_count", this::entityCount))
-                .addMetric(Metric.number("active_regions", () -> server.regionizer().tpsSnapshots().size()))
+                .addMetric(Metric.number("active_regions", () -> server.workers().regionizer().tpsSnapshots().size()))
 
                 .addMetric(Metric.number("mspt_average", tickTimes::averageMspt))
                 .addMetric(Metric.number("slow_tick_percent", tickTimes::slowTickPercent))
-                .addMetric(Metric.number("peak_players", () -> Math.max(peakPlayers.get(), server.playerCount())))
+                .addMetric(Metric.number("peak_players", () -> Math.max(peakPlayers.get(), server.players().count())))
 
                 .addMetric(Metric.string("proxy_mode", this::proxyMode))
-                .addMetric(Metric.string("network_transport", () -> server.network().transport()))
+                .addMetric(Metric.string("network_transport", () -> server.network().listener().transport()))
                 .addMetric(Metric.number("view_distance", () -> server.config().general().viewDistance()))
                 .addMetric(Metric.number("max_memory_mb", FidorialMetrics::maxMemoryMib))
                 .addMetric(Metric.numberMap("worker_threads", this::workerThreads))
@@ -62,7 +62,7 @@ public final class FidorialMetrics {
                 .filter(id -> server.plugins().isEnabled(id))
                 .sorted()
                 .toArray(String[]::new);
-        recordPlayerCount(server.playerCount());
+        recordPlayerCount(server.players().count());
     }
 
     public void recordPlayerCount(final int playerCount) {
@@ -71,12 +71,12 @@ public final class FidorialMetrics {
 
     private void startNewWindow() {
         tickTimes.reset();
-        peakPlayers.set(server.playerCount());
+        peakPlayers.set(server.players().count());
     }
 
     private long loadedChunks() {
         long chunks = 0L;
-        for (final ServerWorld world : server.worldManager().worlds()) {
+        for (final ServerWorld world : server.worlds().manager().worlds()) {
             chunks += world.loadedChunkCount();
         }
         return chunks;
@@ -84,7 +84,7 @@ public final class FidorialMetrics {
 
     private long entityCount() {
         long entities = 0L;
-        for (final ServerWorld world : server.worldManager().worlds()) {
+        for (final ServerWorld world : server.worlds().manager().worlds()) {
             entities += world.entityManager().count();
         }
         return entities;
@@ -110,7 +110,7 @@ public final class FidorialMetrics {
     private Map<String, Boolean> features() {
         final ServerConfiguration config = server.config();
         final Map<String, Boolean> features = new LinkedHashMap<>(5);
-        features.put("whitelist", server.whitelist().enabled());
+        features.put("whitelist", server.players().whitelist().enabled());
         features.put("secure_chat", config.network().enforceSecureChat());
         features.put("code_of_conduct", config.codeOfConduct().enabled());
         features.put("spark", config.spark().enabled());

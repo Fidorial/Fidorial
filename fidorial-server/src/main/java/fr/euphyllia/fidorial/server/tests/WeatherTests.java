@@ -15,7 +15,7 @@ public final class WeatherTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void eachWorldHasItsOwnWeather(final ScenarioTestHelper helper) {
-        final WeatherManager overworld = FidorialServer.getInstance().weatherEngine().primaryWorld().weather();
+        final WeatherManager overworld = FidorialServer.getInstance().worlds().weather().primaryWorld().weather();
         final Weather previous = overworld.weather();
         final WeatherManager other = world("weather_per_world").weather();
         try {
@@ -24,7 +24,7 @@ public final class WeatherTests {
 
             helper.assertTrue(overworld.weather() == Weather.CLEAR, "Rain elsewhere must not reach the overworld");
             helper.assertTrue(other.isRaining() && other.isThundering(), "Expected a thunderstorm in the other world");
-            helper.assertTrue(FidorialServer.getInstance().weatherEngine().weather() == Weather.CLEAR,
+            helper.assertTrue(FidorialServer.getInstance().worlds().weather().weather() == Weather.CLEAR,
                     "The WeatherManager service should follow the overworld");
         } finally {
             other.setWeather(Weather.CLEAR);
@@ -58,7 +58,7 @@ public final class WeatherTests {
     private static World world(final String name) {
         final FidorialServer server = FidorialServer.getInstance();
         final Key key = Key.key("scenario_test", name);
-        final World world = server.worldManager().world(key);
-        return world != null ? world : server.createWorld(WorldSpec.builder(key).build());
+        final World world = server.worlds().manager().world(key);
+        return world != null ? world : server.worlds().create(WorldSpec.builder(key).build());
     }
 }

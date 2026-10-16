@@ -1,6 +1,5 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
-import ca.spottedleaf.converter.types.MapType;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.anvil.RegionConstants;
 import fr.euphyllia.fidorial.server.world.anvil.RegionFile;
@@ -9,7 +8,6 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
-import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -68,17 +66,8 @@ public final class ChunkStorage implements AutoCloseable {
         final RegionFile rf = region(dim, chunkX, chunkZ);
         final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
         if (read == null) return null;
-        CompoundBinaryTag nbt = read.tag();
+        final CompoundBinaryTag nbt = DataFixersRegistry.update(DataFixerType.CHUNK, read.tag(), true);
         convertIfNeeded(rf, dim, chunkX, chunkZ, read);
-
-        final int sourceVersion = nbt.getInt("DataVersion");
-        final int latest = DataFixersRegistry.latestDataFixerVersion();
-        if (sourceVersion < latest) {
-            final MapType fixed = DataFixersRegistry.update(
-                    DataFixerType.CHUNK, NbtMapType.of(nbt), sourceVersion);
-            nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
-        }
-
         return serializer.fromNbt(nbt, minY, height, defaultBlock, defaultBiome);
     }
 

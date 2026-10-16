@@ -5,7 +5,7 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 

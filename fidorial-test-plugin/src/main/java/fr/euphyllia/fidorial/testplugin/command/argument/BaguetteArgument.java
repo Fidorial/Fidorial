@@ -8,12 +8,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import fr.fidorial.command.MessageComponentSerializer;
-import fr.fidorial.command.argument.ArgumentTypes;
+import fr.fidorial.command.serializers.MessageComponentSerializer;
 import net.kyori.adventure.text.Component;
 
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BaguetteArgument {
 
@@ -40,7 +41,7 @@ public final class BaguetteArgument {
     }
 
     public static ArgumentType<Baguette> baguette() {
-        return ArgumentTypes.map(StringArgumentType.word(), BaguetteArgument::parse, BaguetteArgument::suggest);
+        return arguments().map(StringArgumentType.word(), BaguetteArgument::parse, BaguetteArgument::suggest);
     }
 
     private static Baguette parse(final String value, final StringReader reader) throws CommandSyntaxException {

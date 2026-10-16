@@ -9,31 +9,30 @@ import fr.fidorial.entity.Player;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 
 import java.util.UUID;
 
 final class ScenarioTestPlayer {
 
-    static Player spawn(final FidorialServer server, final ServerWorld world, final String name, final Location location, final GameMode gameMode) {
+    static Player spawn(final FidorialServer server, final String name, final Location location, final GameMode gameMode) {
         final PlayerProfile profile = new PlayerProfile(UUID.nameUUIDFromBytes(("test:" + name).getBytes()), name);
         final ClientConnection connection = ClientConnection.mock(server);
 
         final ServerPlayer player = new ServerPlayer(
-                server.entityIds().allocate(),
+                server.entities().ids().allocate(),
                 profile,
                 new PlayerInventory(),
                 new EnderChestInventory(),
                 gameMode,
                 connection,
-                world,
                 location);
 
         connection.setProfile(profile);
         connection.setPlayer(player);
-        world.addEntity(player);
+        ((ServerWorld) location.world()).addEntity(player);
         connection.bindMockPlayer(player);
-        server.addPlayerConnection(connection);
+        server.players().connect(connection);
         player.invalidatePermissions();
         return player;
     }
@@ -41,6 +40,6 @@ final class ScenarioTestPlayer {
     static void despawn(final FidorialServer server, final ServerPlayer player) {
         final ClientConnection connection = player.connection();
         connection.mockDisconnect();
-        server.removePlayerConnection(connection);
+        server.players().disconnect(connection);
     }
 }

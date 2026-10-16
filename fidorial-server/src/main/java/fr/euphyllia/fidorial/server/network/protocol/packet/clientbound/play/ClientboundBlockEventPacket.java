@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -22,12 +22,12 @@ import net.kyori.adventure.key.Key;
  *
  * <p>https://minecraft.wiki/w/Java_Edition_protocol/Packets#Block_Action
  */
-public record ClientboundBlockEventPacket(BlockPos pos, int actionId, int actionParam, int blockTypeId)
+public record ClientboundBlockEventPacket(BlockPosition pos, int actionId, int actionParam, int blockTypeId)
         implements ClientboundPacket {
 
     public static final int CHEST_VIEWER_COUNT = 1;
 
-    public static ClientboundBlockEventPacket chestViewers(final BlockPos pos, final int viewers) {
+    public static ClientboundBlockEventPacket chestViewers(final BlockPosition pos, final int viewers) {
         return new ClientboundBlockEventPacket(pos, CHEST_VIEWER_COUNT, viewers, 0);
     }
 
@@ -38,7 +38,7 @@ public record ClientboundBlockEventPacket(BlockPos pos, int actionId, int action
 
     @Override
     public void write(final PacketBuffer buf) {
-        buf.writePosition(pos.x(), pos.y(), pos.z());
+        buf.writePosition(pos.blockX(), pos.blockY(), pos.blockZ());
         buf.writeByte(actionId);
         buf.writeByte(actionParam);
         buf.writeVarInt(blockTypeId);

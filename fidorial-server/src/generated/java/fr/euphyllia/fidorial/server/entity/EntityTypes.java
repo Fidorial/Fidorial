@@ -295,9 +295,9 @@ public final class EntityTypes {
     public static final EntityType FIREWORK_ROCKET = vanilla("firework_rocket", EntityType.Category.MISC, 54, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:fishing_bobber}, network ID {@code 160}.
+     * {@code minecraft:fishing_bobber}, network ID {@code 162}.
      */
-    public static final EntityType FISHING_BOBBER = vanilla("fishing_bobber", EntityType.Category.MISC, 160, 0.25f, 0.25f);
+    public static final EntityType FISHING_BOBBER = vanilla("fishing_bobber", EntityType.Category.MISC, 162, 0.25f, 0.25f);
 
     /**
      * {@code minecraft:fox}, network ID {@code 55}.
@@ -310,519 +310,529 @@ public final class EntityTypes {
     public static final EntityType FROG = vanilla("frog", EntityType.Category.CREATURE, 56, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:furnace_minecart}, network ID {@code 57}.
+     * {@code minecraft:frostbite}, network ID {@code 57}.
      */
-    public static final EntityType FURNACE_MINECART = vanilla("furnace_minecart", EntityType.Category.MISC, 57, 0.98f, 0.7f);
+    public static final EntityType FROSTBITE = vanilla("frostbite", EntityType.Category.MONSTER, 57, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:ghast}, network ID {@code 58}.
+     * {@code minecraft:furnace_minecart}, network ID {@code 58}.
      */
-    public static final EntityType GHAST = vanilla("ghast", EntityType.Category.MONSTER, 58, 4.0f, 4.0f);
+    public static final EntityType FURNACE_MINECART = vanilla("furnace_minecart", EntityType.Category.MISC, 58, 0.98f, 0.7f);
 
     /**
-     * {@code minecraft:giant}, network ID {@code 60}.
+     * {@code minecraft:ghast}, network ID {@code 59}.
      */
-    public static final EntityType GIANT = vanilla("giant", EntityType.Category.MONSTER, 60, 3.6f, 12.0f);
+    public static final EntityType GHAST = vanilla("ghast", EntityType.Category.MONSTER, 59, 4.0f, 4.0f);
 
     /**
-     * {@code minecraft:glow_item_frame}, network ID {@code 61}.
+     * {@code minecraft:giant}, network ID {@code 61}.
      */
-    public static final EntityType GLOW_ITEM_FRAME = vanilla("glow_item_frame", EntityType.Category.MISC, 61, 0.5f, 0.5f);
+    public static final EntityType GIANT = vanilla("giant", EntityType.Category.MONSTER, 61, 3.6f, 12.0f);
 
     /**
-     * {@code minecraft:glow_squid}, network ID {@code 62}.
+     * {@code minecraft:glow_item_frame}, network ID {@code 62}.
      */
-    public static final EntityType GLOW_SQUID = vanilla("glow_squid", EntityType.Category.WATER_CREATURE, 62, 0.8f, 0.8f);
+    public static final EntityType GLOW_ITEM_FRAME = vanilla("glow_item_frame", EntityType.Category.MISC, 62, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:goat}, network ID {@code 63}.
+     * {@code minecraft:glow_squid}, network ID {@code 63}.
      */
-    public static final EntityType GOAT = vanilla("goat", EntityType.Category.CREATURE, 63, 0.9f, 1.3f);
+    public static final EntityType GLOW_SQUID = vanilla("glow_squid", EntityType.Category.WATER_CREATURE, 63, 0.8f, 0.8f);
 
     /**
-     * {@code minecraft:guardian}, network ID {@code 64}.
+     * {@code minecraft:goat}, network ID {@code 64}.
      */
-    public static final EntityType GUARDIAN = vanilla("guardian", EntityType.Category.MONSTER, 64, 0.85f, 0.85f);
+    public static final EntityType GOAT = vanilla("goat", EntityType.Category.CREATURE, 64, 0.9f, 1.3f);
 
     /**
-     * {@code minecraft:happy_ghast}, network ID {@code 59}.
+     * {@code minecraft:guardian}, network ID {@code 65}.
      */
-    public static final EntityType HAPPY_GHAST = vanilla("happy_ghast", EntityType.Category.CREATURE, 59, 4.0f, 4.0f);
+    public static final EntityType GUARDIAN = vanilla("guardian", EntityType.Category.MONSTER, 65, 0.85f, 0.85f);
 
     /**
-     * {@code minecraft:hoglin}, network ID {@code 65}.
+     * {@code minecraft:happy_ghast}, network ID {@code 60}.
      */
-    public static final EntityType HOGLIN = vanilla("hoglin", EntityType.Category.MONSTER, 65, 1.3964844f, 1.4f);
+    public static final EntityType HAPPY_GHAST = vanilla("happy_ghast", EntityType.Category.CREATURE, 60, 4.0f, 4.0f);
 
     /**
-     * {@code minecraft:hopper_minecart}, network ID {@code 66}.
+     * {@code minecraft:hoglin}, network ID {@code 66}.
      */
-    public static final EntityType HOPPER_MINECART = vanilla("hopper_minecart", EntityType.Category.MISC, 66, 0.98f, 0.7f);
+    public static final EntityType HOGLIN = vanilla("hoglin", EntityType.Category.MONSTER, 66, 1.3964844f, 1.4f);
 
     /**
-     * {@code minecraft:horse}, network ID {@code 67}.
+     * {@code minecraft:hopper_minecart}, network ID {@code 67}.
      */
-    public static final EntityType HORSE = vanilla("horse", EntityType.Category.CREATURE, 67, 1.3964844f, 1.6f);
+    public static final EntityType HOPPER_MINECART = vanilla("hopper_minecart", EntityType.Category.MISC, 67, 0.98f, 0.7f);
 
     /**
-     * {@code minecraft:husk}, network ID {@code 68}.
+     * {@code minecraft:horse}, network ID {@code 68}.
      */
-    public static final EntityType HUSK = vanilla("husk", EntityType.Category.MONSTER, 68, 0.6f, 1.95f);
+    public static final EntityType HORSE = vanilla("horse", EntityType.Category.CREATURE, 68, 1.3964844f, 1.6f);
 
     /**
-     * {@code minecraft:illusioner}, network ID {@code 69}.
+     * {@code minecraft:husk}, network ID {@code 69}.
      */
-    public static final EntityType ILLUSIONER = vanilla("illusioner", EntityType.Category.MONSTER, 69, 0.6f, 1.95f);
+    public static final EntityType HUSK = vanilla("husk", EntityType.Category.MONSTER, 69, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:interaction}, network ID {@code 70}.
+     * {@code minecraft:ice_ball}, network ID {@code 70}.
      */
-    public static final EntityType INTERACTION = vanilla("interaction", EntityType.Category.MISC, 70, 0.0f, 0.0f);
+    public static final EntityType ICE_BALL = vanilla("ice_ball", EntityType.Category.MISC, 70, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:iron_golem}, network ID {@code 71}.
+     * {@code minecraft:illusioner}, network ID {@code 71}.
      */
-    public static final EntityType IRON_GOLEM = vanilla("iron_golem", EntityType.Category.MISC, 71, 1.4f, 2.7f);
+    public static final EntityType ILLUSIONER = vanilla("illusioner", EntityType.Category.MONSTER, 71, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:item}, network ID {@code 72}.
+     * {@code minecraft:interaction}, network ID {@code 72}.
      */
-    public static final EntityType ITEM = vanilla("item", EntityType.Category.MISC, 72, 0.25f, 0.25f);
+    public static final EntityType INTERACTION = vanilla("interaction", EntityType.Category.MISC, 72, 0.0f, 0.0f);
 
     /**
-     * {@code minecraft:item_display}, network ID {@code 73}.
+     * {@code minecraft:iron_golem}, network ID {@code 73}.
      */
-    public static final EntityType ITEM_DISPLAY = vanilla("item_display", EntityType.Category.MISC, 73, 0.0f, 0.0f);
+    public static final EntityType IRON_GOLEM = vanilla("iron_golem", EntityType.Category.MISC, 73, 1.4f, 2.7f);
 
     /**
-     * {@code minecraft:item_frame}, network ID {@code 74}.
+     * {@code minecraft:item}, network ID {@code 74}.
      */
-    public static final EntityType ITEM_FRAME = vanilla("item_frame", EntityType.Category.MISC, 74, 0.5f, 0.5f);
+    public static final EntityType ITEM = vanilla("item", EntityType.Category.MISC, 74, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:jungle_boat}, network ID {@code 75}.
+     * {@code minecraft:item_display}, network ID {@code 75}.
      */
-    public static final EntityType JUNGLE_BOAT = vanilla("jungle_boat", EntityType.Category.MISC, 75, 1.375f, 0.5625f);
+    public static final EntityType ITEM_DISPLAY = vanilla("item_display", EntityType.Category.MISC, 75, 0.0f, 0.0f);
 
     /**
-     * {@code minecraft:jungle_chest_boat}, network ID {@code 76}.
+     * {@code minecraft:item_frame}, network ID {@code 76}.
      */
-    public static final EntityType JUNGLE_CHEST_BOAT = vanilla("jungle_chest_boat", EntityType.Category.MISC, 76, 1.375f, 0.5625f);
+    public static final EntityType ITEM_FRAME = vanilla("item_frame", EntityType.Category.MISC, 76, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:leash_knot}, network ID {@code 77}.
+     * {@code minecraft:jungle_boat}, network ID {@code 77}.
      */
-    public static final EntityType LEASH_KNOT = vanilla("leash_knot", EntityType.Category.MISC, 77, 0.375f, 0.5f);
+    public static final EntityType JUNGLE_BOAT = vanilla("jungle_boat", EntityType.Category.MISC, 77, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:lightning_bolt}, network ID {@code 78}.
+     * {@code minecraft:jungle_chest_boat}, network ID {@code 78}.
      */
-    public static final EntityType LIGHTNING_BOLT = vanilla("lightning_bolt", EntityType.Category.MISC, 78, 0.0f, 0.0f);
+    public static final EntityType JUNGLE_CHEST_BOAT = vanilla("jungle_chest_boat", EntityType.Category.MISC, 78, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:lingering_potion}, network ID {@code 109}.
+     * {@code minecraft:leash_knot}, network ID {@code 79}.
      */
-    public static final EntityType LINGERING_POTION = vanilla("lingering_potion", EntityType.Category.MISC, 109, 0.25f, 0.25f);
+    public static final EntityType LEASH_KNOT = vanilla("leash_knot", EntityType.Category.MISC, 79, 0.375f, 0.5f);
 
     /**
-     * {@code minecraft:llama}, network ID {@code 79}.
+     * {@code minecraft:lightning_bolt}, network ID {@code 80}.
      */
-    public static final EntityType LLAMA = vanilla("llama", EntityType.Category.CREATURE, 79, 0.9f, 1.87f);
+    public static final EntityType LIGHTNING_BOLT = vanilla("lightning_bolt", EntityType.Category.MISC, 80, 0.0f, 0.0f);
 
     /**
-     * {@code minecraft:llama_spit}, network ID {@code 80}.
+     * {@code minecraft:lingering_potion}, network ID {@code 111}.
      */
-    public static final EntityType LLAMA_SPIT = vanilla("llama_spit", EntityType.Category.MISC, 80, 0.25f, 0.25f);
+    public static final EntityType LINGERING_POTION = vanilla("lingering_potion", EntityType.Category.MISC, 111, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:magma_cube}, network ID {@code 81}.
+     * {@code minecraft:llama}, network ID {@code 81}.
      */
-    public static final EntityType MAGMA_CUBE = vanilla("magma_cube", EntityType.Category.MONSTER, 81, 0.52f, 0.52f);
+    public static final EntityType LLAMA = vanilla("llama", EntityType.Category.CREATURE, 81, 0.9f, 1.87f);
 
     /**
-     * {@code minecraft:mangrove_boat}, network ID {@code 82}.
+     * {@code minecraft:llama_spit}, network ID {@code 82}.
      */
-    public static final EntityType MANGROVE_BOAT = vanilla("mangrove_boat", EntityType.Category.MISC, 82, 1.375f, 0.5625f);
+    public static final EntityType LLAMA_SPIT = vanilla("llama_spit", EntityType.Category.MISC, 82, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:mangrove_chest_boat}, network ID {@code 83}.
+     * {@code minecraft:magma_cube}, network ID {@code 83}.
      */
-    public static final EntityType MANGROVE_CHEST_BOAT = vanilla("mangrove_chest_boat", EntityType.Category.MISC, 83, 1.375f, 0.5625f);
+    public static final EntityType MAGMA_CUBE = vanilla("magma_cube", EntityType.Category.MONSTER, 83, 0.52f, 0.52f);
 
     /**
-     * {@code minecraft:mannequin}, network ID {@code 84}.
+     * {@code minecraft:mangrove_boat}, network ID {@code 84}.
      */
-    public static final EntityType MANNEQUIN = vanilla("mannequin", EntityType.Category.MISC, 84, 0.6f, 1.8f);
+    public static final EntityType MANGROVE_BOAT = vanilla("mangrove_boat", EntityType.Category.MISC, 84, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:marker}, network ID {@code 85}.
+     * {@code minecraft:mangrove_chest_boat}, network ID {@code 85}.
      */
-    public static final EntityType MARKER = vanilla("marker", EntityType.Category.MISC, 85, 0.0f, 0.0f);
+    public static final EntityType MANGROVE_CHEST_BOAT = vanilla("mangrove_chest_boat", EntityType.Category.MISC, 85, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:minecart}, network ID {@code 86}.
+     * {@code minecraft:mannequin}, network ID {@code 86}.
      */
-    public static final EntityType MINECART = vanilla("minecart", EntityType.Category.MISC, 86, 0.98f, 0.7f);
+    public static final EntityType MANNEQUIN = vanilla("mannequin", EntityType.Category.MISC, 86, 0.6f, 1.8f);
 
     /**
-     * {@code minecraft:mooshroom}, network ID {@code 87}.
+     * {@code minecraft:marker}, network ID {@code 87}.
      */
-    public static final EntityType MOOSHROOM = vanilla("mooshroom", EntityType.Category.CREATURE, 87, 0.9f, 1.4f);
+    public static final EntityType MARKER = vanilla("marker", EntityType.Category.MISC, 87, 0.0f, 0.0f);
 
     /**
-     * {@code minecraft:mule}, network ID {@code 88}.
+     * {@code minecraft:minecart}, network ID {@code 88}.
      */
-    public static final EntityType MULE = vanilla("mule", EntityType.Category.CREATURE, 88, 1.3964844f, 1.6f);
+    public static final EntityType MINECART = vanilla("minecart", EntityType.Category.MISC, 88, 0.98f, 0.7f);
 
     /**
-     * {@code minecraft:nautilus}, network ID {@code 89}.
+     * {@code minecraft:mooshroom}, network ID {@code 89}.
      */
-    public static final EntityType NAUTILUS = vanilla("nautilus", EntityType.Category.WATER_CREATURE, 89, 0.875f, 0.95f);
+    public static final EntityType MOOSHROOM = vanilla("mooshroom", EntityType.Category.CREATURE, 89, 0.9f, 1.4f);
 
     /**
-     * {@code minecraft:oak_boat}, network ID {@code 90}.
+     * {@code minecraft:mule}, network ID {@code 90}.
      */
-    public static final EntityType OAK_BOAT = vanilla("oak_boat", EntityType.Category.MISC, 90, 1.375f, 0.5625f);
+    public static final EntityType MULE = vanilla("mule", EntityType.Category.CREATURE, 90, 1.3964844f, 1.6f);
 
     /**
-     * {@code minecraft:oak_chest_boat}, network ID {@code 91}.
+     * {@code minecraft:nautilus}, network ID {@code 91}.
      */
-    public static final EntityType OAK_CHEST_BOAT = vanilla("oak_chest_boat", EntityType.Category.MISC, 91, 1.375f, 0.5625f);
+    public static final EntityType NAUTILUS = vanilla("nautilus", EntityType.Category.WATER_CREATURE, 91, 0.875f, 0.95f);
 
     /**
-     * {@code minecraft:ocelot}, network ID {@code 92}.
+     * {@code minecraft:oak_boat}, network ID {@code 92}.
      */
-    public static final EntityType OCELOT = vanilla("ocelot", EntityType.Category.CREATURE, 92, 0.6f, 0.7f);
+    public static final EntityType OAK_BOAT = vanilla("oak_boat", EntityType.Category.MISC, 92, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:ominous_item_spawner}, network ID {@code 93}.
+     * {@code minecraft:oak_chest_boat}, network ID {@code 93}.
      */
-    public static final EntityType OMINOUS_ITEM_SPAWNER = vanilla("ominous_item_spawner", EntityType.Category.MISC, 93, 0.25f, 0.25f);
+    public static final EntityType OAK_CHEST_BOAT = vanilla("oak_chest_boat", EntityType.Category.MISC, 93, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:painting}, network ID {@code 94}.
+     * {@code minecraft:ocelot}, network ID {@code 94}.
      */
-    public static final EntityType PAINTING = vanilla("painting", EntityType.Category.MISC, 94, 0.5f, 0.5f);
+    public static final EntityType OCELOT = vanilla("ocelot", EntityType.Category.CREATURE, 94, 0.6f, 0.7f);
 
     /**
-     * {@code minecraft:pale_oak_boat}, network ID {@code 95}.
+     * {@code minecraft:ominous_item_spawner}, network ID {@code 95}.
      */
-    public static final EntityType PALE_OAK_BOAT = vanilla("pale_oak_boat", EntityType.Category.MISC, 95, 1.375f, 0.5625f);
+    public static final EntityType OMINOUS_ITEM_SPAWNER = vanilla("ominous_item_spawner", EntityType.Category.MISC, 95, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:pale_oak_chest_boat}, network ID {@code 96}.
+     * {@code minecraft:painting}, network ID {@code 96}.
      */
-    public static final EntityType PALE_OAK_CHEST_BOAT = vanilla("pale_oak_chest_boat", EntityType.Category.MISC, 96, 1.375f, 0.5625f);
+    public static final EntityType PAINTING = vanilla("painting", EntityType.Category.MISC, 96, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:panda}, network ID {@code 97}.
+     * {@code minecraft:pale_oak_boat}, network ID {@code 97}.
      */
-    public static final EntityType PANDA = vanilla("panda", EntityType.Category.CREATURE, 97, 1.3f, 1.25f);
+    public static final EntityType PALE_OAK_BOAT = vanilla("pale_oak_boat", EntityType.Category.MISC, 97, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:parched}, network ID {@code 98}.
+     * {@code minecraft:pale_oak_chest_boat}, network ID {@code 98}.
      */
-    public static final EntityType PARCHED = vanilla("parched", EntityType.Category.MONSTER, 98, 0.6f, 1.99f);
+    public static final EntityType PALE_OAK_CHEST_BOAT = vanilla("pale_oak_chest_boat", EntityType.Category.MISC, 98, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:parrot}, network ID {@code 99}.
+     * {@code minecraft:panda}, network ID {@code 99}.
      */
-    public static final EntityType PARROT = vanilla("parrot", EntityType.Category.CREATURE, 99, 0.5f, 0.9f);
+    public static final EntityType PANDA = vanilla("panda", EntityType.Category.CREATURE, 99, 1.3f, 1.25f);
 
     /**
-     * {@code minecraft:phantom}, network ID {@code 100}.
+     * {@code minecraft:parched}, network ID {@code 100}.
      */
-    public static final EntityType PHANTOM = vanilla("phantom", EntityType.Category.MONSTER, 100, 0.9f, 0.5f);
+    public static final EntityType PARCHED = vanilla("parched", EntityType.Category.MONSTER, 100, 0.6f, 1.99f);
 
     /**
-     * {@code minecraft:pig}, network ID {@code 101}.
+     * {@code minecraft:parrot}, network ID {@code 101}.
      */
-    public static final EntityType PIG = vanilla("pig", EntityType.Category.CREATURE, 101, 0.9f, 0.9f);
+    public static final EntityType PARROT = vanilla("parrot", EntityType.Category.CREATURE, 101, 0.5f, 0.9f);
 
     /**
-     * {@code minecraft:piglin}, network ID {@code 102}.
+     * {@code minecraft:phantom}, network ID {@code 102}.
      */
-    public static final EntityType PIGLIN = vanilla("piglin", EntityType.Category.MONSTER, 102, 0.6f, 1.95f);
+    public static final EntityType PHANTOM = vanilla("phantom", EntityType.Category.MONSTER, 102, 0.9f, 0.5f);
 
     /**
-     * {@code minecraft:piglin_brute}, network ID {@code 103}.
+     * {@code minecraft:pig}, network ID {@code 103}.
      */
-    public static final EntityType PIGLIN_BRUTE = vanilla("piglin_brute", EntityType.Category.MONSTER, 103, 0.6f, 1.95f);
+    public static final EntityType PIG = vanilla("pig", EntityType.Category.CREATURE, 103, 0.9f, 0.9f);
 
     /**
-     * {@code minecraft:pillager}, network ID {@code 104}.
+     * {@code minecraft:piglin}, network ID {@code 104}.
      */
-    public static final EntityType PILLAGER = vanilla("pillager", EntityType.Category.MONSTER, 104, 0.6f, 1.95f);
+    public static final EntityType PIGLIN = vanilla("piglin", EntityType.Category.MONSTER, 104, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:player}, network ID {@code 159}.
+     * {@code minecraft:piglin_brute}, network ID {@code 105}.
      */
-    public static final EntityType PLAYER = vanilla("player", EntityType.Category.PLAYER, 159, 0.6f, 1.8f);
+    public static final EntityType PIGLIN_BRUTE = vanilla("piglin_brute", EntityType.Category.MONSTER, 105, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:polar_bear}, network ID {@code 105}.
+     * {@code minecraft:pillager}, network ID {@code 106}.
      */
-    public static final EntityType POLAR_BEAR = vanilla("polar_bear", EntityType.Category.CREATURE, 105, 1.4f, 1.4f);
+    public static final EntityType PILLAGER = vanilla("pillager", EntityType.Category.MONSTER, 106, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:poplar_boat}, network ID {@code 106}.
+     * {@code minecraft:player}, network ID {@code 161}.
      */
-    public static final EntityType POPLAR_BOAT = vanilla("poplar_boat", EntityType.Category.MISC, 106, 1.375f, 0.5625f);
+    public static final EntityType PLAYER = vanilla("player", EntityType.Category.PLAYER, 161, 0.6f, 1.8f);
 
     /**
-     * {@code minecraft:poplar_chest_boat}, network ID {@code 107}.
+     * {@code minecraft:polar_bear}, network ID {@code 107}.
      */
-    public static final EntityType POPLAR_CHEST_BOAT = vanilla("poplar_chest_boat", EntityType.Category.MISC, 107, 1.375f, 0.5625f);
+    public static final EntityType POLAR_BEAR = vanilla("polar_bear", EntityType.Category.CREATURE, 107, 1.4f, 1.4f);
 
     /**
-     * {@code minecraft:pufferfish}, network ID {@code 110}.
+     * {@code minecraft:poplar_boat}, network ID {@code 108}.
      */
-    public static final EntityType PUFFERFISH = vanilla("pufferfish", EntityType.Category.WATER_CREATURE, 110, 0.7f, 0.7f);
+    public static final EntityType POPLAR_BOAT = vanilla("poplar_boat", EntityType.Category.MISC, 108, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:rabbit}, network ID {@code 111}.
+     * {@code minecraft:poplar_chest_boat}, network ID {@code 109}.
      */
-    public static final EntityType RABBIT = vanilla("rabbit", EntityType.Category.CREATURE, 111, 0.49f, 0.6f);
+    public static final EntityType POPLAR_CHEST_BOAT = vanilla("poplar_chest_boat", EntityType.Category.MISC, 109, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:ravager}, network ID {@code 112}.
+     * {@code minecraft:pufferfish}, network ID {@code 112}.
      */
-    public static final EntityType RAVAGER = vanilla("ravager", EntityType.Category.MONSTER, 112, 1.95f, 2.2f);
+    public static final EntityType PUFFERFISH = vanilla("pufferfish", EntityType.Category.WATER_CREATURE, 112, 0.7f, 0.7f);
 
     /**
-     * {@code minecraft:salmon}, network ID {@code 113}.
+     * {@code minecraft:rabbit}, network ID {@code 113}.
      */
-    public static final EntityType SALMON = vanilla("salmon", EntityType.Category.WATER_CREATURE, 113, 0.7f, 0.4f);
+    public static final EntityType RABBIT = vanilla("rabbit", EntityType.Category.CREATURE, 113, 0.49f, 0.6f);
 
     /**
-     * {@code minecraft:sheep}, network ID {@code 114}.
+     * {@code minecraft:ravager}, network ID {@code 114}.
      */
-    public static final EntityType SHEEP = vanilla("sheep", EntityType.Category.CREATURE, 114, 0.9f, 1.3f);
+    public static final EntityType RAVAGER = vanilla("ravager", EntityType.Category.MONSTER, 114, 1.95f, 2.2f);
 
     /**
-     * {@code minecraft:shulker}, network ID {@code 115}.
+     * {@code minecraft:salmon}, network ID {@code 115}.
      */
-    public static final EntityType SHULKER = vanilla("shulker", EntityType.Category.MONSTER, 115, 1.0f, 1.0f);
+    public static final EntityType SALMON = vanilla("salmon", EntityType.Category.WATER_CREATURE, 115, 0.7f, 0.4f);
 
     /**
-     * {@code minecraft:shulker_bullet}, network ID {@code 116}.
+     * {@code minecraft:sheep}, network ID {@code 116}.
      */
-    public static final EntityType SHULKER_BULLET = vanilla("shulker_bullet", EntityType.Category.MISC, 116, 0.3125f, 0.3125f);
+    public static final EntityType SHEEP = vanilla("sheep", EntityType.Category.CREATURE, 116, 0.9f, 1.3f);
 
     /**
-     * {@code minecraft:silverfish}, network ID {@code 117}.
+     * {@code minecraft:shulker}, network ID {@code 117}.
      */
-    public static final EntityType SILVERFISH = vanilla("silverfish", EntityType.Category.MONSTER, 117, 0.4f, 0.3f);
+    public static final EntityType SHULKER = vanilla("shulker", EntityType.Category.MONSTER, 117, 1.0f, 1.0f);
 
     /**
-     * {@code minecraft:skeleton}, network ID {@code 118}.
+     * {@code minecraft:shulker_bullet}, network ID {@code 118}.
      */
-    public static final EntityType SKELETON = vanilla("skeleton", EntityType.Category.MONSTER, 118, 0.6f, 1.99f);
+    public static final EntityType SHULKER_BULLET = vanilla("shulker_bullet", EntityType.Category.MISC, 118, 0.3125f, 0.3125f);
 
     /**
-     * {@code minecraft:skeleton_horse}, network ID {@code 119}.
+     * {@code minecraft:silverfish}, network ID {@code 119}.
      */
-    public static final EntityType SKELETON_HORSE = vanilla("skeleton_horse", EntityType.Category.CREATURE, 119, 1.3964844f, 1.6f);
+    public static final EntityType SILVERFISH = vanilla("silverfish", EntityType.Category.MONSTER, 119, 0.4f, 0.3f);
 
     /**
-     * {@code minecraft:slime}, network ID {@code 120}.
+     * {@code minecraft:skeleton}, network ID {@code 120}.
      */
-    public static final EntityType SLIME = vanilla("slime", EntityType.Category.MONSTER, 120, 0.52f, 0.52f);
+    public static final EntityType SKELETON = vanilla("skeleton", EntityType.Category.MONSTER, 120, 0.6f, 1.99f);
 
     /**
-     * {@code minecraft:small_fireball}, network ID {@code 121}.
+     * {@code minecraft:skeleton_horse}, network ID {@code 121}.
      */
-    public static final EntityType SMALL_FIREBALL = vanilla("small_fireball", EntityType.Category.MISC, 121, 0.3125f, 0.3125f);
+    public static final EntityType SKELETON_HORSE = vanilla("skeleton_horse", EntityType.Category.CREATURE, 121, 1.3964844f, 1.6f);
 
     /**
-     * {@code minecraft:sniffer}, network ID {@code 122}.
+     * {@code minecraft:slime}, network ID {@code 122}.
      */
-    public static final EntityType SNIFFER = vanilla("sniffer", EntityType.Category.CREATURE, 122, 1.9f, 1.75f);
+    public static final EntityType SLIME = vanilla("slime", EntityType.Category.MONSTER, 122, 0.52f, 0.52f);
 
     /**
-     * {@code minecraft:snow_golem}, network ID {@code 124}.
+     * {@code minecraft:small_fireball}, network ID {@code 123}.
      */
-    public static final EntityType SNOW_GOLEM = vanilla("snow_golem", EntityType.Category.MISC, 124, 0.7f, 1.9f);
+    public static final EntityType SMALL_FIREBALL = vanilla("small_fireball", EntityType.Category.MISC, 123, 0.3125f, 0.3125f);
 
     /**
-     * {@code minecraft:snowball}, network ID {@code 123}.
+     * {@code minecraft:sniffer}, network ID {@code 124}.
      */
-    public static final EntityType SNOWBALL = vanilla("snowball", EntityType.Category.MISC, 123, 0.25f, 0.25f);
+    public static final EntityType SNIFFER = vanilla("sniffer", EntityType.Category.CREATURE, 124, 1.9f, 1.75f);
 
     /**
-     * {@code minecraft:spawner_minecart}, network ID {@code 125}.
+     * {@code minecraft:snow_golem}, network ID {@code 126}.
      */
-    public static final EntityType SPAWNER_MINECART = vanilla("spawner_minecart", EntityType.Category.MISC, 125, 0.98f, 0.7f);
+    public static final EntityType SNOW_GOLEM = vanilla("snow_golem", EntityType.Category.MISC, 126, 0.7f, 1.9f);
 
     /**
-     * {@code minecraft:spectral_arrow}, network ID {@code 126}.
+     * {@code minecraft:snowball}, network ID {@code 125}.
      */
-    public static final EntityType SPECTRAL_ARROW = vanilla("spectral_arrow", EntityType.Category.MISC, 126, 0.5f, 0.5f);
+    public static final EntityType SNOWBALL = vanilla("snowball", EntityType.Category.MISC, 125, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:spider}, network ID {@code 127}.
+     * {@code minecraft:spawner_minecart}, network ID {@code 127}.
      */
-    public static final EntityType SPIDER = vanilla("spider", EntityType.Category.MONSTER, 127, 1.4f, 0.9f);
+    public static final EntityType SPAWNER_MINECART = vanilla("spawner_minecart", EntityType.Category.MISC, 127, 0.98f, 0.7f);
 
     /**
-     * {@code minecraft:splash_potion}, network ID {@code 108}.
+     * {@code minecraft:spectral_arrow}, network ID {@code 128}.
      */
-    public static final EntityType SPLASH_POTION = vanilla("splash_potion", EntityType.Category.MISC, 108, 0.25f, 0.25f);
+    public static final EntityType SPECTRAL_ARROW = vanilla("spectral_arrow", EntityType.Category.MISC, 128, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:spruce_boat}, network ID {@code 128}.
+     * {@code minecraft:spider}, network ID {@code 129}.
      */
-    public static final EntityType SPRUCE_BOAT = vanilla("spruce_boat", EntityType.Category.MISC, 128, 1.375f, 0.5625f);
+    public static final EntityType SPIDER = vanilla("spider", EntityType.Category.MONSTER, 129, 1.4f, 0.9f);
 
     /**
-     * {@code minecraft:spruce_chest_boat}, network ID {@code 129}.
+     * {@code minecraft:splash_potion}, network ID {@code 110}.
      */
-    public static final EntityType SPRUCE_CHEST_BOAT = vanilla("spruce_chest_boat", EntityType.Category.MISC, 129, 1.375f, 0.5625f);
+    public static final EntityType SPLASH_POTION = vanilla("splash_potion", EntityType.Category.MISC, 110, 0.25f, 0.25f);
 
     /**
-     * {@code minecraft:squid}, network ID {@code 130}.
+     * {@code minecraft:spruce_boat}, network ID {@code 130}.
      */
-    public static final EntityType SQUID = vanilla("squid", EntityType.Category.WATER_CREATURE, 130, 0.8f, 0.8f);
+    public static final EntityType SPRUCE_BOAT = vanilla("spruce_boat", EntityType.Category.MISC, 130, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:stray}, network ID {@code 131}.
+     * {@code minecraft:spruce_chest_boat}, network ID {@code 131}.
      */
-    public static final EntityType STRAY = vanilla("stray", EntityType.Category.MONSTER, 131, 0.6f, 1.99f);
+    public static final EntityType SPRUCE_CHEST_BOAT = vanilla("spruce_chest_boat", EntityType.Category.MISC, 131, 1.375f, 0.5625f);
 
     /**
-     * {@code minecraft:strider}, network ID {@code 132}.
+     * {@code minecraft:squid}, network ID {@code 132}.
      */
-    public static final EntityType STRIDER = vanilla("strider", EntityType.Category.CREATURE, 132, 0.9f, 1.7f);
+    public static final EntityType SQUID = vanilla("squid", EntityType.Category.WATER_CREATURE, 132, 0.8f, 0.8f);
 
     /**
-     * {@code minecraft:sulfur_cube}, network ID {@code 133}.
+     * {@code minecraft:stray}, network ID {@code 133}.
      */
-    public static final EntityType SULFUR_CUBE = vanilla("sulfur_cube", EntityType.Category.MONSTER, 133, 0.49f, 0.49f);
+    public static final EntityType STRAY = vanilla("stray", EntityType.Category.MONSTER, 133, 0.6f, 1.99f);
 
     /**
-     * {@code minecraft:tadpole}, network ID {@code 134}.
+     * {@code minecraft:strider}, network ID {@code 134}.
      */
-    public static final EntityType TADPOLE = vanilla("tadpole", EntityType.Category.WATER_CREATURE, 134, 0.4f, 0.3f);
+    public static final EntityType STRIDER = vanilla("strider", EntityType.Category.CREATURE, 134, 0.9f, 1.7f);
 
     /**
-     * {@code minecraft:text_display}, network ID {@code 135}.
+     * {@code minecraft:sulfur_cube}, network ID {@code 135}.
      */
-    public static final EntityType TEXT_DISPLAY = vanilla("text_display", EntityType.Category.MISC, 135, 0.0f, 0.0f);
+    public static final EntityType SULFUR_CUBE = vanilla("sulfur_cube", EntityType.Category.MONSTER, 135, 0.49f, 0.49f);
 
     /**
-     * {@code minecraft:tnt}, network ID {@code 136}.
+     * {@code minecraft:tadpole}, network ID {@code 136}.
      */
-    public static final EntityType TNT = vanilla("tnt", EntityType.Category.MISC, 136, 0.98f, 0.98f);
+    public static final EntityType TADPOLE = vanilla("tadpole", EntityType.Category.WATER_CREATURE, 136, 0.4f, 0.3f);
 
     /**
-     * {@code minecraft:tnt_minecart}, network ID {@code 137}.
+     * {@code minecraft:text_display}, network ID {@code 137}.
      */
-    public static final EntityType TNT_MINECART = vanilla("tnt_minecart", EntityType.Category.MISC, 137, 0.98f, 0.7f);
+    public static final EntityType TEXT_DISPLAY = vanilla("text_display", EntityType.Category.MISC, 137, 0.0f, 0.0f);
 
     /**
-     * {@code minecraft:trader_llama}, network ID {@code 138}.
+     * {@code minecraft:tnt}, network ID {@code 138}.
      */
-    public static final EntityType TRADER_LLAMA = vanilla("trader_llama", EntityType.Category.CREATURE, 138, 0.9f, 1.87f);
+    public static final EntityType TNT = vanilla("tnt", EntityType.Category.MISC, 138, 0.98f, 0.98f);
 
     /**
-     * {@code minecraft:trident}, network ID {@code 139}.
+     * {@code minecraft:tnt_minecart}, network ID {@code 139}.
      */
-    public static final EntityType TRIDENT = vanilla("trident", EntityType.Category.MISC, 139, 0.5f, 0.5f);
+    public static final EntityType TNT_MINECART = vanilla("tnt_minecart", EntityType.Category.MISC, 139, 0.98f, 0.7f);
 
     /**
-     * {@code minecraft:tropical_fish}, network ID {@code 140}.
+     * {@code minecraft:trader_llama}, network ID {@code 140}.
      */
-    public static final EntityType TROPICAL_FISH = vanilla("tropical_fish", EntityType.Category.WATER_CREATURE, 140, 0.5f, 0.4f);
+    public static final EntityType TRADER_LLAMA = vanilla("trader_llama", EntityType.Category.CREATURE, 140, 0.9f, 1.87f);
 
     /**
-     * {@code minecraft:turtle}, network ID {@code 141}.
+     * {@code minecraft:trident}, network ID {@code 141}.
      */
-    public static final EntityType TURTLE = vanilla("turtle", EntityType.Category.CREATURE, 141, 1.2f, 0.4f);
+    public static final EntityType TRIDENT = vanilla("trident", EntityType.Category.MISC, 141, 0.5f, 0.5f);
 
     /**
-     * {@code minecraft:vex}, network ID {@code 142}.
+     * {@code minecraft:tropical_fish}, network ID {@code 142}.
      */
-    public static final EntityType VEX = vanilla("vex", EntityType.Category.MONSTER, 142, 0.4f, 0.8f);
+    public static final EntityType TROPICAL_FISH = vanilla("tropical_fish", EntityType.Category.WATER_CREATURE, 142, 0.5f, 0.4f);
 
     /**
-     * {@code minecraft:villager}, network ID {@code 143}.
+     * {@code minecraft:turtle}, network ID {@code 143}.
      */
-    public static final EntityType VILLAGER = vanilla("villager", EntityType.Category.CREATURE, 143, 0.6f, 1.95f);
+    public static final EntityType TURTLE = vanilla("turtle", EntityType.Category.CREATURE, 143, 1.2f, 0.4f);
 
     /**
-     * {@code minecraft:vindicator}, network ID {@code 144}.
+     * {@code minecraft:vex}, network ID {@code 144}.
      */
-    public static final EntityType VINDICATOR = vanilla("vindicator", EntityType.Category.MONSTER, 144, 0.6f, 1.95f);
+    public static final EntityType VEX = vanilla("vex", EntityType.Category.MONSTER, 144, 0.4f, 0.8f);
 
     /**
-     * {@code minecraft:wandering_trader}, network ID {@code 145}.
+     * {@code minecraft:villager}, network ID {@code 145}.
      */
-    public static final EntityType WANDERING_TRADER = vanilla("wandering_trader", EntityType.Category.CREATURE, 145, 0.6f, 1.95f);
+    public static final EntityType VILLAGER = vanilla("villager", EntityType.Category.CREATURE, 145, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:warden}, network ID {@code 146}.
+     * {@code minecraft:vindicator}, network ID {@code 146}.
      */
-    public static final EntityType WARDEN = vanilla("warden", EntityType.Category.MONSTER, 146, 0.9f, 2.9f);
+    public static final EntityType VINDICATOR = vanilla("vindicator", EntityType.Category.MONSTER, 146, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:wind_charge}, network ID {@code 147}.
+     * {@code minecraft:wandering_trader}, network ID {@code 147}.
      */
-    public static final EntityType WIND_CHARGE = vanilla("wind_charge", EntityType.Category.MISC, 147, 0.3125f, 0.3125f);
+    public static final EntityType WANDERING_TRADER = vanilla("wandering_trader", EntityType.Category.CREATURE, 147, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:witch}, network ID {@code 148}.
+     * {@code minecraft:warden}, network ID {@code 148}.
      */
-    public static final EntityType WITCH = vanilla("witch", EntityType.Category.MONSTER, 148, 0.6f, 1.95f);
+    public static final EntityType WARDEN = vanilla("warden", EntityType.Category.MONSTER, 148, 0.9f, 2.9f);
 
     /**
-     * {@code minecraft:wither}, network ID {@code 149}.
+     * {@code minecraft:wind_charge}, network ID {@code 149}.
      */
-    public static final EntityType WITHER = vanilla("wither", EntityType.Category.MONSTER, 149, 0.9f, 3.5f);
+    public static final EntityType WIND_CHARGE = vanilla("wind_charge", EntityType.Category.MISC, 149, 0.3125f, 0.3125f);
 
     /**
-     * {@code minecraft:wither_skeleton}, network ID {@code 150}.
+     * {@code minecraft:witch}, network ID {@code 150}.
      */
-    public static final EntityType WITHER_SKELETON = vanilla("wither_skeleton", EntityType.Category.MONSTER, 150, 0.7f, 2.4f);
+    public static final EntityType WITCH = vanilla("witch", EntityType.Category.MONSTER, 150, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:wither_skull}, network ID {@code 151}.
+     * {@code minecraft:wither}, network ID {@code 151}.
      */
-    public static final EntityType WITHER_SKULL = vanilla("wither_skull", EntityType.Category.MISC, 151, 0.3125f, 0.3125f);
+    public static final EntityType WITHER = vanilla("wither", EntityType.Category.MONSTER, 151, 0.9f, 3.5f);
 
     /**
-     * {@code minecraft:wolf}, network ID {@code 152}.
+     * {@code minecraft:wither_skeleton}, network ID {@code 152}.
      */
-    public static final EntityType WOLF = vanilla("wolf", EntityType.Category.CREATURE, 152, 0.6f, 0.85f);
+    public static final EntityType WITHER_SKELETON = vanilla("wither_skeleton", EntityType.Category.MONSTER, 152, 0.7f, 2.4f);
 
     /**
-     * {@code minecraft:zoglin}, network ID {@code 153}.
+     * {@code minecraft:wither_skull}, network ID {@code 153}.
      */
-    public static final EntityType ZOGLIN = vanilla("zoglin", EntityType.Category.MONSTER, 153, 1.3964844f, 1.4f);
+    public static final EntityType WITHER_SKULL = vanilla("wither_skull", EntityType.Category.MISC, 153, 0.3125f, 0.3125f);
 
     /**
-     * {@code minecraft:zombie}, network ID {@code 154}.
+     * {@code minecraft:wolf}, network ID {@code 154}.
      */
-    public static final EntityType ZOMBIE = vanilla("zombie", EntityType.Category.MONSTER, 154, 0.6f, 1.95f);
+    public static final EntityType WOLF = vanilla("wolf", EntityType.Category.CREATURE, 154, 0.6f, 0.85f);
 
     /**
-     * {@code minecraft:zombie_horse}, network ID {@code 155}.
+     * {@code minecraft:zoglin}, network ID {@code 155}.
      */
-    public static final EntityType ZOMBIE_HORSE = vanilla("zombie_horse", EntityType.Category.CREATURE, 155, 1.3964844f, 1.6f);
+    public static final EntityType ZOGLIN = vanilla("zoglin", EntityType.Category.MONSTER, 155, 1.3964844f, 1.4f);
 
     /**
-     * {@code minecraft:zombie_nautilus}, network ID {@code 156}.
+     * {@code minecraft:zombie}, network ID {@code 156}.
      */
-    public static final EntityType ZOMBIE_NAUTILUS = vanilla("zombie_nautilus", EntityType.Category.MONSTER, 156, 0.875f, 0.95f);
+    public static final EntityType ZOMBIE = vanilla("zombie", EntityType.Category.MONSTER, 156, 0.6f, 1.95f);
 
     /**
-     * {@code minecraft:zombie_villager}, network ID {@code 157}.
+     * {@code minecraft:zombie_horse}, network ID {@code 157}.
      */
-    public static final EntityType ZOMBIE_VILLAGER = vanilla("zombie_villager", EntityType.Category.MONSTER, 157, 0.6f, 1.95f);
+    public static final EntityType ZOMBIE_HORSE = vanilla("zombie_horse", EntityType.Category.CREATURE, 157, 1.3964844f, 1.6f);
 
     /**
-     * {@code minecraft:zombified_piglin}, network ID {@code 158}.
+     * {@code minecraft:zombie_nautilus}, network ID {@code 158}.
      */
-    public static final EntityType ZOMBIFIED_PIGLIN = vanilla("zombified_piglin", EntityType.Category.MONSTER, 158, 0.6f, 1.95f);
+    public static final EntityType ZOMBIE_NAUTILUS = vanilla("zombie_nautilus", EntityType.Category.MONSTER, 158, 0.875f, 0.95f);
+
+    /**
+     * {@code minecraft:zombie_villager}, network ID {@code 159}.
+     */
+    public static final EntityType ZOMBIE_VILLAGER = vanilla("zombie_villager", EntityType.Category.MONSTER, 159, 0.6f, 1.95f);
+
+    /**
+     * {@code minecraft:zombified_piglin}, network ID {@code 160}.
+     */
+    public static final EntityType ZOMBIFIED_PIGLIN = vanilla("zombified_piglin", EntityType.Category.MONSTER, 160, 0.6f, 1.95f);
 
     private EntityTypes() {
     }

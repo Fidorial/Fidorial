@@ -74,7 +74,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     @Override
     public void onEnter() {
         LOGGER.debug("{} enters the Configuration phase", connection.username());
-        if (!server.protocolMap().isAvailable()) {
+        if (!server.network().protocolMap().isAvailable()) {
             LOGGER.error(
                     "Protocol table missing: unable to configure {}.",
                     connection.username());
@@ -91,13 +91,13 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
 
     private void proceedToKnownPacks() {
         connection.send(new ClientboundUpdateEnabledFeaturesPacket(
-                server.worldManager().levelData().enabledFeatures.toArray(Key[]::new)));
+                server.worlds().manager().levelData().enabledFeatures.toArray(Key[]::new)));
         awaitingKnownPacks = true;
         connection.send(new ClientboundSelectKnownPacksPacket(KNOWN_PACKS.packs()));
     }
 
     private void proceedToCodeOfConduct() {
-        if (!server.codeOfConduct().enabled()) {
+        if (!server.moderation().codeOfConduct().enabled()) {
             proceedToKnownPacks();
             return;
         }
@@ -113,7 +113,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             if (!codeOfConductPending || !clientInformationReceived) {
                 return;
             }
-            contents = server.codeOfConduct().contentFor(connection.locale());
+            contents = server.moderation().codeOfConduct().contentFor(connection.locale());
             codeOfConductPending = false;
             if (contents != null) {
                 awaitingCodeOfConduct = true;
@@ -192,7 +192,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     }
 
     private void sendRegistries(final Set<KnownPack> negotiatedPacks) {
-        final RegistryHolder dynamic = server.dynamicRegistries();
+        final RegistryHolder dynamic = server.registries().dynamic();
         if (dynamic.isEmpty()) {
             LOGGER.warn("No dynamic registry to send (GeneratedRegistryData is empty).");
             return;
@@ -211,28 +211,28 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialBiomeRegistry.REGISTRY_NAME,
-                forClient(server.biomeRegistry().networkEntries(),
-                        server.biomeRegistry()::isCustom, hasKnownPacks)));
+                forClient(server.registries().biomes().networkEntries(),
+                        server.registries().biomes()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialDialogRegistry.REGISTRY_NAME,
-                forClient(server.dialogs().networkEntries(),
-                        server.dialogs()::isCustom, hasKnownPacks)));
+                forClient(server.registries().dialogs().networkEntries(),
+                        server.registries().dialogs()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialDimensionTypeRegistry.REGISTRY_NAME,
-                forClient(server.dimensionTypes().networkEntries(),
-                        server.dimensionTypes()::isCustom, hasKnownPacks)));
+                forClient(server.registries().dimensionTypes().networkEntries(),
+                        server.registries().dimensionTypes()::isCustom, hasKnownPacks)));
 
         connection.send(new ClientboundRegistryDataPacket(
                 FidorialChatTypeRegistry.REGISTRY_NAME,
-                forClient(server.chatTypes().networkEntries(),
-                        server.chatTypes()::isCustom, hasKnownPacks)));
+                forClient(server.registries().chatTypes().networkEntries(),
+                        server.registries().chatTypes()::isCustom, hasKnownPacks)));
     }
 
     private void sendTags() {
         connection.send(new ClientboundUpdateTagsPacket(
-                server.registries().network(), server.biomeRegistry(), server.dialogs(), server.dimensionTypes(), server.chatTypes()));
+                server.registries().network(), server.registries().biomes(), server.registries().dialogs(), server.registries().dimensionTypes(), server.registries().chatTypes()));
     }
 
     private List<RegistryEntry> forClient(final List<RegistryEntry> entries, final Predicate<Key> isCustom, final boolean hasKnownPacks) {
@@ -280,7 +280,7 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             LOGGER.debug("{} sent an invalid click callback payload for {}", connection.username(), packet.id(), e);
             return;
         }
-        server.clickCallbacksManager().handleClick(connection, packet.id(), uuid);
+        server.commands().clickCallbacks().handleClick(connection, packet.id(), uuid);
     }
 
     @Override

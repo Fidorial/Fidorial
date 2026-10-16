@@ -6,7 +6,7 @@ import net.kyori.adventure.key.Key;
 public final class ChunkSection {
 
     public static final int BLOCK_COUNT = 4096; // 16^3
-    public static final int BIOME_COUNT = 64;   // 4^3
+    public static final int BIOME_COUNT = 4096;    // 16^3, one biome per block since 26.4
 
     private final int sectionY; // indice de section (ex. -4 pour y=-64)
     private final PalettedContainer<BlockState> blocks;
@@ -81,12 +81,12 @@ public final class ChunkSection {
         return blocks.get(blockIndex(x, y, z));
     }
 
-    public void setBiome(final int bx, final int by, final int bz, final Key biome) {
-        biomes.set((by << 4) | (bz << 2) | bx, biome);
+    public void setBiome(final int x, final int y, final int z, final Key biome) {
+        biomes.set(blockIndex(x, y, z), biome);
     }
 
-    public Key getBiome(final int bx, final int by, final int bz) {
-        return biomes.get((by << 4) | (bz << 2) | bx);
+    public Key getBiome(final int x, final int y, final int z) {
+        return biomes.get(blockIndex(x, y, z));
     }
 
     public boolean containsEmissiveBlocks() {

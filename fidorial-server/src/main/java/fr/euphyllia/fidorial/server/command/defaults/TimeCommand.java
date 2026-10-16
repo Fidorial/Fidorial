@@ -3,10 +3,9 @@ package fr.euphyllia.fidorial.server.command.defaults;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.entity.Player;
+import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.time.DayNightCycle;
 import net.kyori.adventure.text.Component;
@@ -16,6 +15,7 @@ import java.util.Locale;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * /time set day|noon|sunset|night|midnight|sunrise|&lt;ticks&gt;
@@ -40,15 +40,15 @@ public final class TimeCommand {
                         .then(preset("night", DayNightCycle.NIGHT_START))
                         .then(preset("midnight", DayNightCycle.MIDNIGHT))
                         .then(preset("sunrise", DayNightCycle.SUNRISE))
-                        .then(argument("ticks", ArgumentTypes.time(0))
+                        .then(argument("ticks", arguments().time(0))
                                 .executes(context -> set(context, context.getArgument("ticks", Integer.class)))
-                                .then(argument("world", ArgumentTypes.world())
+                                .then(argument("world", arguments().world())
                                         .executes(context ->
                                                 set(context, context.getArgument("ticks", Integer.class))))))
                 .then(literal("add")
-                        .then(argument("ticks", ArgumentTypes.time(Integer.MIN_VALUE))
+                        .then(argument("ticks", arguments().time(Integer.MIN_VALUE))
                                 .executes(TimeCommand::add)
-                                .then(argument("world", ArgumentTypes.world())
+                                .then(argument("world", arguments().world())
                                         .executes(TimeCommand::add))))
                 .then(literal("query")
                         .then(query("daytime"))
@@ -63,7 +63,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> preset(final String name, final int ticks) {
         return literal(name)
                 .executes(context -> set(context, ticks))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> set(context, ticks)))
                 .build();
     }
@@ -71,7 +71,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> toggle(final String name, final boolean running) {
         return literal(name)
                 .executes(context -> freeze(context, running))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> freeze(context, running)))
                 .build();
     }
@@ -79,7 +79,7 @@ public final class TimeCommand {
     private static LiteralCommandNode<CommandSource> query(final String kind) {
         return literal(kind)
                 .executes(context -> query(context, kind))
-                .then(argument("world", ArgumentTypes.world())
+                .then(argument("world", arguments().world())
                         .executes(context -> query(context, kind)))
                 .build();
     }
@@ -90,10 +90,9 @@ public final class TimeCommand {
                 return context.getArgument("world", World.class);
             }
         }
-        if (context.getSource().sender() instanceof final Player player) {
-            return player.world();
-        }
-        return FidorialServer.getInstance().worldManager().defaultWorld().orElse(null);
+        final CommandSource source = context.getSource();
+        return source.location() instanceof final Location location
+                && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     private static int set(final CommandContext<CommandSource> context, final int timeOfDay) {
@@ -104,7 +103,6 @@ public final class TimeCommand {
         final DayNightCycle cycle = world.dayNightCycle();
         cycle.setTime(cycle.day() * DayNightCycle.DAY_LENGTH + Math.floorMod(timeOfDay, DayNightCycle.DAY_LENGTH));
         context.getSource()
-                .sender()
                 .sendMessage(Component.translatable(
                         "command.time.set",
                         Component.text(cycle.timeOfDay()),
@@ -120,7 +118,6 @@ public final class TimeCommand {
         final DayNightCycle cycle = world.dayNightCycle();
         cycle.addTime(context.getArgument("ticks", Integer.class));
         context.getSource()
-                .sender()
                 .sendMessage(Component.translatable(
                         "command.time.set",
                         Component.text(cycle.timeOfDay()),
@@ -140,7 +137,6 @@ public final class TimeCommand {
             default -> cycle.timeOfDay();
         };
         context.getSource()
-                .sender()
                 .sendMessage(Component.translatable(
                         "command.time.query",
                         Component.text(world.key().asString()),
@@ -156,7 +152,6 @@ public final class TimeCommand {
         }
         world.dayNightCycle().setDoDaylightCycle(running);
         context.getSource()
-                .sender()
                 .sendMessage(Component.translatable(
                         running ? "command.time.resumed" : "command.time.frozen",
                         Component.text(world.key().asString())));
@@ -165,7 +160,7 @@ public final class TimeCommand {
 
     private static boolean handleMissingWorld(final CommandSource source, final @Nullable World world) {
         if (world == null) {
-            source.sender().sendMessage(Component.translatable("command.time.no_world"));
+            source.sendMessage(Component.translatable("command.time.no_world"));
             return true;
         }
         return false;

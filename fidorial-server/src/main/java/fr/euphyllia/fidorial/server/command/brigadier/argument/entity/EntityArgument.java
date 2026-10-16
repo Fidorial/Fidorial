@@ -168,7 +168,7 @@ public final class EntityArgument<T> implements ArgumentType<T> {
         }
 
         return parser.fillSuggestions(builder, suggestionsBuilder -> {
-            final Collection<String> playerNames = source.server().onlinePlayers().stream()
+            final Collection<String> playerNames = source.server().players().online().stream()
                     .filter(this.predicate)
                     .map(Player::name)
                     .toList();

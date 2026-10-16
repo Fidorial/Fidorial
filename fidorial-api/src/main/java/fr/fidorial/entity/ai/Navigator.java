@@ -1,7 +1,7 @@
 package fr.fidorial.entity.ai;
 
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -19,7 +19,7 @@ public interface Navigator {
     Navigator NONE = new Navigator() {
 
         @Override
-        public void moveTo(final Location from, final BlockPos goal) {
+        public void moveTo(final Location from, final Position goal) {
         }
 
         @Override
@@ -32,7 +32,7 @@ public interface Navigator {
         }
 
         @Override
-        public @Nullable BlockPos currentWaypoint() {
+        public @Nullable Position currentWaypoint() {
             return null;
         }
     };
@@ -42,17 +42,7 @@ public interface Navigator {
      * @param goal the block to walk to
      * @since 0.1.0
      */
-    void moveTo(Location from, BlockPos goal);
-
-    /**
-     * @param from the position the path starts from
-     * @param goal the location to walk to, rounded down to a block
-     * @since 0.1.0
-     */
-    default void moveTo(final Location from, final Location goal) {
-        moveTo(from, new BlockPos(
-                (int) Math.floor(goal.x()), (int) Math.floor(goal.y()), (int) Math.floor(goal.z())));
-    }
+    void moveTo(Location from, Position goal);
 
     /**
      * Drops the current path; the mob stops where it stands.
@@ -71,5 +61,5 @@ public interface Navigator {
      * @return the block the mob is currently walking to, or {@code null} when idle
      * @since 0.1.0
      */
-    @Nullable BlockPos currentWaypoint();
+    @Nullable Position currentWaypoint();
 }

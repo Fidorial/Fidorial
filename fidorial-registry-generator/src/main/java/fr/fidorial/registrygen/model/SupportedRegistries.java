@@ -37,6 +37,7 @@ public final class SupportedRegistries {
             registry("minecraft:attribute", "Attribute", RegistrySync.FROZEN),
             registry("minecraft:banner_pattern", "BannerPattern", RegistrySync.DYNAMIC),
             registry("minecraft:worldgen/biome", "Biome", RegistrySync.DYNAMIC),
+            registry("minecraft:block_sound_set", "BlockSoundSet", RegistrySync.DYNAMIC),
             registry("minecraft:block_transformer", "BlockTransformer", RegistrySync.DYNAMIC),
             BLOCK,
             registry("minecraft:cat_sound_variant", "CatSoundVariant", RegistrySync.DYNAMIC),

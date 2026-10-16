@@ -36,7 +36,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
@@ -48,6 +47,7 @@ import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
@@ -58,8 +58,6 @@ import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
@@ -158,10 +156,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             final EnderChestInventory enderChest,
             final GameMode gameMode,
             final ClientConnection connection,
-            final World world,
             final Location location
     ) {
-        super(entityId, profile.uuid(), EntityTypes.PLAYER, world, location, MAX_HEALTH);
+        super(entityId, profile.uuid(), EntityTypes.PLAYER, location, MAX_HEALTH);
         this.profile = profile;
         this.inventory = inventory;
         this.enderChest = enderChest;
@@ -170,7 +167,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.locale = connection.locale();
         this.permissions = new PermissionState(
                 this,
-                connection.server().permissions(),
+                connection.server().registries().permissions(),
                 () -> connection.server()
                         .services()
                         .find(PermissionResolver.class)
@@ -193,12 +190,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public boolean isOperator() {
-        return connection.server().operators().isOp(profile.uuid());
+        return connection.server().moderation().operators().isOp(profile.uuid());
     }
 
     @Override
     public void setOperator(final boolean operator) {
-        connection.server().operators().setOp(profile.uuid(), profile.name(), operator);
+        connection.server().moderation().operators().setOp(profile.uuid(), profile.name(), operator);
         invalidatePermissions();
     }
 
@@ -212,7 +209,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         permissions.invalidate();
         updateClientPermissionLevel();
         refreshCommands();
-        connection.server().debugSubscribers().refresh(this);
+        connection.server().debug().subscribers().refresh(this);
     }
 
     private void updateClientPermissionLevel() {
@@ -222,7 +219,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void refreshCommands() {
-        connection.send(connection.server().commandManager().createCommandsPacket(this));
+        connection.send(connection.server().commands().manager().createCommandsPacket(this));
     }
 
     @Override
@@ -292,7 +289,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private void emitContainerEvent(final TypedKey<GameEvent> event, final ContainerMenu menu) {
-        final var events = connection.server().debugGameEvents();
+        final var events = connection.server().debug().gameEvents();
         if (menu instanceof final EnderChestMenu enderChestMenu) {
             events.emit(world(), event, enderChestMenu.position());
         } else {
@@ -461,7 +458,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private int effectNetworkId(final MobEffectInstance effect) {
-        return connection.server().effects().clientNetworkId(this, effect.type().key());
+        return connection.server().registries().effects().clientNetworkId(this, effect.type().key());
     }
 
     @Override
@@ -486,7 +483,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setFallDistance(0.0);
         setFalling(false);
         if (distance > 0.0) {
-            connection.server().debugGameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
+            connection.server().debug().gameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
         }
         if (distance <= SAFE_FALL_DISTANCE || isInvulnerableToDamage()) {
             return 0f;
@@ -712,7 +709,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.gameMode = gameMode;
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, gameMode.id()));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(gameMode));
-        connection.server().broadcast(new ClientboundPlayerInfoGameModePacket(uuid(), gameMode.id()));
+        connection.server().players().broadcast(new ClientboundPlayerInfoGameModePacket(uuid(), gameMode.id()));
     }
 
     @Override
@@ -828,16 +825,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public CompletableFuture<Boolean> teleport(final World destination, final Location location) {
-        if (isRemoved() || !(destination instanceof final ServerWorld target)) {
+    public CompletableFuture<Boolean> teleport(final Location location) {
+        if (isRemoved()) {
             return CompletableFuture.completedFuture(false);
         }
-        return connection.teleport(target, location);
-    }
-
-    @Override
-    public CommandSender sender() {
-        return this;
+        return connection.teleport(location);
     }
 
     public DebugSubscriptionState debugSubscriptions() {
@@ -913,7 +905,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (message == null) {
             return null;
         }
-        final Component resolved = ComponentResolver.resolve(message, this);
+        final Component resolved = ComponentResolver.resolve(message, this.commandSource());
         return TranslationStore.render(resolved, locale());
     }
 

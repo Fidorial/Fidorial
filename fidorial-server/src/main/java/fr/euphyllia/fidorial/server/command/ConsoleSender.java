@@ -1,28 +1,26 @@
 package fr.euphyllia.fidorial.server.command;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Entity;
+import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
+import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
 
-public class ConsoleSender implements CommandSender, PermissionStateHolder, CommandSource {
+public final class ConsoleSender implements CommandSender, PermissionStateHolder {
 
     public static final ComponentLogger LOGGER = ComponentLogger.logger("Console");
     private static final PointersSupplier<ConsoleSender> pointers = PointersSupplier.<ConsoleSender>builder()
@@ -31,14 +29,22 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
             .resolving(PermissionChecker.POINTER, sender -> sender::permissionState)
             .build();
 
+    private final FidorialServer server;
     private final PermissionState permissions;
     private Locale locale = Locale.US;
 
-    public ConsoleSender(final FidorialServer server) {
+    /**
+     * @param server             the server, only used once it is running (default world)
+     * @param permissionRegistry the known permissions
+     * @param services           where to look for plugin permission resolvers
+     */
+    public ConsoleSender(
+            final FidorialServer server, final PermissionRegistry permissionRegistry, final ServiceRegistry services) {
+        this.server = server;
         this.permissions = new PermissionState(
                 this,
-                server.permissions(),
-                () -> server.services()
+                permissionRegistry,
+                () -> services
                         .find(PermissionResolver.class)
                         .map(List::of)
                         .orElseGet(List::of));
@@ -63,7 +69,7 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
 
     @Override
     public void sendMessage(final Component message) {
-        Component resolved = ComponentResolver.resolve(message, this);
+        final Component resolved = ComponentResolver.resolve(message, this.commandSource());
         LOGGER.info(TranslationStore.render(resolved, locale()));
     }
 
@@ -88,24 +94,15 @@ public class ConsoleSender implements CommandSender, PermissionStateHolder, Comm
     }
 
     @Override
-    public Location location() {
-        // provide the location as default spawn
-        final WorldConfiguration config = FidorialServer.getInstance().worldManager().defaultWorld().orElseThrow().configuration();
-        return config.gameplay().spawn();
-    }
-
-    @Override
-    public CommandSender sender() {
-        return this;
-    }
-
-    @Override
-    public @Nullable Entity executor() {
-        return null;
-    }
-
-    @Override
     public FidorialServer server() {
-        return FidorialServer.getInstance();
+        return server;
+    }
+
+    @Override
+    public CommandSource commandSource() {
+        final CommandSource source = CommandSource.of(this);
+        return server.worlds().manager().defaultWorld()
+                .map(world -> source.at(world.configuration().gameplay().spawn().location(world)))
+                .orElse(source);
     }
 }

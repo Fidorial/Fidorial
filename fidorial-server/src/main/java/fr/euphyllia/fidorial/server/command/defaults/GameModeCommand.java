@@ -4,7 +4,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
 import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
@@ -14,6 +13,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class GameModeCommand {
 
@@ -29,20 +29,19 @@ public final class GameModeCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("gamemode")
                 .requires(src -> src.sender().hasPermission("fidorial.command.gamemode"))
-                .then(argument("gamemode", ArgumentTypes.gameMode())
+                .then(argument("gamemode", arguments().gameMode())
                         .executes(GameModeCommand::executeSelf)
-                        .then(argument("target", ArgumentTypes.players())
+                        .then(argument("target", arguments().players())
                                 .executes(GameModeCommand::executeTarget)))
                 .build();
     }
 
     private static int executeSelf(final CommandContext<CommandSource> context) {
-        if (!(context.getSource().sender() instanceof final Player sender)) {
-            context.getSource().sender().sendMessage(Component.translatable("command.gamemode.console"));
+        if (!(context.getSource().executor() instanceof final Player player)) {
+            context.getSource().sendMessage(Component.translatable("command.gamemode.not_player"));
             return 0;
         }
-
-        return change(context, List.of(sender));
+        return change(context, List.of(player));
     }
 
     private static int executeTarget(final CommandContext<CommandSource> context) throws CommandSyntaxException {
@@ -60,7 +59,6 @@ public final class GameModeCommand {
 
             if (context.getSource().sender() != target) {
                 context.getSource()
-                        .sender()
                         .sendMessage(Component.translatable(
                                 "command.gamemode.changed.other", Component.text(target.name()), describe(mode)));
             }

@@ -8,7 +8,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 @SuppressWarnings("UnstableApiUsage") // we are permitted
 public final class ClickCallbackProviderImpl implements ClickCallback.Provider {
     @Override
-    public ClickEvent<?> create(ClickCallback<Audience> callback, ClickCallback.Options options) {
-        return FidorialServer.getInstance().clickCallbacksManager().addClickEvent(callback, options);
+    public ClickEvent<?> create(final ClickCallback<Audience> callback, final ClickCallback.Options options) {
+        return FidorialServer.getInstance().commands().clickCallbacks().addClickEvent(callback, options);
     }
 }

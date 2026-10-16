@@ -4,6 +4,7 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.BannerPattern;
 import fr.fidorial.registry.data.Biome;
+import fr.fidorial.registry.data.BlockSoundSet;
 import fr.fidorial.registry.data.BlockTransformer;
 import fr.fidorial.registry.data.BlockType;
 import fr.fidorial.registry.data.CatSoundVariant;
@@ -68,6 +69,11 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:worldgen/biome}.
      */
     public static final RegistryKey<Biome> BIOME = of("worldgen/biome");
+
+    /**
+     * Registry key for {@code minecraft:block_sound_set}.
+     */
+    public static final RegistryKey<BlockSoundSet> BLOCK_SOUND_SET = of("block_sound_set");
 
     /**
      * Registry key for {@code minecraft:block_transformer}.

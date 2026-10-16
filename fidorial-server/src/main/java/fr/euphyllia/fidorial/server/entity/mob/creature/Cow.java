@@ -12,6 +12,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractAgeableMob;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.CowSoundVariant;
@@ -21,8 +22,6 @@ import fr.fidorial.registry.keys.CowSoundVariantKeys;
 import fr.fidorial.registry.keys.CowVariantKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -96,12 +95,12 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
     private int ambientSoundChance;
 
 
-    public Cow(final int entityId, final World world, final Location location) {
-        this(entityId, world, location, ThreadLocalRandom.current().nextDouble() < BABY_SPAWN_CHANCE);
+    public Cow(final int entityId, final Location location) {
+        this(entityId, location, ThreadLocalRandom.current().nextDouble() < BABY_SPAWN_CHANCE);
     }
 
-    public Cow(final int entityId, final World world, final Location location, final boolean baby) {
-        super(entityId, UUID.randomUUID(), EntityTypes.COW, world, location, MAX_HEALTH, baby);
+    public Cow(final int entityId, final Location location, final boolean baby) {
+        super(entityId, UUID.randomUUID(), EntityTypes.COW, location, MAX_HEALTH, baby);
 
         this.soundVariant = ThreadLocalRandom.current().nextBoolean()
                 ? CowSoundVariantKeys.CLASSIC

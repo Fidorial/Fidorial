@@ -50,6 +50,7 @@ module fr.fidorial {
     exports fr.fidorial.event;
     exports fr.fidorial.gamerule;
     exports fr.fidorial.inventory;
+    exports fr.fidorial.math;
     exports fr.fidorial.permission;
     exports fr.fidorial.plugin;
     exports fr.fidorial.registry.data;
@@ -91,6 +92,10 @@ module fr.fidorial {
     exports fr.fidorial.item.data;
     exports fr.fidorial.item.component;
     exports fr.fidorial.event.block;
+    exports fr.fidorial.command.serializers;
+
+    uses fr.fidorial.command.argument.Arguments;
+    uses fr.fidorial.command.serializers.MessageComponentSerializer;
 
     requires com.google.common;
     requires com.google.gson;
@@ -103,4 +108,5 @@ module fr.fidorial {
 
     requires static org.jetbrains.annotations;
     requires static org.jspecify;
+    requires com.google.j2objc.annotations;
 }

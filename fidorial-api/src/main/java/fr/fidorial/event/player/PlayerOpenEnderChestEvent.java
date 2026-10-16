@@ -3,7 +3,7 @@ package fr.fidorial.event.player;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.inventory.EnderChestInventory;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 
 /**
  * Fired right before a player opens an ender chest.
@@ -15,7 +15,7 @@ import fr.fidorial.world.BlockPos;
 public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable {
 
     private final Player player;
-    private final BlockPos position;
+    private final BlockPosition position;
     private final EnderChestInventory enderChest;
     private boolean cancelled;
 
@@ -27,7 +27,7 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
      * @param enderChest the container about to be displayed
      * @since 0.1.0
      */
-    public PlayerOpenEnderChestEvent(final Player player, final BlockPos position, final EnderChestInventory enderChest) {
+    public PlayerOpenEnderChestEvent(final Player player, final BlockPosition position, final EnderChestInventory enderChest) {
         this.player = player;
         this.position = position;
         this.enderChest = enderChest;
@@ -43,7 +43,7 @@ public final class PlayerOpenEnderChestEvent implements PlayerEvent, Cancellable
      *
      * @since 0.1.0
      */
-    public BlockPos position() {
+    public BlockPosition position() {
         return position;
     }
 
