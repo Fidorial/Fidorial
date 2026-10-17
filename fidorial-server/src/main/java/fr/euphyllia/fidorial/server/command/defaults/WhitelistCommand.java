@@ -8,12 +8,11 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
+import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
 import fr.fidorial.entity.PlayerProfile;
 import fr.fidorial.moderation.WhitelistManager;
 import net.kyori.adventure.text.Component;
 
-import java.util.Collection;
 import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
@@ -28,10 +27,10 @@ public final class WhitelistCommand {
     }
 
     public static LiteralCommandNode<CommandSource> create() {
-        final ArgumentType<PlayerProfileListResolver> unlistedArgument =
+        final ArgumentType<PlayerProfilesResolver> unlistedArgument =
                 arguments().playerProfiles(player -> !server().players().whitelist().contains(player.uuid()));
 
-        final ArgumentType<PlayerProfileListResolver> listedArgument =
+        final ArgumentType<PlayerProfilesResolver> listedArgument =
                 arguments().playerProfiles(player -> server().players().whitelist().contains(player.uuid()));
 
         return literal("whitelist")
@@ -71,8 +70,7 @@ public final class WhitelistCommand {
         final CommandSource source = context.getSource();
         final WhitelistManager whitelist = server().players().whitelist();
 
-        final Collection<PlayerProfile> targets =
-                context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
+        final List<PlayerProfile> targets = PlayerProfilesResolver.playerProfiles(context, "player");
 
         int added = 0;
 
@@ -95,8 +93,7 @@ public final class WhitelistCommand {
         final CommandSource source = context.getSource();
         final WhitelistManager whitelist = server().players().whitelist();
 
-        final Collection<PlayerProfile> targets =
-                context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
+        final List<PlayerProfile> targets = PlayerProfilesResolver.playerProfiles(context, "player");
 
         int removed = 0;
 

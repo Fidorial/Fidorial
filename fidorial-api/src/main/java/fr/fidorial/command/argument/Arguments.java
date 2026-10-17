@@ -1,31 +1,33 @@
 package fr.fidorial.command.argument;
 
+import com.google.common.collect.Range;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.custom.ArgumentMapper;
-import fr.fidorial.command.argument.predicate.ItemStackPredicate;
-import fr.fidorial.command.argument.range.DoubleRangeProvider;
-import fr.fidorial.command.argument.range.IntegerRangeProvider;
 import fr.fidorial.command.argument.resolvers.AngleResolver;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.command.argument.resolvers.NbtPathResolver;
-import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
+import fr.fidorial.command.argument.resolvers.ArgumentResolver;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
+import fr.fidorial.command.argument.resolvers.ColumnPositionResolver;
+import fr.fidorial.command.argument.resolvers.EntitiesResolver;
+import fr.fidorial.command.argument.resolvers.EntityResolver;
+import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
+import fr.fidorial.command.argument.resolvers.PlayerResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.command.argument.resolvers.selector.EntitySelectorArgumentResolver;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
+import fr.fidorial.nbt.NbtPath;
 import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -40,19 +42,19 @@ import java.util.function.Predicate;
 
 /**
  * The argument types the server knows how to parse, suggest and send to clients.
+ * <p>
+ * Arguments depending on the executor or location parse to an {@link ArgumentResolver}.
  *
  * <pre>{@code argument("targets", Arguments.arguments().players())}</pre>
  *
- * @apiNote Subject to ABI and/or API breakage.
  * @since 0.1.0
  */
-@ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface Arguments {
 
     /**
-     * Gets the available argument types.
-     * @return the argument types
+     * {@return the argument types}
+     *
      * @since 0.1.0
      */
     static Arguments arguments() {
@@ -69,7 +71,7 @@ public interface Arguments {
      *
      * @since 0.1.0
      */
-    ArgumentType<EntitySelectorArgumentResolver> entity();
+    ArgumentType<EntityResolver> entity();
 
     /**
      * {@return a selector matching exactly one entity accepted by {@code filter}}
@@ -77,14 +79,14 @@ public interface Arguments {
      * @param filter the predicate the entity must satisfy
      * @since 0.1.0
      */
-    ArgumentType<EntitySelectorArgumentResolver> entity(Predicate<Entity> filter);
+    ArgumentType<EntityResolver> entity(Predicate<Entity> filter);
 
     /**
      * {@return a selector matching any number of entities}
      *
      * @since 0.1.0
      */
-    ArgumentType<EntitySelectorArgumentResolver> entities();
+    ArgumentType<EntitiesResolver> entities();
 
     /**
      * {@return a selector matching any number of entities accepted by {@code filter}}
@@ -92,14 +94,14 @@ public interface Arguments {
      * @param filter the predicate each entity must satisfy
      * @since 0.1.0
      */
-    ArgumentType<EntitySelectorArgumentResolver> entities(Predicate<Entity> filter);
+    ArgumentType<EntitiesResolver> entities(Predicate<Entity> filter);
 
     /**
      * {@return a selector matching exactly one player}
      *
      * @since 0.1.0
      */
-    ArgumentType<PlayerSelectorArgumentResolver> player();
+    ArgumentType<PlayerResolver> player();
 
     /**
      * {@return a selector matching exactly one player accepted by {@code filter}}
@@ -107,14 +109,14 @@ public interface Arguments {
      * @param filter the predicate the player must satisfy
      * @since 0.1.0
      */
-    ArgumentType<PlayerSelectorArgumentResolver> player(Predicate<Player> filter);
+    ArgumentType<PlayerResolver> player(Predicate<Player> filter);
 
     /**
      * {@return a selector matching any number of players}
      *
      * @since 0.1.0
      */
-    ArgumentType<PlayerSelectorArgumentResolver> players();
+    ArgumentType<PlayersResolver> players();
 
     /**
      * {@return a selector matching any number of players accepted by {@code filter}}
@@ -122,43 +124,71 @@ public interface Arguments {
      * @param filter the predicate each player must satisfy
      * @since 0.1.0
      */
-    ArgumentType<PlayerSelectorArgumentResolver> players(Predicate<Player> filter);
+    ArgumentType<PlayersResolver> players(Predicate<Player> filter);
 
     /**
-     * {@return a selector or name list resolving to player profiles}
+     * {@return a selector or name resolving to player profiles}
      *
      * @since 0.1.0
      */
-    ArgumentType<PlayerProfileListResolver> playerProfiles();
+    ArgumentType<PlayerProfilesResolver> playerProfiles();
 
     /**
-     * {@return a selector or name list resolving to player profiles, online players filtered by {@code filter}}
+     * {@return a selector or name resolving to player profiles, online players filtered by {@code filter}}
      *
      * @param filter the predicate each online player must satisfy
      * @since 0.1.0
      */
-    ArgumentType<PlayerProfileListResolver> playerProfiles(Predicate<Player> filter);
+    ArgumentType<PlayerProfilesResolver> playerProfiles(Predicate<Player> filter);
+
+    /**
+     * {@return a game mode}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<GameMode> gameMode();
+
+    /**
+     * {@return a UUID}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<UUID> uuid();
 
     /**
      * {@return a block position, absolute, relative ({@code ~}) or local ({@code ^})}
      *
      * @since 0.1.0
      */
-    ArgumentType<BlockPosResolver> blockPosition();
+    ArgumentType<BlockPositionResolver> blockPosition();
 
     /**
-     * {@return a 3D position, absolute, relative ({@code ~}) or local ({@code ^})}
+     * {@return a block column, absolute or relative ({@code ~})}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<ColumnPositionResolver> columnPosition();
+
+    /**
+     * {@return a position, absolute, relative ({@code ~}) or local ({@code ^})}
      *
      * @since 0.1.0
      */
     ArgumentType<PositionResolver> position();
 
     /**
-     * {@return an angle in degrees}
+     * {@return an angle in degrees, absolute or relative ({@code ~})}
      *
      * @since 0.1.0
      */
     ArgumentType<AngleResolver> angle();
+
+    /**
+     * {@return a loaded world}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<World> world();
 
     /**
      * {@return an item stack, with its components}
@@ -168,11 +198,32 @@ public interface Arguments {
     ArgumentType<ItemStack> itemStack();
 
     /**
-     * {@return an item predicate}
+     * {@return a predicate matching item stacks}
      *
      * @since 0.1.0
      */
-    ArgumentType<ItemStackPredicate> itemPredicate();
+    ArgumentType<Predicate<ItemStack>> itemPredicate();
+
+    /**
+     * {@return a swing animation type}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<SwingAnimation.SwingAnimationType> swingAnimationType();
+
+    /**
+     * {@return a text component}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<Component> component();
+
+    /**
+     * {@return a style}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<Style> style();
 
     /**
      * {@return a {@link NamedTextColor}}
@@ -210,160 +261,18 @@ public interface Arguments {
     ArgumentType<BossBar.Flag> bossBarFlag();
 
     /**
-     * {@return a text component}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<Component> component();
-
-    /**
-     * {@return a style}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<Style> style();
-
-    /**
-     * {@return a key}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<Key> key();
-
-    /**
-     * {@return a single unquoted word}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<String> word();
-
-    /**
-     * {@return a single word or a quoted phrase}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<String> string();
-
-    /**
-     * {@return the remainder of the input}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<String> greedyString();
-
-    /**
-     * {@return a boolean}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<Boolean> bool();
-
-    /**
-     * {@return an unbounded integer}
-     *
-     * @since 0.1.0
-     */
-    default ArgumentType<Integer> integer() {
-        return integer(Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-
-    /**
-     * {@return an integer within {@code [min, max]}}
-     *
-     * @param min the minimum, inclusive
-     * @param max the maximum, inclusive
-     * @since 0.1.0
-     */
-    ArgumentType<Integer> integer(int min, int max);
-
-    /**
-     * {@return an unbounded long}
-     *
-     * @since 0.1.0
-     */
-    default ArgumentType<Long> longArg() {
-        return longArg(Long.MIN_VALUE, Long.MAX_VALUE);
-    }
-
-    /**
-     * {@return a long within {@code [min, max]}}
-     *
-     * @param min the minimum, inclusive
-     * @param max the maximum, inclusive
-     * @since 0.1.0
-     */
-    ArgumentType<Long> longArg(long min, long max);
-
-    /**
-     * {@return an unbounded float}
-     *
-     * @since 0.1.0
-     */
-    default ArgumentType<Float> floatArg() {
-        return floatArg(-Float.MAX_VALUE, Float.MAX_VALUE);
-    }
-
-    /**
-     * {@return a float within {@code [min, max]}}
-     *
-     * @param min the minimum, inclusive
-     * @param max the maximum, inclusive
-     * @since 0.1.0
-     */
-    ArgumentType<Float> floatArg(float min, float max);
-
-    /**
-     * {@return an unbounded double}
-     *
-     * @since 0.1.0
-     */
-    default ArgumentType<Double> doubleArg() {
-        return doubleArg(-Double.MAX_VALUE, Double.MAX_VALUE);
-    }
-
-    /**
-     * {@return a double within {@code [min, max]}}
-     *
-     * @param min the minimum, inclusive
-     * @param max the maximum, inclusive
-     * @since 0.1.0
-     */
-    ArgumentType<Double> doubleArg(double min, double max);
-
-    /**
      * {@return an inclusive integer range, possibly open on either end}
      *
      * @since 0.1.0
      */
-    ArgumentType<IntegerRangeProvider> integerRange();
+    ArgumentType<Range<Integer>> integerRange();
 
     /**
      * {@return an inclusive double range, possibly open on either end}
      *
      * @since 0.1.0
      */
-    ArgumentType<DoubleRangeProvider> doubleRange();
-
-    /**
-     * {@return a loaded world}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<World> world();
-
-    /**
-     * {@return a game mode}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<GameMode> gameMode();
-
-    /**
-     * {@return a UUID}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<UUID> uuid();
+    ArgumentType<Range<Double>> doubleRange();
 
     /**
      * {@return a time in ticks, such as {@code 1d}, {@code 5s}, {@code 6t} or {@code 2}}
@@ -390,6 +299,13 @@ public interface Arguments {
      * @since 0.1.0
      */
     ArgumentType<Duration> duration();
+
+    /**
+     * {@return a key}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<Key> key();
 
     /**
      * {@return a typed key of {@code registryKey}, not checked against the registry}
@@ -420,25 +336,18 @@ public interface Arguments {
     <T> ArgumentType<T> serverResource(RegistryKey<T> registryKey);
 
     /**
-     * {@return an NBT path, resolvable against any root {@link BinaryTag}}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<NbtPathResolver> nbtPath();
-
-    /**
-     * {@return a swing animation type}
-     *
-     * @since 0.1.0
-     */
-    ArgumentType<SwingAnimation.SwingAnimationType> swingAnimationType();
-
-    /**
      * {@return a post effect; players are suggested those of their loaded resource packs when possible}
      *
      * @since 0.1.0
      */
     ArgumentType<Key> postEffect();
+
+    /**
+     * {@return an NBT path}
+     *
+     * @since 0.1.0
+     */
+    ArgumentType<NbtPath> nbtPath();
 
     /**
      * {@return {@code nativeType}, its parsed value converted by {@code mapper}}
@@ -456,7 +365,8 @@ public interface Arguments {
     /**
      * {@return {@code nativeType}, its parsed value converted by {@code mapper} and its suggestions replaced}
      *
-     * <p>For when the native grammar fits but its completions don't, like a {@link #word()} mapped to an enum.</p>
+     * <p>For when the native grammar fits but its completions don't, like a
+     * {@link StringArgumentType#word()} mapped to an enum.</p>
      *
      * @param nativeType  the type providing grammar
      * @param mapper      converts the parsed value

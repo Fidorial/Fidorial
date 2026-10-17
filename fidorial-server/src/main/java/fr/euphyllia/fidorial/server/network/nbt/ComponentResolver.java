@@ -12,11 +12,11 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.NbtPathResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.nbt.NbtPath;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -113,14 +113,14 @@ public final class ComponentResolver {
             return Component.empty();
         }
 
-        final NbtPathResolver path;
+        final NbtPath path;
         try {
             path = NbtDataArgument.nbtPath().parse(new StringReader(nbt.nbtPath()));
         } catch (final CommandSyntaxException e) {
             return Component.empty();
         }
 
-        final List<BinaryTag> matches = path.resolve(root);
+        final List<BinaryTag> matches = path.select(root);
         if (matches.isEmpty()) return Component.empty();
 
         final Component separator = nbt.separator() != null

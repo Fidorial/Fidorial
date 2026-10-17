@@ -12,9 +12,9 @@ import net.kyori.adventure.text.Component;
 
 import java.util.Locale;
 
+import static com.mojang.brigadier.arguments.StringArgumentType.word;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
-import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PardonIpCommand {
 
@@ -37,7 +37,7 @@ public final class PardonIpCommand {
     public static LiteralCommandNode<CommandSource> create() {
         return literal("pardon-ip")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
-                .then(argument("address", arguments().word())
+                .then(argument("address", word())
                         .suggests(BANNED)
                         .executes(PardonIpCommand::pardon))
                 .build();

@@ -6,7 +6,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.PlayerResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import net.kyori.adventure.key.Key;
@@ -74,8 +75,7 @@ public final class PostEffectCommand {
     }
 
     private static int modify(final CommandContext<CommandSource> context, final Messages messages, final @Nullable Key effect, final UnaryOperator<List<Key>> change) throws CommandSyntaxException {
-        final List<ServerPlayer> players = context.getArgument("targets", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource())
+        final List<ServerPlayer> players = PlayersResolver.players(context, "targets")
                 .stream()
                 .filter(ServerPlayer.class::isInstance)
                 .map(ServerPlayer.class::cast)
@@ -109,9 +109,7 @@ public final class PostEffectCommand {
     }
 
     private static int list(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final Player target = context.getArgument("target", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource())
-                .getFirst();
+        final Player target = PlayerResolver.player(context, "target");
         final List<Key> effects = target.activePostEffects();
         final CommandSource source = context.getSource();
 

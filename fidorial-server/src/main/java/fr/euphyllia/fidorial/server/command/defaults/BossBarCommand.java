@@ -12,7 +12,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.world.BossBarRegistry;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Player;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -72,7 +74,7 @@ public final class BossBarCommand {
     };
 
     public static LiteralCommandNode<CommandSource> create() {
-        final ArgumentType<PlayerSelectorArgumentResolver> targetsArgument = arguments().players();
+        final ArgumentType<PlayersResolver> targetsArgument = arguments().players();
 
         return literal("bossbar")
                 .requires(source -> source.sender().hasPermission("fidorial.command.bossbar"))
@@ -100,13 +102,13 @@ public final class BossBarCommand {
                                         .then(argument("style", arguments().bossBarOverlay())
                                                 .executes(ctx -> updateOverlay(ctx, requireEntry(ctx), ctx.getArgument("style", BossBar.Overlay.class)))))
                                 .then(literal("value")
-                                        .then(argument("value", arguments().integer(0, Integer.MAX_VALUE))
+                                        .then(argument("value", integer(0))
                                                 .executes(ctx -> updateValue(ctx, requireEntry(ctx), ctx.getArgument("value", Integer.class)))))
                                 .then(literal("max")
-                                        .then(argument("max", arguments().integer(1, Integer.MAX_VALUE))
+                                        .then(argument("max", integer(1))
                                                 .executes(ctx -> updateMax(ctx, requireEntry(ctx), ctx.getArgument("max", Integer.class)))))
                                 .then(literal("visible")
-                                        .then(argument("visible", arguments().bool())
+                                        .then(argument("visible", bool())
                                                 .executes(ctx -> updateVisibility(ctx, requireEntry(ctx), ctx.getArgument("visible", Boolean.class)))))
                                 .then(literal("players")
                                         .executes(ctx -> updateTargets(ctx, requireEntry(ctx), Set.of()))
@@ -269,8 +271,7 @@ public final class BossBarCommand {
     }
 
     private static Set<UUID> resolveTargetIds(final CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final PlayerSelectorArgumentResolver resolver = ctx.getArgument("targets", PlayerSelectorArgumentResolver.class);
-        final List<Player> resolved = resolver.resolve(ctx.getSource());
+        final List<Player> resolved = PlayersResolver.players(ctx, "targets");
 
         final Set<UUID> ids = new HashSet<>();
         for (final Player player : resolved) {

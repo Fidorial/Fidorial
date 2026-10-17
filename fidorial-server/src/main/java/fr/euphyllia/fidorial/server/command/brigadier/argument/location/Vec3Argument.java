@@ -28,10 +28,6 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
         return new Vec3Argument(true);
     }
 
-    public static Location getPosition(final CommandContext<CommandSource> context, final String name) {
-        return context.getArgument(name, PositionResolver.class).resolve(context.getSource());
-    }
-
     @Override
     public PositionResolver parse(final StringReader reader) throws CommandSyntaxException {
         if (reader.canRead() && reader.peek() == '^') {
