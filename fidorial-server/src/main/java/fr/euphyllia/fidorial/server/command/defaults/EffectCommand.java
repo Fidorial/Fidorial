@@ -10,7 +10,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.Resource
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.selector.EntitySelectorArgumentResolver;
+import fr.fidorial.command.argument.resolvers.EntitiesResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectInstance;
@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -81,20 +83,20 @@ public final class EffectCommand {
                         .then(argument("targets", arguments().entities())
                                 .then(argument("effect", effectArgument())
                                         .executes(context -> give(context, null, 0, false))
-                                        .then(argument("seconds", arguments().integer(1, MAX_SECONDS))
+                                        .then(argument("seconds", integer(1, MAX_SECONDS))
                                                 .executes(context -> give(context, seconds(context), 0, false))
-                                                .then(argument("amplifier", arguments().integer(0, MobEffectInstance.MAX_AMPLIFIER))
+                                                .then(argument("amplifier", integer(0, MobEffectInstance.MAX_AMPLIFIER))
                                                         .executes(context -> give(context, seconds(context),
                                                                 amplifier(context), false))
-                                                        .then(argument("hideParticles", arguments().bool())
+                                                        .then(argument("hideParticles", bool())
                                                                 .executes(context -> give(context, seconds(context),
                                                                         amplifier(context), hideParticles(context))))))
                                         .then(literal("infinite")
                                                 .executes(context -> give(context, MobEffectInstance.INFINITE_DURATION, 0, false))
-                                                .then(argument("amplifier", arguments().integer(0, MobEffectInstance.MAX_AMPLIFIER))
+                                                .then(argument("amplifier", integer(0, MobEffectInstance.MAX_AMPLIFIER))
                                                         .executes(context -> give(context, MobEffectInstance.INFINITE_DURATION,
                                                                 amplifier(context), false))
-                                                        .then(argument("hideParticles", arguments().bool())
+                                                        .then(argument("hideParticles", bool())
                                                                 .executes(context -> give(context,
                                                                         MobEffectInstance.INFINITE_DURATION,
                                                                         amplifier(context), hideParticles(context)))))))))
@@ -200,7 +202,7 @@ public final class EffectCommand {
     }
 
     private static List<Entity> targets(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        return context.getArgument("targets", EntitySelectorArgumentResolver.class).resolve(context.getSource());
+        return EntitiesResolver.entities(context, "targets");
     }
 
     /**

@@ -9,7 +9,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.fidorial.command.argument.resolvers.NbtPathResolver;
+import fr.fidorial.nbt.NbtPath;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public final class NbtDataArgument implements ArgumentType<NbtPathResolver> {
+public final class NbtDataArgument implements ArgumentType<NbtPath> {
 
     public static final SimpleCommandExceptionType ERROR_INVALID_NODE = ExceptionFactory.simple("arguments.nbtpath.node.invalid");
     public static final DynamicCommandExceptionType ERROR_NOTHING_FOUND = ExceptionFactory.dynamic("arguments.nbtpath.nothing_found");
@@ -30,8 +30,8 @@ public final class NbtDataArgument implements ArgumentType<NbtPathResolver> {
         return new NbtDataArgument();
     }
 
-    public static List<BinaryTag> getOrThrow(final NbtPathResolver path, final BinaryTag root) throws CommandSyntaxException {
-        final List<BinaryTag> result = path.resolve(root);
+    public static List<BinaryTag> getOrThrow(final NbtPath path, final BinaryTag root) throws CommandSyntaxException {
+        final List<BinaryTag> result = path.select(root);
         if (result.isEmpty()) {
             throw ERROR_NOTHING_FOUND.create(path.asString());
         }
@@ -39,7 +39,7 @@ public final class NbtDataArgument implements ArgumentType<NbtPathResolver> {
     }
 
     @Override
-    public NbtPathResolver parse(final StringReader reader) throws CommandSyntaxException {
+    public NbtPath parse(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
         final List<Function<List<BinaryTag>, List<BinaryTag>>> chain = new ArrayList<>();
         boolean atStart = true;
@@ -224,29 +224,30 @@ public final class NbtDataArgument implements ArgumentType<NbtPathResolver> {
         }
     }
 
-    private record ChainPath(String text, List<Function<List<BinaryTag>, List<BinaryTag>>> chain) implements NbtPathResolver {
+    private record ChainPath(String text, List<Function<List<BinaryTag>, List<BinaryTag>>> chain) implements NbtPath {
+
         @Override
-            public List<BinaryTag> resolve(final BinaryTag root) {
-                List<BinaryTag> current = List.of(root);
-                for (final Function<List<BinaryTag>, List<BinaryTag>> step : chain) {
-                    current = step.apply(current);
-                    if (current.isEmpty()) {
-                        return List.of();
-                    }
+        public List<BinaryTag> select(final BinaryTag root) {
+            List<BinaryTag> current = List.of(root);
+            for (final Function<List<BinaryTag>, List<BinaryTag>> step : chain) {
+                current = step.apply(current);
+                if (current.isEmpty()) {
+                    return List.of();
                 }
-                return current;
             }
-
-            @Override
-            public String asString() {
-                return text;
-            }
-
-            @Override
-            public String toString() {
-                return text;
-            }
+            return current;
         }
+
+        @Override
+        public String asString() {
+            return text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+    }
 
     public static final class Info implements ArgumentTypeRegistrar<NbtDataArgument, Info.Spec> {
 

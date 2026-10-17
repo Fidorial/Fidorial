@@ -11,13 +11,13 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class BlockPositionArgument implements ArgumentType<BlockPosResolver> {
+public final class BlockPositionArgument implements ArgumentType<BlockPositionResolver> {
 
     public static BlockPositionArgument blockPosition() {
         return new BlockPositionArgument();
@@ -48,7 +48,7 @@ public final class BlockPositionArgument implements ArgumentType<BlockPosResolve
     }
 
     @Override
-    public BlockPosResolver parse(final StringReader reader) throws CommandSyntaxException {
+    public BlockPositionResolver parse(final StringReader reader) throws CommandSyntaxException {
         if (reader.canRead() && reader.peek() == '^') {
             final LocalCoords coords = LocalCoords.parse(reader);
             return source -> {

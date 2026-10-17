@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.testplugin.command;
 
 import com.mojang.brigadier.Command;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
@@ -16,7 +17,6 @@ import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
-import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * {@code /testeffect bleed [level] | regen | list | clear}, on the player running it.
@@ -35,9 +35,9 @@ public final class EffectTestCommand {
         return literal("testeffect")
                 .then(literal("bleed")
                         .executes(ctx -> give(ctx, TestEffects.BLEEDING, 0))
-                        .then(argument("level", arguments().integer(1, MobEffectInstance.MAX_AMPLIFIER + 1))
+                        .then(argument("level", IntegerArgumentType.integer(1, MobEffectInstance.MAX_AMPLIFIER + 1))
                                 .executes(ctx -> give(ctx, TestEffects.BLEEDING,
-                                        ctx.getArgument("level", Integer.class) - 1))))
+                                        IntegerArgumentType.getInteger(ctx, "level") - 1))))
                 .then(literal("regen").executes(ctx -> give(ctx, MobEffectKeys.REGENERATION, 1)))
                 .then(literal("list").executes(this::list))
                 .then(literal("clear").executes(this::clear))

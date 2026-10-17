@@ -4,8 +4,8 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
 import fr.fidorial.entity.Player;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.math.Location;
@@ -36,8 +36,7 @@ public final class SpawnPointCommand {
                                 .executes(context -> set(
                                         context,
                                         targets(context),
-                                        context.getArgument("position", PositionResolver.class)
-                                                .resolve(context.getSource())))))
+                                        PositionResolver.position(context, "position")))))
                 .build();
     }
 
@@ -46,8 +45,7 @@ public final class SpawnPointCommand {
     }
 
     private static List<Player> targets(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        return context.getArgument("targets", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource());
+        return PlayersResolver.players(context, "targets");
     }
 
     private static List<Player> selfOrFail(final CommandContext<CommandSource> context) {

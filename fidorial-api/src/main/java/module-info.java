@@ -73,9 +73,6 @@ module fr.fidorial {
     exports fr.fidorial.world;
     exports fr.fidorial;
     exports fr.fidorial.command.argument;
-    exports fr.fidorial.command.argument.resolvers.selector;
-    exports fr.fidorial.command.argument.predicate;
-    exports fr.fidorial.command.argument.range;
     exports fr.fidorial.command.argument.resolvers;
     exports fr.fidorial.world.entity;
     exports fr.fidorial.protocol;
@@ -93,6 +90,7 @@ module fr.fidorial {
     exports fr.fidorial.item.component;
     exports fr.fidorial.event.block;
     exports fr.fidorial.command.serializers;
+    exports fr.fidorial.nbt;
 
     uses fr.fidorial.command.argument.Arguments;
     uses fr.fidorial.command.serializers.MessageComponentSerializer;

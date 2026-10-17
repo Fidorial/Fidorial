@@ -15,7 +15,6 @@ import fr.fidorial.world.World;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
-import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PregenCommand {
 
@@ -29,7 +28,7 @@ public final class PregenCommand {
         return literal("pregen")
                 .then(literal("start")
                         .requires(_ -> !isTaskRunning())
-                        .then(argument("radius", arguments().integer(1, Integer.MAX_VALUE))
+                        .then(argument("radius", IntegerArgumentType.integer(1))
                                 .executes(PregenCommand::startDefault)
                                 .then(argument("centerX", IntegerArgumentType.integer())
                                         .then(argument("centerZ", IntegerArgumentType.integer())

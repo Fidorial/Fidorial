@@ -17,6 +17,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Optional;
 
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -44,7 +45,7 @@ public final class LocateCommand {
                         .then(argument("structure", arguments().key())
                                 .suggests(STRUCTURES)
                                 .executes(context -> locate(context, DEFAULT_RADIUS_CELLS))
-                                .then(argument("radius", arguments().integer(1, MAX_RADIUS_CELLS))
+                                .then(argument("radius", integer(1, MAX_RADIUS_CELLS))
                                         .executes(context -> locate(context, context.getArgument("radius", Integer.class))))))
                 .build();
     }

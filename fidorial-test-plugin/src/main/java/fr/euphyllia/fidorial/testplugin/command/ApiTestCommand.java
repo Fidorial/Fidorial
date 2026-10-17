@@ -13,13 +13,13 @@ import fr.euphyllia.fidorial.testplugin.terrain.SwamplandGenerator;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.command.argument.resolvers.NbtPathResolver;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.command.serializers.MessageComponentSerializer;
 import fr.fidorial.entity.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.nbt.NbtPath;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.scheduler.RegionTps;
@@ -55,6 +55,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
+import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
+import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
@@ -109,9 +112,9 @@ public final class ApiTestCommand {
                 .then(literal("schedule").executes(ctx -> schedule(plugin, ctx)))
                 .then(literal("perms").executes(ApiTestCommand::perms))
                 .then(literal("teleport")
-                        .then(argument("x", arguments().doubleArg())
-                                .then(argument("y", arguments().doubleArg())
-                                        .then(argument("z", arguments().doubleArg())
+                        .then(argument("x", doubleArg())
+                                .then(argument("y", doubleArg())
+                                        .then(argument("z", doubleArg())
                                                 .executes(ApiTestCommand::tp)))))
                 .then(literal("tpworld")
                         .executes(ctx -> tpWorld(plugin, ctx, Key.key("overworld")))
@@ -121,7 +124,7 @@ public final class ApiTestCommand {
                         .executes(ctx -> createWorld(ctx, Key.key(UUID.randomUUID().toString()), "overworld"))
                         .then(argument("name", arguments().key())
                                 .executes(ctx -> createWorld(ctx, ctx.getArgument("name", Key.class), "overworld"))
-                                .then(argument("generator", arguments().greedyString())
+                                .then(argument("generator", greedyString())
                                         .suggests((_, builder) -> {
                                             final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
                                             for (final String name : GENERATOR_NAMES) {
@@ -143,9 +146,9 @@ public final class ApiTestCommand {
                         .executes(ApiTestCommand::soundDemo)
                         .then(argument("key", arguments().resource(RegistryKey.SOUND_EVENT))
                                 .executes(ApiTestCommand::soundDefault)
-                                .then(argument("volume", arguments().floatArg())
+                                .then(argument("volume", floatArg())
                                         .executes(ApiTestCommand::soundVolume)
-                                        .then(argument("pitch", arguments().floatArg())
+                                        .then(argument("pitch", floatArg())
                                                 .executes(ApiTestCommand::soundPitch)))))
                 .then(literal("stopsound")
                         .executes(ApiTestCommand::stopAllSound)
@@ -179,7 +182,7 @@ public final class ApiTestCommand {
                         .then(literal("show")
                                 .then(argument("name", arguments().key())
                                         .executes(this::bossBarShow)
-                                        .then(argument("progress", arguments().floatArg(0f, 1f))
+                                        .then(argument("progress", floatArg(0f, 1f))
                                                 .executes(this::bossBarShowWithProgress)
                                                 .then(argument("color", arguments().bossBarColor())
                                                         .then(argument("overlay", arguments().bossBarOverlay())
@@ -249,8 +252,7 @@ public final class ApiTestCommand {
     }
 
     private static int nbtEntityPath(final CommandContext<CommandSource> ctx) {
-        final NbtPathResolver path = ctx.getArgument("path", NbtPathResolver.class);
-        return nbtEntity(ctx, path.asString());
+        return nbtEntity(ctx, ctx.getArgument("path", NbtPath.class).asString());
     }
 
     private static int nbtEntity(final CommandContext<CommandSource> ctx, final String path) {
@@ -275,8 +277,7 @@ public final class ApiTestCommand {
     }
 
     private static int nbtBlockAtPosWithPath(final CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final NbtPathResolver path = ctx.getArgument("path", NbtPathResolver.class);
-        return nbtBlock(ctx, path.asString());
+        return nbtBlock(ctx, ctx.getArgument("path", NbtPath.class).asString());
     }
 
     private static int nbtBlock(final CommandContext<CommandSource> ctx, final String path) throws CommandSyntaxException {
@@ -286,7 +287,7 @@ public final class ApiTestCommand {
             return 0;
         }
 
-        final BlockPosition pos = ctx.getArgument("pos", BlockPosResolver.class).resolve(source);
+        final BlockPosition pos = BlockPositionResolver.blockPosition(ctx, "pos");
 
         final BlockNBTComponent nbtComponent = Component.blockNBT()
                 .absoluteWorldPos(pos.blockX(), pos.blockY(), pos.blockZ())
