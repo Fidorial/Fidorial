@@ -38,10 +38,11 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.player.Player;
-import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.PlayerInput;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -134,6 +135,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private final Map<BossBar, BossBarEntry> activeBossBars = new ConcurrentHashMap<>();
     private volatile GameMode gameMode;
     private volatile int selectedSlot;
+    private volatile PlayerInput input = PlayerInput.NONE;
     private volatile boolean sprinting;
     private volatile boolean sneaking;
     private volatile boolean falling;
@@ -726,6 +728,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             throw new IllegalArgumentException("slot de hotbar invalide : " + selectedSlot);
         }
         this.selectedSlot = selectedSlot;
+    }
+
+    @Override
+    public PlayerInput input() {
+        return input;
+    }
+
+    public void setInput(final PlayerInput input) {
+        this.input = input;
     }
 
     @Override

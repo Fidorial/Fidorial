@@ -2,11 +2,11 @@ package fr.euphyllia.fidorial.server.entity.effect;
 
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectDefinition;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.effect.MobEffectRegistry;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;

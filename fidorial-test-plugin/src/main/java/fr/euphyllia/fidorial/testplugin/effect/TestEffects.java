@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.effect;
 
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.effect.MobEffectDefinition;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.effect.MobEffectRegistry;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.event.entity.EntityEffectEvent;
 import fr.fidorial.plugin.Plugin;

@@ -37,8 +37,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogReference;
-import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.math.Location;

@@ -1,8 +1,8 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
+import fr.fidorial.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 public final class FollowPlayerGoal implements Goal {

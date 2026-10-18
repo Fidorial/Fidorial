@@ -4,8 +4,8 @@ import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -134,6 +134,13 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @since 0.1.0
      */
     void setSelectedSlot(int slot);
+
+    /**
+     * {@return the movement keys this player is holding, as last reported by their client}
+     *
+     * @since 0.1.0
+     */
+    PlayerInput input();
 
     /**
      * @return the stack in the currently {@linkplain #selectedSlot() selected} hotbar slot,

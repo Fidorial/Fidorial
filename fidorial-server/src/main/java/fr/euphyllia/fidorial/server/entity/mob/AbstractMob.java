@@ -6,8 +6,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.mob.MobBehaviour;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameEventKeys;

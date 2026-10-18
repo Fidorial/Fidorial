@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
 import fr.fidorial.combat.DamageSource;
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobBehaviour;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.sound.SoundEvents;
 import net.kyori.adventure.sound.Sound;

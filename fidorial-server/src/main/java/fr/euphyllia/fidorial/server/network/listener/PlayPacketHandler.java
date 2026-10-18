@@ -85,12 +85,14 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.PlayerInput;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.block.BlockBreakEvent;
 import fr.fidorial.event.block.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
+import fr.fidorial.event.player.PlayerInputEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerMoveEvent;
 import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
@@ -1051,6 +1053,13 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         player.setSprinting(packet.sprinting());
         player.setSneaking(packet.sneaking());
+        final PlayerInput input = new PlayerInput(packet.forward(), packet.backward(), packet.left(), packet.right(),
+                packet.jumping(), packet.sneaking(), packet.sprinting());
+        final PlayerInput previous = player.input();
+        if (!previous.equals(input)) {
+            player.setInput(input);
+            server.events().post(new PlayerInputEvent(player, previous, input));
+        }
     }
 
     @Override
