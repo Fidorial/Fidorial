@@ -92,6 +92,7 @@ import fr.fidorial.event.block.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
+import fr.fidorial.event.player.PlayerMoveEvent;
 import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
@@ -864,6 +865,15 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         world.scheduler().execute(world.key(), fromChunk, () -> {
             final Location current = new Location(x, y, z, yaw, pitch);
+            if (server.events().post(new PlayerMoveEvent(moving, previous, current)).isCancelled()) {
+                connection.send(new ClientboundPlayerPositionPacket(
+                        moving.nextTeleportId(),
+                        new PositionData.PositionMoveRotationData(
+                                LocationPositionData.vec3(previous),
+                                new PositionData.Vec3D(0.0, 0.0, 0.0),
+                                LocationPositionData.floatRotation(previous))));
+                return;
+            }
             trackFall(previous, current, wasOnGround, isOnGround);
             moving.setLocation(current);
             moving.setOnGround(isOnGround);
