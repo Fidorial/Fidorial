@@ -8,7 +8,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.selector.EntitySe
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import org.jspecify.annotations.Nullable;

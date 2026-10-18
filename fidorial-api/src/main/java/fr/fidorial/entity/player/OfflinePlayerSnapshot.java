@@ -1,5 +1,6 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player;
 
+import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 

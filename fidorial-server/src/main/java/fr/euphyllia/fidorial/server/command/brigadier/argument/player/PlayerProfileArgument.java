@@ -16,8 +16,8 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFac
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Player;
-import fr.fidorial.entity.PlayerProfileMeta;
+import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.profile.PlayerProfileMeta;
 
 import java.util.Collection;
 import java.util.List;

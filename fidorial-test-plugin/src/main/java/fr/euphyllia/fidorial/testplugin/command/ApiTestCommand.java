@@ -15,7 +15,7 @@ import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.command.serializers.MessageComponentSerializer;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;

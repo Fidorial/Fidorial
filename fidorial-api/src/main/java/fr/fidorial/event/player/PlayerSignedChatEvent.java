@@ -1,7 +1,7 @@
 package fr.fidorial.event.player;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.Component;
 

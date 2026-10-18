@@ -15,7 +15,7 @@ import fr.fidorial.dialog.DialogBase;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.dialog.NoticeDialog;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

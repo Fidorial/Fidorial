@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogResponse;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.key.Key;
 
 

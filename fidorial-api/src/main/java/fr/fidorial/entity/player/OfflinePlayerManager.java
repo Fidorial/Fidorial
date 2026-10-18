@@ -1,4 +1,4 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player;
 
 import org.jetbrains.annotations.Contract;
 

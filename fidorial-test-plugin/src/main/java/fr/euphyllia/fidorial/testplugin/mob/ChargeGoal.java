@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.testplugin.mob;
 
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.math.Location;

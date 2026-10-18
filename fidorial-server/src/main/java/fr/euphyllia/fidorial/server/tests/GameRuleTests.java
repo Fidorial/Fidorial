@@ -7,7 +7,7 @@ import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V1_21_11.
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.Subscription;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.WorldGameRules;

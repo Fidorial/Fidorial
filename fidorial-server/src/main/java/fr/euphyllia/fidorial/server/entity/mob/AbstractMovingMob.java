@@ -19,7 +19,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;

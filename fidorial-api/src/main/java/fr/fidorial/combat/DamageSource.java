@@ -2,7 +2,7 @@ package fr.fidorial.combat;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;

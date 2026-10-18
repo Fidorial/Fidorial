@@ -85,7 +85,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.block.BlockBreakEvent;
 import fr.fidorial.event.block.BlockPlaceEvent;

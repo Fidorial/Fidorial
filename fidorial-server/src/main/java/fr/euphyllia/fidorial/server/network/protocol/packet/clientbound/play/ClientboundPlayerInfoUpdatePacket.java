@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.chat.SignedChatSession;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 

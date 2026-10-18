@@ -8,7 +8,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayerResolver;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;

@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.moderation;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.moderation.WhitelistManager;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;

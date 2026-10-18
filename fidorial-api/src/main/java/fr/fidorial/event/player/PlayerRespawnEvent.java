@@ -1,6 +1,6 @@
 package fr.fidorial.event.player;
 
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.math.Location;
 import org.jetbrains.annotations.Contract;

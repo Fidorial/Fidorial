@@ -1,4 +1,4 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player.profile;
 
 import com.google.gson.JsonObject;
 import org.jspecify.annotations.Nullable;

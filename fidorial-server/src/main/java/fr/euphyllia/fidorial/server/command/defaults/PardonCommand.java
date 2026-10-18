@@ -7,7 +7,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.moderation.BanManager;
 import net.kyori.adventure.text.Component;
 

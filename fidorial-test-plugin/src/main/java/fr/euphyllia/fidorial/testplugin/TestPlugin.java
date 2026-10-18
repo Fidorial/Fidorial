@@ -21,7 +21,7 @@ import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.command.CommandSender;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.EventPriority;
 import fr.fidorial.event.block.BlockBreakEvent;
 import fr.fidorial.event.block.BlockPlaceEvent;

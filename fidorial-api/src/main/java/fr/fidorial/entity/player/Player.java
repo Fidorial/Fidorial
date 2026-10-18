@@ -1,7 +1,11 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player;
 
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.LivingEntity;
+import fr.fidorial.entity.player.profile.PlayerProfile;
+import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.inventory.EnderChestInventory;

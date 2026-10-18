@@ -7,7 +7,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.moderation.BanEntry;
 import fr.fidorial.moderation.BanManager;
 import net.kyori.adventure.text.Component;

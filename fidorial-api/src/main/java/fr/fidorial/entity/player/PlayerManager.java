@@ -1,4 +1,4 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player;
 
 import fr.fidorial.Server;
 import fr.fidorial.moderation.BanManager;

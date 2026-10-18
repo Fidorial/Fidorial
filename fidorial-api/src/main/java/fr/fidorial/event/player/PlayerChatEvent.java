@@ -1,6 +1,6 @@
 package fr.fidorial.event.player;
 
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.Cancellable;
 import net.kyori.adventure.text.Component;
 

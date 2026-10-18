@@ -25,7 +25,7 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.entity.EntityDamageEvent;
 import fr.fidorial.event.entity.EntityDeathEvent;
 import fr.fidorial.event.player.PlayerAttackEntityEvent;

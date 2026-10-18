@@ -1,7 +1,7 @@
 package fr.fidorial;
 
 import fr.fidorial.command.CommandRegistry;
-import fr.fidorial.entity.PlayerManager;
+import fr.fidorial.entity.player.PlayerManager;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.plugin.PluginManager;

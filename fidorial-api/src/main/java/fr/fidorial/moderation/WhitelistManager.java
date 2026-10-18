@@ -1,6 +1,6 @@
 package fr.fidorial.moderation;
 
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import org.jetbrains.annotations.Contract;
 
 import java.util.UUID;

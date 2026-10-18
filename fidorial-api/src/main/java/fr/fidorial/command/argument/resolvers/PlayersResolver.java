@@ -3,7 +3,7 @@ package fr.fidorial.command.argument.resolvers;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 
 import java.util.List;
 

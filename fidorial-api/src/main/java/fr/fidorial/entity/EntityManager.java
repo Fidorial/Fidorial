@@ -1,5 +1,7 @@
 package fr.fidorial.entity;
 
+import fr.fidorial.entity.player.Player;
+
 import java.util.Collection;
 
 public interface EntityManager {

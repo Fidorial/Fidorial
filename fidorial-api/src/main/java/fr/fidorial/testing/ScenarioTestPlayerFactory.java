@@ -1,7 +1,7 @@
 package fr.fidorial.testing;
 
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 
 /**

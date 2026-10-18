@@ -5,7 +5,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.testing.ScenarioTestInfo;
 import fr.fidorial.testing.ScenarioTestInstance;

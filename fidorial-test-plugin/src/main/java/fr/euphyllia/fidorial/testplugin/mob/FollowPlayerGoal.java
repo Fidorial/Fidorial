@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
 import org.jspecify.annotations.Nullable;

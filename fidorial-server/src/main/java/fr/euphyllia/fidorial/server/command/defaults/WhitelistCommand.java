@@ -9,7 +9,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.moderation.WhitelistManager;
 import net.kyori.adventure.text.Component;
 

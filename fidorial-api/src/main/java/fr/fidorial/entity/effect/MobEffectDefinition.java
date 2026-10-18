@@ -1,6 +1,6 @@
 package fr.fidorial.entity.effect;
 
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
 import org.jetbrains.annotations.ApiStatus;

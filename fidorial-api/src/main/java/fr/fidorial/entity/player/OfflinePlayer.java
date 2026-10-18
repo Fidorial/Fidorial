@@ -1,4 +1,4 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player;
 
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.ApiStatus;

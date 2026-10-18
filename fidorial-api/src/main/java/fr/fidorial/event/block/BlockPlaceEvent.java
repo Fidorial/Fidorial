@@ -1,7 +1,7 @@
 package fr.fidorial.event.block;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.player.PlayerEvent;
 import fr.fidorial.math.BlockPosition;

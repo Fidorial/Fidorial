@@ -7,7 +7,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.effect.MobEffectRegistry;
 import fr.fidorial.registry.TypedKey;

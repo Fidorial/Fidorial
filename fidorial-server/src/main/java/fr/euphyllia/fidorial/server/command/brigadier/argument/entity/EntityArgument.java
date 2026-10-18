@@ -18,7 +18,7 @@ import fr.fidorial.command.argument.resolvers.EntityResolver;
 import fr.fidorial.command.argument.resolvers.PlayerResolver;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 
 import java.util.List;
 import java.util.Locale;

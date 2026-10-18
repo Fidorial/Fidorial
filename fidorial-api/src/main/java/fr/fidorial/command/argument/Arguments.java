@@ -18,7 +18,7 @@ import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.nbt.NbtPath;

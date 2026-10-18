@@ -1,5 +1,6 @@
 package fr.fidorial.entity;
 
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Position;
 import fr.fidorial.world.World;
 

@@ -13,7 +13,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFac
 import fr.euphyllia.fidorial.server.world.BossBarRegistry;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;

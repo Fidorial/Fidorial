@@ -11,7 +11,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.selector.EntitySe
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.key.Key;
 
 import java.util.HashMap;

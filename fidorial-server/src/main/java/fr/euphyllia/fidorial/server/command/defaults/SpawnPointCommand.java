@@ -6,7 +6,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.math.Location;
 import net.kyori.adventure.text.Component;

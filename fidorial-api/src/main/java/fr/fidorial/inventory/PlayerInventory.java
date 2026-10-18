@@ -1,5 +1,7 @@
 package fr.fidorial.inventory;
 
+import fr.fidorial.entity.player.Player;
+
 /**
  * The inventory a player carries.
  *
@@ -8,7 +10,7 @@ package fr.fidorial.inventory;
  * {@value #HEAD} (head), then the off hand at {@value #OFF_HAND}. The remaining slots are
  * reserved.</p>
  *
- * @see fr.fidorial.entity.Player#inventory()
+ * @see Player#inventory()
  * @since 0.1.0
  */
 public class PlayerInventory extends SimpleContainer {

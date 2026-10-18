@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.tests;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.entity.GameMode;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;

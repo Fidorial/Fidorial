@@ -21,7 +21,7 @@
 package fr.euphyllia.fidorial.server.spark;
 
 import fr.fidorial.Server;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import me.lucko.spark.common.monitor.ping.PlayerPingProvider;
 
 import java.util.HashMap;

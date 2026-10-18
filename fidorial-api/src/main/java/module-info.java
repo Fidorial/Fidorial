@@ -91,6 +91,8 @@ module fr.fidorial {
     exports fr.fidorial.event.block;
     exports fr.fidorial.command.serializers;
     exports fr.fidorial.nbt;
+    exports fr.fidorial.entity.player;
+    exports fr.fidorial.entity.player.profile;
 
     uses fr.fidorial.command.argument.Arguments;
     uses fr.fidorial.command.serializers.MessageComponentSerializer;

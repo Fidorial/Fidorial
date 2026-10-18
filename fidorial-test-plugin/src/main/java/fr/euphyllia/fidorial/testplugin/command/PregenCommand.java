@@ -8,7 +8,7 @@ import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;

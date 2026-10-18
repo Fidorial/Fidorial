@@ -18,7 +18,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.Se
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundLoginAcknowledgedPacket;
 import fr.euphyllia.fidorial.server.network.proxy.VelocityForwarding;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerLoginAttemptEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;

@@ -1,4 +1,4 @@
-package fr.fidorial.entity;
+package fr.fidorial.entity.player.profile;
 
 import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.text.object.ObjectContentsLike;

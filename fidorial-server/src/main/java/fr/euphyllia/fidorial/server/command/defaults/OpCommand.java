@@ -6,8 +6,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
-import fr.fidorial.entity.Player;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import net.kyori.adventure.text.Component;
 
 import java.util.List;
