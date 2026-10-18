@@ -101,6 +101,7 @@ import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
+import fr.fidorial.event.player.PlayerSwingEvent;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -1054,6 +1055,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
         player.resetAttackCooldown();
+        if (server.events().post(new PlayerSwingEvent(player)).isCancelled()) {
+            return;
+        }
         final SwingAnimation attackAnimation = player.heldItem().getOrDefault(DataComponentTypes.ATTACK_ANIMATION, SwingAnimation.DEFAULT);
         player.sendToTrackers(new ClientboundSwingAnimationPacket(player.entityId(), true, attackAnimation));
     }
