@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetActionBarTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetSubtitleTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTitleTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTitlesAnimationPacket;
@@ -724,6 +725,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     public void setSelectedSlot(final int selectedSlot) {
+        acceptSelectedSlot(selectedSlot);
+        connection.send(new ClientboundSetHeldSlotPacket(selectedSlot));
+    }
+
+    public void acceptSelectedSlot(final int selectedSlot) {
         if (selectedSlot < 0 || selectedSlot > 8) {
             throw new IllegalArgumentException("slot de hotbar invalide : " + selectedSlot);
         }

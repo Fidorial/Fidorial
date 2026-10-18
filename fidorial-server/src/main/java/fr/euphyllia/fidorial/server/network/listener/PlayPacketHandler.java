@@ -37,6 +37,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket.Entry;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStartConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
@@ -93,6 +94,7 @@ import fr.fidorial.event.block.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
 import fr.fidorial.event.player.PlayerInputEvent;
+import fr.fidorial.event.player.PlayerItemHeldEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerMoveEvent;
 import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
@@ -409,12 +411,22 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleSetCarriedItem(final ServerboundSetCarriedItemPacket packet) {
+        if (player == null) return;
         final int slot = packet.slot();
         if (slot < 0 || slot > 8) {
-            LOGGER.debug("{} annonce un slot de hotbar invalide : {}", player.name(), slot);
+            LOGGER.debug("{} announces an invalid hotbar slot: {}", player.name(), slot);
             return;
         }
-        player.setSelectedSlot(slot);
+        final int previous = player.selectedSlot();
+        if (previous == slot) {
+            return;
+        }
+        final PlayerItemHeldEvent event = server.events().post(new PlayerItemHeldEvent(player, previous, slot));
+        if (event.isCancelled()) {
+            connection.send(new ClientboundSetHeldSlotPacket(previous));
+            return;
+        }
+        player.acceptSelectedSlot(slot);
     }
 
     @Override
