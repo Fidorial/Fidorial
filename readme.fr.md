@@ -6,7 +6,7 @@
     <em>Fidorial est un projet indépendant, non affilié, associé ou approuvé par Mojang Studios ou Microsoft. Minecraft est une marque de Mojang Studios, propriété de Microsoft.</em>
 </p>
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Euphillya/Fidorial)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_4-purple.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Licence](https://img.shields.io/badge/license-MIT-blue)](LICENCE)
 [![Serveurs](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Dservers&style=flat)](https://faststats.dev/project/fidorial)
