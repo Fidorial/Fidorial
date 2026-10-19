@@ -23,7 +23,7 @@ public final class EntityManager {
 
     private static long sectionKey(final ChunkPos pos) {
         return sectionKey(
-                pos.x() >> ThreadedRegionRegionizer.SECTION_SHIFT, pos.z() >> ThreadedRegionRegionizer.SECTION_SHIFT);
+                ThreadedRegionRegionizer.chunkToSection(pos.x()), ThreadedRegionRegionizer.chunkToSection(pos.z()));
     }
 
     private static long sectionKey(final int sectionX, final int sectionZ) {

@@ -70,8 +70,8 @@ final class ScenarioTestRunner {
 
     private void wire(final FidorialServer server, final ServerWorld world, final ScenarioTestInfo info) {
         final ChunkPos origin = new ChunkPos(0, 0);
-        final int originSectionX = origin.x() >> ThreadedRegionRegionizer.SECTION_SHIFT;
-        final int originSectionZ = origin.z() >> ThreadedRegionRegionizer.SECTION_SHIFT;
+        final int originSectionX = ThreadedRegionRegionizer.chunkToSection(origin.x());
+        final int originSectionZ = ThreadedRegionRegionizer.chunkToSection(origin.z());
 
         server.workers().regionizer().addTicket(world.key(), origin);
         server.workers().regionizer().registerTickHandler((worldKey, sectionX, sectionZ, tick) -> {

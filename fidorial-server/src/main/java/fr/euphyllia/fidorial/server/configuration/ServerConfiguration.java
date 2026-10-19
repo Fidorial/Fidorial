@@ -185,8 +185,11 @@ public record ServerConfiguration(
                         "The amount of threads to be used for light updates"))
                 .field("ai-workers", Threading::aiWorkers, commented(CommonCodecs.POSITIVE_INT,
                         "The amount of threads to be used by entities' pathfinding"))
-                .field("region-section-shift", Threading::regionSectionShift, commented(Codec.intRange(0, 10),
-                        "Controls the size of regions"))
+                .field("region-section-shift", Threading::regionSectionShift, commented(Codec.intRange(0, 10), """
+                        Size of the regions ticked independently, as a power of two: a region is
+                        2^value x 2^value chunks. 4 = 16x16, 5 = 32x32 (default), 6 = 64x64
+                        Smaller regions spread the world over more threads, larger ones cross fewer borders
+                        Between 0 and 10. Takes effect on restart"""))
                 .build();
     }
 
@@ -272,8 +275,8 @@ public record ServerConfiguration(
             .field("worlds", ServerConfiguration::worlds, commented(WorldSettings.CODEC,
                     "World storage and the default world. Per-world settings are in worlds/"))
             .field("threading", ServerConfiguration::threading, commented(Threading.CODEC, """
-                    Thread pool sizes. Each value must be at least 1
-                    Leave a value blank to let the server choose it based on the number of CPU cores"""))
+                    Thread pool sizes and region layout. Each '*-workers' value must be at least 1
+                    Leave a value blank to let the server choose it (pool sizes are based on the number of CPU cores)"""))
             .nullableInline("resource-pack", ServerConfiguration::resourcePack, commented(ResourcePackSection.CODEC,
                     "The resource pack sent to players when they join. Leave 'url' empty to disable it"))
             .field("code-of-conduct", ServerConfiguration::codeOfConduct, commented(CodeOfConduct.CODEC, """

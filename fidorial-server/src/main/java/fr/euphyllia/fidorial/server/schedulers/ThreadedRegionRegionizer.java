@@ -35,7 +35,21 @@ import java.util.function.BooleanSupplier;
 
 public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
-    public static int SECTION_SHIFT = 5;
+    /**
+     * Default section shift: regions of {@code 1 << 5} = 32×32 chunks.
+     */
+    public static final int DEFAULT_SECTION_SHIFT = 5;
+
+    /**
+     * Largest accepted section shift: regions of {@code 1 << 10} = 1024×1024 chunks.
+     */
+    public static final int MAX_SECTION_SHIFT = 10;
+
+    /**
+     * Regions are {@code 1 << sectionShift} chunks wide. Set once from {@code threading.region-section-shift}
+     * when the regionizer is built, before any region thread or ticket exists.
+     */
+    private static volatile int sectionShift = DEFAULT_SECTION_SHIFT;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ThreadedRegionRegionizer.class);
 
@@ -64,7 +78,11 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     private final COWArrayList<RegionTickProfiler> tickProfilers = new COWArrayList<>(RegionTickProfiler.class);
 
     public ThreadedRegionRegionizer(final int workerThreads, final int sectionShift) {
-        SECTION_SHIFT = sectionShift;
+        if (sectionShift < 0 || sectionShift > MAX_SECTION_SHIFT) {
+            throw new IllegalArgumentException("Region section shift must be between 0 and " + MAX_SECTION_SHIFT
+                    + ", got " + sectionShift);
+        }
+        ThreadedRegionRegionizer.sectionShift = sectionShift;
 
         final AtomicInteger id = new AtomicInteger();
         this.scheduler = new StealingScheduledThreadPool(
@@ -73,7 +91,32 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         this.scheduler.setThreadAllocation(
                 allocateThreads(workerThreads), STEAL_THRESHOLD_NS, TASK_TIME_SLICE_NS);
 
-        LOGGER.info("Region pool started with {} workers and section shift: {}", workerThreads, SECTION_SHIFT);
+        final int size = sectionSize();
+        LOGGER.info("Region pool started with {} workers, regions of {}x{} chunks (section shift {})",
+                workerThreads, size, size, sectionShift);
+    }
+
+    /**
+     * {@return the section shift: a region is {@code 1 << sectionShift()} chunks wide}
+     */
+    public static int sectionShift() {
+        return sectionShift;
+    }
+
+    /**
+     * {@return the width of a region, in chunks}
+     */
+    public static int sectionSize() {
+        return 1 << sectionShift;
+    }
+
+    /**
+     * {@return the section (region) coordinate of a chunk coordinate}
+     *
+     * @param chunkCoord a chunk X or Z coordinate
+     */
+    public static int chunkToSection(final int chunkCoord) {
+        return chunkCoord >> sectionShift;
     }
 
     private static Int2IntMap allocateThreads(final int workerThreads) {
@@ -266,17 +309,18 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
             implements RegionTps {
 
         public int originChunkX() {
-            return sectionX << SECTION_SHIFT;
+            return sectionX << sectionShift;
         }
 
         public int originChunkZ() {
-            return sectionZ << SECTION_SHIFT;
+            return sectionZ << sectionShift;
         }
     }
 
     private record RegionKey(Key world, int sectionX, int sectionZ) {
         static RegionKey of(final Key world, final ChunkPos pos) {
-            return new RegionKey(world, pos.x() >> SECTION_SHIFT, pos.z() >> SECTION_SHIFT);
+            final int shift = sectionShift;
+            return new RegionKey(world, pos.x() >> shift, pos.z() >> shift);
         }
     }
 
@@ -320,8 +364,9 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         }
 
         boolean covers(final Key world, final ChunkPos pos) {
-            return key.sectionX() == (pos.x() >> SECTION_SHIFT)
-                    && key.sectionZ() == (pos.z() >> SECTION_SHIFT)
+            final int shift = sectionShift;
+            return key.sectionX() == (pos.x() >> shift)
+                    && key.sectionZ() == (pos.z() >> shift)
                     && key.world().equals(world);
         }
 
