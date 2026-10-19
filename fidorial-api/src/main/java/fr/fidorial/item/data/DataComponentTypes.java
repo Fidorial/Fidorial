@@ -2,7 +2,9 @@ package fr.fidorial.item.data;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.item.component.ItemLore;
+import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
+import fr.fidorial.map.MapManager;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -78,6 +80,19 @@ public class DataComponentTypes {
      */
     public static final DataComponentType<SwingAnimation> INTERACT_ANIMATION =
             register(DataComponentTypeKeys.INTERACT_ANIMATION.key(), SwingAnimation.class);
+
+    /**
+     * The id of the map a {@code filled_map} shows, see {@link MapManager#of}.
+     */
+    public static final DataComponentType<Integer> MAP_ID =
+            register(DataComponentTypeKeys.MAP_ID.key(), Integer.class);
+
+    /**
+     * Icons a {@code filled_map} adds to its map while carried, like the target of an explorer map.
+     * Kept on the server only.
+     */
+    public static final DataComponentType<MapItemDecorations> MAP_DECORATIONS =
+            register(DataComponentTypeKeys.MAP_DECORATIONS.key(), MapItemDecorations.class);
 
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");

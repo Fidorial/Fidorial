@@ -25,6 +25,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("fluid"), fluid()),
         Map.entry(Key.key("game_event"), gameEvent()),
         Map.entry(Key.key("item"), item()),
+        Map.entry(Key.key("map_decoration_type"), mapDecorationType()),
         Map.entry(Key.key("menu"), menu()),
         Map.entry(Key.key("mob_effect"), mobEffect())
     );
@@ -38,6 +39,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("fluid"), fluidTags()),
         Map.entry(Key.key("game_event"), gameEventTags()),
         Map.entry(Key.key("item"), itemTags()),
+        Map.entry(Key.key("map_decoration_type"), mapDecorationTypeTags()),
         Map.entry(Key.key("menu"), menuTags()),
         Map.entry(Key.key("mob_effect"), mobEffectTags())
     );
@@ -11822,6 +11824,65 @@ public final class FrozenRegistries {
         itemTags15(tags);
         itemTags16(tags);
         return Map.copyOf(tags);
+    }
+
+    private static void mapDecorationType0(final List<Key> entries) {
+        entries.add(Key.key("player"));
+        entries.add(Key.key("frame"));
+        entries.add(Key.key("red_marker"));
+        entries.add(Key.key("blue_marker"));
+        entries.add(Key.key("target_x"));
+        entries.add(Key.key("target_point"));
+        entries.add(Key.key("player_off_map"));
+        entries.add(Key.key("player_off_limits"));
+        entries.add(Key.key("mansion"));
+        entries.add(Key.key("monument"));
+        entries.add(Key.key("banner_white"));
+        entries.add(Key.key("banner_orange"));
+        entries.add(Key.key("banner_magenta"));
+        entries.add(Key.key("banner_light_blue"));
+        entries.add(Key.key("banner_yellow"));
+        entries.add(Key.key("banner_lime"));
+        entries.add(Key.key("banner_pink"));
+        entries.add(Key.key("banner_gray"));
+        entries.add(Key.key("banner_light_gray"));
+        entries.add(Key.key("banner_cyan"));
+        entries.add(Key.key("banner_purple"));
+        entries.add(Key.key("banner_blue"));
+        entries.add(Key.key("banner_brown"));
+        entries.add(Key.key("banner_green"));
+        entries.add(Key.key("banner_red"));
+        entries.add(Key.key("banner_black"));
+        entries.add(Key.key("red_x"));
+        entries.add(Key.key("village_desert"));
+        entries.add(Key.key("village_plains"));
+        entries.add(Key.key("village_savanna"));
+        entries.add(Key.key("village_snowy"));
+        entries.add(Key.key("village_taiga"));
+        entries.add(Key.key("jungle_temple"));
+        entries.add(Key.key("swamp_hut"));
+        entries.add(Key.key("trial_chambers"));
+        entries.add(Key.key("abandoned_camp"));
+        entries.add(Key.key("ancient_city"));
+        entries.add(Key.key("desert_pyramid"));
+        entries.add(Key.key("mineshaft"));
+        entries.add(Key.key("ocean_ruin_warm"));
+    }
+
+    /**
+     * @return {@code minecraft:map_decoration_type}, indexed by network ID
+     */
+    private static List<Key> mapDecorationType() {
+        final List<Key> entries = new ArrayList<>(40);
+        mapDecorationType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:map_decoration_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> mapDecorationTypeTags() {
+        return Map.of();
     }
 
     private static void menu0(final List<Key> entries) {

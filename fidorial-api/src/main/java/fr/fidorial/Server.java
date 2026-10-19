@@ -3,6 +3,7 @@ package fr.fidorial;
 import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.entity.player.PlayerManager;
 import fr.fidorial.event.EventBus;
+import fr.fidorial.map.MapManager;
 import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.plugin.PluginManager;
 import fr.fidorial.registry.GameRegistries;
@@ -97,6 +98,16 @@ public interface Server extends ForwardingAudience {
      */
     @Contract(pure = true)
     WorldManager worlds();
+
+    /**
+     * Gets the maps: the pictures behind {@code filled_map} items, terrain maps and canvases for
+     * plugins to draw on.
+     *
+     * @return the maps of the server
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    MapManager maps();
 
     /**
      * Gets the registries plugins can extend: biomes, dimension types, chat types, dialogs, mobs,

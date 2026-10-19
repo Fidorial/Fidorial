@@ -50,6 +50,7 @@ module fr.fidorial {
     exports fr.fidorial.event;
     exports fr.fidorial.gamerule;
     exports fr.fidorial.inventory;
+    exports fr.fidorial.map;
     exports fr.fidorial.math;
     exports fr.fidorial.permission;
     exports fr.fidorial.plugin;
@@ -99,7 +100,7 @@ module fr.fidorial {
 
     requires com.google.common;
     requires com.google.gson;
-    requires java.desktop;
+    requires transitive java.desktop;
     requires net.kyori.adventure.api;
     requires net.kyori.adventure.key;
     requires net.kyori.adventure.nbt;

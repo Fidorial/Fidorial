@@ -61,7 +61,7 @@ public final class SupportedRegistries {
             registry("minecraft:instrument", "Instrument", RegistrySync.DYNAMIC),
             ITEM,
             registry("minecraft:jukebox_song", "JukeboxSong", RegistrySync.DYNAMIC),
-            registry("minecraft:map_decoration_type", "MapDecorationType"),
+            registry("minecraft:map_decoration_type", "MapDecorationType", RegistrySync.FROZEN),
             registry("minecraft:menu", "MenuType", RegistrySync.FROZEN),
             registry("minecraft:mob_effect", "MobEffect", RegistrySync.FROZEN),
             registry("minecraft:painting_variant", "PaintingVariant", RegistrySync.DYNAMIC),

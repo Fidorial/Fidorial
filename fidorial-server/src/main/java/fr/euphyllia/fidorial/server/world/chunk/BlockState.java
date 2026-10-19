@@ -16,6 +16,7 @@ public final class BlockState {
     private final boolean fluid;
 
     private volatile LightProperties lightProperties;
+    private volatile int mapColor = -1;
     private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(65_536);
 
     private BlockState(final Key name, final Map<String, String> properties) {
@@ -83,10 +84,18 @@ public final class BlockState {
         this.lightProperties = props;
     }
 
+    public int mapColor() {
+        return mapColor;
+    }
+
+    public void setMapColor(final int mapColor) {
+        this.mapColor = mapColor;
+    }
+
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof BlockState other)) return false;
+        if (!(obj instanceof final BlockState other)) return false;
         return hashCode == other.hashCode && name.equals(other.name) && properties.equals(other.properties);
     }
 

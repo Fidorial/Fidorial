@@ -44,6 +44,7 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.LORE, loreCodec());
         register(DataComponentTypes.ATTACK_ANIMATION, swingAnimationCodec());
         register(DataComponentTypes.INTERACT_ANIMATION, swingAnimationCodec());
+        register(DataComponentTypes.MAP_ID, varIntCodec());
     }
 
     private DataComponentNetworkCodecs() {

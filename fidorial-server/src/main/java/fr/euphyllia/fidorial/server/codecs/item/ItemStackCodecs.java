@@ -9,10 +9,13 @@ import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.fidorial.item.component.ItemLore;
+import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -57,6 +60,19 @@ public final class ItemStackCodecs {
             .field("duration", SwingAnimation::duration, CommonCodecs.NON_NEGATIVE_INT)
             .build();
 
+    public static final Codec<MapItemDecorations.Entry> MAP_DECORATION_ENTRY_CODEC =
+            RecordCodec.builder(MapItemDecorations.Entry.class)
+                    .required("type", MapItemDecorations.Entry::type,
+                            KEY_CODEC.xmap(key -> TypedKey.create(RegistryKey.MAP_DECORATION_TYPE, key), TypedKey::key))
+                    .required("x", MapItemDecorations.Entry::x, Codec.DOUBLE)
+                    .required("z", MapItemDecorations.Entry::z, Codec.DOUBLE)
+                    .required("rotation", MapItemDecorations.Entry::rotation, Codec.FLOAT)
+                    .build();
+
+    public static final Codec<MapItemDecorations> MAP_DECORATIONS_CODEC =
+            Codec.unboundedMap(Codec.STRING, MAP_DECORATION_ENTRY_CODEC)
+                    .xmap(entries -> new MapItemDecorations(Map.copyOf(entries)), MapItemDecorations::entries);
+
     static {
         register(DataComponentTypes.MAX_STACK_SIZE, Codec.INT);
         register(DataComponentTypes.MAX_DAMAGE, Codec.INT);
@@ -67,6 +83,8 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.LORE, LORE_CODEC);
         register(DataComponentTypes.ATTACK_ANIMATION, SWING_ANIMATION_CODEC);
         register(DataComponentTypes.INTERACT_ANIMATION, SWING_ANIMATION_CODEC);
+        register(DataComponentTypes.MAP_ID, Codec.INT);
+        register(DataComponentTypes.MAP_DECORATIONS, MAP_DECORATIONS_CODEC);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {

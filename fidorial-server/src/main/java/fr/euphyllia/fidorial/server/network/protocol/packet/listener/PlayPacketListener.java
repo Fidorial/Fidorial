@@ -30,6 +30,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCreativeModeSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetGameRulePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemPacket;
 import fr.fidorial.protocol.PacketListener;
 
 public interface PlayPacketListener extends PacketListener {
@@ -52,6 +53,8 @@ public interface PlayPacketListener extends PacketListener {
     void handleCustomClickAction(ServerboundCustomClickActionPacket packet);
 
     void handleUseItemOn(ServerboundUseItemOnPacket packet);
+
+    void handleUseItem(ServerboundUseItemPacket packet);
 
     void handlePlayerAction(ServerboundPlayerActionPacket packet);
 

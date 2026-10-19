@@ -75,6 +75,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetCreativeModeSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundSetGameRulePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemPacket;
 import fr.euphyllia.fidorial.server.network.session.ChunkViewTracker;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
@@ -598,6 +599,16 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     @Override
+    public void handleUseItem(final ServerboundUseItemPacket packet) {
+        if (player == null) {
+            return;
+        }
+        final ServerPlayer acting = player;
+        acting.execute(() -> server.maps().useEmptyMap(acting, packet.isOffHand()));
+        connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+    }
+
+    @Override
     public void handleUseItemOn(final ServerboundUseItemOnPacket packet) {
         if (player == null) {
             return;
@@ -617,6 +628,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
                 return;
             }
+
+            if (packet.hand() == 0 && server.maps().useMapOn(acting, clicked)) {
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+
             final BlockFace clickedFace = BlockFace.byId(packet.face());
             final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(acting.selectedSlot());

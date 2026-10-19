@@ -479,6 +479,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         tickVoid();
         tickFire();
         tickRegeneration(currentTick);
+        connection.server().maps().tickPlayer(this);
     }
 
     public float landAfterFall() {

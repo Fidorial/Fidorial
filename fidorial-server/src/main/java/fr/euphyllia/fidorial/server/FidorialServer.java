@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.events.SimpleEventBus;
 import fr.euphyllia.fidorial.server.lifecycle.ModuleManager;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerState;
+import fr.euphyllia.fidorial.server.map.MapModule;
 import fr.euphyllia.fidorial.server.metrics.TelemetryModule;
 import fr.euphyllia.fidorial.server.moderation.ModerationModule;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
@@ -64,6 +65,7 @@ public final class FidorialServer implements Server {
     private final EntityModule entities;
     private final DebugModule debug;
     private final WorldModule worlds;
+    private final MapModule maps;
     private final CommandModule commands;
     private final NetworkModule network;
     private final PluginModule plugins;
@@ -97,6 +99,7 @@ public final class FidorialServer implements Server {
             entities = modules.add(new EntityModule(this, config, workers, players));
             debug = modules.add(new DebugModule(workers, players, entities));
             worlds = modules.add(new WorldModule(config, events, services, registries, workers, players, entities, debug));
+            maps = modules.add(new MapModule(this));
             commands = modules.add(new CommandModule(this, headless, registries, services));
             network = modules.add(new NetworkModule(this, config, headless, registries));
             plugins = modules.add(new PluginModule(this, config, events, services, registries));
@@ -224,6 +227,11 @@ public final class FidorialServer implements Server {
     @Override
     public WorldModule worlds() {
         return worlds;
+    }
+
+    @Override
+    public MapModule maps() {
+        return maps;
     }
 
     @Override
