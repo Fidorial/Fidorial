@@ -1,0 +1,316 @@
+/*
+ * Fidorial theme for the generated Javadoc, matching docs.fidorial.moe.
+ * Added on top of the JDK stylesheet with `javadoc --add-stylesheet`, so it only overrides what it
+ * needs: the colour and font variables of the JDK theme, plus a few finishing touches.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+    /* Fonts */
+    --fido-display-font: 'Bricolage Grotesque', 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+    --body-font-family: 'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --block-font-family: var(--body-font-family);
+    --code-font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', Consolas, monospace;
+    --body-font-size: 15.5px;
+    --block-font-size: 16px;
+    --code-font-size: 13.6px;
+    --nav-font-size: 14.5px;
+    --block-line-height: 1.6;
+
+    /* Palette (light theme of the docs) */
+    --fido-violet: #7a3cf0;
+    --fido-violet-dark: #4a1fa8;
+    --fido-violet-soft: #efe5ff;
+    --fido-rose: #e0428e;
+    --fido-rose-soft: #ffe0ef;
+    --fido-plum: #2a1236;
+    --fido-plum-2: #4d3559;
+    --fido-plum-3: #6f5879;
+    --fido-line: #eee0ee;
+    --fido-line-strong: #e3d3e8;
+
+    --body-text-color: var(--fido-plum);
+    --block-text-color: #3b2147;
+    --body-background-color: #fbf7fb;
+    --section-background-color: var(--body-background-color);
+    --detail-background-color: #ffffff;
+    --code-background-color: #f2eafb;
+    --mark-background-color: #f6eff6;
+    --detail-block-color: #f8f2f8;
+
+    --navbar-background-color: #fefbfe;
+    --navbar-text-color: var(--fido-plum-2);
+    --subnav-background-color: #f6eff6;
+    --subnav-link-color: var(--fido-violet);
+    --member-heading-background-color: var(--fido-violet-soft);
+
+    --selected-background-color: var(--fido-violet);
+    --selected-text-color: #ffffff;
+    --selected-link-color: var(--fido-violet-dark);
+
+    --table-header-color: var(--fido-violet-soft);
+    --even-row-color: #ffffff;
+    --odd-row-color: #fcf8fc;
+    --title-color: var(--fido-plum);
+    --link-color: var(--fido-violet);
+    --link-color-active: var(--fido-rose);
+
+    --toc-background-color: #f8f2f8;
+    --toc-highlight-color: var(--fido-violet-soft);
+    --toc-hover-color: #f1e6f1;
+
+    --snippet-background-color: #f8f3fc;
+    --snippet-text-color: var(--block-text-color);
+    --snippet-highlight-color: var(--fido-rose-soft);
+    --pre-background-color: var(--snippet-background-color);
+    --pre-text-color: var(--snippet-text-color);
+
+    --border-color: var(--fido-line);
+    --table-border-color: var(--fido-line-strong);
+    --tab-border-radius: 8px 8px 0 0;
+
+    --search-input-background-color: #ffffff;
+    --search-input-text-color: var(--fido-plum);
+    --search-input-placeholder-color: var(--fido-plum-3);
+    --search-tag-highlight-color: var(--fido-rose-soft);
+    --button-border-color: var(--fido-line-strong);
+
+    --invalid-tag-background-color: var(--fido-rose-soft);
+    --invalid-tag-text-color: var(--fido-plum);
+}
+
+::selection {
+    background-color: rgb(224 66 142 / 0.22);
+}
+
+/* ── Top navigation: light bar with the pink-to-violet line of the docs ── */
+.top-nav {
+    border-bottom: 2px solid var(--fido-violet);
+    border-image: linear-gradient(90deg, var(--fido-rose), var(--fido-violet)) 1;
+}
+.top-nav a:link,
+.top-nav a:visited {
+    color: var(--fido-plum-2);
+}
+.top-nav a:hover {
+    color: var(--fido-violet);
+}
+.top-nav li.nav-bar-cell1-rev,
+.nav-bar-cell1-rev {
+    border-radius: 999px;
+    font-weight: 600;
+}
+.sub-nav,
+div.sub-nav {
+    border-bottom: 1px solid var(--fido-line);
+}
+
+/* Navigation in normal case, like the docs (the JDK writes it in capitals) */
+.top-nav,
+.sub-nav,
+.sub-nav div,
+ul.nav-list li,
+ol.sub-nav-list li,
+ul.sub-nav-list li,
+.top-nav a:link,
+.top-nav a:active,
+.top-nav a:visited,
+.nav-list-search,
+.nav-list-search label {
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Brand on the left of the bar, where the docs put it (the JDK places -header on the right).
+   Only with the flex navigation bar of JDK 23+ (.nav-content). */
+.top-nav .nav-content {
+    align-items: center;
+}
+.top-nav .nav-content .about-language {
+    order: -1;
+    margin: 0 1.75rem 0 0;
+    padding: 0;
+    float: none;
+}
+
+/* Brand shown in the navigation bar (javadoc -header) */
+.fido-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-family: var(--fido-display-font);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--fido-plum);
+    white-space: nowrap;
+    text-decoration: none;
+}
+a.fido-brand:link,
+a.fido-brand:visited,
+a.fido-brand:hover {
+    color: var(--fido-plum);
+    text-decoration: none;
+}
+.fido-brand svg {
+    width: 1.4em;
+    height: 1.4em;
+    flex: none;
+}
+.fido-brand span {
+    color: var(--fido-plum-3);
+    font-weight: 600;
+}
+
+/* ── Headings in the display font of the docs ── */
+h1, h2, h3, h4,
+.title,
+.sub-title,
+.header h1,
+.module-signature,
+.package-signature {
+    font-family: var(--fido-display-font);
+    letter-spacing: -0.015em;
+}
+h1.title,
+.header h1.title {
+    font-weight: 800;
+    font-size: 2em;
+    letter-spacing: -0.03em;
+}
+h2, h3 {
+    font-weight: 700;
+}
+.sub-title {
+    color: var(--fido-plum-3);
+}
+
+/* No grey rule under the page title: a thin line in the palette instead */
+hr {
+    height: 1px;
+    border: 0;
+    background: var(--fido-line);
+}
+.header + hr,
+div.header + hr {
+    display: none;
+}
+.header {
+    margin-bottom: 0.75rem;
+}
+
+/* ── Links: violet, rose on hover, like the docs ── */
+a:link,
+a:visited {
+    color: var(--link-color);
+}
+a[href]:hover,
+a[href]:focus {
+    color: var(--fido-rose);
+}
+.block a[href]:not(:has(code)),
+.block a[href]:not(:has(code)):visited {
+    text-decoration: underline;
+    text-decoration-color: rgb(224 66 142 / 0.45);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+}
+
+/* ── Code ── */
+code,
+pre,
+.member-signature {
+    font-variant-ligatures: none;
+}
+.block code,
+.inherited-list code {
+    padding: 0.08em 0.35em;
+    border: 1px solid var(--fido-line);
+    border-radius: 0.35em;
+    background: var(--code-background-color);
+}
+.block a code,
+.inherited-list a code {
+    border-color: transparent;
+    background: transparent;
+    padding: 0;
+}
+pre,
+.snippet,
+div.block pre {
+    border: 1px solid var(--fido-line-strong);
+    border-radius: 0.8rem;
+}
+.member-signature {
+    padding: 0.6em 0.8em;
+    border: 1px solid var(--fido-line);
+    border-radius: 0.6rem;
+    background: #ffffff;
+}
+
+/* ── Detail sections and summary tables: soft cards ── */
+section.detail,
+.details section.detail,
+.member-list > li > section,
+.details-list > li > section {
+    border-radius: 0.8rem;
+}
+.summary-table,
+.caption + .summary-table {
+    border-radius: 0 0.8rem 0.8rem 0.8rem;
+    overflow: hidden;
+}
+.caption span,
+.table-tabs button {
+    font-family: var(--body-font-family);
+    font-weight: 600;
+}
+.table-tabs .active-table-tab,
+.caption span {
+    background-color: var(--fido-violet);
+    color: #ffffff;
+}
+.table-tabs .table-tab {
+    background-color: var(--fido-violet-soft);
+    color: var(--fido-violet-dark);
+}
+.table-tabs button {
+    border-radius: var(--tab-border-radius);
+}
+
+/* ── Search ── */
+input#search-input,
+input#page-search-input,
+input.filter-input {
+    border: 1px solid var(--fido-line-strong);
+    border-radius: 999px;
+    padding-left: 0.9em;
+}
+input#search-input:focus,
+input#page-search-input:focus,
+input.filter-input:focus {
+    outline: 2px solid var(--fido-rose);
+    outline-offset: 1px;
+}
+
+/* ── Side table of contents (JDK 23+) ── */
+.toc-title,
+nav.toc .toc-title {
+    font-family: var(--fido-display-font);
+    font-weight: 700;
+}
+nav.toc a.current-selection {
+    box-shadow: inset 3px 0 0 var(--fido-rose);
+    border-radius: 0 0.45rem 0.45rem 0;
+}
+
+/* ── Footer ── */
+.legal-copy,
+footer .legal-copy {
+    color: var(--fido-plum-3);
+}
+
+:focus-visible {
+    outline: 2px solid var(--fido-rose);
+    outline-offset: 2px;
+}
