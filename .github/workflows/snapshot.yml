@@ -2,7 +2,7 @@ name: Snapshot
 
 on:
   push:
-    branches: [ dev/26.3 ]
+    branches: [ 'dev/**' ]
     paths-ignore:
       - '**.md'
       - 'LICENCE'
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: snapshot
+  group: snapshot-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -21,6 +21,8 @@ jobs:
     with:
       upload-jar: true
       retention-days: 14
+      publish-api: true
+    secrets: inherit
 
   publish:
     needs: build
@@ -37,22 +39,19 @@ jobs:
 
       - name: Compute release name
         id: meta
-        env:
-          BASE: ${{ needs.build.outputs.version }}
         run: |
-          # 0.1.0-SNAPSHOT -> 0.1.0-dev.42
-          base="${BASE%-SNAPSHOT}"
-          echo "version=${base}-dev.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
           echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Publish development pre-release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: dev-${{ github.run_number }}
-          name: Fidorial ${{ steps.meta.outputs.version }}
+          tag_name: dev-${{ needs.build.outputs.maven-version }}
+          target_commitish: ${{ github.sha }}
+          name: Fidorial ${{ needs.build.outputs.maven-version }}
           prerelease: true
           files: dist/*.jar
           generate_release_notes: true
           body: |
-            Automated development build from `master`.
+            Automated development build from `${{ github.ref_name }}`.
             Commit: ${{ steps.meta.outputs.short_sha }}
+            API: `fr.fidorial:fidorial-api:${{ needs.build.outputs.maven-version }}`

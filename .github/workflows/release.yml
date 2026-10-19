@@ -10,6 +10,8 @@ jobs:
     with:
       upload-jar: true
       retention-days: 30
+      publish-api: true
+    secrets: inherit
 
   publish:
     needs: build
