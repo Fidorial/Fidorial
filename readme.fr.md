@@ -30,7 +30,7 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Protocole & réseau**
 
-- Implémentation maison de Minecraft **26.3** (protocole **777**) : handshake, status, login, configuration, play
+- Implémentation maison de Minecraft **26.4 Snapshot 4** (protocole **1073742166**) : handshake, status, login, configuration, play
 - Authentification Mojang, chiffrement et compression des paquets ; mode hors-ligne pour les tests
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
 - Netty avec transports epoll, kqueue et io_uring optionnel

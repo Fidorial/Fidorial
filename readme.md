@@ -30,7 +30,7 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 **Protocol & network**
 
-- Hand-written implementation of Minecraft **26.3** (protocol **777**): handshake, status, login, configuration, play
+- Hand-written implementation of Minecraft **26.4 Snapshot 4** (protocol **1073742166**): handshake, status, login, configuration, play
 - Mojang authentication, packet encryption and compression; offline mode for testing
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
 - Netty with epoll, kqueue and optional io_uring transports
