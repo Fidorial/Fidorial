@@ -1,5 +1,6 @@
 package fr.fidorial.entity.player;
 
+import fr.fidorial.attribute.Attribute;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.GameMode;
@@ -25,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.SequencedCollection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -141,6 +143,43 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @since 0.1.0
      */
     PlayerInput input();
+
+    /**
+     * Changes the base value of an attribute for this player.
+     *
+     * <p>The player's client applies it at once: a {@link Attribute#MOVEMENT_SPEED movement speed} of
+     * {@code 0} stops them from walking, a {@link Attribute#BLOCK_INTERACTION_RANGE block interaction
+     * range} of {@code 0} from reaching any block. The value is kept until it is
+     * {@linkplain #resetAttributeBase(Key) reset} or the player disconnects, including across respawns
+     * and world changes. The client clamps it to the range of the attribute.</p>
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @param base      the new base value
+     * @throws IllegalArgumentException if the attribute does not exist or {@code base} is not finite
+     * @since 0.1.0
+     */
+    void setAttributeBase(Key attribute, double base);
+
+    /**
+     * Gives an attribute back the base value a vanilla player has.
+     *
+     * <p>Does nothing when the base value was not {@linkplain #setAttributeBase(Key, double) changed}.</p>
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @throws IllegalArgumentException if the attribute does not exist
+     * @since 0.1.0
+     */
+    void resetAttributeBase(Key attribute);
+
+    /**
+     * Returns the base value set for an attribute.
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @return the value given to {@link #setAttributeBase(Key, double)}, or empty when the attribute has
+     * the base value a vanilla player has
+     * @since 0.1.0
+     */
+    OptionalDouble attributeBase(Key attribute);
 
     /**
      * @return the stack in the currently {@linkplain #selectedSlot() selected} hotbar slot,

@@ -33,6 +33,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStopSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundTabListPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateAttributesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -82,12 +83,14 @@ import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
 import java.util.SequencedCollection;
 import java.util.Set;
 import java.util.UUID;
@@ -110,6 +113,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public static final int MD_DISPLAYED_SKIN_PARTS =
             16; // The Displayed Skin Parts bit mask that is sent in Client Information
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
+    private static final Key ATTRIBUTE_REGISTRY = RegistryKey.ATTRIBUTE.key();
     private static final Key MOB_EFFECT_REGISTRY = RegistryKey.MOB_EFFECT.key();
     private static final int[] ARMOR_SLOTS = {36, 37, 38, 39};
     private static final int VOID_MARGIN = 64;
@@ -137,6 +141,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile GameMode gameMode;
     private volatile int selectedSlot;
     private volatile PlayerInput input = PlayerInput.NONE;
+    private final Map<Key, Double> attributeBases = new ConcurrentHashMap<>();
     private volatile boolean sprinting;
     private volatile boolean sneaking;
     private volatile boolean falling;
@@ -740,6 +745,50 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public PlayerInput input() {
         return input;
+    }
+
+    @Override
+    public void setAttributeBase(final Key attribute, final double base) {
+        final int id = attributeId(attribute);
+        if (!Double.isFinite(base)) {
+            throw new IllegalArgumentException("Attribute base value must be finite: " + base);
+        }
+        attributeBases.put(attribute, base);
+        connection.send(new ClientboundUpdateAttributesPacket(entityId(),
+                List.of(new ClientboundUpdateAttributesPacket.Value(id, base))));
+    }
+
+    @Override
+    public void resetAttributeBase(final Key attribute) {
+        final int id = attributeId(attribute);
+        if (attributeBases.remove(attribute) != null) {
+            connection.send(new ClientboundUpdateAttributesPacket(entityId(),
+                    List.of(new ClientboundUpdateAttributesPacket.Value(id, PlayerAttributeDefaults.base(attribute)))));
+        }
+    }
+
+    @Override
+    public OptionalDouble attributeBase(final Key attribute) {
+        final Double base = attributeBases.get(attribute);
+        return base == null ? OptionalDouble.empty() : OptionalDouble.of(base);
+    }
+
+    public void resendAttributeBases() {
+        final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>(attributeBases.size());
+        for (final Map.Entry<Key, Double> entry : attributeBases.entrySet()) {
+            values.add(new ClientboundUpdateAttributesPacket.Value(attributeId(entry.getKey()), entry.getValue()));
+        }
+        if (!values.isEmpty()) {
+            connection.send(new ClientboundUpdateAttributesPacket(entityId(), values));
+        }
+    }
+
+    private int attributeId(final Key attribute) {
+        final int id = connection.server().registries().frozen().networkId(ATTRIBUTE_REGISTRY, attribute);
+        if (id < 0) {
+            throw new IllegalArgumentException("Unknown attribute: " + attribute.asString());
+        }
+        return id;
     }
 
     public void setInput(final PlayerInput input) {

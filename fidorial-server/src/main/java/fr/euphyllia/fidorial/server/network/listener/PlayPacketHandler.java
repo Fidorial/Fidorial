@@ -1246,6 +1246,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 describeGenerator(world) instanceof ChunkGeneratorConfig.Flat));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
         connection.send(new ClientboundSetHealthPacket(player.health(), 20, 5.0f));
+        player.resendAttributeBases();
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
 
         final CompletableFuture<Boolean> moved = moveToRespawnPoint(world, spawn);

@@ -507,9 +507,6 @@ public final class ServerMapView implements MapView {
             lastViewedNanos = System.nanoTime();
             send(tick, next.values());
         }
-        if (viewers.isEmpty()) {
-            return;
-        }
         viewers.keySet().retainAll(next.keySet());
         viewers.putAll(next);
     }
