@@ -14,7 +14,7 @@ final class PlayerAttributeDefaults {
             Map.entry(Attribute.AIR_DRAG_MODIFIER, 1.0),
             Map.entry(Attribute.ARMOR, 0.0),
             Map.entry(Attribute.ARMOR_TOUGHNESS, 0.0),
-            Map.entry(Attribute.ATTACK_DAMAGE, 2.0),
+            Map.entry(Attribute.ATTACK_DAMAGE, 1.0),
             Map.entry(Attribute.ATTACK_KNOCKBACK, 0.0),
             Map.entry(Attribute.ATTACK_SPEED, 4.0),
             Map.entry(Attribute.BELOW_NAME_DISTANCE, 10.0),
@@ -37,7 +37,7 @@ final class PlayerAttributeDefaults {
             Map.entry(Attribute.MAX_HEALTH, 20.0),
             Map.entry(Attribute.MINING_EFFICIENCY, 0.0),
             Map.entry(Attribute.MOVEMENT_EFFICIENCY, 0.0),
-            Map.entry(Attribute.MOVEMENT_SPEED, (double) 0.7f),
+            Map.entry(Attribute.MOVEMENT_SPEED, 1.0),
             Map.entry(Attribute.NAME_TAG_DISTANCE, 64.0),
             Map.entry(Attribute.OXYGEN_BONUS, 0.0),
             Map.entry(Attribute.SAFE_FALL_DISTANCE, 3.0),
@@ -49,8 +49,8 @@ final class PlayerAttributeDefaults {
             Map.entry(Attribute.SWEEPING_DAMAGE_RATIO, 0.0),
             Map.entry(Attribute.TEMPT_RANGE, 10.0),
             Map.entry(Attribute.WATER_MOVEMENT_EFFICIENCY, 0.0),
-            Map.entry(Attribute.WAYPOINT_TRANSMIT_RANGE, 0.0),
-            Map.entry(Attribute.WAYPOINT_RECEIVE_RANGE, 0.0));
+            Map.entry(Attribute.WAYPOINT_TRANSMIT_RANGE, 60_000_000.0),
+            Map.entry(Attribute.WAYPOINT_RECEIVE_RANGE, 60_000_000.0));
 
     private PlayerAttributeDefaults() {
     }
