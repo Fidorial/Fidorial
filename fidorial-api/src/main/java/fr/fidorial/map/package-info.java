@@ -6,7 +6,7 @@
  *   {@link MapView maps}, saved with the world in the vanilla format, and makes
  *   canvases, images, fonts and layers;</li>
  *   <li>a {@link MapCanvas} holds pixels; draw shapes, {@linkplain
- *   .MapImage images} and text ({@link MapFont}) on it;</li>
+ *   MapImage images} and text ({@link MapFont}) on it;</li>
  *   <li>{@link MapLayer layers} paint over a map without changing what it stores,
  *   once for everyone or once per viewer;</li>
  *   <li>{@link MapDecoration icons} are kept as {@linkplain MapMarkers

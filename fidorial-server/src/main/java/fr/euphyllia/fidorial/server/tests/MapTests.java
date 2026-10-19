@@ -92,7 +92,7 @@ public final class MapTests {
     @ScenarioTest(timeoutTicks = 40)
     public static void usingAnEmptyMapCreatesOne(final ScenarioTestHelper helper) {
         final Player player = helper.summonPlayer("Mapper", helper.world(),
-                Location.of(helper.world(), 100.5, -60, -30.5, 0f, 0f), GameMode.SURVIVAL);
+                Location.of(helper.world(), 100.5, -60, 30.5, 0f, 0f), GameMode.SURVIVAL);
         player.inventory().set(player.selectedSlot(), ItemStack.of(ItemKeys.MAP.key(), 1));
         helper.sequence()
                 .execute(() -> player.execute(() ->
