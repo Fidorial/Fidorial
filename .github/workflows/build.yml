@@ -31,7 +31,7 @@ on:
         description: "Version declared in gradle.properties"
         value: ${{ jobs.build.outputs.version }}
       build-number:
-        description: "Number of commits of the branch, the build number in the versions"
+        description: "Build number in the versions, counted from the last change of minecraftVersion"
         value: ${{ jobs.build.outputs.build-number }}
       maven-version:
         description: "Version of the Maven artifacts, as computed by settings.gradle.kts"
@@ -66,7 +66,12 @@ jobs:
         id: build-number
         run: |
           set -euo pipefail
-          number=$(git rev-list --count HEAD)
+          base=$(git log -1 --format=%H -G'^[[:space:]]*minecraftVersion[[:space:]]*[=:]' -- gradle.properties)
+          if [ -n "$base" ]; then
+            number=$(( $(git rev-list --count "$base..HEAD") + 1 ))
+          else
+            number=$(git rev-list --count HEAD)
+          fi
           echo "BUILD_NUMBER=$number" >> "$GITHUB_ENV"
           echo "number=$number" >> "$GITHUB_OUTPUT"
       - name: Set up JDK 25
