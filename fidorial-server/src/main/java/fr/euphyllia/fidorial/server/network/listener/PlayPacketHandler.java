@@ -94,6 +94,7 @@ import fr.fidorial.event.block.BlockBreakEvent;
 import fr.fidorial.event.block.BlockPlaceEvent;
 import fr.fidorial.event.player.PlayerChatEvent;
 import fr.fidorial.event.player.PlayerDialogActionEvent;
+import fr.fidorial.event.player.PlayerDropItemEvent;
 import fr.fidorial.event.player.PlayerInputEvent;
 import fr.fidorial.event.player.PlayerItemHeldEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
@@ -102,7 +103,9 @@ import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
+import fr.fidorial.event.player.PlayerSwapHandItemsEvent;
 import fr.fidorial.event.player.PlayerSwingEvent;
+import fr.fidorial.event.player.PlayerUseItemEvent;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
@@ -604,7 +607,18 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
         final ServerPlayer acting = player;
-        acting.execute(() -> server.maps().useEmptyMap(acting, packet.isOffHand()));
+        final boolean offHand = packet.isOffHand();
+
+        acting.execute(() -> {
+            final ItemStack held = acting.inventory().get(offHand ? PlayerInventory.OFF_HAND : acting.selectedSlot());
+            final PlayerUseItemEvent event = server.events().post(new PlayerUseItemEvent(acting,
+                    offHand ? EquipmentSlotGroup.OFF_HAND : EquipmentSlotGroup.MAIN_HAND, held));
+            if (event.isCancelled()) {
+                acting.updateInventory();
+                return;
+            }
+            server.maps().useEmptyMap(acting, offHand);
+        });
         connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
     }
 
@@ -777,6 +791,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         final ServerPlayer acting = player;
         final int status = packet.status();
+        if (status == ServerboundPlayerActionPacket.SWAP_ITEM_WITH_OFFHAND) {
+            acting.execute(() -> swapHands(acting));
+            return;
+        }
+        if (status == ServerboundPlayerActionPacket.DROP_ITEM || status == ServerboundPlayerActionPacket.DROP_ALL_ITEMS) {
+            acting.execute(() -> dropHeldItem(acting, status == ServerboundPlayerActionPacket.DROP_ALL_ITEMS));
+            return;
+        }
         final boolean breaking =
                 switch (acting.gameMode()) {
                     case CREATIVE -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK;
@@ -802,6 +824,30 @@ public final class PlayPacketHandler implements PlayPacketListener {
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
+    }
+
+    private void swapHands(final ServerPlayer acting) {
+        final PlayerInventory inventory = acting.inventory();
+        final int slot = acting.selectedSlot();
+        final ItemStack main = inventory.get(slot);
+        final ItemStack off = inventory.get(PlayerInventory.OFF_HAND);
+        if (!server.events().post(new PlayerSwapHandItemsEvent(acting, main, off)).isCancelled()) {
+            inventory.set(slot, off);
+            inventory.set(PlayerInventory.OFF_HAND, main);
+        }
+        acting.updateInventory();
+    }
+
+    private void dropHeldItem(final ServerPlayer acting, final boolean wholeStack) {
+        final ItemStack held = acting.inventory().get(acting.selectedSlot());
+        if (!held.isEmpty()) {
+            final PlayerDropItemEvent event = server.events().post(new PlayerDropItemEvent(acting, held, wholeStack));
+            if (!event.isCancelled()) {
+                // TODO: add item entity: take one item (or the stack) out of the slot and throw it on the ground
+            }
+        }
+        // the client already took the item out: until items are thrown, give it back
+        acting.updateInventory();
     }
 
     private void onBlockDestroyed(final BlockPosition position) {
