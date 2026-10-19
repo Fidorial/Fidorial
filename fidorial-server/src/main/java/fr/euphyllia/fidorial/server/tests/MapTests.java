@@ -25,6 +25,7 @@ import fr.fidorial.world.World;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
@@ -116,15 +117,16 @@ public final class MapTests {
         final Player player = helper.summonPlayer("Viewer", helper.world(),
                 Location.of(helper.world(), 0.5, -60, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final MapView view = maps().create(helper.world(), 0, 0, MapScale.ONE_TO_ONE);
-        final int[] paints = {0};
+        final AtomicInteger paints = new AtomicInteger();
         view.addLayer(maps().layer(MapLayer.Scope.PER_VIEWER, 0, context -> {
-            paints[0]++;
+            paints.incrementAndGet();
             context.canvas().text(1, 1, context.viewer().orElseThrow().name(), palette().pixel(MapColor.COLOR_BLACK));
         }));
         player.inventory().set(player.selectedSlot(), view.item());
         helper.sequence()
                 .waitUntil(() -> helper.assertTrue(view.viewers().contains(player), "The carrier does not see the map"))
-                .execute(() -> helper.assertTrue(paints[0] >= 1, "The per-viewer layer was not painted"))
+                .execute(() -> helper.assertTrue(paints.get() >= 1,
+                        "The carrier is listed as a viewer before the per-viewer layer was painted"))
                 .build();
     }
 

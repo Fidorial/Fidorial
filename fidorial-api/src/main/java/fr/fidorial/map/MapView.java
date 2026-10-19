@@ -2,6 +2,8 @@ package fr.fidorial.map;
 
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.world.BlockFace;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -24,9 +26,9 @@ import java.util.concurrent.CompletableFuture;
  *   players when the map {@linkplain #tracksPlayers() tracks them}.</li>
  * </ol>
  *
- * <p>Players see a map while they carry it, and while it is {@linkplain #show(Player) shown} to
- * them, for instance in an item frame only they can see. Changes reach them on the next tick, or
- * right away with {@link #flush()}. A map is safe to use from any thread.</p>
+ * <p>Players see a map while they carry it, while it is {@linkplain #show(Player) shown} to them,
+ * and while it {@linkplain #hang hangs} in a frame only they see. Changes reach them on the next
+ * tick, or right away with {@link #flush()}. A map is safe to use from any thread.</p>
  *
  * @see MapManager
  * @since 0.1.0
@@ -226,6 +228,31 @@ public interface MapView {
      * @since 0.1.0
      */
     void hide(Player player);
+
+    /**
+     * Hangs the map in an item frame that only one player sees.
+     *
+     * <p>The frame takes up {@code block} in the world of the viewer and shows its front towards
+     * {@code facing}: a frame facing {@link BlockFace#SOUTH} hangs on the north side of the block and
+     * is looked at from the south. Nothing needs to be behind it. Several frames, even of the same
+     * map, may take up the same block.</p>
+     *
+     * @param viewer    the only player who sees the frame
+     * @param block     the block the frame takes up
+     * @param facing    the direction the front of the frame faces
+     * @param invisible whether to hide the frame itself, leaving only the map
+     * @return the frame, hanging until {@linkplain MapFrame#remove() removed}
+     * @throws IllegalArgumentException if the viewer is not connected, or the map was deleted
+     * @since 0.1.0
+     */
+    MapFrame hang(Player viewer, BlockPosition block, BlockFace facing, boolean invisible);
+
+    /**
+     * {@return the frames this map hangs in}
+     *
+     * @since 0.1.0
+     */
+    Collection<MapFrame> frames();
 
     /**
      * Sends what changed to everyone who sees the map, now rather than on the next tick.

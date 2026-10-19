@@ -11,12 +11,13 @@
  *   once for everyone or once per viewer;</li>
  *   <li>{@link MapDecoration icons} are kept as {@linkplain MapMarkers
  *   markers} or painted by layers;</li>
+ *   <li>a map can {@linkplain MapFrame hang} in an item frame that only one player sees;</li>
  *   <li>a pixel is a {@link MapColor} in a {@link MapShade}, see
  *   {@link MapPalette}.</li>
  * </ul>
  *
  * @since 0.1.0
  */
-        package fr.fidorial.map;
+package fr.fidorial.map;
 
 import fr.fidorial.Server;

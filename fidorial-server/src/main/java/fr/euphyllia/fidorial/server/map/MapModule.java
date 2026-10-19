@@ -3,10 +3,17 @@ package fr.euphyllia.fidorial.server.map;
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
+import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMapItemDataPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRemoveEntitiesPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -14,6 +21,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.storage.WorldDataFiles;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.player.PlayerCreateMapEvent;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
@@ -22,6 +30,7 @@ import fr.fidorial.map.MapCanvas;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.map.MapDecoration;
 import fr.fidorial.map.MapFont;
+import fr.fidorial.map.MapFrame;
 import fr.fidorial.map.MapImage;
 import fr.fidorial.map.MapLayer;
 import fr.fidorial.map.MapManager;
@@ -32,6 +41,7 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
@@ -78,6 +88,12 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     static final ComponentLogger LOGGER = ComponentLogger.logger(MapModule.class);
 
     private static final Key DECORATION_REGISTRY = Key.key("map_decoration_type");
+    private static final int METADATA_ENTITY_FLAGS = 0;
+    private static final int ENTITY_FLAG_INVISIBLE = 0x20;
+    private static final int METADATA_FRAME_DIRECTION = 8;
+    private static final int METADATA_FRAME_ITEM = 9;
+    private static final int METADATA_TYPE_SLOT = 7;
+    private static final int METADATA_TYPE_DIRECTION = 12;
     private static final Path MAPS = Path.of("minecraft", "maps");
     private static final String LAST_ID = "last_id.dat";
     /**
@@ -110,6 +126,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     private final Map<Integer, Long> missing = new ConcurrentHashMap<>();
     private final Map<ServerMapView, Object> tickLocks = new ConcurrentHashMap<>();
     private final Map<UUID, PlayerViewer> playerViewers = new ConcurrentHashMap<>();
+    private final Map<Integer, ServerMapFrame> frames = new ConcurrentHashMap<>();
     private final Deque<Integer> freeTemporaryIds = new ArrayDeque<>();
     private final AtomicLong tick = new AtomicLong();
     private final Map<Key, Integer> decorationIds = new ConcurrentHashMap<>();
@@ -232,6 +249,11 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         Preconditions.checkArgument(view instanceof ServerMapView, "Not a map of this server: %s", view);
         final ServerMapView map = (ServerMapView) view;
         map.markDeleted();
+        for (final ServerMapFrame frame : frames.values()) {
+            if (frame.serverMap() == map) {
+                takeDown(frame, true);
+            }
+        }
         views.remove(map.id(), map);
         tickLocks.remove(map);
         if (map.temporary()) {
@@ -466,6 +488,8 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         final long now = tick.incrementAndGet();
         final Map<UUID, MapViewer> online = onlineViewers();
         playerViewers.keySet().removeIf(uuid -> !online.containsKey(uuid));
+
+        forgetLostFrames();
         for (final ServerMapView view : views.values()) {
             tick(view, now, online);
         }
@@ -498,6 +522,89 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
                 view.tick(now, online);
             } catch (final RuntimeException e) {
                 LOGGER.error("Ticking map {} failed", view.id(), e);
+            }
+        }
+    }
+
+    @Override
+    public MapFrame hang(final ServerMapView view, final Player viewer, final BlockPosition block,
+                         final BlockFace facing, final boolean invisible) {
+        Preconditions.checkArgument(viewer instanceof ServerPlayer, "Not a player of this server: %s", viewer);
+        final ServerPlayer player = (ServerPlayer) viewer;
+        Preconditions.checkArgument(!player.isRemoved() && player.connection().isInPlayState(),
+                "%s is not connected", player.name());
+        Preconditions.checkArgument(!view.isDeleted(), "Map %s was deleted", view.id());
+
+        final int entityId = server.entities().ids().allocate();
+        final ServerMapFrame frame = new ServerMapFrame(this, view, player, player.world().key(), block, facing,
+                invisible, entityId);
+        frames.put(entityId, frame);
+        view.frameHung(player.uuid());
+
+        // a hanging entity is placed from the block it takes up and its direction, given as the data
+        final ItemStack item = view.item();
+        final RegistryHolder frozen = server.registries().frozen();
+        player.connection().send(new ClientboundAddEntityPacket(
+                entityId,
+                UUID.randomUUID(),
+                EntityTypes.networkId(EntityTypes.ITEM_FRAME),
+                new PositionData.Vec3D(block.blockX(), block.blockY(), block.blockZ()),
+                new PositionData.VelocityVec3D(0.0, 0.0, 0.0),
+                0.0f,
+                0.0f,
+                0.0f,
+                facing.ordinal()));
+        player.connection().send(ClientboundSetEntityMetadataPacket.of(
+                entityId,
+                ClientboundSetEntityMetadataPacket.Entry.ofByte(METADATA_ENTITY_FLAGS,
+                        invisible ? ENTITY_FLAG_INVISIBLE : 0),
+                ClientboundSetEntityMetadataPacket.Entry.raw(METADATA_FRAME_DIRECTION, METADATA_TYPE_DIRECTION,
+                        buf -> buf.writeVarInt(facing.ordinal())),
+                ClientboundSetEntityMetadataPacket.Entry.raw(METADATA_FRAME_ITEM, METADATA_TYPE_SLOT,
+                        buf -> ItemStackWriter.writeSlot(buf, item, frozen))));
+        return frame;
+    }
+
+    @Override
+    public Collection<MapFrame> frames(final ServerMapView view) {
+        final List<MapFrame> list = new ArrayList<>();
+        for (final ServerMapFrame frame : frames.values()) {
+            if (frame.serverMap() == view) {
+                list.add(frame);
+            }
+        }
+        return List.copyOf(list);
+    }
+
+    /**
+     * Takes a frame down.
+     *
+     * @param frame the frame
+     * @param tell  whether to remove it from the client, which already forgot it when the player left
+     *              or changed world
+     */
+    void takeDown(final ServerMapFrame frame, final boolean tell) {
+        if (!frame.markRemoved()) {
+            return;
+        }
+        frames.remove(frame.entityId(), frame);
+        final ServerPlayer player = frame.serverViewer();
+        frame.serverMap().frameTakenDown(player.uuid());
+        if (tell && !player.isRemoved() && player.connection().isInPlayState()) {
+            player.connection().send(new ClientboundRemoveEntitiesPacket(frame.entityId()));
+        }
+    }
+
+    /**
+     * Forgets the frames whose viewer left, reconnected or went to another world.
+     */
+    private void forgetLostFrames() {
+        for (final ServerMapFrame frame : frames.values()) {
+            final ServerPlayer player = frame.serverViewer();
+            final PlayerViewer current = playerViewers.get(player.uuid());
+            if (current == null || current.player() != player || player.isRemoved()
+                    || !player.world().key().equals(frame.world())) {
+                takeDown(frame, false);
             }
         }
     }

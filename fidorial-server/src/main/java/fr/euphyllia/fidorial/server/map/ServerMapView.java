@@ -7,13 +7,16 @@ import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.map.MapCanvas;
 import fr.fidorial.map.MapDecoration;
+import fr.fidorial.map.MapFrame;
 import fr.fidorial.map.MapLayer;
 import fr.fidorial.map.MapMarkers;
 import fr.fidorial.map.MapPalette;
 import fr.fidorial.map.MapScale;
 import fr.fidorial.map.MapView;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.MapDecorationTypeKeys;
+import fr.fidorial.world.BlockFace;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -74,6 +77,7 @@ public final class ServerMapView implements MapView {
 
     private final CopyOnWriteArrayList<LayerSlot> layers = new CopyOnWriteArrayList<>();
     private final Map<UUID, Boolean> shown = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> framed = new ConcurrentHashMap<>();
     private final Map<UUID, Carrier> carriers = new ConcurrentHashMap<>();
     private final Map<UUID, Viewer> viewers = new ConcurrentHashMap<>();
     private volatile long lastViewedNanos = System.nanoTime();
@@ -402,8 +406,37 @@ public final class ServerMapView implements MapView {
         shown.remove(player.uuid());
     }
 
+    @Override
+    public MapFrame hang(final Player viewer, final BlockPosition block, final BlockFace facing,
+                         final boolean invisible) {
+        Preconditions.checkArgument(viewer != null, "The player to hang a map for must not be null");
+        Preconditions.checkArgument(block != null, "The block of a map frame must not be null");
+        Preconditions.checkArgument(facing != null, "The facing of a map frame must not be null");
+        return module.hang(this, viewer, block, facing, invisible);
+    }
+
+    @Override
+    public Collection<MapFrame> frames() {
+        return module.frames(this);
+    }
+
+    /**
+     * Records that a frame of this map hangs for a player, who then sees the map.
+     */
+    void frameHung(final UUID viewer) {
+        framed.merge(viewer, 1, Integer::sum);
+        lastViewedNanos = System.nanoTime();
+    }
+
+    /**
+     * Records that a frame of this map came down for a player.
+     */
+    void frameTakenDown(final UUID viewer) {
+        framed.computeIfPresent(viewer, (uuid, count) -> count > 1 ? count - 1 : null);
+    }
+
     boolean hasExplicitViewers() {
-        return !shown.isEmpty();
+        return !shown.isEmpty() || !framed.isEmpty();
     }
 
     /**
@@ -463,19 +496,22 @@ public final class ServerMapView implements MapView {
      */
     void tick(final long tick, final Map<UUID, MapViewer> online) {
         final Map<UUID, MapViewer> current = currentViewers(tick, online);
-        viewers.keySet().removeIf(uuid -> !current.containsKey(uuid));
+        final Map<UUID, Viewer> next = new LinkedHashMap<>();
         for (final Map.Entry<UUID, MapViewer> entry : current.entrySet()) {
             final Viewer viewer = viewers.get(entry.getKey());
-            if (viewer == null || viewer.player != entry.getValue()) {
-                viewers.put(entry.getKey(), new Viewer(entry.getValue()));
-            }
+            next.put(entry.getKey(),
+                    viewer == null || viewer.player != entry.getValue() ? new Viewer(entry.getValue()) : viewer);
         }
-        paintLayers(tick);
+        paintLayers(tick, next);
+        if (!next.isEmpty()) {
+            lastViewedNanos = System.nanoTime();
+            send(tick, next.values());
+        }
         if (viewers.isEmpty()) {
             return;
         }
-        lastViewedNanos = System.nanoTime();
-        send(tick);
+        viewers.keySet().retainAll(next.keySet());
+        viewers.putAll(next);
     }
 
     private Map<UUID, MapViewer> currentViewers(final long tick, final Map<UUID, MapViewer> online) {
@@ -491,10 +527,16 @@ public final class ServerMapView implements MapView {
                 current.putIfAbsent(uuid, player);
             }
         }
+        for (final UUID uuid : framed.keySet()) {
+            final MapViewer player = online.get(uuid);
+            if (player != null) {
+                current.putIfAbsent(uuid, player);
+            }
+        }
         return current;
     }
 
-    private void paintLayers(final long tick) {
+    private void paintLayers(final long tick, final Map<UUID, Viewer> current) {
         for (final LayerSlot slot : layers) {
             final boolean requested = slot.requested;
             slot.requested = false;
@@ -508,8 +550,8 @@ public final class ServerMapView implements MapView {
                 }
                 continue;
             }
-            slot.perViewer.keySet().removeIf(uuid -> !viewers.containsKey(uuid));
-            for (final Viewer viewer : viewers.values()) {
+            slot.perViewer.keySet().removeIf(uuid -> !current.containsKey(uuid));
+            for (final Viewer viewer : current.values()) {
                 final LayerPaint paint = slot.perViewer.get(viewer.player.uuid());
                 if (paint == null || paint.player != viewer.player) {
                     final LayerPaint fresh = new LayerPaint(viewer.player);
@@ -526,7 +568,7 @@ public final class ServerMapView implements MapView {
         }
     }
 
-    private void send(final long tick) {
+    private void send(final long tick, final Collection<Viewer> current) {
         final byte[] base;
         final List<MapDecoration> stored;
         final int scaleLevel;
@@ -586,7 +628,7 @@ public final class ServerMapView implements MapView {
         if (shownWorld != null) {
             carrierIcons(common, shownWorld, showPlayers, showFar, cx, cz, size, tick);
         }
-        for (final Viewer viewer : viewers.values()) {
+        for (final Viewer viewer : current)  {
             byte[] composite = base;
             List<MapIcon> icons = common;
             if (perViewer) {
