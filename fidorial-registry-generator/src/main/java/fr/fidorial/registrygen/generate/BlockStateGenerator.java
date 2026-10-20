@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -115,6 +116,21 @@ public final class BlockStateGenerator {
                 .addJavadoc("Registers every block type and its full network state table.\n\n")
                 .addJavadoc("<p>Generated from Mojang's registry report; do not edit.</p>\n")
                 .addMethod(createPrivateConstructor(PROTOCOL_IDS_CLASS_NAME));
+
+        final int stateCount = blocks.stream()
+                .flatMapToInt(block -> IntStream.of(block.stateIdsInOrder()))
+                .max()
+                .orElse(-1) + 1;
+
+        protocolIds.addField(FieldSpec.builder(TypeName.INT, "STATE_COUNT", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addJavadoc("Total number of block states.\n")
+                .initializer("$L", stateCount)
+                .build());
+
+        protocolIds.addField(FieldSpec.builder(TypeName.INT, "BLOCK_COUNT", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                .addJavadoc("Total number of block types.\n")
+                .initializer("$L", blocks.size())
+                .build());
 
         addProtocolIdRegistrationMethods(protocolIds, blocks, pkgs);
 

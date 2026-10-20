@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
+import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -8,8 +9,8 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockStates {
 
-    private static final Object2ObjectOpenHashMap<Key, BlockState[]> BY_KEY = new Object2ObjectOpenHashMap<>();
-    private static final Object2ObjectOpenHashMap<Key, @Nullable BlockState> DEFAULT = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<Key, BlockState[]> BY_KEY = new Object2ObjectOpenHashMap<>(BlockStateIds.BLOCK_COUNT);
+    private static final Object2ObjectOpenHashMap<Key, BlockState> DEFAULT = new Object2ObjectOpenHashMap<>(BlockStateIds.BLOCK_COUNT);
 
     private BlockStates() {
         throw new UnsupportedOperationException("BlockStates cannot be instantiated.");

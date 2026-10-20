@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
+import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
 
@@ -17,7 +18,7 @@ public final class BlockState {
 
     private volatile LightProperties lightProperties;
     private volatile int mapColor = -1;
-    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(65_536);
+    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
     private BlockState(final Key name, final Map<String, String> properties) {
         this.name = name;
