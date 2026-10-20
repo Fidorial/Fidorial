@@ -88,7 +88,8 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          echo "maven-version=$(./gradlew printVersion --quiet)" >> "$GITHUB_OUTPUT"
+          version=$(./gradlew --quiet printVersion | tail -n 1)
+          echo "maven-version=$version" >> "$GITHUB_OUTPUT"
 
       # Also checks formatting
       - name: Build and test
