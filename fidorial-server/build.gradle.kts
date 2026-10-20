@@ -134,7 +134,12 @@ val bootstrapPayload =
 
         extraBundled.from(tasks.jar)
 
-        excludedModules.set(setOf("com.mojang:brigadier"))
+        excludedModules.set(
+            setOf(
+                "com.mojang:brigadier",
+                "ca.spottedleaf.leafpile:concurrentutil"
+            )
+        )
 
         pinSnapshots.set(false)
 
@@ -291,6 +296,14 @@ dependencyPatcher {
             compileOnly(libs.adventure.key)
             compileOnly(libs.jspecify)
             compileOnly(libs.jetbrains.annotations)
+        }
+    }
+
+    patchSet("leafpile-concurrentutil") {
+        library.set(libs.leafpile.concurrentutil)
+        autoRebuild = true
+        dependencies {
+            compileOnly(libs.leafpile.common)
         }
     }
 }

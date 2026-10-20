@@ -1,0 +1,33 @@
+--- a/ca/spottedleaf/concurrentutil/lock/ReentrantAreaLock.java
++++ b/ca/spottedleaf/concurrentutil/lock/ReentrantAreaLock.java
+@@ -185,7 +_,7 @@
+         final long[] areaAffected = new long[(toSectionX - fromSectionX + 1) * (toSectionY - fromSectionY + 1)];
+         int areaAffectedLen = 0;
+ 
+-        final Node ret = new Node(this, areaAffected, currThread);
++        Node ret = new Node(this, areaAffected, currThread); // Fidorial - https://github.com/Tuinity/LeafPile/pull/13
+ 
+         for (;;) {
+             Node park = null;
+@@ -228,8 +_,11 @@
+ 
+                 areaAffectedLen = 0;
+ 
+-                // since we inserted, we need to drain waiters
+-                ret.notifier.notifyThreadsAndBlock();
++                // Fidorial start- https://github.com/Tuinity/LeafPile/pull/13
++                // A contender may start waiting after this notification, so do not reuse the node.
++                ret.notifier.notifyThreads();
++                ret = new Node(this, areaAffected, currThread);
++                // Fidorial end - https://github.com/Tuinity/LeafPile/pull/13
+             }
+ 
+             if (park == null) {
+@@ -242,6 +_,7 @@
+             }
+ 
+             // failed
++            park.notifier.waitUntilReady(); // Fidorial - https://github.com/Tuinity/LeafPile/pull/13
+         }
+     }
+ 
