@@ -71,7 +71,7 @@ jobs:
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           JAR: ${{ needs.build.outputs.jar-name }}
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ needs.build.outputs.maven-version }}
           SHA: ${{ github.event.pull_request.head.sha }}
           ARTIFACT_URL: ${{ needs.build.outputs.artifact-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
