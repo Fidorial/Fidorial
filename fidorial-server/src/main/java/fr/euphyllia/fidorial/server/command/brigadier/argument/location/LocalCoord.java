@@ -5,10 +5,15 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 public record LocalCoord(double value) {
 
-    static LocalCoord parse(final StringReader reader)
-            throws CommandSyntaxException {
-
-        reader.expect('^');
+    static LocalCoord parse(final StringReader reader, final int start) throws CommandSyntaxException {
+        if (!reader.canRead()) {
+            throw PositionParsing.MISSING_DOUBLE.createWithContext(reader);
+        }
+        if (reader.peek() != '^') {
+            reader.setCursor(start);
+            throw PositionParsing.MIXED.createWithContext(reader);
+        }
+        reader.skip();
 
         if (!reader.canRead() || reader.peek() == ' ') {
             return new LocalCoord(0);

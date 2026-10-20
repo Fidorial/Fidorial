@@ -8,7 +8,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.EntitiesResolver;
 import fr.fidorial.entity.Entity;
@@ -164,20 +163,20 @@ public final class EffectCommand {
             results.add(result);
         }
 
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
         final boolean done = results.stream().allMatch(CompletableFuture::isDone);
         if (done) {
             final int count = succeeded(results);
             if (count == 0) {
                 throw ExceptionFactory.simple(failureKey).create();
             }
-            sender.sendMessage(feedback.message(count));
+            source.sendMessage(feedback.message(count));
             return count;
         }
 
         CompletableFuture.allOf(results.toArray(CompletableFuture[]::new)).thenRun(() -> {
             final int count = succeeded(results);
-            sender.sendMessage(count == 0
+            source.sendMessage(count == 0
                     ? Component.translatable(failureKey, NamedTextColor.RED)
                     : feedback.message(count));
         });
@@ -195,7 +194,7 @@ public final class EffectCommand {
     }
 
     private static Entity self(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        if (context.getSource().sender() instanceof final Entity entity) {
+        if (context.getSource().executor() instanceof final Entity entity) {
             return entity;
         }
         throw NOT_AN_ENTITY.create();
@@ -219,7 +218,7 @@ public final class EffectCommand {
                     }
                     return type;
                 },
-                (context, builder) -> {
+                (_, builder) -> {
                     final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
                     FidorialServer.getInstance().registries().effects().types().stream()
                             .map(type -> type.key().asString())

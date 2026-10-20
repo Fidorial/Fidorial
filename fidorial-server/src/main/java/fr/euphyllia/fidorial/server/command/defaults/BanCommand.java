@@ -70,7 +70,7 @@ public final class BanCommand {
 
         final List<PlayerProfile> targets = PlayerProfilesResolver.playerProfiles(context, "player");
 
-        final UUID issuer = source.sender() instanceof final Player player ? player.uuid() : null;
+        final UUID issuer = source.executor() instanceof final Player player ? player.uuid() : null;
 
         int banned = 0;
 

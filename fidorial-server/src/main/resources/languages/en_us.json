@@ -96,6 +96,7 @@
 
   "command.respawn.not_player" : "<red>A target is required when not run as a player",
   "command.respawn.done" : "<arg:0> has been respawned.",
+  "command.respawn.done.self" : "Respawned.",
   "command.respawn.alive" : "<arg:0> is not waiting to respawn.",
   "command.respawn.usage" : "Usage: /<arg:0> [player]",
 
@@ -163,6 +164,12 @@
 
   "console.argument.angle.incomplete": "Incomplete (expected 1 angle)",
   "console.argument.angle.invalid": "Invalid angle",
+
+  "console.argument.pos.missing.double": "Expected a coordinate",
+  "console.argument.pos.missing.int": "Expected a block position",
+  "console.argument.pos.mixed": "Cannot mix world and local coordinates (everything must either use ^ or not)",
+  "console.argument.pos2d.incomplete": "Incomplete (expected 2 coordinates)",
+  "console.argument.pos3d.incomplete": "Incomplete (expected 3 coordinates)",
 
   "console.argument.dimension.invalid": "Unknown dimension '<arg:0>'",
   "console.argument.gamemode.invalid": "Unknown game mode: '<arg:0>'",

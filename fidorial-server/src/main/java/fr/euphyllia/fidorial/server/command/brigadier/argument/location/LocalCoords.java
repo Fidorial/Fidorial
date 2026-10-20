@@ -8,21 +8,21 @@ import fr.fidorial.math.Location;
 
 public record LocalCoords(LocalCoord x, LocalCoord y, LocalCoord z) {
 
-    public static LocalCoords parse(final StringReader reader)
-            throws CommandSyntaxException {
+    public static LocalCoords parse(final StringReader reader) throws CommandSyntaxException {
+        final int start = reader.getCursor();
 
-        final LocalCoord x = LocalCoord.parse(reader);
-        reader.expect(' ');
-        final LocalCoord y = LocalCoord.parse(reader);
-        reader.expect(' ');
-        final LocalCoord z = LocalCoord.parse(reader);
+        final LocalCoord x = LocalCoord.parse(reader, start);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final LocalCoord y = LocalCoord.parse(reader, start);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final LocalCoord z = LocalCoord.parse(reader, start);
 
         return new LocalCoords(x, y, z);
     }
 
     public Location resolve(final CommandSource source) {
         return CoordMath.applyLocalCoords(
-                source.location(),
+                PositionParsing.origin(source),
                 x.value(),
                 y.value(),
                 z.value()

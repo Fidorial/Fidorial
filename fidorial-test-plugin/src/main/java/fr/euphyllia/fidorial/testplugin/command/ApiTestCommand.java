@@ -14,11 +14,13 @@ import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
+import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.command.serializers.MessageComponentSerializer;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.nbt.NbtPath;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
@@ -55,7 +57,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static com.mojang.brigadier.arguments.DoubleArgumentType.doubleArg;
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static fr.fidorial.command.Commands.argument;
@@ -112,10 +113,8 @@ public final class ApiTestCommand {
                 .then(literal("schedule").executes(ctx -> schedule(plugin, ctx)))
                 .then(literal("perms").executes(ApiTestCommand::perms))
                 .then(literal("teleport")
-                        .then(argument("x", doubleArg())
-                                .then(argument("y", doubleArg())
-                                        .then(argument("z", doubleArg())
-                                                .executes(ApiTestCommand::tp)))))
+                        .then(argument("position", arguments().position())
+                                .executes(ApiTestCommand::tp)))
                 .then(literal("tpworld")
                         .executes(ctx -> tpWorld(plugin, ctx, Key.key("overworld")))
                         .then(argument("name", arguments().world())
@@ -474,19 +473,16 @@ public final class ApiTestCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private static int tp(final CommandContext<CommandSource> ctx) {
+    private static int tp(final CommandContext<CommandSource> ctx) throws CommandSyntaxException {
         final CommandSource source = ctx.getSource();
         if (!(source.executor() instanceof final Player player)) {
             plugin.msg(source, REQUIRES_PLAYER);
             return Command.SINGLE_SUCCESS;
         }
 
-        final double x = ctx.getArgument("x", Double.class);
-        final double y = ctx.getArgument("y", Double.class);
-        final double z = ctx.getArgument("z", Double.class);
-
-        player.teleport(x, y, z).whenComplete((ok, _) ->
-                plugin.msg(source, "[TestPlugin] Teleporting " + (ok ? "OK" : "refused") + " to " + x + ", " + y + ", " + z));
+        final Position position = PositionResolver.position(ctx, "position");
+        player.teleport(position.x(), position.y(), position.z()).whenComplete((ok, _) ->
+                plugin.msg(source, "[TestPlugin] Teleporting " + (ok ? "OK" : "refused") + " to " + position.x() + ", " + position.y() + ", " + position.z()));
         return Command.SINGLE_SUCCESS;
     }
 
