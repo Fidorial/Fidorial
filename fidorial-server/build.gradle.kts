@@ -137,8 +137,8 @@ val bootstrapPayload =
         excludedModules.set(
             setOf(
                 "com.mojang:brigadier",
-                "ca.spottedleaf.leafpile:concurrentutil"
-            )
+                "ca.spottedleaf.leafpile:concurrentutil",
+            ),
         )
 
         pinSnapshots.set(false)
