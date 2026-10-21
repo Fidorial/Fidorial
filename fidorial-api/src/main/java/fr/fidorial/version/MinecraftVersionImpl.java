@@ -60,7 +60,9 @@ record MinecraftVersionImpl(int major, int minor, int patch, Stage stage, int it
     }
 
     private String format(final String separator, final String label) {
-        final String base = patch == 0 ? "%d.%d".formatted(major, minor) : "%d.%d.%d".formatted(major, minor, patch);
+        final String base = patch == 0
+                ? "%d.%d".formatted(major, minor)
+                : "%d.%d.%d".formatted(major, minor, patch);
         return stage == Stage.RELEASE ? base : String.join(separator, base, label, Integer.toString(iteration));
     }
 
@@ -69,6 +71,13 @@ record MinecraftVersionImpl(int major, int minor, int patch, Stage stage, int it
     }
 
     private static Stage stageOf(final @Nullable String id) {
-        return id == null ? Stage.RELEASE : Arrays.stream(Stage.values()).filter(stage -> stage.id.equals(id)).findFirst().orElseThrow();
+        if (id == null) {
+            return Stage.RELEASE;
+        }
+
+        return Arrays.stream(Stage.values())
+                .filter(stage -> stage.id.equals(id))
+                .findFirst()
+                .orElseThrow();
     }
 }
