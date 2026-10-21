@@ -1,5 +1,10 @@
 package fr.euphyllia.fidorial.server;
 
+import fr.fidorial.version.BuildSpecification;
+import fr.fidorial.version.MinecraftVersion;
+
+import java.util.OptionalInt;
+
 /**
  * Holds the constants for the current Minecraft version targeted by Fidorial.
  */
@@ -10,9 +15,19 @@ public final class VersionConstants {
     public static final boolean IS_RELEASE = {{ isRelease }};
 
     public static final String FIDORIAL_VERSION = "{{ fidorialVersion }}";
+    public static final String SERVER_VERSION = "{{ serverVersion }}";
+    public static final int BUILD_NUMBER = {{ buildNumber }}; // -1 for a local build
 
     public static final int PROTOCOL_VERSION = {{ protocolVersion }};
     public static final int DATA_VERSION = {{ dataVersion }};
+
+    public static final BuildSpecification BUILD = new BuildSpecification(
+            MinecraftVersion.parse(MINECRAFT_VERSION_ID),
+            PROTOCOL_VERSION,
+            FIDORIAL_VERSION,
+            SERVER_VERSION,
+            BUILD_NUMBER < 0 ? OptionalInt.empty() : OptionalInt.of(BUILD_NUMBER)
+    );
 
     private VersionConstants() {
     }

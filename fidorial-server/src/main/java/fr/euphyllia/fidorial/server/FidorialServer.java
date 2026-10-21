@@ -31,6 +31,7 @@ import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.translation.TranslationStore;
+import fr.fidorial.version.BuildSpecification;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -40,8 +41,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;
-import static fr.euphyllia.fidorial.server.VersionConstants.PROTOCOL_VERSION;
+import static fr.euphyllia.fidorial.server.VersionConstants.DATA_VERSION;
 
 public final class FidorialServer implements Server {
 
@@ -85,6 +85,12 @@ public final class FidorialServer implements Server {
         if (INSTANCE.get() != null) {
             throw new IllegalStateException("FidorialServer is already initialized");
         }
+
+        final BuildSpecification build = VersionConstants.BUILD;
+        LOGGER.info("Starting Fidorial {} for Minecraft {} ({})", build.apiVersion(), build.minecraftVersion().name(),
+                build.buildNumber().isPresent() ? "build " + build.buildNumber().getAsInt() : "local");
+        LOGGER.debug("Version {}, protocol {}, data version {}", build.version(), build.protocolVersion(), DATA_VERSION);
+
         GameBootstrap.bootstrap();
         this.headless = headless;
         this.config = ServerConfiguration.load();
@@ -151,7 +157,6 @@ public final class FidorialServer implements Server {
             }
             throw new IllegalStateException("A server that has been shut down cannot be started again");
         }
-        LOGGER.info("Starting Fidorial (Minecraft {} / protocol {})", minecraftVersion(), protocolVersion());
         try {
             modules.load();
             modules.start();
@@ -299,13 +304,8 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public String minecraftVersion() {
-        return MINECRAFT_VERSION_ID;
-    }
-
-    @Override
-    public int protocolVersion() {
-        return PROTOCOL_VERSION;
+    public BuildSpecification buildSpecification() {
+        return VersionConstants.BUILD;
     }
 
     @Override

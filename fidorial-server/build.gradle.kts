@@ -31,7 +31,9 @@ repositories {
 }
 
 dependencies {
-    apiSurface(projects.fidorialApi)
+    apiSurface(projects.fidorialApi) {
+        exclude(group = "net.kyori", module = "adventure-api")
+    }
 
     implementation(libs.faststats.config)
     implementation(libs.faststats.core)
@@ -95,6 +97,15 @@ sourceSets.main {
         property("fidorialVersion", providers.gradleProperty("fidorialVersion"))
         property("protocolVersion", providers.gradleProperty("protocolVersion"))
         property("dataVersion", providers.gradleProperty("dataVersion"))
+        property("serverVersion", project.version.toString())
+        property(
+            "buildNumber",
+            providers
+                .environmentVariable("BUILD_NUMBER")
+                .map { it.trim() }
+                .filter { it.toIntOrNull() != null }
+                .orElse("-1"),
+        )
     }
     blossom.resources {
         property("sparkVersion", libs.versions.spark.asProvider())
