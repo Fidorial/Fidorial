@@ -307,6 +307,9 @@ public final class RegistryGenerator {
      *
      * @param registriesJson      path to Mojang's {@code registries.json}
      * @param prismarineItemsJson path to Prismarine's {@code items.json}
+     * @param itemComponents      Mojang's item components report, for the equipment slots: the
+     *                            per-item directory or the legacy {@code items.json};
+     *                            {@code null} or missing to generate none
      * @param outputDirectory     generated Java source root
      * @param registryDataPackage package the generated class is written into
      * @param itemKeysPackage     package holding the generated {@code ItemKeys} class
@@ -315,6 +318,7 @@ public final class RegistryGenerator {
      */
     public void generateItemProperties(final Path registriesJson,
                                        final Path prismarineItemsJson,
+                                       final Path itemComponents,
                                        final Path outputDirectory,
                                        final String registryDataPackage,
                                        final String itemKeysPackage) throws IOException {
@@ -336,11 +340,16 @@ public final class RegistryGenerator {
         final Map<String, PrismarineItemDefinition> prismarineItems =
                 prismarineItemReportParser.parse(prismarineItemsJson);
 
+        final Map<String, String> equipmentSlots = itemComponents != null
+                ? new ItemComponentsReportParser().parseEquipmentSlots(itemComponents)
+                : Map.of();
+
         Files.createDirectories(outputDirectory);
 
         itemPropertiesGenerator.generate(
                 items.get().entries(),
                 prismarineItems,
+                equipmentSlots,
                 registryDataPackage,
                 itemKeysPackage,
                 outputDirectory);

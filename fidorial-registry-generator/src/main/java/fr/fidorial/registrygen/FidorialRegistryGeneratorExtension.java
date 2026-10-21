@@ -1,6 +1,7 @@
 package fr.fidorial.registrygen;
 
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -70,6 +71,12 @@ public abstract class FidorialRegistryGeneratorExtension {
      * Whether the {@code generateBlockStates} task should be registered.
      */
     public abstract Property<Boolean> getGenerateBlockStates();
+
+    /**
+     * Where the {@code generateRecipes} task writes the vanilla recipe dataset. The task only
+     * runs when this is set, and needs {@code "--server"} among the data generator arguments.
+     */
+    public abstract RegularFileProperty getRecipesDataset();
 
     /**
      * Additional arguments passed to Mojang's data generator.

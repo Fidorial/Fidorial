@@ -1,5 +1,6 @@
 package fr.fidorial.registrygen.generate;
 
+import com.palantir.javapoet.AnnotationSpec;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.FieldSpec;
@@ -24,8 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Generates {@code ItemProperties} — per-item stack size, durability and repair
- * materials — by joining Mojang's item registry against PrismarineJS's items report.
+ * Generates {@code ItemProperties} — per-item stack size, durability, repair materials and
+ * equipment slot — by joining Mojang's item registry against PrismarineJS's items report and
+ * Mojang's items report.
  *
  * @since 0.1.0
  */
@@ -48,12 +50,15 @@ public final class ItemPropertiesGenerator {
             ClassName.get("it.unimi.dsi.fastutil.objects", "Object2IntOpenHashMap");
     private static final ClassName OBJECT_2_OBJECT_OPEN_HASH_MAP =
             ClassName.get("it.unimi.dsi.fastutil.objects", "Object2ObjectOpenHashMap");
+    private static final ClassName NULLABLE = ClassName.get("org.jspecify.annotations", "Nullable");
 
     /**
      * Generates the {@code ItemProperties} class.
      *
      * @param items               Mojang's item registry entries, which decide what exists
      * @param prismarineItems     Prismarine metadata keyed by plain item name
+     * @param equipmentSlots      the slot each equippable item is worn in, keyed by plain item
+     *                            name; empty when Mojang's items report is not available
      * @param registryDataPackage package the class is written into
      * @param itemKeysPackage     package holding the generated {@code ItemKeys} class
      * @param outputDirectory     generated Java source root
@@ -62,12 +67,14 @@ public final class ItemPropertiesGenerator {
      */
     public void generate(final List<RegistryEntryDefinition> items,
                          final Map<String, PrismarineItemDefinition> prismarineItems,
+                         final Map<String, String> equipmentSlots,
                          final String registryDataPackage,
                          final String itemKeysPackage,
                          final Path outputDirectory) throws IOException {
 
         Objects.requireNonNull(items, "items");
         Objects.requireNonNull(prismarineItems, "prismarineItems");
+        Objects.requireNonNull(equipmentSlots, "equipmentSlots");
         Objects.requireNonNull(registryDataPackage, "registryDataPackage");
         Objects.requireNonNull(itemKeysPackage, "itemKeysPackage");
         Objects.requireNonNull(outputDirectory, "outputDirectory");
@@ -82,11 +89,13 @@ public final class ItemPropertiesGenerator {
         final ParameterizedTypeName keyListType = ParameterizedTypeName.get(LIST, ClassName.get(Key.class));
         final ParameterizedTypeName repairMapType =
                 ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), keyListType);
+        final ParameterizedTypeName slotMapType =
+                ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), ClassName.get(String.class));
 
         final TypeSpec.Builder type = TypeSpec.classBuilder(CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addJavadoc("Per-item stack size, durability and repair materials.\n\n")
-                .addJavadoc("<p>Joined from Mojang's item registry report and PrismarineJS's\n")
+                .addJavadoc("Per-item stack size, durability, repair materials and equipment slot.\n\n")
+                .addJavadoc("<p>Joined from Mojang's item registry and items reports and PrismarineJS's\n")
                 .addJavadoc("{@code minecraft-data} items report; do not edit.</p>\n\n")
                 .addJavadoc("<p>These are the item's <em>defaults</em>. A stack that patches\n")
                 .addJavadoc("{@code max_stack_size} or {@code max_damage} overrides them — read\n")
@@ -101,6 +110,9 @@ public final class ItemPropertiesGenerator {
                 .addField(FieldSpec.builder(repairMapType, "REPAIR_MATERIALS", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer("new $T<>()", OBJECT_2_OBJECT_OPEN_HASH_MAP)
                         .build())
+                .addField(FieldSpec.builder(slotMapType, "EQUIPMENT_SLOT", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("new $T<>()", OBJECT_2_OBJECT_OPEN_HASH_MAP)
+                        .build())
                 .addStaticBlock(CodeBlock.builder()
                         .addStatement("STACK_SIZE.defaultReturnValue($L)", DEFAULT_STACK_SIZE)
                         .addStatement("MAX_DAMAGE.defaultReturnValue($L)", DEFAULT_MAX_DAMAGE)
@@ -112,9 +124,10 @@ public final class ItemPropertiesGenerator {
                         "total durability, or {@code 0} when the item cannot break"))
                 .addMethod(damageablePredicate())
                 .addMethod(repairMaterialsAccessor(keyListType))
+                .addMethod(equipmentSlotAccessor())
                 .addMethod(registerHelper(keyListType));
 
-        addRegistrationMethods(type, items, prismarineItems, itemKeys);
+        addRegistrationMethods(type, items, prismarineItems, equipmentSlots, itemKeys);
 
         JavaFile.builder(registryDataPackage, type.build())
                 .indent("    ")
@@ -170,6 +183,19 @@ public final class ItemPropertiesGenerator {
                 .build();
     }
 
+    private static MethodSpec equipmentSlotAccessor() {
+        return MethodSpec.methodBuilder("equipmentSlot")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .returns(ClassName.get(String.class).annotated(AnnotationSpec.builder(NULLABLE).build()))
+                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
+                .addJavadoc("@param item namespaced item identifier\n")
+                .addJavadoc("@return the slot the item is worn in, as Mojang names it ({@code head}, {@code chest},\n")
+                .addJavadoc("{@code legs}, {@code feet}, {@code offhand}, {@code body}, {@code saddle}),\n")
+                .addJavadoc("{@code null} when it cannot be worn\n")
+                .addStatement("return EQUIPMENT_SLOT.get($N)", "item")
+                .build();
+    }
+
     private static MethodSpec registerHelper(final ParameterizedTypeName keyListType) {
         return MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
@@ -190,6 +216,7 @@ public final class ItemPropertiesGenerator {
     private static void addRegistrationMethods(final TypeSpec.Builder type,
                                                final List<RegistryEntryDefinition> items,
                                                final Map<String, PrismarineItemDefinition> prismarineItems,
+                                               final Map<String, String> equipmentSlots,
                                                final ClassName itemKeys) {
 
         final List<MethodSpec> methods = new ArrayList<>();
@@ -229,6 +256,8 @@ public final class ItemPropertiesGenerator {
             methods.add(current.build());
         }
 
+        addEquipmentSlotMethods(methods, items, equipmentSlots, itemKeys);
+
         methods.forEach(type::addMethod);
 
         final MethodSpec.Builder bootstrap = MethodSpec.methodBuilder("bootstrap")
@@ -241,6 +270,43 @@ public final class ItemPropertiesGenerator {
         }
 
         type.addMethod(bootstrap.build());
+    }
+
+    private static void addEquipmentSlotMethods(final List<MethodSpec> methods,
+                                                final List<RegistryEntryDefinition> items,
+                                                final Map<String, String> equipmentSlots,
+                                                final ClassName itemKeys) {
+
+        MethodSpec.Builder current = null;
+        int inCurrent = 0;
+        int index = 0;
+
+        for (final RegistryEntryDefinition item : items) {
+
+            final String slot = equipmentSlots.get(GenerationUtils.path(item.identifier()));
+
+            if (slot == null) {
+                continue;
+            }
+
+            if (current == null) {
+                current = MethodSpec.methodBuilder("registerEquipmentSlots" + index++)
+                        .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+            }
+
+            current.addStatement("EQUIPMENT_SLOT.put($T.$L.key(), $S)",
+                    itemKeys, GenerationUtils.constantName(item.identifier()), slot);
+
+            if (++inCurrent >= ITEMS_PER_METHOD) {
+                methods.add(current.build());
+                current = null;
+                inCurrent = 0;
+            }
+        }
+
+        if (current != null) {
+            methods.add(current.build());
+        }
     }
 
     private static CodeBlock repairMaterialsLiteral(final PrismarineItemDefinition item, final ClassName itemKeys) {

@@ -8,6 +8,7 @@ import fr.fidorial.registrygen.task.GenerateEntityTypesTask;
 import fr.fidorial.registrygen.task.GenerateFrozenRegistriesTask;
 import fr.fidorial.registrygen.task.GenerateItemPropertiesTask;
 import fr.fidorial.registrygen.task.GeneratePacketsTask;
+import fr.fidorial.registrygen.task.GenerateRecipesTask;
 import fr.fidorial.registrygen.task.GenerateRegistriesTask;
 import fr.fidorial.registrygen.model.RegistrySync;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
@@ -47,6 +48,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String ENTITY_TYPES_TASK_NAME = "generateEntityTypes";
     public static final String ENTITY_PROPERTIES_TASK_NAME = "generateEntityProperties";
     public static final String FROZEN_REGISTRIES_TASK_NAME = "generateFrozenRegistries";
+    public static final String RECIPES_TASK_NAME = "generateRecipes";
 
     private final JavaToolchainService javaToolchainService;
 
@@ -75,9 +77,10 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         final TaskProvider<GenerateEntityTypesTask> entityTypesTask = registerEntityTypesTask(project, extension, reportsTask, prismarineTask);
         final TaskProvider<GenerateEntityPropertiesTask> entityPropertiesTask = registerEntityPropertiesTask(project, extension, reportsTask, prismarineTask);
         final TaskProvider<GenerateFrozenRegistriesTask> frozenRegistriesTask = registerFrozenRegistriesTask(project, extension, reportsTask);
+        final TaskProvider<GenerateRecipesTask> recipesTask = registerRecipesTask(project, extension, reportsTask);
 
         registerLifecycleTask(project, registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
-                entityTypesTask, entityPropertiesTask, frozenRegistriesTask);
+                entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask);
     }
 
     private static void configureDefaults(final Project project, final FidorialRegistryGeneratorExtension extension) {
@@ -95,8 +98,8 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
 
         extension.getFrozenRegistries().convention(
                 Stream.concat(SupportedRegistries.ALL.stream()
-                                        .filter(type -> type.sync() == RegistrySync.FROZEN)
-                                        .map(RegistryTypeDefinition::identifier), Stream.of(SupportedRegistries.ENTITY_TYPE.identifier())).sorted().toList()); // cannot be added to ALL as then it generates protocol ids in api (huh?)
+                        .filter(type -> type.sync() == RegistrySync.FROZEN)
+                        .map(RegistryTypeDefinition::identifier), Stream.of(SupportedRegistries.ENTITY_TYPE.identifier())).sorted().toList()); // cannot be added to ALL as then it generates protocol ids in api (huh?)
 
         extension.getDataGeneratorArguments().convention(List.of("--reports"));
         extension.getPrismarineDataRepository().convention("PrismarineJS/minecraft-data");
@@ -255,6 +258,13 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                     .flatMap(_ -> prismarineTask.flatMap(DownloadPrismarineDataTask::getDataDirectory))
                     .map(dir -> dir.file("items.json")));
 
+            // Newer versions write one file per item, older ones a single items.json.
+            task.getItemComponentsReports().from(
+                    reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                            .map(dir -> dir.dir("generated/reports/minecraft/components/item")),
+                    reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                            .map(dir -> dir.file("generated/reports/items.json")));
+
             task.getRegistryDataPackage().set(extension.getRegistryDataPackage());
             task.getItemKeysPackage().convention(extension.getRegistryKeysPackage());
 
@@ -336,6 +346,24 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         });
     }
 
+    private static TaskProvider<GenerateRecipesTask> registerRecipesTask(final Project project,
+                                                                         final FidorialRegistryGeneratorExtension extension,
+                                                                         final TaskProvider<GenerateReportsTask> reportsTask) {
+
+        return project.getTasks().register(RECIPES_TASK_NAME, GenerateRecipesTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Bundles the vanilla recipes into the dataset the server loads.");
+            task.dependsOn(reportsTask);
+
+            task.onlyIf("fidorialRegistryGenerator.recipesDataset is set", _ -> extension.getRecipesDataset().isPresent());
+
+            task.getVanillaDataDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/data")));
+
+            task.getRecipesDataset().set(extension.getRecipesDataset());
+        });
+    }
+
     private static void registerLifecycleTask(final Project project,
                                               final TaskProvider<GenerateRegistriesTask> registriesTask,
                                               final TaskProvider<GeneratePacketsTask> packetsTask,
@@ -343,13 +371,14 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                                               final TaskProvider<GenerateItemPropertiesTask> itemPropertiesTask,
                                               final TaskProvider<GenerateEntityTypesTask> entityTypesTask,
                                               final TaskProvider<GenerateEntityPropertiesTask> entityPropertiesTask,
-                                              final TaskProvider<GenerateFrozenRegistriesTask> frozenRegistriesTask) {
+                                              final TaskProvider<GenerateFrozenRegistriesTask> frozenRegistriesTask,
+                                              final TaskProvider<GenerateRecipesTask> recipesTask) {
 
         project.getTasks().register("generateAll", task -> {
             task.setGroup("fidorial registry generation");
             task.setDescription("Runs the complete generation pipeline.");
             task.dependsOn(registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
-                    entityTypesTask, entityPropertiesTask, frozenRegistriesTask);
+                    entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask);
         });
     }
 }

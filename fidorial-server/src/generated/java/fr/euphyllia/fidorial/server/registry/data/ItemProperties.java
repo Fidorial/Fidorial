@@ -5,11 +5,12 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.List;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Per-item stack size, durability and repair materials.
+ * Per-item stack size, durability, repair materials and equipment slot.
  *
- * <p>Joined from Mojang's item registry report and PrismarineJS's
+ * <p>Joined from Mojang's item registry and items reports and PrismarineJS's
  * {@code minecraft-data} items report; do not edit.</p>
  *
  * <p>These are the item's <em>defaults</em>. A stack that patches
@@ -23,6 +24,8 @@ public final class ItemProperties {
     private static final Object2IntOpenHashMap<Key> MAX_DAMAGE = new Object2IntOpenHashMap<>();
 
     private static final Object2ObjectOpenHashMap<Key, List<Key>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
+
+    private static final Object2ObjectOpenHashMap<Key, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>();
 
     static {
         STACK_SIZE.defaultReturnValue(64);
@@ -63,6 +66,16 @@ public final class ItemProperties {
      */
     public static List<Key> repairMaterials(final Key item) {
         return REPAIR_MATERIALS.getOrDefault(item, List.of());
+    }
+
+    /**
+     * @param item namespaced item identifier
+     * @return the slot the item is worn in, as Mojang names it ({@code head}, {@code chest},
+     * {@code legs}, {@code feet}, {@code offhand}, {@code body}, {@code saddle}),
+     * {@code null} when it cannot be worn
+     */
+    public static @Nullable String equipmentSlot(final Key item) {
+        return EQUIPMENT_SLOT.get(item);
     }
 
     private static void register(final Key item, final int stackSize, final int maxDamage,
@@ -1771,6 +1784,93 @@ public final class ItemProperties {
         register(ItemKeys.ZOMBIFIED_PIGLIN_SPAWN_EGG.key(), 64, 0, List.of());
     }
 
+    private static void registerEquipmentSlots0() {
+        EQUIPMENT_SLOT.put(ItemKeys.BLACK_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLACK_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLUE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLUE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BROWN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BROWN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CARVED_PUMPKIN.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CREEPER_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CYAN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CYAN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DRAGON_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.ELYTRA.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GRAY_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GRAY_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GREEN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GREEN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_BLUE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_BLUE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_GRAY_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_GRAY_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIME_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIME_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.MAGENTA_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.MAGENTA_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ORANGE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ORANGE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PIGLIN_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.PINK_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PINK_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PLAYER_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.PURPLE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PURPLE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.RED_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.RED_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.SADDLE.key(), "saddle");
+        EQUIPMENT_SLOT.put(ItemKeys.SHIELD.key(), "offhand");
+        EQUIPMENT_SLOT.put(ItemKeys.SKELETON_SKULL.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.TURTLE_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.WHITE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.WHITE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.WITHER_SKELETON_SKULL.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.WOLF_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.YELLOW_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.YELLOW_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ZOMBIE_HEAD.key(), "head");
+    }
+
     /**
      * Fills the lookup tables. Called once during server start-up;
      * calling it again is harmless but pointless.
@@ -1785,5 +1885,6 @@ public final class ItemProperties {
         registerItems6();
         registerItems7();
         registerItems8();
+        registerEquipmentSlots0();
     }
 }
