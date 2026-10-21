@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.world.light.LightEnginePool;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import fr.fidorial.world.ChunkPos;
+import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterable;
@@ -47,7 +48,7 @@ public class LightUpdateDispatcher {
     private final Map<Bounds, LightEnginePool> enginePools = new ConcurrentHashMap<>();
     private final PrioritisedExecutor lightExecutor;
 
-    private final ChunkRegionScheduler regionScheduler;
+    private final Map<Key, ChunkRegionScheduler> regionSchedulers = new ConcurrentHashMap<>();
 
     private final AtomicInteger lightThreadId = new AtomicInteger(0);
     private final Consumer<ClientboundPacket> broadcaster;
@@ -75,7 +76,6 @@ public class LightUpdateDispatcher {
                         .unstarted(r)
         );
         this.lightExecutor = lightPool.createOrderedStreamGroup().createExecutor();
-        this.regionScheduler = new ChunkRegionScheduler(lightExecutor);
         this.lightPool.adjustThreadCount(Math.max(1, lightWorkers));
         this.broadcaster = broadcaster;
         this.serializer = serializer;
@@ -88,21 +88,16 @@ public class LightUpdateDispatcher {
         return enginePools.computeIfAbsent(bounds, b -> new LightEnginePool(lightWorkers, b.minY(), b.height()));
     }
 
-    private static void decrementLocked(final WorldLightState state, final long key) {
-        final int count = state.refCounts.get(key);
+    private static @Nullable CompletableFuture<Void> decrementLocked(final Stripe stripe, final long key) {
+        final int count = stripe.refCounts.get(key);
 
-        if (count == 0) return;
-
+        if (count == 0) return null;
         if (count <= 1) {
-            state.refCounts.remove(key);
-
-            final CompletableFuture<@Nullable Void> waiter = state.waiters.remove(key);
-            if (waiter != null) {
-                waiter.complete(null);
-            }
-        } else {
-            state.refCounts.put(key, count - 1);
+            stripe.refCounts.remove(key);
+            return stripe.waiters.remove(key);
         }
+        stripe.refCounts.put(key, count - 1);
+        return null;
     }
 
     public void queueBlockChange(final Key world, final int x, final int y, final int z) {
@@ -119,13 +114,13 @@ public class LightUpdateDispatcher {
         final ConcurrentLongSet set = pendingChunks.computeIfAbsent(world, _ -> new ConcurrentLongSet());
         final WorldLightState state = stateFor(world);
 
-        synchronized (state) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    final long key = ChunkPos.chunkKey(chunkX + dx, chunkZ + dz);
-                    state.refCounts.addTo(key, 1);
-                    if (!set.add(key)) {
-                        state.refCounts.addTo(key, -1);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                final long key = ChunkPos.chunkKey(chunkX + dx, chunkZ + dz);
+                final Stripe stripe = state.stripe(key);
+                synchronized (stripe) {
+                    if (set.add(key)) {
+                        stripe.refCounts.addTo(key, 1);
                     }
                 }
             }
@@ -137,10 +132,12 @@ public class LightUpdateDispatcher {
     private void incrementArea(final Key world, final int chunkX, final int chunkZ) {
         final WorldLightState state = stateFor(world);
 
-        synchronized (state) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    state.refCounts.addTo(ChunkPos.chunkKey(chunkX + dx, chunkZ + dz), 1);
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                final long key = ChunkPos.chunkKey(chunkX + dx, chunkZ + dz);
+                final Stripe stripe = state.stripe(key);
+                synchronized (stripe) {
+                    stripe.refCounts.addTo(key, 1);
                 }
             }
         }
@@ -150,10 +147,16 @@ public class LightUpdateDispatcher {
         final WorldLightState state = states.get(world);
         if (state == null) return;
 
-        synchronized (state) {
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dz = -1; dz <= 1; dz++) {
-                    decrementLocked(state, ChunkPos.chunkKey(chunkX + dx, chunkZ + dz));
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                final long key = ChunkPos.chunkKey(chunkX + dx, chunkZ + dz);
+                final Stripe stripe = state.stripe(key);
+                final CompletableFuture<@Nullable Void> waiter;
+                synchronized (stripe) {
+                    waiter = decrementLocked(stripe, key);
+                }
+                if (waiter != null) {
+                    waiter.complete(null);
                 }
             }
         }
@@ -167,7 +170,12 @@ public class LightUpdateDispatcher {
         }
 
         final ServerWorld serverWorld = worldLookup.apply(world);
-        if (!queue.isEmpty() && serverWorld != null) {
+        if (serverWorld == null) {
+            BlockPosition pos;
+            while ((pos = queue.poll()) != null) {
+                decrementArea(world, pos.chunkX(), pos.chunkZ());
+            }
+        } else if (!queue.isEmpty()) {
             final LightEnginePool pool = poolFor(serverWorld);
             final Long2ObjectOpenHashMap<List<BlockPosition>> byCluster = new Long2ObjectOpenHashMap<>();
             int processed = 0;
@@ -186,7 +194,7 @@ public class LightUpdateDispatcher {
                 for (final BlockPosition p : positions) {
                     chunkKeys.add(ChunkPos.chunkKey(p.chunkX(), p.chunkZ()));
                 }
-                queueAreaTask(chunkKeys, () -> {
+                queueAreaTask(world, chunkKeys, () -> {
                     FloodFillLightEngine engine = null;
                     try {
                         engine = pool.acquire();
@@ -194,19 +202,7 @@ public class LightUpdateDispatcher {
                         for (final BlockPosition p : positions) {
                             dirtyChunks.addAll(serverWorld.checkBlockLight(p.blockX(), p.blockY(), p.blockZ(), engine));
                         }
-                        if (!dirtyChunks.isEmpty()) {
-                            final LongSet viewedChunks = serverWorld.collectAllViewedChunks();
-                            final LongIterator dirtyIt = dirtyChunks.iterator();
-                            while (dirtyIt.hasNext()) {
-                                final long key = dirtyIt.nextLong();
-                                if (!viewedChunks.contains(key)) continue;
-                                final ChunkColumn column = serverWorld.loadedColumn((int) (key >> 32), (int) key);
-                                if (column == null) {
-                                    continue;
-                                }
-                                broadcaster.accept(new ClientboundLightUpdatePacket(serializer, column, serverWorld.dimensionType().hasSkylight()));
-                            }
-                        }
+                        broadcastLight(serverWorld, dirtyChunks);
                     } catch (final InterruptedException e) {
                         Thread.currentThread().interrupt();
                     } finally {
@@ -217,7 +213,7 @@ public class LightUpdateDispatcher {
                             pool.release(engine);
                         }
                     }
-                });
+                }, Priority.HIGH);
             }
         }
         scheduledBlocks.remove(world);
@@ -226,14 +222,16 @@ public class LightUpdateDispatcher {
         }
     }
 
-    private void queueAreaTask(final LongOpenHashSet chunkKeys, final Runnable task) {
+    private void queueAreaTask(final Key world, final LongOpenHashSet chunkKeys, final Runnable task, final Priority priority) {
         if (chunkKeys.isEmpty()) {
             task.run();
             return;
         }
 
         final LongSet lockKeys = withNeighborRing(chunkKeys);
-        regionScheduler.submit(lockKeys, task, Priority.NORMAL);
+        regionSchedulers
+                .computeIfAbsent(world, _ -> new ChunkRegionScheduler(lightExecutor))
+                .submit(lockKeys, task, priority);
     }
 
     private static LongSet withNeighborRing(final LongOpenHashSet chunkKeys) {
@@ -289,22 +287,11 @@ public class LightUpdateDispatcher {
 
     private void submitRelightTask(final Key world, final ServerWorld serverWorld, final LongOpenHashSet subBatch) {
         final LightEnginePool pool = poolFor(serverWorld);
-        queueAreaTask(subBatch, () -> {
+        queueAreaTask(world, subBatch, () -> {
             FloodFillLightEngine engine = null;
             try {
                 engine = pool.acquire();
-                final Set<Long> dirtyChunks = serverWorld.relightChunks(subBatch, engine);
-                if (!dirtyChunks.isEmpty()) {
-                    final LongSet viewedChunks = serverWorld.collectAllViewedChunks();
-                    for (final long key : dirtyChunks) {
-                        if (!viewedChunks.contains(key)) continue;
-                        final ChunkColumn column = serverWorld.loadedColumn((int) (key >> 32), (int) key);
-                        if (column == null) {
-                            continue;
-                        }
-                        broadcaster.accept(new ClientboundLightUpdatePacket(serializer, column, serverWorld.dimensionType().hasSkylight()));
-                    }
-                }
+                broadcastLight(serverWorld, serverWorld.relightChunks(subBatch, engine));
             } catch (final InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (final Throwable t) {
@@ -313,7 +300,20 @@ public class LightUpdateDispatcher {
                 if (engine != null) pool.release(engine);
                 decrement(world, subBatch.toLongArray());
             }
-        });
+        }, Priority.NORMAL);
+    }
+
+    private void broadcastLight(final ServerWorld serverWorld, final LongSet dirtyChunks) {
+        final LongIterator it = dirtyChunks.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
+            if (!serverWorld.isViewed(key)) continue;
+            final ChunkColumn column = serverWorld.loadedColumn((int) (key >> 32), (int) key);
+            if (column == null) {
+                continue;
+            }
+            broadcaster.accept(new ClientboundLightUpdatePacket(serializer, column, serverWorld.dimensionType().hasSkylight()));
+        }
     }
 
     private void scheduleBlocks(final Key world) {
@@ -340,31 +340,33 @@ public class LightUpdateDispatcher {
         return states.computeIfAbsent(world, _ -> new WorldLightState());
     }
 
-    private void increment(final Key world, final long[] chunkKeys, final int length) {
-        final WorldLightState state = stateFor(world);
-        synchronized (state) {
-            for (int i = 0; i < length; i++) {
-                state.refCounts.addTo(chunkKeys[i], 1);
+    private void decrement(final Key world, final long[] chunkKeys) {
+        final WorldLightState state = states.get(world);
+        if (state == null) return;
+        for (final long key : chunkKeys) {
+            final Stripe stripe = state.stripe(key);
+            final CompletableFuture<@Nullable Void> waiter;
+            synchronized (stripe) {
+                waiter = decrementLocked(stripe, key);
+            }
+            if (waiter != null) {
+                waiter.complete(null);
             }
         }
     }
 
-    private void decrement(final Key world, final long[] chunkKeys) {
+    public CompletableFuture<Void> flush(final Key world, final long chunkKey) {
         final WorldLightState state = states.get(world);
-        if (state == null) return;
-        synchronized (state) {
-            for (final long key : chunkKeys) {
-                final int count = state.refCounts.get(key);
-                if (count == 0) continue;
-                if (count <= 1) {
-                    state.refCounts.remove(key);
-                    final CompletableFuture<@Nullable Void> waiter = state.waiters.remove(key);
-                    if (waiter != null) waiter.complete(null);
-                } else {
-                    state.refCounts.put(key, count - 1);
-                }
+        if (state == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        final Stripe stripe = state.stripe(chunkKey);
+        synchronized (stripe) {
+            if (stripe.refCounts.containsKey(chunkKey)) {
+                return stripe.waiters.computeIfAbsent(chunkKey, _ -> new CompletableFuture<>());
             }
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     public CompletableFuture<Void> flush(final Key world, final LongIterable chunkKeys) {
@@ -373,10 +375,13 @@ public class LightUpdateDispatcher {
             return CompletableFuture.completedFuture(null);
         }
         final List<CompletableFuture<Void>> futures = new ArrayList<>();
-        synchronized (state) {
-            for (final long key : chunkKeys) {
-                if (state.refCounts.containsKey(key)) {
-                    futures.add(state.waiters.computeIfAbsent(key, k -> new CompletableFuture<>()));
+        final LongIterator it = chunkKeys.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
+            final Stripe stripe = state.stripe(key);
+            synchronized (stripe) {
+                if (stripe.refCounts.containsKey(key)) {
+                    futures.add(stripe.waiters.computeIfAbsent(key, _ -> new CompletableFuture<>()));
                 }
             }
         }
@@ -394,12 +399,23 @@ public class LightUpdateDispatcher {
     }
 
     private static final class WorldLightState {
-        private final Long2IntOpenHashMap refCounts = new Long2IntOpenHashMap();
-        private final Long2ObjectOpenHashMap<@Nullable CompletableFuture<Void>> waiters = new Long2ObjectOpenHashMap<>();
+        private static final int STRIPES = 64; // power of two
+        private final Stripe[] stripes = new Stripe[STRIPES];
 
         WorldLightState() {
-            refCounts.defaultReturnValue(0);
+            for (int i = 0; i < STRIPES; i++) {
+                stripes[i] = new Stripe();
+            }
         }
+
+        Stripe stripe(final long key) {
+            return stripes[(int) HashCommon.mix(key) & (STRIPES - 1)];
+        }
+    }
+
+    private static final class Stripe {
+        private final Long2IntOpenHashMap refCounts = new Long2IntOpenHashMap(512);
+        private final Long2ObjectOpenHashMap<@Nullable CompletableFuture<Void>> waiters = new Long2ObjectOpenHashMap<>();
     }
 
     private record Bounds(int minY, int height) {

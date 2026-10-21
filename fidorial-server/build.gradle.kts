@@ -186,7 +186,13 @@ tasks.register<JavaExec>("run") {
     classpath(sourceSets.main.map { it.runtimeClasspath })
     mainClass.set("fr.euphyllia.fidorial.server.Main")
     workingDir = project.file("run")
-    jvmArgs = listOf("--enable-native-access=ALL-UNNAMED", "-DFidorial.logLevel=TRACE")
+    jvmArgs =
+        listOf(
+            "--enable-native-access=ALL-UNNAMED",
+            "-DFidorial.logLevel=TRACE",
+            "-XX:+UnlockDiagnosticVMOptions",
+            "-XX:+DebugNonSafepoints",
+        )
     dependsOn(":fidorial-test-plugin:deployToRun")
     doFirst {
         workingDir.mkdirs()

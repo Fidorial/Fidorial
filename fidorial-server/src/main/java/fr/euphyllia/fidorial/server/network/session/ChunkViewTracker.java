@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.session;
 
+import ca.spottedleaf.concurrentutil.util.Priority;
 import fr.euphyllia.fidorial.server.debug.ChunkDebugValues;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundForgetLevelChunkPacket;
@@ -13,13 +14,12 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.world.ChunkPos;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongConsumer;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Iterator;
 
 public final class ChunkViewTracker implements ChunkViewSource {
 
@@ -109,9 +109,9 @@ public final class ChunkViewTracker implements ChunkViewSource {
     private void forgetOutOfRange(final int centerX, final int centerZ) {
         LongList toForget = null;
         synchronized (lock) {
-            final Iterator<Long> it = sent.iterator();
+            final LongIterator it = sent.iterator();
             while (it.hasNext()) {
-                final long key = it.next();
+                final long key = it.nextLong();
                 final int cx = (int) (key >> 32);
                 final int cz = (int) key;
                 if (!inRange(cx, cz, centerX, centerZ, forgetRadius)) {
@@ -122,7 +122,8 @@ public final class ChunkViewTracker implements ChunkViewSource {
             }
         }
         if (toForget != null) {
-            for (final long key : toForget) {
+            for (int i = 0; i < toForget.size(); i++) {
+                final long key = toForget.getLong(i);
                 connection.send(new ClientboundForgetLevelChunkPacket((int) (key >> 32), (int) key));
             }
         }
@@ -135,20 +136,28 @@ public final class ChunkViewTracker implements ChunkViewSource {
                     if (Math.max(Math.abs(dx), Math.abs(dz)) != r) {
                         continue;
                     }
-                    requestChunk(centerX + dx, centerZ + dz);
+                    requestChunk(centerX + dx, centerZ + dz, r);
                 }
             }
         }
     }
 
-    private void requestChunk(final int cx, final int cz) {
+    private void requestChunk(final int cx, final int cz, final int ring) {
         final long key = ChunkPos.chunkKey(cx, cz);
+        final boolean queued;
         synchronized (lock) {
-            if (sent.contains(key) || !pending.add(key)) {
+            if (sent.contains(key)) {
                 return;
             }
+            queued = pending.add(key);
         }
-        chunkWorker.loadAsync(world, cx, cz).whenComplete((column, error) -> onLoaded(cx, cz, column, error));
+        final Priority priority = ring <= 2 ? Priority.HIGHER : Priority.HIGH;
+        if (!queued) {
+            chunkWorker.raisePriority(world, cx, cz, priority);
+            return;
+        }
+        chunkWorker.loadAsync(world, cx, cz, priority).toFuture()
+                .whenComplete((column, error) -> onLoaded(cx, cz, column, error));
     }
 
     private void onLoaded(final int cx, final int cz, final ChunkColumn column, @Nullable final Throwable error) {
@@ -174,11 +183,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
             return;
         }
 
-        final ClientboundLevelChunkWithLightPacket packet;
-        synchronized (world.lightManager()) {
-            packet = new ClientboundLevelChunkWithLightPacket(serializer, column, world.generator.dimensionType().hasSkylight());
-        }
-        connection.send(packet);
+        connection.send(new ClientboundLevelChunkWithLightPacket(serializer, column, world.generator.dimensionType().hasSkylight()));
         ChunkDebugValues.sendStructures(connection, world, cx, cz);
     }
 
@@ -204,6 +209,13 @@ public final class ChunkViewTracker implements ChunkViewSource {
             }
             target.addAll(sent);
             target.addAll(pending);
+        }
+    }
+
+    @Override
+    public boolean isViewing(final long chunkKey) {
+        synchronized (lock) {
+            return !closed && (sent.contains(chunkKey) || pending.contains(chunkKey));
         }
     }
 
