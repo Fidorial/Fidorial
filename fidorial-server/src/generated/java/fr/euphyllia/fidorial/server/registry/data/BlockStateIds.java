@@ -14,6 +14,16 @@ import java.util.stream.Stream;
  * <p>Generated from Mojang's registry report; do not edit.</p>
  */
 public final class BlockStateIds {
+    /**
+     * Total number of block states.
+     */
+    public static final int STATE_COUNT = 35781;
+
+    /**
+     * Total number of block types.
+     */
+    public static final int BLOCK_COUNT = 1289;
+
     private BlockStateIds() {
         throw new UnsupportedOperationException("BlockStateIds cannot be instantiated.");
     }

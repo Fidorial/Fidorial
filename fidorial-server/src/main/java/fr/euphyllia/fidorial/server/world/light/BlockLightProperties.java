@@ -5,11 +5,10 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState.LightProperties;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
-import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import org.jspecify.annotations.Nullable;
 
-public class BlockLightProperties {
+public final class BlockLightProperties {
 
     public static final int OPAQUE = 15;
 
@@ -62,8 +61,8 @@ public class BlockLightProperties {
         if (behaviour == null) {
             return null;
         }
-        final BlockType type = behaviour.type();
-        final BlockData data = type.dataOrNull(state.properties());
+        final BlockData cached = state.data();
+        final BlockData data = cached != null ? cached : behaviour.type().dataOrNull(state.properties());
         return data == null ? null : new Resolved(behaviour, data);
     }
 

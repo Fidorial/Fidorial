@@ -1,7 +1,10 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
+import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockData;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
@@ -15,9 +18,10 @@ public final class BlockState {
     private final boolean air;
     private final boolean fluid;
 
-    private volatile LightProperties lightProperties;
+    private volatile @Nullable LightProperties lightProperties;
+    private volatile @Nullable BlockData data;
     private volatile int mapColor = -1;
-    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(65_536);
+    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
     private BlockState(final Key name, final Map<String, String> properties) {
         this.name = name;
@@ -76,7 +80,7 @@ public final class BlockState {
         return fluid;
     }
 
-    public LightProperties lightProperties() {
+    public @Nullable LightProperties lightProperties() {
         return lightProperties;
     }
 
@@ -90,6 +94,14 @@ public final class BlockState {
 
     public void setMapColor(final int mapColor) {
         this.mapColor = mapColor;
+    }
+
+    public @Nullable BlockData data() {
+        return data;
+    }
+
+    public void setData(final BlockData data) {
+        this.data = data;
     }
 
     @Override
