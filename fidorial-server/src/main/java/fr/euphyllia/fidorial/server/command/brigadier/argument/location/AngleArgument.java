@@ -37,7 +37,7 @@ public final class AngleArgument implements ArgumentType<AngleResolver> {
         }
 
         return source -> {
-            final float baseYaw = relative ? source.location().yaw() : 0.0F;
+            final float baseYaw = relative ? PositionParsing.origin(source).yaw() : 0.0F;
             float result = (relative ? baseYaw + value : value) % 360.0F;
             if (result >= 180.0F) {
                 result -= 360.0F;

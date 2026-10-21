@@ -49,16 +49,19 @@ public final class GameModeCommand {
     }
 
     private static int change(final CommandContext<CommandSource> context, final List<Player> targets) {
+        final CommandSource source = context.getSource();
         final GameMode mode = context.getArgument("gamemode", GameMode.class);
+        final Component described = describe(mode);
 
         for (final Player target : targets) {
             target.setGameMode(mode);
-            target.sendMessage(Component.translatable("command.gamemode.changed.self", describe(mode)));
 
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sendMessage(Component.translatable(
-                                "command.gamemode.changed.other", Component.text(target.name()), describe(mode)));
+            if (source.executor() != target) {
+                target.sendMessage(Component.translatable("command.gamemode.changed.self", described));
+                source.sendMessage(Component.translatable(
+                        "command.gamemode.changed.other", Component.text(target.name()), described));
+            } else {
+                source.sendMessage(Component.translatable("command.gamemode.changed.self", described));
             }
         }
 

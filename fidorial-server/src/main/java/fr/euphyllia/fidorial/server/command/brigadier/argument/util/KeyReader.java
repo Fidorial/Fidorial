@@ -1,44 +1,36 @@
 package fr.euphyllia.fidorial.server.command.brigadier.argument.util;
 
 import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.kyori.adventure.key.Key;
 
 public final class KeyReader {
 
+    public static final SimpleCommandExceptionType INVALID_KEY = ExceptionFactory.simple("argument.id.invalid");
+
     private KeyReader() {
     }
 
-    public record ParsedKey(String value, boolean hasNamespace) {
-    }
-
-    public static ParsedKey readKeyStringDetailed(final StringReader reader) {
+    public static Key readKey(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
-        boolean sawSeparator = false;
-
-        while (reader.canRead()) {
-            final char c = reader.peek();
-
-            if (c == Key.DEFAULT_SEPARATOR) {
-                if (sawSeparator) {
-                    break;
-                }
-                sawSeparator = true;
-                reader.skip();
-                continue;
-            }
-
-            if (sawSeparator ? Key.allowedInValue(c) : Key.allowedInNamespace(c)) {
-                reader.skip();
-            } else {
-                break;
-            }
+        final String raw = readKeyString(reader);
+        if (!Key.parseable(raw)) {
+            reader.setCursor(start);
+            throw INVALID_KEY.createWithContext(reader);
         }
-
-        final String value = reader.getString().substring(start, reader.getCursor());
-        return new ParsedKey(value, sawSeparator);
+        return Key.key(raw);
     }
 
-    public static String readKeyString(final StringReader reader) {
-        return readKeyStringDetailed(reader).value();
+    private static String readKeyString(final StringReader reader) {
+        final int start = reader.getCursor();
+        while (reader.canRead() && isAllowed(reader.peek())) {
+            reader.skip();
+        }
+        return reader.getString().substring(start, reader.getCursor());
+    }
+
+    private static boolean isAllowed(final char c) {
+        return c == Key.DEFAULT_SEPARATOR || Key.allowedInValue(c);
     }
 }

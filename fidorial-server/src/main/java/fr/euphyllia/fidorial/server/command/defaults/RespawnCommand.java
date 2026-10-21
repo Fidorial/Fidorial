@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.command.defaults;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.entity.player.Player;
@@ -41,7 +40,6 @@ public final class RespawnCommand {
 
     private static int respawn(final CommandContext<CommandSource> context, final List<Player> targets) {
         final CommandSource source = context.getSource();
-        final CommandSender sender = source.sender();
 
         for (final Player target : targets) {
             target.respawn().whenComplete((succeeded, _) -> {
@@ -49,8 +47,10 @@ public final class RespawnCommand {
                     source.sendMessage(Component.translatable("command.respawn.alive", Component.text(target.name())));
                     return;
                 }
-                if (sender != target) {
+                if (source.executor() != target) {
                     source.sendMessage(Component.translatable("command.respawn.done", Component.text(target.name())));
+                } else {
+                    source.sendMessage(Component.translatable("command.respawn.done.self"));
                 }
             });
         }

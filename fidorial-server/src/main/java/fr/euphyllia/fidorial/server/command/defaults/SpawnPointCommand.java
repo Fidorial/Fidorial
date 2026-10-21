@@ -60,18 +60,19 @@ public final class SpawnPointCommand {
             final CommandContext<CommandSource> context,
             final List<Player> targets,
             final @Nullable Location position) {
+        final CommandSource source = context.getSource();
 
         for (final Player target : targets) {
             final Location location = position != null ? position : target.location();
             target.setRespawnPoint(new RespawnPoint(target.world(), location));
 
             final Component where = describe(location);
-            target.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
-
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sendMessage(Component.translatable(
-                                "command.spawnpoint.set.other", Component.text(target.name()), where));
+            if (source.executor() != target) {
+                target.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
+                source.sendMessage(Component.translatable(
+                        "command.spawnpoint.set.other", Component.text(target.name()), where));
+            } else {
+                source.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
             }
         }
 
@@ -79,15 +80,17 @@ public final class SpawnPointCommand {
     }
 
     private static int clear(final CommandContext<CommandSource> context, final List<Player> targets) {
+        final CommandSource source = context.getSource();
+
         for (final Player target : targets) {
             target.setRespawnPoint((RespawnPoint) null);
 
-            target.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
-
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sendMessage(Component.translatable(
-                                "command.spawnpoint.cleared.other", Component.text(target.name())));
+            if (source.executor() != target) {
+                target.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
+                source.sendMessage(Component.translatable(
+                        "command.spawnpoint.cleared.other", Component.text(target.name())));
+            } else {
+                source.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
             }
         }
 

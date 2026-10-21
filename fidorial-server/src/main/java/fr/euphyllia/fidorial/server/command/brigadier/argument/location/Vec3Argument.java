@@ -8,9 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.math.Location;
 
@@ -35,25 +33,16 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
             return coords::resolve;
         }
 
-        final Coordinate x = Coordinate.parse(reader);
-        reader.expect(' ');
-        final Coordinate y = Coordinate.parse(reader);
-        reader.expect(' ');
-        final Coordinate z = Coordinate.parse(reader);
+        final int start = reader.getCursor();
+        final FineCoordinate x = FineCoordinate.parse(reader, centerCorrect);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final FineCoordinate y = FineCoordinate.parse(reader, false);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final FineCoordinate z = FineCoordinate.parse(reader, centerCorrect);
 
         return source -> {
-            final Location origin = source.location();
-
-            double px = x.resolve(origin.x());
-            final double py = y.resolve(origin.y());
-            double pz = z.resolve(origin.z());
-
-            if (centerCorrect && !x.relative() && !y.relative() && !z.relative()) {
-                px += 0.5;
-                pz += 0.5;
-            }
-
-            return origin.with(px, py, pz, origin.yaw(), origin.pitch());
+            final Location origin = PositionParsing.origin(source);
+            return origin.with(x.resolve(origin.x()), y.resolve(origin.y()), z.resolve(origin.z()));
         };
     }
 
@@ -62,44 +51,7 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
             final CommandContext<S> context,
             final SuggestionsBuilder builder
     ) {
-        if (!(context.getSource() instanceof final CommandSource source)
-                || !(source.sender() instanceof ServerPlayer)) {
-            return Suggestions.empty();
-        }
-
-        final Location loc = source.location();
-
-        return CommonPositionSuggestions.suggest(
-                builder,
-                String.format("%.2f", loc.x()),
-                String.format("%.2f", loc.y()),
-                String.format("%.2f", loc.z())
-        );
-    }
-
-    private record Coordinate(double value, boolean relative) {
-
-        static Coordinate parse(final StringReader reader) throws CommandSyntaxException {
-
-            boolean relative = false;
-
-            if (reader.canRead() && reader.peek() == '~') {
-                relative = true;
-                reader.skip();
-
-                if (!reader.canRead() || reader.peek() == ' ') {
-                    return new Coordinate(0, true);
-                }
-            }
-
-            final double value = reader.readDouble();
-
-            return new Coordinate(value, relative);
-        }
-
-        double resolve(final double origin) {
-            return relative ? origin + value : value;
-        }
+        return CommonPositionSuggestions.suggest(builder, this, 3);
     }
 
     public boolean centerCorrect() {

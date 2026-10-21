@@ -4,8 +4,6 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
@@ -13,24 +11,13 @@ import net.kyori.adventure.key.Key;
 
 public final class KeyArgument implements ArgumentType<Key> {
 
-    public static final SimpleCommandExceptionType ERROR_INVALID_KEY = ExceptionFactory.simple("argument.id.invalid");
-
     public static KeyArgument key() {
         return new KeyArgument();
     }
 
     @Override
     public Key parse(final StringReader reader) throws CommandSyntaxException {
-        final int start = reader.getCursor();
-
-        final String input = KeyReader.readKeyString(reader);
-
-        if (!Key.parseable(input)) {
-            reader.setCursor(start);
-            throw ERROR_INVALID_KEY.createWithContext(reader);
-        }
-
-        return Key.key(input);
+        return KeyReader.readKey(reader);
     }
 
     public static final class Info implements ArgumentTypeRegistrar<KeyArgument, Info.Spec> {

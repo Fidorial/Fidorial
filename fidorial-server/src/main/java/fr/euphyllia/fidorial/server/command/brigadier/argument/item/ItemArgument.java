@@ -46,11 +46,7 @@ public final class ItemArgument<T> implements ArgumentType<T> {
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
-
-        final KeyReader.ParsedKey parsed = KeyReader.readKeyStringDetailed(reader);
-        final Key key = parsed.hasNamespace()
-                ? Key.key(parsed.value())
-                : Key.key(Key.MINECRAFT_NAMESPACE, parsed.value());
+        final Key key = KeyReader.readKey(reader);
 
         if (!exists(key)) {
             reader.setCursor(start);

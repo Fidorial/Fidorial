@@ -66,7 +66,7 @@ public final class BanIpCommand {
 
         final List<Player> targets = PlayersResolver.players(context, "player");
 
-        final UUID issuer = source.sender() instanceof final Player player ? player.uuid() : null;
+        final UUID issuer = source.executor() instanceof final Player player ? player.uuid() : null;
         final Set<InetAddress> seen = new LinkedHashSet<>();
 
         int banned = 0;

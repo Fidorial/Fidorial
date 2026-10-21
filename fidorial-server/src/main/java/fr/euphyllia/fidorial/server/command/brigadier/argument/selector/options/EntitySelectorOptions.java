@@ -111,8 +111,7 @@ public final class EntitySelectorOptions {
             if (!parser.typeOption().canAdd(inverted)) {
                 throw parser.rollback(start, EntitySelectorParser.ERROR_INAPPLICABLE_OPTION, "type");
             }
-            final KeyReader.ParsedKey parsed = KeyReader.readKeyStringDetailed(parser.getReader());
-            final Key type = parsed.hasNamespace() ? Key.key(parsed.value()) : Key.key(Key.MINECRAFT_NAMESPACE, parsed.value());
+            final Key type = KeyReader.readKey(parser.getReader());
             if (!inverted && type.equals(PLAYER)) {
                 parser.setIncludesEntities(false);
             }

@@ -11,7 +11,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader.ParsedKey;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.registry.Registry;
@@ -20,6 +19,7 @@ import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class ResourceArgument<T> implements ArgumentType<T> {
@@ -50,21 +50,14 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
 
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
-        final ParsedKey parsed = KeyReader.readKeyStringDetailed(reader);
-        final Key key = parseKey(parsed);
-        final TypedKey<T> typedKey = TypedKey.create(registryKey, key);
-
-        return registryLookup()
-                .find(typedKey)
-                .orElseThrow(() -> ERROR_UNKNOWN_RESOURCE.createWithContext(
-                        reader, key.asString(), registryKey.key().asString()));
-    }
-
-    private Key parseKey(final ParsedKey parsed) {
-        final String input = parsed.hasNamespace()
-                ? parsed.value()
-                : Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR + parsed.value();
-        return Key.key(input);
+        final int start = reader.getCursor();
+        final Key key = KeyReader.readKey(reader);
+        final Optional<T> value = registryLookup().find(TypedKey.create(registryKey, key));
+        if (value.isEmpty()) {
+            reader.setCursor(start);
+            throw ERROR_UNKNOWN_RESOURCE.createWithContext(reader, key.asString(), registryKey.key().asString());
+        }
+        return value.get();
     }
 
     @Override
