@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Download jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fidorial-server
           path: dist
@@ -43,7 +43,7 @@ jobs:
           echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Publish development pre-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: dev-${{ needs.build.outputs.maven-version }}
           target_commitish: ${{ github.sha }}
