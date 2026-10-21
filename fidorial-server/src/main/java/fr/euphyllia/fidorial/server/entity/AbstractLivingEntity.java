@@ -9,7 +9,9 @@ import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.MobEffect;
+import fr.fidorial.registry.keys.MobEffectKeys;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -21,6 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractLivingEntity extends AbstractEntity implements LivingEntity {
+
+    private static final Map<Key, Key> EFFECT_IMMUNITY_TAGS = Map.of(
+            MobEffectKeys.INFESTED.key(), Key.key("immune_to_infested"),
+            MobEffectKeys.FREEZING.key(), Key.key("immune_to_freezing"),
+            MobEffectKeys.OOZING.key(), Key.key("immune_to_oozing"),
+            MobEffectKeys.REGENERATION.key(), Key.key("immune_to_regeneration"),
+            MobEffectKeys.POISON.key(), Key.key("immune_to_poison"),
+            MobEffectKeys.WITHER.key(), Key.key("immune_to_wither"),
+            MobEffectKeys.WEAKNESS.key(), Key.key("immune_to_weakness"));
 
     public static final int DEATH_TICKS = 20;
     public static final int INVULNERABILITY_TICKS = 20;
@@ -210,8 +221,11 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     protected final void clearEffectsSilently() {
         effects.clear();
     }
+
     protected boolean canBeAffected(final MobEffectInstance effect) {
-        return true;
+        final Key immunityTag = EFFECT_IMMUNITY_TAGS.get(effect.type().key());
+        return immunityTag == null
+                || !server().registries().frozen().isTagged(RegistryKey.ENTITY_TYPE.key(), immunityTag, type().key());
     }
 
     protected void onEffectUpdated(final MobEffectInstance effect) {
