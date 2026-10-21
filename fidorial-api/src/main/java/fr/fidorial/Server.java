@@ -11,6 +11,7 @@ import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.status.ServerListing;
 import fr.fidorial.translation.TranslationStore;
+import fr.fidorial.version.BuildSpecification;
 import fr.fidorial.world.WorldManager;
 import net.kyori.adventure.audience.ForwardingAudience;
 import org.jetbrains.annotations.Contract;
@@ -36,22 +37,13 @@ public interface Server extends ForwardingAudience {
     String brandName();
 
     /**
-     * Gets the version of Minecraft this server implements.
+     * Gets the build of this server: Minecraft and protocol versions, API version and build number.
      *
-     * @return the Minecraft version, for instance {@code 26.3}
+     * @return the build specification
      * @since 0.1.0
      */
     @Contract(pure = true)
-    String minecraftVersion();
-
-    /**
-     * Gets the network protocol version this server speaks.
-     *
-     * @return the protocol version clients must use to join
-     * @since 0.1.0
-     */
-    @Contract(pure = true)
-    int protocolVersion();
+    BuildSpecification buildSpecification();
 
     /**
      * Checks whether the server is running.

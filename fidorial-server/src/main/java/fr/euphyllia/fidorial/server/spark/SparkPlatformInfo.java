@@ -48,11 +48,11 @@ public final class SparkPlatformInfo implements PlatformInfo {
 
     @Override
     public String getVersion() {
-        return this.server.minecraftVersion() + " (protocol " + this.server.protocolVersion() + ")";
+        return this.server.buildSpecification().version();
     }
 
     @Override
     public String getMinecraftVersion() {
-        return this.server.minecraftVersion();
+        return this.server.buildSpecification().minecraftVersion().id();
     }
 }

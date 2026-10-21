@@ -63,6 +63,7 @@ module fr.fidorial {
     exports fr.fidorial.status;
     exports fr.fidorial.storage.player;
     exports fr.fidorial.translation;
+    exports fr.fidorial.version;
     exports fr.fidorial.world.block.data.type;
     exports fr.fidorial.world.block.data;
     exports fr.fidorial.world.block;

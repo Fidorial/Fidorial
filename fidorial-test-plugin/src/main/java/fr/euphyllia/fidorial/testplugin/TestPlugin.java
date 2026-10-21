@@ -246,7 +246,7 @@ public final class TestPlugin implements Plugin {
 
         events.subscribe(ServerStartedEvent.class, e ->
                 logger.info("[TestPlugin][event] ServerStartedEvent received, MC version {}",
-                        e.server().minecraftVersion()));
+                        e.server().buildSpecification().minecraftVersion().name()));
 
         events.subscribe(ServerStoppingEvent.class, _ -> logger.info("[TestPlugin][event] ServerStoppingEvent received"));
 

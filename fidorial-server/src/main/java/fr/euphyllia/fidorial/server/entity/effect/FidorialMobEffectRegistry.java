@@ -78,7 +78,7 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
         }
 
         registered.put(key, new Registered(definition, owner, networkId));
-        LOGGER.info("Effect {} registered by {} (network ID {})", key, ownerName(owner), networkId);
+        LOGGER.debug("Effect {} registered by {} (network ID {})", key, ownerName(owner), networkId);
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
         if (removed == null) {
             return false;
         }
-        LOGGER.info("Effect {} unregistered", type.key());
+        LOGGER.debug("Effect {} unregistered", type.key());
         return true;
     }
 

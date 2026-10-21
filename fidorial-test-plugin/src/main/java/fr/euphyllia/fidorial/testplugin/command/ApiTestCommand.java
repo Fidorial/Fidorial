@@ -405,8 +405,8 @@ public final class ApiTestCommand {
 
         plugin.msg(
                 source,
-                "[TestPlugin] MC " + plugin.server().minecraftVersion()
-                        + " | protocol " + plugin.server().protocolVersion()
+                "[TestPlugin] MC " + plugin.server().buildSpecification().minecraftVersion().name()
+                        + " | protocol " + plugin.server().buildSpecification().protocolVersion()
                         + " | running=" + plugin.server().isRunning()
                         + " | plugins=" + plugin.server().plugins().loaded().size()
                         + " | events=" + plugin.eventCount());

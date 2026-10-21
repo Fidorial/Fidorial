@@ -53,7 +53,7 @@ public final class FidorialMobRegistry implements MobRegistry {
 
         definitions.put(definition.key(), definition);
         definitionOwners.put(definition.key(), owner);
-        LOGGER.info("Mob {} registered by {} (rendered as {})",
+        LOGGER.debug("Mob {} registered by {} (rendered as {})",
                 definition.key(), ownerName(owner), definition.networkType());
     }
 
@@ -75,7 +75,7 @@ public final class FidorialMobRegistry implements MobRegistry {
         if (syntheticTypes.remove(mobType)) {
             EntityTypes.unregister(mobType);
         }
-        LOGGER.info("Mob {} unregistered", removed.key());
+        LOGGER.debug("Mob {} unregistered", removed.key());
         return true;
     }
 

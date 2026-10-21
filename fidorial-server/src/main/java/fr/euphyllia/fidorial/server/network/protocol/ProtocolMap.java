@@ -39,7 +39,7 @@ public final class ProtocolMap {
 
     public static ProtocolMap load() {
         final ProtocolMap map = new ProtocolMap();
-        LOGGER.info(
+        LOGGER.debug(
                 "Loaded {} protocol table from the generated packet catalogs.",
                 MINECRAFT_VERSION_ID);
         return map;
