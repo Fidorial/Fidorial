@@ -15,6 +15,11 @@ public interface LoginClientboundPacketIds {
     int UNKNOWN = -1;
 
     /**
+     * {@code minecraft:apply_options}
+     */
+    int APPLY_OPTIONS_ID = 6;
+
+    /**
      * {@code minecraft:cookie_request}
      */
     int COOKIE_REQUEST_ID = 5;
@@ -25,14 +30,9 @@ public interface LoginClientboundPacketIds {
     int CUSTOM_QUERY_ID = 4;
 
     /**
-     * {@code minecraft:hello}
+     * {@code minecraft:key}
      */
-    int HELLO_ID = 1;
-
-    /**
-     * {@code minecraft:login_compression}
-     */
-    int LOGIN_COMPRESSION_ID = 3;
+    int KEY_ID = 1;
 
     /**
      * {@code minecraft:login_disconnect}
@@ -45,15 +45,21 @@ public interface LoginClientboundPacketIds {
     int LOGIN_FINISHED_ID = 2;
 
     /**
+     * {@code minecraft:setup_compression}
+     */
+    int SETUP_COMPRESSION_ID = 3;
+
+    /**
      * Immutable identifier to protocol ID lookup table.
      */
     Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
+        Map.entry(Key.key("apply_options"), APPLY_OPTIONS_ID),
         Map.entry(Key.key("cookie_request"), COOKIE_REQUEST_ID),
         Map.entry(Key.key("custom_query"), CUSTOM_QUERY_ID),
-        Map.entry(Key.key("hello"), HELLO_ID),
-        Map.entry(Key.key("login_compression"), LOGIN_COMPRESSION_ID),
+        Map.entry(Key.key("key"), KEY_ID),
         Map.entry(Key.key("login_disconnect"), LOGIN_DISCONNECT_ID),
-        Map.entry(Key.key("login_finished"), LOGIN_FINISHED_ID)
+        Map.entry(Key.key("login_finished"), LOGIN_FINISHED_ID),
+        Map.entry(Key.key("setup_compression"), SETUP_COMPRESSION_ID)
     );
 
     /**

@@ -12552,6 +12552,7 @@
         "minecraft:forest",
         "minecraft:frozen_river",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:lush_caves",
         "minecraft:mushroom_fields",
@@ -12966,6 +12967,9 @@
         "minecraft:snowy_taiga",
         "minecraft:the_end"
       ],
+      "minecraft:spawns_cold_variants_underground": [
+        "minecraft:ice_caves"
+      ],
       "minecraft:spawns_coral_variant_zombie_nautilus": [
         "minecraft:warm_ocean"
       ],
@@ -12984,9 +12988,6 @@
         "minecraft:snowy_plains",
         "minecraft:snowy_slopes",
         "minecraft:snowy_taiga"
-      ],
-      "minecraft:spawns_strays_without_powder_snow": [
-        "minecraft:ice_caves"
       ],
       "minecraft:spawns_warm_variant_farm_animals": [
         "minecraft:badlands",
@@ -13054,6 +13055,7 @@
         "minecraft:forest",
         "minecraft:frozen_peaks",
         "minecraft:grove",
+        "minecraft:ice_caves",
         "minecraft:ice_spikes",
         "minecraft:jagged_peaks",
         "minecraft:jungle",

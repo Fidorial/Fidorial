@@ -7,16 +7,19 @@ import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration.ProxyForwarding;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundApplyOptionsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundCustomQueryPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundHelloPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginCompressionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginDisconnectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginFinishedPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundSetupCompressionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ConnectionOptions;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.LoginPacketListener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundCustomQueryAnswerPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundHelloPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundLoginAcknowledgedPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundOptionsAppliedPacket;
 import fr.euphyllia.fidorial.server.network.proxy.VelocityForwarding;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerLoginAttemptEvent;
@@ -44,7 +47,14 @@ public final class LoginPacketHandler implements LoginPacketListener {
     private @Nullable String pendingUsername;
     private int velocityTransactionId = -1;
     private boolean encryptionRequested = false;
+    private boolean keyReceived = false;
     private boolean loginComplete = false;
+
+    // Since 26.4-snapshot-5 encryption and compression are negotiated: the server announces them,
+    // the client acknowledges, and only then are they switched on (vanilla ServerLoginPacketListenerImpl).
+    private @Nullable SecretKey pendingSecretKey;
+    private @Nullable GameProfile pendingProfile;
+    private int compressionThreshold = -1;
 
     public LoginPacketHandler(final ClientConnection connection) {
         this.connection = connection;
@@ -79,7 +89,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
             if (server.config().network().encryptOfflineModeConnections()) {
                 sendEncryptionRequest(false);
             } else {
-                enableCompression();
+                announceCompression();
                 sendLoginSuccess(offlineProfile(pendingUsername));
             }
         }
@@ -119,7 +129,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
                     data.profile().name(),
                     data.profile().uuid(),
                     data.remoteAddress());
-            enableCompression();
+            announceCompression();
             sendLoginSuccess(data.profile());
         } catch (final VelocityForwarding.ForwardingException e) {
             LOGGER.warn("Velocity forwarding rejected for {}: {}", pendingUsername, e.getMessage());
@@ -131,15 +141,16 @@ public final class LoginPacketHandler implements LoginPacketListener {
         this.encryptionRequested = true;
         this.verifyToken = EncryptionUtils.generateVerifyToken();
         final byte[] publicKey = server.network().keyPair().getPublic().getEncoded();
-        connection.send(new ClientboundHelloPacket("", publicKey, verifyToken, shouldAuthenticate));
+        connection.send(new ClientboundKeyPacket("", publicKey, verifyToken, shouldAuthenticate));
     }
 
     @Override
     public void handleKey(final ServerboundKeyPacket packet) {
-        if (!encryptionRequested || loginComplete) {
+        if (!encryptionRequested || keyReceived || loginComplete) {
             connection.close();
             return;
         }
+        this.keyReceived = true;
         try {
             final byte[] token = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedToken());
             if (!Arrays.equals(token, verifyToken)) {
@@ -147,8 +158,8 @@ public final class LoginPacketHandler implements LoginPacketListener {
                 return;
             }
             final byte[] sharedSecret = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedSecret());
-            final SecretKey key = EncryptionUtils.toAesKey(sharedSecret);
-            connection.installEncryption(key);
+            // Kept aside: encryption is switched on once the client answers apply_options.
+            this.pendingSecretKey = EncryptionUtils.toAesKey(sharedSecret);
 
             final String serverHash = EncryptionUtils.computeServerHash(
                     "", sharedSecret, server.network().keyPair().getPublic());
@@ -165,15 +176,13 @@ public final class LoginPacketHandler implements LoginPacketListener {
             final Optional<GameProfile> profile = server.network().sessionService().hasJoined(username, serverHash);
             connection.execute(() -> {
                 if (!server.config().network().onlineMode()) {
-                    enableCompression();
-                    sendLoginSuccess(offlineProfile(username));
+                    applyEncryption(offlineProfile(username));
                     return;
                 }
                 if (profile.isEmpty()) {
                     disconnect(Component.translatable("disconnect.loginFailedInfo.invalidSession"));
                 } else {
-                    enableCompression();
-                    sendLoginSuccess(profile.get());
+                    applyEncryption(profile.get());
                 }
             });
         } catch (final Exception e) {
@@ -182,14 +191,51 @@ public final class LoginPacketHandler implements LoginPacketListener {
         }
     }
 
-    private void enableCompression() {
+    private void applyEncryption(final GameProfile profile) {
+        if (!connection.isActive()) {
+            return;
+        }
+        this.pendingProfile = profile;
+        connection.send(new ClientboundApplyOptionsPacket(ConnectionOptions.ENCRYPTION));
+    }
+
+    @Override
+    public void handleOptionsApplied(final ServerboundOptionsAppliedPacket packet) {
+        final SecretKey key = this.pendingSecretKey;
+        final GameProfile profile = this.pendingProfile;
+        if (key == null || profile == null) {
+            LOGGER.warn("options_applied rejected for {}: no pending encryption", pendingUsername);
+            disconnect(Component.translatable("disconnect.packetError"));
+            return;
+        }
+        this.pendingSecretKey = null;
+        this.pendingProfile = null;
+        try {
+            connection.installEncryption(key);
+        } catch (final Exception e) {
+            LOGGER.warn("Encryption failed for {}", pendingUsername, e);
+            disconnect(Component.translatable("disconnect.packetError"));
+            return;
+        }
+        announceCompression();
+        sendLoginSuccess(profile);
+    }
+
+    /**
+     * Sends the threshold only: compression is switched on when login_acknowledged arrives,
+     * as announced by the COMPRESSION flag of login_finished.
+     */
+    private void announceCompression() {
         final int threshold = server.config().network().compressionThreshold();
         if (threshold < 0) {
             return;
         }
-        connection.send(new ClientboundLoginCompressionPacket(threshold));
-        connection.installCompression(threshold);
-        LOGGER.debug("Compression enabled (threshold {}) for {}", threshold, pendingUsername);
+        this.compressionThreshold = threshold;
+        connection.send(new ClientboundSetupCompressionPacket(threshold));
+    }
+
+    private byte loginFinishedOptions() {
+        return compressionThreshold >= 0 ? ConnectionOptions.COMPRESSION : 0;
     }
 
     private void sendLoginSuccess(final GameProfile profile) {
@@ -238,11 +284,16 @@ public final class LoginPacketHandler implements LoginPacketListener {
         LOGGER.info("Authenticated: {} ({})", profile.name(), profile.uuid());
         connection.setProfile(playerProfile);
         server.players().offline().remember(playerProfile);
-        connection.send(new ClientboundLoginFinishedPacket(profile));
+        connection.send(new ClientboundLoginFinishedPacket(profile, loginFinishedOptions()));
     }
 
     @Override
     public void handleLoginAcknowledged(final ServerboundLoginAcknowledgedPacket packet) {
+        // The client switches compression on right after sending this packet.
+        if (ConnectionOptions.isCompression(loginFinishedOptions())) {
+            connection.installCompression(compressionThreshold);
+            LOGGER.debug("Compression enabled (threshold {}) for {}", compressionThreshold, pendingUsername);
+        }
         if (!loginComplete || connection.profile() == null) {
             LOGGER.warn("login_acknowledged rejected for {}: login not completed", pendingUsername);
             disconnect(Component.translatable("disconnect.packetError"));

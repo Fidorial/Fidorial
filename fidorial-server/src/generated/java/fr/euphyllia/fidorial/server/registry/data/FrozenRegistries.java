@@ -745,6 +745,11 @@ public final class FrozenRegistries {
         entries.add(Key.key("terracotta"));
         entries.add(Key.key("coal_block"));
         entries.add(Key.key("packed_ice"));
+        entries.add(Key.key("packed_ice_bricks"));
+        entries.add(Key.key("packed_ice_brick_slab"));
+        entries.add(Key.key("packed_ice_brick_stairs"));
+        entries.add(Key.key("packed_ice_brick_wall"));
+        entries.add(Key.key("chiseled_packed_ice"));
         entries.add(Key.key("sunflower"));
         entries.add(Key.key("lilac"));
         entries.add(Key.key("rose_bush"));
@@ -929,14 +934,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("gray_concrete_stairs"));
         entries.add(Key.key("light_gray_concrete_stairs"));
         entries.add(Key.key("cyan_concrete_stairs"));
+    }
+
+    private static void block4(final List<Key> entries) {
         entries.add(Key.key("purple_concrete_stairs"));
         entries.add(Key.key("blue_concrete_stairs"));
         entries.add(Key.key("brown_concrete_stairs"));
         entries.add(Key.key("green_concrete_stairs"));
         entries.add(Key.key("red_concrete_stairs"));
-    }
-
-    private static void block4(final List<Key> entries) {
         entries.add(Key.key("black_concrete_stairs"));
         entries.add(Key.key("white_concrete_slab"));
         entries.add(Key.key("orange_concrete_slab"));
@@ -1132,14 +1137,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("crimson_sign"));
         entries.add(Key.key("warped_sign"));
         entries.add(Key.key("crimson_wall_sign"));
+    }
+
+    private static void block5(final List<Key> entries) {
         entries.add(Key.key("warped_wall_sign"));
         entries.add(Key.key("structure_block"));
         entries.add(Key.key("jigsaw"));
         entries.add(Key.key("test_block"));
         entries.add(Key.key("test_instance_block"));
-    }
-
-    private static void block5(final List<Key> entries) {
         entries.add(Key.key("composter"));
         entries.add(Key.key("target"));
         entries.add(Key.key("bee_nest"));
@@ -1335,14 +1340,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("copper_bulb"));
         entries.add(Key.key("exposed_copper_bulb"));
         entries.add(Key.key("weathered_copper_bulb"));
+    }
+
+    private static void block6(final List<Key> entries) {
         entries.add(Key.key("oxidized_copper_bulb"));
         entries.add(Key.key("waxed_copper_bulb"));
         entries.add(Key.key("waxed_exposed_copper_bulb"));
         entries.add(Key.key("waxed_weathered_copper_bulb"));
         entries.add(Key.key("waxed_oxidized_copper_bulb"));
-    }
-
-    private static void block6(final List<Key> entries) {
         entries.add(Key.key("copper_chest"));
         entries.add(Key.key("exposed_copper_chest"));
         entries.add(Key.key("weathered_copper_chest"));
@@ -1438,7 +1443,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:block}, indexed by network ID
      */
     private static List<Key> block() {
-        final List<Key> entries = new ArrayList<>(1289);
+        final List<Key> entries = new ArrayList<>(1294);
         block0(entries);
         block1(entries);
         block2(entries);
@@ -1664,11 +1669,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -1849,10 +1854,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -2089,11 +2097,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -2279,7 +2287,9 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_lantern"), Key.key("oxidized_copper_trapdoor"),
                 Key.key("oxidized_cut_copper"), Key.key("oxidized_cut_copper_slab"),
                 Key.key("oxidized_cut_copper_stairs"), Key.key("oxidized_lightning_rod"),
-                Key.key("packed_ice"), Key.key("packed_mud"), Key.key("pale_moss_block"),
+                Key.key("packed_ice"), Key.key("packed_ice_brick_slab"),
+                Key.key("packed_ice_brick_stairs"), Key.key("packed_ice_brick_wall"),
+                Key.key("packed_ice_bricks"), Key.key("packed_mud"), Key.key("pale_moss_block"),
                 Key.key("pale_oak_door"), Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
                 Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
                 Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
@@ -2519,11 +2529,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -2704,10 +2714,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -2941,11 +2954,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -3126,10 +3139,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -3363,11 +3379,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -3548,10 +3564,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -3784,11 +3803,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -3967,25 +3986,28 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
-                Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
-                Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
-                Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
-                Key.key("pearlescent_froglight"), Key.key("petrified_oak_slab"),
-                Key.key("pink_banner"), Key.key("pink_bed"), Key.key("pink_candle_cake"),
-                Key.key("pink_concrete"), Key.key("pink_concrete_powder"),
-                Key.key("pink_concrete_slab"), Key.key("pink_concrete_stairs"),
-                Key.key("pink_glazed_terracotta"), Key.key("pink_shulker_box"),
-                Key.key("pink_stained_glass"), Key.key("pink_stained_glass_pane"),
-                Key.key("pink_terracotta"), Key.key("pink_wall_banner"), Key.key("pink_wool"),
-                Key.key("pink_wool_slab"), Key.key("pink_wool_stairs"), Key.key("piston"),
-                Key.key("piston_head"), Key.key("podzol"), Key.key("pointed_dripstone"),
-                Key.key("polished_andesite"), Key.key("polished_andesite_slab"),
-                Key.key("polished_andesite_stairs"), Key.key("polished_basalt"),
-                Key.key("polished_blackstone"), Key.key("polished_blackstone_brick_slab"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_log"),
+                Key.key("pale_oak_planks"), Key.key("pale_oak_pressure_plate"),
+                Key.key("pale_oak_shelf"), Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"),
+                Key.key("pale_oak_trapdoor"), Key.key("pale_oak_wall_hanging_sign"),
+                Key.key("pale_oak_wood"), Key.key("pearlescent_froglight"),
+                Key.key("petrified_oak_slab"), Key.key("pink_banner"), Key.key("pink_bed"),
+                Key.key("pink_candle_cake"), Key.key("pink_concrete"),
+                Key.key("pink_concrete_powder"), Key.key("pink_concrete_slab"),
+                Key.key("pink_concrete_stairs"), Key.key("pink_glazed_terracotta"),
+                Key.key("pink_shulker_box"), Key.key("pink_stained_glass"),
+                Key.key("pink_stained_glass_pane"), Key.key("pink_terracotta"),
+                Key.key("pink_wall_banner"), Key.key("pink_wool"), Key.key("pink_wool_slab"),
+                Key.key("pink_wool_stairs"), Key.key("piston"), Key.key("piston_head"),
+                Key.key("podzol"), Key.key("pointed_dripstone"), Key.key("polished_andesite"),
+                Key.key("polished_andesite_slab"), Key.key("polished_andesite_stairs"),
+                Key.key("polished_basalt"), Key.key("polished_blackstone"),
+                Key.key("polished_blackstone_brick_slab"),
                 Key.key("polished_blackstone_brick_stairs"),
                 Key.key("polished_blackstone_brick_wall"), Key.key("polished_blackstone_bricks"),
                 Key.key("polished_blackstone_pressure_plate"), Key.key("polished_blackstone_slab"),
@@ -4202,11 +4224,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -4385,25 +4407,28 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
-                Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
-                Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
-                Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
-                Key.key("pearlescent_froglight"), Key.key("petrified_oak_slab"),
-                Key.key("pink_banner"), Key.key("pink_bed"), Key.key("pink_candle_cake"),
-                Key.key("pink_concrete"), Key.key("pink_concrete_powder"),
-                Key.key("pink_concrete_slab"), Key.key("pink_concrete_stairs"),
-                Key.key("pink_glazed_terracotta"), Key.key("pink_shulker_box"),
-                Key.key("pink_stained_glass"), Key.key("pink_stained_glass_pane"),
-                Key.key("pink_terracotta"), Key.key("pink_wall_banner"), Key.key("pink_wool"),
-                Key.key("pink_wool_slab"), Key.key("pink_wool_stairs"), Key.key("piston"),
-                Key.key("piston_head"), Key.key("podzol"), Key.key("pointed_dripstone"),
-                Key.key("polished_andesite"), Key.key("polished_andesite_slab"),
-                Key.key("polished_andesite_stairs"), Key.key("polished_basalt"),
-                Key.key("polished_blackstone"), Key.key("polished_blackstone_brick_slab"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_log"),
+                Key.key("pale_oak_planks"), Key.key("pale_oak_pressure_plate"),
+                Key.key("pale_oak_shelf"), Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"),
+                Key.key("pale_oak_trapdoor"), Key.key("pale_oak_wall_hanging_sign"),
+                Key.key("pale_oak_wood"), Key.key("pearlescent_froglight"),
+                Key.key("petrified_oak_slab"), Key.key("pink_banner"), Key.key("pink_bed"),
+                Key.key("pink_candle_cake"), Key.key("pink_concrete"),
+                Key.key("pink_concrete_powder"), Key.key("pink_concrete_slab"),
+                Key.key("pink_concrete_stairs"), Key.key("pink_glazed_terracotta"),
+                Key.key("pink_shulker_box"), Key.key("pink_stained_glass"),
+                Key.key("pink_stained_glass_pane"), Key.key("pink_terracotta"),
+                Key.key("pink_wall_banner"), Key.key("pink_wool"), Key.key("pink_wool_slab"),
+                Key.key("pink_wool_stairs"), Key.key("piston"), Key.key("piston_head"),
+                Key.key("podzol"), Key.key("pointed_dripstone"), Key.key("polished_andesite"),
+                Key.key("polished_andesite_slab"), Key.key("polished_andesite_stairs"),
+                Key.key("polished_basalt"), Key.key("polished_blackstone"),
+                Key.key("polished_blackstone_brick_slab"),
                 Key.key("polished_blackstone_brick_stairs"),
                 Key.key("polished_blackstone_brick_wall"), Key.key("polished_blackstone_bricks"),
                 Key.key("polished_blackstone_pressure_plate"), Key.key("polished_blackstone_slab"),
@@ -4697,11 +4722,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -4882,10 +4907,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -5360,11 +5388,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -5545,10 +5573,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -5845,7 +5876,8 @@ public final class FrozenRegistries {
                 Key.key("mycelium"), Key.key("pale_moss_block"), Key.key("podzol"),
                 Key.key("rooted_dirt"), Key.key("warped_nylium")));
         tags.put(Key.key("ice"), List.of(Key.key("blue_ice"), Key.key("brittle_ice"),
-                Key.key("frosted_ice"), Key.key("ice"), Key.key("packed_ice")));
+                Key.key("chiseled_packed_ice"), Key.key("frosted_ice"), Key.key("ice"),
+                Key.key("packed_ice"), Key.key("packed_ice_bricks")));
         tags.put(Key.key("ice_cave_ore_replaceables"), List.of(Key.key("calcite"),
                 Key.key("packed_ice")));
         tags.put(Key.key("ice_crevasse_replaceables"), List.of(Key.key("andesite"),
@@ -5911,11 +5943,11 @@ public final class FrozenRegistries {
                 Key.key("chipped_anvil"), Key.key("chiseled_bookshelf"),
                 Key.key("chiseled_cinnabar"), Key.key("chiseled_copper"),
                 Key.key("chiseled_deepslate"), Key.key("chiseled_nether_bricks"),
-                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
-                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
-                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
-                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
-                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_packed_ice"), Key.key("chiseled_polished_blackstone"),
+                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
+                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
+                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
+                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -6096,10 +6128,13 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("pale_moss_block"), Key.key("pale_oak_door"), Key.key("pale_oak_fence"),
-                Key.key("pale_oak_fence_gate"), Key.key("pale_oak_hanging_sign"),
-                Key.key("pale_oak_leaves"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("pale_moss_block"), Key.key("pale_oak_door"),
+                Key.key("pale_oak_fence"), Key.key("pale_oak_fence_gate"),
+                Key.key("pale_oak_hanging_sign"), Key.key("pale_oak_leaves"),
+                Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
                 Key.key("pale_oak_pressure_plate"), Key.key("pale_oak_shelf"),
                 Key.key("pale_oak_slab"), Key.key("pale_oak_stairs"), Key.key("pale_oak_trapdoor"),
                 Key.key("pale_oak_wall_hanging_sign"), Key.key("pale_oak_wood"),
@@ -6710,11 +6745,12 @@ public final class FrozenRegistries {
                 Key.key("bubble_coral_block"), Key.key("budding_amethyst"), Key.key("calcite"),
                 Key.key("cauldron"), Key.key("chipped_anvil"), Key.key("chiseled_cinnabar"),
                 Key.key("chiseled_copper"), Key.key("chiseled_deepslate"),
-                Key.key("chiseled_nether_bricks"), Key.key("chiseled_polished_blackstone"),
-                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
-                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
-                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
-                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
+                Key.key("chiseled_nether_bricks"), Key.key("chiseled_packed_ice"),
+                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
+                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
+                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
+                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
+                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
                 Key.key("cinnabar_brick_slab"), Key.key("cinnabar_brick_stairs"),
                 Key.key("cinnabar_brick_wall"), Key.key("cinnabar_bricks"),
                 Key.key("cinnabar_slab"), Key.key("cinnabar_stairs"), Key.key("cinnabar_wall"),
@@ -6821,8 +6857,10 @@ public final class FrozenRegistries {
                 Key.key("oxidized_copper_grate"), Key.key("oxidized_copper_lantern"),
                 Key.key("oxidized_copper_trapdoor"), Key.key("oxidized_cut_copper"),
                 Key.key("oxidized_cut_copper_slab"), Key.key("oxidized_cut_copper_stairs"),
-                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"), Key.key("packed_mud"),
-                Key.key("petrified_oak_slab"), Key.key("pink_concrete"),
+                Key.key("oxidized_lightning_rod"), Key.key("packed_ice"),
+                Key.key("packed_ice_brick_slab"), Key.key("packed_ice_brick_stairs"),
+                Key.key("packed_ice_brick_wall"), Key.key("packed_ice_bricks"),
+                Key.key("packed_mud"), Key.key("petrified_oak_slab"), Key.key("pink_concrete"),
                 Key.key("pink_concrete_slab"), Key.key("pink_concrete_stairs"),
                 Key.key("pink_glazed_terracotta"), Key.key("pink_shulker_box"),
                 Key.key("pink_terracotta"), Key.key("piston"), Key.key("piston_head"),
@@ -7353,18 +7391,19 @@ public final class FrozenRegistries {
                 Key.key("mossy_stone_brick_slab"), Key.key("mud_brick_slab"),
                 Key.key("nether_brick_slab"), Key.key("oak_slab"), Key.key("orange_concrete_slab"),
                 Key.key("orange_wool_slab"), Key.key("oxidized_cut_copper_slab"),
-                Key.key("pale_oak_slab"), Key.key("petrified_oak_slab"),
-                Key.key("pink_concrete_slab"), Key.key("pink_wool_slab"),
-                Key.key("polished_andesite_slab"), Key.key("polished_blackstone_brick_slab"),
-                Key.key("polished_blackstone_slab"), Key.key("polished_cinnabar_slab"),
-                Key.key("polished_deepslate_slab"), Key.key("polished_diorite_slab"),
-                Key.key("polished_granite_slab"), Key.key("polished_sulfur_slab"),
-                Key.key("polished_tuff_slab"), Key.key("poplar_slab"),
-                Key.key("prismarine_brick_slab"), Key.key("prismarine_slab"),
-                Key.key("purple_concrete_slab"), Key.key("purple_wool_slab"),
-                Key.key("purpur_slab"), Key.key("quartz_slab"), Key.key("red_concrete_slab"),
-                Key.key("red_nether_brick_slab"), Key.key("red_sandstone_slab"),
-                Key.key("red_wool_slab"), Key.key("resin_brick_slab"), Key.key("sandstone_slab"),
+                Key.key("packed_ice_brick_slab"), Key.key("pale_oak_slab"),
+                Key.key("petrified_oak_slab"), Key.key("pink_concrete_slab"),
+                Key.key("pink_wool_slab"), Key.key("polished_andesite_slab"),
+                Key.key("polished_blackstone_brick_slab"), Key.key("polished_blackstone_slab"),
+                Key.key("polished_cinnabar_slab"), Key.key("polished_deepslate_slab"),
+                Key.key("polished_diorite_slab"), Key.key("polished_granite_slab"),
+                Key.key("polished_sulfur_slab"), Key.key("polished_tuff_slab"),
+                Key.key("poplar_slab"), Key.key("prismarine_brick_slab"),
+                Key.key("prismarine_slab"), Key.key("purple_concrete_slab"),
+                Key.key("purple_wool_slab"), Key.key("purpur_slab"), Key.key("quartz_slab"),
+                Key.key("red_concrete_slab"), Key.key("red_nether_brick_slab"),
+                Key.key("red_sandstone_slab"), Key.key("red_wool_slab"),
+                Key.key("resin_brick_slab"), Key.key("sandstone_slab"),
                 Key.key("smooth_quartz_slab"), Key.key("smooth_red_sandstone_slab"),
                 Key.key("smooth_sandstone_slab"), Key.key("smooth_stone_slab"),
                 Key.key("spruce_slab"), Key.key("stone_brick_slab"), Key.key("stone_slab"),
@@ -7436,21 +7475,22 @@ public final class FrozenRegistries {
                 Key.key("mossy_stone_brick_stairs"), Key.key("mud_brick_stairs"),
                 Key.key("nether_brick_stairs"), Key.key("oak_stairs"),
                 Key.key("orange_concrete_stairs"), Key.key("orange_wool_stairs"),
-                Key.key("oxidized_cut_copper_stairs"), Key.key("pale_oak_stairs"),
-                Key.key("pink_concrete_stairs"), Key.key("pink_wool_stairs"),
-                Key.key("polished_andesite_stairs"), Key.key("polished_blackstone_brick_stairs"),
-                Key.key("polished_blackstone_stairs"), Key.key("polished_cinnabar_stairs"),
-                Key.key("polished_deepslate_stairs"), Key.key("polished_diorite_stairs"),
-                Key.key("polished_granite_stairs"), Key.key("polished_sulfur_stairs"),
-                Key.key("polished_tuff_stairs"), Key.key("poplar_stairs"),
-                Key.key("prismarine_brick_stairs"), Key.key("prismarine_stairs"),
-                Key.key("purple_concrete_stairs"), Key.key("purple_wool_stairs"),
-                Key.key("purpur_stairs"), Key.key("quartz_stairs"), Key.key("red_concrete_stairs"),
-                Key.key("red_nether_brick_stairs"), Key.key("red_sandstone_stairs"),
-                Key.key("red_wool_stairs"), Key.key("resin_brick_stairs"),
-                Key.key("sandstone_stairs"), Key.key("smooth_quartz_stairs"),
-                Key.key("smooth_red_sandstone_stairs"), Key.key("smooth_sandstone_stairs"),
-                Key.key("spruce_stairs"), Key.key("stone_brick_stairs"), Key.key("stone_stairs"),
+                Key.key("oxidized_cut_copper_stairs"), Key.key("packed_ice_brick_stairs"),
+                Key.key("pale_oak_stairs"), Key.key("pink_concrete_stairs"),
+                Key.key("pink_wool_stairs"), Key.key("polished_andesite_stairs"),
+                Key.key("polished_blackstone_brick_stairs"), Key.key("polished_blackstone_stairs"),
+                Key.key("polished_cinnabar_stairs"), Key.key("polished_deepslate_stairs"),
+                Key.key("polished_diorite_stairs"), Key.key("polished_granite_stairs"),
+                Key.key("polished_sulfur_stairs"), Key.key("polished_tuff_stairs"),
+                Key.key("poplar_stairs"), Key.key("prismarine_brick_stairs"),
+                Key.key("prismarine_stairs"), Key.key("purple_concrete_stairs"),
+                Key.key("purple_wool_stairs"), Key.key("purpur_stairs"), Key.key("quartz_stairs"),
+                Key.key("red_concrete_stairs"), Key.key("red_nether_brick_stairs"),
+                Key.key("red_sandstone_stairs"), Key.key("red_wool_stairs"),
+                Key.key("resin_brick_stairs"), Key.key("sandstone_stairs"),
+                Key.key("smooth_quartz_stairs"), Key.key("smooth_red_sandstone_stairs"),
+                Key.key("smooth_sandstone_stairs"), Key.key("spruce_stairs"),
+                Key.key("stone_brick_stairs"), Key.key("stone_stairs"),
                 Key.key("sulfur_brick_stairs"), Key.key("sulfur_stairs"),
                 Key.key("tuff_brick_stairs"), Key.key("tuff_stairs"), Key.key("warped_stairs"),
                 Key.key("waxed_cut_copper_stairs"), Key.key("waxed_exposed_cut_copper_stairs"),
@@ -7469,11 +7509,11 @@ public final class FrozenRegistries {
                 Key.key("stone_bricks")));
         tags.put(Key.key("stone_buttons"), List.of(Key.key("polished_blackstone_button"),
                 Key.key("stone_button")));
-        tags.put(Key.key("stone_ore_replaceables"), List.of(Key.key("andesite"), Key.key("diorite"),
-                Key.key("granite"), Key.key("stone")));
     }
 
     private static void blockTags29(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("stone_ore_replaceables"), List.of(Key.key("andesite"), Key.key("diorite"),
+                Key.key("granite"), Key.key("stone")));
         tags.put(Key.key("stone_pressure_plates"), List.of(Key.key("polished_blackstone_pressure_plate"),
                 Key.key("stone_pressure_plate")));
         tags.put(Key.key("stray_immune_to"), List.of(Key.key("powder_snow")));
@@ -7542,13 +7582,13 @@ public final class FrozenRegistries {
                 Key.key("muddy_mangrove_roots"), Key.key("mycelium"), Key.key("pale_moss_block"),
                 Key.key("podzol"), Key.key("rooted_dirt")));
         tags.put(Key.key("supports_melon_stem"), List.of(Key.key("farmland")));
+    }
+
+    private static void blockTags30(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("supports_melon_stem_fruit"), List.of(Key.key("coarse_dirt"),
                 Key.key("dirt"), Key.key("farmland"), Key.key("grass_block"), Key.key("moss_block"),
                 Key.key("mud"), Key.key("muddy_mangrove_roots"), Key.key("mycelium"),
                 Key.key("pale_moss_block"), Key.key("podzol"), Key.key("rooted_dirt")));
-    }
-
-    private static void blockTags30(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("supports_nether_sprouts"), List.of(Key.key("coarse_dirt"),
                 Key.key("crimson_nylium"), Key.key("dirt"), Key.key("farmland"),
                 Key.key("grass_block"), Key.key("moss_block"), Key.key("mud"),
@@ -7739,12 +7779,12 @@ public final class FrozenRegistries {
                 Key.key("diorite_wall"), Key.key("end_stone_brick_wall"), Key.key("granite_wall"),
                 Key.key("mossy_cobblestone_wall"), Key.key("mossy_stone_brick_wall"),
                 Key.key("mud_brick_wall"), Key.key("nether_brick_wall"),
-                Key.key("polished_blackstone_brick_wall"), Key.key("polished_blackstone_wall"),
-                Key.key("polished_cinnabar_wall"), Key.key("polished_deepslate_wall"),
-                Key.key("polished_sulfur_wall"), Key.key("polished_tuff_wall"),
-                Key.key("prismarine_wall"), Key.key("red_nether_brick_wall"),
-                Key.key("red_sandstone_wall"), Key.key("resin_brick_wall"),
-                Key.key("sandstone_wall"), Key.key("stone_brick_wall"),
+                Key.key("packed_ice_brick_wall"), Key.key("polished_blackstone_brick_wall"),
+                Key.key("polished_blackstone_wall"), Key.key("polished_cinnabar_wall"),
+                Key.key("polished_deepslate_wall"), Key.key("polished_sulfur_wall"),
+                Key.key("polished_tuff_wall"), Key.key("prismarine_wall"),
+                Key.key("red_nether_brick_wall"), Key.key("red_sandstone_wall"),
+                Key.key("resin_brick_wall"), Key.key("sandstone_wall"), Key.key("stone_brick_wall"),
                 Key.key("sulfur_brick_wall"), Key.key("sulfur_wall"), Key.key("tuff_brick_wall"),
                 Key.key("tuff_wall")));
         tags.put(Key.key("warped_stems"), List.of(Key.key("stripped_warped_hyphae"),
@@ -8414,23 +8454,33 @@ public final class FrozenRegistries {
                 Key.key("strider"), Key.key("villager"), Key.key("wolf")));
         tags.put(Key.key("freeze_hurts_extra_types"), List.of(Key.key("blaze"),
                 Key.key("magma_cube"), Key.key("strider")));
-        tags.put(Key.key("freeze_immune_entity_types"), List.of(Key.key("drowned"),
-                Key.key("frostbite"), Key.key("husk"), Key.key("polar_bear"), Key.key("snow_golem"),
-                Key.key("stray"), Key.key("wither"), Key.key("zombie")));
         tags.put(Key.key("frog_food"), List.of(Key.key("magma_cube"), Key.key("slime")));
-        tags.put(Key.key("ignores_poison_and_regen"), List.of(Key.key("bogged"),
+        tags.put(Key.key("illager"), List.of(Key.key("evoker"), Key.key("illusioner"),
+                Key.key("pillager"), Key.key("vindicator")));
+        tags.put(Key.key("illager_friends"), List.of(Key.key("evoker"), Key.key("illusioner"),
+                Key.key("pillager"), Key.key("vindicator")));
+        tags.put(Key.key("immune_to_freezing"), List.of(Key.key("drowned"), Key.key("frostbite"),
+                Key.key("husk"), Key.key("polar_bear"), Key.key("snow_golem"), Key.key("stray"),
+                Key.key("wither"), Key.key("zombie")));
+        tags.put(Key.key("immune_to_infested"), List.of(Key.key("silverfish")));
+        tags.put(Key.key("immune_to_oozing"), List.of(Key.key("slime")));
+        tags.put(Key.key("immune_to_poison"), List.of(Key.key("bogged"), Key.key("camel_husk"),
+                Key.key("cave_spider"), Key.key("drowned"), Key.key("frostbite"), Key.key("husk"),
+                Key.key("nautilus"), Key.key("parched"), Key.key("phantom"), Key.key("skeleton"),
+                Key.key("skeleton_horse"), Key.key("spider"), Key.key("stray"), Key.key("wither"),
+                Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
+        tags.put(Key.key("immune_to_regeneration"), List.of(Key.key("bogged"),
                 Key.key("camel_husk"), Key.key("drowned"), Key.key("frostbite"), Key.key("husk"),
                 Key.key("parched"), Key.key("phantom"), Key.key("skeleton"),
                 Key.key("skeleton_horse"), Key.key("stray"), Key.key("wither"),
                 Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
                 Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
                 Key.key("zombified_piglin")));
-        tags.put(Key.key("illager"), List.of(Key.key("evoker"), Key.key("illusioner"),
-                Key.key("pillager"), Key.key("vindicator")));
-        tags.put(Key.key("illager_friends"), List.of(Key.key("evoker"), Key.key("illusioner"),
-                Key.key("pillager"), Key.key("vindicator")));
-        tags.put(Key.key("immune_to_infested"), List.of(Key.key("silverfish")));
-        tags.put(Key.key("immune_to_oozing"), List.of(Key.key("slime")));
+        tags.put(Key.key("immune_to_weakness"), List.of(Key.key("parched")));
+        tags.put(Key.key("immune_to_wither"), List.of(Key.key("wither"),
+                Key.key("wither_skeleton")));
         tags.put(Key.key("impact_projectiles"), List.of(Key.key("arrow"),
                 Key.key("breeze_wind_charge"), Key.key("dragon_fireball"), Key.key("egg"),
                 Key.key("fireball"), Key.key("firework_rocket"), Key.key("ice_ball"),
@@ -8455,6 +8505,9 @@ public final class FrozenRegistries {
                 Key.key("nautilus"), Key.key("pufferfish"), Key.key("salmon"), Key.key("squid"),
                 Key.key("sulfur_cube"), Key.key("tadpole"), Key.key("tropical_fish"),
                 Key.key("turtle"), Key.key("zombie_nautilus")));
+    }
+
+    private static void entityTypeTags2(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("powder_snow_walkable_mobs"), List.of(Key.key("endermite"), Key.key("fox"),
                 Key.key("frostbite"), Key.key("rabbit"), Key.key("silverfish")));
         tags.put(Key.key("raiders"), List.of(Key.key("evoker"), Key.key("illusioner"),
@@ -8469,9 +8522,6 @@ public final class FrozenRegistries {
                 Key.key("guardian"), Key.key("nautilus"), Key.key("pufferfish"), Key.key("salmon"),
                 Key.key("squid"), Key.key("tadpole"), Key.key("tropical_fish"), Key.key("turtle"),
                 Key.key("zombie_nautilus")));
-    }
-
-    private static void entityTypeTags2(final Map<Key, List<Key>> tags) {
         tags.put(Key.key("sensitive_to_smite"), List.of(Key.key("bogged"), Key.key("camel_husk"),
                 Key.key("drowned"), Key.key("frostbite"), Key.key("husk"), Key.key("parched"),
                 Key.key("phantom"), Key.key("skeleton"), Key.key("skeleton_horse"),
@@ -8503,7 +8553,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:entity_type}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> entityTypeTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(50);
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(53);
         entityTypeTags0(tags);
         entityTypeTags1(tags);
         entityTypeTags2(tags);
@@ -9281,11 +9331,16 @@ public final class FrozenRegistries {
         entries.add(Key.key("black_carpet"));
         entries.add(Key.key("terracotta"));
         entries.add(Key.key("packed_ice"));
-        entries.add(Key.key("dirt_path"));
-        entries.add(Key.key("sunflower"));
+        entries.add(Key.key("packed_ice_bricks"));
+        entries.add(Key.key("packed_ice_brick_slab"));
     }
 
     private static void item3(final List<Key> entries) {
+        entries.add(Key.key("packed_ice_brick_stairs"));
+        entries.add(Key.key("packed_ice_brick_wall"));
+        entries.add(Key.key("chiseled_packed_ice"));
+        entries.add(Key.key("dirt_path"));
+        entries.add(Key.key("sunflower"));
         entries.add(Key.key("lilac"));
         entries.add(Key.key("rose_bush"));
         entries.add(Key.key("peony"));
@@ -9481,14 +9536,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("polished_diorite_stairs"));
         entries.add(Key.key("mossy_cobblestone_stairs"));
         entries.add(Key.key("end_stone_brick_stairs"));
+    }
+
+    private static void item4(final List<Key> entries) {
         entries.add(Key.key("stone_stairs"));
         entries.add(Key.key("smooth_sandstone_stairs"));
         entries.add(Key.key("smooth_quartz_stairs"));
         entries.add(Key.key("granite_stairs"));
         entries.add(Key.key("andesite_stairs"));
-    }
-
-    private static void item4(final List<Key> entries) {
         entries.add(Key.key("red_nether_brick_stairs"));
         entries.add(Key.key("polished_andesite_stairs"));
         entries.add(Key.key("diorite_stairs"));
@@ -9684,14 +9739,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("mangrove_boat"));
         entries.add(Key.key("mangrove_chest_boat"));
         entries.add(Key.key("poplar_boat"));
+    }
+
+    private static void item5(final List<Key> entries) {
         entries.add(Key.key("poplar_chest_boat"));
         entries.add(Key.key("bamboo_raft"));
         entries.add(Key.key("bamboo_chest_raft"));
         entries.add(Key.key("structure_block"));
         entries.add(Key.key("jigsaw"));
-    }
-
-    private static void item5(final List<Key> entries) {
         entries.add(Key.key("test_block"));
         entries.add(Key.key("test_instance_block"));
         entries.add(Key.key("turtle_helmet"));
@@ -9887,14 +9942,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("cod"));
         entries.add(Key.key("salmon"));
         entries.add(Key.key("tropical_fish"));
+    }
+
+    private static void item6(final List<Key> entries) {
         entries.add(Key.key("pufferfish"));
         entries.add(Key.key("cooked_cod"));
         entries.add(Key.key("cooked_salmon"));
         entries.add(Key.key("ink_sac"));
         entries.add(Key.key("glow_ink_sac"));
-    }
-
-    private static void item6(final List<Key> entries) {
         entries.add(Key.key("cocoa_beans"));
         entries.add(Key.key("white_dye"));
         entries.add(Key.key("orange_dye"));
@@ -10090,14 +10145,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("dragon_head"));
         entries.add(Key.key("piglin_head"));
         entries.add(Key.key("nether_star"));
+    }
+
+    private static void item7(final List<Key> entries) {
         entries.add(Key.key("pumpkin_pie"));
         entries.add(Key.key("firework_rocket"));
         entries.add(Key.key("firework_star"));
         entries.add(Key.key("enchanted_book"));
         entries.add(Key.key("nether_brick"));
-    }
-
-    private static void item7(final List<Key> entries) {
         entries.add(Key.key("resin_brick"));
         entries.add(Key.key("prismarine_shard"));
         entries.add(Key.key("prismarine_crystals"));
@@ -10293,14 +10348,14 @@ public final class FrozenRegistries {
         entries.add(Key.key("tide_armor_trim_smithing_template"));
         entries.add(Key.key("snout_armor_trim_smithing_template"));
         entries.add(Key.key("rib_armor_trim_smithing_template"));
+    }
+
+    private static void item8(final List<Key> entries) {
         entries.add(Key.key("spire_armor_trim_smithing_template"));
         entries.add(Key.key("wayfinder_armor_trim_smithing_template"));
         entries.add(Key.key("shaper_armor_trim_smithing_template"));
         entries.add(Key.key("silence_armor_trim_smithing_template"));
         entries.add(Key.key("raiser_armor_trim_smithing_template"));
-    }
-
-    private static void item8(final List<Key> entries) {
         entries.add(Key.key("host_armor_trim_smithing_template"));
         entries.add(Key.key("flow_armor_trim_smithing_template"));
         entries.add(Key.key("bolt_armor_trim_smithing_template"));
@@ -10370,7 +10425,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:item}, indexed by network ID
      */
     private static List<Key> item() {
-        final List<Key> entries = new ArrayList<>(1663);
+        final List<Key> entries = new ArrayList<>(1668);
         item0(entries);
         item1(entries);
         item2(entries);
@@ -11241,18 +11296,19 @@ public final class FrozenRegistries {
                 Key.key("mossy_stone_brick_slab"), Key.key("mud_brick_slab"),
                 Key.key("nether_brick_slab"), Key.key("oak_slab"), Key.key("orange_concrete_slab"),
                 Key.key("orange_wool_slab"), Key.key("oxidized_cut_copper_slab"),
-                Key.key("pale_oak_slab"), Key.key("petrified_oak_slab"),
-                Key.key("pink_concrete_slab"), Key.key("pink_wool_slab"),
-                Key.key("polished_andesite_slab"), Key.key("polished_blackstone_brick_slab"),
-                Key.key("polished_blackstone_slab"), Key.key("polished_cinnabar_slab"),
-                Key.key("polished_deepslate_slab"), Key.key("polished_diorite_slab"),
-                Key.key("polished_granite_slab"), Key.key("polished_sulfur_slab"),
-                Key.key("polished_tuff_slab"), Key.key("poplar_slab"),
-                Key.key("prismarine_brick_slab"), Key.key("prismarine_slab"),
-                Key.key("purple_concrete_slab"), Key.key("purple_wool_slab"),
-                Key.key("purpur_slab"), Key.key("quartz_slab"), Key.key("red_concrete_slab"),
-                Key.key("red_nether_brick_slab"), Key.key("red_sandstone_slab"),
-                Key.key("red_wool_slab"), Key.key("resin_brick_slab"), Key.key("sandstone_slab"),
+                Key.key("packed_ice_brick_slab"), Key.key("pale_oak_slab"),
+                Key.key("petrified_oak_slab"), Key.key("pink_concrete_slab"),
+                Key.key("pink_wool_slab"), Key.key("polished_andesite_slab"),
+                Key.key("polished_blackstone_brick_slab"), Key.key("polished_blackstone_slab"),
+                Key.key("polished_cinnabar_slab"), Key.key("polished_deepslate_slab"),
+                Key.key("polished_diorite_slab"), Key.key("polished_granite_slab"),
+                Key.key("polished_sulfur_slab"), Key.key("polished_tuff_slab"),
+                Key.key("poplar_slab"), Key.key("prismarine_brick_slab"),
+                Key.key("prismarine_slab"), Key.key("purple_concrete_slab"),
+                Key.key("purple_wool_slab"), Key.key("purpur_slab"), Key.key("quartz_slab"),
+                Key.key("red_concrete_slab"), Key.key("red_nether_brick_slab"),
+                Key.key("red_sandstone_slab"), Key.key("red_wool_slab"),
+                Key.key("resin_brick_slab"), Key.key("sandstone_slab"),
                 Key.key("smooth_quartz_slab"), Key.key("smooth_red_sandstone_slab"),
                 Key.key("smooth_sandstone_slab"), Key.key("smooth_stone_slab"),
                 Key.key("spruce_slab"), Key.key("stone_brick_slab"), Key.key("stone_slab"),
@@ -11302,21 +11358,22 @@ public final class FrozenRegistries {
                 Key.key("mossy_stone_brick_stairs"), Key.key("mud_brick_stairs"),
                 Key.key("nether_brick_stairs"), Key.key("oak_stairs"),
                 Key.key("orange_concrete_stairs"), Key.key("orange_wool_stairs"),
-                Key.key("oxidized_cut_copper_stairs"), Key.key("pale_oak_stairs"),
-                Key.key("pink_concrete_stairs"), Key.key("pink_wool_stairs"),
-                Key.key("polished_andesite_stairs"), Key.key("polished_blackstone_brick_stairs"),
-                Key.key("polished_blackstone_stairs"), Key.key("polished_cinnabar_stairs"),
-                Key.key("polished_deepslate_stairs"), Key.key("polished_diorite_stairs"),
-                Key.key("polished_granite_stairs"), Key.key("polished_sulfur_stairs"),
-                Key.key("polished_tuff_stairs"), Key.key("poplar_stairs"),
-                Key.key("prismarine_brick_stairs"), Key.key("prismarine_stairs"),
-                Key.key("purple_concrete_stairs"), Key.key("purple_wool_stairs"),
-                Key.key("purpur_stairs"), Key.key("quartz_stairs"), Key.key("red_concrete_stairs"),
-                Key.key("red_nether_brick_stairs"), Key.key("red_sandstone_stairs"),
-                Key.key("red_wool_stairs"), Key.key("resin_brick_stairs"),
-                Key.key("sandstone_stairs"), Key.key("smooth_quartz_stairs"),
-                Key.key("smooth_red_sandstone_stairs"), Key.key("smooth_sandstone_stairs"),
-                Key.key("spruce_stairs"), Key.key("stone_brick_stairs"), Key.key("stone_stairs"),
+                Key.key("oxidized_cut_copper_stairs"), Key.key("packed_ice_brick_stairs"),
+                Key.key("pale_oak_stairs"), Key.key("pink_concrete_stairs"),
+                Key.key("pink_wool_stairs"), Key.key("polished_andesite_stairs"),
+                Key.key("polished_blackstone_brick_stairs"), Key.key("polished_blackstone_stairs"),
+                Key.key("polished_cinnabar_stairs"), Key.key("polished_deepslate_stairs"),
+                Key.key("polished_diorite_stairs"), Key.key("polished_granite_stairs"),
+                Key.key("polished_sulfur_stairs"), Key.key("polished_tuff_stairs"),
+                Key.key("poplar_stairs"), Key.key("prismarine_brick_stairs"),
+                Key.key("prismarine_stairs"), Key.key("purple_concrete_stairs"),
+                Key.key("purple_wool_stairs"), Key.key("purpur_stairs"), Key.key("quartz_stairs"),
+                Key.key("red_concrete_stairs"), Key.key("red_nether_brick_stairs"),
+                Key.key("red_sandstone_stairs"), Key.key("red_wool_stairs"),
+                Key.key("resin_brick_stairs"), Key.key("sandstone_stairs"),
+                Key.key("smooth_quartz_stairs"), Key.key("smooth_red_sandstone_stairs"),
+                Key.key("smooth_sandstone_stairs"), Key.key("spruce_stairs"),
+                Key.key("stone_brick_stairs"), Key.key("stone_stairs"),
                 Key.key("sulfur_brick_stairs"), Key.key("sulfur_stairs"),
                 Key.key("tuff_brick_stairs"), Key.key("tuff_stairs"), Key.key("warped_stairs"),
                 Key.key("waxed_cut_copper_stairs"), Key.key("waxed_exposed_cut_copper_stairs"),
@@ -11379,7 +11436,8 @@ public final class FrozenRegistries {
                 Key.key("resin_bricks"), Key.key("sponge"), Key.key("tube_coral_block"),
                 Key.key("verdant_froglight"), Key.key("wet_sponge")));
         tags.put(Key.key("sulfur_cube_archetype/fast_sliding"), List.of(Key.key("blue_ice"),
-                Key.key("packed_ice"), Key.key("snow_block")));
+                Key.key("chiseled_packed_ice"), Key.key("packed_ice"), Key.key("packed_ice_bricks"),
+                Key.key("snow_block")));
         tags.put(Key.key("sulfur_cube_archetype/high_resistance"), List.of(Key.key("soul_sand"),
                 Key.key("soul_soil")));
         tags.put(Key.key("sulfur_cube_archetype/hot"), List.of(Key.key("magma_block")));
@@ -11513,15 +11571,15 @@ public final class FrozenRegistries {
                 Key.key("calcite"), Key.key("carved_pumpkin"), Key.key("cherry_log"),
                 Key.key("cherry_planks"), Key.key("cherry_wood"), Key.key("chiseled_cinnabar"),
                 Key.key("chiseled_copper"), Key.key("chiseled_deepslate"),
-                Key.key("chiseled_nether_bricks"), Key.key("chiseled_polished_blackstone"),
-                Key.key("chiseled_quartz_block"), Key.key("chiseled_red_sandstone"),
-                Key.key("chiseled_resin_bricks"), Key.key("chiseled_sandstone"),
-                Key.key("chiseled_stone_bricks"), Key.key("chiseled_sulfur"),
-                Key.key("chiseled_tuff"), Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"),
-                Key.key("cinnabar_bricks"), Key.key("clay"), Key.key("coal_block"),
-                Key.key("coal_ore"), Key.key("coarse_dirt"), Key.key("cobbled_deepslate"),
-                Key.key("cobblestone"), Key.key("copper_block"), Key.key("copper_bulb"),
-                Key.key("copper_ore"), Key.key("cracked_deepslate_bricks"),
+                Key.key("chiseled_nether_bricks"), Key.key("chiseled_packed_ice"),
+                Key.key("chiseled_polished_blackstone"), Key.key("chiseled_quartz_block"),
+                Key.key("chiseled_red_sandstone"), Key.key("chiseled_resin_bricks"),
+                Key.key("chiseled_sandstone"), Key.key("chiseled_stone_bricks"),
+                Key.key("chiseled_sulfur"), Key.key("chiseled_tuff"),
+                Key.key("chiseled_tuff_bricks"), Key.key("cinnabar"), Key.key("cinnabar_bricks"),
+                Key.key("clay"), Key.key("coal_block"), Key.key("coal_ore"), Key.key("coarse_dirt"),
+                Key.key("cobbled_deepslate"), Key.key("cobblestone"), Key.key("copper_block"),
+                Key.key("copper_bulb"), Key.key("copper_ore"), Key.key("cracked_deepslate_bricks"),
                 Key.key("cracked_deepslate_tiles"), Key.key("cracked_nether_bricks"),
                 Key.key("cracked_polished_blackstone_bricks"), Key.key("cracked_stone_bricks"),
                 Key.key("crimson_hyphae"), Key.key("crimson_nylium"), Key.key("crimson_planks"),
@@ -11575,12 +11633,12 @@ public final class FrozenRegistries {
                 Key.key("orange_terracotta"), Key.key("orange_wool"),
                 Key.key("oxidized_chiseled_copper"), Key.key("oxidized_copper"),
                 Key.key("oxidized_copper_bulb"), Key.key("oxidized_cut_copper"),
-                Key.key("packed_ice"), Key.key("packed_mud"), Key.key("pale_moss_block"),
-                Key.key("pale_oak_log"), Key.key("pale_oak_planks"), Key.key("pale_oak_wood"),
-                Key.key("pearlescent_froglight"), Key.key("pink_concrete"),
-                Key.key("pink_concrete_powder"), Key.key("pink_glazed_terracotta"),
-                Key.key("pink_terracotta"), Key.key("pink_wool"), Key.key("podzol"),
-                Key.key("polished_andesite"), Key.key("polished_basalt"),
+                Key.key("packed_ice"), Key.key("packed_ice_bricks"), Key.key("packed_mud"),
+                Key.key("pale_moss_block"), Key.key("pale_oak_log"), Key.key("pale_oak_planks"),
+                Key.key("pale_oak_wood"), Key.key("pearlescent_froglight"),
+                Key.key("pink_concrete"), Key.key("pink_concrete_powder"),
+                Key.key("pink_glazed_terracotta"), Key.key("pink_terracotta"), Key.key("pink_wool"),
+                Key.key("podzol"), Key.key("polished_andesite"), Key.key("polished_basalt"),
                 Key.key("polished_blackstone"), Key.key("polished_blackstone_bricks"),
                 Key.key("polished_cinnabar"), Key.key("polished_deepslate"),
                 Key.key("polished_diorite"), Key.key("polished_granite"),
@@ -11690,12 +11748,12 @@ public final class FrozenRegistries {
                 Key.key("diorite_wall"), Key.key("end_stone_brick_wall"), Key.key("granite_wall"),
                 Key.key("mossy_cobblestone_wall"), Key.key("mossy_stone_brick_wall"),
                 Key.key("mud_brick_wall"), Key.key("nether_brick_wall"),
-                Key.key("polished_blackstone_brick_wall"), Key.key("polished_blackstone_wall"),
-                Key.key("polished_cinnabar_wall"), Key.key("polished_deepslate_wall"),
-                Key.key("polished_sulfur_wall"), Key.key("polished_tuff_wall"),
-                Key.key("prismarine_wall"), Key.key("red_nether_brick_wall"),
-                Key.key("red_sandstone_wall"), Key.key("resin_brick_wall"),
-                Key.key("sandstone_wall"), Key.key("stone_brick_wall"),
+                Key.key("packed_ice_brick_wall"), Key.key("polished_blackstone_brick_wall"),
+                Key.key("polished_blackstone_wall"), Key.key("polished_cinnabar_wall"),
+                Key.key("polished_deepslate_wall"), Key.key("polished_sulfur_wall"),
+                Key.key("polished_tuff_wall"), Key.key("prismarine_wall"),
+                Key.key("red_nether_brick_wall"), Key.key("red_sandstone_wall"),
+                Key.key("resin_brick_wall"), Key.key("sandstone_wall"), Key.key("stone_brick_wall"),
                 Key.key("sulfur_brick_wall"), Key.key("sulfur_wall"), Key.key("tuff_brick_wall"),
                 Key.key("tuff_wall")));
         tags.put(Key.key("warped_stems"), List.of(Key.key("stripped_warped_hyphae"),

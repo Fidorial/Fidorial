@@ -340,6 +340,7 @@ public final class ItemProperties {
         register(ItemKeys.CHISELED_COPPER.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_DEEPSLATE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_NETHER_BRICKS.key(), 64, 0, List.of());
+        register(ItemKeys.CHISELED_PACKED_ICE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_POLISHED_BLACKSTONE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_QUARTZ_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_RED_SANDSTONE.key(), 64, 0, List.of());
@@ -479,10 +480,10 @@ public final class ItemProperties {
         register(ItemKeys.CYAN_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS_PANE.key(), 64, 0, List.of());
-        register(ItemKeys.CYAN_TERRACOTTA.key(), 64, 0, List.of());
     }
 
     private static void registerItems2() {
+        register(ItemKeys.CYAN_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL_STAIRS.key(), 64, 0, List.of());
@@ -682,10 +683,10 @@ public final class ItemProperties {
         register(ItemKeys.GOLDEN_APPLE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_AXE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_BOOTS.key(), 1, 91, List.of(ItemKeys.GOLD_INGOT.key()));
-        register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
     }
 
     private static void registerItems3() {
+        register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_CHESTPLATE.key(), 1, 112, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_DANDELION.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_HELMET.key(), 1, 77, List.of(ItemKeys.GOLD_INGOT.key()));
@@ -885,10 +886,10 @@ public final class ItemProperties {
         register(ItemKeys.LIGHT_GRAY_STAINED_GLASS_PANE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL.key(), 64, 0, List.of());
-        register(ItemKeys.LIGHT_GRAY_WOOL_SLAB.key(), 64, 0, List.of());
     }
 
     private static void registerItems4() {
+        register(ItemKeys.LIGHT_GRAY_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_WEIGHTED_PRESSURE_PLATE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHTNING_ROD.key(), 64, 0, List.of());
@@ -1088,10 +1089,10 @@ public final class ItemProperties {
         register(ItemKeys.ORANGE_DYE.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_HARNESS.key(), 1, 0, List.of());
-        register(ItemKeys.ORANGE_POPLAR_LEAVES.key(), 64, 0, List.of());
     }
 
     private static void registerItems5() {
+        register(ItemKeys.ORANGE_POPLAR_LEAVES.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.ORANGE_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_STAINED_GLASS_PANE.key(), 64, 0, List.of());
@@ -1117,6 +1118,10 @@ public final class ItemProperties {
         register(ItemKeys.OXIDIZED_CUT_COPPER_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.OXIDIZED_LIGHTNING_ROD.key(), 64, 0, List.of());
         register(ItemKeys.PACKED_ICE.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_WALL.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.PACKED_MUD.key(), 64, 0, List.of());
         register(ItemKeys.PAINTING.key(), 64, 0, List.of());
         register(ItemKeys.PALE_HANGING_MOSS.key(), 64, 0, List.of());
@@ -1287,14 +1292,14 @@ public final class ItemProperties {
         register(ItemKeys.PURPUR_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_PILLAR.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_SLAB.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems6() {
         register(ItemKeys.PURPUR_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_PILLAR.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems6() {
         register(ItemKeys.QUARTZ_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.RABBIT.key(), 64, 0, List.of());
@@ -1490,14 +1495,14 @@ public final class ItemProperties {
         register(ItemKeys.STRAY_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRIDER_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRING.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems7() {
         register(ItemKeys.STRIPPED_ACACIA_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_ACACIA_WOOD.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_BAMBOO_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_BIRCH_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_BIRCH_WOOD.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems7() {
         register(ItemKeys.STRIPPED_CHERRY_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_CHERRY_WOOD.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_CRIMSON_HYPHAE.key(), 64, 0, List.of());
@@ -1693,14 +1698,14 @@ public final class ItemProperties {
         register(ItemKeys.WET_SPONGE.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT_SEEDS.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems8() {
         register(ItemKeys.WHITE_BANNER.key(), 16, 0, List.of());
         register(ItemKeys.WHITE_BED.key(), 1, 0, List.of());
         register(ItemKeys.WHITE_BUNDLE.key(), 1, 0, List.of());
         register(ItemKeys.WHITE_CANDLE.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_CARPET.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems8() {
         register(ItemKeys.WHITE_CONCRETE.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_CONCRETE_POWDER.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_CONCRETE_SLAB.key(), 64, 0, List.of());

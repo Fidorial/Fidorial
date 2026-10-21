@@ -2012,6 +2012,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> BLOCK_HONEY_BLOCK_STEP = create("block.honey_block.step");
 
     /**
+     * Key for {@code minecraft:block.ice.ambient}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_ICE_AMBIENT = create("block.ice.ambient");
+
+    /**
      * Key for {@code minecraft:block.ice.break}.
      */
     public static final TypedKey<SoundEvent> BLOCK_ICE_BREAK = create("block.ice.break");
@@ -10607,6 +10612,7 @@ public final class SoundEventKeys {
         BLOCK_HONEY_BLOCK_PLACE,
         BLOCK_HONEY_BLOCK_SLIDE,
         BLOCK_HONEY_BLOCK_STEP,
+        BLOCK_ICE_AMBIENT,
         BLOCK_ICE_BREAK,
         BLOCK_ICE_FALL,
         BLOCK_ICE_HIT,

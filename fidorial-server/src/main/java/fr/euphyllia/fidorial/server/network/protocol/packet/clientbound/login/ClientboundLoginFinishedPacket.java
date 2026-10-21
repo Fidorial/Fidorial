@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.LoginClientboundPac
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import net.kyori.adventure.key.Key;
 
-public record ClientboundLoginFinishedPacket(GameProfile profile) implements ClientboundPacket {
+public record ClientboundLoginFinishedPacket(GameProfile profile, byte options) implements ClientboundPacket {
 
     @Override
     public Key name() {
@@ -14,11 +14,11 @@ public record ClientboundLoginFinishedPacket(GameProfile profile) implements Cli
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeUuid(profile.uuid());
         buf.writeString(profile.name());
         buf.writeVarInt(profile.properties().size());
-        for (GameProfile.Property prop : profile.properties()) {
+        for (final GameProfile.Property prop : profile.properties()) {
             buf.writeString(prop.name());
             buf.writeString(prop.value());
             buf.writeBoolean(prop.signature() != null);
@@ -27,5 +27,6 @@ public record ClientboundLoginFinishedPacket(GameProfile profile) implements Cli
             }
         }
         buf.writeUuid(profile.sessionId());
+        buf.writeByte(options);
     }
 }

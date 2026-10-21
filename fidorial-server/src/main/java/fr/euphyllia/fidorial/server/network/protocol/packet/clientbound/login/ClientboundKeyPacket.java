@@ -5,19 +5,19 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.LoginClientboundPac
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import net.kyori.adventure.key.Key;
 
-public record ClientboundHelloPacket(String serverId, byte[] publicKey, byte[] verifyToken,
-                                     boolean shouldAuthenticate) implements ClientboundPacket {
+public record ClientboundKeyPacket(String serverId, byte[] publicKey, byte[] challenge,
+                                   boolean shouldAuthenticate) implements ClientboundPacket {
 
     @Override
     public Key name() {
-        return LoginClientboundPackets.HELLO;
+        return LoginClientboundPackets.KEY;
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeString(serverId)
                 .writeByteArray(publicKey)
-                .writeByteArray(verifyToken)
+                .writeByteArray(challenge)
                 .writeBoolean(shouldAuthenticate);
     }
 }

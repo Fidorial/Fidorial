@@ -6,15 +6,15 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import net.kyori.adventure.key.Key;
 
 
-public record ClientboundLoginCompressionPacket(int threshold) implements ClientboundPacket {
+public record ClientboundSetupCompressionPacket(int threshold) implements ClientboundPacket {
 
     @Override
     public Key name() {
-        return LoginClientboundPackets.LOGIN_COMPRESSION;
+        return LoginClientboundPackets.SETUP_COMPRESSION;
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(threshold);
     }
 }

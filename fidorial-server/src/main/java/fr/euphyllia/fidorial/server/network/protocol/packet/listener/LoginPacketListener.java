@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.Se
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundHelloPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundLoginAcknowledgedPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundOptionsAppliedPacket;
 import fr.fidorial.protocol.PacketListener;
 
 public interface LoginPacketListener extends PacketListener {
@@ -14,4 +15,6 @@ public interface LoginPacketListener extends PacketListener {
     void handleCustomQueryAnswer(ServerboundCustomQueryAnswerPacket packet);
 
     void handleLoginAcknowledged(ServerboundLoginAcknowledgedPacket packet);
+
+    void handleOptionsApplied(ServerboundOptionsAppliedPacket packet);
 }

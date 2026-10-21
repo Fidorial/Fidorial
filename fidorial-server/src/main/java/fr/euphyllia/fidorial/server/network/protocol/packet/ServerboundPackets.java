@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.Se
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundHelloPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundLoginAcknowledgedPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundOptionsAppliedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcceptTeleportationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcknowledgeConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAttackPacket;
@@ -77,6 +78,10 @@ public class ServerboundPackets {
                 ConnectionState.LOGIN,
                 LoginServerboundPackets.LOGIN_ACKNOWLEDGED,
                 ServerboundLoginAcknowledgedPacket::read);
+        register(
+                ConnectionState.LOGIN,
+                LoginServerboundPackets.OPTIONS_APPLIED,
+                ServerboundOptionsAppliedPacket::read);
 
         register(
                 ConnectionState.CONFIGURATION,
