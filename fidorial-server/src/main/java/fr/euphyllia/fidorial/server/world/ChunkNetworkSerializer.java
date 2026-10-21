@@ -123,26 +123,8 @@ public final class ChunkNetworkSerializer {
     private void writeSection(final PacketBuffer sp, final ChunkSection section) {
         final PalettedContainer.PalettedContainerSnapshot<BlockState> snap = section.blocks().snapshot();
 
-        final int[] occurrences = new int[snap.palette().size()];
-        for (final int index : snap.data()) {
-            occurrences[index]++;
-        }
-
-        int nonAir = 0;
-        int fluid = 0;
-        for (int index = 0; index < occurrences.length; index++) {
-            final BlockState state = snap.palette().get(index);
-            if (!state.isAir()) {
-                nonAir += occurrences[index];
-            }
-            if (state.isFluid()) {
-                fluid += occurrences[index];
-            }
-        }
-
-        sp.writeShort(nonAir);   // nonEmptyBlockCount
-        sp.writeShort(fluid);    // fluidCount
-
+        sp.writeShort(section.nonAirCount());   // nonEmptyBlockCount
+        sp.writeShort(section.fluidCount());    // fluidCount
 
         if (snap.palette().size() == 1) {
             final int stateId = blockRegistry.networkId(snap.palette().getFirst());

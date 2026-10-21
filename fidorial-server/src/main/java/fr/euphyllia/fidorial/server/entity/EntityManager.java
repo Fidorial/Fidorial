@@ -1,8 +1,11 @@
 package fr.euphyllia.fidorial.server.entity;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.ints.ConcurrentChainedInt2ReferenceHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.fidorial.world.ChunkPos;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.UnmodifiableView;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -16,10 +19,13 @@ import java.util.function.Predicate;
 
 public final class EntityManager {
 
-    private final Map<Integer, AbstractEntity> byId = new ConcurrentHashMap<>();
-    private final Map<UUID, AbstractEntity> byUuid = new ConcurrentHashMap<>();
-    private final Map<Long, Set<AbstractEntity>> byChunk = new ConcurrentHashMap<>();
-    private final Map<Long, Set<AbstractEntity>> bySection = new ConcurrentHashMap<>();
+    private final ConcurrentChainedInt2ReferenceHashTable<@Nullable AbstractEntity> byId =
+            ConcurrentChainedInt2ReferenceHashTable.createWithExpected(1024);
+    private final Map<UUID, AbstractEntity> byUuid = new ConcurrentHashMap<>(1024);
+    private final ConcurrentChainedLong2ReferenceHashTable<Set<AbstractEntity>> byChunk =
+            ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
+    private final ConcurrentChainedLong2ReferenceHashTable<Set<AbstractEntity>> bySection =
+            new ConcurrentChainedLong2ReferenceHashTable<>();
 
     private static long sectionKey(final ChunkPos pos) {
         return sectionKey(
@@ -80,11 +86,11 @@ public final class EntityManager {
         }
     }
 
-    public AbstractEntity byId(final int entityId) {
+    public @Nullable AbstractEntity byId(final int entityId) {
         return byId.get(entityId);
     }
 
-    public AbstractEntity byUuid(final UUID uuid) {
+    public @Nullable AbstractEntity byUuid(final UUID uuid) {
         return byUuid.get(uuid);
     }
 
@@ -96,7 +102,8 @@ public final class EntityManager {
         return bySection.getOrDefault(sectionKey(sectionX, sectionZ), Set.of());
     }
 
-    public Collection<AbstractEntity> all() {
+    public @UnmodifiableView Collection<AbstractEntity> all() {
+        //noinspection NullableProblems
         return Collections.unmodifiableCollection(byId.values());
     }
 

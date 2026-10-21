@@ -14,7 +14,8 @@ public final class PalettedContainer<T> {
 
     private final List<T> palette = new ArrayList<>();
     private final Object2IntOpenHashMap<T> lookup = new Object2IntOpenHashMap<>();
-    private final int[] data;
+    private final int size;
+    private int @Nullable [] data; // null while every entry is palette[0], guarded by lock
     private final int minBits;
     private @Nullable T lastValue = null;
     private int lastIndex = -1;
@@ -24,7 +25,7 @@ public final class PalettedContainer<T> {
     private volatile Object[] paletteArray = new Object[0];
 
     public PalettedContainer(final int size, final int minBits, final T fill) {
-        this.data = new int[size];
+        this.size = size;
         this.minBits = minBits;
         this.lookup.defaultReturnValue(-1);
         indexOf(fill);
@@ -37,8 +38,7 @@ public final class PalettedContainer<T> {
         }
         if (data != null && data.length > 0 && palette.size() > 1) {
             final int bits = BitPacking.bitsFor(palette.size(), minBits);
-            final int[] indices = BitPacking.unpack(data, bits, size);
-            System.arraycopy(indices, 0, c.data, 0, size);
+            c.data = BitPacking.unpack(data, bits, size);
         }
         return c;
     }
@@ -65,7 +65,15 @@ public final class PalettedContainer<T> {
     public void set(final int index, final T value) {
         final long stamp = lock.writeLock();
         try {
-            data[index] = indexOf(value);
+            final int idx = indexOf(value);
+            int[] d = data;
+            if (d == null) {
+                if (idx == 0) {
+                    return;
+                }
+                d = data = new int[size];
+            }
+            d[index] = idx;
         } finally {
             lock.unlockWrite(stamp);
         }
@@ -74,7 +82,8 @@ public final class PalettedContainer<T> {
     public T get(final int index) {
         final long stamp = lock.tryOptimisticRead();
         final Object[] pal = paletteArray;
-        final int di = data[index];
+        final int[] d = data;
+        final int di = d == null ? 0 : d[index];
         if (stamp != 0L && lock.validate(stamp) && di >= 0 && di < pal.length) {
             @SuppressWarnings("unchecked")
             final T v = (T) pal[di];
@@ -83,7 +92,8 @@ public final class PalettedContainer<T> {
 
         final long rs = lock.readLock();
         try {
-            return palette.get(data[index]);
+            final int[] locked = data;
+            return palette.get(locked == null ? 0 : locked[index]);
         } finally {
             lock.unlockRead(rs);
         }
@@ -119,9 +129,14 @@ public final class PalettedContainer<T> {
     public long[] packedGlobal(final int bits, final ToIntFunction<T> mapper) {
         final long stamp = lock.readLock();
         try {
-            final int[] global = new int[data.length];
-            for (int i = 0; i < data.length; i++) {
-                global[i] = mapper.applyAsInt(palette.get(data[i]));
+            final int[] global = new int[size];
+            final int[] d = data;
+            if (d == null) {
+                Arrays.fill(global, mapper.applyAsInt(palette.getFirst()));
+            } else {
+                for (int i = 0; i < size; i++) {
+                    global[i] = mapper.applyAsInt(palette.get(d[i]));
+                }
             }
             return BitPacking.pack(global, bits);
         } finally {
@@ -133,7 +148,8 @@ public final class PalettedContainer<T> {
         final long stamp = lock.readLock();
         try {
             if (palette.size() == 1) return null;
-            return BitPacking.pack(data, BitPacking.bitsFor(palette.size(), minBits));
+            final int[] d = data;
+            return BitPacking.pack(d != null ? d : new int[size], BitPacking.bitsFor(palette.size(), minBits));
         } finally {
             lock.unlockRead(stamp);
         }
@@ -156,7 +172,8 @@ public final class PalettedContainer<T> {
         try {
             @SuppressWarnings("unchecked")
             final T[] pal = (T[]) paletteArray;
-            return new PalettedContainerSnapshot<>(Arrays.asList(pal), data.clone(), minBits);
+            final int[] d = data;
+            return new PalettedContainerSnapshot<>(Arrays.asList(pal), d != null ? d.clone() : new int[size], minBits);
         } finally {
             lock.unlockRead(stamp);
         }

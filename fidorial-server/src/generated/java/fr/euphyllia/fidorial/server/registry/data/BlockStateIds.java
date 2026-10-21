@@ -17,12 +17,12 @@ public final class BlockStateIds {
     /**
      * Total number of block states.
      */
-    public static final int STATE_COUNT = 35781;
+    public static final int STATE_COUNT = 36193;
 
     /**
      * Total number of block types.
      */
-    public static final int BLOCK_COUNT = 1289;
+    public static final int BLOCK_COUNT = 1294;
 
     private BlockStateIds() {
         throw new UnsupportedOperationException("BlockStateIds cannot be instantiated.");
