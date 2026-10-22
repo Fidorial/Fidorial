@@ -17,7 +17,6 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public final class ChunkNetworkSerializer {
@@ -26,7 +25,6 @@ public final class ChunkNetworkSerializer {
     private static final boolean BIKINI_BOTTOM = Boolean.getBoolean("Fidorial.bikiniBottom");
 
     private final BlockStateRegistry blockRegistry;
-    private static final byte[] FULL_LIGHT = fullLight();
     private final FidorialBiomeRegistry biomes;
     private static final int MAX_INDIRECT_BIOME_BITS = 8;
 
@@ -43,8 +41,17 @@ public final class ChunkNetworkSerializer {
         p.writeInt(chunk.chunkZ());
         writeHeightmaps(p, chunk);
 
-        final byte[] sections = buildSections(alloc, chunk);
-        p.writeByteArray(sections);
+        final ByteBuf sections = alloc.buffer();
+        try {
+            final PacketBuffer sp = new PacketBuffer(sections);
+            for (final ChunkSection section : chunk.sections()) {
+                writeSection(sp, section);
+            }
+            p.writeVarInt(sections.readableBytes());
+            p.nettyBuf().writeBytes(sections);
+        } finally {
+            sections.release();
+        }
 
         writeBlockEntities(p, chunk);
 
@@ -93,8 +100,10 @@ public final class ChunkNetworkSerializer {
             p.writeVarInt(0);
             return;
         }
+        // both heightmaps use the same predicate currently
         final long[] motionBlocking = chunk.computeMotionBlockingHeightmap();
-        final long[] worldSurface = chunk.computeWorldSurfaceHeightmap();
+        //noinspection UnnecessaryLocalVariable
+        final long[] worldSurface = motionBlocking; /*chunk.computeWorldSurfaceHeightmap();*/
 
         p.writeVarInt(2);
 
@@ -105,52 +114,29 @@ public final class ChunkNetworkSerializer {
         p.writeLongArray(motionBlocking);
     }
 
-    private byte[] buildSections(final ByteBufAllocator alloc, final ChunkColumn chunk) {
-        final ByteBuf sec = alloc.buffer();
-        try {
-            final PacketBuffer sp = new PacketBuffer(sec);
-            for (final ChunkSection section : chunk.sections()) {
-                writeSection(sp, section);
-            }
-            final byte[] out = new byte[sec.readableBytes()];
-            sec.readBytes(out);
-            return out;
-        } finally {
-            sec.release();
-        }
-    }
-
     private void writeSection(final PacketBuffer sp, final ChunkSection section) {
-        final PalettedContainer.PalettedContainerSnapshot<BlockState> snap = section.blocks().snapshot();
+        final PalettedContainer.PackedSnapshot<BlockState> snap = section.blocks().packedSnapshot();
 
         sp.writeShort(section.nonAirCount());   // nonEmptyBlockCount
         sp.writeShort(section.fluidCount());    // fluidCount
 
         if (snap.palette().size() == 1) {
-            final int stateId = blockRegistry.networkId(snap.palette().getFirst());
             sp.writeByte(0);           // bitsPerEntry = 0 (single value)
-            sp.writeVarInt(stateId);   // valeur unique, pas de tableau de longs
+            sp.writeVarInt(blockRegistry.networkId(snap.palette().getFirst()));
         } else {
-            writeIndirectSection(sp, snap);
+            sp.writeByte(snap.bits());
+            sp.writeVarInt(snap.palette().size());
+            for (final BlockState state : snap.palette()) {
+                sp.writeVarInt(blockRegistry.networkId(state));
+            }
+            writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BLOCK_COUNT);
         }
 
         writeBiomes(sp, section.biomes());
     }
 
-    private void writeIndirectSection(final PacketBuffer sp, final PalettedContainer.PalettedContainerSnapshot<BlockState> snap) {
-        final int size = snap.palette().size();
-        final int bits = Math.max(4, BitPacking.bitsFor(size, snap.minBits()));
-
-        sp.writeByte(bits);
-        sp.writeVarInt(size);
-        for (final BlockState state : snap.palette()) {
-            sp.writeVarInt(blockRegistry.networkId(state));
-        }
-        writeLongs(sp, BitPacking.pack(snap.data(), bits), bits, ChunkSection.BLOCK_COUNT);
-    }
-
     private void writeBiomes(final PacketBuffer sp, final PalettedContainer<Key> container) {
-        final PalettedContainer.PalettedContainerSnapshot<Key> snap = container.snapshot();
+        final PalettedContainer.PackedSnapshot<Key> snap = container.packedSnapshot();
         final List<Key> palette = snap.palette();
 
         if (palette.size() == 1) {
@@ -159,23 +145,22 @@ public final class ChunkNetworkSerializer {
             return;
         }
 
-        final int bits = BitPacking.bitsFor(palette.size(), 1);
-
-        if (bits <= MAX_INDIRECT_BIOME_BITS) {
-            sp.writeByte(bits);
+        if (snap.bits() <= MAX_INDIRECT_BIOME_BITS) {
+            sp.writeByte(snap.bits());
             sp.writeVarInt(palette.size());
             for (final Key biome : palette) {
                 sp.writeVarInt(biomes.networkIdOrFallback(biome));
             }
-            writeLongs(sp, BitPacking.pack(snap.data(), bits), bits, ChunkSection.BIOME_COUNT);
+            writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BIOME_COUNT);
             return;
         }
 
+        final PalettedContainer.PalettedContainerSnapshot<Key> full = container.snapshot();
         final int directBits = BitPacking.bitsFor(biomes.totalRegistered(), 1);
         sp.writeByte(directBits);
-        final int[] global = new int[snap.data().length];
+        final int[] global = new int[ChunkSection.BIOME_COUNT];
         for (int i = 0; i < global.length; i++) {
-            global[i] = biomes.networkIdOrFallback(snap.get(i));
+            global[i] = biomes.networkIdOrFallback(full.get(i));
         }
         writeLongs(sp, BitPacking.pack(global, directBits), directBits, ChunkSection.BIOME_COUNT);
     }
@@ -221,7 +206,7 @@ public final class ChunkNetworkSerializer {
         for (int i = 0; i < lightSections; i++) {
             if (hasSkylight && i == topIndex) {
                 setBit(skyMask, i);
-                skyArrays.add(FULL_LIGHT);
+                skyArrays.add(ChunkLightData.FULL_LIGHT);
             } else if (hasSkylight) {
                 if (i != 0) { // below world so no light
                     final byte[] sky = light.materializeSkySection(i - 1);
@@ -236,7 +221,7 @@ public final class ChunkNetworkSerializer {
 
             if (!(i == 0) && !(i == topIndex)) { // vanilla seems not to send any mask if it's a boundary
                 final byte[] block = light.sectionArray(LightType.BLOCK, i - 1);
-                if (block == null || isAllZero(block)) {
+                if (block == null || ChunkLightData.isAllZero(block)) {
                     setBit(emptyBlockMask, i);
                 } else {
                     setBit(blockMask, i);
@@ -265,16 +250,5 @@ public final class ChunkNetworkSerializer {
 
     private static void setBit(final long[] words, final int bit) {
         words[bit >> 6] |= 1L << (bit & 63);
-    }
-
-    private static boolean isAllZero(final byte[] a) {
-        for (final byte b : a) if (b != 0) return false;
-        return true;
-    }
-
-    private static byte[] fullLight() {
-        final byte[] full = new byte[ChunkLightData.SECTION_BYTES];
-        Arrays.fill(full, (byte) 0xFF);
-        return full;
     }
 }
