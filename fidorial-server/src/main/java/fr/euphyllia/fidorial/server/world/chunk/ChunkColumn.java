@@ -196,8 +196,7 @@ public final class ChunkColumn {
             return;
         }
 
-        final BlockState previous = s.getBlock(localX, worldY & 15, localZ);
-        s.setBlock(localX, worldY & 15, localZ, state);
+        final BlockState previous = s.setBlock(localX, worldY & 15, localZ, state);
 
         if (previous.name().equals(state.name())) {
             return;
@@ -221,7 +220,9 @@ public final class ChunkColumn {
         return s == null ? BlockState.of(BlockTypeKeys.AIR.key()) : s.getBlock(localX, worldY & 15, localZ);
     }
 
+    // https://minecraft.wiki/w/Heightmap
     public static final Predicate<BlockState> WORLD_SURFACE = state -> !state.isAir();
+    // vanilla: blocks motion or contains fluid (skips flowers, grass, torches and such, but counts water)
     public static final Predicate<BlockState> MOTION_BLOCKING = state -> !state.isAir();
 
     public int heightmapBits() {

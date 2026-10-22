@@ -58,9 +58,8 @@ public final class ChunkSection {
         return nonAirCount == 0;
     }
 
-    public void setBlock(final int x, final int y, final int z, final BlockState state) {
-        final int i = blockIndex(x, y, z);
-        final BlockState previous = blocks.get(i);
+    public BlockState setBlock(final int x, final int y, final int z, final BlockState state) {
+        final BlockState previous = blocks.getAndSet(blockIndex(x, y, z), state);
 
         final boolean wasAir = previous.isAir();
         final boolean isAir = state.isAir();
@@ -74,7 +73,7 @@ public final class ChunkSection {
         if (!wasFluid && isFluid) fluidCount++;
         else if (wasFluid && !isFluid) fluidCount--;
 
-        blocks.set(i, state);
+        return previous;
     }
 
     public BlockState getBlock(final int x, final int y, final int z) {
@@ -94,14 +93,7 @@ public final class ChunkSection {
     }
 
     public void recomputeCounts() {
-        final PalettedContainer.PalettedContainerSnapshot<BlockState> snap = blocks.snapshot();
-        int nonAir = 0, fluids = 0;
-        for (int i = 0; i < BLOCK_COUNT; i++) {
-            final BlockState s = snap.get(i);
-            if (!s.isAir()) nonAir++;
-            if (s.isFluid()) fluids++;
-        }
-        this.nonAirCount = nonAir;
-        this.fluidCount = fluids;
+        this.nonAirCount = blocks.count(state -> !state.isAir());
+        this.fluidCount = blocks.count(BlockState::isFluid);
     }
 }
