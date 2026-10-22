@@ -36,16 +36,15 @@ public final class PalettedContainer<T> {
 
     public static <T> PalettedContainer<T> fromNbt(final int size, final int minBits, final List<T> palette, final long @Nullable [] data) {
         final PalettedContainer<T> c = new PalettedContainer<>(size, minBits, palette.getFirst());
+        // keep stored positions, duplicates included, so the data indices stay valid
         for (int i = 1; i < palette.size(); i++) {
-            c.indexOf(palette.get(i));
+            c.append(palette.get(i));
         }
         if (data != null && data.length > 0 && palette.size() > 1) {
-            final int bits = BitPacking.bitsFor(palette.size(), minBits);
-            if (bits == c.bits && data.length == longCount(size, c.valuesPerLong)) {
+            if (data.length == longCount(size, c.valuesPerLong)) {
                 c.data = data;
             } else {
-                // duplicate palette entries or a mismatching length, go through the unpacked form
-                c.data = BitPacking.pack(BitPacking.unpack(data, bits, size), c.bits);
+                c.data = BitPacking.pack(BitPacking.unpack(data, c.bits, size), c.bits);
             }
         }
         return c;
@@ -72,33 +71,35 @@ public final class PalettedContainer<T> {
         if (value == lastValue) {
             return lastIndex;
         }
-        final Object[] pal = paletteArray;
-        final int found = find(pal, value);
-        if (found != -1) {
-            lastValue = value;
-            lastIndex = found;
-            return found;
+        int index = find(paletteArray, value);
+        if (index == -1) {
+            index = append(value);
         }
+        lastValue = value;
+        lastIndex = index;
+        return index;
+    }
 
+    // lookups keep the first index of a duplicate, same as the linear scan
+    private int append(final T value) {
+        final Object[] pal = paletteArray;
         final int next = pal.length;
         final Object[] grown = Arrays.copyOf(pal, next + 1);
         grown[next] = value;
         if (lookup != null) {
-            lookup.put(value, next);
+            lookup.putIfAbsent(value, next);
         } else if (grown.length > LINEAR_LOOKUP_LIMIT) {
             final Object2IntOpenHashMap<T> map = new Object2IntOpenHashMap<>(grown.length * 2);
             map.defaultReturnValue(-1);
             for (int i = 0; i < grown.length; i++) {
                 @SuppressWarnings("unchecked")
                 final T entry = (T) grown[i];
-                map.put(entry, i);
+                map.putIfAbsent(entry, i);
             }
             lookup = map;
         }
         resize(BitPacking.bitsFor(grown.length, minBits));
         paletteArray = grown;
-        lastValue = value;
-        lastIndex = next;
         return next;
     }
 
@@ -133,6 +134,9 @@ public final class PalettedContainer<T> {
     }
 
     public void set(final int index, final T value) {
+        if (isStored(index, value)) {
+            return; // already stored, the write would not change anything
+        }
         final long stamp = lock.writeLock();
         try {
             final int idx = indexOf(value);
@@ -149,20 +153,30 @@ public final class PalettedContainer<T> {
         }
     }
 
+    private boolean isStored(final int index, final T value) {
+        final long stamp = lock.tryOptimisticRead();
+        if (stamp == 0L) return false;
+        final Object[] pal = paletteArray;
+        final int di = peekIndex(index);
+        return di >= 0 && di < pal.length && pal[di] == value && lock.validate(stamp);
+    }
+
+    private int peekIndex(final int index) {
+        final long[] d = data;
+        if (d == null) return 0;
+        final int b = bits;
+        final int perLong = valuesPerLong;
+        final int longIndex = perLong == 0 ? d.length : index / perLong;
+        return longIndex < d.length
+                ? (int) ((d[longIndex] >>> ((index - longIndex * perLong) * b)) & ((1L << b) - 1L))
+                : -1;
+    }
+
     public T get(final int index) {
         final long stamp = lock.tryOptimisticRead();
         final Object[] pal = paletteArray;
-        final long[] d = data;
-        final int b = bits;
-        final int perLong = valuesPerLong;
         // the fields may not match each other until validated
-        int di = 0;
-        if (d != null) {
-            final int longIndex = perLong == 0 ? d.length : index / perLong;
-            di = longIndex < d.length
-                    ? (int) ((d[longIndex] >>> ((index - longIndex * perLong) * b)) & ((1L << b) - 1L))
-                    : -1;
-        }
+        final int di = peekIndex(index);
         if (stamp != 0L && lock.validate(stamp) && di >= 0 && di < pal.length) {
             @SuppressWarnings("unchecked")
             final T v = (T) pal[di];
@@ -177,6 +191,26 @@ public final class PalettedContainer<T> {
             return v;
         } finally {
             lock.unlockRead(rs);
+        }
+    }
+
+    public T getAndSet(final int index, final T value) {
+        final long stamp = lock.writeLock();
+        try {
+            final int idx = indexOf(value);
+            long[] d = data;
+            @SuppressWarnings("unchecked")
+            final T previous = (T) paletteArray[d == null ? 0 : read(d, bits, valuesPerLong, index)];
+            if (d == null) {
+                if (idx == 0) {
+                    return previous;
+                }
+                d = data = new long[longCount(size, valuesPerLong)];
+            }
+            write(d, bits, valuesPerLong, index, idx);
+            return previous;
+        } finally {
+            lock.unlockWrite(stamp);
         }
     }
 
