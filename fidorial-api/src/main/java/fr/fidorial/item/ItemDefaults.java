@@ -1,9 +1,11 @@
 package fr.fidorial.item;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentTypes;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,10 +21,11 @@ public final class ItemDefaults {
     /**
      * An item's defaults.
      *
-     * @param maxStackSize how many of this item fit in one slot
-     * @param maxDamage    total durability, {@code 0} when the item cannot break
+     * @param maxStackSize  how many of this item fit in one slot
+     * @param maxDamage     total durability, {@code 0} when the item cannot break
+     * @param equipmentSlot where the item is worn, {@code null} when it cannot be
      */
-    public record Properties(int maxStackSize, int maxDamage) {
+    public record Properties(int maxStackSize, int maxDamage, @Nullable EquipmentSlot equipmentSlot) {
 
         public Properties {
             if (maxStackSize < 1) {
@@ -32,6 +35,16 @@ public final class ItemDefaults {
             if (maxDamage < 0) {
                 throw new IllegalArgumentException("The maximum damage of an item cannot be negative, got " + maxDamage);
             }
+        }
+
+        /**
+         * Defaults for an item that cannot be worn.
+         *
+         * @param maxStackSize how many of this item fit in one slot
+         * @param maxDamage    total durability, {@code 0} when the item cannot break
+         */
+        public Properties(final int maxStackSize, final int maxDamage) {
+            this(maxStackSize, maxDamage, null);
         }
     }
 
@@ -52,6 +65,15 @@ public final class ItemDefaults {
          * @return total durability, or {@code 0} when the item cannot break
          */
         int maxDamage(Key item);
+
+        /**
+         * @param item namespaced item identifier
+         * @return where the item is worn, {@code null} when it cannot be
+         * @since 0.1.0
+         */
+        default @Nullable EquipmentSlot equipmentSlot(final Key item) {
+            return null;
+        }
     }
 
     private static final int DEFAULT_STACK_SIZE = 64;
@@ -140,6 +162,16 @@ public final class ItemDefaults {
     public static int maxDamage(final Key item) {
         final Properties override = OVERRIDES.get(item);
         return override != null ? override.maxDamage() : source.maxDamage(item);
+    }
+
+    /**
+     * @param item namespaced item identifier
+     * @return where the item is worn, {@code null} when it cannot be
+     * @since 0.1.0
+     */
+    public static @Nullable EquipmentSlot equipmentSlot(final Key item) {
+        final Properties override = OVERRIDES.get(item);
+        return override != null ? override.equipmentSlot() : source.equipmentSlot(item);
     }
 
     /**

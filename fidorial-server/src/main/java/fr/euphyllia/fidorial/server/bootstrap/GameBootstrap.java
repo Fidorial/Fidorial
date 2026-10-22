@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
 import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
+import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.key.Key;
@@ -91,6 +92,11 @@ public final class GameBootstrap {
             @Override
             public int maxDamage(final Key item) {
                 return ItemProperties.maxDamage(item);
+            }
+
+            @Override
+            public @Nullable EquipmentSlot equipmentSlot(final Key item) {
+                return EquipmentSlot.byName(ItemProperties.equipmentSlot(item));
             }
         });
     }
