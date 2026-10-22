@@ -11,7 +11,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader.ParsedKey;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.world.World;
@@ -41,22 +40,12 @@ public final class DimensionArgument<T> implements ArgumentType<T> {
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
+        final Key key = KeyReader.readKey(reader);
 
-        final ParsedKey parsed = KeyReader.readKeyStringDetailed(reader);
-        final String full = parsed.hasNamespace()
-                ? parsed.value()
-                : Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR + parsed.value();
-
-        if (!Key.parseable(full)) {
-            reader.setCursor(start);
-            throw ERROR_INVALID_VALUE.create(full);
-        }
-
-        final T result = converter.apply(Key.key(full));
-
+        final T result = converter.apply(key);
         if (result == null) {
             reader.setCursor(start);
-            throw ERROR_INVALID_VALUE.create(full);
+            throw ERROR_INVALID_VALUE.createWithContext(reader, key.asString());
         }
 
         return result;
@@ -64,8 +53,12 @@ public final class DimensionArgument<T> implements ArgumentType<T> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        for (final World world : FidorialServer.getInstance().worldManager().worlds()) {
-            builder.suggest(world.key().asString());
+        final String remaining = builder.getRemainingLowerCase();
+        for (final World world : FidorialServer.getInstance().worlds().all()) {
+            final Key key = world.key();
+            if (key.asString().startsWith(remaining) || key.value().startsWith(remaining)) {
+                builder.suggest(key.asString());
+            }
         }
         return builder.buildFuture();
     }

@@ -6,13 +6,13 @@
     <em>Fidorial est un projet indépendant, non affilié, associé ou approuvé par Mojang Studios ou Microsoft. Minecraft est une marque de Mojang Studios, propriété de Microsoft.</em>
 </p>
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.3-blue.svg)](https://github.com/Euphillya/Fidorial)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_5-purple.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Licence](https://img.shields.io/badge/license-MIT-blue)](LICENCE)
 [![Serveurs](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Dservers&style=flat)](https://faststats.dev/project/fidorial)
 [![Téléchargements](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Ddownloads&style=flat)](https://faststats.dev/project/fidorial)
 
-[Documentation](https://fidorial.euphyllia.moe) • [Discord](https://discord.gg/uUJQEB7XNN) • [English](readme.md)
+[Documentation](https://www.fidorial.moe/) • [Discord](https://discord.gg/uUJQEB7XNN) • [English](readme.md)
 
 [![Serveurs & Joueurs](https://faststats.dev/embed/default:d01e30ea-8ddc-40f6-b773-24d369336950:servers-and-players.svg?w=960&h=340&theme=dark)](https://faststats.dev/project/fidorial/minecraft-plugin)
 
@@ -30,7 +30,7 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Protocole & réseau**
 
-- Implémentation maison de Minecraft **26.3** (protocole **777**) : handshake, status, login, configuration, play
+- Implémentation maison de Minecraft **26.4 Snapshot 5** (protocole **1073742167**) : handshake, status, login, configuration, play
 - Authentification Mojang, chiffrement et compression des paquets ; mode hors-ligne pour les tests
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
 - Netty avec transports epoll, kqueue et io_uring optionnel
@@ -57,8 +57,8 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Plateforme**
 
-- Scheduler régionalisé inspiré de Folia : le monde est découpé en régions indépendantes de 32×32 chunks, chacune tickée
-  à 20 TPS sur son propre thread
+- Scheduler régionalisé inspiré de Folia : le monde est découpé en régions indépendantes (32×32 chunks par défaut,
+  configurable avec `threading.region-section-shift`), chacune tickée à 20 TPS sur son propre thread
 - Commandes Brigadier, en jeu et dans une console interactive avec complétion et coloration : `/gamemode` (`/gm`),
   `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
 - Système de permissions avec liste d'opérateurs et nœuds déclarés par les plugins
@@ -77,21 +77,6 @@ cd Fidorial
 java -jar fidorial-server/build/libs/Fidorial-*.jar
 ```
 
-Au premier démarrage, le serveur écrit un `fidorial.properties` à côté du jar et écoute sur le port **25565**.
-
-| Clé                                               | Défaut                   | Description                                                               |
-|---------------------------------------------------|--------------------------|---------------------------------------------------------------------------|
-| `port`                                            | `25565`                  | Port d'écoute                                                             |
-| `online-mode`                                     | `true`                   | Authentification Mojang                                                   |
-| `view-distance` / `send-distance`                 | `8` / `3`                | Distance annoncée au client, puis rayon réel de streaming (`send ≤ view`) |
-| `world-path` / `plugins-path`                     | `world` / `plugins`      | Répertoires de données                                                    |
-| `region-workers` / `chunk-workers` / `ai-workers` | selon le nombre de cœurs | Threads par sous-système                                                  |
-| `default-game-mode`                               | `creative`               | Mode donné aux nouveaux joueurs                                           |
-| `motd`                                            | —                        | Description de la liste des serveurs, au format MiniMessage               |
-| `proxy-mode` / `velocity-secret`                  | `NONE`                   | Velocity modern forwarding                                                |
-
-Tape `tps` dans la console pour vérifier la santé des régions.
-
 ## Écrire un plugin
 
 L'API est publiée sur [repo.euphyllia.moe](https://repo.euphyllia.moe) et fournie par le serveur à l'exécution :
@@ -102,78 +87,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly("fr.fidorial:fidorial-api:0.1.0-SNAPSHOT")
+    compileOnly("fr.fidorial:fidorial-api:26.4-snapshot-5-build.+")
 }
 ```
-
-Les plugins sont des modules JPMS. Déclare la dépendance dans `module-info.java` et décris le plugin dans un
-`fidorial.json` à la racine du jar :
-
-```java
-module com.exemple.monplugin {
-    requires fr.fidorial;
-    requires net.kyori.adventure.api;
-}
-```
-
-```json
-{
-  "id": "bedrockguard",
-  "name": "Bedrock Guard",
-  "version": "1.0.0",
-  "main": "com.exemple.BedrockGuard",
-  "authors": [
-    "toi"
-  ],
-  "depends": []
-}
-```
-
-Puis implémente `Plugin` :
-
-```java
-public final class BedrockGuard implements Plugin {
-
-    private PluginContext ctx;
-
-    @Override
-    public void onLoad(PluginContext ctx) {
-        this.ctx = ctx;
-    }
-
-    @Override
-    public void onEnable() {
-        // Annuler l'événement empêche le bloc de changer du tout :
-        // pas de paquet, pas d'écriture disque, pas de mise à jour des fluides.
-        ctx.events().subscribe(BlockBreakEvent.class, EventPriority.HIGH, event -> {
-            if (event.position().y() < 0) {
-                event.setCancelled(true);
-                event.player().sendMessage(Component.text("Tu ne peux pas casser ça."));
-            }
-        });
-    }
-}
-```
-
-Dépose le jar dans `plugins/` et démarre le serveur. Listeners et services sont retirés automatiquement quand un
-plugin est désactivé, chaque plugin a son propre classloader, et les listeners tournent sur le thread de la
-région propriétaire du bloc ou de l'entité — confie le travail long à `ctx.server().scheduler()`.
-
-**Les plugins comme des mods.** Le serveur n'appelle jamais ses propres implémentations en direct, toujours via
-`services.get(X.class)`, et les enregistre en priorité `LOWEST`. Enregistre la tienne plus haut et tous les
-points d'appel la prennent à la place :
-
-```java
-private void setMyFluid() {
-    ctx.services().register(FluidManager.class, new MyFluidPhysics(), this);
-}
-```
-
-`WorldGenerator`, `FluidManager`, `WeatherManager`, `CombatEngine`, `BlockEditService`,
-`PlayerInventoryStorage`, `PlayerDataStorage`, `PlayerEnderChestStorage`, `PermissionRegistry` et d'autres
-fonctionnent ainsi — avec des types API purs, sans entrailles du serveur.
-
-Guides complets sur **[fidorial.euphyllia.moe](https://fidorial.euphyllia.moe)**.
 
 ## Structure du projet
 

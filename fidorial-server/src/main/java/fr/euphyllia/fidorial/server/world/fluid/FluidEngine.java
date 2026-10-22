@@ -6,15 +6,15 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.fluid.FluidManager;
 import fr.fidorial.world.fluid.FluidState;
@@ -38,7 +38,7 @@ public final class FluidEngine implements FluidManager {
             BlockFace.WEST, BlockFace.EAST
     };
 
-    private final WorldManager worlds;
+    private final ServerWorldManager worlds;
     private final ThreadedRegionRegionizer regionizer;
     private final BlockStateRegistry blockRegistry;
     private final Consumer<ClientboundPacket> broadcaster;
@@ -48,7 +48,7 @@ public final class FluidEngine implements FluidManager {
     private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
-            final WorldManager worlds,
+            final ServerWorldManager worlds,
             final ThreadedRegionRegionizer regionizer,
             final BlockStateRegistry blockRegistry,
             final Consumer<ClientboundPacket> broadcaster
@@ -353,7 +353,7 @@ public final class FluidEngine implements FluidManager {
             LOGGER.error("Fluid writing impossible in {},{},{}", x, y, z, e);
             return false;
         }
-        broadcaster.accept(new ClientboundBlockUpdatePacket(new BlockPos(x, y, z), blockRegistry.networkId(state)));
+        broadcaster.accept(new ClientboundBlockUpdatePacket(Position.block(x, y, z), blockRegistry.networkId(state)));
         lightHook.onBlockChanged(world.dimension().id(), x, y, z);
         return true;
     }
@@ -373,7 +373,7 @@ public final class FluidEngine implements FluidManager {
     private void emitEvent(final ServerWorld world, final TypedKey<GameEvent> event, final int x, final int y, final int z) {
         final DebugGameEvents events = debugEvents;
         if (events != null) {
-            events.emit(world, event, new BlockPos(x, y, z));
+            events.emit(world, event, Position.block(x, y, z));
         }
     }
 

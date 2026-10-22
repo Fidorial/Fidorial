@@ -9,6 +9,11 @@ import net.kyori.adventure.key.Key;
  */
 public final class LoginClientboundPackets {
     /**
+     * {@code minecraft:apply_options}
+     */
+    public static final Key APPLY_OPTIONS = Key.key("apply_options");
+
+    /**
      * {@code minecraft:cookie_request}
      */
     public static final Key COOKIE_REQUEST = Key.key("cookie_request");
@@ -19,14 +24,9 @@ public final class LoginClientboundPackets {
     public static final Key CUSTOM_QUERY = Key.key("custom_query");
 
     /**
-     * {@code minecraft:hello}
+     * {@code minecraft:key}
      */
-    public static final Key HELLO = Key.key("hello");
-
-    /**
-     * {@code minecraft:login_compression}
-     */
-    public static final Key LOGIN_COMPRESSION = Key.key("login_compression");
+    public static final Key KEY = Key.key("key");
 
     /**
      * {@code minecraft:login_disconnect}
@@ -37,6 +37,11 @@ public final class LoginClientboundPackets {
      * {@code minecraft:login_finished}
      */
     public static final Key LOGIN_FINISHED = Key.key("login_finished");
+
+    /**
+     * {@code minecraft:setup_compression}
+     */
+    public static final Key SETUP_COMPRESSION = Key.key("setup_compression");
 
     private LoginClientboundPackets() {
     }

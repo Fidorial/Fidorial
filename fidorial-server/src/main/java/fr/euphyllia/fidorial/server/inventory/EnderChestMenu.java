@@ -3,19 +3,19 @@ package fr.euphyllia.fidorial.server.inventory;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.fidorial.inventory.Container;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.text.Component;
 
 public final class EnderChestMenu extends ContainerMenu {
 
-    private final BlockPos position;
+    private final BlockPosition position;
 
-    public EnderChestMenu(final ServerPlayer player, final int windowId, final BlockPos position) {
+    public EnderChestMenu(final ServerPlayer player, final int windowId, final BlockPosition position) {
         super(player, windowId);
         this.position = position;
     }
 
-    public BlockPos position() {
+    public BlockPosition position() {
         return position;
     }
 

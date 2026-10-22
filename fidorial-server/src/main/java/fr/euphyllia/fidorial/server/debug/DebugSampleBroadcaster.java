@@ -43,8 +43,8 @@ public final class DebugSampleBroadcaster implements RegionTickProfiler {
                 continue;
             }
             final ChunkPos chunk = player.chunk();
-            if (chunk.x() >> ThreadedRegionRegionizer.SECTION_SHIFT != sectionX
-                    || chunk.z() >> ThreadedRegionRegionizer.SECTION_SHIFT != sectionZ) {
+            if (ThreadedRegionRegionizer.chunkToSection(chunk.x()) != sectionX
+                    || ThreadedRegionRegionizer.chunkToSection(chunk.z()) != sectionZ) {
                 continue;
             }
             if (packet == null) {

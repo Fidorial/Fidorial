@@ -33,6 +33,11 @@ public final class LoginServerboundPackets {
      */
     public static final Key LOGIN_ACKNOWLEDGED = Key.key("login_acknowledged");
 
+    /**
+     * {@code minecraft:options_applied}
+     */
+    public static final Key OPTIONS_APPLIED = Key.key("options_applied");
+
     private LoginServerboundPackets() {
     }
 }

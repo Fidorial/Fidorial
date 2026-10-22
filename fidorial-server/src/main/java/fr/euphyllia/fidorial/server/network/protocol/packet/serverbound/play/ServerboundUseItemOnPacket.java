@@ -2,13 +2,13 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
-import fr.fidorial.world.BlockPos;
 
 public record ServerboundUseItemOnPacket(
         int hand,
-        BlockPos target,
+        BlockPosition target,
         int face,
         float cursorX,
         float cursorY,
@@ -19,7 +19,7 @@ public record ServerboundUseItemOnPacket(
 
     public static ServerboundUseItemOnPacket read(final PacketBuffer buf) {
         final int hand = buf.readVarInt();
-        final BlockPos target = buf.readPosition();
+        final BlockPosition target = buf.readPosition();
         final int face = buf.readVarInt();
         final float cursorX = buf.readFloat();
         final float cursorY = buf.readFloat();

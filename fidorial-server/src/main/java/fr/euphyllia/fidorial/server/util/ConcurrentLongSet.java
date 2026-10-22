@@ -57,8 +57,9 @@ public final class ConcurrentLongSet {
     }
 
     public void addAll(final LongSet values) {
-        for (final long value : values) {
-            add(value);
+        final LongIterator it = values.iterator();
+        while (it.hasNext()) {
+            add(it.nextLong());
         }
     }
 

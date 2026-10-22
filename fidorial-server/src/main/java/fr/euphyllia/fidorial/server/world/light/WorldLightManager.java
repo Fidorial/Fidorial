@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.light;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.light.LightType;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
@@ -34,7 +35,9 @@ public class WorldLightManager {
         final LongSet processedPairs = new LongOpenHashSet();
         final LightAccess cached = new CachedLightAccess(access);
 
-        for (final long key : chunkKeys) {
+        final LongIterator it = chunkKeys.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             final int chunkX = (int) (key >> 32);
             final int chunkZ = (int) key;
             if (!access.isLightPopulated(chunkX, chunkZ)) {
@@ -88,13 +91,17 @@ public class WorldLightManager {
 
     public LongSet relightChunks(final LongSet chunkKeys, final LightEngine engine) {
         final LongSet loaded = new LongOpenHashSet();
-        for (final long key : chunkKeys) {
+        final LongIterator keys = chunkKeys.iterator();
+        while (keys.hasNext()) {
+            final long key = keys.nextLong();
             if (access.lightAt((int) (key >> 32), (int) key) != null) {
                 loaded.add(key);
             }
         }
         engine.relight(loaded, new CachedLightAccess(access));
-        for (final long key : loaded) {
+        final LongIterator relit = loaded.iterator();
+        while (relit.hasNext()) {
+            final long key = relit.nextLong();
             forgetChunk((int) (key >> 32), (int) key);
         }
         return loaded;

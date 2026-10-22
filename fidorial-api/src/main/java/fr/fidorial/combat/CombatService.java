@@ -2,7 +2,7 @@ package fr.fidorial.combat;
 
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
 import org.jspecify.annotations.Nullable;

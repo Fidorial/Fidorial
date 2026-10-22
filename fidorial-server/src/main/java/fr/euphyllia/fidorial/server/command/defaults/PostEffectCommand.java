@@ -5,11 +5,10 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.command.argument.resolvers.PlayerResolver;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -24,6 +23,7 @@ import java.util.stream.Stream;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class PostEffectCommand {
 
@@ -44,18 +44,18 @@ public final class PostEffectCommand {
         return literal("posteffect")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(literal("add")
-                        .then(argument("targets", ArgumentTypes.players())
-                                .then(argument("effect", ArgumentTypes.postEffect())
+                        .then(argument("targets", arguments().players())
+                                .then(argument("effect", arguments().postEffect())
                                         .executes(PostEffectCommand::add))))
                 .then(literal("remove")
-                        .then(argument("targets", ArgumentTypes.players())
-                                .then(argument("effect", ArgumentTypes.postEffect())
+                        .then(argument("targets", arguments().players())
+                                .then(argument("effect", arguments().postEffect())
                                         .executes(PostEffectCommand::remove))))
                 .then(literal("clear")
-                        .then(argument("targets", ArgumentTypes.players())
+                        .then(argument("targets", arguments().players())
                                 .executes(PostEffectCommand::clear)))
                 .then(literal("list")
-                        .then(argument("target", ArgumentTypes.player())
+                        .then(argument("target", arguments().player())
                                 .executes(PostEffectCommand::list)))
                 .build();
     }
@@ -75,8 +75,7 @@ public final class PostEffectCommand {
     }
 
     private static int modify(final CommandContext<CommandSource> context, final Messages messages, final @Nullable Key effect, final UnaryOperator<List<Key>> change) throws CommandSyntaxException {
-        final List<ServerPlayer> players = context.getArgument("targets", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource())
+        final List<ServerPlayer> players = PlayersResolver.players(context, "targets")
                 .stream()
                 .filter(ServerPlayer.class::isInstance)
                 .map(ServerPlayer.class::cast)
@@ -84,7 +83,7 @@ public final class PostEffectCommand {
         final List<CompletableFuture<Boolean>> results = players.stream()
                 .map(player -> player.modifyPostEffects(PlayerPostEffectsModifyEvent.Cause.COMMAND, change))
                 .toList();
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
         final List<Component> effectArg = effect == null ? List.of() : List.of(Component.text(effect.asString()));
 
         CompletableFuture.allOf(results.toArray(CompletableFuture[]::new)).whenComplete((_, _) -> {
@@ -96,7 +95,7 @@ public final class PostEffectCommand {
                 }
             }
             if (changed.isEmpty()) {
-                sender.sendMessage(Component.translatable(messages.unchanged(), effectArg));
+                source.sendMessage(Component.translatable(messages.unchanged(), effectArg));
                 return;
             }
             final boolean single = changed.size() == 1;
@@ -104,24 +103,22 @@ public final class PostEffectCommand {
                     ? Component.text(changed.getFirst().name())
                     : Component.text(changed.size());
             final List<Component> args = Stream.concat(effectArg.stream(), Stream.of(subject)).toList();
-            sender.sendMessage(Component.translatable(single ? messages.single() : messages.many(), args));
+            source.sendMessage(Component.translatable(single ? messages.single() : messages.many(), args));
         });
         return Command.SINGLE_SUCCESS;
     }
 
     private static int list(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        final Player target = context.getArgument("target", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource())
-                .getFirst();
+        final Player target = PlayerResolver.player(context, "target");
         final List<Key> effects = target.activePostEffects();
-        final CommandSender sender = context.getSource().sender();
+        final CommandSource source = context.getSource();
 
         if (effects.isEmpty()) {
-            sender.sendMessage(Component.translatable("command.posteffect.list.none", Component.text(target.name())));
+            source.sendMessage(Component.translatable("command.posteffect.list.none", Component.text(target.name())));
         } else {
             final Component joined = Component.join(JoinConfiguration.commas(true),
                     effects.stream().map(effect -> Component.text(effect.asString())).toList());
-            sender.sendMessage(Component.translatable("command.posteffect.list",
+            source.sendMessage(Component.translatable("command.posteffect.list",
                     Component.text(target.name()), Component.text(effects.size()), joined));
         }
         return effects.size();

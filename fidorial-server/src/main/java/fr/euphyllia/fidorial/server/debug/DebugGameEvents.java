@@ -5,12 +5,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -47,7 +47,7 @@ public final class DebugGameEvents {
         emit(world, event, LocationPositionData.vec3(location));
     }
 
-    public void emit(final World world, final TypedKey<GameEvent> event, final BlockPos pos) {
+    public void emit(final World world, final TypedKey<GameEvent> event, final BlockPosition pos) {
         emit(world, event, new PositionData.Vec3D(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));
     }
 

@@ -7,10 +7,11 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.registry.keys.MobEffectKeys;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -22,6 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractLivingEntity extends AbstractEntity implements LivingEntity {
+
+    private static final Map<Key, Key> EFFECT_IMMUNITY_TAGS = Map.of(
+            MobEffectKeys.INFESTED.key(), Key.key("immune_to_infested"),
+            MobEffectKeys.FREEZING.key(), Key.key("immune_to_freezing"),
+            MobEffectKeys.OOZING.key(), Key.key("immune_to_oozing"),
+            MobEffectKeys.REGENERATION.key(), Key.key("immune_to_regeneration"),
+            MobEffectKeys.POISON.key(), Key.key("immune_to_poison"),
+            MobEffectKeys.WITHER.key(), Key.key("immune_to_wither"),
+            MobEffectKeys.WEAKNESS.key(), Key.key("immune_to_weakness"));
 
     public static final int DEATH_TICKS = 20;
     public static final int INVULNERABILITY_TICKS = 20;
@@ -40,10 +50,9 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             final int entityId,
             final UUID uuid,
             final EntityType type,
-            final World world,
             final Location location,
             final float maxHealth) {
-        super(entityId, uuid, type, world, location);
+        super(entityId, uuid, type, location);
         this.maxHealth = maxHealth;
         this.health = maxHealth;
     }
@@ -138,7 +147,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
 
     @Override
     public final boolean addEffect(final MobEffectInstance effect) {
-        if (!server().effects().isEffect(effect.type())) {
+        if (!server().registries().effects().isEffect(effect.type())) {
             throw new IllegalArgumentException("Unknown effect " + effect.type().key().asString());
         }
         if (isRemoved() || isDead() || !canBeAffected(effect)) {
@@ -212,8 +221,11 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     protected final void clearEffectsSilently() {
         effects.clear();
     }
+
     protected boolean canBeAffected(final MobEffectInstance effect) {
-        return true;
+        final Key immunityTag = EFFECT_IMMUNITY_TAGS.get(effect.type().key());
+        return immunityTag == null
+                || !server().registries().frozen().isTagged(RegistryKey.ENTITY_TYPE.key(), immunityTag, type().key());
     }
 
     protected void onEffectUpdated(final MobEffectInstance effect) {
@@ -223,7 +235,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     }
 
     private void dispatch(final MobEffectInstance effect, final BehaviourHook hook, final String name) {
-        for (final MobEffectBehaviour behaviour : server().effects().behaviours(effect.type().key())) {
+        for (final MobEffectBehaviour behaviour : server().registries().effects().behaviours(effect.type().key())) {
             try {
                 hook.call(behaviour, this, effect);
             } catch (final Throwable throwable) {
@@ -242,7 +254,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         if (effects.isEmpty()) {
             return;
         }
-        final FidorialMobEffectRegistry registry = server().effects();
+        final FidorialMobEffectRegistry registry = server().registries().effects();
         for (final MobEffectInstanceImpl effect : effects.values()) {
             if (!registry.isKnown(effect.type().key())) {
                 removeEffect(effect.type().key(), EntityEffectEvent.Action.REMOVED);

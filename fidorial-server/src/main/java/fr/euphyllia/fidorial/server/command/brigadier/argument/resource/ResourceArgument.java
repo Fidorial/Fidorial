@@ -11,7 +11,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader.ParsedKey;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.registry.Registry;
@@ -20,6 +19,7 @@ import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class ResourceArgument<T> implements ArgumentType<T> {
@@ -27,35 +27,37 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
     public static final Dynamic2CommandExceptionType ERROR_UNKNOWN_RESOURCE = ExceptionFactory.dynamic2("argument.resource.not_found");
 
     private final RegistryKey<T> registryKey;
-    private final Registry<T> registryLookup;
 
-    private ResourceArgument(final RegistryKey<T> registryKey, final Registry<T> registryLookup) {
+    private ResourceArgument(final RegistryKey<T> registryKey) {
         this.registryKey = registryKey;
-        this.registryLookup = registryLookup;
     }
 
+    /**
+     * Creates the argument. The registry is resolved when the argument is parsed, not here, so
+     * commands can be built while the server is still being constructed.
+     *
+     * @param registryKey the registry the resource belongs to
+     * @param <T>         the resource type
+     * @return the argument
+     */
     public static <T> ResourceArgument<T> resource(final RegistryKey<T> registryKey) {
-        final Registry<T> registry = FidorialServer.getInstance().registries().registry(registryKey);
-        return new ResourceArgument<>(registryKey, registry);
+        return new ResourceArgument<>(registryKey);
+    }
+
+    private Registry<T> registryLookup() {
+        return FidorialServer.getInstance().registries().registry(registryKey);
     }
 
     @Override
     public T parse(final StringReader reader) throws CommandSyntaxException {
-        final ParsedKey parsed = KeyReader.readKeyStringDetailed(reader);
-        final Key key = parseKey(parsed);
-        final TypedKey<T> typedKey = TypedKey.create(registryKey, key);
-
-        return registryLookup
-                .find(typedKey)
-                .orElseThrow(() -> ERROR_UNKNOWN_RESOURCE.createWithContext(
-                        reader, key.asString(), registryKey.key().asString()));
-    }
-
-    private Key parseKey(final ParsedKey parsed) {
-        final String input = parsed.hasNamespace()
-                ? parsed.value()
-                : Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR + parsed.value();
-        return Key.key(input);
+        final int start = reader.getCursor();
+        final Key key = KeyReader.readKey(reader);
+        final Optional<T> value = registryLookup().find(TypedKey.create(registryKey, key));
+        if (value.isEmpty()) {
+            reader.setCursor(start);
+            throw ERROR_UNKNOWN_RESOURCE.createWithContext(reader, key.asString(), registryKey.key().asString());
+        }
+        return value.get();
     }
 
     @Override
@@ -64,6 +66,7 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
         final boolean remainingHasNamespace = remaining.indexOf(Key.DEFAULT_SEPARATOR) >= 0;
         final String minecraftPrefix = Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR;
 
+        final Registry<T> registryLookup = registryLookup();
         for (final T value : registryLookup.values()) {
             final String full = registryLookup.key(value).key().asString();
             final String path = full.startsWith(minecraftPrefix) ? full.substring(minecraftPrefix.length()) : full;

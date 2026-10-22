@@ -8,7 +8,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.fidorial.entity.LivingEntity;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
 
 import java.util.UUID;

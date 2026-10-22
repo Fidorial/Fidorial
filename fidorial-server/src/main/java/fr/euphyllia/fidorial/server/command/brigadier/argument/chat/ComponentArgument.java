@@ -14,7 +14,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;

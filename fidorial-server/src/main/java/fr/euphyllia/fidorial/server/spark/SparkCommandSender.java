@@ -21,7 +21,7 @@
 package fr.euphyllia.fidorial.server.spark;
 
 import fr.fidorial.command.CommandSender;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import me.lucko.spark.common.command.sender.AbstractCommandSender;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;

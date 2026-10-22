@@ -31,7 +31,7 @@ import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
 import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import me.lucko.spark.common.platform.serverconfig.ConfigParser;
 import me.lucko.spark.common.platform.serverconfig.ExcludedConfigFilter;
 import me.lucko.spark.common.platform.serverconfig.ServerConfigProvider;
@@ -59,10 +59,10 @@ public final class SparkServerConfigProvider extends ServerConfigProvider {
     private static Map<String, ConfigParser> sources(final FidorialServer server) {
         return ImmutableMap.of(
                 "fidorial", new LiveSource(() -> encode(ServerConfiguration.CODEC, server.config())),
-                "worlds", new LiveSource(() -> encodeWorlds(server.worldManager())));
+                "worlds", new LiveSource(() -> encodeWorlds(server.worlds().manager())));
     }
 
-    private static JsonElement encodeWorlds(final WorldManager manager) throws IOException {
+    private static JsonElement encodeWorlds(final ServerWorldManager manager) throws IOException {
         final WorldConfigurationContainer configurations = manager.configurations();
         final JsonObject root = new JsonObject();
         root.add("default", encode(WorldConfiguration.CODEC, configurations.defaults()));

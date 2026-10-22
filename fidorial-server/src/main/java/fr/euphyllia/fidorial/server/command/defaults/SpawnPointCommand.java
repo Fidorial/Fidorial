@@ -4,12 +4,11 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
-import fr.fidorial.entity.Player;
 import fr.fidorial.entity.RespawnPoint;
-import fr.fidorial.world.Location;
+import fr.fidorial.entity.player.Player;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -17,6 +16,7 @@ import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class SpawnPointCommand {
 
@@ -28,16 +28,15 @@ public final class SpawnPointCommand {
                 .executes(SpawnPointCommand::executeSelf)
                 .then(literal("clear")
                         .executes(context -> clear(context, selfOrFail(context)))
-                        .then(argument("targets", ArgumentTypes.players())
+                        .then(argument("targets", arguments().players())
                                 .executes(context -> clear(context, targets(context)))))
-                .then(argument("targets", ArgumentTypes.players())
+                .then(argument("targets", arguments().players())
                         .executes(context -> set(context, targets(context), null))
-                        .then(argument("position", ArgumentTypes.position())
+                        .then(argument("position", arguments().position())
                                 .executes(context -> set(
                                         context,
                                         targets(context),
-                                        context.getArgument("position", PositionResolver.class)
-                                                .resolve(context.getSource())))))
+                                        PositionResolver.position(context, "position")))))
                 .build();
     }
 
@@ -46,15 +45,14 @@ public final class SpawnPointCommand {
     }
 
     private static List<Player> targets(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        return context.getArgument("targets", PlayerSelectorArgumentResolver.class)
-                .resolve(context.getSource());
+        return PlayersResolver.players(context, "targets");
     }
 
     private static List<Player> selfOrFail(final CommandContext<CommandSource> context) {
-        if (context.getSource().sender() instanceof final Player sender) {
-            return List.of(sender);
+        if (context.getSource().executor() instanceof final Player player) {
+            return List.of(player);
         }
-        context.getSource().sender().sendMessage(Component.translatable("command.spawnpoint.console"));
+        context.getSource().sendMessage(Component.translatable("command.spawnpoint.not_player"));
         return List.of();
     }
 
@@ -62,19 +60,19 @@ public final class SpawnPointCommand {
             final CommandContext<CommandSource> context,
             final List<Player> targets,
             final @Nullable Location position) {
+        final CommandSource source = context.getSource();
 
         for (final Player target : targets) {
             final Location location = position != null ? position : target.location();
             target.setRespawnPoint(new RespawnPoint(target.world(), location));
 
             final Component where = describe(location);
-            target.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
-
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sender()
-                        .sendMessage(Component.translatable(
-                                "command.spawnpoint.set.other", Component.text(target.name()), where));
+            if (source.executor() != target) {
+                target.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
+                source.sendMessage(Component.translatable(
+                        "command.spawnpoint.set.other", Component.text(target.name()), where));
+            } else {
+                source.sendMessage(Component.translatable("command.spawnpoint.set.self", where));
             }
         }
 
@@ -82,16 +80,17 @@ public final class SpawnPointCommand {
     }
 
     private static int clear(final CommandContext<CommandSource> context, final List<Player> targets) {
+        final CommandSource source = context.getSource();
+
         for (final Player target : targets) {
             target.setRespawnPoint((RespawnPoint) null);
 
-            target.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
-
-            if (context.getSource().sender() != target) {
-                context.getSource()
-                        .sender()
-                        .sendMessage(Component.translatable(
-                                "command.spawnpoint.cleared.other", Component.text(target.name())));
+            if (source.executor() != target) {
+                target.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
+                source.sendMessage(Component.translatable(
+                        "command.spawnpoint.cleared.other", Component.text(target.name())));
+            } else {
+                source.sendMessage(Component.translatable("command.spawnpoint.cleared.self"));
             }
         }
 

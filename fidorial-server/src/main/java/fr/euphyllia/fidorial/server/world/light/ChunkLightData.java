@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 public class ChunkLightData {
     public static final int SECTION_BYTES = 2048;
+    public static final byte[] FULL_LIGHT = fullLight();
 
     private final int minY;
     private final int height;
@@ -143,6 +144,21 @@ public class ChunkLightData {
         if (sectionIndex < 0 || sectionIndex >= sectionCount) return null;
         final byte[] stored = skyLight[sectionIndex];
         final int sectionBottomY = (minSectionY + sectionIndex) << 4;
+
+        int minTop = Integer.MAX_VALUE;
+        int maxTop = Integer.MIN_VALUE;
+        for (final int top : heightmap) {
+            minTop = Math.min(minTop, top);
+            maxTop = Math.max(maxTop, top);
+        }
+
+        if (sectionBottomY > maxTop) {
+            return FULL_LIGHT; // whole section above every column
+        }
+        if (sectionBottomY + 15 <= minTop) {
+            return stored == null || isAllZero(stored) ? null : stored; // nothing above any column's top in this section
+        }
+
         byte[] out = null;
         for (int lx = 0; lx < 16; lx++) {
             for (int lz = 0; lz < 16; lz++) {
@@ -182,5 +198,16 @@ public class ChunkLightData {
         }
         Arrays.fill(heightmap, minY + height);
         skyFullFromY = Integer.MAX_VALUE;
+    }
+
+    private static byte[] fullLight() {
+        final byte[] full = new byte[ChunkLightData.SECTION_BYTES];
+        Arrays.fill(full, (byte) 0xFF);
+        return full;
+    }
+
+    public static boolean isAllZero(final byte[] a) {
+        for (final byte b : a) if (b != 0) return false;
+        return true;
     }
 }

@@ -8,16 +8,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.resolvers.BlockPosResolver;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
+import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class BlockPositionArgument implements ArgumentType<BlockPosResolver> {
+public final class BlockPositionArgument implements ArgumentType<BlockPositionResolver> {
 
     public static BlockPositionArgument blockPosition() {
         return new BlockPositionArgument();
@@ -28,82 +26,30 @@ public final class BlockPositionArgument implements ArgumentType<BlockPosResolve
             final CommandContext<S> context,
             final SuggestionsBuilder builder
     ) {
-        if (!(context.getSource() instanceof final CommandSource source)
-                || !(source.sender() instanceof ServerPlayer)) {
-            return Suggestions.empty();
-        }
-
-        final Location loc = source.location();
-
-        final int x = (int) Math.floor(loc.x());
-        final int y = (int) Math.floor(loc.y());
-        final int z = (int) Math.floor(loc.z());
-
-        return CommonPositionSuggestions.suggest(
-                builder,
-                Integer.toString(x),
-                Integer.toString(y),
-                Integer.toString(z)
-        );
+        return CommonPositionSuggestions.suggest(builder, this, 3);
     }
 
     @Override
-    public BlockPosResolver parse(final StringReader reader) throws CommandSyntaxException {
+    public BlockPositionResolver parse(final StringReader reader) throws CommandSyntaxException {
         if (reader.canRead() && reader.peek() == '^') {
             final LocalCoords coords = LocalCoords.parse(reader);
             return source -> {
                 final Location loc = coords.resolve(source);
-
-                return new BlockPos(
-                        (int) Math.floor(loc.x()),
-                        (int) Math.floor(loc.y()),
-                        (int) Math.floor(loc.z())
-                );
+                return Position.block(loc.blockX(), loc.blockY(), loc.blockZ());
             };
         }
 
-        final Coordinate x = Coordinate.parse(reader);
-        reader.expect(' ');
-        final Coordinate y = Coordinate.parse(reader);
-        reader.expect(' ');
-        final Coordinate z = Coordinate.parse(reader);
+        final int start = reader.getCursor();
+        final BlockCoordinate x = BlockCoordinate.parse(reader);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final BlockCoordinate y = BlockCoordinate.parse(reader);
+        PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_3D);
+        final BlockCoordinate z = BlockCoordinate.parse(reader);
 
         return source -> {
-            final Location origin = source.location();
-
-            final double px = x.resolve(origin.x());
-            final double py = y.resolve(origin.y());
-            final double pz = z.resolve(origin.z());
-
-            return new BlockPos(
-                    (int) Math.floor(px),
-                    (int) Math.floor(py),
-                    (int) Math.floor(pz)
-            );
+            final Location origin = PositionParsing.origin(source);
+            return Position.block(x.resolve(origin.x()), y.resolve(origin.y()), z.resolve(origin.z()));
         };
-    }
-
-    private record Coordinate(double value, boolean relative) {
-
-        static Coordinate parse(final StringReader reader) throws CommandSyntaxException {
-            boolean relative = false;
-
-            if (reader.canRead() && reader.peek() == '~') {
-                relative = true;
-                reader.skip();
-
-                if (!reader.canRead() || reader.peek() == ' ') {
-                    return new Coordinate(0, true);
-                }
-            }
-
-            final double value = reader.readDouble();
-            return new Coordinate(value, relative);
-        }
-
-        double resolve(final double origin) {
-            return relative ? origin + value : value;
-        }
     }
 
     public static final class Info implements ArgumentTypeRegistrar<BlockPositionArgument, Info.Spec> {

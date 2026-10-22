@@ -3,8 +3,7 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractAgeableMob;
 import fr.fidorial.entity.ai.Goal;
-import fr.fidorial.world.BlockPos;
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 public final class FollowParentGoal implements Goal {
@@ -76,9 +75,7 @@ public final class FollowParentGoal implements Goal {
         }
 
         mob.setMoveSpeed(speed);
-        final Location target = current.location();
-        mob.navigation().moveTo(mob.location(), new BlockPos(
-                (int) Math.floor(target.x()), (int) Math.floor(target.y()), (int) Math.floor(target.z())));
+        mob.navigation().moveTo(mob.location(), current.location());
     }
 
     private double distanceTo(final AbstractAgeableMob other) {

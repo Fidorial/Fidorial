@@ -1,0 +1,21 @@
+--- /dev/null
++++ b/com/mojang/brigadier/ComponentMessage.java
+@@ -1,0 +_,18 @@
++package com.mojang.brigadier;
++
++import net.kyori.adventure.text.Component;
++import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
++import org.jspecify.annotations.NonNull;
++
++record ComponentMessage(Component asComponent) implements Message {
++
++    @Override
++    public String getString() {
++        return PlainTextComponentSerializer.plainText().serialize(asComponent);
++    }
++
++    @Override
++    public @NonNull String toString() {
++        return getString();
++    }
++}

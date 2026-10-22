@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTimePacket;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.WorldManager;
+import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.fidorial.registry.keys.GameRuleKeys;
@@ -28,7 +28,7 @@ public class DayNightThread implements AutoCloseable {
 
     private static final int SYNC_INTERVAL_TICKS = 20;
 
-    private final WorldManager worldManager;
+    private final ServerWorldManager worldManager;
     private final RegistryHolder registries;
     private final ScheduledExecutorService ticker;
     private final Set<Key> unknownClocks = ConcurrentHashMap.newKeySet();
@@ -38,7 +38,7 @@ public class DayNightThread implements AutoCloseable {
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
 
-    public DayNightThread(final WorldManager worldManager, final RegistryHolder registries) {
+    public DayNightThread(final ServerWorldManager worldManager, final RegistryHolder registries) {
         this.worldManager = worldManager;
         this.registries = registries;
         this.ticker = Executors.newSingleThreadScheduledExecutor(
@@ -117,7 +117,7 @@ public class DayNightThread implements AutoCloseable {
         if (packet == null) {
             return;
         }
-        final List<ServerPlayer> players = FidorialServer.getInstance().players();
+        final List<ServerPlayer> players = FidorialServer.getInstance().players().online();
         for (int i = 0, size = players.size(); i < size; i++) {
             final ServerPlayer player = players.get(i);
             if (player.world().equals(world)) {

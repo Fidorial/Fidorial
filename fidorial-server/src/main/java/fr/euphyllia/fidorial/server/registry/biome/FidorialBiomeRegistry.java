@@ -222,7 +222,7 @@ public final class FidorialBiomeRegistry implements BiomeRegistry, Registry<Biom
         if (started.get()) {
             LOGGER.warn("Biome {} {} after startup: clients will be sent to the configuration phase to see the change.",
                     key.asString(), action);
-            FidorialServer.getInstance().players().forEach(ServerPlayer::enterConfigurationPhase);
+            FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);
         } else {
             LOGGER.debug("Biome {} {}.", key.asString(), action);
         }

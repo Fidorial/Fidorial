@@ -1,7 +1,7 @@
 package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.entity.EntityDeathEvent;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;

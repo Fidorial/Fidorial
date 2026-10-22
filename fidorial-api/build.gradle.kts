@@ -34,6 +34,15 @@ java {
     }
 }
 
+val javadocStylesheet = layout.projectDirectory.file("src/main/javadoc/fidorial.css")
+val javadocBrand =
+    "<a class=\"fido-brand\" href=\"/\"><svg viewBox=\"0 0 32 32\" aria-hidden=\"true\">" +
+        "<defs><linearGradient id=\"fido-g\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\">" +
+        "<stop offset=\"0\" stop-color=\"#ff6fb5\"/><stop offset=\"1\" stop-color=\"#7a3cf0\"/>" +
+        "</linearGradient></defs><rect width=\"32\" height=\"32\" rx=\"8\" fill=\"url(#fido-g)\"/>" +
+        "<path d=\"M11 8h11v3.4h-7.2v3.4H21v3.3h-6.2V24H11z\" fill=\"#fff\"/></svg>" +
+        "Fidorial <span>API</span></a>"
+
 tasks.javadoc {
     val adventureVersion =
         libs.versions.adventure
@@ -70,8 +79,14 @@ tasks.javadoc {
 
     opt.bottom(
         "MIT © 2026 Euphyllia Bierque — " +
+            "<a href=\"https://www.fidorial.moe\">Documentation</a> · " +
             "<a href=\"https://github.com/Euphillya/Fidorial\">GitHub</a>",
     )
+
+    inputs.file(javadocStylesheet)
+    opt.addStringOption("-add-stylesheet", javadocStylesheet.asFile.absolutePath)
+    opt.header(javadocBrand)
+    opt.addBooleanOption("-syntax-highlight", true)
 }
 
 publishing {

@@ -1,9 +1,11 @@
 package fr.fidorial.inventory;
 
+import fr.fidorial.entity.player.Player;
+
 /**
  * The 27 slots of a player's ender chest, shared by every ender chest block they open.
  *
- * @see fr.fidorial.entity.Player#enderChest()
+ * @see Player#enderChest()
  * @since 0.1.0
  */
 public class EnderChestInventory extends SimpleContainer {

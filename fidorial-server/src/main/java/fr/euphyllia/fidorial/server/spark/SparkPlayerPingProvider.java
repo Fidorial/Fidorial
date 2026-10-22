@@ -21,7 +21,7 @@
 package fr.euphyllia.fidorial.server.spark;
 
 import fr.fidorial.Server;
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 import me.lucko.spark.common.monitor.ping.PlayerPingProvider;
 
 import java.util.HashMap;
@@ -41,7 +41,7 @@ public final class SparkPlayerPingProvider implements PlayerPingProvider {
     @Override
     public Map<String, Integer> poll() {
         final Map<String, Integer> pings = new HashMap<>();
-        for (final Player player : this.server.onlinePlayers()) {
+        for (final Player player : this.server.players().online()) {
             pings.put(player.name(), player.ping());
         }
         return pings;

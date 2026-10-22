@@ -1,6 +1,7 @@
 package fr.fidorial.world.structure;
 
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 
@@ -48,7 +49,7 @@ public interface StructureManager {
      * @param rotation the rotation to apply around {@code origin}
      * @return the number of blocks written, completed once every chunk has been updated
      */
-    CompletableFuture<Integer> placeTemplate(World world, BlockPos origin, Key template, StructureRotation rotation);
+    CompletableFuture<Integer> placeTemplate(World world, Position origin, Key template, StructureRotation rotation);
 
     /**
      * Assembles and places a jigsaw structure. The biome filter of the
@@ -59,7 +60,7 @@ public interface StructureManager {
      * @param structure the structure identifier
      * @return the number of pieces placed, {@code 0} when the structure could not be assembled
      */
-    CompletableFuture<Integer> placeStructure(World world, BlockPos position, Key structure);
+    CompletableFuture<Integer> placeStructure(World world, Position position, Key structure);
 
     /**
      * Searches the nearest start of a structure that world generation would place.
@@ -70,7 +71,7 @@ public interface StructureManager {
      * @param radiusCells how many placement cells to scan around the origin
      * @return the start position, or empty when none was found in range
      */
-    CompletableFuture<Optional<BlockPos>> locate(World world, BlockPos origin, Key structure, int radiusCells);
+    CompletableFuture<Optional<BlockPosition>> locate(World world, Position origin, Key structure, int radiusCells);
 
     /**
      * Reads the datapacks again. Chunks generated from now on use the new content; chunks already

@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.server.entity.effect;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.entity.Player;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectDefinition;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
 import org.jspecify.annotations.Nullable;

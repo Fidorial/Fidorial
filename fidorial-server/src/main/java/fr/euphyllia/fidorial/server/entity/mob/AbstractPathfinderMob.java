@@ -5,9 +5,8 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameEventKeys;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,9 +27,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private double stepDistance;
 
-    protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type, final World world,
+    protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
                                     final Location location, final float maxHealth) {
-        super(entityId, uuid, type, world, location, maxHealth);
+        super(entityId, uuid, type, location, maxHealth);
         this.navigation = new Navigation(serverWorld());
     }
 
@@ -73,7 +72,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         syncToClients();
 
         if (after.y() < serverWorld().minY() - 64) {
-            server().despawnEntity(this);
+            server().entities().despawn(this);
         }
     }
 
@@ -87,7 +86,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     @Override
     protected void onDeathAnimationFinished() {
-        server().despawnEntity(this);
+        server().entities().despawn(this);
     }
 
     private double dropRangeSq() {
@@ -96,7 +95,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     private void updateTarget() {
-        final List<ServerPlayer> players = server().players();
+        final List<ServerPlayer> players = server().players().online();
         if (players.isEmpty()) {
             setTarget(null);
             return;
@@ -237,7 +236,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             stepDistance += Math.sqrt(stepDx * stepDx + stepDz * stepDz);
             if (stepDistance >= STEP_INTERVAL) {
                 stepDistance = 0.0;
-                server().debugGameEvents().emit(world(), GameEventKeys.STEP, new PositionData.Vec3D(newX, newY, newZ));
+                server().debug().gameEvents().emit(world(), GameEventKeys.STEP, new PositionData.Vec3D(newX, newY, newZ));
                 onStep();
             }
 
@@ -249,7 +248,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
         if (newX != x || newY != y || newZ != z
                 || yaw != current.yaw() || pitch != current.pitch()) {
-            setLocation(new Location(newX, newY, newZ, yaw, pitch));
+            setLocation(current.with(newX, newY, newZ, yaw, pitch));
         }
     }
 

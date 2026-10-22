@@ -7,8 +7,7 @@ import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
+import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -54,7 +53,7 @@ public final class FidorialMobRegistry implements MobRegistry {
 
         definitions.put(definition.key(), definition);
         definitionOwners.put(definition.key(), owner);
-        LOGGER.info("Mob {} registered by {} (rendered as {})",
+        LOGGER.debug("Mob {} registered by {} (rendered as {})",
                 definition.key(), ownerName(owner), definition.networkType());
     }
 
@@ -76,7 +75,7 @@ public final class FidorialMobRegistry implements MobRegistry {
         if (syntheticTypes.remove(mobType)) {
             EntityTypes.unregister(mobType);
         }
-        LOGGER.info("Mob {} unregistered", removed.key());
+        LOGGER.debug("Mob {} unregistered", removed.key());
         return true;
     }
 
@@ -128,22 +127,21 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public Optional<Mob> spawn(final Key mobType, final World world, final Location location) {
+    public Optional<Mob> spawn(final Key mobType, final Location location) {
         final EntityType type = EntityTypes.get(mobType);
         if (type == null || !isMob(mobType)) {
             return Optional.empty();
         }
         final FidorialServer server = FidorialServer.getInstance();
-        final AbstractMob mob = MobFactories.create(type, server.entityIds().allocate(), world, location);
-        server.spawnEntity(mob);
+        final AbstractMob mob = MobFactories.create(type, server.entities().ids().allocate(), location);
+        server.entities().spawn(mob);
         return mob instanceof final Mob handle ? Optional.of(handle) : Optional.empty();
     }
 
 
-    public @Nullable PluginMob createDefined(final EntityType type, final int entityId, final World world,
-                                             final Location location) {
+    public @Nullable PluginMob createDefined(final EntityType type, final int entityId, final Location location) {
         final MobDefinition definition = definitions.get(type.key());
-        return definition == null ? null : new PluginMob(definition, type, entityId, world, location);
+        return definition == null ? null : new PluginMob(definition, type, entityId, location);
     }
 
     public void applyBehaviours(final AbstractMob mob) {

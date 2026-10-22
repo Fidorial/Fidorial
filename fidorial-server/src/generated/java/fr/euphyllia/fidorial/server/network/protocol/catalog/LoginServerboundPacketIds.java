@@ -40,6 +40,11 @@ public interface LoginServerboundPacketIds {
     int LOGIN_ACKNOWLEDGED_ID = 3;
 
     /**
+     * {@code minecraft:options_applied}
+     */
+    int OPTIONS_APPLIED_ID = 5;
+
+    /**
      * Immutable identifier to protocol ID lookup table.
      */
     Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
@@ -47,7 +52,8 @@ public interface LoginServerboundPacketIds {
         Map.entry(Key.key("custom_query_answer"), CUSTOM_QUERY_ANSWER_ID),
         Map.entry(Key.key("hello"), HELLO_ID),
         Map.entry(Key.key("key"), KEY_ID),
-        Map.entry(Key.key("login_acknowledged"), LOGIN_ACKNOWLEDGED_ID)
+        Map.entry(Key.key("login_acknowledged"), LOGIN_ACKNOWLEDGED_ID),
+        Map.entry(Key.key("options_applied"), OPTIONS_APPLIED_ID)
     );
 
     /**

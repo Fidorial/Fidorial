@@ -12,6 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public final class ChunkColumn {
@@ -86,21 +87,19 @@ public final class ChunkColumn {
             return false;
         }
 
-        final int bx = localX >> 2;
-        final int by = (worldY & 15) >> 2;
-        final int bz = localZ >> 2;
+        final int y = worldY & 15;
 
-        if (biome.equals(section.getBiome(bx, by, bz))) {
+        if (biome.equals(section.getBiome(localX, y, localZ))) {
             return false;
         }
 
-        section.setBiome(bx, by, bz, biome);
+        section.setBiome(localX, y, localZ, biome);
         return true;
     }
 
     public @Nullable Key getBiome(final int localX, final int worldY, final int localZ) {
         final ChunkSection chunkSection = sectionForY(worldY);
-        return chunkSection == null ? null : chunkSection.getBiome(localX >> 2, (worldY & 15) >> 2, localZ >> 2);
+        return chunkSection == null ? null : chunkSection.getBiome(localX, worldY & 15, localZ);
     }
 
     public long inhabitedTime() {
@@ -197,8 +196,7 @@ public final class ChunkColumn {
             return;
         }
 
-        final BlockState previous = s.getBlock(localX, worldY & 15, localZ);
-        s.setBlock(localX, worldY & 15, localZ, state);
+        final BlockState previous = s.setBlock(localX, worldY & 15, localZ, state);
 
         if (previous.name().equals(state.name())) {
             return;
@@ -206,8 +204,15 @@ public final class ChunkColumn {
 
         removeBlockEntity(localX, worldY, localZ);
 
-        BlockEntityTypes.typeIdentifier(state.name())
-                .ifPresent(type -> putBlockEntity(new BlockEntity(localX, worldY, localZ, type, data)));
+        final Optional<Key> type = BlockEntityTypes.typeIdentifier(state.name());
+        // ifPresent would allocate a capturing lambda on every block change, resulting in unholy allocations
+        // Over a minute-long profile of a radius-100 pregen, per chunk worker (4):
+        // with .ifPresent -> ~8.8GB allocated by the lambda
+        // with the if expression -> ~24MB (only palette growth)
+        //noinspection OptionalIsPresent
+        if (type.isPresent()) {
+            putBlockEntity(new BlockEntity(localX, worldY, localZ, type.get(), data));
+        }
     }
 
     public BlockState getBlock(final int localX, final int worldY, final int localZ) {
@@ -215,7 +220,9 @@ public final class ChunkColumn {
         return s == null ? BlockState.of(BlockTypeKeys.AIR.key()) : s.getBlock(localX, worldY & 15, localZ);
     }
 
+    // https://minecraft.wiki/w/Heightmap
     public static final Predicate<BlockState> WORLD_SURFACE = state -> !state.isAir();
+    // vanilla: blocks motion or contains fluid (skips flowers, grass, torches and such, but counts water)
     public static final Predicate<BlockState> MOTION_BLOCKING = state -> !state.isAir();
 
     public int heightmapBits() {

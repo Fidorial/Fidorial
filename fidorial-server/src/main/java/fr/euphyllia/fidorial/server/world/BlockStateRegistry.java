@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world;
 
+import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -9,8 +10,6 @@ import fr.fidorial.world.block.BlockGetter;
 import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -24,13 +23,11 @@ public final class BlockStateRegistry {
     private static final Key LAVA_BUCKET = Key.key("lava_bucket");
 
     private final BlockRegistry registry;
-    private final Object2ObjectOpenHashMap<BlockState, BlockData> dataByState;
-    private final Int2ObjectOpenHashMap<BlockState> stateByNetworkId;
+    private final @Nullable BlockState[] stateByNetworkId;
 
     public BlockStateRegistry(final BlockRegistry registry) {
         this.registry = registry;
-        this.dataByState = new Object2ObjectOpenHashMap<>();
-        this.stateByNetworkId = new Int2ObjectOpenHashMap<>();
+        this.stateByNetworkId = new BlockState[BlockStateIds.STATE_COUNT];
         indexGeneratedStates();
     }
 
@@ -49,25 +46,25 @@ public final class BlockStateRegistry {
             for (int ordinal = 0; ordinal < count; ordinal++) {
                 final BlockData data = type.stateAt(ordinal);
                 final BlockState state = chunkStates[ordinal];
-                dataByState.put(state, data);
-                stateByNetworkId.put(data.networkId(), state);
+                state.setData(data);
+                if (data.networkId() < stateByNetworkId.length) {
+                    stateByNetworkId[data.networkId()] = state;
+                }
             }
         }
     }
 
     public int networkId(final BlockState state) {
-        final BlockData cached = dataByState.get(state);
-        if (cached != null) {
-            return cached.networkId();
-        }
-        final BlockData resolved = resolveDynamic(state);
-        return resolved == null ? AIR_NETWORK_ID : resolved.networkId();
+        final BlockData data = resolve(state);
+        return data == null ? AIR_NETWORK_ID : data.networkId();
     }
 
     public BlockState byId(final int networkId) {
-        final BlockState cached = stateByNetworkId.get(networkId);
-        if (cached != null) {
-            return cached;
+        if (networkId >= 0 && networkId < stateByNetworkId.length) {
+            final BlockState cached = stateByNetworkId[networkId];
+            if (cached != null) {
+                return cached;
+            }
         }
         final BlockData data = registry.fromNetworkId(networkId);
         if (data == null) {
@@ -77,7 +74,7 @@ public final class BlockStateRegistry {
     }
 
     public boolean contains(final BlockState state) {
-        return dataByState.containsKey(state) || resolveDynamic(state) != null;
+        return resolve(state) != null;
     }
 
     public BlockState toBlockState(final BlockData data) {
@@ -96,7 +93,7 @@ public final class BlockStateRegistry {
     public BlockGetter view(final ServerWorld world) {
         return pos -> {
             try {
-                return resolve(world.getBlock(pos.x(), pos.y(), pos.z()));
+                return resolve(world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ()));
             } catch (final IOException exception) {
                 return null;
             }
@@ -104,7 +101,7 @@ public final class BlockStateRegistry {
     }
 
     public @Nullable BlockData resolve(final BlockState state) {
-        final BlockData cached = dataByState.get(state);
+        final BlockData cached = state.data();
         return cached != null ? cached : resolveDynamic(state);
     }
 

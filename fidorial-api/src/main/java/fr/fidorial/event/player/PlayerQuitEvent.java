@@ -1,6 +1,6 @@
 package fr.fidorial.event.player;
 
-import fr.fidorial.entity.Player;
+import fr.fidorial.entity.player.Player;
 
 /**
  * Fired when a player leaves the world.

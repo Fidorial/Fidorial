@@ -10,6 +10,8 @@ jobs:
     with:
       upload-jar: true
       retention-days: 30
+      publish-api: true
+    secrets: inherit
 
   publish:
     needs: build
@@ -19,13 +21,13 @@ jobs:
 
     steps:
       - name: Download jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: fidorial-server
           path: dist
 
       - name: Publish stable release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Fidorial ${{ github.ref_name }}
           files: dist/*.jar

@@ -98,7 +98,7 @@ public class CodeOfConductManager {
                     continue;
                 }
                 Files.copy(in, target);
-                LOGGER.info("Example Code of Conduct written to {}", target.toAbsolutePath());
+                LOGGER.debug("Example Code of Conduct written to {}", target.toAbsolutePath());
             } catch (final IOException e) {
                 LOGGER.error("Unable to write the example Code of Conduct {}", target.toAbsolutePath(), e);
             }

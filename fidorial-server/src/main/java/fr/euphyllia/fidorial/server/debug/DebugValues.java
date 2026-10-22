@@ -4,7 +4,8 @@ import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkRecordCodec;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 
 import java.util.List;
 
@@ -62,7 +63,7 @@ public final class DebugValues {
     public record PathInfo(
             boolean reached,
             int nextNodeIndex,
-            BlockPos target,
+            Position target,
             List<Node> nodes,
             List<Node> targetNodes,
             List<Node> openSet,
@@ -103,8 +104,8 @@ public final class DebugValues {
                     .required("f", Node::f, FLOAT)
                     .build();
 
-            public static Node walkable(final BlockPos pos) {
-                return new Node(pos.x(), pos.y(), pos.z(), 0f, 0f, false, WALKABLE, 0f);
+            public static Node walkable(final Position pos) {
+                return new Node(pos.blockX(), pos.blockY(), pos.blockZ(), 0f, 0f, false, WALKABLE, 0f);
             }
         }
     }
@@ -123,7 +124,7 @@ public final class DebugValues {
             structures = List.copyOf(structures);
         }
 
-        public record Bounds(BlockPos min, BlockPos max) {
+        public record Bounds(BlockPosition min, BlockPosition max) {
 
             public static final NetworkCodec<PacketBuffer, Bounds> CODEC = NetworkRecordCodec.builder(Bounds.class, PacketBuffer.class)
                     .required("min", Bounds::min, BLOCK_POS)
@@ -168,8 +169,8 @@ public final class DebugValues {
             List<String> behaviors,
             List<String> memories,
             List<String> gossips,
-            List<BlockPos> pois,
-            List<BlockPos> potentialPois
+            List<Position> pois,
+            List<Position> potentialPois
     ) {
 
         public static final int NO_ANGER_LEVEL = -1; // sent for everything except warden

@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.codecs.networking;
 
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
-import fr.fidorial.world.BlockPos;
+import fr.fidorial.math.Position;
 import net.kyori.adventure.key.Key;
 
 import java.util.List;
@@ -29,8 +29,8 @@ public final class CommonNetworkCodecs {
         /**
          * A block position packed into one long.
          */
-        public static final NetworkCodec<PacketBuffer, BlockPos> BLOCK_POS =
-                NetworkCodec.of(PacketBuffer::readPosition, (buf, pos) -> buf.writePosition(pos.x(), pos.y(), pos.z()));
+        public static final NetworkCodec<PacketBuffer, Position> BLOCK_POS =
+                NetworkCodec.of(PacketBuffer::readPosition, (buf, pos) -> buf.writePosition(pos.blockX(), pos.blockY(), pos.blockZ()));
 
         /**
          * Three doubles.

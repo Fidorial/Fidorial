@@ -7,47 +7,46 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.command.argument.resolvers.PlayerProfileListResolver;
-import fr.fidorial.entity.OfflinePlayer;
-import fr.fidorial.entity.Player;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.command.argument.resolvers.PlayerProfilesResolver;
+import fr.fidorial.entity.player.OfflinePlayer;
+import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.moderation.BanEntry;
 import fr.fidorial.moderation.BanManager;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BanCommand {
 
     private static final String PERMISSION = "fidorial.command.ban";
-    private static final FidorialServer server = FidorialServer.getInstance();
 
     private BanCommand() {
     }
 
     public static LiteralCommandNode<CommandSource> create() {
-        final ArgumentType<PlayerProfileListResolver> playerArgument =
-                ArgumentTypes.playerProfiles(player ->
-                        !server.bans().isBanned(player.uuid()));
+        final ArgumentType<PlayerProfilesResolver> playerArgument =
+                arguments().playerProfiles(player ->
+                        !server().players().bans().isBanned(player.uuid()));
 
         return literal("ban")
                 .requires(source -> source.sender().hasPermission(PERMISSION))
                 .then(argument("player", playerArgument)
                         .executes(context -> ban(context, null, null))
                         .then(literal("duration")
-                                .then(argument("duration", ArgumentTypes.duration())
+                                .then(argument("duration", arguments().duration())
                                         .executes(context -> ban(context, duration(context), null))
-                                        .then(argument("reason", ArgumentTypes.component())
+                                        .then(argument("reason", arguments().component())
                                                 .executes(context -> ban(context, duration(context), reason(context))))))
                         .then(literal("reason")
-                                .then(argument("reason", ArgumentTypes.component())
+                                .then(argument("reason", arguments().component())
                                         .executes(context -> ban(context, null, reason(context))))))
                 .build();
     }
@@ -67,12 +66,11 @@ public final class BanCommand {
     ) throws CommandSyntaxException {
 
         final CommandSource source = context.getSource();
-        final BanManager bans = server.bans();
+        final BanManager bans = server().players().bans();
 
-        final Collection<PlayerProfile> targets =
-                context.getArgument("player", PlayerProfileListResolver.class).resolve(source);
+        final List<PlayerProfile> targets = PlayerProfilesResolver.playerProfiles(context, "player");
 
-        final UUID issuer = source.sender() instanceof final Player player ? player.uuid() : null;
+        final UUID issuer = source.executor() instanceof final Player player ? player.uuid() : null;
 
         int banned = 0;
 
@@ -85,7 +83,7 @@ public final class BanCommand {
 
             kickBanned(entry);
 
-            source.sender()
+            source
                     .sendMessage(Component.translatable(
                             added ? "commands.ban.success" : "commands.ban.updated",
                             Component.text(entry.label()),
@@ -113,7 +111,7 @@ public final class BanCommand {
         if (source == null) {
             return Component.translatable("commands.ban.source.server");
         }
-        return Component.text(server.offlinePlayers().cached(source)
+        return Component.text(server().players().offline().cached(source)
                 .map(OfflinePlayer::label)
                 .orElseGet(source::toString));
     }
@@ -121,13 +119,17 @@ public final class BanCommand {
     private static int kickBanned(final BanEntry.Profile entry) {
         int kicked = 0;
 
-        for (final ServerPlayer player : server.players()) {
+        for (final ServerPlayer player : server().players().online()) {
             if (player.uuid().equals(entry.uuid())) {
-                player.kick(server.bans().disconnectMessage(entry));
+                player.kick(server().players().bans().disconnectMessage(entry));
                 kicked++;
             }
         }
 
         return kicked;
+    }
+
+    private static FidorialServer server() {
+        return FidorialServer.getInstance();
     }
 }

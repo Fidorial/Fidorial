@@ -31,7 +31,9 @@ repositories {
 }
 
 dependencies {
-    apiSurface(projects.fidorialApi)
+    apiSurface(projects.fidorialApi) {
+        exclude(group = "net.kyori", module = "adventure-api")
+    }
 
     implementation(libs.faststats.config)
     implementation(libs.faststats.core)
@@ -95,6 +97,15 @@ sourceSets.main {
         property("fidorialVersion", providers.gradleProperty("fidorialVersion"))
         property("protocolVersion", providers.gradleProperty("protocolVersion"))
         property("dataVersion", providers.gradleProperty("dataVersion"))
+        property("serverVersion", project.version.toString())
+        property(
+            "buildNumber",
+            providers
+                .environmentVariable("BUILD_NUMBER")
+                .map { it.trim() }
+                .filter { it.toIntOrNull() != null }
+                .orElse("-1"),
+        )
     }
     blossom.resources {
         property("sparkVersion", libs.versions.spark.asProvider())
@@ -134,7 +145,11 @@ val bootstrapPayload =
 
         extraBundled.from(tasks.jar)
 
-        excludedModules.set(setOf("com.mojang:brigadier"))
+        excludedModules.set(
+            setOf(
+                "com.mojang:brigadier",
+            ),
+        )
 
         pinSnapshots.set(false)
 
@@ -182,7 +197,13 @@ tasks.register<JavaExec>("run") {
     classpath(sourceSets.main.map { it.runtimeClasspath })
     mainClass.set("fr.euphyllia.fidorial.server.Main")
     workingDir = project.file("run")
-    jvmArgs = listOf("--enable-native-access=ALL-UNNAMED", "-DFidorial.logLevel=TRACE")
+    jvmArgs =
+        listOf(
+            "--enable-native-access=ALL-UNNAMED",
+            "-DFidorial.logLevel=TRACE",
+            "-XX:+UnlockDiagnosticVMOptions",
+            "-XX:+DebugNonSafepoints",
+        )
     dependsOn(":fidorial-test-plugin:deployToRun")
     doFirst {
         workingDir.mkdirs()
@@ -225,9 +246,9 @@ tasks.withType<GenerateItemPropertiesTask>().configureEach {
 
 fidorialRegistryGenerator {
     minecraftVersion.set(providers.gradleProperty("minecraftVersion"))
-    prismarineMinecraftData.set("26.3")
+    prismarineMinecraftData.set("26.4-snapshot-5")
     prismarineDataRepository.set("Fidorial/minecraft-data") // PrismarineJS/minecraft-data
-    prismarineDataRef.set("ver/26.3") // master
+    prismarineDataRef.set("ver/26.4-snapshot-5") // master
 
     generatedPackage.set(
         "fr.euphyllia.fidorial.server",
@@ -268,6 +289,10 @@ dependencyPatcher {
     patchSet("brigadier") {
         library.set(libs.brigadier)
         autoRebuild = true
+        dependencies {
+            compileOnly(libs.adventure.api)
+            compileOnly(libs.adventure.text.serializer.plain)
+        }
     }
 
     patchSet("configurate-extra-dfu") {

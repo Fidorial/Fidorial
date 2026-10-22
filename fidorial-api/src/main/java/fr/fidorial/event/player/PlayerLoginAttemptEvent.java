@@ -1,7 +1,7 @@
 package fr.fidorial.event.player;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.entity.PlayerProfile;
+import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.Cancellable;
 import fr.fidorial.event.Event;
 import net.kyori.adventure.text.Component;

@@ -42,7 +42,7 @@ public class OperatorList {
                     operators.put(entry.uuid, entry);
                 }
             }
-            LOGGER.info("There are currently {} op", operators.size());
+            LOGGER.debug("There are currently {} op", operators.size());
         } catch (final Exception e) {
             LOGGER.error("Unable to read {}", file, e);
         }

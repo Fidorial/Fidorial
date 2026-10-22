@@ -10,22 +10,14 @@ public final class BrigadierAdventureHelper {
     private BrigadierAdventureHelper() {
     }
 
+    /**
+     * {@return {@code message} as a component, with translation keys prefixed by {@code console.} for the console}
+     */
     public static Component convert(final Message message, final boolean isConsole) {
-        if (message instanceof FidorialTranslatableMessage(final Component component)) {
-            if (!isConsole) {
-                return component;
-            }
-
-            if (component instanceof final TranslatableComponent translatable) {
-                return Component.translatable(
-                        "console." + translatable.key(),
-                        translatable.arguments().toArray(ComponentLike[]::new)
-                );
-            }
-
-            return component;
-        }
-
-        return isConsole ? Component.translatable("console." + message.getString()) : Component.translatable(message.getString());
+        return switch (message.asComponent()) {
+            case final TranslatableComponent translatable when isConsole -> Component.translatable(
+                    "console." + translatable.key(), translatable.arguments().toArray(ComponentLike[]::new));
+            case final Component component -> component;
+        };
     }
 }

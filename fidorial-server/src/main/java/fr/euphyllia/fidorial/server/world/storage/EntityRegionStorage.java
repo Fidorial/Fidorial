@@ -1,12 +1,10 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
-import ca.spottedleaf.converter.types.MapType;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.anvil.RegionConstants;
 import fr.euphyllia.fidorial.server.world.anvil.RegionFile;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
-import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -55,20 +53,9 @@ public final class EntityRegionStorage implements AutoCloseable {
     public @Nullable CompoundBinaryTag load(final Dimension dim, final int chunkX, final int chunkZ) throws IOException {
         final RegionFile rf = region(dim, chunkX, chunkZ);
         final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
-        if (read == null) {
-            return null;
-        }
-        CompoundBinaryTag nbt = read.tag();
+        if (read == null) return null;
+        final CompoundBinaryTag nbt = DataFixersRegistry.update(DataFixerType.ENTITY, read.tag(), true);
         convertIfNeeded(rf, dim, chunkX, chunkZ, read);
-
-        final int sourceVersion = nbt.getInt("DataVersion");
-        final int latest = DataFixersRegistry.latestDataFixerVersion();
-        if (sourceVersion < latest) {
-            final MapType fixed = DataFixersRegistry.update(
-                    DataFixerType.ENTITY, NbtMapType.of(nbt), sourceVersion);
-            nbt = ((NbtMapType) fixed).toCompound().putInt("DataVersion", latest);
-        }
-
         return nbt;
     }
 

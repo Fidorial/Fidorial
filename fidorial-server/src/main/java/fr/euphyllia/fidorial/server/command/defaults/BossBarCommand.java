@@ -12,9 +12,8 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.world.BossBarRegistry;
 import fr.fidorial.command.CommandSource;
-import fr.fidorial.command.argument.ArgumentTypes;
-import fr.fidorial.command.argument.resolvers.selector.PlayerSelectorArgumentResolver;
-import fr.fidorial.entity.Player;
+import fr.fidorial.command.argument.resolvers.PlayersResolver;
+import fr.fidorial.entity.player.Player;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -31,8 +30,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 public final class BossBarCommand {
 
@@ -72,48 +74,48 @@ public final class BossBarCommand {
     };
 
     public static LiteralCommandNode<CommandSource> create() {
-        final ArgumentType<PlayerSelectorArgumentResolver> targetsArgument = ArgumentTypes.players();
+        final ArgumentType<PlayersResolver> targetsArgument = arguments().players();
 
         return literal("bossbar")
                 .requires(source -> source.sender().hasPermission("fidorial.command.bossbar"))
                 .then(literal("add")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .executes(ctx -> createBossBar(ctx, bossBarId(ctx), Component.text(bossBarId(ctx).asString())))
-                                .then(argument("name", ArgumentTypes.component())
+                                .then(argument("name", arguments().component())
                                         .executes(ctx -> createBossBar(ctx, bossBarId(ctx), ctx.getArgument("name", Component.class))))))
                 .then(literal("remove")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .executes(ctx -> deleteBossBar(ctx, requireEntry(ctx)))))
                 .then(literal("list")
                         .executes(BossBarCommand::listBossBars))
                 .then(literal("set")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .then(literal("name")
-                                        .then(argument("name", ArgumentTypes.component())
+                                        .then(argument("name", arguments().component())
                                                 .executes(ctx -> updateName(ctx, requireEntry(ctx), ctx.getArgument("name", Component.class)))))
                                 .then(literal("color")
-                                        .then(argument("color", ArgumentTypes.bossBarColor())
+                                        .then(argument("color", arguments().bossBarColor())
                                                 .executes(ctx -> updateColor(ctx, requireEntry(ctx), ctx.getArgument("color", BossBar.Color.class)))))
                                 .then(literal("style")
-                                        .then(argument("style", ArgumentTypes.bossBarOverlay())
+                                        .then(argument("style", arguments().bossBarOverlay())
                                                 .executes(ctx -> updateOverlay(ctx, requireEntry(ctx), ctx.getArgument("style", BossBar.Overlay.class)))))
                                 .then(literal("value")
-                                        .then(argument("value", ArgumentTypes.integer(0, Integer.MAX_VALUE))
+                                        .then(argument("value", integer(0))
                                                 .executes(ctx -> updateValue(ctx, requireEntry(ctx), ctx.getArgument("value", Integer.class)))))
                                 .then(literal("max")
-                                        .then(argument("max", ArgumentTypes.integer(1, Integer.MAX_VALUE))
+                                        .then(argument("max", integer(1))
                                                 .executes(ctx -> updateMax(ctx, requireEntry(ctx), ctx.getArgument("max", Integer.class)))))
                                 .then(literal("visible")
-                                        .then(argument("visible", ArgumentTypes.bool())
+                                        .then(argument("visible", bool())
                                                 .executes(ctx -> updateVisibility(ctx, requireEntry(ctx), ctx.getArgument("visible", Boolean.class)))))
                                 .then(literal("players")
                                         .executes(ctx -> updateTargets(ctx, requireEntry(ctx), Set.of()))
                                         .then(argument("targets", targetsArgument)
                                                 .executes(ctx -> updateTargets(ctx, requireEntry(ctx), resolveTargetIds(ctx)))))))
                 .then(literal("get")
-                        .then(argument("id", ArgumentTypes.key())
+                        .then(argument("id", arguments().key())
                                 .suggests(BOSSBAR_ID_SUGGESTIONS)
                                 .then(literal("value").executes(ctx -> reportValue(ctx, requireEntry(ctx))))
                                 .then(literal("max").executes(ctx -> reportMax(ctx, requireEntry(ctx))))
@@ -123,7 +125,7 @@ public final class BossBarCommand {
     }
 
     private static BossBarRegistry bossBars() {
-        return FidorialServer.getInstance().bossBarRegistry();
+        return FidorialServer.getInstance().worlds().bossBars();
     }
 
     private static Key bossBarId(final CommandContext<CommandSource> ctx) {
@@ -148,7 +150,7 @@ public final class BossBarCommand {
         }
         mutate.run();
         final BossBarRegistry.BossBarEntry updated = bossBars().getEntry(entry.id()).orElse(entry);
-        ctx.getSource().sender().sendMessage(Component.translatable(successKey, displayNameOf(updated)));
+        ctx.getSource().sendMessage(Component.translatable(successKey, displayNameOf(updated)));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -170,25 +172,25 @@ public final class BossBarCommand {
         }
 
         final BossBarRegistry.BossBarEntry created = bossBars().getEntry(id).orElseThrow();
-        ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.create.success", displayNameOf(created)));
+        ctx.getSource().sendMessage(Component.translatable("commands.bossbar.create.success", displayNameOf(created)));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int deleteBossBar(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
         final Component displayName = displayNameOf(entry);
         bossBars().unregister(entry.id());
-        ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.remove.success", displayName));
+        ctx.getSource().sendMessage(Component.translatable("commands.bossbar.remove.success", displayName));
         return bossBars().entries().size();
     }
 
     private static int listBossBars(final CommandContext<CommandSource> ctx) {
         final var entries = bossBars().entries();
         if (entries.isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.list.bars.none"));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.list.bars.none"));
         } else {
             final Component joined = Component.join(JoinConfiguration.commas(true),
                     entries.stream().map(BossBarCommand::displayNameOf).toList());
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.list.bars.some", Component.text(entries.size()), joined));
         }
 
@@ -222,7 +224,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setValue(entry.id(), value);
-        ctx.getSource().sender().sendMessage(
+        ctx.getSource().sendMessage(
                 Component.translatable("commands.bossbar.set.value.success", displayNameOf(entry), Component.text(value)));
         return value;
     }
@@ -233,7 +235,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setMax(entry.id(), max);
-        ctx.getSource().sender().sendMessage(
+        ctx.getSource().sendMessage(
                 Component.translatable("commands.bossbar.set.max.success", displayNameOf(entry), Component.text(max)));
         return max;
     }
@@ -244,7 +246,7 @@ public final class BossBarCommand {
         }
 
         bossBars().setVisible(entry.id(), visible);
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 visible ? "commands.bossbar.set.visible.success.visible" : "commands.bossbar.set.visible.success.hidden",
                 displayNameOf(entry)));
         return Command.SINGLE_SUCCESS;
@@ -258,9 +260,9 @@ public final class BossBarCommand {
         bossBars().setPlayers(entry.id(), targetIds);
 
         if (targetIds.isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.set.players.success.none", displayNameOf(entry)));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.set.players.success.none", displayNameOf(entry)));
         } else {
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.set.players.success.some",
                     displayNameOf(entry), Component.text(targetIds.size()), joinPlayerNames(targetIds)));
         }
@@ -269,8 +271,7 @@ public final class BossBarCommand {
     }
 
     private static Set<UUID> resolveTargetIds(final CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final PlayerSelectorArgumentResolver resolver = ctx.getArgument("targets", PlayerSelectorArgumentResolver.class);
-        final List<Player> resolved = resolver.resolve(ctx.getSource());
+        final List<Player> resolved = PlayersResolver.players(ctx, "targets");
 
         final Set<UUID> ids = new HashSet<>();
         for (final Player player : resolved) {
@@ -280,19 +281,19 @@ public final class BossBarCommand {
     }
 
     private static int reportValue(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 "commands.bossbar.get.value", displayNameOf(entry), Component.text(entry.value())));
         return entry.value();
     }
 
     private static int reportMax(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 "commands.bossbar.get.max", displayNameOf(entry), Component.text(entry.max())));
         return entry.max();
     }
 
     private static int reportVisibility(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
-        ctx.getSource().sender().sendMessage(Component.translatable(
+        ctx.getSource().sendMessage(Component.translatable(
                 entry.visible() ? "commands.bossbar.get.visible.visible" : "commands.bossbar.get.visible.hidden",
                 displayNameOf(entry)));
         return entry.visible() ? 1 : 0;
@@ -300,9 +301,9 @@ public final class BossBarCommand {
 
     private static int reportTargets(final CommandContext<CommandSource> ctx, final BossBarRegistry.BossBarEntry entry) {
         if (entry.players().isEmpty()) {
-            ctx.getSource().sender().sendMessage(Component.translatable("commands.bossbar.get.players.none", displayNameOf(entry)));
+            ctx.getSource().sendMessage(Component.translatable("commands.bossbar.get.players.none", displayNameOf(entry)));
         } else {
-            ctx.getSource().sender().sendMessage(Component.translatable(
+            ctx.getSource().sendMessage(Component.translatable(
                     "commands.bossbar.get.players.some",
                     displayNameOf(entry), Component.text(entry.players().size()), joinPlayerNames(entry.players())));
         }
@@ -312,7 +313,7 @@ public final class BossBarCommand {
 
     private static Component joinPlayerNames(final Set<UUID> ids) {
         final List<TextComponent> names = ids.stream()
-                .map(id -> FidorialServer.getInstance().onlinePlayers().stream()
+                .map(id -> FidorialServer.getInstance().players().online().stream()
                         .filter(p -> p.uuid().equals(id))
                         .map(Player::name)
                         .findFirst()

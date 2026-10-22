@@ -5,11 +5,12 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.List;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Per-item stack size, durability and repair materials.
+ * Per-item stack size, durability, repair materials and equipment slot.
  *
- * <p>Joined from Mojang's item registry report and PrismarineJS's
+ * <p>Joined from Mojang's item registry and items reports and PrismarineJS's
  * {@code minecraft-data} items report; do not edit.</p>
  *
  * <p>These are the item's <em>defaults</em>. A stack that patches
@@ -23,6 +24,8 @@ public final class ItemProperties {
     private static final Object2IntOpenHashMap<Key> MAX_DAMAGE = new Object2IntOpenHashMap<>();
 
     private static final Object2ObjectOpenHashMap<Key, List<Key>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
+
+    private static final Object2ObjectOpenHashMap<Key, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>();
 
     static {
         STACK_SIZE.defaultReturnValue(64);
@@ -63,6 +66,16 @@ public final class ItemProperties {
      */
     public static List<Key> repairMaterials(final Key item) {
         return REPAIR_MATERIALS.getOrDefault(item, List.of());
+    }
+
+    /**
+     * @param item namespaced item identifier
+     * @return the slot the item is worn in, as Mojang names it ({@code head}, {@code chest},
+     * {@code legs}, {@code feet}, {@code offhand}, {@code body}, {@code saddle}),
+     * {@code null} when it cannot be worn
+     */
+    public static @Nullable String equipmentSlot(final Key item) {
+        return EQUIPMENT_SLOT.get(item);
     }
 
     private static void register(final Key item, final int stackSize, final int maxDamage,
@@ -250,6 +263,7 @@ public final class ItemProperties {
         register(ItemKeys.BRICK_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.BRICK_WALL.key(), 64, 0, List.of());
         register(ItemKeys.BRICKS.key(), 64, 0, List.of());
+        register(ItemKeys.BRITTLE_ICE.key(), 64, 0, List.of());
         register(ItemKeys.BROWN_BANNER.key(), 16, 0, List.of());
         register(ItemKeys.BROWN_BED.key(), 1, 0, List.of());
         register(ItemKeys.BROWN_BUNDLE.key(), 1, 0, List.of());
@@ -276,10 +290,10 @@ public final class ItemProperties {
         register(ItemKeys.BRUSH.key(), 1, 64, List.of());
         register(ItemKeys.BUBBLE_CORAL.key(), 64, 0, List.of());
         register(ItemKeys.BUBBLE_CORAL_BLOCK.key(), 64, 0, List.of());
-        register(ItemKeys.BUBBLE_CORAL_FAN.key(), 64, 0, List.of());
     }
 
     private static void registerItems1() {
+        register(ItemKeys.BUBBLE_CORAL_FAN.key(), 64, 0, List.of());
         register(ItemKeys.BUCKET.key(), 16, 0, List.of());
         register(ItemKeys.BUDDING_AMETHYST.key(), 64, 0, List.of());
         register(ItemKeys.BUNDLE.key(), 1, 0, List.of());
@@ -339,6 +353,7 @@ public final class ItemProperties {
         register(ItemKeys.CHISELED_COPPER.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_DEEPSLATE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_NETHER_BRICKS.key(), 64, 0, List.of());
+        register(ItemKeys.CHISELED_PACKED_ICE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_POLISHED_BLACKSTONE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_QUARTZ_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_RED_SANDSTONE.key(), 64, 0, List.of());
@@ -478,11 +493,11 @@ public final class ItemProperties {
         register(ItemKeys.CYAN_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS_PANE.key(), 64, 0, List.of());
-        register(ItemKeys.CYAN_TERRACOTTA.key(), 64, 0, List.of());
-        register(ItemKeys.CYAN_WOOL.key(), 64, 0, List.of());
     }
 
     private static void registerItems2() {
+        register(ItemKeys.CYAN_TERRACOTTA.key(), 64, 0, List.of());
+        register(ItemKeys.CYAN_WOOL.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.DAMAGED_ANVIL.key(), 64, 0, List.of());
@@ -654,6 +669,7 @@ public final class ItemProperties {
         register(ItemKeys.FRIEND_POTTERY_SHERD.key(), 64, 0, List.of());
         register(ItemKeys.FROG_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.FROGSPAWN.key(), 64, 0, List.of());
+        register(ItemKeys.FROSTBITE_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.FURNACE.key(), 64, 0, List.of());
         register(ItemKeys.FURNACE_MINECART.key(), 1, 0, List.of());
         register(ItemKeys.GHAST_SPAWN_EGG.key(), 64, 0, List.of());
@@ -680,12 +696,12 @@ public final class ItemProperties {
         register(ItemKeys.GOLDEN_APPLE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_AXE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_BOOTS.key(), 1, 91, List.of(ItemKeys.GOLD_INGOT.key()));
-        register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
-        register(ItemKeys.GOLDEN_CHESTPLATE.key(), 1, 112, List.of(ItemKeys.GOLD_INGOT.key()));
-        register(ItemKeys.GOLDEN_DANDELION.key(), 64, 0, List.of());
     }
 
     private static void registerItems3() {
+        register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
+        register(ItemKeys.GOLDEN_CHESTPLATE.key(), 1, 112, List.of(ItemKeys.GOLD_INGOT.key()));
+        register(ItemKeys.GOLDEN_DANDELION.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_HELMET.key(), 1, 77, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_HOE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_HORSE_ARMOR.key(), 1, 0, List.of());
@@ -769,6 +785,9 @@ public final class ItemProperties {
         register(ItemKeys.HOWL_POTTERY_SHERD.key(), 64, 0, List.of());
         register(ItemKeys.HUSK_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.ICE.key(), 64, 0, List.of());
+        register(ItemKeys.ICE_BALL.key(), 16, 0, List.of());
+        register(ItemKeys.ICE_CRYSTAL.key(), 64, 0, List.of());
+        register(ItemKeys.ICICLE.key(), 64, 0, List.of());
         register(ItemKeys.INFESTED_CHISELED_STONE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.INFESTED_COBBLESTONE.key(), 64, 0, List.of());
         register(ItemKeys.INFESTED_CRACKED_STONE_BRICKS.key(), 64, 0, List.of());
@@ -880,15 +899,15 @@ public final class ItemProperties {
         register(ItemKeys.LIGHT_GRAY_STAINED_GLASS_PANE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems4() {
         register(ItemKeys.LIGHT_GRAY_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_WEIGHTED_PRESSURE_PLATE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHTNING_ROD.key(), 64, 0, List.of());
         register(ItemKeys.LILAC.key(), 64, 0, List.of());
         register(ItemKeys.LILY_OF_THE_VALLEY.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems4() {
         register(ItemKeys.LILY_PAD.key(), 64, 0, List.of());
         register(ItemKeys.LIME_BANNER.key(), 16, 0, List.of());
         register(ItemKeys.LIME_BED.key(), 1, 0, List.of());
@@ -1083,15 +1102,15 @@ public final class ItemProperties {
         register(ItemKeys.ORANGE_DYE.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_HARNESS.key(), 1, 0, List.of());
+    }
+
+    private static void registerItems5() {
         register(ItemKeys.ORANGE_POPLAR_LEAVES.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.ORANGE_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_STAINED_GLASS_PANE.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_TULIP.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems5() {
         register(ItemKeys.ORANGE_WOOL.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_WOOL_STAIRS.key(), 64, 0, List.of());
@@ -1112,6 +1131,10 @@ public final class ItemProperties {
         register(ItemKeys.OXIDIZED_CUT_COPPER_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.OXIDIZED_LIGHTNING_ROD.key(), 64, 0, List.of());
         register(ItemKeys.PACKED_ICE.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICK_WALL.key(), 64, 0, List.of());
+        register(ItemKeys.PACKED_ICE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.PACKED_MUD.key(), 64, 0, List.of());
         register(ItemKeys.PAINTING.key(), 64, 0, List.of());
         register(ItemKeys.PALE_HANGING_MOSS.key(), 64, 0, List.of());
@@ -1282,6 +1305,9 @@ public final class ItemProperties {
         register(ItemKeys.PURPUR_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_PILLAR.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_SLAB.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems6() {
         register(ItemKeys.PURPUR_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_BLOCK.key(), 64, 0, List.of());
@@ -1292,9 +1318,6 @@ public final class ItemProperties {
         register(ItemKeys.RABBIT.key(), 64, 0, List.of());
         register(ItemKeys.RABBIT_FOOT.key(), 64, 0, List.of());
         register(ItemKeys.RABBIT_HIDE.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems6() {
         register(ItemKeys.RABBIT_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.RABBIT_STEW.key(), 1, 0, List.of());
         register(ItemKeys.RAIL.key(), 64, 0, List.of());
@@ -1485,6 +1508,9 @@ public final class ItemProperties {
         register(ItemKeys.STRAY_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRIDER_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRING.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems7() {
         register(ItemKeys.STRIPPED_ACACIA_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_ACACIA_WOOD.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_BAMBOO_BLOCK.key(), 64, 0, List.of());
@@ -1495,9 +1521,6 @@ public final class ItemProperties {
         register(ItemKeys.STRIPPED_CRIMSON_HYPHAE.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_CRIMSON_STEM.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_DARK_OAK_LOG.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems7() {
         register(ItemKeys.STRIPPED_DARK_OAK_WOOD.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_JUNGLE_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_JUNGLE_WOOD.key(), 64, 0, List.of());
@@ -1688,6 +1711,9 @@ public final class ItemProperties {
         register(ItemKeys.WET_SPONGE.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT_SEEDS.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems8() {
         register(ItemKeys.WHITE_BANNER.key(), 16, 0, List.of());
         register(ItemKeys.WHITE_BED.key(), 1, 0, List.of());
         register(ItemKeys.WHITE_BUNDLE.key(), 1, 0, List.of());
@@ -1698,9 +1724,6 @@ public final class ItemProperties {
         register(ItemKeys.WHITE_CONCRETE_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_CONCRETE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_CUSHION.key(), 16, 0, List.of());
-    }
-
-    private static void registerItems8() {
         register(ItemKeys.WHITE_DYE.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.WHITE_HARNESS.key(), 1, 0, List.of());
@@ -1761,6 +1784,93 @@ public final class ItemProperties {
         register(ItemKeys.ZOMBIFIED_PIGLIN_SPAWN_EGG.key(), 64, 0, List.of());
     }
 
+    private static void registerEquipmentSlots0() {
+        EQUIPMENT_SLOT.put(ItemKeys.BLACK_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLACK_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLUE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BLUE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BROWN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.BROWN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CARVED_PUMPKIN.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CHAINMAIL_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.COPPER_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CREEPER_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.CYAN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.CYAN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.DIAMOND_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.DRAGON_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.ELYTRA.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.GOLDEN_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GRAY_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GRAY_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GREEN_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.GREEN_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.IRON_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LEATHER_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_BLUE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_BLUE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_GRAY_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIGHT_GRAY_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIME_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.LIME_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.MAGENTA_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.MAGENTA_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_BOOTS.key(), "feet");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_CHESTPLATE.key(), "chest");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_HORSE_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_LEGGINGS.key(), "legs");
+        EQUIPMENT_SLOT.put(ItemKeys.NETHERITE_NAUTILUS_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ORANGE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ORANGE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PIGLIN_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.PINK_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PINK_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PLAYER_HEAD.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.PURPLE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.PURPLE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.RED_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.RED_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.SADDLE.key(), "saddle");
+        EQUIPMENT_SLOT.put(ItemKeys.SHIELD.key(), "offhand");
+        EQUIPMENT_SLOT.put(ItemKeys.SKELETON_SKULL.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.TURTLE_HELMET.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.WHITE_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.WHITE_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.WITHER_SKELETON_SKULL.key(), "head");
+        EQUIPMENT_SLOT.put(ItemKeys.WOLF_ARMOR.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.YELLOW_CARPET.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.YELLOW_HARNESS.key(), "body");
+        EQUIPMENT_SLOT.put(ItemKeys.ZOMBIE_HEAD.key(), "head");
+    }
+
     /**
      * Fills the lookup tables. Called once during server start-up;
      * calling it again is harmless but pointless.
@@ -1775,5 +1885,6 @@ public final class ItemProperties {
         registerItems6();
         registerItems7();
         registerItems8();
+        registerEquipmentSlots0();
     }
 }

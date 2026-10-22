@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.light;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.light.LightType;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
@@ -338,7 +339,9 @@ public class FloodFillLightEngine implements LightEngine {
         if (chunks.isEmpty()) {
             return;
         }
-        for (final long key : chunks) {
+        final LongIterator it = chunks.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             final ChunkLightData data = access.lightAt((int) (key >> 32), (int) key);
             if (data != null) {
                 data.clear();
@@ -353,7 +356,9 @@ public class FloodFillLightEngine implements LightEngine {
         final LongQueue queue = scratchLongQueue;
         queue.reset();
 
-        for (final long key : chunks) {
+        final LongIterator it = chunks.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             final int chunkX = (int) (key >> 32);
             final int chunkZ = (int) key;
             final ChunkLightData data = access.lightAt(chunkX, chunkZ);
@@ -416,7 +421,9 @@ public class FloodFillLightEngine implements LightEngine {
         queue.reset();
 
         final int minSection = minY >> 4;
-        for (final long key : chunks) {
+        final LongIterator it = chunks.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             final int chunkX = (int) (key >> 32);
             final int chunkZ = (int) key;
             final ChunkLightData data = access.lightAt(chunkX, chunkZ);
@@ -458,7 +465,9 @@ public class FloodFillLightEngine implements LightEngine {
     }
 
     private void seedBorders(final LongSet chunks, final LightAccess access, final LightType type, final LongQueue queue) {
-        for (final long key : chunks) {
+        final LongIterator it = chunks.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             final int chunkX = (int) (key >> 32);
             final int chunkZ = (int) key;
 

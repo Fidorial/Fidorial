@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.shadow) apply false
 }
 
-repositories {
-    mavenCentral()
+tasks.register("printVersion") {
+    description = "Prints the version"
+    val version = project.version
+    doFirst {
+        println(version)
+    }
 }

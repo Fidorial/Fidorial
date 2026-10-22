@@ -40,7 +40,7 @@ public final class DatapackCommand {
         final StructureService service = StructureCommands.service();
         final List<Datapack> packs = service.datapacks();
         if (packs.isEmpty()) {
-            context.getSource().sender().sendMessage(Component.translatable("command.datapack.list.none",
+            context.getSource().sendMessage(Component.translatable("command.datapack.list.none",
                     Component.text(service.folder().toString())));
             return 0;
         }
@@ -54,7 +54,7 @@ public final class DatapackCommand {
                     .build();
             names.add(Component.text("[" + pack.id() + "]", NamedTextColor.GREEN).hoverEvent(HoverEvent.showText(details)));
         }
-        context.getSource().sender().sendMessage(Component.translatable("command.datapack.list",
+        context.getSource().sendMessage(Component.translatable("command.datapack.list",
                 Component.text(packs.size()), Component.join(JoinConfiguration.commas(true), names)));
         return packs.size();
     }
@@ -69,14 +69,14 @@ public final class DatapackCommand {
 
     private static int reload(final CommandContext<CommandSource> context) {
         final StructureService service = StructureCommands.service();
-        context.getSource().sender().sendMessage(Component.translatable("command.datapack.reload.start"));
+        context.getSource().sendMessage(Component.translatable("command.datapack.reload.start"));
         service.reload().whenComplete((_, failure) -> {
             if (failure != null) {
-                context.getSource().sender().sendMessage(Component.translatable("command.datapack.reload.failed",
+                context.getSource().sendMessage(Component.translatable("command.datapack.reload.failed",
                         Component.text(StructureCommands.rootMessage(failure))));
                 return;
             }
-            context.getSource().sender().sendMessage(Component.translatable("command.datapack.reload.success",
+            context.getSource().sendMessage(Component.translatable("command.datapack.reload.success",
                     Component.text(service.datapacks().size()),
                     Component.text(service.structures().size()),
                     Component.text(service.registry().structureSets().size())));

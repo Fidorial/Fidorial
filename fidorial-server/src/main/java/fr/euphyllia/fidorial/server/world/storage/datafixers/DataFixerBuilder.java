@@ -60,22 +60,23 @@ public final class DataFixerBuilder {
 
         final Map<DataFixerType, DataFixerRegistry> registries = new EnumMap<>(DataFixerType.class);
         for (final Map.Entry<DataFixerType, List<DataConverter<MapType, MapType>>> entry : fixers.entrySet()) {
-            final DataFixerRegistry registry = new DataFixerRegistry();
-            entry.getValue().forEach(registry::register);
-            registries.put(entry.getKey(), registry);
+            registries.put(entry.getKey(), new DataFixerRegistry(entry.getValue()));
         }
 
-        final Map<DataFixerType, List<NestedType>> copiedNesting = new EnumMap<>(DataFixerType.class);
-        for (final Map.Entry<DataFixerType, List<NestedType>> entry : nesting.entrySet()) {
-            copiedNesting.put(entry.getKey(), List.copyOf(entry.getValue()));
-        }
+        return new DataFixer(
+                targetDataVersion,
+                Map.copyOf(registries),
+                immutableCopy(walkers),
+                immutableCopy(nesting),
+                immutableCopy(nestedMaps));
+    }
 
-        final Map<DataFixerType, List<NestedType>> copiedNestedMaps = new EnumMap<>(DataFixerType.class);
-        for (final Map.Entry<DataFixerType, List<NestedType>> entry : nestedMaps.entrySet()) {
-            copiedNestedMaps.put(entry.getKey(), List.copyOf(entry.getValue()));
+    private static <T> Map<DataFixerType, List<T>> immutableCopy(final Map<DataFixerType, List<T>> source) {
+        final Map<DataFixerType, List<T>> copy = new EnumMap<>(DataFixerType.class);
+        for (final Map.Entry<DataFixerType, List<T>> entry : source.entrySet()) {
+            copy.put(entry.getKey(), List.copyOf(entry.getValue()));
         }
-
-        return new DataFixer(targetDataVersion, Map.copyOf(registries), Map.copyOf(walkers), Map.copyOf(copiedNesting), Map.copyOf(copiedNestedMaps));
+        return Map.copyOf(copy);
     }
 
     private int highestToVersion() {

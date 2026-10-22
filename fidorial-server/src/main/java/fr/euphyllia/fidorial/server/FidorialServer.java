@@ -1,335 +1,174 @@
 package fr.euphyllia.fidorial.server;
 
 import com.google.common.collect.Iterables;
-import dev.faststats.ErrorTracker;
-import fr.euphyllia.fidorial.auth.EncryptionUtils;
-import fr.euphyllia.fidorial.auth.MojangChatSigningKeys;
-import fr.euphyllia.fidorial.auth.MojangSessionService;
-import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
-import fr.euphyllia.fidorial.server.combat.CombatEngine;
-import fr.euphyllia.fidorial.server.command.CommandManager;
-import fr.euphyllia.fidorial.server.command.ConsoleSender;
+import fr.euphyllia.fidorial.server.bootstrap.GameBootstrap;
+import fr.euphyllia.fidorial.server.command.CommandModule;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
-import fr.euphyllia.fidorial.server.configuration.WorldConfigurationContainer;
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
-import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
-import fr.euphyllia.fidorial.server.debug.DebugChannels;
-import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
-import fr.euphyllia.fidorial.server.debug.DebugSampleBroadcaster;
-import fr.euphyllia.fidorial.server.debug.DebugSubscribers;
-import fr.euphyllia.fidorial.server.debug.EntityDebugSynchronizer;
-import fr.euphyllia.fidorial.server.entity.AbstractEntity;
-import fr.euphyllia.fidorial.server.entity.EntityIdAllocator;
-import fr.euphyllia.fidorial.server.entity.EntityTickHandler;
-import fr.euphyllia.fidorial.server.entity.EntityTracker;
-import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
-import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
-import fr.euphyllia.fidorial.server.entity.mob.FidorialMobRegistry;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.entity.player.profile.FidorialOfflinePlayers;
-import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerDataStorage;
-import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerEnderChestStorage;
-import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerInventoryStorage;
+import fr.euphyllia.fidorial.server.debug.DebugModule;
+import fr.euphyllia.fidorial.server.entity.EntityModule;
+import fr.euphyllia.fidorial.server.entity.player.PlayerList;
+import fr.euphyllia.fidorial.server.entity.player.PlayerModule;
 import fr.euphyllia.fidorial.server.events.SimpleEventBus;
-import fr.euphyllia.fidorial.server.inventory.ChestViewerTracker;
-import fr.euphyllia.fidorial.server.item.FidorialItemRegistry;
-import fr.euphyllia.fidorial.server.metrics.FidorialContext;
-import fr.euphyllia.fidorial.server.metrics.FidorialMetrics;
-import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
-import fr.euphyllia.fidorial.server.moderation.FidorialBanManager;
-import fr.euphyllia.fidorial.server.moderation.FidorialWhitelist;
+import fr.euphyllia.fidorial.server.lifecycle.ModuleManager;
+import fr.euphyllia.fidorial.server.lifecycle.Quietly;
+import fr.euphyllia.fidorial.server.lifecycle.ServerState;
+import fr.euphyllia.fidorial.server.map.MapModule;
+import fr.euphyllia.fidorial.server.metrics.TelemetryModule;
+import fr.euphyllia.fidorial.server.moderation.ModerationModule;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
-import fr.euphyllia.fidorial.server.network.NettyServer;
-import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
-import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
-import fr.euphyllia.fidorial.server.permission.DefaultPermissions;
-import fr.euphyllia.fidorial.server.permission.FidorialPermissionRegistry;
-import fr.euphyllia.fidorial.server.permission.OperatorList;
-import fr.euphyllia.fidorial.server.plugin.JavaPluginManager;
-import fr.euphyllia.fidorial.server.registry.Registries;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
-import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
-import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
-import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
-import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
-import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
-import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
-import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
-import fr.euphyllia.fidorial.server.schedulers.AiWorker;
-import fr.euphyllia.fidorial.server.schedulers.DayNightThread;
-import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
-import fr.euphyllia.fidorial.server.schedulers.ThreadedChunkWorker;
-import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
+import fr.euphyllia.fidorial.server.network.NetworkModule;
+import fr.euphyllia.fidorial.server.plugin.PluginModule;
+import fr.euphyllia.fidorial.server.registry.RegistryModule;
+import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.service.SimpleServiceRegistry;
-import fr.euphyllia.fidorial.server.spark.SparkService;
 import fr.euphyllia.fidorial.server.status.FidorialServerListing;
-import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
-import fr.euphyllia.fidorial.server.world.BlockEditService;
-import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
-import fr.euphyllia.fidorial.server.world.BossBarRegistry;
-import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
-import fr.euphyllia.fidorial.server.world.FlatChunkGenerator;
-import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.ServiceBackedChunkGenerator;
-import fr.euphyllia.fidorial.server.world.WorldManager;
-import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
-import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
-import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
-import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
-import fr.euphyllia.fidorial.server.world.structure.StructureService;
-import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
-import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
+import fr.euphyllia.fidorial.server.world.WorldModule;
 import fr.fidorial.Server;
-import fr.fidorial.combat.CombatService;
-import fr.fidorial.command.CommandRegistry;
-import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.OfflinePlayers;
-import fr.fidorial.entity.Player;
-import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
-import fr.fidorial.gamerule.GameRuleDefinition;
-import fr.fidorial.gamerule.GameRules;
-import fr.fidorial.item.ItemDefaults;
-import fr.fidorial.moderation.BanManager;
-import fr.fidorial.moderation.WhitelistManager;
-import fr.fidorial.permission.PermissionRegistry;
-import fr.fidorial.plugin.PluginManager;
-import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
-import fr.fidorial.service.ServicePriority;
 import fr.fidorial.service.ServiceRegistry;
-import fr.fidorial.status.Favicon;
-import fr.fidorial.storage.player.PlayerDataStorage;
-import fr.fidorial.storage.player.PlayerEnderChestStorage;
-import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.translation.TranslationStore;
-import fr.fidorial.world.Location;
-import fr.fidorial.world.World;
-import fr.fidorial.world.WorldSpec;
-import fr.fidorial.world.biome.BiomeRegistry;
-import fr.fidorial.world.block.Blocks;
-import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
-import fr.fidorial.world.entity.EntitySpawnBridge;
-import fr.fidorial.world.fluid.FluidManager;
-import fr.fidorial.world.structure.StructureManager;
-import fr.fidorial.world.weather.WeatherManager;
+import fr.fidorial.version.BuildSpecification;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.KeyPair;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;
-import static fr.euphyllia.fidorial.server.VersionConstants.PROTOCOL_VERSION;
+import static fr.euphyllia.fidorial.server.VersionConstants.DATA_VERSION;
 
 public final class FidorialServer implements Server {
 
     public static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialServer.class);
-    private static final ErrorTracker ERROR_TRACKER = ErrorTracker.contextAware();
-    private static final String FASTSTATS_TOKEN = "6c8c21fe427163e998ea50f54a0ce855";
 
-    private static final Duration PROFILE_CACHE_TTL = Duration.ofDays(30);
-    private static final int PROFILE_CACHE_MAX_ENTRIES = 65_536;
+    private static final AtomicReference<@Nullable FidorialServer> INSTANCE = new AtomicReference<>();
 
-    private static @Nullable FidorialServer instance;
-
-    private final ServerConfiguration config = ServerConfiguration.load();
-    private final FidorialServerListing listing;
-    private final AtomicBoolean running = new AtomicBoolean(false);
-
-    private final KeyPair keyPair = EncryptionUtils.generateServerKeyPair();
-    private final MojangSessionService sessionService = new MojangSessionService();
-    private final MojangChatSigningKeys chatSigningKeys = new MojangChatSigningKeys();
-    private final FidorialBlockRegistry blockRegistry = bootstrapBlocks();
-    private final BlockStateRegistry blockStateRegistry = new BlockStateRegistry(blockRegistry);
-    private final EntityIdAllocator entityIds = new EntityIdAllocator();
-    private final EntityTracker entityTracker = new EntityTracker(config.general().sendDistance());
-    private final DebugSubscribers debugSubscribers = new DebugSubscribers(this::players);
-    private final EntityDebugSynchronizer entityDebug = new EntityDebugSynchronizer(debugSubscribers, entityTracker);
-    private final DebugGameEvents debugGameEvents = new DebugGameEvents(debugSubscribers, this::players);
-    private final SimpleEventBus events = new SimpleEventBus();
-    private final CombatEngine combat = new CombatEngine(this);
-    private final ServiceRegistry services = new SimpleServiceRegistry();
-    private final Set<ClientConnection> connections = ConcurrentHashMap.newKeySet();
-    private volatile List<ServerPlayer> playerSnapshot = List.of();
-    private final BuiltInTranslationStore builtInTranslationStore = new BuiltInTranslationStore();
-
-    private final ProtocolMap protocolMap = ProtocolMap.load();
-    private final Registries registries = Registries.load();
-    private final CommandManager commandManager;
-    private final ClickCallbackManager clickCallbackManager = new ClickCallbackManager();
-    private final CodeOfConductManager codeOfConduct =
-            new CodeOfConductManager(config.codeOfConduct().enabled(), config.codeOfConduct().path());
-
-    private final ThreadedRegionRegionizer regionizer = new ThreadedRegionRegionizer(
-            config.threading().regionWorkers(), config.threading().regionSectionShift());
-    private final ThreadedChunkWorker chunkWorker = new ThreadedChunkWorker(config.threading().chunkWorkers());
-    private final AiWorker aiWorker = new AiWorker(config.threading().aiWorkers());
-    private final ScheduledExecutorService autoSave = Executors.newSingleThreadScheduledExecutor(
-            r -> Thread.ofPlatform().name("fidorial-autosave").unstarted(r));
-
-    private final NbtPlayerInventoryStorage defaultInventoryStorage =
-            new NbtPlayerInventoryStorage(config.worlds().path().resolve("player"), false);
-    private final NbtPlayerDataStorage defaultPlayerDataStorage =
-            new NbtPlayerDataStorage(config.worlds().path().resolve("player"), false);
-    private final NbtPlayerEnderChestStorage defaultEnderChestStorage =
-            new NbtPlayerEnderChestStorage(config.worlds().path().resolve("player"), false);
-    private final ChestViewerTracker chestViewers = new ChestViewerTracker();
-    private final WorldManager worldManager = WorldManager.openOrCreate(
-            config.worlds().path(), blockStateRegistry, regionizer, config.worlds().levelSeed(), config.worlds().initialEnabledPacks(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
-    private final StructureService structureService = new StructureService(
-            config.worlds().path().resolve("datapacks"),
-            new RegistryBlockValidator(blockRegistry)
-    );
-    private final FluidEngine fluidEngine =
-            new FluidEngine(worldManager, regionizer, blockStateRegistry, this::broadcast);
-    private final WeatherEngine weatherEngine = new WeatherEngine(worldManager);
-    private final FidorialGameRules gameRules = new FidorialGameRules(worldManager.levelData(), events);
-    private final BossBarRegistry bossBarRegistry = new BossBarRegistry(worldManager.levelData(), this::players);
-    private final DayNightThread dayNightEngine = new DayNightThread(worldManager, registries.dynamic());
-    private final ChunkNetworkSerializer chunkSerializer = new ChunkNetworkSerializer(blockStateRegistry, registries.biomes());
-    private final LightUpdateDispatcher lightDispatcher = new LightUpdateDispatcher(
-            config.threading().lightWorkers(), this::broadcast, chunkSerializer, worldManager::world);
-    private final BlockEditService blockEdits = new BlockEditService(
-            blockStateRegistry,
-            (pos, stateId) -> broadcast(new ClientboundBlockUpdatePacket(pos, stateId)),
-            fluidEngine::notifyBlockChanged,
-            lightDispatcher::queueBlockChange);
-    private final FidorialPermissionRegistry permissionRegistry = new FidorialPermissionRegistry();
-    private final FidorialItemRegistry itemRegistry = new FidorialItemRegistry();
-    private final FidorialMobRegistry mobRegistry = new FidorialMobRegistry();
-    private final FidorialMobEffectRegistry effectRegistry = new FidorialMobEffectRegistry();
-    private final JavaPluginManager pluginManager =
-            new JavaPluginManager(this, events, services, permissionRegistry, config.general().pluginsPath());
-    private final OperatorList operators = new OperatorList(Path.of("ops.json"));
-    private final FidorialBanManager fidorialBanManager = new FidorialBanManager(Path.of("banned-players.json"), Path.of("banned-ips.json"));
-    private final FidorialWhitelist fidorialWhitelist = new FidorialWhitelist(Path.of("whitelist.json"));
-    private final FidorialOfflinePlayers offlinePlayers = new FidorialOfflinePlayers(
-            this,
-            config.worlds().path().resolve("player").resolve("profiles.fop"),
-            PROFILE_CACHE_TTL,
-            PROFILE_CACHE_MAX_ENTRIES,
-            config.network().onlineMode());
-    private final NettyServer network = new NettyServer(this, config.network().port());
-    private final FidorialMetrics metricsCollector = new FidorialMetrics(this);
-    private final FidorialContext metrics = new FidorialContext.Factory(this, FASTSTATS_TOKEN)
-            .errorTrackerService(ERROR_TRACKER)
-            .metrics(metricsCollector::create)
-            .create();
-    private final ConsoleSender console = new ConsoleSender(this);
-    private final @Nullable SparkService spark =
-            config.spark().enabled() ? new SparkService(this, config.spark().path()) : null;
-    private volatile @Nullable Iterable<? extends Audience> adventure$audiences;
-
-    private @Nullable Favicon favicon = loadFavicon();
-    private Component description = config.status().motd();
-    private int maxPlayers = config.status().maxPlayers();
+    private final AtomicReference<ServerState> state = new AtomicReference<>(ServerState.CREATED);
     private final boolean headless;
+    private final ServerConfiguration config;
+    private final FidorialServerListing listing;
+    private final SimpleEventBus events = new SimpleEventBus();
+    private final ServiceRegistry services = new SimpleServiceRegistry();
+    private final ModuleManager modules = new ModuleManager(services, this);
+
+    private final TelemetryModule telemetry;
+    private final RegistryModule registries;
+    private final WorkerModule workers;
+    private final ModerationModule moderation;
+    private final PlayerModule players;
+    private final EntityModule entities;
+    private final DebugModule debug;
+    private final WorldModule worlds;
+    private final MapModule maps;
+    private final CommandModule commands;
+    private final NetworkModule network;
+    private final PluginModule plugins;
+
+    private volatile @Nullable Iterable<? extends Audience> audiences;
 
     public FidorialServer() throws IOException {
         this(false);
     }
 
+    /**
+     * Builds every module
+     *
+     * @param headless {@code true} to run without network nor console (tests)
+     */
     public FidorialServer(final boolean headless) throws IOException {
-        if (instance != null) {
+        if (INSTANCE.get() != null) {
             throw new IllegalStateException("FidorialServer is already initialized");
         }
-        bootstrapItems();
+
+        final BuildSpecification build = VersionConstants.BUILD;
+        LOGGER.info("Starting Fidorial {} for Minecraft {} ({})", build.apiVersion(), build.minecraftVersion().name(),
+                build.buildNumber().isPresent() ? "build " + build.buildNumber().getAsInt() : "local");
+        LOGGER.debug("Version {}, protocol {}, data version {}", build.version(), build.protocolVersion(), DATA_VERSION);
+
+        GameBootstrap.bootstrap();
         this.headless = headless;
+        this.config = ServerConfiguration.load();
         this.listing = new FidorialServerListing(config);
-        instance = this;
-        commandManager = new CommandManager();
-        gameRules.addListener(this::syncGameRule);
-    }
 
-    public static FidorialServer getInstance() {
-        if (instance == null) {
-            throw new RuntimeException("FidorialServer is not initialized");
+        try {
+            telemetry = modules.add(new TelemetryModule(this));
+            registries = modules.add(new RegistryModule());
+            workers = modules.add(new WorkerModule(config));
+            moderation = modules.add(new ModerationModule(config));
+            players = modules.add(new PlayerModule(this, config, services, moderation));
+            entities = modules.add(new EntityModule(this, config, workers, players));
+            debug = modules.add(new DebugModule(workers, players, entities));
+            worlds = modules.add(new WorldModule(config, events, services, registries, workers, players, entities, debug));
+            maps = modules.add(new MapModule(this));
+            commands = modules.add(new CommandModule(this, headless, registries, services));
+            network = modules.add(new NetworkModule(this, config, headless, registries));
+            plugins = modules.add(new PluginModule(this, config, events, services, registries));
+        } catch (final Throwable t) {
+            modules.shutdown(); // releases the threads of the modules already built
+            throw t;
         }
-        return instance;
-    }
 
-    private static void bootstrapItems() {
-
-        ItemProperties.bootstrap();
-
-        ItemDefaults.install(new ItemDefaults.Source() {
-
+        players.connections().addListener(new PlayerList.Listener() {
             @Override
-            public int maxStackSize(final Key item) {
-                return ItemProperties.maxStackSize(item);
+            public void onConnect(final ClientConnection connection) {
+                audiences = null;
             }
 
             @Override
-            public int maxDamage(final Key item) {
-                return ItemProperties.maxDamage(item);
+            public void onDisconnect(final ClientConnection connection) {
+                audiences = null;
             }
         });
+
+        if (!INSTANCE.compareAndSet(null, this)) {
+            modules.shutdown();
+            throw new IllegalStateException("FidorialServer is already initialized");
+        }
     }
 
-    private static FidorialBlockRegistry bootstrapBlocks() {
-        final FidorialBlockRegistry registry = new FidorialBlockRegistry();
-        BlockStateIds.registerAll(registry);
-        BlockStates.bootstrap(registry);
-        BlockStateLightProperties.bootstrap();
-        Blocks.bootstrap(registry);
-        LOGGER.info("{} blocks defined in code", registry.definedCount());
-        return registry;
+    /**
+     * {@return the server}
+     *
+     * @throws IllegalStateException if no server is fully constructed yet
+     */
+    public static FidorialServer getInstance() {
+        final FidorialServer server = INSTANCE.get();
+        if (server == null) {
+            throw new IllegalStateException("FidorialServer is not initialized yet. Do not call getInstance() from a "
+                    + "constructor or a static initializer: resolve the server when it is actually used.");
+        }
+        return server;
+    }
+
+    public static boolean isInitialized() {
+        return INSTANCE.get() != null;
     }
 
     public void start() throws Exception {
-        if (!running.compareAndSet(false, true)) {
-            return;
-        }
-        LOGGER.info("Starting Fidorial (Minecraft {} / protocol {})", minecraftVersion(), protocolVersion());
-        try {
-            metrics.ready();
-            loadData();
-            registerDefaultServices();
-            enableSpark();
-            loadPlugins();
-            openWorlds();
-            regionizer.registerTickHandler(new EntityTickHandler(worldManager, this));
-            regionizer.addTickProfiler(new DebugSampleBroadcaster(debugSubscribers, this::players));
-            if (metrics.metrics().isPresent()) {
-                regionizer.addTickProfiler(metricsCollector.tickProfiler());
+        if (!state.compareAndSet(ServerState.CREATED, ServerState.STARTING)) {
+            if (state.get().isActive()) {
+                return;
             }
-            syncServerStatusToRegistries(true);
-            DebugChannels.bootstrap();
+            throw new IllegalStateException("A server that has been shut down cannot be started again");
+        }
+        try {
+            modules.load();
+            modules.start();
             if (!headless) {
-                network.bind();
-                startAutoSave();
-                console.setLocale(Locale.getDefault());
-                new ConsoleCommandReader(commandManager, running::get).start();
-                pluginManager.enableAll();
-                LOGGER.info("Listening on port {}", config.network().port());
-            } else {
-                pluginManager.enableAll();
+                modules.startAutoSave(config.general().autoSaveSeconds());
+            }
+            if (!state.compareAndSet(ServerState.STARTING, ServerState.RUNNING)) {
+                LOGGER.warn("The server was stopped while it was starting");
+                return;
             }
             events.post(new ServerStartedEvent(this));
-            metricsCollector.onServerStarted();
+            modules.started();
         } catch (final InvalidConfigurationException e) {
             shutdown();
             throw e;
@@ -340,248 +179,84 @@ public final class FidorialServer implements Server {
         }
     }
 
-    private void syncServerStatusToRegistries(final boolean started) {
-        biomeRegistry().started.getAndSet(started);
-        dimensionTypes().started.getAndSet(started);
-        chatTypes().started.getAndSet(started);
-    }
-
     @Override
     public void shutdown() {
-        if (!running.compareAndSet(true, false)) {
+        final ServerState previous = state.getAndUpdate(s -> s == ServerState.STOPPED ? s : ServerState.STOPPING);
+        if (previous == ServerState.STOPPING || previous == ServerState.STOPPED) {
             return;
         }
 
         LOGGER.info("Stopping the Fidorial server...");
-        events.post(new ServerStoppingEvent(this));
-        onlinePlayers().forEach(player -> player.kick(Component.translatable("commands.stop.stopping")));
-        syncServerStatusToRegistries(false);
-
-        closeQuietly("plugins", pluginManager::close);
-        closeQuietly("spark", this::disableSpark);
-        closeQuietly("commands", commandManager::shutdown);
-        closeQuietly("click callbacks", clickCallbackManager::close);
-        closeQuietly("bossbars", bossBarRegistry::close);
-        closeQuietly("day/night cycle", dayNightEngine::close);
-        closeQuietly("network", network::shutdown);
-        closeQuietly("light engine", lightDispatcher::shutdown);
-        closeQuietly("auto-save", autoSave::shutdownNow);
-        closeQuietly("ai", aiWorker::shutdown);
-        closeQuietly("regions", regionizer::shutdown);
-        closeQuietly("chunks", chunkWorker::shutdown);
-        closeQuietly("structures", structureService::shutdown);
-        closeQuietly("weather", weatherEngine::close);
-        closeQuietly("profiles", offlinePlayers::close);
-        closeQuietly("worlds", worldManager::close);
-        closeQuietly("metrics", metrics::shutdown);
-
-        LOGGER.info("Fidorial shut down correctly.");
-    }
-
-    private @Nullable Favicon loadFavicon() {
-        final Path serverIcon = Path.of("server-icon.png");
-        if (Files.isRegularFile(serverIcon)) try {
-            return Favicon.read(serverIcon);
-        } catch (final Exception e) {
-            LOGGER.warn("Could not load server icon", e);
+        if (previous != ServerState.CREATED) {
+            Quietly.run("stopping event", () -> events.post(new ServerStoppingEvent(this)));
+            Quietly.run("kicking players", () -> players.online()
+                    .forEach(player -> player.kick(Component.translatable("commands.stop.stopping"))));
+            Quietly.run("registries", () -> registries.setStarted(false));
         }
-        return null;
+        modules.shutdown();
+        state.set(ServerState.STOPPED);
+        LOGGER.debug("Fidorial shut down correctly.");
     }
 
-    private void loadData() {
-        TranslationStore.setStore(builtInTranslationStore);
-        operators.load();
-        fidorialBanManager.load();
-        fidorialWhitelist.load();
-        try {
-            offlinePlayers.load();
-        } catch (final IOException e) {
-            LOGGER.error("Profile cache unreadable, starting with an empty one", e);
-        }
-    }
-
-    private void openWorlds() {
-        structureService.load();
-        worldManager.setStructureService(structureService);
-        worldManager.setChunkLoader(chunkWorker);
-        worldManager.setLightDispatcher(lightDispatcher);
-        fluidEngine.setLightHook(lightDispatcher::queueBlockChange);
-        fluidEngine.setDebugEvents(debugGameEvents);
-        blockEdits.setDebugEvents(debugGameEvents);
-        worldManager.setEntityBridge(entityIds::allocate, new EntitySpawnBridge() {
-            @Override
-            public void onEntityAppear(final Entity entity) {
-                if (entity instanceof AbstractMob && entity.world() instanceof final ServerWorld world) {
-                    regionizer.addTicket(world.dimension().id(), entity.chunk());
-                }
-                entityTracker.update(entity, players());
-            }
-
-            @Override
-            public void onEntityDisappear(final Entity entity) {
-                if (entity instanceof AbstractMob && entity.world() instanceof final ServerWorld world) {
-                    regionizer.removeTicket(world.dimension().id(), entity.chunk());
-                }
-                entityTracker.untrack(entity);
-            }
-        });
-        worldManager.setDefaultWorld(config.worlds().defaultWorld());
-        worldManager.setDefaultGenerator(new ServiceBackedChunkGenerator(
-                services,
-                FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));
-        worldManager.overworld();
-        weatherEngine.start();
-        dayNightEngine.start();
-        bossBarRegistry.loadFromLevelData();
-    }
-
-    private void registerDefaultServices() {
-        services.register(PermissionRegistry.class, permissionRegistry, this, ServicePriority.LOWEST);
-        services.register(FluidManager.class, fluidEngine, this, ServicePriority.LOWEST);
-        services.register(WeatherManager.class, weatherEngine, this, ServicePriority.LOWEST);
-        services.register(GameRules.class, gameRules, this, ServicePriority.LOWEST); // Todo : Currently, plugins cannot implement their own system.
-        services.register(CombatService.class, combat, this, ServicePriority.LOWEST);
-        services.register(BlockEditService.class, blockEdits, this, ServicePriority.LOWEST); // Todo : Currently, plugins cannot implement their own system.
-        services.register(CommandRegistry.class, commandManager, this, ServicePriority.LOWEST);
-        services.register(PlayerInventoryStorage.class, defaultInventoryStorage, this, ServicePriority.LOWEST);
-        services.register(PlayerDataStorage.class, defaultPlayerDataStorage, this, ServicePriority.LOWEST);
-        services.register(PlayerEnderChestStorage.class, defaultEnderChestStorage, this, ServicePriority.LOWEST);
-        services.register(BossBarRegistry.class, bossBarRegistry, this, ServicePriority.LOWEST); // Todo : Currently, plugins cannot implement their own system.
-        services.register(OfflinePlayers.class, offlinePlayers, this, ServicePriority.LOWEST);
-        services.register(BanManager.class, fidorialBanManager, this, ServicePriority.LOWEST);
-        services.register(WhitelistManager.class, fidorialWhitelist, this, ServicePriority.LOWEST);
-        services.register(MobRegistry.class, mobRegistry, this, ServicePriority.LOWEST);
-        services.register(StructureManager.class, structureService, this, ServicePriority.LOWEST);
-    }
-
-    private void enableSpark() {
-        if (spark == null) {
-            LOGGER.debug("spark is disabled by configuration");
-            return;
-        }
-        spark.enable();
-    }
-
-    private void disableSpark() {
-        if (spark != null) {
-            spark.disable();
-        }
-    }
-
-    public @Nullable SparkService spark() {
-        return spark;
-    }
-
-    private void loadPlugins() throws IOException {
-        DefaultPermissions.register(permissionRegistry);
-        pluginManager.loadAll();
-    }
-
-    private final AtomicBoolean autoSaveInProgress = new AtomicBoolean(false);
-
-    private void startAutoSave() {
-        final int interval = config.general().autoSaveSeconds();
-        autoSave.scheduleAtFixedRate(
-                () -> {
-                    if (!autoSaveInProgress.compareAndSet(false, true)) {
-                        LOGGER.debug("Skipping automatic save tick, previous one is still running");
-                        return;
-                    }
-                    try {
-                        worldManager.saveDirty();
-                        offlinePlayers.maintain();
-                        fidorialBanManager.purgeExpired();
-                        worldManager.unloadUnusedChunks()
-                                .whenComplete((n, t) -> {
-                                    if (t != null) {
-                                        LOGGER.error("An error occurred while unloading chunks during the automatic save:", t);
-                                    } else if (n > 0) {
-                                        LOGGER.debug("{} unloaded chunks", n);
-                                    }
-                                    autoSaveInProgress.set(false);
-                                });
-                    } catch (final Throwable t) {
-                        LOGGER.error("An error occurred during the automatic save:", t);
-                        autoSaveInProgress.set(false);
-                    }
-                },
-                interval,
-                interval,
-                TimeUnit.SECONDS);
-    }
-
-    private void closeQuietly(final String what, final ThrowingRunnable action) {
-        try {
-            action.run();
-        } catch (final Throwable t) {
-            LOGGER.error("Stopping subsystem '{}' due to an error", what, t);
-        }
-    }
-
-    private void invalidateAudiences() {
-        adventure$audiences = null;
+    public ServerState state() {
+        return state.get();
     }
 
     @Override
-    public Iterable<? extends Audience> audiences() {
-        Iterable<? extends Audience> audiences = this.adventure$audiences;
-        if (audiences == null) {
-            audiences = Iterables.concat(
-                    Collections.singleton(console), playerSnapshot);
-            this.adventure$audiences = audiences;
-        }
-        return audiences;
+    public boolean isRunning() {
+        return state.get().isActive();
+    }
+
+    public boolean isHeadless() {
+        return headless;
+    }
+
+    public ServerConfiguration config() {
+        return config;
+    }
+
+    public ModuleManager modules() {
+        return modules;
     }
 
     @Override
-    public StructureService structures() {
-        return structureService;
+    public FidorialServerListing listing() {
+        return listing;
     }
 
     @Override
-    public FidorialGameRules gameRules() {
-        return gameRules;
-    }
-
-    private void syncGameRule(final @Nullable ServerWorld world, final GameRuleDefinition rule) {
-        final Key key = rule.key().key();
-        if (key.equals(GameRuleKeys.ADVANCE_TIME.key())) {
-            if (world == null) {
-                dayNightEngine.resyncAll();
-            } else {
-                dayNightEngine.resync(world);
-            }
-        } else if (key.equals(GameRuleKeys.REDUCED_DEBUG_INFO.key()) || key.equals(GameRuleKeys.IMMEDIATE_RESPAWN.key())) {
-            for (final ServerPlayer player : players()) {
-                if (!player.connection().isInPlayState()
-                        || !(player.world() instanceof final ServerWorld playerWorld)
-                        || (world != null && !playerWorld.equals(world))) {
-                    continue;
-                }
-                gameRules.syncTo(playerWorld, player.entityId(), player.connection()::send);
-            }
-        }
-        LOGGER.debug("Game rule {} changed in {}", key.asString(), world == null ? "every world" : world.key());
+    public PlayerModule players() {
+        return players;
     }
 
     @Override
-    public String brandName() {
-        return "Fidorial";
+    public WorldModule worlds() {
+        return worlds;
     }
 
     @Override
-    public String minecraftVersion() {
-        return MINECRAFT_VERSION_ID;
+    public MapModule maps() {
+        return maps;
     }
 
     @Override
-    public int protocolVersion() {
-        return PROTOCOL_VERSION;
+    public RegistryModule registries() {
+        return registries;
+    }
+
+    @Override
+    public CommandModule commands() {
+        return commands;
+    }
+
+    @Override
+    public PluginModule plugins() {
+        return plugins;
     }
 
     @Override
     public RegionizedScheduler scheduler() {
-        return regionizer;
+        return workers.regionizer();
     }
 
     @Override
@@ -594,369 +269,52 @@ public final class FidorialServer implements Server {
         return services;
     }
 
-    public OperatorList operators() {
-        return operators;
-    }
-
-    @Override
-    public BanManager bans() {
-        return fidorialBanManager;
-    }
-
-    @Override
-    public WhitelistManager whitelist() {
-        return fidorialWhitelist;
-    }
-
-    @Override
-    public PermissionRegistry permissions() {
-        return permissionRegistry;
-    }
-
-    @Override
-    public BiomeRegistry biomes() {
-        return registries.biomes();
-    }
-
-    @Override
-    public FidorialDialogRegistry dialogs() {
-        return registries.dialogs();
-    }
-
-    @Override
-    public FidorialDimensionTypeRegistry dimensionTypes() {
-        return registries.dimensionTypes();
-    }
-
-    @Override
-    public FidorialMobRegistry mobs() {
-        return mobRegistry;
-    }
-
-    @Override
-    public FidorialMobEffectRegistry effects() {
-        return effectRegistry;
-    }
-
-    @Override
-    public FidorialServerListing listing() {
-        return listing;
-    }
-
-    @Override
-    public FidorialChatTypeRegistry chatTypes() {
-        return registries.chatTypes();
-    }
-
-    @Override
-    public FidorialItemRegistry items() {
-        return itemRegistry;
-    }
-
-    public FidorialBiomeRegistry biomeRegistry() {
-        return registries.biomes();
-    }
-
-    public PluginManager plugins() {
-        return pluginManager;
-    }
-
-    @Override
-    public Collection<? extends World> worlds() {
-        return worldManager.worlds();
-    }
-
-    @Override
-    public Optional<? extends World> world(final Key key) {
-        return worlds().stream().filter(w -> w.key().equals(key)).findFirst();
-    }
-
-    public DebugSubscribers debugSubscribers() {
-        return debugSubscribers;
-    }
-
-    public EntityDebugSynchronizer entityDebug() {
-        return entityDebug;
-    }
-
-    public DebugGameEvents debugGameEvents() {
-        return debugGameEvents;
-    }
-
-    @Override
-    public World createWorld(final WorldSpec spec) {
-        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), false);
-    }
-
-    @Override
-    public boolean unloadWorld(final Key key, final boolean save) {
-        try {
-            return worldManager.unloadWorld(key, save) != null;
-        } catch (final IOException e) {
-            LOGGER.error("Saving world {} before unloading failed", key, e);
-            return false;
-        }
-    }
-
-    @Override
-    public Optional<Key> defaultWorld() {
-        return worldManager.defaultWorldKey();
-    }
-
-    @Override
-    public void defaultWorld(final @Nullable Key key) {
-        worldManager.setDefaultWorld(key);
-    }
-
-    @Override
-    public Collection<? extends Player> onlinePlayers() {
-        return playerSnapshot;
-    }
-
-    @Override
-    public Optional<? extends Player> player(final UUID uuid) {
-        return onlinePlayers().stream().filter(p -> p.uuid().equals(uuid)).findFirst();
-    }
-
-    @Override
-    public Optional<? extends Player> player(final String name) {
-        return onlinePlayers().stream()
-                .filter(p -> p.name().equalsIgnoreCase(name))
-                .findFirst();
-    }
-
-    @Override
-    public FidorialOfflinePlayers offlinePlayers() {
-        return offlinePlayers;
-    }
-
-    @Override
-    public boolean isRunning() {
-        return running.get();
-    }
-
-    public ServerConfiguration config() {
-        return config;
-    }
-
-    public KeyPair keyPair() {
-        return keyPair;
-    }
-
-    public MojangSessionService sessionService() {
-        return sessionService;
-    }
-
-    public MojangChatSigningKeys chatSigningKeys() {
-        return chatSigningKeys;
-    }
-
-    public ProtocolMap protocolMap() {
-        return protocolMap;
-    }
-
-    public Registries registries() {
-        return registries;
-    }
-
-    public RegistryHolder dynamicRegistries() {
-        return registries.dynamic();
-    }
-
-    public ChunkNetworkSerializer chunkSerializer() {
-        return chunkSerializer;
-    }
-
-    public ThreadedRegionRegionizer regionizer() {
-        return regionizer;
-    }
-
-    public ThreadedChunkWorker chunkWorker() {
-        return chunkWorker;
-    }
-
-    public AiWorker aiWorker() {
-        return aiWorker;
-    }
-
-    public CommandManager commandManager() {
-        return commandManager;
-    }
-
-    public ClickCallbackManager clickCallbacksManager() {
-        return clickCallbackManager;
-    }
-
-    public CodeOfConductManager codeOfConduct() {
-        return codeOfConduct;
-    }
-
-    @Override
-    public CommandRegistry commands() {
-        return commandManager;
-    }
-
-    public WorldManager worldManager() {
-        return worldManager;
-    }
-
-    public PlayerInventoryStorage playerInventoryStorage() {
-        return services.find(PlayerInventoryStorage.class).orElse(defaultInventoryStorage);
-    }
-
-    public ChestViewerTracker chestViewers() {
-        return chestViewers;
-    }
-
-    public PlayerEnderChestStorage playerEnderChestStorage() {
-        return services.find(PlayerEnderChestStorage.class).orElse(defaultEnderChestStorage);
-    }
-
-    public PlayerDataStorage playerDataStorage() {
-        return services.find(PlayerDataStorage.class).orElse(defaultPlayerDataStorage);
-    }
-
-    public BossBarRegistry bossBarRegistry() {
-        return services.find(BossBarRegistry.class).orElse(bossBarRegistry);
-    }
-
-    public BlockStateRegistry blockStateRegistry() {
-        return blockStateRegistry;
-    }
-
-    public ConsoleSender getConsole() {
-        return console;
-    }
-
-    public WeatherEngine weatherEngine() {
-        return weatherEngine;
-    }
-
-    public DayNightThread dayNightEngine() {
-        return dayNightEngine;
-    }
-
-    public BlockEditService blockEdits() {
-        return blockEdits;
-    }
-
-    public EntityIdAllocator entityIds() {
-        return entityIds;
-    }
-
-    public void spawnEntity(final AbstractEntity entity) {
-        if (!(entity.world() instanceof final ServerWorld world)) {
-            throw new IllegalArgumentException("Cannot summon an entity into a non-existent or unloaded world :" + entity);
-        }
-
-        world.addEntity(entity);
-
-        if (entity instanceof AbstractMob) {
-            regionizer.addTicket(world.dimension().id(), entity.chunk());
-        }
-
-        entityTracker.update(entity, players());
-    }
-
-    public void despawnEntity(final AbstractEntity entity) {
-        if (entity.world() instanceof final ServerWorld world) {
-            world.removeEntity(entity);
-
-            if (entity instanceof AbstractMob) {
-                regionizer.removeTicket(world.dimension().id(), entity.chunk());
-            }
-        }
-
-        entity.remove();
-
-        entityTracker.untrack(entity);
-    }
-
-    public void addPlayerConnection(final ClientConnection connection) {
-        connections.add(connection);
-        metricsCollector.recordPlayerCount(connections.size());
-        refreshPlayerSnapshot();
-        debugSubscribers.recompute();
-    }
-
-    public void removePlayerConnection(final ClientConnection connection) {
-        if (connection.player() != null) {
-            connection.player().clearActiveBossBars();
-        }
-        connections.remove(connection);
-        entityTracker.removeViewer(connection);
-        refreshPlayerSnapshot();
-        debugSubscribers.recompute();
-    }
-
-    public NettyServer network() {
-        return network;
-    }
-
-    public EntityTracker entityTracker() {
-        return entityTracker;
-    }
-
-    public List<ServerPlayer> players() {
-        return playerSnapshot;
-    }
-
-    private void refreshPlayerSnapshot() {
-        final List<ServerPlayer> snapshot = new ArrayList<>(connections.size());
-        for (final ClientConnection connection : connections) {
-            final ServerPlayer player = connection.player();
-            if (player != null) {
-                snapshot.add(player);
-            }
-        }
-        this.playerSnapshot = List.copyOf(snapshot);
-        invalidateAudiences();
-    }
-
-    public void broadcastNear(
-            final World world, final double x, final double y, final double z, final ClientboundPacket packet) {
-        final double radius = config.general().sendDistance() * 16.0 + 16.0;
-        final double radiusSq = radius * radius;
-        for (final ServerPlayer player : players()) {
-            if (player.isRemoved() || !player.world().equals(world)) {
-                continue;
-            }
-            final Location loc = player.location();
-            final double dx = loc.x() - x;
-            final double dy = loc.y() - y;
-            final double dz = loc.z() - z;
-            if (dx * dx + dy * dy + dz * dz <= radiusSq) {
-                player.connection().send(packet);
-            }
-        }
-    }
-
-    public void broadcast(final ClientboundPacket packet) {
-        for (final ClientConnection connection : connections) {
-            connection.send(packet);
-        }
-    }
-
-    @Override
-    public int playerCount() {
-        return connections.size();
-    }
-
-    public CombatEngine combat() {
-        return combat;
-    }
-
     @Override
     public TranslationStore translationStore() {
         return TranslationStore.current();
     }
 
-    public World createWorldSilent(final WorldSpec spec) {
-        return worldManager.createWorld(spec.key(), spec.seed(), spec.generator().orElse(null), true);
+    public WorkerModule workers() {
+        return workers;
     }
 
-    @FunctionalInterface
-    private interface ThrowingRunnable {
-        void run() throws Exception;
+    public ModerationModule moderation() {
+        return moderation;
+    }
+
+    public EntityModule entities() {
+        return entities;
+    }
+
+    public DebugModule debug() {
+        return debug;
+    }
+
+    public NetworkModule network() {
+        return network;
+    }
+
+    public TelemetryModule telemetry() {
+        return telemetry;
+    }
+
+    @Override
+    public String brandName() {
+        return "Fidorial";
+    }
+
+    @Override
+    public BuildSpecification buildSpecification() {
+        return VersionConstants.BUILD;
+    }
+
+    @Override
+    public Iterable<? extends Audience> audiences() {
+        Iterable<? extends Audience> cached = this.audiences;
+        if (cached == null) {
+            cached = Iterables.concat(Collections.singleton(commands.console()), players.online());
+            this.audiences = cached;
+        }
+        return cached;
     }
 }

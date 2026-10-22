@@ -34,9 +34,10 @@ import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
@@ -45,6 +46,7 @@ import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterable;
+import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -94,9 +96,12 @@ public final class ServerWorld implements World {
     private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =
             ConcurrentChainedLong2ReferenceHashTable.createWithExpected(1024);
 
-    private final ConcurrentLongSet dirty = new ConcurrentLongSet();
+    private final ConcurrentChainedLong2ReferenceHashTable<CompletableFuture<@Nullable ChunkColumn>> loading =
+            new ConcurrentChainedLong2ReferenceHashTable<>();
+
+    private final ConcurrentLongSet dirty = new ConcurrentLongSet(1024);
     private final ConcurrentLongSet entitiesDirty = new ConcurrentLongSet();
-    private final ConcurrentLongSet entitiesLoaded = new ConcurrentLongSet();
+    private final ConcurrentLongSet entitiesLoaded = new ConcurrentLongSet(1024);
 
     private final COWArrayList<ChunkViewSource> viewers = new COWArrayList<>(ChunkViewSource.class);
     private volatile @Nullable AsyncChunkLoader chunkLoader;
@@ -213,9 +218,9 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public Optional<Key> blockKeyAt(final BlockPos pos) {
+    public Optional<Key> blockKeyAt(final BlockPosition pos) {
         try {
-            final BlockState state = getBlock(pos.x(), pos.y(), pos.z());
+            final BlockState state = getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
             if (state.isAir()) {
                 return Optional.empty();
             }
@@ -230,20 +235,20 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public int blockStateId(final BlockPos pos) {
+    public int blockStateId(final BlockPosition pos) {
         try {
-            return blockStates.networkId(getBlock(pos.x(), pos.y(), pos.z()));
+            return blockStates.networkId(getBlock(pos.blockX(), pos.blockY(), pos.blockZ()));
         } catch (final IOException e) {
             throw new UncheckedIOException("Failed to read block " + pos, e);
         }
     }
 
     @Override
-    public CompletableFuture<Boolean> setBlockStateId(final BlockPos pos, final int stateId) {
+    public CompletableFuture<Boolean> setBlockStateId(final BlockPosition pos, final int stateId) {
         final CompletableFuture<Boolean> future = new CompletableFuture<>();
         final boolean scheduled = this.scheduler().execute(dimension.id(), pos.chunk(), () -> {
             try {
-                future.complete(setBlock(pos.x(), pos.y(), pos.z(), blockStates.byId(stateId)));
+                future.complete(setBlock(pos.blockX(), pos.blockY(), pos.blockZ(), blockStates.byId(stateId)));
             } catch (final IOException e) {
                 future.completeExceptionally(new UncheckedIOException("Failed to write block " + pos, e));
             }
@@ -253,18 +258,18 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public int blockLight(final BlockPos pos) {
-        return blockLightAt(pos.x(), pos.y(), pos.z());
+    public int blockLight(final BlockPosition pos) {
+        return blockLightAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
-    public int skyLight(final BlockPos pos) {
-        return skyLightAt(pos.x(), pos.y(), pos.z());
+    public int skyLight(final BlockPosition pos) {
+        return skyLightAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
-    public int lightLevel(final BlockPos pos) {
-        return lightLevelAt(pos.x(), pos.y(), pos.z());
+    public int lightLevel(final BlockPosition pos) {
+        return lightLevelAt(pos.blockX(), pos.blockY(), pos.blockZ());
     }
 
     @Override
@@ -318,24 +323,36 @@ public final class ServerWorld implements World {
         if (cached != null) {
             return cached;
         }
-        final ChunkColumn column;
-        try {
-            column = loaded.computeIfAbsent(k, _ -> {
-                try {
-                    final ChunkColumn fromDisk = storage.load(dimension, chunkX, chunkZ, dimensionType.minY(), dimensionType.height());
-                    if (fromDisk != null) {
-                        return fromDisk;
-                    }
-                    dirty.add(k);
-                    return generator.generate(chunkX, chunkZ);
-                } catch (final IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        } catch (final UncheckedIOException e) {
-            throw e.getCause();
+
+        final CompletableFuture<@Nullable ChunkColumn> pending = new CompletableFuture<>();
+        final CompletableFuture<@Nullable ChunkColumn> existing = loading.putIfAbsent(k, pending);
+        if (existing != null) {
+            final ChunkColumn column = existing.join();
+            return column != null ? column : getChunk(chunkX, chunkZ); // failed, retry
         }
 
+        try {
+            // a previous loader may have published it between the get and the putIfAbsent
+            final ChunkColumn raced = loaded.get(k);
+            final ChunkColumn column = raced != null ? raced : load(chunkX, chunkZ, k);
+            pending.complete(column);
+            return column;
+        } finally {
+            loading.remove(k);
+            pending.complete(null);
+        }
+    }
+
+    private ChunkColumn load(final int chunkX, final int chunkZ, final long key) throws IOException {
+        final ChunkColumn fromDisk = storage.load(dimension, chunkX, chunkZ, dimensionType.minY(), dimensionType.height());
+        final ChunkColumn column;
+        if (fromDisk != null) {
+            column = fromDisk;
+        } else {
+            column = generator.generate(chunkX, chunkZ);
+            dirty.add(key);
+        }
+        loaded.put(key, column);
         ensureEntitiesLoaded(chunkX, chunkZ);
         ensureLight(column, chunkX, chunkZ);
         return column;
@@ -356,7 +373,7 @@ public final class ServerWorld implements World {
 
     @Override
     public WorldGameRules gameRules() {
-        return FidorialServer.getInstance().gameRules().world(this);
+        return FidorialServer.getInstance().worlds().gameRules().world(this);
     }
 
     @Override
@@ -368,7 +385,9 @@ public final class ServerWorld implements World {
     public Set<ChunkPos> forceLoadedChunks() {
         final LongSet keys = forcedChunks.snapshot();
         final List<ChunkPos> positions = new ArrayList<>(keys.size());
-        for (final long key : keys) {
+        final LongIterator it = keys.iterator();
+        while (it.hasNext()) {
+            final long key = it.nextLong();
             positions.add(new ChunkPos((int) (key >> 32), (int) key));
         }
         return Set.copyOf(positions);
@@ -508,7 +527,7 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBlock(final int x, final int y, final int z, final BlockState state) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, new BlockPos(x, y, z), "setBlock");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBlock");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
@@ -527,7 +546,7 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBiome(final int x, final int y, final int z, final Key biome) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, new BlockPos(x, y, z), "setBiome");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBiome");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
@@ -551,7 +570,9 @@ public final class ServerWorld implements World {
         final LongSet snapshot = dirty.snapshot();
         lightFlushFuture(snapshot).whenComplete((_, _) -> {
             try {
-                for (final long k : snapshot) {
+                final LongIterator it = snapshot.iterator();
+                while (it.hasNext()) {
+                    final long k = it.nextLong();
                     final ChunkColumn chunk = loaded.get(k);
                     if (chunk != null) {
                         storage.save(dimension, chunk);
@@ -595,7 +616,9 @@ public final class ServerWorld implements World {
         }
         final Long2ObjectOpenHashMap<List<AbstractEntity>> byChunk = bucketPersistableEntities();
 
-        for (final long k : entitiesDirty.snapshot()) {
+        final LongIterator it = entitiesDirty.snapshot().iterator();
+        while (it.hasNext()) {
+            final long k = it.nextLong();
             if (!entitiesLoaded.contains(k)) {
                 entitiesDirty.remove(k);
                 continue;
@@ -643,7 +666,9 @@ public final class ServerWorld implements World {
 
         return lightFlushFuture(toUnload).thenApply(_ -> {
             int unloaded = 0;
-            for (final long k : toUnload) {
+            final LongIterator it = toUnload.iterator();
+            while (it.hasNext()) {
+                final long k = it.nextLong();
                 if (forcedChunks.contains(k)) {
                     continue; // forced while the light was being flushed
                 }
@@ -666,7 +691,7 @@ public final class ServerWorld implements World {
 
     public CompletableFuture<Void> unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) {
         final CompletableFuture<Void> flush = flushLight
-                ? lightFlushFuture(LongSet.of(ChunkPos.chunkKey(chunkX, chunkZ)))
+                ? lightFlushFuture(ChunkPos.chunkKey(chunkX, chunkZ))
                 : CompletableFuture.completedFuture(null);
         return flush.whenComplete((_, _) -> {
             try {
@@ -706,29 +731,21 @@ public final class ServerWorld implements World {
     @Override
     public CompletableFuture<Boolean> unloadChunkAsync(final int chunkX, final int chunkZ) {
         final long k = ChunkPos.chunkKey(chunkX, chunkZ);
-        if (!loaded.containsKey(k) || forcedChunks.contains(k)) {
+        if (!loaded.containsKey(k) || forcedChunks.contains(k) || isViewed(k)) {
             return CompletableFuture.completedFuture(false);
         }
-
-        final LongSet wanted = new LongOpenHashSet();
-        for (final ChunkViewSource viewer : viewers.getArray()) {
-            viewer.collectViewedChunks(wanted);
-        }
-        if (wanted.contains(k)) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        return lightFlushFuture(LongSet.of(k))
+        return lightFlushFuture(k)
                 .thenComposeAsync(_ -> unloadChunk(chunkX, chunkZ, false))
                 .thenApply(_ -> true);
     }
 
-    public LongSet collectAllViewedChunks() {
-        final LongSet wanted = new LongOpenHashSet();
+    public boolean isViewed(final long chunkKey) {
         for (final ChunkViewSource viewer : viewers.getArray()) {
-            viewer.collectViewedChunks(wanted);
+            if (viewer.isViewing(chunkKey)) {
+                return true;
+            }
         }
-        return wanted;
+        return false;
     }
 
     public @Nullable ChunkColumn loadedColumn(final int chunkX, final int chunkZ) {
@@ -761,6 +778,13 @@ public final class ServerWorld implements World {
                 : dispatcher.flush(dimension.id(), chunkKeys);
     }
 
+    private CompletableFuture<Void> lightFlushFuture(final long chunkKey) {
+        final LightUpdateDispatcher dispatcher = lightDispatcher;
+        return dispatcher == null
+                ? CompletableFuture.completedFuture(null)
+                : dispatcher.flush(dimension.id(), chunkKey);
+    }
+
     public LongSet checkBlockLight(final int x, final int y, final int z, final LightEngine engine) {
         final LongSet dirtyChunks = lightManager.checkBlock(x, y, z, engine);
         dirty.addAll(dirtyChunks);
@@ -771,7 +795,9 @@ public final class ServerWorld implements World {
         final LongSet needsFullRelight = new LongOpenHashSet();
         final LongSet needsEdgeCheck = new LongOpenHashSet();
 
-        for (final long key : chunkKeys) {
+        final LongIterator keys = chunkKeys.iterator();
+        while (keys.hasNext()) {
+            final long key = keys.nextLong();
             final ChunkColumn column = loadedColumn((int) (key >> 32), (int) key);
             if (column == null) {
                 continue;
@@ -779,11 +805,13 @@ public final class ServerWorld implements World {
             (column.lightPopulated() ? needsEdgeCheck : needsFullRelight).add(key);
         }
 
-        final LongSet dirty = new LongOpenHashSet();
+        final LongSet changed = new LongOpenHashSet();
 
         if (!needsFullRelight.isEmpty()) {
-            dirty.addAll(lightManager.relightChunks(needsFullRelight, engine));
-            for (final long key : needsFullRelight) {
+            changed.addAll(lightManager.relightChunks(needsFullRelight, engine));
+            final LongIterator relit = needsFullRelight.iterator();
+            while (relit.hasNext()) {
+                final long key = relit.nextLong();
                 final ChunkColumn column = loadedColumn((int) (key >> 32), (int) key);
                 if (column != null) {
                     column.setLightPopulated(true);
@@ -792,11 +820,11 @@ public final class ServerWorld implements World {
         }
 
         if (!needsEdgeCheck.isEmpty()) {
-            dirty.addAll(lightManager.checkChunkEdges(needsEdgeCheck, engine));
+            changed.addAll(lightManager.checkChunkEdges(needsEdgeCheck, engine));
         }
 
-        this.dirty.addAll(dirty);
-        return dirty;
+        dirty.addAll(changed);
+        return changed;
     }
 
     public WorldConfiguration configuration() {

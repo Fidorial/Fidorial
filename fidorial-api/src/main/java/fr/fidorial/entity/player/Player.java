@@ -1,0 +1,350 @@
+package fr.fidorial.entity.player;
+
+import fr.fidorial.attribute.Attribute;
+import fr.fidorial.command.CommandSender;
+import fr.fidorial.command.CommandSource;
+import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.LivingEntity;
+import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.profile.PlayerProfile;
+import fr.fidorial.event.player.PlayerJoinEvent;
+import fr.fidorial.event.player.PlayerQuitEvent;
+import fr.fidorial.inventory.EnderChestInventory;
+import fr.fidorial.inventory.PlayerInventory;
+import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.Location;
+import fr.fidorial.world.World;
+import net.kyori.adventure.bossbar.BossBarViewer;
+import net.kyori.adventure.identity.Identified;
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.object.ObjectContentsLike;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
+
+import java.net.InetAddress;
+import java.util.List;
+import java.util.OptionalDouble;
+import java.util.SequencedCollection;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Represents a player currently connected to the server.
+ * <p>
+ * A {@code Player} reference is not stable across the server lifecycle, as entering the
+ * CONFIGURATION phase (see {@link #enterConfigurationPhase()}) discards the
+ * underlying player and recreates it, which invalidates every reference held
+ * before that point.
+ * {@code Player} references should not be cached, as a reference obtained from an event or lookup is only
+ * guaranteed valid for the duration of that call. Instead, re-fetch by UUID or name via
+ * {@link PlayerManager#get(UUID)} or {@link PlayerManager#get(String)}.
+ *
+ * @since 0.1.0
+ */
+public interface Player extends LivingEntity, CommandSender, Identified, BossBarViewer, ObjectContentsLike {
+
+    /**
+     * Resends the command tree to the client, after permissions or registered commands changed.
+     *
+     * @since 0.1.0
+     */
+    void refreshCommands();
+
+    /**
+     * {@return the identity and skin of this player}
+     *
+     * @since 0.1.0
+     */
+    PlayerProfile profile();
+
+    /**
+     * Gets the offline handle for this player's identity.
+     *
+     * @return the handle for this player's identity
+     * @since 0.1.0
+     */
+    default OfflinePlayer offline() {
+        return server().players().offline().of(this);
+    }
+
+    @Override
+    default Identity identity() {
+        return Identity.identity(this.uuid());
+    }
+
+    @Override
+    default UUID uuid() {
+        return profile().uuid();
+    }
+
+    @Override
+    default String name() {
+        return profile().name();
+    }
+
+    /**
+     * Gets the address this player is connected from.
+     *
+     * @return the client address
+     * @throws IllegalStateException if the connection has no resolvable IP address
+     * @since 0.1.0
+     */
+    InetAddress address();
+
+    /**
+     * Gets the round-trip time between the server and this player's client.
+     *
+     * @return the round-trip time in milliseconds
+     * @since 0.1.0
+     */
+    int ping();
+
+    /**
+     * Disconnects this player.
+     *
+     * @param reason the message shown on the disconnection screen
+     * @since 0.1.0
+     */
+    void kick(Component reason);
+
+    /**
+     * {@return the inventory this player carries; call {@link #updateInventory()} after changing it}
+     *
+     * @since 0.1.0
+     */
+    PlayerInventory inventory();
+
+    /**
+     * {@return the ender chest of this player}
+     *
+     * @since 0.1.0
+     */
+    EnderChestInventory enderChest();
+
+    /**
+     * @return the hotbar slot ({@code 0}-{@code 8}) currently selected by this player
+     * @since 0.1.0
+     */
+    int selectedSlot();
+
+    /**
+     * @param slot the hotbar slot to select, {@code 0}-{@code 8}
+     * @throws IllegalArgumentException if {@code slot} is out of {@code [0, 8]}
+     * @since 0.1.0
+     */
+    void setSelectedSlot(int slot);
+
+    /**
+     * {@return the movement keys this player is holding, as last reported by their client}
+     *
+     * @since 0.1.0
+     */
+    PlayerInput input();
+
+    /**
+     * Changes the base value of an attribute for this player.
+     *
+     * <p>The player's client applies it at once: a {@link Attribute#MOVEMENT_SPEED movement speed} of
+     * {@code 0} stops them from walking, a {@link Attribute#BLOCK_INTERACTION_RANGE block interaction
+     * range} of {@code 0} from reaching any block. The value is kept until it is
+     * {@linkplain #resetAttributeBase(Key) reset} or the player disconnects, including across respawns
+     * and world changes. The client clamps it to the range of the attribute.</p>
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @param base      the new base value
+     * @throws IllegalArgumentException if the attribute does not exist or {@code base} is not finite
+     * @since 0.1.0
+     */
+    void setAttributeBase(Key attribute, double base);
+
+    /**
+     * Gives an attribute back the base value a vanilla player has.
+     *
+     * <p>Does nothing when the base value was not {@linkplain #setAttributeBase(Key, double) changed}.</p>
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @throws IllegalArgumentException if the attribute does not exist
+     * @since 0.1.0
+     */
+    void resetAttributeBase(Key attribute);
+
+    /**
+     * Returns the base value set for an attribute.
+     *
+     * @param attribute the attribute, see {@link Attribute}
+     * @return the value given to {@link #setAttributeBase(Key, double)}, or empty when the attribute has
+     * the base value a vanilla player has
+     * @since 0.1.0
+     */
+    OptionalDouble attributeBase(Key attribute);
+
+    /**
+     * @return the stack in the currently {@linkplain #selectedSlot() selected} hotbar slot,
+     * never {@code null} ({@link ItemStack#EMPTY} when nothing is held)
+     * @since 0.1.0
+     */
+    default ItemStack heldItem() {
+        return inventory().get(selectedSlot());
+    }
+
+    /**
+     * Replaces the stack in the currently {@linkplain #selectedSlot() selected} hotbar slot.
+     *
+     * @param stack the new stack, {@code null} is normalized to {@link ItemStack#EMPTY}
+     * @since 0.1.0
+     */
+    default void setHeldItem(final @Nullable ItemStack stack) {
+        inventory().set(selectedSlot(), stack);
+    }
+
+    /**
+     * {@return the current game mode of this player}
+     *
+     * @since 0.1.0
+     */
+    GameMode gameMode();
+
+    /**
+     * Changes the game mode of this player.
+     *
+     * @param gameMode the new game mode
+     * @since 0.1.0
+     */
+    void setGameMode(GameMode gameMode);
+
+    /**
+     * @return {@code true} while this player is dead and still on the respawn screen
+     * @since 0.1.0
+     */
+    boolean isAwaitingRespawn();
+
+    /**
+     * Respawns this player, exactly as if they had clicked the button on the death screen.
+     *
+     * <p>The respawn is queued on the region owning the player and happens on the next tick, so it
+     * is safe to call from a {@code PlayerDeathEvent} listener to skip the death screen entirely.
+     * The player comes back at their {@linkplain #respawnPoint() respawn point}, or at the world
+     * spawn when they have none, and a {@code PlayerRespawnEvent} is fired as usual.</p>
+     *
+     * @return a future completing with {@code true} once the player has actually been moved to
+     * their respawn point, or {@code false} if the respawn was refused (the player is not waiting to
+     * respawn or has left the server) or the move to the respawn point failed
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> respawn();
+
+    /**
+     * @return where this player respawns, or {@code null} when they use the world spawn
+     * @since 0.1.0
+     */
+    @Nullable RespawnPoint respawnPoint();
+
+    /**
+     * Sets where this player respawns. The point is saved with the rest of their data and restored
+     * on their next login.
+     *
+     * @param point the point to respawn at, or {@code null} to fall back to the world spawn
+     * @since 0.1.0
+     */
+    void setRespawnPoint(@Nullable RespawnPoint point);
+
+    /**
+     * @param world    the world to respawn in
+     * @param location the position to respawn at
+     * @since 0.1.0
+     */
+    default void setRespawnPoint(final World world, final Location location) {
+        setRespawnPoint(new RespawnPoint(world, location));
+    }
+
+    /**
+     * @param location the position to respawn at, in the player's current world
+     * @since 0.1.0
+     */
+    default void setRespawnPoint(final Location location) {
+        setRespawnPoint(new RespawnPoint(world(), location));
+    }
+
+    /**
+     * Switches this player's connection state from PLAY to CONFIGURATION.
+     * Useful for resending data synced during the CONFIGURATION phase.
+     *
+     * @apiNote This removes the player from the world fully and creates them anew,
+     * firing {@link PlayerQuitEvent}, {@link PlayerJoinEvent}, and saving their data to disk.
+     * Any reference to this {@link Player} held before this call should be considered stale.
+     * @return a future completing with {@code true} once the player's data is saved and the client
+     * has been told to switch, or {@code false} if the player is already switching, not in play,
+     * or cannot be switched
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> enterConfigurationPhase();
+
+    /**
+     * Updates the player's inventory on the client side.
+     *
+     * <p>This is useful when the server has changed the inventory contents, and the client needs to be
+     * informed of those changes. This method should be called after any modifications to the player's
+     * inventory, such as adding or removing items, to ensure that the client sees the correct state.
+     *
+     * @since 0.1.0
+     */
+    void updateInventory();
+
+    /**
+     * {@return the active post effects, in order}
+     *
+     * @since 0.1.0
+     */
+    @Unmodifiable
+    @Contract(pure = true)
+    List<Key> activePostEffects();
+
+    /**
+     * Replaces the currently active post effects.
+     *
+     * @param effects the post effect keys, in order
+     * @return a future completing with {@code true} if the active post effects changed, or {@code false} if
+     * they were already {@code effects}, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> setActivePostEffects(SequencedCollection<Key> effects);
+
+    /**
+     * Activates a post effect if it is not already active, adding it to the end of the list.
+     *
+     * @param effect the post effect key
+     * @return a future completing with {@code true} if it was activated, or {@code false} if it was
+     * already active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> activatePostEffect(Key effect);
+
+    /**
+     * Deactivates a post effect if it is active.
+     *
+     * @param effect the post effect key
+     * @return a future completing with {@code true} if it was deactivated, or {@code false} if it was not
+     * active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> deactivatePostEffect(Key effect);
+
+    /**
+     * Deactivates every active post effect.
+     *
+     * @return a future completing with {@code true} if any post effect was deactivated, or {@code false} if
+     * none were active, the change was cancelled, or the player left first
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> clearActivePostEffects();
+
+    @Override
+    default CommandSource commandSource() {
+        return CommandSource.of(this)
+                .as(this)
+                .at(this.location());
+    }
+}

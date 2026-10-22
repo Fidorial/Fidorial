@@ -1,5 +1,7 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.map.MapColor;
+import fr.fidorial.map.MapManager;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -55,5 +57,18 @@ public interface BlockBehaviour {
      */
     default int lightOpacity(final BlockData data) {
         return 15;
+    }
+
+    /**
+     * Returns the color terrain maps draw the state with.
+     *
+     * @param data the state
+     * @return the color, {@link MapColor#NONE} for a block maps look through, or {@code null} (the
+     *         default) to keep the vanilla color of the block
+     * @see MapManager#colorOf(BlockData)
+     * @since 0.1.0
+     */
+    default @Nullable MapColor mapColor(final BlockData data) {
+        return null;
     }
 }

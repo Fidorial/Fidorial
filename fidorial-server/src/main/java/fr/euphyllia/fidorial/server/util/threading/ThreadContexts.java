@@ -4,11 +4,11 @@ import fr.euphyllia.fidorial.server.plugin.PluginStackWalker;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerChunk;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.scheduler.SchedulerSource;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.Location;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -86,8 +86,8 @@ public final class ThreadContexts {
         throw violation;
     }
 
-    public static void checkOwnedByCurrentThread(final World world, final BlockPos pos, final String reason) {
-        final ChunkPos chunkPos = ChunkPos.fromBlock(pos.x(), pos.z());
+    public static void checkOwnedByCurrentThread(final World world, final BlockPosition pos, final String reason) {
+        final ChunkPos chunkPos = pos.chunk();
         if (world.scheduler().isOwnedByCurrentThread(world.key(), chunkPos)) {
             return;
         }

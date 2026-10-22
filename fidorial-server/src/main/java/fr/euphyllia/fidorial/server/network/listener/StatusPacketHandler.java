@@ -27,10 +27,10 @@ public final class StatusPacketHandler implements StatusPacketListener {
                 .favicon(server.listing().favicon().orElse(null))
                 .description(server.listing().description())
                 .maxPlayers(server.listing().maxPlayers())
-                .players(server.playerCount())
+                .players(server.players().count())
                 .version(new ServerStatus.Version(
-                        server.brandName() + " " + server.minecraftVersion(),
-                        server.protocolVersion()
+                        server.brandName() + " " + server.buildSpecification().minecraftVersion().id(),
+                        server.buildSpecification().protocolVersion()
                 ))
                 .enforceSecureChat(server.config().network().enforceSecureChat())
                 .build();

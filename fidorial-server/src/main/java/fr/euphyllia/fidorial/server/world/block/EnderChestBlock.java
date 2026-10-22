@@ -3,9 +3,9 @@ package fr.euphyllia.fidorial.server.world.block;
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.BlockPos;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
@@ -33,7 +33,7 @@ public final class EnderChestBlock implements BlockBehaviour {
         return KEY.equals(state.name());
     }
 
-    public static boolean isBlockedAbove(final ServerWorld world, final BlockPos pos) {
+    public static boolean isBlockedAbove(final ServerWorld world, final BlockPosition pos) {
         return ChestBlocks.isBlockedAbove(world, pos);
     }
 

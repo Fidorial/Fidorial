@@ -697,6 +697,11 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> BRICKS = create("bricks");
 
     /**
+     * Key for {@code minecraft:brittle_ice}.
+     */
+    public static final TypedKey<BlockType> BRITTLE_ICE = create("brittle_ice");
+
+    /**
      * Key for {@code minecraft:brown_banner}.
      */
     public static final TypedKey<BlockType> BROWN_BANNER = create("brown_banner");
@@ -1035,6 +1040,11 @@ public final class BlockTypeKeys {
      * Key for {@code minecraft:chiseled_nether_bricks}.
      */
     public static final TypedKey<BlockType> CHISELED_NETHER_BRICKS = create("chiseled_nether_bricks");
+
+    /**
+     * Key for {@code minecraft:chiseled_packed_ice}.
+     */
+    public static final TypedKey<BlockType> CHISELED_PACKED_ICE = create("chiseled_packed_ice");
 
     /**
      * Key for {@code minecraft:chiseled_polished_blackstone}.
@@ -2502,6 +2512,16 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> ICE = create("ice");
 
     /**
+     * Key for {@code minecraft:ice_crystal}.
+     */
+    public static final TypedKey<BlockType> ICE_CRYSTAL = create("ice_crystal");
+
+    /**
+     * Key for {@code minecraft:icicle}.
+     */
+    public static final TypedKey<BlockType> ICICLE = create("icicle");
+
+    /**
      * Key for {@code minecraft:infested_chiseled_stone_bricks}.
      */
     public static final TypedKey<BlockType> INFESTED_CHISELED_STONE_BRICKS = create("infested_chiseled_stone_bricks");
@@ -3710,6 +3730,26 @@ public final class BlockTypeKeys {
      * Key for {@code minecraft:packed_ice}.
      */
     public static final TypedKey<BlockType> PACKED_ICE = create("packed_ice");
+
+    /**
+     * Key for {@code minecraft:packed_ice_brick_slab}.
+     */
+    public static final TypedKey<BlockType> PACKED_ICE_BRICK_SLAB = create("packed_ice_brick_slab");
+
+    /**
+     * Key for {@code minecraft:packed_ice_brick_stairs}.
+     */
+    public static final TypedKey<BlockType> PACKED_ICE_BRICK_STAIRS = create("packed_ice_brick_stairs");
+
+    /**
+     * Key for {@code minecraft:packed_ice_brick_wall}.
+     */
+    public static final TypedKey<BlockType> PACKED_ICE_BRICK_WALL = create("packed_ice_brick_wall");
+
+    /**
+     * Key for {@code minecraft:packed_ice_bricks}.
+     */
+    public static final TypedKey<BlockType> PACKED_ICE_BRICKS = create("packed_ice_bricks");
 
     /**
      * Key for {@code minecraft:packed_mud}.
@@ -6579,6 +6619,7 @@ public final class BlockTypeKeys {
         BRICK_STAIRS,
         BRICK_WALL,
         BRICKS,
+        BRITTLE_ICE,
         BROWN_BANNER,
         BROWN_BED,
         BROWN_CANDLE,
@@ -6647,6 +6688,7 @@ public final class BlockTypeKeys {
         CHISELED_COPPER,
         CHISELED_DEEPSLATE,
         CHISELED_NETHER_BRICKS,
+        CHISELED_PACKED_ICE,
         CHISELED_POLISHED_BLACKSTONE,
         CHISELED_QUARTZ_BLOCK,
         CHISELED_RED_SANDSTONE,
@@ -6940,6 +6982,8 @@ public final class BlockTypeKeys {
         HORN_CORAL_FAN,
         HORN_CORAL_WALL_FAN,
         ICE,
+        ICE_CRYSTAL,
+        ICICLE,
         INFESTED_CHISELED_STONE_BRICKS,
         INFESTED_COBBLESTONE,
         INFESTED_CRACKED_STONE_BRICKS,
@@ -7182,6 +7226,10 @@ public final class BlockTypeKeys {
         OXIDIZED_CUT_COPPER_STAIRS,
         OXIDIZED_LIGHTNING_ROD,
         PACKED_ICE,
+        PACKED_ICE_BRICK_SLAB,
+        PACKED_ICE_BRICK_STAIRS,
+        PACKED_ICE_BRICK_WALL,
+        PACKED_ICE_BRICKS,
         PACKED_MUD,
         PALE_HANGING_MOSS,
         PALE_MOSS_BLOCK,

@@ -87,6 +87,6 @@ public record ClientboundContainerSetContentPacket(
 
     private int itemNetworkId(final ItemStack stack) {
         final int id = frozen.networkId(Key.key("minecraft", "item"), stack.id());
-        return Math.max(id, FidorialServer.getInstance().blockStateRegistry().networkId(BlockState.of(BlockTypeKeys.AIR.key()))); // air fallback
+        return Math.max(id, FidorialServer.getInstance().registries().blockStates().networkId(BlockState.of(BlockTypeKeys.AIR.key()))); // air fallback
     }
 }

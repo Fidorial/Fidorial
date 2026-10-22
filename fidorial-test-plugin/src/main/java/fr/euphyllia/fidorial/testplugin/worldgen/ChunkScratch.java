@@ -210,7 +210,13 @@ public final class ChunkScratch {
             for (int cellZ = 0; cellZ < 4; cellZ++) {
                 for (int cellX = 0; cellX < 4; cellX++) {
                     final Key biome = biomeCell(cellX, cellY, cellZ);
-                    chunk.setBiome(cellX << 2, worldY, cellZ << 2, biome);
+                    for (int dy = 0; dy < CELL; dy++) {
+                        for (int dz = 0; dz < CELL; dz++) {
+                            for (int dx = 0; dx < CELL; dx++) {
+                                chunk.setBiome((cellX << 2) | dx, worldY + dy, (cellZ << 2) | dz, biome);
+                            }
+                        }
+                    }
                 }
             }
         }

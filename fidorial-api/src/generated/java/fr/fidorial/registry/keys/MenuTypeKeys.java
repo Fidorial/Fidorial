@@ -102,6 +102,11 @@ public final class MenuTypeKeys {
     public static final TypedKey<MenuType> HOPPER = create("hopper");
 
     /**
+     * Key for {@code minecraft:jukebox}.
+     */
+    public static final TypedKey<MenuType> JUKEBOX = create("jukebox");
+
+    /**
      * Key for {@code minecraft:lectern}.
      */
     public static final TypedKey<MenuType> LECTERN = create("lectern");
@@ -155,6 +160,7 @@ public final class MenuTypeKeys {
         GENERIC_9X6,
         GRINDSTONE,
         HOPPER,
+        JUKEBOX,
         LECTERN,
         LOOM,
         MERCHANT,

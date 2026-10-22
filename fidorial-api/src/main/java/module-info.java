@@ -50,6 +50,8 @@ module fr.fidorial {
     exports fr.fidorial.event;
     exports fr.fidorial.gamerule;
     exports fr.fidorial.inventory;
+    exports fr.fidorial.map;
+    exports fr.fidorial.math;
     exports fr.fidorial.permission;
     exports fr.fidorial.plugin;
     exports fr.fidorial.registry.data;
@@ -61,6 +63,7 @@ module fr.fidorial {
     exports fr.fidorial.status;
     exports fr.fidorial.storage.player;
     exports fr.fidorial.translation;
+    exports fr.fidorial.version;
     exports fr.fidorial.world.block.data.type;
     exports fr.fidorial.world.block.data;
     exports fr.fidorial.world.block;
@@ -72,9 +75,6 @@ module fr.fidorial {
     exports fr.fidorial.world;
     exports fr.fidorial;
     exports fr.fidorial.command.argument;
-    exports fr.fidorial.command.argument.resolvers.selector;
-    exports fr.fidorial.command.argument.predicate;
-    exports fr.fidorial.command.argument.range;
     exports fr.fidorial.command.argument.resolvers;
     exports fr.fidorial.world.entity;
     exports fr.fidorial.protocol;
@@ -91,10 +91,17 @@ module fr.fidorial {
     exports fr.fidorial.item.data;
     exports fr.fidorial.item.component;
     exports fr.fidorial.event.block;
+    exports fr.fidorial.command.serializers;
+    exports fr.fidorial.nbt;
+    exports fr.fidorial.entity.player;
+    exports fr.fidorial.entity.player.profile;
+
+    uses fr.fidorial.command.argument.Arguments;
+    uses fr.fidorial.command.serializers.MessageComponentSerializer;
 
     requires com.google.common;
     requires com.google.gson;
-    requires java.desktop;
+    requires transitive java.desktop;
     requires net.kyori.adventure.api;
     requires net.kyori.adventure.key;
     requires net.kyori.adventure.nbt;
@@ -103,4 +110,5 @@ module fr.fidorial {
 
     requires static org.jetbrains.annotations;
     requires static org.jspecify;
+    requires com.google.j2objc.annotations;
 }

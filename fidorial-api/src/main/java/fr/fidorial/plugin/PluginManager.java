@@ -1,7 +1,7 @@
 package fr.fidorial.plugin;
 
-import fr.fidorial.Server;
 import fr.fidorial.permission.PermissionRegistry;
+import fr.fidorial.registry.GameRegistries;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -11,7 +11,7 @@ import java.util.Optional;
  *
  * <p>Permissions are deliberately not part of this interface: they live in
  * {@link PermissionRegistry}, reachable through
- * {@link Server#permissions()}. Keeping the two apart means a plugin that only wants to
+ * {@link GameRegistries#permissions()}. Keeping the two apart means a plugin that only wants to
  * declare permissions does not need a handle on the plugin loader, and the registry has no
  * knowledge of plugin lifecycles.
  *

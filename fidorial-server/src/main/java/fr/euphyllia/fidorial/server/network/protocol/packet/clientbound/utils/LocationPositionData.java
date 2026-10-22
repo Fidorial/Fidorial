@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils;
 
-import fr.fidorial.world.Location;
+import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 public final class LocationPositionData {
