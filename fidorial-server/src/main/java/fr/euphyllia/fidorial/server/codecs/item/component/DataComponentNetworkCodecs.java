@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.codecs.item.component;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.Registry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentType;
@@ -25,6 +27,10 @@ public class DataComponentNetworkCodecs {
 
     private static final int MAX_COMPONENT_TEXT_LENGTH = 262_144;
 
+    private static final Key ENCHANTMENT_REGISTRY = Key.key("enchantment");
+
+    private static final int MAX_ENCHANTMENTS = 1024;
+
     public interface Codec<T> {
 
         void write(PacketBuffer buf, RegistryHolder frozen, T value);
@@ -45,6 +51,7 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.ATTACK_ANIMATION, swingAnimationCodec());
         register(DataComponentTypes.INTERACT_ANIMATION, swingAnimationCodec());
         register(DataComponentTypes.MAP_ID, varIntCodec());
+        register(DataComponentTypes.ENCHANTMENTS, enchantmentsCodec());
     }
 
     private DataComponentNetworkCodecs() {
@@ -154,6 +161,52 @@ public class DataComponentNetworkCodecs {
                 return new ItemLore(lines);
             }
         };
+    }
+
+    private static Codec<ItemEnchantments> enchantmentsCodec() {
+        return new Codec<>() {
+            @Override
+            public void write(final PacketBuffer buf, final RegistryHolder frozen, final ItemEnchantments value) {
+                final RegistryHolder registries = withEnchantments(frozen);
+                final Map<Integer, Integer> known = new LinkedHashMap<>();
+                for (final Map.Entry<Key, Integer> level : value.levels().entrySet()) {
+                    final int id = registries.networkId(ENCHANTMENT_REGISTRY, level.getKey());
+                    if (id < 0) {
+                        LOGGER.debug("Dropping the enchantment {}: absent from the registry", level.getKey().asString());
+                        continue;
+                    }
+                    known.put(id, level.getValue());
+                }
+                buf.writeVarInt(known.size());
+                for (final Map.Entry<Integer, Integer> level : known.entrySet()) {
+                    buf.writeVarInt(level.getKey());
+                    buf.writeVarInt(level.getValue());
+                }
+            }
+
+            @Override
+            public ItemEnchantments read(final PacketBuffer buf, final RegistryHolder frozen) {
+                final RegistryHolder registries = withEnchantments(frozen);
+                final int size = readBoundedLength(buf, MAX_ENCHANTMENTS, "enchantments");
+                final Map<Key, Integer> levels = new LinkedHashMap<>();
+                for (int i = 0; i < size; i++) {
+                    final Key enchantment = entryOf(registries, ENCHANTMENT_REGISTRY, buf.readVarInt());
+                    final int level = buf.readVarInt();
+                    if (enchantment == null) {
+                        throw new DecoderException("Unknown enchantment network id");
+                    }
+                    if (level < 1 || level > ItemEnchantments.MAX_LEVEL) {
+                        throw new DecoderException("Implausible level " + level + " for " + enchantment.asString());
+                    }
+                    levels.put(enchantment, level);
+                }
+                return new ItemEnchantments(levels);
+            }
+        };
+    }
+
+    private static RegistryHolder withEnchantments(final RegistryHolder holder) {
+        return holder.get(ENCHANTMENT_REGISTRY) != null ? holder : FidorialServer.getInstance().registries().network();
     }
 
     private static Codec<SwingAnimation> swingAnimationCodec() {

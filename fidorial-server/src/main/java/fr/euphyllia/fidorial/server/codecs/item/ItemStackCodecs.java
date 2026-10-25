@@ -8,6 +8,7 @@ import com.mojang.serialization.RecordBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
+import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
@@ -42,6 +43,9 @@ public final class ItemStackCodecs {
                                                      + " lines, the most allowed is " + ItemLore.MAX_LINES)
                             : DataResult.success(new ItemLore(lines)),
                     ItemLore::lines);
+
+    public static final Codec<ItemEnchantments> ENCHANTMENTS_CODEC = Codec.unboundedMap(KEY_CODEC, Codec.intRange(1, ItemEnchantments.MAX_LEVEL))
+            .xmap(ItemEnchantments::new, ItemEnchantments::levels);
 
     public static final Codec<SwingAnimation.SwingAnimationType> SWING_ANIMATION_TYPE_CODEC = Codec.STRING.comapFlatMap(
             s -> {
@@ -85,6 +89,7 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.INTERACT_ANIMATION, SWING_ANIMATION_CODEC);
         register(DataComponentTypes.MAP_ID, Codec.INT);
         register(DataComponentTypes.MAP_DECORATIONS, MAP_DECORATIONS_CODEC);
+        register(DataComponentTypes.ENCHANTMENTS, ENCHANTMENTS_CODEC);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {

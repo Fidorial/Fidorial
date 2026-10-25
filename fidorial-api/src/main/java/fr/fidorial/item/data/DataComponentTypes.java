@@ -1,6 +1,7 @@
 package fr.fidorial.item.data;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
@@ -93,6 +94,12 @@ public class DataComponentTypes {
      */
     public static final DataComponentType<MapItemDecorations> MAP_DECORATIONS =
             register(DataComponentTypeKeys.MAP_DECORATIONS.key(), MapItemDecorations.class);
+
+    /**
+     * The enchantments of a stack, such as silk touch or fortune on a tool.
+     */
+    public static final DataComponentType<ItemEnchantments> ENCHANTMENTS =
+            register(DataComponentTypeKeys.ENCHANTMENTS.key(), ItemEnchantments.class);
 
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");
