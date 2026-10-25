@@ -1,11 +1,14 @@
 package fr.euphyllia.fidorial.server.world.block;
 
 import com.google.common.base.Preconditions;
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.BlockViewerTracker;
 import fr.euphyllia.fidorial.server.inventory.CrafterContainer;
 import fr.euphyllia.fidorial.server.inventory.CrafterMenu;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
@@ -27,7 +30,7 @@ import java.util.Locale;
  * recipe they make shown in its window.
  *
  * <p>Crafting itself happens on a redstone pulse and throws the result out of the front face:
- * neither redstone nor item entities exist yet, so the crafter only stores its grid for now.</p>
+ * redstone does not exist yet, so the crafter only stores its grid for now.</p>
  */
 public final class CrafterBlock implements BlockBehaviour {
 
@@ -84,22 +87,36 @@ public final class CrafterBlock implements BlockBehaviour {
     }
 
     /**
-     * Vanilla drops the nine slots on the ground. Until item entities exist, they go with the block.
+     * Like vanilla: the nine slots spill on the ground where the crafter stood.
      */
     @Override
     public void onRemove(final World world, final BlockPosition position, final BlockData data) {
         if (!(world instanceof final ServerWorld serverWorld)) {
             return;
         }
-        try {
-            final CrafterContainer crafter = CrafterContainer.load(serverWorld.blockEntityData(position));
-            if (!crafter.isEmpty()) {
-                // TODO: drop the contents at the crafter's position once item entities exist.
-                LOGGER.warn("The crafter removed at {} still held items: they are lost", position);
+        final FidorialServer server = FidorialServer.getInstance();
+        final BlockViewerTracker viewers = server.players().blockViewers();
+        final CrafterContainer crafter;
+        if (viewers.count(serverWorld.key(), position) > 0) {
+            // Someone has the window open: what it shows is the latest.
+            crafter = viewers.shared(serverWorld.key(), position, CrafterContainer::new);
+        } else {
+            try {
+                crafter = CrafterContainer.load(serverWorld.blockEntityData(position));
+            } catch (final IOException exception) {
+                LOGGER.warn("Unable to read the crafter removed at {}: its contents are lost", position, exception);
+                return;
             }
-        } catch (final IOException exception) {
-            LOGGER.debug("Unable to read the crafter removed at {}", position, exception);
         }
+        for (int slot = 0; slot < crafter.size(); slot++) {
+            final ItemStack stack = crafter.get(slot);
+            if (!stack.isEmpty()) {
+                server.entities().dropNaturally(serverWorld,
+                        position.blockX() + 0.5, position.blockY() + 0.5, position.blockZ() + 0.5, stack);
+            }
+        }
+        // The windows still open on it must not hand the same items out a second time.
+        crafter.clear();
     }
 
     /**

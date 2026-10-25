@@ -106,6 +106,7 @@ import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
+import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
@@ -145,6 +146,15 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     private static final String GAMERULE_PERMISSION = "fidorial.command.gamerule";
 
+    /**
+     * How many stacks a creative player may throw out of the creative inventory in a burst.
+     */
+    private static final int CREATIVE_DROP_BURST = 10;
+    /**
+     * How long it takes to earn one more creative drop back: one per tick.
+     */
+    private static final long CREATIVE_DROP_REFILL_NANOS = 50_000_000L;
+
     private final ClientConnection connection;
     private final FidorialServer server;
     private final ServerConfiguration config;
@@ -152,6 +162,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
     private @Nullable ServerPlayer player;
     private @Nullable ChunkViewTracker chunkView;
     private @Nullable ChunkPos ticket;
+
+    private int creativeDropsLeft = CREATIVE_DROP_BURST;
+    private long creativeDropsRefilledAt = System.nanoTime();
 
     public PlayPacketHandler(final ClientConnection connection) {
         this.connection = connection;
@@ -437,9 +450,37 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("{} sends a creative packet out of creative mode (ignore)", player.name());
             return;
         }
-        // TODO: slot -1 throws the stack out of the creative inventory, once item entities exist.
         final ServerPlayer acting = player;
+        if (packet.slot() < 0) {
+            // A stack thrown out of the creative inventory.
+            acting.execute(() -> {
+                final ItemStack stack = packet.stack();
+                if (!stack.isEmpty() && stack.count() <= ItemDefaults.maxStackSize(stack.id(), stack)
+                        && takeCreativeDrop()) {
+                    server.entities().dropFromPlayer(acting, stack);
+                }
+            });
+            return;
+        }
         acting.execute(() -> acting.inventoryMenu().setCreativeSlot(packet.slot(), packet.stack()));
+    }
+
+    /**
+     * {@return whether the player may throw one more stack out of the creative inventory}, so that a
+     * modified client cannot flood the world with items
+     */
+    private boolean takeCreativeDrop() {
+        final long now = System.nanoTime();
+        final long earned = (now - creativeDropsRefilledAt) / CREATIVE_DROP_REFILL_NANOS;
+        if (earned > 0) {
+            creativeDropsLeft = (int) Math.min(CREATIVE_DROP_BURST, creativeDropsLeft + earned);
+            creativeDropsRefilledAt += earned * CREATIVE_DROP_REFILL_NANOS;
+        }
+        if (creativeDropsLeft <= 0) {
+            return false;
+        }
+        creativeDropsLeft--;
+        return true;
     }
 
     @Override
@@ -806,14 +847,17 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void dropHeldItem(final ServerPlayer acting, final boolean wholeStack) {
-        final ItemStack held = acting.inventory().get(acting.selectedSlot());
-        if (!held.isEmpty()) {
+        final int slot = acting.selectedSlot();
+        final ItemStack held = acting.inventory().get(slot);
+        if (!held.isEmpty() && acting.gameMode() != GameMode.SPECTATOR && !acting.isDead()) {
             final PlayerDropItemEvent event = server.events().post(new PlayerDropItemEvent(acting, held, wholeStack));
             if (!event.isCancelled()) {
-                // TODO: add item entity: take one item (or the stack) out of the slot and throw it on the ground
+                final int count = wholeStack ? held.count() : 1;
+                acting.inventory().set(slot, count >= held.count() ? ItemStack.EMPTY : held.withCount(held.count() - count));
+                server.entities().dropFromPlayer(acting, held.withCount(count));
             }
         }
-        // the client already took the item out: until items are thrown, give it back
+        // The client already took the item out: confirm, or put it back when the drop was refused.
         acting.updateInventory();
     }
 

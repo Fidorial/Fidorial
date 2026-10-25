@@ -10,12 +10,14 @@ public record ServerboundPlayerActionPacket(int status, BlockPosition position, 
         implements ServerboundPacket {
 
     public static final int START_DESTROY_BLOCK = 0;
-    public static final int ABORT_DESTROY_BLOCK = 1;
-    public static final int FINISH_DESTROY_BLOCK = 2;
-    public static final int DROP_ALL_ITEMS = 3;
-    public static final int DROP_ITEM = 4;
-    public static final int RELEASE_USE_ITEM = 5;
-    public static final int SWAP_ITEM_WITH_OFFHAND = 6;
+    public static final int CHANGE_DESTROY_DIRECTION = 1;
+    public static final int ABORT_DESTROY_BLOCK = 2;
+    public static final int FINISH_DESTROY_BLOCK = 3;
+    public static final int DROP_ALL_ITEMS = 4;
+    public static final int DROP_ITEM = 5;
+    public static final int RELEASE_USE_ITEM = 6;
+    public static final int SWAP_ITEM_WITH_OFFHAND = 7;
+    public static final int STAB = 8;
 
     public static ServerboundPlayerActionPacket read(final PacketBuffer buf) {
         final int status = buf.readVarInt();

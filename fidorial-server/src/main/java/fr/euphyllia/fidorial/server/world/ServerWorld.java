@@ -34,8 +34,11 @@ import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
@@ -288,6 +291,21 @@ public final class ServerWorld implements World {
     @Override
     public Optional<? extends Entity> entity(final int entityId) {
         return Optional.ofNullable(entities.byId(entityId));
+    }
+
+    @Override
+    public ItemEntity dropItem(final Location location, final ItemStack item) {
+        if (item.isEmpty()) {
+            throw new IllegalArgumentException("Cannot drop an empty stack");
+        }
+        if (location.world() != this) {
+            throw new IllegalArgumentException("The location " + location + " is not in the world " + key());
+        }
+        final ChunkPos chunk = location.chunk();
+        if (!isChunkLoaded(chunk.x(), chunk.z())) {
+            throw new IllegalArgumentException("Cannot drop an item into the unloaded chunk " + chunk + " of " + key());
+        }
+        return FidorialServer.getInstance().entities().dropNaturally(this, location.x(), location.y(), location.z(), item);
     }
 
     public void addEntity(final AbstractEntity entity) {

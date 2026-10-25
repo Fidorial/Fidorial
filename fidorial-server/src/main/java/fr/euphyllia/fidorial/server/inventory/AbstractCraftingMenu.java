@@ -14,7 +14,6 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.recipe.CraftingInput;
 import fr.fidorial.recipe.CraftingMatch;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -27,8 +26,6 @@ import java.util.List;
  * than one item per slot for plugin recipes.</p>
  */
 public abstract class AbstractCraftingMenu extends ContainerMenu {
-
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(AbstractCraftingMenu.class);
 
     /**
      * Upper bound of crafts per shift-click, against a recipe that would take nothing.
@@ -59,7 +56,7 @@ public abstract class AbstractCraftingMenu extends ContainerMenu {
 
     /**
      * Whether what the player inventory cannot take back on close stays in the grid rather than
-     * being lost. The inventory grid persists with the player, a crafting table grid does not.
+     * being dropped at the player's feet. The inventory grid persists with the player, a crafting table grid does not.
      */
     protected abstract boolean keepsGridOnClose();
 
@@ -177,7 +174,7 @@ public abstract class AbstractCraftingMenu extends ContainerMenu {
                 if (carried().isEmpty()) {
                     setCarried(leftover);
                 } else {
-                    LOGGER.warn("No room left for the crafted {} of {}: it is lost", leftover, player.name());
+                    dropForPlayer(leftover);
                 }
                 return;
             }
@@ -256,8 +253,7 @@ public abstract class AbstractCraftingMenu extends ContainerMenu {
             left = giveToPlayer(left);
         }
         if (!left.isEmpty()) {
-            // TODO: drop it at the player's feet once item entities exist.
-            LOGGER.warn("No room for the crafting remainder {} of {}: it is lost", left, player.name());
+            dropForPlayer(left);
         }
     }
 
@@ -295,9 +291,7 @@ public abstract class AbstractCraftingMenu extends ContainerMenu {
             final ItemStack leftover = giveToPlayer(stack);
             grid.set(slot, keepsGridOnClose() ? leftover : ItemStack.EMPTY);
             if (!leftover.isEmpty() && !keepsGridOnClose()) {
-                // TODO: drop it at the player's feet once item entities exist.
-                LOGGER.warn("No room in the inventory of {} for {} left in a crafting grid: it is lost",
-                        player.name(), leftover);
+                dropForPlayer(leftover);
             }
         }
         refreshResult();

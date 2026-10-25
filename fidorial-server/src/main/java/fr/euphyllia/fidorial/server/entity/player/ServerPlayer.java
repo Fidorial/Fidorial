@@ -504,6 +504,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setInvulnerableTicks(0);
         setAirSupply(MAX_AIR_SUPPLY);
         setFallDistance(0.0);
+        setAwaitingRespawn(false);
         clearEffectsSilently();
         this.ticksSinceLastAttack.set(MAX_TRACKED_ATTACK_TICKS);
     }

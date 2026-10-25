@@ -182,6 +182,11 @@ public abstract class ContainerMenu {
      */
     public final void removed() {
         returnCarried();
+        if (!carried.isEmpty()) {
+            // No room left in the inventory: like vanilla, the cursor falls at the player's feet.
+            dropForPlayer(carried);
+            carried = ItemStack.EMPTY;
+        }
         onClosed();
     }
 
@@ -303,7 +308,7 @@ public abstract class ContainerMenu {
                 }
                 case ServerboundContainerClickPacket.MODE_SWAP -> swap(slot, button);
                 case ServerboundContainerClickPacket.MODE_CLONE -> clone(slot);
-                case ServerboundContainerClickPacket.MODE_THROW -> throwOut(slot);
+                case ServerboundContainerClickPacket.MODE_THROW -> throwOut(slot, button);
                 case ServerboundContainerClickPacket.MODE_QUICK_CRAFT -> quickCraft(slot, button);
                 case ServerboundContainerClickPacket.MODE_PICKUP_ALL -> pickupAll(slot, button);
                 default -> {
@@ -412,8 +417,22 @@ public abstract class ContainerMenu {
         carried = inSlot.withCount(maxStackSize(inSlot));
     }
 
-    private void throwOut(final int index) {
-        // Without a ground item entity, we prefer to lose nothing: the resync puts the stack back.
+    /**
+     * The drop key over a slot: one item, or the whole stack with {@code button} 1, thrown out where
+     * the player looks. Only with an empty cursor, as in vanilla.
+     */
+    private void throwOut(final int index, final int button) {
+        if (!carried.isEmpty() || !isValidSlot(index)) {
+            return;
+        }
+        final Slot slot = slot(index);
+        final ItemStack inSlot = slot.get();
+        if (inSlot.isEmpty() || !slot.mayPickup()) {
+            return;
+        }
+        final int count = button == 1 ? inSlot.count() : 1;
+        slot.set(remainderOrEmpty(inSlot, inSlot.count() - count));
+        dropForPlayer(inSlot.withCount(count));
     }
 
     /**
@@ -523,8 +542,37 @@ public abstract class ContainerMenu {
         }
     }
 
+    /**
+     * A click outside the window: the whole cursor with the left button, one item with the right one.
+     */
     private void dropCarried(final boolean wholeStack) {
-        // Same reason as throwOut: without a ground item entity, we prefer to lose nothing.
+        if (carried.isEmpty()) {
+            return;
+        }
+        final int count = wholeStack ? carried.count() : 1;
+        dropForPlayer(carried.withCount(count));
+        carried = remainderOrEmpty(carried, carried.count() - count);
+    }
+
+    /**
+     * Empties the cursor and gives back what it held, for a player who loses it at once, such as
+     * on death.
+     *
+     * @return what the cursor held, {@link ItemStack#EMPTY} when nothing
+     */
+    public final ItemStack takeCarried() {
+        final ItemStack taken = carried;
+        carried = ItemStack.EMPTY;
+        return taken;
+    }
+
+    /**
+     * Throws {@code stack} out of the player's hands, where they look.
+     */
+    protected final void dropForPlayer(final ItemStack stack) {
+        if (!stack.isEmpty()) {
+            player.connection().server().entities().dropFromPlayer(player, stack);
+        }
     }
 
     /**

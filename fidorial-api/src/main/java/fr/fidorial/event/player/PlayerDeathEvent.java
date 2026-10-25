@@ -1,6 +1,5 @@
 package fr.fidorial.event.player;
 
-import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.entity.EntityDeathEvent;
 import net.kyori.adventure.text.Component;
@@ -11,22 +10,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @since 0.1.0
  */
-public final class PlayerDeathEvent extends EntityDeathEvent implements PlayerEvent {
-
-    private @Nullable Component deathMessage;
-
-    /**
-     * Creates an event.
-     *
-     * @param player       the player who died
-     * @param killer       the entity credited with the kill, or {@code null}
-     * @param deathMessage the message to broadcast, or {@code null} to stay silent
-     * @since 0.1.0
-     */
-    public PlayerDeathEvent(final Player player, final @Nullable Entity killer, final @Nullable Component deathMessage) {
-        super(player, killer);
-        this.deathMessage = deathMessage;
-    }
+public interface PlayerDeathEvent extends EntityDeathEvent, PlayerEvent {
 
     /**
      * {@return the player who died}
@@ -34,26 +18,38 @@ public final class PlayerDeathEvent extends EntityDeathEvent implements PlayerEv
      * @since 0.1.0
      */
     @Override
-    public Player entity() {
-        return (Player) super.entity();
-    }
-
-    @Override
-    public Player player() {
-        return entity();
-    }
+    Player entity();
 
     /**
-     * @return the message broadcast to the server, or {@code null} if the death stays silent
+     * {@return the message broadcast to the server, or {@code null} if the death stays silent}
+     *
+     * @since 0.1.0
      */
-    public @Nullable Component deathMessage() {
-        return deathMessage;
-    }
+    @Nullable Component deathMessage();
 
     /**
+     * Replaces the message broadcast to the server.
+     *
      * @param deathMessage the message to broadcast instead, or {@code null} to broadcast nothing
+     * @since 0.1.0
      */
-    public void setDeathMessage(final @Nullable Component deathMessage) {
-        this.deathMessage = deathMessage;
-    }
+    void setDeathMessage(@Nullable Component deathMessage);
+
+    /**
+     * {@return whether the player keeps their inventory; when not, it is dropped on the ground
+     * where they died}
+     *
+     * <p>Starts from the {@code minecraft:keep_inventory} game rule of the world.</p>
+     *
+     * @since 0.1.0
+     */
+    boolean keepInventory();
+
+    /**
+     * Sets whether the player keeps their inventory instead of dropping it where they died.
+     *
+     * @param keepInventory {@code true} to keep it
+     * @since 0.1.0
+     */
+    void setKeepInventory(boolean keepInventory);
 }

@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.event.Subscription;
 import fr.fidorial.event.player.PlayerOpenInventoryEvent;
 import fr.fidorial.inventory.PlayerInventory;
@@ -222,6 +223,16 @@ public final class BlockMenuTests {
                 .waitUntil(() -> first.containerMenu() == first.inventoryMenu(), "Breaking the crafter should close its window")
                 .execute(() -> helper.assertTrue(((ServerWorld) world).blockEntityData(position) == null,
                         "Breaking the crafter should remove its block entity"))
+                .execute(() -> {
+                    int logs = 0;
+                    for (final var entity : world.entities()) {
+                        if (entity instanceof final ItemEntity item && !item.isRemoved()
+                                && item.item().id().equals(ItemKeys.OAK_LOG.key())) {
+                            logs += item.item().count();
+                        }
+                    }
+                    helper.assertTrue(logs == 5, "Breaking the crafter should spill its 5 logs on the ground, found " + logs);
+                })
                 .build();
     }
 }

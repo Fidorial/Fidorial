@@ -42,6 +42,7 @@ public final class VanillaGameRules {
                 ofBoolean(GameRuleKeys.FIRE_DAMAGE, true, true),
                 ofBoolean(GameRuleKeys.FREEZE_DAMAGE, true, true),
                 ofBoolean(GameRuleKeys.IMMEDIATE_RESPAWN, false, true),
+                ofBoolean(GameRuleKeys.KEEP_INVENTORY, false, true),
                 ofBoolean(GameRuleKeys.LAVA_SOURCE_CONVERSION, false, true),
                 ofInteger(GameRuleKeys.MAX_BLOCK_MODIFICATIONS, 32_768, 1, MAX, true),
                 ofBoolean(GameRuleKeys.MOB_GRIEFING, true, true),
@@ -53,17 +54,16 @@ public final class VanillaGameRules {
 
 
                 ofBoolean(GameRuleKeys.ALLOW_ENTERING_NETHER_USING_PORTALS, true, false), // no portals
-                ofBoolean(GameRuleKeys.BLOCK_DROPS, true, false), // no item entities
-                ofBoolean(GameRuleKeys.BLOCK_EXPLOSION_DROP_DECAY, true, false), // no item entities
+                ofBoolean(GameRuleKeys.BLOCK_DROPS, true, false), // no block loot tables yet
+                ofBoolean(GameRuleKeys.BLOCK_EXPLOSION_DROP_DECAY, true, false), // no block loot tables yet
                 ofBoolean(GameRuleKeys.COMMAND_BLOCK_OUTPUT, true, false), // no command blocks
                 ofBoolean(GameRuleKeys.COMMAND_BLOCKS_WORK, true, false), // no command blocks
                 ofBoolean(GameRuleKeys.ELYTRA_MOVEMENT_CHECK, true, false), // no movement checks
                 ofBoolean(GameRuleKeys.ENDER_PEARLS_VANISH_ON_DEATH, true, false), // no ender pearls
-                ofBoolean(GameRuleKeys.ENTITY_DROPS, true, false), // no item entities
+                ofBoolean(GameRuleKeys.ENTITY_DROPS, true, false), // no breakable non-mob entities yet
                 ofInteger(GameRuleKeys.FIRE_SPREAD_RADIUS_AROUND_PLAYER, 128, -1, MAX, false), // no fire ticks
                 ofBoolean(GameRuleKeys.FORGIVE_DEAD_PLAYERS, true, false), // no neutral mob anger
                 ofBoolean(GameRuleKeys.GLOBAL_SOUND_EVENTS, true, false), // no boss spawn sounds
-                ofBoolean(GameRuleKeys.KEEP_INVENTORY, false, false), // nothing is dropped on death yet
                 ofBoolean(GameRuleKeys.LIMITED_CRAFTING, false, false), // no crafting
                 ofBoolean(GameRuleKeys.LOCATOR_BAR, true, false), // no waypoints
                 ofBoolean(GameRuleKeys.LOG_ADMIN_COMMANDS, true, false), // no admin broadcast
@@ -72,8 +72,8 @@ public final class VanillaGameRules {
                 ofInteger(GameRuleKeys.MAX_ENTITY_CRAMMING, 24, 0, MAX, false), // no entity collisions
                 ofInteger(GameRuleKeys.MAX_MINECART_SPEED, 8, 1, 1_000, false), // no minecarts (experimental)
                 ofInteger(GameRuleKeys.MAX_SNOW_ACCUMULATION_HEIGHT, 1, 0, 8, false), // no snowfall
-                ofBoolean(GameRuleKeys.MOB_DROPS, true, false), // no item entities
-                ofBoolean(GameRuleKeys.MOB_EXPLOSION_DROP_DECAY, true, false), // no item entities
+                ofBoolean(GameRuleKeys.MOB_DROPS, true, false), // no mob loot tables yet
+                ofBoolean(GameRuleKeys.MOB_EXPLOSION_DROP_DECAY, true, false), // no mob loot tables yet
                 ofBoolean(GameRuleKeys.PLAYER_MOVEMENT_CHECK, true, false), // no movement checks
                 ofInteger(GameRuleKeys.PLAYERS_NETHER_PORTAL_CREATIVE_DELAY, 0, 0, MAX, false), // no portals
                 ofInteger(GameRuleKeys.PLAYERS_NETHER_PORTAL_DEFAULT_DELAY, 80, 0, MAX, false), // no portals

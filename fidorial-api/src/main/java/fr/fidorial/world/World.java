@@ -1,8 +1,11 @@
 package fr.fidorial.world;
 
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Location;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
@@ -292,4 +295,22 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     Optional<? extends Entity> entity(int entityId);
+
+    /**
+     * Drops a stack of items on the ground, the way a broken block spills its contents: at
+     * {@code location}, with a small random push, picked up after
+     * {@value ItemEntity#DEFAULT_PICKUP_DELAY} ticks.
+     *
+     * <p>Callable from any thread: off the region thread owning {@code location}, the item is
+     * added to the world by that thread shortly after, and the returned entity is not in
+     * {@link #entities()} until then.</p>
+     *
+     * @param location where to drop the stack, in this world, in a loaded chunk
+     * @param item     the stack, not empty
+     * @return the item entity
+     * @throws IllegalArgumentException if {@code item} is empty, or {@code location} is in another
+     *                                  world or in a chunk that is not loaded
+     * @since 0.1.0
+     */
+    ItemEntity dropItem(Location location, ItemStack item);
 }

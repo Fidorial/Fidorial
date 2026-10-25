@@ -2,42 +2,28 @@ package fr.fidorial.event.entity;
 
 import fr.fidorial.entity.Entity;
 import fr.fidorial.event.Event;
+import fr.fidorial.event.player.PlayerDeathEvent;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Fired when an entity dies, once its health reached zero and before it is removed from the world.
  *
- * @see fr.fidorial.event.player.PlayerDeathEvent
+ * @see PlayerDeathEvent
  * @since 0.1.0
  */
-public class EntityDeathEvent implements Event {
-
-    private final Entity entity;
-    private final @Nullable Entity killer;
+public interface EntityDeathEvent extends Event {
 
     /**
-     * Creates an event.
+     * {@return the entity that died}
      *
-     * @param entity the entity that died
-     * @param killer the entity credited with the kill, or {@code null} for environmental deaths
      * @since 0.1.0
      */
-    public EntityDeathEvent(final Entity entity, final @Nullable Entity killer) {
-        this.entity = entity;
-        this.killer = killer;
-    }
+    Entity entity();
 
     /**
-     * @return the entity credited with the kill, or {@code null} for environmental deaths
+     * {@return the entity credited with the kill, or {@code null} for environmental deaths}
+     *
+     * @since 0.1.0
      */
-    public @Nullable Entity killer() {
-        return killer;
-    }
-
-    /**
-     * @return the entity that died
-     */
-    public Entity entity() {
-        return entity;
-    }
+    @Nullable Entity killer();
 }

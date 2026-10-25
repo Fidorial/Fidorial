@@ -7,6 +7,10 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.entity.EntityDeathEventImpl;
+import fr.euphyllia.fidorial.server.events.player.PlayerDeathEventImpl;
+import fr.euphyllia.fidorial.server.inventory.CraftingContainer;
+import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAnimatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDamageEventPacket;
@@ -27,9 +31,9 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.entity.EntityDamageEvent;
-import fr.fidorial.event.entity.EntityDeathEvent;
 import fr.fidorial.event.player.PlayerAttackEntityEvent;
 import fr.fidorial.event.player.PlayerDeathEvent;
+import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -334,16 +338,18 @@ public final class CombatEngine implements CombatService {
         if (!(victim instanceof AbstractMob)) {
             sendToViewersAndSelf(victim, new ClientboundEntityEventPacket(victim.entityId(), ENTITY_EVENT_DEATH));
         }
-        server.events().post(new EntityDeathEvent(victim, killer));
+        server.events().post(new EntityDeathEventImpl(victim, killer));
     }
 
     private void killPlayer(final ServerPlayer player, final @Nullable Entity killer) {
-        if (player.health() <= 0) {
+        if (player.isAwaitingRespawn()) {
             return;
         }
+        player.setAwaitingRespawn(true);
 
         final Component message = deathMessage(player, killer);
-        final PlayerDeathEvent event = server.events().post(new PlayerDeathEvent(player, killer, message));
+        final boolean keepInventory = gameRulesOf(player).getBoolean(GameRuleKeys.KEEP_INVENTORY);
+        final PlayerDeathEvent event = server.events().post(new PlayerDeathEventImpl(player, killer, message, keepInventory));
 
         sendToViewersAndSelf(player, new ClientboundEntityEventPacket(player.entityId(), ENTITY_EVENT_DEATH));
         player.playSound(Sound.sound(SoundEvents.PLAYER_DEATH, Sound.Source.PLAYER, 1.0f, 1.0f));
@@ -357,6 +363,44 @@ public final class CombatEngine implements CombatService {
         if (shown != null) {
             server.players().broadcast(new ClientboundSystemChatPacket(shown, false));
         }
+
+        if (!event.keepInventory()) {
+            if (player.isOwnedByCurrentThread()) {
+                dropInventory(player);
+            } else {
+                player.execute(() -> dropInventory(player));
+            }
+        }
+    }
+
+    /**
+     * Spills everything a dead player carried around them: the inventory, the cursor and the 2x2
+     * crafting grid, after closing whatever window was open so that it gives its contents back first.
+     */
+    private void dropInventory(final ServerPlayer player) {
+        if (player.containerMenu() != player.inventoryMenu()) {
+            player.closeContainer();
+        }
+        final InventoryMenu menu = player.inventoryMenu();
+        final List<ItemStack> lost = new ArrayList<>();
+        lost.add(menu.takeCarried());
+        final CraftingContainer grid = menu.grid();
+        for (int slot = 0; slot < grid.size(); slot++) {
+            lost.add(grid.get(slot));
+            grid.set(slot, ItemStack.EMPTY);
+        }
+        menu.refreshResult();
+        final PlayerInventory inventory = player.inventory();
+        for (int slot = 0; slot < inventory.size(); slot++) {
+            lost.add(inventory.get(slot));
+        }
+        inventory.clear();
+        for (final ItemStack stack : lost) {
+            if (!stack.isEmpty()) {
+                server.entities().scatterFromPlayer(player, stack);
+            }
+        }
+        player.updateInventory();
     }
 
     private Component deathMessage(final ServerPlayer player, final @Nullable Entity killer) {
