@@ -92,6 +92,7 @@ module fr.fidorial {
     exports fr.fidorial.item;
     exports fr.fidorial.item.data;
     exports fr.fidorial.item.component;
+    exports fr.fidorial.item.enchantment;
     exports fr.fidorial.event.block;
     exports fr.fidorial.command.serializers;
     exports fr.fidorial.nbt;

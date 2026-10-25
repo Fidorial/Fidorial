@@ -14,4 +14,9 @@ public final class Zoglin extends AbstractMob implements Category.Monster {
     public Zoglin(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ZOGLIN, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

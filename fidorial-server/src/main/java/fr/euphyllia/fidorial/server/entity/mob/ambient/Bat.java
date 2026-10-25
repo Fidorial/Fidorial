@@ -45,9 +45,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private static final double HITBOX_HALF_WIDTH = 0.25;
     private static final double FLOATING_DRAG = 0.6;
 
-    private static final int MD_SHARED_FLAGS = 0;
     private static final int MD_BAT_FLAGS = 16;
-    private static final int FLAG_ON_FIRE = 0x01;
     private static final int FLAG_RESTING = 0x01;
 
     /**
@@ -81,7 +79,6 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private static final int LAVA_DAMAGE_INTERVAL = 10;
     private static final float LAVA_DAMAGE = 4f;
     private static final float FIRE_DAMAGE = 1f;
-    private static final int FIRE_DAMAGE_INTERVAL = 20;
     private static final float MAGMA_DAMAGE = 1f;
     private static final int MAGMA_DAMAGE_INTERVAL = 20;
 
@@ -92,8 +89,6 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private boolean persistent;
     private @Nullable BlockPosition wanderTarget;
     private int ambientSoundChance;
-    private int fireTicks;
-    private boolean sentOnFire;
     private boolean metadataSent;
 
     public Bat(final int entityId, final Location location) {
@@ -325,7 +320,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
 
         if (state != null && state.name().equals(LAVA)) {
             setResting(false);
-            fireTicks = Math.max(fireTicks, LAVA_FIRE_TICKS);
+            setFireTicks(Math.max(fireTicks(), LAVA_FIRE_TICKS));
             if (currentTick % LAVA_DAMAGE_INTERVAL == 0) {
                 hurt(LAVA_DAMAGE);
             }
@@ -340,23 +335,17 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
             }
         }
 
-        tickFire(currentTick);
+        tickBurning();
     }
 
-    private void tickFire(final long currentTick) {
-        if (fireTicks <= 0) {
-            if (sentOnFire) {
-                setOnFireFlag(false);
-            }
-            return;
-        }
-        if (!sentOnFire) {
-            setOnFireFlag(true);
-        }
-        if (currentTick % FIRE_DAMAGE_INTERVAL == 0) {
-            hurt(FIRE_DAMAGE);
-        }
-        fireTicks--;
+    @Override
+    protected boolean ticksOwnFire() {
+        return true;
+    }
+
+    @Override
+    protected void burn() {
+        hurt(FIRE_DAMAGE);
     }
 
     public void setPersistent(final boolean persistent) {
@@ -408,20 +397,10 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
                 ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_BAT_FLAGS, resting ? FLAG_RESTING : 0)));
     }
 
-    private void setOnFireFlag(final boolean onFire) {
-        sentOnFire = onFire;
-        sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
-                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_SHARED_FLAGS, onFire ? FLAG_ON_FIRE : 0)));
-    }
-
     @Override
     public void sendSpawnPackets(final ClientConnection connection) {
         super.sendSpawnPackets(connection);
         connection.send(ClientboundSetEntityMetadataPacket.of(entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_BAT_FLAGS, resting ? FLAG_RESTING : 0)));
-        if (sentOnFire) {
-            connection.send(ClientboundSetEntityMetadataPacket.of(entityId(),
-                    ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_SHARED_FLAGS, FLAG_ON_FIRE)));
-        }
     }
 }

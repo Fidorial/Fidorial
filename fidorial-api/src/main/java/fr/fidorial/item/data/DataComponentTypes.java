@@ -101,6 +101,18 @@ public class DataComponentTypes {
     public static final DataComponentType<ItemEnchantments> ENCHANTMENTS =
             register(DataComponentTypeKeys.ENCHANTMENTS.key(), ItemEnchantments.class);
 
+    /**
+     * The enchantments stored in an enchanted book, applied to another stack in an anvil.
+     */
+    public static final DataComponentType<ItemEnchantments> STORED_ENCHANTMENTS =
+            register(DataComponentTypeKeys.STORED_ENCHANTMENTS.key(), ItemEnchantments.class);
+
+    /**
+     * Whether a stack shows the enchantment glint, regardless of its enchantments.
+     */
+    public static final DataComponentType<Boolean> ENCHANTMENT_GLINT_OVERRIDE =
+            register(DataComponentTypeKeys.ENCHANTMENT_GLINT_OVERRIDE.key(), Boolean.class);
+
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");
     }

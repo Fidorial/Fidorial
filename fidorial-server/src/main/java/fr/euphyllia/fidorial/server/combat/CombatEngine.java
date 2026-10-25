@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.events.entity.EntityDeathEventImpl;
 import fr.euphyllia.fidorial.server.events.player.PlayerDeathEventImpl;
 import fr.euphyllia.fidorial.server.inventory.CraftingContainer;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
+import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentEngine;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAnimatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDamageEventPacket;
@@ -24,6 +25,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.Po
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
+import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
@@ -52,6 +54,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public final class CombatEngine implements CombatService {
 
@@ -78,6 +81,21 @@ public final class CombatEngine implements CombatService {
     private static final Key FREEZE_IMMUNE = Key.key("freeze_immune_entity_types");
     private static final Key FREEZE_HURTS_EXTRA = Key.key("freeze_hurts_extra_types");
     private static final float FREEZE_HURTS_EXTRA_MULTIPLIER = 5.0f;
+
+    private static final Key DAMAGE_TYPES = RegistryKey.DAMAGE_TYPE.key();
+    private static final Key BYPASSES_ENCHANTMENTS = Key.key("bypasses_enchantments");
+    private static final Key IS_PROJECTILE = Key.key("is_projectile");
+
+    /**
+     * The hits that run the post-attack effects of the enchantments of the attacker, such as Fire Aspect.
+     */
+    private static final Set<TypedKey<DamageType>> MELEE_ATTACKS =
+            Set.of(DamageTypeKeys.PLAYER_ATTACK, DamageTypeKeys.MOB_ATTACK, DamageTypeKeys.MOB_ATTACK_NO_AGGRO);
+
+    /**
+     * Each point of enchantment knockback, as vanilla counts it, pushes this much further.
+     */
+    private static final double ENCHANTMENT_KNOCKBACK = 0.5;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(CombatEngine.class);
 
@@ -108,20 +126,29 @@ public final class CombatEngine implements CombatService {
         final float strength = attackStrengthScale(player);
         final boolean critical = isCriticalHit(player, strength);
         final boolean sweeping = isSweepingHit(player, weapon, strength);
+        final DamageSource source = DamageSource.playerAttack(player);
 
-        float damage = fakeItemDamage * CombatRules.attackDamageScale(strength);
+        // Like vanilla: the bonus of the enchantments of the weapon (Sharpness, Smite...) scales with the
+        // attack strength, but critical hits only multiply the base damage.
+        final float baseDamage = attackDamage(player);
+        final float enchantmentBonus =
+                (EnchantmentEngine.modifyDamage(player, victim, source, baseDamage) - baseDamage) * strength;
+        float damage = baseDamage * CombatRules.attackDamageScale(strength);
         if (critical) {
             damage *= CRITICAL_MULTIPLIER;
         }
+        final float sweepBase = damage;
+        damage += enchantmentBonus;
+        final double knockback = attackKnockback(player)
+                + ENCHANTMENT_KNOCKBACK * EnchantmentEngine.knockbackBonus(player, victim, source);
 
         final PlayerAttackEntityEvent event = server.events().post(new PlayerAttackEntityEvent(
-                player, victim, damage, attackKnockback(player), strength, critical, sweeping));
+                player, victim, damage, knockback, strength, critical, sweeping));
         player.resetAttackCooldown();
         if (event.isCancelled()) {
             return false;
         }
 
-        final DamageSource source = DamageSource.playerAttack(player);
         final boolean hurt = applyDamage(victim, source, event.damage(), event.knockback());
         if (!hurt) {
             player.playSound(Sound.sound(SoundEvents.PLAYER_ATTACK_NODAMAGE, Sound.Source.PLAYER, 1.0f, 1.0f));
@@ -134,7 +161,7 @@ public final class CombatEngine implements CombatService {
         playAttackSound(player, strength, critical, event.knockback() > BASE_KNOCKBACK);
 
         if (event.isSweeping()) {
-            sweep(player, victim, source);
+            sweep(player, victim, source, sweepBase, strength);
         }
         return true;
     }
@@ -182,6 +209,9 @@ public final class CombatEngine implements CombatService {
         if (victim instanceof ServerPlayer && isDisabledByGameRule(victim, source)) {
             return false;
         }
+        if (EnchantmentEngine.isImmune(victim, source)) {
+            return false;
+        }
 
         final boolean withinInvulnerability = !source.bypassesInvulnerability()
                 && victim.invulnerableTicks() > AbstractLivingEntity.INVULNERABILITY_OVERRIDE_THRESHOLD;
@@ -227,6 +257,13 @@ public final class CombatEngine implements CombatService {
             }
         }
 
+        if (source.causingEntity() != null && source.causingEntity() != victim
+                && (MELEE_ATTACKS.contains(source.type()) || hasDamageTag(source, IS_PROJECTILE))) {
+            // Fire Aspect, Thorns, Bane of Arthropods... like vanilla, the effects of the attacker
+            // only follow a melee hit, those of the victim any attack.
+            EnchantmentEngine.postAttack(victim, source, dealt, MELEE_ATTACKS.contains(source.type()));
+        }
+
         if (victim.isDead()) {
             die(victim, source.causingEntity());
         } else if (victim instanceof final AbstractMob mob) {
@@ -264,10 +301,17 @@ public final class CombatEngine implements CombatService {
     private float reduce(final AbstractLivingEntity victim, final DamageSource source, final float amount) {
         float damage = amount;
         if (!source.bypassesArmor()) {
-            damage = CombatRules.damageAfterArmor(damage, (float) victim.armor(), (float) victim.armorToughness());
+            damage = CombatRules.damageAfterArmor(damage, (float) victim.armor(), (float) victim.armorToughness(),
+                    share -> EnchantmentEngine.armorEffectiveness(victim, source, share));
         }
-        damage = CombatRules.damageAfterProtection(damage, 0f);
+        if (!hasDamageTag(source, BYPASSES_ENCHANTMENTS)) {
+            damage = CombatRules.damageAfterProtection(damage, EnchantmentEngine.protection(victim, source));
+        }
         return Math.max(0f, damage);
+    }
+
+    private boolean hasDamageTag(final DamageSource source, final Key tag) {
+        return server.registries().dynamic().isTagged(DAMAGE_TYPES, tag, source.type().key());
     }
 
     private float soakWithAbsorption(final AbstractLivingEntity victim, final float damage) {
@@ -396,7 +440,8 @@ public final class CombatEngine implements CombatService {
         }
         inventory.clear();
         for (final ItemStack stack : lost) {
-            if (!stack.isEmpty()) {
+            // Curse of Vanishing: the stack is destroyed rather than dropped.
+            if (!stack.isEmpty() && !EnchantmentEngine.preventsDrop(player, stack)) {
                 server.entities().scatterFromPlayer(player, stack);
             }
         }
@@ -462,13 +507,20 @@ public final class CombatEngine implements CombatService {
         }
     }
 
-    private void sweep(final ServerPlayer attacker, final AbstractLivingEntity primary, final DamageSource source) {
+    /**
+     * Like vanilla: a sweep deals {@code 1 + sweeping_damage_ratio × damage}, the attribute Sweeping Edge
+     * raises, then the enchantments of the weapon change it for each entity swept.
+     */
+    private void sweep(final ServerPlayer attacker, final AbstractLivingEntity primary, final DamageSource source,
+                       final float damage, final float strength) {
         final Location center = primary.location();
+        final float sweepDamage = SWEEP_DAMAGE + (float) attacker.attributeValue(Attribute.SWEEPING_DAMAGE_RATIO) * damage;
         for (final AbstractLivingEntity nearby : nearbyLivingEntities(attacker, center)) {
             if (nearby == primary || nearby == attacker || !nearby.isAlive() || !canHarm(attacker, nearby)) {
                 continue;
             }
-            applyDamage(nearby, source, SWEEP_DAMAGE, BASE_KNOCKBACK);
+            applyDamage(nearby, source, EnchantmentEngine.modifyDamage(attacker, nearby, source, sweepDamage) * strength,
+                    BASE_KNOCKBACK);
         }
         attacker.playSound(Sound.sound(SoundEvents.PLAYER_ATTACK_SWEEP, Sound.Source.PLAYER, 1.0f, 1.0f));
     }

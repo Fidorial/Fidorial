@@ -78,6 +78,27 @@ public enum EquipmentSlotGroup {
     }
 
     /**
+     * {@return whether {@code slot} belongs to this group}
+     *
+     * @param slot the slot
+     * @since 0.1.0
+     */
+    public boolean test(final EquipmentSlot slot) {
+        return switch (this) {
+            case ANY -> true;
+            case MAIN_HAND -> slot == EquipmentSlot.MAIN_HAND;
+            case OFF_HAND -> slot == EquipmentSlot.OFF_HAND;
+            case HAND -> slot == EquipmentSlot.MAIN_HAND || slot == EquipmentSlot.OFF_HAND;
+            case FEET -> slot == EquipmentSlot.FEET;
+            case LEGS -> slot == EquipmentSlot.LEGS;
+            case CHEST -> slot == EquipmentSlot.CHEST;
+            case HEAD -> slot == EquipmentSlot.HEAD;
+            case ARMOR -> slot.isHumanoidArmor() || slot == EquipmentSlot.BODY;
+            case BODY -> slot == EquipmentSlot.BODY;
+        };
+    }
+
+    /**
      * {@return the group with a serialized name, {@link #ANY} when it is unknown or {@code null}}
      *
      * @param name the serialized name

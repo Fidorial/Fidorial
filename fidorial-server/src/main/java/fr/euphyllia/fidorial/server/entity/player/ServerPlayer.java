@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.events.player.PlayerOpenInventoryEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
+import fr.euphyllia.fidorial.server.item.enchantment.EquipmentEnchantments;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
@@ -38,6 +39,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.attribute.Attribute;
+import fr.fidorial.attribute.AttributeModifier;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
@@ -50,6 +52,7 @@ import fr.fidorial.event.player.PlayerOpenInventoryEvent;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
+import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
@@ -125,8 +128,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     };
     private static final int VOID_MARGIN = 64;
     private static final float VOID_DAMAGE = 4.0f;
-    private static final int BURN_INTERVAL_TICKS = 20;
-    private static final float BURN_DAMAGE = 1.0f;
+    private static final byte FLAG_SNEAKING = 0x02;
+    private static final byte FLAG_SPRINTING = 0x08;
 
     private static final int REGENERATION_INTERVAL_TICKS = 80;
     private static final float REGENERATION_AMOUNT = 1.0f;
@@ -149,6 +152,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile int selectedSlot;
     private volatile PlayerInput input = PlayerInput.NONE;
     private final Map<Key, Double> attributeBases = new ConcurrentHashMap<>();
+    private final Map<Key, Map<Key, AttributeModifier>> attributeModifiers = new ConcurrentHashMap<>();
+    private final EquipmentEnchantments equipmentEnchantments = new EquipmentEnchantments(this);
     private volatile boolean sprinting;
     private volatile boolean sneaking;
     private volatile boolean falling;
@@ -402,6 +407,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return inventory.get(selectedSlot);
     }
 
+    @Override
+    public ItemStack equipment(final EquipmentSlot slot) {
+        if (slot == EquipmentSlot.MAIN_HAND) {
+            return heldItem();
+        }
+        final int index = PlayerInventory.slotOf(slot);
+        return index < 0 || index >= inventory.size() ? ItemStack.EMPTY : inventory.get(index);
+    }
+
     public boolean isSprinting() {
         return sprinting;
     }
@@ -543,6 +557,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
         tickMenu();
         tickLiving(currentTick);
+        equipmentEnchantments.tick(!isDead() && !awaitingRespawn);
         if (ticksSinceLastAttack.get() < MAX_TRACKED_ATTACK_TICKS) {
             ticksSinceLastAttack.incrementAndGet();
         }
@@ -550,7 +565,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             return;
         }
         tickVoid();
-        tickFire();
+        tickBurning();
         tickRegeneration(currentTick);
         connection.server().maps().tickPlayer(this);
     }
@@ -822,16 +837,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             throw new IllegalArgumentException("Attribute base value must be finite: " + base);
         }
         attributeBases.put(attribute, base);
-        connection.send(new ClientboundUpdateAttributesPacket(entityId(),
-                List.of(new ClientboundUpdateAttributesPacket.Value(id, base))));
+        connection.send(new ClientboundUpdateAttributesPacket(entityId(), List.of(attributeSnapshot(attribute, id))));
     }
 
     @Override
     public void resetAttributeBase(final Key attribute) {
         final int id = attributeId(attribute);
         if (attributeBases.remove(attribute) != null) {
-            connection.send(new ClientboundUpdateAttributesPacket(entityId(),
-                    List.of(new ClientboundUpdateAttributesPacket.Value(id, PlayerAttributeDefaults.base(attribute)))));
+            connection.send(new ClientboundUpdateAttributesPacket(entityId(), List.of(attributeSnapshot(attribute, id))));
         }
     }
 
@@ -842,9 +855,93 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     public void resendAttributeBases() {
-        final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>(attributeBases.size());
-        for (final Map.Entry<Key, Double> entry : attributeBases.entrySet()) {
-            values.add(new ClientboundUpdateAttributesPacket.Value(attributeId(entry.getKey()), entry.getValue()));
+        final Set<Key> attributes = new LinkedHashSet<>(attributeBases.keySet());
+        attributes.addAll(attributeModifiers.keySet());
+        final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>(attributes.size());
+        for (final Key attribute : attributes) {
+            values.add(attributeSnapshot(attribute, attributeId(attribute)));
+        }
+        if (!values.isEmpty()) {
+            connection.send(new ClientboundUpdateAttributesPacket(entityId(), values));
+        }
+    }
+
+    private ClientboundUpdateAttributesPacket.Value attributeSnapshot(final Key attribute, final int id) {
+        final Map<Key, AttributeModifier> modifiers = attributeModifiers.getOrDefault(attribute, Map.of());
+        return ClientboundUpdateAttributesPacket.Value.of(id, baseValue(attribute), modifiers.values());
+    }
+
+    private double baseValue(final Key attribute) {
+        final Double base = attributeBases.get(attribute);
+        return base == null ? PlayerAttributeDefaults.base(attribute) : base;
+    }
+
+    /**
+     * {@return the value of an attribute: its base, vanilla's default unless a plugin set it, with the
+     * modifiers of the equipped enchantments applied the vanilla way}
+     *
+     * @param attribute the attribute
+     */
+    public double attributeValue(final Key attribute) {
+        final double base = baseValue(attribute);
+        final Map<Key, AttributeModifier> modifiers = attributeModifiers.get(attribute);
+        if (modifiers == null || modifiers.isEmpty()) {
+            return base;
+        }
+        double added = base;
+        for (final AttributeModifier modifier : modifiers.values()) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_VALUE) {
+                added += modifier.amount();
+            }
+        }
+        double value = added;
+        for (final AttributeModifier modifier : modifiers.values()) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
+                value += added * modifier.amount();
+            }
+        }
+        for (final AttributeModifier modifier : modifiers.values()) {
+            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
+                value *= 1.0 + modifier.amount();
+            }
+        }
+        return value;
+    }
+
+    /**
+     * {@return the attribute modifiers the equipped enchantments give, by attribute}
+     */
+    public Map<Key, Map<Key, AttributeModifier>> attributeModifiers() {
+        return Map.copyOf(attributeModifiers);
+    }
+
+    /**
+     * Replaces the attribute modifiers the equipped enchantments give, and tells the client about the
+     * attributes that changed.
+     *
+     * @param modifiers the new modifiers, by attribute
+     */
+    public void setEnchantmentModifiers(final Map<Key, Map<Key, AttributeModifier>> modifiers) {
+        final Set<Key> touched = new LinkedHashSet<>(attributeModifiers.keySet());
+        touched.addAll(modifiers.keySet());
+        final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>();
+        for (final Key attribute : touched) {
+            final Map<Key, AttributeModifier> next = modifiers.getOrDefault(attribute, Map.of());
+            final Map<Key, AttributeModifier> previous = attributeModifiers.getOrDefault(attribute, Map.of());
+            if (next.equals(previous)) {
+                continue;
+            }
+            if (next.isEmpty()) {
+                attributeModifiers.remove(attribute);
+            } else {
+                attributeModifiers.put(attribute, Map.copyOf(next));
+            }
+            final int id = attributeNetworkId(attribute);
+            if (id < 0) {
+                LOGGER.debug("Not sending the unknown attribute {} to {}", attribute.asString(), name());
+                continue;
+            }
+            values.add(attributeSnapshot(attribute, id));
         }
         if (!values.isEmpty()) {
             connection.send(new ClientboundUpdateAttributesPacket(entityId(), values));
@@ -852,11 +949,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private int attributeId(final Key attribute) {
-        final int id = connection.server().registries().frozen().networkId(ATTRIBUTE_REGISTRY, attribute);
+        final int id = attributeNetworkId(attribute);
         if (id < 0) {
             throw new IllegalArgumentException("Unknown attribute: " + attribute.asString());
         }
         return id;
+    }
+
+    private int attributeNetworkId(final Key attribute) {
+        return connection.server().registries().frozen().networkId(ATTRIBUTE_REGISTRY, attribute);
     }
 
     public void setInput(final PlayerInput input) {
@@ -871,6 +972,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         viewer.send(ClientboundSetEntityMetadataPacket.of(
                 entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_DISPLAYED_SKIN_PARTS, connection().displayedSkinParts())));
+        sendBurningTo(viewer);
     }
 
     @Override
@@ -991,14 +1093,41 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
     }
 
-    private void tickFire() {
-        if (fireTicks() <= 0) {
-            return;
-        }
-        if (fireTicks() % BURN_INTERVAL_TICKS == 0) {
-            damage(DamageSource.onFire(), BURN_DAMAGE);
-        }
-        setFireTicks(fireTicks() - 1);
+    /**
+     * The server does not otherwise send the shared flags of a player, so the bits it knows of are
+     * sent along with the on-fire flag.
+     */
+    @Override
+    protected byte sharedFlags(final boolean onFire) {
+        return (byte) (super.sharedFlags(onFire)
+                | (isSneaking() ? FLAG_SNEAKING : 0)
+                | (isSprinting() ? FLAG_SPRINTING : 0));
+    }
+
+    @Override
+    protected void sendSharedFlags(final ClientboundSetEntityMetadataPacket packet) {
+        super.sendSharedFlags(packet);
+        connection.send(packet);
+    }
+
+    /**
+     * The {@code minecraft:burning_time} attribute, which Fire Protection lowers, scales
+     * how long the player burns.
+     */
+    @Override
+    public void igniteForTicks(final int ticks) {
+        super.igniteForTicks((int) Math.round(ticks * Math.max(0.0, attributeValue(Attribute.BURNING_TIME))));
+    }
+
+    @Override
+    protected boolean ticksOwnFire() {
+        return true;
+    }
+
+    @Override
+    protected void onRemoved() {
+        super.onRemoved();
+        equipmentEnchantments.clear();
     }
 
     private void tickRegeneration(final long currentTick) {

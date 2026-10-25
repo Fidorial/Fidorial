@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.testplugin.command.PregenCommand;
 import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
 import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
+import fr.euphyllia.fidorial.testplugin.enchantment.TestEnchantments;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
@@ -133,6 +134,7 @@ public final class TestPlugin implements Plugin {
         BullMobs.registerBull(context.server().registries().mobs(), this, context.logger());
         CompanionMobs.register(context.server().registries().mobs(), this, context.logger());
         TestEffects.registerAll(context.server().registries().effects(), this, context.logger());
+        TestEnchantments.registerAll(context.server().registries().enchantments(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
         this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
@@ -189,6 +191,7 @@ public final class TestPlugin implements Plugin {
         BullMobs.unregisterAll(server.registries().mobs(), this);
         server.registries().mobs().unregisterAll(this);
         TestEffects.unregisterAll(server.registries().effects(), this);
+        TestEnchantments.unregisterAll(server.registries().enchantments(), this);
         TestRecipes.unregisterAll(server.registries().recipes(), this);
         TestPluginTranslations.unregister();
     }

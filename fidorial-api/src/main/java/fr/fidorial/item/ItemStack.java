@@ -5,12 +5,18 @@ import fr.fidorial.item.data.DataComponentEditor;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
+import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.item.data.TypedDataComponentValue;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.event.DataComponentValue;
+import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.translation.Translatable;
 import org.jspecify.annotations.Nullable;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -60,6 +66,40 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      */
     public static ItemStack of(final Key key) {
         return new ItemStack(key, 1);
+    }
+
+    /**
+     * Creates the stack shown by an item hover event.
+     *
+     * <p>Data component values that are not {@link TypedDataComponentValue}s, such as those read by
+     * MiniMessage, are converted through the {@link DataComponentValueConverterRegistry}.</p>
+     *
+     * @param item the item hover event
+     * @return the stack
+     * @throws IllegalArgumentException if a data component is unknown or cannot be converted
+     * @since 0.1.0
+     */
+    public static ItemStack of(final HoverEvent.ShowItem item) {
+        Preconditions.checkArgument(item != null, "The item hover event must not be null");
+        final DataComponentMap.Builder components = DataComponentMap.builder();
+        for (final Map.Entry<Key, DataComponentValue> entry : item.dataComponents().entrySet()) {
+            final DataComponentType<?> type = DataComponentTypes.byKey(entry.getKey());
+            Preconditions.checkArgument(type != null, "Unknown data component %s", entry.getKey().asString());
+            if (entry.getValue() instanceof DataComponentValue.Removed) {
+                components.remove(type);
+            } else {
+                set(components, type, DataComponentValueConverterRegistry.convert(
+                        TypedDataComponentValue.class, entry.getKey(), entry.getValue()));
+            }
+        }
+        return new ItemStack(item.item(), item.count(), components.build());
+    }
+
+    private static <T> void set(final DataComponentMap.Builder components, final DataComponentType<T> type,
+                                final TypedDataComponentValue<?> value) {
+        Preconditions.checkArgument(type.equals(value.type()),
+                "The value of the data component %s is a value of %s", type, value.type());
+        components.set(type, type.valueType().cast(value.value()));
     }
 
     /**
@@ -184,9 +224,33 @@ public record ItemStack(Key id, int count, DataComponentMap components)
         return withCount(Math.max(0, count + delta));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The components of the stack are held as {@link TypedDataComponentValue}s, and those it removes
+     * as {@linkplain DataComponentValue#removed() removed values}.</p>
+     */
     @Override
     public HoverEvent<HoverEvent.ShowItem> asHoverEvent(final UnaryOperator<HoverEvent.ShowItem> op) {
-        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id, count)));
+        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id, count, hoverComponents())));
+    }
+
+    private Map<Key, DataComponentValue> hoverComponents() {
+        if (components.isEmpty()) {
+            return Map.of();
+        }
+        final Map<Key, DataComponentValue> values = new LinkedHashMap<>();
+        for (final Map.Entry<DataComponentType<?>, Object> entry : components.entries()) {
+            values.put(entry.getKey().key(), hoverValue(entry.getKey(), entry.getValue()));
+        }
+        for (final DataComponentType<?> removed : components.removedTypes()) {
+            values.put(removed.key(), DataComponentValue.removed());
+        }
+        return values;
+    }
+
+    private static <T> TypedDataComponentValue<T> hoverValue(final DataComponentType<T> type, final Object value) {
+        return TypedDataComponentValue.of(type, type.valueType().cast(value));
     }
 
     @Override

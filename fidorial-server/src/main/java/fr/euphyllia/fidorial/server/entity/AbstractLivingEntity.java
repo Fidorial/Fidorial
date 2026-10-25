@@ -2,6 +2,9 @@ package fr.euphyllia.fidorial.server.entity;
 
 import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
 import fr.euphyllia.fidorial.server.entity.effect.MobEffectInstanceImpl;
+import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
+import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
@@ -37,11 +40,17 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     public static final int INVULNERABILITY_TICKS = 20;
     public static final int INVULNERABILITY_OVERRIDE_THRESHOLD = 10;
 
+    private static final int BURN_INTERVAL_TICKS = 20;
+    private static final float BURN_DAMAGE = 1.0f;
+    private static final int MD_SHARED_FLAGS = 0;
+    private static final byte FLAG_ON_FIRE = 0x01;
+
     private volatile float maxHealth;
     private volatile float health;
     private volatile float absorption;
     private volatile float lastDamage;
     private volatile int fireTicks;
+    private volatile boolean sentBurning;
     private final AtomicInteger invulnerableTicks = new AtomicInteger();
     private final AtomicInteger deathTicks = new AtomicInteger(-1);
     private final Map<Key, MobEffectInstanceImpl> effects = new ConcurrentHashMap<>();
@@ -108,6 +117,106 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         this.fireTicks = Math.max(0, ticks);
     }
 
+    /**
+     * Sets the entity on fire for at least {@code ticks}, as vanilla's {@code igniteForTicks}: a longer
+     * fire already burning is kept.
+     *
+     * @param ticks the burning ticks
+     */
+    public void igniteForTicks(final int ticks) {
+        if (ticks > fireTicks && !isFireImmune()) {
+            setFireTicks(ticks);
+        }
+    }
+
+    /**
+     * {@return {@code true} if fire does not burn this entity; the fire-immune mobs override it}
+     */
+    public boolean isFireImmune() {
+        return false;
+    }
+
+    /**
+     * {@return {@code true} if the entity calls {@link #tickBurning()} itself, {@code false} to let
+     * {@link #tickLiving(long)} call it}
+     */
+    protected boolean ticksOwnFire() {
+        return false;
+    }
+
+    /**
+     * Counts down the {@linkplain #fireTicks() fire}, {@linkplain #burn() burns} the entity once per
+     * second and shows the flames to the viewers.
+     */
+    protected final void tickBurning() {
+        if (fireTicks <= 0) {
+            if (sentBurning) {
+                sendBurning(false);
+            }
+            return;
+        }
+        if (!sentBurning) {
+            sendBurning(true);
+        }
+        if (fireTicks % BURN_INTERVAL_TICKS == 0) {
+            burn();
+        }
+        setFireTicks(fireTicks - 1);
+    }
+
+    /**
+     * Deals the damage of one second of burning.
+     */
+    protected void burn() {
+        damage(DamageSource.onFire(), BURN_DAMAGE);
+    }
+
+    /**
+     * {@return the shared flags sent along the on-fire flag; the bits not set here are cleared on the
+     * client}
+     *
+     * @param onFire whether the entity is shown burning
+     */
+    protected byte sharedFlags(final boolean onFire) {
+        return onFire ? FLAG_ON_FIRE : (byte) 0;
+    }
+
+    /**
+     * Sends the shared flags to the viewers.
+     *
+     * @param packet the metadata packet holding the shared flags
+     */
+    protected void sendSharedFlags(final ClientboundSetEntityMetadataPacket packet) {
+        sendToTrackers(packet);
+    }
+
+    /**
+     * Shows the flames to a new viewer, if the entity is burning.
+     *
+     * @param viewer the connection of the viewer
+     */
+    protected final void sendBurningTo(final ClientConnection viewer) {
+        if (sentBurning) {
+            viewer.send(sharedFlagsPacket(true));
+        }
+    }
+
+    @Override
+    public void sendSpawnPackets(final ClientConnection connection) {
+        super.sendSpawnPackets(connection);
+        sendBurningTo(connection);
+    }
+
+    private void sendBurning(final boolean burning) {
+        sentBurning = burning;
+        sendSharedFlags(sharedFlagsPacket(burning));
+    }
+
+    private ClientboundSetEntityMetadataPacket sharedFlagsPacket(final boolean burning) {
+        return ClientboundSetEntityMetadataPacket.of(entityId(),
+                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_SHARED_FLAGS, sharedFlags(burning)));
+    }
+
     public final float lastDamage() {
         return lastDamage;
     }
@@ -142,6 +251,9 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         }
         if (!isRemoved() && !isDead()) {
             tickEffects();
+            if (!ticksOwnFire() && !isRemoved() && !isDead()) {
+                tickBurning();
+            }
         }
     }
 

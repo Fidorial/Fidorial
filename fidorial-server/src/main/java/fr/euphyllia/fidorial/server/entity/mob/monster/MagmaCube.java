@@ -14,4 +14,9 @@ public final class MagmaCube extends AbstractMob implements Category.Monster {
     public MagmaCube(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.MAGMA_CUBE, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

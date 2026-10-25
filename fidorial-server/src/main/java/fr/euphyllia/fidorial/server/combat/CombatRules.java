@@ -17,13 +17,26 @@ public final class CombatRules {
     private CombatRules() {
     }
 
-    public static float damageAfterArmor(final float damage, final float armor, final float toughness) {
+    /**
+     * @param effectiveness changes the share of the damage the armor absorbs, as Breach lowers it
+     */
+    public static float damageAfterArmor(final float damage, final float armor, final float toughness,
+                                         final ArmorEffectiveness effectiveness) {
         if (armor <= 0f) {
             return damage;
         }
         final float falloff = 2.0f + toughness / TOUGHNESS_DIVISOR;
         final float effective = Math.clamp(armor - damage / falloff, armor * MIN_ARMOR_RATIO, MAX_ARMOR);
-        return damage * (1.0f - effective / ARMOR_REDUCTION_PER_POINT);
+        final float share = Math.clamp(effectiveness.apply(effective / ARMOR_REDUCTION_PER_POINT), 0.0f, 1.0f);
+        return damage * (1.0f - share);
+    }
+
+    /**
+     * Changes the share of a hit armor absorbs, from {@code 0} to {@code 1}.
+     */
+    @FunctionalInterface
+    public interface ArmorEffectiveness {
+        float apply(float share);
     }
 
     public static float damageAfterProtection(final float damage, final float protection) {

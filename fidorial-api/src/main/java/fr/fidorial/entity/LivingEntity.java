@@ -4,6 +4,8 @@ import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.inventory.EquipmentSlot;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
 import org.jspecify.annotations.Nullable;
@@ -83,6 +85,15 @@ public interface LivingEntity extends Entity {
      * @param ticks the burning ticks to set; {@code 0} extinguishes the entity
      */
     void setFireTicks(int ticks);
+
+    /**
+     * @param slot the equipment slot
+     * @return the stack worn or held in {@code slot}, {@link ItemStack#EMPTY} when the slot is empty
+     *         or the entity has none
+     */
+    default ItemStack equipment(final EquipmentSlot slot) {
+        return ItemStack.EMPTY;
+    }
 
     /**
      * Applies a status effect. When the entity already has an effect of the same type, the two are

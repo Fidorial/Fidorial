@@ -20,6 +20,7 @@ import fr.euphyllia.fidorial.server.command.defaults.BanListCommand;
 import fr.euphyllia.fidorial.server.command.defaults.BossBarCommand;
 import fr.euphyllia.fidorial.server.command.defaults.DatapackCommand;
 import fr.euphyllia.fidorial.server.command.defaults.EffectCommand;
+import fr.euphyllia.fidorial.server.command.defaults.EnchantCommand;
 import fr.euphyllia.fidorial.server.command.defaults.FillBiomeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.ForceLoadCommand;
 import fr.euphyllia.fidorial.server.command.defaults.GameModeCommand;
@@ -113,6 +114,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(GameRuleCommand.create());
         registerInternal(PostEffectCommand.create());
         registerInternal(EffectCommand.create());
+        registerInternal(EnchantCommand.create());
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command) {

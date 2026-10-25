@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.bootstrap.GameBootstrap;
 import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
 import fr.euphyllia.fidorial.server.entity.mob.FidorialMobRegistry;
 import fr.euphyllia.fidorial.server.item.FidorialItemRegistry;
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.permission.FidorialPermissionRegistry;
@@ -27,7 +28,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 /**
  * Game data: blocks, items, mobs, effects, permissions, translations and the data-driven
- * registries synchronised with clients (biomes, dimension types, chat types, dialogs...).
+ * registries synchronised with clients (biomes, dimension types, chat types, dialogs, enchantments...).
  *
  * <p>This is the server's implementation of the {@link GameRegistries} API.</p>
  */
@@ -74,6 +75,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         registries.biomes().started.set(started);
         registries.dimensionTypes().started.set(started);
         registries.chatTypes().started.set(started);
+        registries.enchantments().started.set(started);
     }
 
     public <T> Registry<T> registry(final RegistryKey<T> key) {
@@ -110,6 +112,11 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     @Override
     public FidorialChatTypeRegistry chatTypes() {
         return registries.chatTypes();
+    }
+
+    @Override
+    public FidorialEnchantmentRegistry enchantments() {
+        return registries.enchantments();
     }
 
     public FidorialBlockRegistry blocks() {

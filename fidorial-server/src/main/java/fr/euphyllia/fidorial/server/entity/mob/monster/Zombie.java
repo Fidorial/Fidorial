@@ -73,7 +73,6 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private static final long BURN_END_TICK = 12_010L;
     private static final int SUN_CHECK_INTERVAL = 20;
     private static final int FIRE_TICKS_ON_IGNITE = 160;
-    private static final float BURN_DAMAGE = 1.0f;
 
     private static final int WATER_TICKS_BEFORE_CONVERSION = 600;
 
@@ -85,10 +84,8 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private static final Key BURN_IN_DAYLIGHT = Key.key("burn_in_daylight");
     private static final int AMBIENT_CHANCE = 80;
 
-    private static final int MD_SHARED_FLAGS = 0;
     private static final int MD_BABY = 16;
     private static final int MD_CONVERTING_TO_DROWNED = 18;
-    private static final int FLAG_ON_FIRE = 0x01;
 
     private final boolean baby;
     private final boolean leader;
@@ -99,13 +96,11 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
 
     private double reinforcementChance;
 
-    private int fireTicks;
     private int inWaterTicks = -1;
     private int drownedConversionTicks = -1;
     private int powderSnowTicks;
     private int frostbiteConversionTicks = -1;
     private boolean metadataSent;
-    private boolean sentOnFire;
 
     public Zombie(final int entityId, final Location location) {
         this(entityId, EntityTypes.ZOMBIE, location, SpawnData.roll());
@@ -263,28 +258,19 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         if (!isDaylight() || isHeadInWater() || !canSeeSky()) {
             return;
         }
-        fireTicks = Math.max(fireTicks, FIRE_TICKS_ON_IGNITE);
+        setFireTicks(Math.max(fireTicks(), FIRE_TICKS_ON_IGNITE));
+    }
+
+    @Override
+    protected boolean ticksOwnFire() {
+        return true;
     }
 
     private void tickFire() {
-        if (fireTicks <= 0) {
-            if (sentOnFire) {
-                setOnFireFlag(false);
-            }
-            return;
+        if (fireTicks() > 0 && isHeadInWater()) {
+            setFireTicks(0);
         }
-        if (!sentOnFire) {
-            setOnFireFlag(true);
-        }
-        if (isHeadInWater()) {
-            fireTicks = 0;
-            setOnFireFlag(false);
-            return;
-        }
-        if (fireTicks % 20 == 0) {
-            damage(DamageSource.onFire(), BURN_DAMAGE);
-        }
-        fireTicks--;
+        tickBurning();
     }
 
     private void tickDrowning() {
@@ -312,7 +298,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private void startDrownedConversion() {
         drownedConversionTicks = DROWNED_CONVERSION_TICKS;
         inWaterTicks = -1;
-        fireTicks = 0;
+        setFireTicks(0);
         sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_CONVERTING_TO_DROWNED, true)));
         playSound(waterConversionSound(), 2.0f, voicePitch());
@@ -334,7 +320,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         if (isInPowderSnow()) {
             if (++powderSnowTicks >= POWDER_SNOW_TICKS_BEFORE_CONVERSION) {
                 powderSnowTicks = 0;
-                fireTicks = 0;
+                setFireTicks(0);
                 frostbiteConversionTicks = FROSTBITE_CONVERSION_TICKS;
             }
         } else {
@@ -358,7 +344,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
             onAttackLanded(target);
         }
 
-        if (fireTicks > 0
+        if (fireTicks() > 0
                 && ThreadLocalRandom.current().nextDouble() < 0.30 * clampedRegionalDifficulty()) {
             // TODO : Apply the fire effect to the player
             playSound(SoundEvents.GENERIC_BURN, 1.0f, 1.0f);
@@ -521,22 +507,11 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
                 ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_BABY, baby)));
     }
 
-    private void setOnFireFlag(final boolean onFire) {
-        sentOnFire = onFire;
-        sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
-                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_SHARED_FLAGS,
-                        onFire ? FLAG_ON_FIRE : 0)));
-    }
-
     @Override
     public void sendSpawnPackets(final ClientConnection connection) {
         super.sendSpawnPackets(connection);
         connection.send(ClientboundSetEntityMetadataPacket.of(entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_BABY, baby)));
-        if (sentOnFire) {
-            connection.send(ClientboundSetEntityMetadataPacket.of(entityId(),
-                    ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_SHARED_FLAGS, FLAG_ON_FIRE)));
-        }
         if (drownedConversionTicks >= 0) {
             connection.send(ClientboundSetEntityMetadataPacket.of(entityId(),
                     ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_CONVERTING_TO_DROWNED, true)));

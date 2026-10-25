@@ -14,4 +14,9 @@ public final class Strider extends AbstractMob implements Category.Neutral {
     public Strider(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.STRIDER, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

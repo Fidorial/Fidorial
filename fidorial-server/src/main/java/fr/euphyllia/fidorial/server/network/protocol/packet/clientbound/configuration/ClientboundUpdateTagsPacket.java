@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration;
 
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
@@ -21,7 +22,8 @@ public record ClientboundUpdateTagsPacket(
         FidorialBiomeRegistry biomes,
         FidorialDialogRegistry dialogs,
         FidorialDimensionTypeRegistry dimensionTypes,
-        FidorialChatTypeRegistry chatTypes
+        FidorialChatTypeRegistry chatTypes,
+        FidorialEnchantmentRegistry enchantments
 ) implements ClientboundPacket {
 
     @Override
@@ -49,6 +51,9 @@ public record ClientboundUpdateTagsPacket(
             } else if (reg.name().equals(FidorialChatTypeRegistry.REGISTRY_NAME)) {
                 tags = reg.tags();
                 networkId = chatTypes::networkId;
+            } else if (reg.name().equals(FidorialEnchantmentRegistry.REGISTRY_NAME)) {
+                tags = enchantments.networkTags();
+                networkId = enchantments::networkId;
             } else {
                 tags = reg.tags();
                 final List<Key> entries = reg.entries();

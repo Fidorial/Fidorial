@@ -1,3 +1,4 @@
+import fr.euphyllia.fidorial.server.adventure.providers.DataComponentValueConverterProviderImpl;
 import fr.euphyllia.fidorial.server.command.brigadier.MessageComponentSerializerImpl;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.FidorialArguments;
 import fr.euphyllia.fidorial.server.recipe.FidorialRecipeFactory;
@@ -50,4 +51,6 @@ module fr.fidorial.server {
     provides fr.fidorial.command.argument.Arguments with FidorialArguments;
     provides fr.fidorial.command.serializers.MessageComponentSerializer with MessageComponentSerializerImpl;
     provides fr.fidorial.recipe.RecipeFactory with FidorialRecipeFactory;
+    provides net.kyori.adventure.text.event.DataComponentValueConverterRegistry.Provider
+            with DataComponentValueConverterProviderImpl;
 }

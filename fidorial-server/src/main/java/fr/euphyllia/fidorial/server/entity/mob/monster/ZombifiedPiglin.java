@@ -14,4 +14,9 @@ public final class ZombifiedPiglin extends AbstractMob implements Category.Monst
     public ZombifiedPiglin(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ZOMBIFIED_PIGLIN, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

@@ -8,6 +8,7 @@ import com.mojang.serialization.RecordBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
+import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
@@ -15,12 +16,16 @@ import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.item.data.TypedDataComponentValue;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.event.DataComponentValue;
+import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -40,7 +45,7 @@ public final class ItemStackCodecs {
             .comapFlatMap(
                     lines -> lines.size() > ItemLore.MAX_LINES
                             ? DataResult.error(() -> "Lore has " + lines.size()
-                                                     + " lines, the most allowed is " + ItemLore.MAX_LINES)
+                            + " lines, the most allowed is " + ItemLore.MAX_LINES)
                             : DataResult.success(new ItemLore(lines)),
                     ItemLore::lines);
 
@@ -90,6 +95,8 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.MAP_ID, Codec.INT);
         register(DataComponentTypes.MAP_DECORATIONS, MAP_DECORATIONS_CODEC);
         register(DataComponentTypes.ENCHANTMENTS, ENCHANTMENTS_CODEC);
+        register(DataComponentTypes.STORED_ENCHANTMENTS, ENCHANTMENTS_CODEC);
+        register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Codec.BOOL);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {
@@ -143,6 +150,64 @@ public final class ItemStackCodecs {
         }
     };
 
+    /**
+     * The {@code components} of an item hover event: a component patch, in the format of
+     * {@link #COMPONENT_MAP_CODEC}, holding Adventure data component values.
+     *
+     * <p>Modelled components are decoded as {@link TypedDataComponentValue}s, the others are kept as
+     * binary tag holders so that no component is lost. Values that are neither typed nor binary tags,
+     * such as those of the Gson serializer, are converted through the
+     * {@link DataComponentValueConverterRegistry}.</p>
+     */
+    public static final Codec<Map<Key, DataComponentValue>> HOVER_COMPONENTS_CODEC = new Codec<>() {
+
+        @Override
+        public <T> DataResult<Pair<Map<Key, DataComponentValue>, T>> decode(final DynamicOps<T> ops, final T input) {
+            return ops.getMapValues(input).map(entries -> {
+                final Map<Key, DataComponentValue> values = new LinkedHashMap<>();
+                entries.forEach(entry -> {
+                    final Optional<String> name = ops.getStringValue(entry.getFirst()).result();
+                    if (name.isEmpty()) {
+                        LOGGER.warn("Skipping hover component with a non-string key");
+                        return;
+                    }
+                    final boolean removed = name.get().startsWith(REMOVED_PREFIX);
+                    final String raw = removed ? name.get().substring(REMOVED_PREFIX.length()) : name.get();
+                    if (!Key.parseable(raw)) {
+                        LOGGER.warn("Skipping unparseable hover component key: {}", name.get());
+                        return;
+                    }
+                    final Key key = Key.key(raw);
+                    if (removed) {
+                        values.put(key, DataComponentValue.removed());
+                        return;
+                    }
+                    decodeHoverValue(ops, key, entry.getSecond())
+                            .resultOrPartial(message -> LOGGER.warn("Skipping hover component {}: {}", raw, message))
+                            .ifPresent(value -> values.put(key, value));
+                });
+                return Pair.of(Collections.unmodifiableMap(values), ops.empty());
+            });
+        }
+
+        @Override
+        public <T> DataResult<T> encode(final Map<Key, DataComponentValue> input, final DynamicOps<T> ops, final T prefix) {
+            final RecordBuilder<T> record = ops.mapBuilder();
+            for (final Map.Entry<Key, DataComponentValue> entry : input.entrySet()) {
+                final Key key = entry.getKey();
+                if (entry.getValue() instanceof DataComponentValue.Removed) {
+                    record.add(REMOVED_PREFIX + key.asString(), ops.emptyMap());
+                    continue;
+                }
+                encodeHoverValue(ops, key, entry.getValue())
+                        .resultOrPartial(message -> LOGGER.warn("Not showing component {} in a hover event: {}",
+                                key.asString(), message))
+                        .ifPresent(value -> record.add(key.asString(), value));
+            }
+            return record.build(prefix);
+        }
+    };
+
     private ItemStackCodecs() {
         throw new UnsupportedOperationException("ItemStackCodecs cannot be instantiated.");
     }
@@ -154,6 +219,78 @@ public final class ItemStackCodecs {
     @SuppressWarnings("unchecked")
     public static <T> @Nullable Codec<T> codec(final DataComponentType<T> type) {
         return (Codec<T>) CODECS.get(Objects.requireNonNull(type, "type"));
+    }
+
+    /**
+     * Encodes the value of a data component with the codec of its component.
+     *
+     * @param ops   the format to encode to
+     * @param value the data component value
+     * @param <T>   the type of the format
+     * @return the encoded value, or an error if the component has no codec
+     */
+    public static <T> DataResult<T> encodeValue(final DynamicOps<T> ops, final TypedDataComponentValue<?> value) {
+        return encodeTyped(ops, value);
+    }
+
+    /**
+     * Decodes the value of a data component with the codec of its component.
+     *
+     * @param ops   the format to decode from
+     * @param type  the component
+     * @param input the encoded value
+     * @param <T>   the type of the format
+     * @return the data component value, or an error if the component has no codec or the input is invalid
+     */
+    public static <T> DataResult<TypedDataComponentValue<?>> decodeValue(final DynamicOps<T> ops,
+                                                                         final DataComponentType<?> type,
+                                                                         final T input) {
+        return decodeTyped(ops, type, input);
+    }
+
+    private static <T, V> DataResult<T> encodeTyped(final DynamicOps<T> ops, final TypedDataComponentValue<V> value) {
+        final Codec<V> codec = codec(value.type());
+        if (codec == null) {
+            return DataResult.error(() -> "No codec for the data component " + value.type());
+        }
+        return codec.encodeStart(ops, value.value());
+    }
+
+    private static <T, V> DataResult<TypedDataComponentValue<?>> decodeTyped(final DynamicOps<T> ops,
+                                                                             final DataComponentType<V> type,
+                                                                             final T input) {
+        final Codec<V> codec = codec(type);
+        if (codec == null) {
+            return DataResult.error(() -> "No codec for the data component " + type);
+        }
+        return codec.parse(ops, input).map(value -> TypedDataComponentValue.of(type, value));
+    }
+
+    private static <T> DataResult<DataComponentValue> decodeHoverValue(final DynamicOps<T> ops, final Key key, final T input) {
+        final DataComponentType<?> type = DataComponentTypes.byKey(key);
+        if (type != null && CODECS.containsKey(type)) {
+            final DataResult<TypedDataComponentValue<?>> typed = decodeTyped(ops, type, input);
+            if (typed.result().isPresent()) {
+                return typed.<DataComponentValue>map(value -> value);
+            }
+        }
+        return NbtCodecs.BINARY_TAG_CODEC.parse(ops, input).map(NbtCodecs::toHolder);
+    }
+
+    private static <T> DataResult<T> encodeHoverValue(final DynamicOps<T> ops, final Key key, final DataComponentValue value) {
+        if (value instanceof final TypedDataComponentValue<?> typed) {
+            return encodeTyped(ops, typed);
+        }
+        try {
+            if (value instanceof final DataComponentValue.TagSerializable tag) {
+                return NbtCodecs.BINARY_TAG_CODEC.encodeStart(ops, NbtCodecs.fromHolder(tag.asBinaryTag()));
+            }
+            final TypedDataComponentValue<?> converted =
+                    DataComponentValueConverterRegistry.convert(TypedDataComponentValue.class, key, value);
+            return encodeTyped(ops, converted);
+        } catch (final RuntimeException exception) {
+            return DataResult.error(exception::getMessage);
+        }
     }
 
     private static <T> void decodeEntry(final DynamicOps<T> ops,

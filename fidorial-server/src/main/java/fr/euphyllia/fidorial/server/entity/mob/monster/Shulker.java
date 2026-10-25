@@ -14,4 +14,9 @@ public final class Shulker extends AbstractMob implements Category.Monster {
     public Shulker(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.SHULKER, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

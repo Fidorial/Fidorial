@@ -14,4 +14,9 @@ public final class Blaze extends AbstractMob implements Category.Monster {
     public Blaze(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.BLAZE, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

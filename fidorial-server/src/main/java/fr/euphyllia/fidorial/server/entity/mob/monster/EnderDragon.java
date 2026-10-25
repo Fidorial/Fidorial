@@ -14,4 +14,9 @@ public final class EnderDragon extends AbstractMob implements Category.Monster {
     public EnderDragon(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ENDER_DRAGON, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

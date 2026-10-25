@@ -7,6 +7,7 @@ import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.effect.MobEffectRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.item.ItemRegistry;
+import fr.fidorial.item.enchantment.EnchantmentRegistry;
 import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.recipe.RecipeRegistry;
 import fr.fidorial.world.biome.BiomeRegistry;
@@ -18,7 +19,8 @@ import org.jetbrains.annotations.Contract;
 
 /**
  * The server-wide registries plugins can extend: content sent to clients (biomes, dimension
- * types, chat types, dialogs) and content defined in code (mobs, effects, items, permissions).
+ * types, chat types, dialogs, enchantments) and content defined in code (mobs, effects, items,
+ * permissions).
  *
  * @see Server#registries()
  * @since 0.1.0
@@ -93,6 +95,18 @@ public interface GameRegistries {
      */
     @Contract(pure = true)
     MobEffectRegistry effects();
+
+    /**
+     * Gets the server-wide enchantment registry.
+     *
+     * <p>Where plugins {@linkplain EnchantmentRegistry#register register} enchantments of their own
+     * and {@linkplain EnchantmentRegistry#attach give behaviour} to vanilla enchantments.</p>
+     *
+     * @return the enchantment registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    EnchantmentRegistry enchantments();
 
     /**
      * Gets the server-wide item registry.

@@ -5,6 +5,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
+import fr.euphyllia.fidorial.server.codecs.item.ItemStackCodecs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.api.BinaryTagHolder;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -15,6 +16,7 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static fr.euphyllia.fidorial.server.codecs.CommonCodecs.KEY_CODEC;
@@ -115,8 +117,9 @@ public final class StyleCodecs {
                     KEY_CODEC.fieldOf("id").forGetter(
                             e -> ((HoverEvent.ShowItem) e.value()).item()),
                     Codec.INT.fieldOf("count").forGetter(
-                            e -> ((HoverEvent.ShowItem) e.value()).count())
-                    // TODO: data components.
+                            e -> ((HoverEvent.ShowItem) e.value()).count()),
+                    ItemStackCodecs.HOVER_COMPONENTS_CODEC.optionalFieldOf("components", Map.of()).forGetter(
+                            e -> ((HoverEvent.ShowItem) e.value()).dataComponents())
             ).apply(instance, HoverEvent::showItem));
 
             default -> throw new IllegalArgumentException("Unsupported hover action: " + action);

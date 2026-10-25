@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.inventory;
 
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentEngine;
+import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemDefaults;
@@ -51,7 +53,7 @@ public final class InventoryMenu extends AbstractCraftingMenu {
         slots.add(newResultSlot());
         addGridSlots(slots);
         for (final EquipmentSlot armor : ARMOR) {
-            slots.add(new ArmorSlot(inventory, armor));
+            slots.add(new ArmorSlot(player, inventory, armor));
         }
         addPlayerInventory(slots);
         slots.add(new Slot(inventory, PlayerInventory.OFF_HAND));
@@ -135,20 +137,32 @@ public final class InventoryMenu extends AbstractCraftingMenu {
     }
 
     /**
-     * An armor slot: one item worn in that slot, as its {@code equippable} component says.
+     * An armor slot: one item worn in that slot, as its {@code equippable} component says. Like
+     * vanilla, a player out of creative mode cannot take off a piece of armor whose enchantments forbid
+     * it, as Curse of Binding does.
      */
     private static final class ArmorSlot extends Slot {
 
+        private final ServerPlayer owner;
         private final EquipmentSlot equipment;
 
-        private ArmorSlot(final PlayerInventory inventory, final EquipmentSlot equipment) {
+        private ArmorSlot(final ServerPlayer owner, final PlayerInventory inventory, final EquipmentSlot equipment) {
             super(inventory, PlayerInventory.slotOf(equipment));
+            this.owner = owner;
             this.equipment = equipment;
         }
 
         @Override
         public boolean mayPlace(final ItemStack stack) {
             return ItemDefaults.equipmentSlot(stack.id()) == equipment;
+        }
+
+        @Override
+        public boolean mayPickup() {
+            final ItemStack worn = get();
+            return worn.isEmpty()
+                    || owner.gameMode() == GameMode.CREATIVE
+                    || !EnchantmentEngine.preventsArmorChange(owner, worn, equipment);
         }
 
         @Override

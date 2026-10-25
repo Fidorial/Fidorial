@@ -1,8 +1,8 @@
 package fr.euphyllia.fidorial.server.codecs.item.component;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.registry.Registry;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
@@ -27,8 +27,6 @@ public class DataComponentNetworkCodecs {
 
     private static final int MAX_COMPONENT_TEXT_LENGTH = 262_144;
 
-    private static final Key ENCHANTMENT_REGISTRY = Key.key("enchantment");
-
     private static final int MAX_ENCHANTMENTS = 1024;
 
     public interface Codec<T> {
@@ -52,6 +50,8 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.INTERACT_ANIMATION, swingAnimationCodec());
         register(DataComponentTypes.MAP_ID, varIntCodec());
         register(DataComponentTypes.ENCHANTMENTS, enchantmentsCodec());
+        register(DataComponentTypes.STORED_ENCHANTMENTS, enchantmentsCodec());
+        register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, booleanCodec());
     }
 
     private DataComponentNetworkCodecs() {
@@ -167,10 +167,10 @@ public class DataComponentNetworkCodecs {
         return new Codec<>() {
             @Override
             public void write(final PacketBuffer buf, final RegistryHolder frozen, final ItemEnchantments value) {
-                final RegistryHolder registries = withEnchantments(frozen);
+                final FidorialEnchantmentRegistry registry = FidorialServer.getInstance().registries().enchantments();
                 final Map<Integer, Integer> known = new LinkedHashMap<>();
                 for (final Map.Entry<Key, Integer> level : value.levels().entrySet()) {
-                    final int id = registries.networkId(ENCHANTMENT_REGISTRY, level.getKey());
+                    final int id = registry.networkId(level.getKey());
                     if (id < 0) {
                         LOGGER.debug("Dropping the enchantment {}: absent from the registry", level.getKey().asString());
                         continue;
@@ -186,11 +186,11 @@ public class DataComponentNetworkCodecs {
 
             @Override
             public ItemEnchantments read(final PacketBuffer buf, final RegistryHolder frozen) {
-                final RegistryHolder registries = withEnchantments(frozen);
+                final FidorialEnchantmentRegistry registry = FidorialServer.getInstance().registries().enchantments();
                 final int size = readBoundedLength(buf, MAX_ENCHANTMENTS, "enchantments");
                 final Map<Key, Integer> levels = new LinkedHashMap<>();
                 for (int i = 0; i < size; i++) {
-                    final Key enchantment = entryOf(registries, ENCHANTMENT_REGISTRY, buf.readVarInt());
+                    final Key enchantment = registry.byNetworkId(buf.readVarInt());
                     final int level = buf.readVarInt();
                     if (enchantment == null) {
                         throw new DecoderException("Unknown enchantment network id");
@@ -203,10 +203,6 @@ public class DataComponentNetworkCodecs {
                 return new ItemEnchantments(levels);
             }
         };
-    }
-
-    private static RegistryHolder withEnchantments(final RegistryHolder holder) {
-        return holder.get(ENCHANTMENT_REGISTRY) != null ? holder : FidorialServer.getInstance().registries().network();
     }
 
     private static Codec<SwingAnimation> swingAnimationCodec() {
@@ -247,13 +243,5 @@ public class DataComponentNetworkCodecs {
             throw new DecoderException("Implausible " + what + " length: " + size);
         }
         return size;
-    }
-
-    private static @Nullable Key entryOf(final RegistryHolder frozen, final Key registryKey, final int networkId) {
-        final Registry registry = frozen.get(registryKey);
-        if (registry == null || networkId < 0 || networkId >= registry.entries().size()) {
-            return null;
-        }
-        return registry.entries().get(networkId);
     }
 }

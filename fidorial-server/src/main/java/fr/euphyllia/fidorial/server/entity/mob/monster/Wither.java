@@ -14,4 +14,9 @@ public final class Wither extends AbstractMob implements Category.Monster {
     public Wither(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.WITHER, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

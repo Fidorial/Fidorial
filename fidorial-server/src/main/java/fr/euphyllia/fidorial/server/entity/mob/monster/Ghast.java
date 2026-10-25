@@ -14,4 +14,9 @@ public final class Ghast extends AbstractMob implements Category.Monster {
     public Ghast(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.GHAST, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

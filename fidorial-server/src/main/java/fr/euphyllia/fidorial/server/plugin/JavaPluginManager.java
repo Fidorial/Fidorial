@@ -128,6 +128,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 events.unsubscribeAll(loaded.plugin);
                 services.unregisterAll(loaded.plugin);
                 server.registries().recipes().unregisterAll(loaded.plugin);
+                server.registries().enchantments().unregisterAll(loaded.plugin);
                 removePluginPermissions(loaded.meta.id());
             }
         }
@@ -296,6 +297,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         events.unsubscribeAll(plugin);
         services.unregisterAll(plugin);
         server.registries().recipes().unregisterAll(plugin);
+        server.registries().enchantments().unregisterAll(plugin);
         removePluginPermissions(pluginId);
         if (context != null) {
             try {

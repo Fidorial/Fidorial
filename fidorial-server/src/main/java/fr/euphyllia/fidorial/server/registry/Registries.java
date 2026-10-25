@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.registry;
 
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
 import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
@@ -25,7 +26,6 @@ import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Dialog;
-import fr.fidorial.registry.data.Enchantment;
 import fr.fidorial.registry.data.FrogVariant;
 import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.data.GameRule;
@@ -63,7 +63,6 @@ import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
 import fr.fidorial.registry.keys.DecoratedPotPatternKeys;
 import fr.fidorial.registry.keys.DialogKeys;
-import fr.fidorial.registry.keys.EnchantmentKeys;
 import fr.fidorial.registry.keys.FrogVariantKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
@@ -105,6 +104,7 @@ public final class Registries {
     private final FidorialDialogRegistry dialogs;
     private final FidorialDimensionTypeRegistry dimensionTypes;
     private final FidorialChatTypeRegistry chatTypes;
+    private final FidorialEnchantmentRegistry enchantments;
 
     private Registries(
             final RegistryHolder dynamic,
@@ -113,7 +113,8 @@ public final class Registries {
             final FidorialBiomeRegistry biomes,
             final FidorialDialogRegistry dialogs,
             final FidorialDimensionTypeRegistry dimensionTypes,
-            final FidorialChatTypeRegistry chatTypes
+            final FidorialChatTypeRegistry chatTypes,
+            final FidorialEnchantmentRegistry enchantments
     ) {
         this.dynamic = dynamic;
         this.frozen = frozen;
@@ -123,6 +124,7 @@ public final class Registries {
         this.dialogs = dialogs;
         this.dimensionTypes = dimensionTypes;
         this.chatTypes = chatTypes;
+        this.enchantments = enchantments;
     }
 
     public static Registries load() {
@@ -133,6 +135,8 @@ public final class Registries {
         final FidorialDialogRegistry dialogs = FidorialDialogRegistry.bootstrap(dynamic);
         final FidorialDimensionTypeRegistry dimensionTypes = FidorialDimensionTypeRegistry.bootstrap(dynamic);
         final FidorialChatTypeRegistry chatTypes = FidorialChatTypeRegistry.bootstrap(dynamic);
+        final RegistryHolder frozen = loadFrozen();
+        final FidorialEnchantmentRegistry enchantments = FidorialEnchantmentRegistry.bootstrap(dynamic, frozen);
 
         // bootstrap our API registries
         registries.put(RegistryKey.ATTRIBUTE, simple(RegistryKey.ATTRIBUTE, Attribute.class, AttributeKeys.values()));
@@ -151,7 +155,7 @@ public final class Registries {
         registries.put(RegistryKey.DATA_COMPONENT_TYPE, simple(RegistryKey.DATA_COMPONENT_TYPE, DataComponentType.class, DataComponentTypeKeys.values()));
         registries.put(RegistryKey.DECORATED_POT_PATTERN, simple(RegistryKey.DECORATED_POT_PATTERN, DecoratedPotPattern.class, DecoratedPotPatternKeys.values()));
         registries.put(RegistryKey.DIALOG, simple(RegistryKey.DIALOG, Dialog.class, DialogKeys.values()));
-        registries.put(RegistryKey.ENCHANTMENT, simple(RegistryKey.ENCHANTMENT, Enchantment.class, EnchantmentKeys.values()));
+        registries.put(RegistryKey.ENCHANTMENT, enchantments);
         registries.put(RegistryKey.FROG_VARIANT, simple(RegistryKey.FROG_VARIANT, FrogVariant.class, FrogVariantKeys.values()));
         registries.put(RegistryKey.GAME_EVENT, simple(RegistryKey.GAME_EVENT, GameEvent.class, GameEventKeys.values()));
         registries.put(RegistryKey.GAME_RULE, simple(RegistryKey.GAME_RULE, GameRule.class, GameRuleKeys.values()));
@@ -176,7 +180,7 @@ public final class Registries {
         registries.put(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, simple(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusVariant.class, ZombieNautilusVariantKeys.values()));
         registries.put(RegistryKey.ENTITY_TYPE, new EntityTypeRegistry());
 
-        return new Registries(dynamic, loadFrozen(), registries, biomes, dialogs, dimensionTypes, chatTypes);
+        return new Registries(dynamic, frozen, registries, biomes, dialogs, dimensionTypes, chatTypes, enchantments);
     }
 
     private static RegistryHolder loadFrozen() {
@@ -212,6 +216,10 @@ public final class Registries {
 
     public FidorialChatTypeRegistry chatTypes() {
         return chatTypes;
+    }
+
+    public FidorialEnchantmentRegistry enchantments() {
+        return enchantments;
     }
 
     public RegistryHolder dynamic() {

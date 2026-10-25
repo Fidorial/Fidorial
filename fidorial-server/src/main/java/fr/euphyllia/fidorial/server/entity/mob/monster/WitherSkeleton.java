@@ -14,4 +14,9 @@ public final class WitherSkeleton extends AbstractMob implements Category.Monste
     public WitherSkeleton(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.WITHER_SKELETON, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

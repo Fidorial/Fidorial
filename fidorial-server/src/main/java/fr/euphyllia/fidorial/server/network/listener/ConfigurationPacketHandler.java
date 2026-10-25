@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPack;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPackNegotiation;
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
@@ -55,7 +56,8 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             FidorialBiomeRegistry.REGISTRY_NAME,
             FidorialDialogRegistry.REGISTRY_NAME,
             FidorialDimensionTypeRegistry.REGISTRY_NAME,
-            FidorialChatTypeRegistry.REGISTRY_NAME);
+            FidorialChatTypeRegistry.REGISTRY_NAME,
+            FidorialEnchantmentRegistry.REGISTRY_NAME);
 
     private final ClientConnection connection;
     private final FidorialServer server;
@@ -228,11 +230,17 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
                 FidorialChatTypeRegistry.REGISTRY_NAME,
                 forClient(server.registries().chatTypes().networkEntries(),
                         server.registries().chatTypes()::isCustom, hasKnownPacks)));
+
+        final FidorialEnchantmentRegistry enchantments = server.registries().enchantments();
+        connection.send(new ClientboundRegistryDataPacket(
+                FidorialEnchantmentRegistry.REGISTRY_NAME,
+                forClient(enchantments.networkEntries(), enchantments::isCustom, hasKnownPacks)));
     }
 
     private void sendTags() {
         connection.send(new ClientboundUpdateTagsPacket(
-                server.registries().network(), server.registries().biomes(), server.registries().dialogs(), server.registries().dimensionTypes(), server.registries().chatTypes()));
+                server.registries().network(), server.registries().biomes(), server.registries().dialogs(),
+                server.registries().dimensionTypes(), server.registries().chatTypes(), server.registries().enchantments()));
     }
 
     private List<RegistryEntry> forClient(final List<RegistryEntry> entries, final Predicate<Key> isCustom, final boolean hasKnownPacks) {

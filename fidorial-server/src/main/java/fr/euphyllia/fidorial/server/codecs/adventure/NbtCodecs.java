@@ -98,6 +98,34 @@ public final class NbtCodecs {
         }
     };
 
+    /**
+     * {@return {@code tag} as an Adventure binary tag holder, in SNBT}
+     *
+     * @param tag the binary tag
+     */
+    public static BinaryTagHolder toHolder(final BinaryTag tag) {
+        try {
+            return BinaryTagHolder.binaryTagHolder(TagStringIO.tagStringIO().asString(tag));
+        } catch (final IOException e) {
+            // structurally should never actually fail.
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /**
+     * {@return the binary tag an Adventure binary tag holder holds}
+     *
+     * @param holder the binary tag holder, in SNBT
+     * @throws IllegalArgumentException if the holder is not valid SNBT
+     */
+    public static BinaryTag fromHolder(final BinaryTagHolder holder) {
+        try {
+            return TagStringIO.tagStringIO().asTag(holder.string());
+        } catch (final IOException e) {
+            throw new IllegalArgumentException("Invalid SNBT payload: " + e.getMessage(), e);
+        }
+    }
+
     private static <T> BinaryTag toTag(final DynamicOps<T> ops, final T input) {
         final DynamicOps<BinaryTag> out = BinaryTagOps.binaryTagOps();
 

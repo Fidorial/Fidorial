@@ -272,5 +272,13 @@
   "commands.effect.clear.everything.failed" : "<red>Target has no effects to remove",
   "commands.effect.clear.specific.success.single" : "Removed effect <arg:0> from <arg:1>",
   "commands.effect.clear.specific.success.multiple" : "Removed effect <arg:0> from <arg:1> targets",
-  "commands.effect.clear.specific.failed" : "<red>Target doesn't have the requested effect"
+  "commands.effect.clear.specific.failed" : "<red>Target doesn't have the requested effect",
+
+  "commands.enchant.success.single" : "Enchanted the item of <arg:1> with <arg:0>",
+  "commands.enchant.success.multiple" : "Enchanted the items of <arg:1> targets with <arg:0>",
+  "commands.enchant.failed" : "<red>Nothing was enchanted: the targets hold nothing, or nothing that takes this enchantment",
+  "commands.enchant.failed.entity" : "<red><arg:0> cannot hold an enchanted item",
+  "commands.enchant.failed.itemless" : "<red><arg:0> holds no item",
+  "commands.enchant.failed.incompatible" : "<red><arg:0> does not take this enchantment",
+  "commands.enchant.failed.level" : "<red>Level <arg:0> is above the maximum level of this enchantment, <arg:1>"
 }

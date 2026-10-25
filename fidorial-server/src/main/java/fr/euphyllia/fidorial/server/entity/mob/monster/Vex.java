@@ -14,4 +14,9 @@ public final class Vex extends AbstractMob implements Category.Monster {
     public Vex(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.VEX, location, MAX_HEALTH);
     }
+
+    @Override
+    public boolean isFireImmune() {
+        return true;
+    }
 }

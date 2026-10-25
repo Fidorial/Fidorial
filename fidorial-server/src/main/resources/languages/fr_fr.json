@@ -272,5 +272,13 @@
   "commands.effect.clear.everything.failed" : "<red>La cible n'a aucun effet à retirer",
   "commands.effect.clear.specific.success.single" : "Effet <arg:0> retiré de <arg:1>",
   "commands.effect.clear.specific.success.multiple" : "Effet <arg:0> retiré de <arg:1> cibles",
-  "commands.effect.clear.specific.failed" : "<red>La cible n'a pas l'effet demandé"
+  "commands.effect.clear.specific.failed" : "<red>La cible n'a pas l'effet demandé",
+
+  "commands.enchant.success.single" : "Objet de <arg:1> enchanté avec <arg:0>",
+  "commands.enchant.success.multiple" : "Objets de <arg:1> cibles enchantés avec <arg:0>",
+  "commands.enchant.failed" : "<red>Rien n'a été enchanté : les cibles ne tiennent rien, ou rien qui accepte cet enchantement",
+  "commands.enchant.failed.entity" : "<red><arg:0> ne peut pas tenir d'objet enchanté",
+  "commands.enchant.failed.itemless" : "<red><arg:0> ne tient aucun objet",
+  "commands.enchant.failed.incompatible" : "<red><arg:0> n'accepte pas cet enchantement",
+  "commands.enchant.failed.level" : "<red>Le niveau <arg:0> dépasse le niveau maximal de cet enchantement, <arg:1>"
 }
