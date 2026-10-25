@@ -79,6 +79,18 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract RegularFileProperty getRecipesDataset();
 
     /**
+     * Where the {@code generateLootTables} task writes the vanilla loot table dataset. The task
+     * only runs when this is set, and needs {@code "--server"} among the data generator arguments.
+     */
+    public abstract RegularFileProperty getLootTablesDataset();
+
+    /**
+     * Where the {@code generateBlockMining} task writes block hardness and tool rules. The task
+     * only runs when this and {@link #getPrismarineMinecraftData()} are set.
+     */
+    public abstract RegularFileProperty getBlockMiningDataset();
+
+    /**
      * Additional arguments passed to Mojang's data generator.
      */
     public abstract ListProperty<String> getDataGeneratorArguments();

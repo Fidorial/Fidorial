@@ -27,6 +27,7 @@ public final class ItemComponentsReportParser {
     private static final String COMPONENTS = "components";
     private static final String EQUIPPABLE = "minecraft:equippable";
     private static final String SLOT = "slot";
+    private static final String TOOL = "minecraft:tool";
     private static final String JSON_EXTENSION = ".json";
 
     /**
@@ -37,9 +38,44 @@ public final class ItemComponentsReportParser {
      * @throws IOException if a file cannot be read or isn't the expected shape
      */
     public Map<String, String> parseEquipmentSlots(final Path report) throws IOException {
+        final Map<String, String> slots = new TreeMap<>();
+        for (final Map.Entry<String, JsonObject> item : parseComponents(report).entrySet()) {
+            final JsonElement equippable = item.getValue().get(EQUIPPABLE);
+            if (equippable != null && equippable.isJsonObject() && equippable.getAsJsonObject().has(SLOT)) {
+                slots.put(item.getKey(), equippable.getAsJsonObject().get(SLOT).getAsString());
+            }
+        }
+        return slots;
+    }
+
+    /**
+     * @param report the per-item directory ({@code reports/minecraft/components/item}) or the
+     *               legacy {@code reports/items.json}; nothing is read when it does not exist
+     * @return the {@code minecraft:tool} component of every item that has one, keyed by plain item
+     *         name and sorted
+     * @throws IOException if a file cannot be read or isn't the expected shape
+     */
+    public Map<String, JsonObject> parseTools(final Path report) throws IOException {
+        final Map<String, JsonObject> tools = new TreeMap<>();
+        for (final Map.Entry<String, JsonObject> item : parseComponents(report).entrySet()) {
+            final JsonElement tool = item.getValue().get(TOOL);
+            if (tool != null && tool.isJsonObject()) {
+                tools.put(item.getKey(), tool.getAsJsonObject());
+            }
+        }
+        return tools;
+    }
+
+    /**
+     * @param report the per-item directory ({@code reports/minecraft/components/item}) or the
+     *               legacy {@code reports/items.json}; nothing is read when it does not exist
+     * @return the default components of every item, keyed by plain item name and sorted
+     * @throws IOException if a file cannot be read or isn't the expected shape
+     */
+    public Map<String, JsonObject> parseComponents(final Path report) throws IOException {
         Objects.requireNonNull(report, "report");
 
-        final Map<String, String> slots = new TreeMap<>();
+        final Map<String, JsonObject> items = new TreeMap<>();
         if (Files.isDirectory(report)) {
             final List<Path> files;
             try (final Stream<Path> walk = Files.walk(report)) {
@@ -51,14 +87,14 @@ public final class ItemComponentsReportParser {
             for (final Path file : files) {
                 final String relative = report.relativize(file).toString().replace('\\', '/');
                 final String item = relative.substring(0, relative.length() - JSON_EXTENSION.length());
-                addSlot(slots, item, read(file));
+                addComponents(items, item, read(file));
             }
         } else if (Files.isRegularFile(report)) {
             for (final Map.Entry<String, JsonElement> item : read(report).getAsJsonObject().entrySet()) {
-                addSlot(slots, GenerationUtils.path(item.getKey()), item.getValue());
+                addComponents(items, GenerationUtils.path(item.getKey()), item.getValue());
             }
         }
-        return slots;
+        return items;
     }
 
     private static JsonElement read(final Path file) throws IOException {
@@ -69,14 +105,10 @@ public final class ItemComponentsReportParser {
         }
     }
 
-    private static void addSlot(final Map<String, String> slots, final String item, final JsonElement json) {
+    private static void addComponents(final Map<String, JsonObject> items, final String item, final JsonElement json) {
         final JsonObject components = components(json);
-        if (components == null || !components.has(EQUIPPABLE)) {
-            return;
-        }
-        final JsonElement equippable = components.get(EQUIPPABLE);
-        if (equippable.isJsonObject() && equippable.getAsJsonObject().has(SLOT)) {
-            slots.put(item, equippable.getAsJsonObject().get(SLOT).getAsString());
+        if (components != null) {
+            items.put(item, components);
         }
     }
 

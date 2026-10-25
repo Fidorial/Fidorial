@@ -276,6 +276,14 @@ fidorialRegistryGenerator {
         layout.projectDirectory.file("src/generated/resources/fidorial-data/recipes.json"),
     )
 
+    lootTablesDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/loot_tables.json"),
+    )
+
+    blockMiningDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/block_mining.json"),
+    )
+
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",
