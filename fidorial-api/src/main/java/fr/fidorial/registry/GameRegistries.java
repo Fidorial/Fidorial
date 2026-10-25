@@ -8,8 +8,10 @@ import fr.fidorial.entity.effect.MobEffectRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.item.ItemRegistry;
 import fr.fidorial.permission.PermissionRegistry;
+import fr.fidorial.recipe.RecipeRegistry;
 import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.dimension.DimensionTypeRegistry;
+import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -28,7 +30,7 @@ public interface GameRegistries {
      *
      * <p>Biomes registered there are sent to every client, and may be referenced
      * by {@link WorldGenerator generators} through
-     * {@link fr.fidorial.world.generation.GeneratedChunk#setBiome(int, int, int, Key)}.</p>
+     * {@link GeneratedChunk#setBiome(int, int, int, Key)}.</p>
      *
      * @return the biome registry
      * @since 0.1.0
@@ -103,6 +105,19 @@ public interface GameRegistries {
      */
     @Contract(pure = true)
     ItemRegistry items();
+
+    /**
+     * Gets the server-wide recipe registry.
+     *
+     * <p>Holds the vanilla crafting recipes, and where plugins
+     * {@linkplain RecipeRegistry#register register} recipes of their own, including recipes
+     * that take several items from one grid slot.</p>
+     *
+     * @return the recipe registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    RecipeRegistry recipes();
 
     /**
      * Gets the server-wide permission registry.

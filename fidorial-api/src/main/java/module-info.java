@@ -16,6 +16,7 @@ import org.jspecify.annotations.NullMarked;
  *   <li>{@link fr.fidorial.entity.mob} — bend the built-in mobs, or write new ones</li>
  *   <li>{@link fr.fidorial.scheduler} — hand long work off the region threads</li>
  *   <li>{@link fr.fidorial.dialog} — show modal windows and read what players fill in</li>
+ *   <li>{@link fr.fidorial.recipe} — crafting recipes, several items per slot included</li>
  *   <li>{@link fr.fidorial.registry.keys} — generated keys for blocks, items and more</li>
  * </ul>
  *
@@ -54,6 +55,7 @@ module fr.fidorial {
     exports fr.fidorial.math;
     exports fr.fidorial.permission;
     exports fr.fidorial.plugin;
+    exports fr.fidorial.recipe;
     exports fr.fidorial.registry.data;
     exports fr.fidorial.registry.keys;
     exports fr.fidorial.registry;
@@ -98,6 +100,7 @@ module fr.fidorial {
 
     uses fr.fidorial.command.argument.Arguments;
     uses fr.fidorial.command.serializers.MessageComponentSerializer;
+    uses fr.fidorial.recipe.RecipeFactory;
 
     requires com.google.common;
     requires com.google.gson;

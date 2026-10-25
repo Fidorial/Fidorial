@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.world.block;
 
 import com.google.common.base.Preconditions;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
@@ -27,10 +29,6 @@ public final class EnderChestBlock implements BlockBehaviour {
     public static final int OBSIDIAN_DROPS = 8;
 
     private EnderChestBlock() {
-    }
-
-    public static boolean is(final BlockState state) {
-        return KEY.equals(state.name());
     }
 
     public static boolean isBlockedAbove(final ServerWorld world, final BlockPosition pos) {
@@ -62,5 +60,20 @@ public final class EnderChestBlock implements BlockBehaviour {
     @Override
     public int lightOpacity(final BlockData data) {
         return 0;
+    }
+
+    /**
+     * Opens the player's own ender chest, unless a solid block sits on the lid.
+     */
+    @Override
+    public boolean use(final Player player, final BlockPosition position, final BlockData data) {
+        if (!(player instanceof final ServerPlayer serverPlayer) || !(player.world() instanceof final ServerWorld world)) {
+            return false;
+        }
+        if (isBlockedAbove(world, position)) {
+            return true;
+        }
+        serverPlayer.openMenu(new EnderChestMenu(serverPlayer, serverPlayer.allocateWindowId(), position));
+        return true;
     }
 }

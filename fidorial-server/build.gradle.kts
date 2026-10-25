@@ -272,6 +272,10 @@ fidorialRegistryGenerator {
         listOf("--reports", "--server"),
     )
 
+    recipesDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/recipes.json"),
+    )
+
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",

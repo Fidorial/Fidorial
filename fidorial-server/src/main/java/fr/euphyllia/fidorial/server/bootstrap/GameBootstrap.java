@@ -5,6 +5,8 @@ import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
 import fr.euphyllia.fidorial.server.world.block.ClusterBlock;
+import fr.euphyllia.fidorial.server.world.block.CrafterBlock;
+import fr.euphyllia.fidorial.server.world.block.CraftingTableBlock;
 import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
@@ -113,6 +115,8 @@ public final class GameBootstrap {
     }
 
     private static void registerBlockBehaviours(final FidorialBlockRegistry registry) {
+        registry.register(CraftingTableBlock.INSTANCE);
+        registry.register(CrafterBlock.INSTANCE);
         registry.register(EnderChestBlock.INSTANCE);
         registry.register(ClusterBlock.AMETHYST_CLUSTER);
         registry.register(ClusterBlock.LARGE_AMETHYST_BUD);

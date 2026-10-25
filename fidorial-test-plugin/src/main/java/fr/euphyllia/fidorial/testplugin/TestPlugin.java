@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
+import fr.euphyllia.fidorial.testplugin.recipe.TestRecipes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestChatTypes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestDimensionTypes;
@@ -167,6 +168,7 @@ public final class TestPlugin implements Plugin {
         registerServices();
         registerEvents();
         registerCommands();
+        TestRecipes.register(server.registries().recipes(), this, logger);
         TestPluginTranslations.register(context);
         createResourcePack();
 
@@ -187,6 +189,7 @@ public final class TestPlugin implements Plugin {
         BullMobs.unregisterAll(server.registries().mobs(), this);
         server.registries().mobs().unregisterAll(this);
         TestEffects.unregisterAll(server.registries().effects(), this);
+        TestRecipes.unregisterAll(server.registries().recipes(), this);
         TestPluginTranslations.unregister();
     }
 

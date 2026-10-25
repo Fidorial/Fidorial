@@ -14,6 +14,7 @@ import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.ConcurrentLongSet;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
+import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
@@ -42,6 +43,8 @@ import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldPaths;
+import fr.fidorial.world.block.BlockBehaviour;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -532,8 +535,57 @@ public final class ServerWorld implements World {
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
         }
+        final BlockState previous = column.getBlock(x & 15, y, z & 15);
+        if (!previous.isAir() && !previous.name().equals(state.name())) {
+            beforeRemoved(Position.block(x, y, z), previous);
+        }
         column.setBlock(x & 15, y, z & 15, state);
         markDirty(x >> 4, z >> 4);
+        return true;
+    }
+
+    private void beforeRemoved(final BlockPosition pos, final BlockState previous) {
+        final BlockData data = blockStates.resolve(previous);
+        final BlockBehaviour behaviour = blockStates.registry().behaviour(previous.name()).orElse(null);
+        if (data == null || behaviour == null) {
+            return;
+        }
+        try {
+            behaviour.onRemove(this, pos, data);
+        } catch (final RuntimeException exception) {
+            LOGGER.error("The behaviour of {} failed while it was removed at {}", previous.name(), pos, exception);
+        }
+    }
+
+    /**
+     * {@return the data of the block entity at {@code pos}, in its saved NBT form; empty when it
+     * has none yet; {@code null} when the block has no block entity or its chunk is not loaded}
+     */
+    public @Nullable CompoundBinaryTag blockEntityData(final BlockPosition pos) {
+        final ChunkColumn column = loadedColumn(pos.blockX() >> 4, pos.blockZ() >> 4);
+        if (column == null) {
+            return null;
+        }
+        final BlockEntity blockEntity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
+        return blockEntity == null ? null : blockEntity.dataOrEmpty();
+    }
+
+    /**
+     * Replaces the data of the block entity at {@code pos} and saves its chunk with the next save.
+     *
+     * @return {@code false} when the block has no block entity or its chunk is not loaded
+     */
+    public boolean setBlockEntityData(final BlockPosition pos, final CompoundBinaryTag data) {
+        final ChunkColumn column = loadedColumn(pos.blockX() >> 4, pos.blockZ() >> 4);
+        if (column == null) {
+            return false;
+        }
+        final BlockEntity blockEntity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
+        if (blockEntity == null) {
+            return false;
+        }
+        column.putBlockEntity(blockEntity.withData(data));
+        markDirty(pos.blockX() >> 4, pos.blockZ() >> 4);
         return true;
     }
 

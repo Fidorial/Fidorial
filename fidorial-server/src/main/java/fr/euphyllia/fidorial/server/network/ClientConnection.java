@@ -438,6 +438,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             return CompletableFuture.completedFuture(null);
         }
         this.player = null;
+        if (disconnecting.containerMenu() != disconnecting.inventoryMenu()) {
+            disconnecting.doCloseContainer();
+        }
+        disconnecting.inventoryMenu().removed();
         return CompletableFuture.runAsync(() -> {
             try {
                 server.players().inventoryStorage().save(disconnecting.uuid(), disconnecting.inventory());

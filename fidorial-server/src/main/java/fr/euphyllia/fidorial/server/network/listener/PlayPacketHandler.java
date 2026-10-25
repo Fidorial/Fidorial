@@ -13,16 +13,13 @@ import fr.euphyllia.fidorial.server.debug.ChunkDebugValues;
 import fr.euphyllia.fidorial.server.debug.DebugChannels;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
-import fr.euphyllia.fidorial.server.entity.player.InventorySlots;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
-import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
+import fr.euphyllia.fidorial.server.inventory.CrafterMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockChangedAckPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundCommandSuggestionsPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameRuleValuesPacket;
@@ -38,7 +35,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket.Entry;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStartConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
@@ -58,6 +54,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCommandSuggestionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClosePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerSlotStateChangedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCustomClickActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundDebugSubscriptionRequestPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundInteractPacket;
@@ -82,7 +79,6 @@ import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
-import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
@@ -99,7 +95,6 @@ import fr.fidorial.event.player.PlayerInputEvent;
 import fr.fidorial.event.player.PlayerItemHeldEvent;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerMoveEvent;
-import fr.fidorial.event.player.PlayerOpenEnderChestEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.event.player.PlayerSignedChatEvent;
@@ -111,7 +106,6 @@ import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
-import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
@@ -124,12 +118,13 @@ import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
+import fr.fidorial.world.block.BlockBehaviour;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -214,7 +209,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         if (player != null) {
             server.debug().subscribers().clear(player);
-            closeOpenMenu(false);
+            player.doCloseContainer();
             server.events().post(new PlayerQuitEvent(player));
             schedulePlayerRemoval(player);
         }
@@ -357,8 +352,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         LocationPositionData.vec3((spawn)),
                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                         LocationPositionData.floatRotation(spawn))));
-        connection.send(ClientboundContainerSetContentPacket.ofPlayerInventory(
-                player.inventory(), 0, ItemStack.EMPTY, server.registries().frozen()));
+        player.inventoryMenu().sendAllDataToRemote();
     }
 
     @Override
@@ -443,20 +437,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("{} sends a creative packet out of creative mode (ignore)", player.name());
             return;
         }
-        final int slot = InventorySlots.fromWindow(packet.slot());
-        if (slot == InventorySlots.INVALID || slot >= player.inventory().size()) {
-            return;
-        }
-
-        final ItemStack stack = packet.stack();
-
-        if (stack.isEmpty()) {
-            player.inventory().set(slot, ItemStack.EMPTY);
-            return;
-        }
-
-        final int maxCount = Math.max(1, ItemDefaults.maxStackSize(stack.id(), stack));
-        player.inventory().set(slot, stack.count() > maxCount ? stack.withCount(maxCount) : stack);
+        // TODO: slot -1 throws the stack out of the creative inventory, once item entities exist.
+        final ServerPlayer acting = player;
+        acting.execute(() -> acting.inventoryMenu().setCreativeSlot(packet.slot(), packet.stack()));
     }
 
     @Override
@@ -680,6 +663,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private boolean interactWithBlock(final BlockPosition pos) {
+        if (player.isSneaking() && (!player.inventory().get(player.selectedSlot()).isEmpty()
+                || !player.inventory().get(PlayerInventory.OFF_HAND).isEmpty())) {
+            // Like vanilla: sneaking with something in hand uses the item rather than the block.
+            return false;
+        }
         final BlockState state;
         try {
             state = serverWorld().getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
@@ -687,71 +675,51 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("Lecture du bloc {} impossible", pos, e);
             return false;
         }
-        if (!EnderChestBlock.is(state)) {
-            return false;
-        }
-        openEnderChest(pos);
-        return true;
-    }
-
-    private void openEnderChest(final BlockPosition pos) {
-        if (EnderChestBlock.isBlockedAbove(serverWorld(), pos)) {
-            return;
-        }
-
-        final PlayerOpenEnderChestEvent event =
-                server.events().post(new PlayerOpenEnderChestEvent(player, pos, player.enderChest()));
-        if (event.isCancelled()) {
-            return;
-        }
-
-        final EnderChestMenu menu = new EnderChestMenu(player, player.allocateWindowId(), pos);
-        player.openMenu(menu);
-
-        server.players().chestViewers().open(pos, this::broadcastLid);
-        broadcastChestSound(pos, "block.ender_chest.open");
-    }
-
-    private void broadcastLid(final BlockPosition pos, final int viewers) {
-        server.players().broadcast(ClientboundBlockEventPacket.chestViewers(pos, viewers));
-    }
-
-    @SuppressWarnings("PatternValidation")
-    private void broadcastChestSound(final BlockPosition pos, final String soundId) {
-        final Sound sound = Sound.sound(Key.key(soundId), Sound.Source.BLOCK, 0.5f, 1.0f);
-        server.players().broadcast(new ClientboundSoundPacket(sound, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));
-    }
-
-    private void closeOpenMenu(final boolean notifyClient) {
-        final ContainerMenu menu = player.openMenu();
-        if (menu == null) {
-            return;
-        }
-        player.closeMenu(notifyClient);
-
-        if (menu instanceof final EnderChestMenu enderChest) {
-            server.players().chestViewers().close(enderChest.position(), this::broadcastLid);
-            broadcastChestSound(enderChest.position(), "block.ender_chest.close");
-        }
-        connection.send(ClientboundContainerSetContentPacket.ofPlayerInventory(
-                player.inventory(), 0, ItemStack.EMPTY, server.registries().frozen()));
+        final BlockData data = server.registries().blockStates().resolve(state);
+        final BlockBehaviour behaviour = server.registries().blocks().behaviour(state.name()).orElse(null);
+        return data != null && behaviour != null && behaviour.use(player, pos, data);
     }
 
     @Override
     public void handleContainerClick(final ServerboundContainerClickPacket packet) {
-        final ContainerMenu menu = player.openMenu();
-        if (menu == null || menu.windowId() != packet.windowId()) {
-            connection.send(ClientboundContainerSetContentPacket.ofPlayerInventory(
-                    player.inventory(), 0, ItemStack.EMPTY, server.registries().frozen()));
-            return;
-        }
-        menu.click(packet);
-        connection.send(menu.buildSyncPacket(server.registries().frozen()));
+        final ServerPlayer acting = player;
+        // On the player's thread, like vanilla, where the window is also ticked.
+        acting.execute(() -> {
+            final ContainerMenu menu = acting.containerMenu();
+            if (menu.windowId() != packet.windowId()) {
+                return;
+            }
+            if (acting.gameMode() == GameMode.SPECTATOR) {
+                menu.sendAllDataToRemote();
+                return;
+            }
+            if (!menu.stillValid()) {
+                LOGGER.debug("{} clicked in a window that is no longer valid", acting.name());
+                return;
+            }
+            menu.click(packet);
+            // The client's prediction is not read (see ServerboundContainerClickPacket): it gets
+            // the whole window back, as vanilla does when the state ID does not match.
+            menu.sendAllDataToRemote();
+        });
+    }
+
+    @Override
+    public void handleContainerSlotStateChanged(final ServerboundContainerSlotStateChangedPacket packet) {
+        final ServerPlayer acting = player;
+        acting.execute(() -> {
+            if (acting.gameMode() != GameMode.SPECTATOR && acting.containerMenu() instanceof final CrafterMenu crafter
+                    && crafter.windowId() == packet.windowId()) {
+                crafter.setSlotState(packet.slot(), packet.enabled());
+            }
+        });
     }
 
     @Override
     public void handleContainerClose(final ServerboundContainerClosePacket packet) {
-        closeOpenMenu(false);
+        final ServerPlayer acting = player;
+        // Like vanilla, whatever window the packet names: the client only ever has one open.
+        acting.execute(acting::doCloseContainer);
     }
 
     @Override
@@ -818,7 +786,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
-                onBlockDestroyed(packet.position());
                 server.worlds().blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
                 server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
             }
@@ -848,14 +815,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         // the client already took the item out: until items are thrown, give it back
         acting.updateInventory();
-    }
-
-    private void onBlockDestroyed(final BlockPosition position) {
-        final ContainerMenu menu = player.openMenu();
-        if (menu instanceof final EnderChestMenu enderChest && enderChest.position().equals(position)) {
-            closeOpenMenu(true);
-        }
-        server.players().chestViewers().forget(position);
     }
 
     @Override

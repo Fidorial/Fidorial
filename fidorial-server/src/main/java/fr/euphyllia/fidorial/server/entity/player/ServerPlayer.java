@@ -3,15 +3,15 @@ package fr.euphyllia.fidorial.server.entity.player;
 import fr.euphyllia.fidorial.server.debug.DebugSubscriptionState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
+import fr.euphyllia.fidorial.server.events.player.PlayerOpenInventoryEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
-import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
+import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundClearTitlesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerClosePacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetContentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisguisedChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
@@ -37,6 +37,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
@@ -45,11 +46,13 @@ import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.player.PlayerInput;
 import fr.fidorial.entity.player.profile.PlayerProfile;
+import fr.fidorial.event.player.PlayerOpenInventoryEvent;
 import fr.fidorial.event.player.PlayerPostEffectsModifyEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
@@ -115,7 +118,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
     private static final Key ATTRIBUTE_REGISTRY = RegistryKey.ATTRIBUTE.key();
     private static final Key MOB_EFFECT_REGISTRY = RegistryKey.MOB_EFFECT.key();
-    private static final int[] ARMOR_SLOTS = {36, 37, 38, 39};
+    private static final double EYE_HEIGHT = 1.62;
+    private static final double SNEAKING_EYE_HEIGHT = 1.27;
+    private static final int[] ARMOR_SLOTS = {
+            PlayerInventory.FEET, PlayerInventory.LEGS, PlayerInventory.CHEST, PlayerInventory.HEAD
+    };
     private static final int VOID_MARGIN = 64;
     private static final float VOID_DAMAGE = 4.0f;
     private static final int BURN_INTERVAL_TICKS = 20;
@@ -151,7 +158,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile int airSupply = MAX_AIR_SUPPLY;
     private volatile int lastTeleportId;
     private volatile boolean onGround;
-    private volatile @Nullable ContainerMenu openMenu;
+    private final InventoryMenu inventoryMenu;
+    private volatile ContainerMenu containerMenu;
     private volatile @Nullable RespawnPoint respawnPoint;
     private int nextWindowId = 1;
     private Locale locale;
@@ -181,6 +189,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
                         .find(PermissionResolver.class)
                         .map(List::of)
                         .orElseGet(List::of));
+
+        this.inventoryMenu = new InventoryMenu(this);
+        this.containerMenu = inventoryMenu;
     }
 
     private static int encodeFlags(final Set<BossBar.Flag> flags) {
@@ -245,10 +256,19 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     /**
-     * The currently open container window, or {@code null}.
+     * Window 0: the player inventory, with its 2x2 crafting grid. Always there, even while another
+     * window is open.
      */
-    public @Nullable ContainerMenu openMenu() {
-        return openMenu;
+    public InventoryMenu inventoryMenu() {
+        return inventoryMenu;
+    }
+
+    /**
+     * {@return the window the client has open: the {@linkplain #inventoryMenu() inventory} when it
+     * has no other, as vanilla's {@code containerMenu}}
+     */
+    public ContainerMenu containerMenu() {
+        return containerMenu;
     }
 
     /**
@@ -262,44 +282,90 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     /**
-     * Opens a window on the client and keeps it as the current window. Any previously open window
-     * is cleanly closed beforehand.
+     * Opens a window on the client and keeps it as the current window, unless a
+     * {@link PlayerOpenInventoryEvent} listener cancels it. Any previously open window is cleanly
+     * closed beforehand.
+     *
+     * @return {@code true} when the window opened
      */
-    public void openMenu(final ContainerMenu menu) {
-        closeMenu(true);
-        this.openMenu = menu;
+    public boolean openMenu(final ContainerMenu menu) {
+        final PlayerOpenInventoryEvent event = connection.server().events().post(new PlayerOpenInventoryEventImpl(
+                this, menu.menuType(), menu.title(), menu.blockPosition(), menu.container()));
+        if (event.isCancelled()) {
+            return false;
+        }
+        if (containerMenu != inventoryMenu) {
+            closeContainer();
+        }
+        this.containerMenu = menu;
         connection.send(new ClientboundOpenScreenPacket(
                 menu.windowId(),
-                menu.menuTypeId(connection.server().registries().frozen()),
+                connection.server().registries().frozen().networkId(RegistryKey.MENU.key(), menu.menuType().key()),
                 menu.title()));
-        connection.send(menu.buildSyncPacket(connection.server().registries().frozen()));
+        menu.sendAllDataToRemote();
+        menu.onOpened();
         emitContainerEvent(GameEventKeys.CONTAINER_OPEN, menu);
+        return true;
     }
 
     /**
-     * Closes the current window, if any.
-     *
-     * @param notifyClient {@code true} to also send a {@code container_close} to the client;
-     *                     unnecessary when it is precisely the client that just closed the window.
+     * Like vanilla, every tick: the client hears of what changed in its window, then a window that
+     * is no longer valid (its block gone, or out of reach) closes.
      */
-    public void closeMenu(final boolean notifyClient) {
-        final ContainerMenu menu = this.openMenu;
-        if (menu == null) {
+    private void tickMenu() {
+        final ContainerMenu menu = containerMenu;
+        menu.broadcastChanges();
+        if (!menu.stillValid()) {
+            closeContainer();
+        }
+    }
+
+    /**
+     * Vanilla's reach check: whether the block at {@code pos} is within this player's block
+     * interaction range, plus {@code buffer}, from their eyes.
+     */
+    public boolean isWithinBlockInteractionRange(final BlockPosition pos, final double buffer) {
+        final double range = attributeBase(Attribute.BLOCK_INTERACTION_RANGE)
+                .orElse(PlayerAttributeDefaults.base(Attribute.BLOCK_INTERACTION_RANGE)) + buffer;
+        final Location at = location();
+        final double eyeY = at.y() + (isSneaking() ? SNEAKING_EYE_HEIGHT : EYE_HEIGHT);
+        final double dx = Math.max(Math.max(pos.blockX() - at.x(), at.x() - (pos.blockX() + 1)), 0.0);
+        final double dy = Math.max(Math.max(pos.blockY() - eyeY, eyeY - (pos.blockY() + 1)), 0.0);
+        final double dz = Math.max(Math.max(pos.blockZ() - at.z(), at.z() - (pos.blockZ() + 1)), 0.0);
+        return dx * dx + dy * dy + dz * dz < range * range;
+    }
+
+    /**
+     * Closes the current window from the server side: tells the client, then
+     * {@linkplain #doCloseContainer() closes it}.
+     */
+    public void closeContainer() {
+        connection.send(new ClientboundContainerClosePacket(containerMenu.windowId()));
+        doCloseContainer();
+    }
+
+    /**
+     * Vanilla's {@code doCloseContainer}, also what the client closing its window does: the window
+     * is {@linkplain ContainerMenu#removed() removed}, then the inventory takes over what the client
+     * knows of the slots both show and becomes the current window again. Closing the inventory
+     * itself gives back its cursor and its 2x2 grid.
+     */
+    public void doCloseContainer() {
+        final ContainerMenu menu = containerMenu;
+        menu.removed();
+        if (menu == inventoryMenu) {
             return;
         }
-        this.openMenu = null;
-        menu.returnCarried();
-        menu.onClosed();
+        inventoryMenu.transferState(menu);
+        containerMenu = inventoryMenu;
         emitContainerEvent(GameEventKeys.CONTAINER_CLOSE, menu);
-        if (notifyClient) {
-            connection.send(new ClientboundContainerClosePacket(menu.windowId()));
-        }
     }
 
     private void emitContainerEvent(final TypedKey<GameEvent> event, final ContainerMenu menu) {
         final var events = connection.server().debug().gameEvents();
-        if (menu instanceof final EnderChestMenu enderChestMenu) {
-            events.emit(world(), event, enderChestMenu.position());
+        final BlockPosition block = menu.blockPosition();
+        if (block != null) {
+            events.emit(world(), event, block);
         } else {
             events.emit(world(), event, location());
         }
@@ -474,6 +540,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (isRemoved()) {
             return;
         }
+        tickMenu();
         tickLiving(currentTick);
         if (ticksSinceLastAttack.get() < MAX_TRACKED_ATTACK_TICKS) {
             ticksSinceLastAttack.incrementAndGet();
@@ -812,16 +879,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void updateInventory() {
-        final ContainerMenu menu = openMenu;
-        if (menu == null) {
-            connection.send(ClientboundContainerSetContentPacket.ofPlayerInventory(
-                    inventory,
-                    0,
-                    ItemStack.EMPTY,
-                    connection.server().registries().network()));
-            return;
-        }
-        connection.send(menu.buildSyncPacket(connection.server().registries().network()));
+        containerMenu.sendAllDataToRemote();
     }
 
     @Override

@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.entity.player.profile.FidorialOfflinePlayerM
 import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerDataStorage;
 import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerEnderChestStorage;
 import fr.euphyllia.fidorial.server.entity.player.storage.NbtPlayerInventoryStorage;
-import fr.euphyllia.fidorial.server.inventory.ChestViewerTracker;
+import fr.euphyllia.fidorial.server.inventory.BlockViewerTracker;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.moderation.FidorialBanManager;
@@ -43,7 +43,7 @@ public final class PlayerModule implements ServerModule, PlayerManager {
     private final ServiceRegistry services;
     private final ModerationModule moderation;
     private final PlayerList connections = new PlayerList();
-    private final ChestViewerTracker chestViewers = new ChestViewerTracker();
+    private final BlockViewerTracker blockViewers = new BlockViewerTracker();
     private final NbtPlayerInventoryStorage defaultInventoryStorage;
     private final NbtPlayerDataStorage defaultDataStorage;
     private final NbtPlayerEnderChestStorage defaultEnderChestStorage;
@@ -174,7 +174,7 @@ public final class PlayerModule implements ServerModule, PlayerManager {
         return services.find(PlayerEnderChestStorage.class).orElse(defaultEnderChestStorage);
     }
 
-    public ChestViewerTracker chestViewers() {
-        return chestViewers;
+    public BlockViewerTracker blockViewers() {
+        return blockViewers;
     }
 }

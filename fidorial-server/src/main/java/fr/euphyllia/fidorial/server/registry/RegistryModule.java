@@ -7,6 +7,8 @@ import fr.euphyllia.fidorial.server.item.FidorialItemRegistry;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.permission.FidorialPermissionRegistry;
+import fr.euphyllia.fidorial.server.recipe.FidorialRecipeRegistry;
+import fr.euphyllia.fidorial.server.recipe.VanillaRecipeLoader;
 import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
 import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
 import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
@@ -20,6 +22,8 @@ import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.translation.TranslationStore;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 /**
  * Game data: blocks, items, mobs, effects, permissions, translations and the data-driven
@@ -29,6 +33,9 @@ import fr.fidorial.translation.TranslationStore;
  */
 public final class RegistryModule implements ServerModule, GameRegistries {
 
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(RegistryModule.class);
+    private static final Key ITEM_REGISTRY = Key.key("item");
+
     private final Registries registries = Registries.load();
     private final FidorialBlockRegistry blocks = GameBootstrap.blockRegistry();
     private final BlockStateRegistry blockStates = new BlockStateRegistry(blocks);
@@ -37,6 +44,8 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     private final FidorialMobEffectRegistry effects = new FidorialMobEffectRegistry();
     private final FidorialPermissionRegistry permissions = new FidorialPermissionRegistry();
     private final BuiltInTranslationStore translations = new BuiltInTranslationStore();
+    private final FidorialRecipeRegistry recipes =
+            new FidorialRecipeRegistry((tag, item) -> registries.frozen().isTagged(ITEM_REGISTRY, tag, item));
 
     @Override
     public void registerServices(final ServiceRegistrar services) {
@@ -47,6 +56,12 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     @Override
     public void load() {
         TranslationStore.setStore(translations);
+
+        final VanillaRecipeLoader loader =
+                new VanillaRecipeLoader(item -> registries.frozen().networkId(ITEM_REGISTRY, item) >= 0);
+        recipes.loadVanilla(loader.load());
+        LOGGER.info("Loaded {} vanilla crafting recipes, {} other vanilla recipes are not supported yet",
+                recipes.recipes().size(), loader.skipped().values().stream().mapToInt(Integer::intValue).sum());
     }
 
     /**
@@ -108,6 +123,11 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     @Override
     public FidorialItemRegistry items() {
         return items;
+    }
+
+    @Override
+    public FidorialRecipeRegistry recipes() {
+        return recipes;
     }
 
     @Override

@@ -2,13 +2,14 @@ package fr.euphyllia.fidorial.server.codecs.container;
 
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.VersionConstants;
-import fr.euphyllia.fidorial.server.entity.player.InventorySlots;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
+import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.PlayerInventory;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class PlayerInventoryCodec {
@@ -16,16 +17,23 @@ public final class PlayerInventoryCodec {
     private static final String ROOT_NAME = "";
     private static final String LIST_NAME = "Inventory";
     private static final String EQUIPMENT = "equipment";
-    private static final Map<Integer, String> EQUIPMENT_SLOTS = Map.of(
-            InventorySlots.FEET, "feet",
-            InventorySlots.LEGS, "legs",
-            InventorySlots.CHEST, "chest",
-            InventorySlots.HEAD, "head",
-            InventorySlots.OFFHAND, "offhand"
-    );
-    private static final Codec<PlayerInventory> CODEC = ContainerCodecs.containerCodec(PlayerInventory::new, InventorySlots.MAIN_SIZE);
+
+    private static final Map<Integer, String> EQUIPMENT_SLOTS = equipmentSlots();
+    private static final Codec<PlayerInventory> CODEC =
+            ContainerCodecs.containerCodec(PlayerInventory::new, PlayerInventory.STORAGE_SIZE);
 
     private PlayerInventoryCodec() {
+    }
+
+    private static Map<Integer, String> equipmentSlots() {
+        final Map<Integer, String> slots = new LinkedHashMap<>();
+        for (final EquipmentSlot slot : EquipmentSlot.values()) {
+            final int index = PlayerInventory.slotOf(slot);
+            if (index >= 0) {
+                slots.put(index, slot.serializedName());
+            }
+        }
+        return Map.copyOf(slots);
     }
 
     public static byte[] encode(final byte[] existing, final PlayerInventory inventory) throws IOException {

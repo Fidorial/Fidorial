@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCommandSuggestionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClosePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerSlotStateChangedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundCustomClickActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundDebugSubscriptionRequestPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundInteractPacket;
@@ -47,6 +48,8 @@ public interface PlayPacketListener extends PacketListener {
     void handleSetCarriedItem(ServerboundSetCarriedItemPacket packet);
 
     void handleContainerClick(ServerboundContainerClickPacket packet);
+
+    void handleContainerSlotStateChanged(ServerboundContainerSlotStateChangedPacket packet);
 
     void handleContainerClose(ServerboundContainerClosePacket packet);
 
