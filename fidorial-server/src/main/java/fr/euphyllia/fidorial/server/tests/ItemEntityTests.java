@@ -38,27 +38,45 @@ public final class ItemEntityTests {
     /** Items rest on a stone floor whose top is at this height. */
     private static final double FLOOR_TOP = 65.0;
     private static final int FLOOR_RADIUS = 4;
+    /**
+     * Middle of chunk (0, 0): far enough from x = 0 and z = 0, the border between region sections,
+     * for a randomly pushed item to stay in the same region as the player standing next to it.
+     */
+    private static final int REGION_SAFE_CENTER = 8;
 
     private static FidorialServer server() {
         return FidorialServer.getInstance();
     }
 
     private static ServerPlayer player(final ScenarioTestHelper helper, final String name) {
-        return (ServerPlayer) helper.summonPlayer(name, Location.of(helper.world(), 0.5, FLOOR_TOP, 0.5, 0f, 0f), GameMode.SURVIVAL);
+        return player(helper, name, 0);
+    }
+
+    private static ServerPlayer player(final ScenarioTestHelper helper, final String name, final int center) {
+        return (ServerPlayer) helper.summonPlayer(name,
+                Location.of(helper.world(), center + 0.5, FLOOR_TOP, center + 0.5, 0f, 0f), GameMode.SURVIVAL);
     }
 
     private static void buildFloor(final World world) {
+        buildFloor(world, 0);
+    }
+
+    private static void buildFloor(final World world, final int center) {
         final int stone = server().registries().blockStates().networkId(BlockState.of(BlockTypeKeys.STONE.key()));
-        for (int x = -FLOOR_RADIUS; x <= FLOOR_RADIUS; x++) {
-            for (int z = -FLOOR_RADIUS; z <= FLOOR_RADIUS; z++) {
+        for (int x = center - FLOOR_RADIUS; x <= center + FLOOR_RADIUS; x++) {
+            for (int z = center - FLOOR_RADIUS; z <= center + FLOOR_RADIUS; z++) {
                 world.setBlockStateId(Position.block(x, (int) FLOOR_TOP - 1, z), stone);
             }
         }
     }
 
     private static void assertFloorBuilt(final ScenarioTestHelper helper) {
-        helper.assertBlockAt(Position.block(-FLOOR_RADIUS, (int) FLOOR_TOP - 1, -FLOOR_RADIUS), BlockTypeKeys.STONE.key());
-        helper.assertBlockAt(Position.block(FLOOR_RADIUS, (int) FLOOR_TOP - 1, FLOOR_RADIUS), BlockTypeKeys.STONE.key());
+        assertFloorBuilt(helper, 0);
+    }
+
+    private static void assertFloorBuilt(final ScenarioTestHelper helper, final int center) {
+        helper.assertBlockAt(Position.block(center - FLOOR_RADIUS, (int) FLOOR_TOP - 1, center - FLOOR_RADIUS), BlockTypeKeys.STONE.key());
+        helper.assertBlockAt(Position.block(center + FLOOR_RADIUS, (int) FLOOR_TOP - 1, center + FLOOR_RADIUS), BlockTypeKeys.STONE.key());
     }
 
     /**
@@ -105,13 +123,14 @@ public final class ItemEntityTests {
         final World world = helper.world();
         final AtomicReference<ItemEntity> dropped = new AtomicReference<>();
         final AtomicReference<ServerPlayer> player = new AtomicReference<>();
+        final int center = REGION_SAFE_CENTER;
 
         helper.sequence()
-                .execute(() -> buildFloor(world))
-                .waitUntil(() -> assertFloorBuilt(helper))
+                .execute(() -> buildFloor(world, center))
+                .waitUntil(() -> assertFloorBuilt(helper, center))
                 .execute(() -> {
-                    player.set(player(helper, "Collector"));
-                    dropped.set(world.dropItem(Location.of(world, 0.5, FLOOR_TOP + 1.5, 0.5, 0f, 0f),
+                    player.set(player(helper, "Collector", center));
+                    dropped.set(world.dropItem(Location.of(world, center + 0.5, FLOOR_TOP + 1.5, center + 0.5, 0f, 0f),
                             ItemStack.of(ItemKeys.DIAMOND.key(), 3)));
                     helper.assertTrue(dropped.get().pickupDelay() == ItemEntity.DEFAULT_PICKUP_DELAY,
                             "A dropped item should wait before it can be picked up");
