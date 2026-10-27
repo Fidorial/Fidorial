@@ -115,4 +115,5 @@ module fr.fidorial {
     requires static org.jetbrains.annotations;
     requires static org.jspecify;
     requires com.google.j2objc.annotations;
+    requires net.kyori.adventure.text.serializer.plain;
 }

@@ -32,6 +32,7 @@ import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.resource.ResourcePackCallback;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -111,6 +112,7 @@ public final class ApiTestCommand {
                 .then(literal("players").executes(ctx -> players(plugin, ctx)))
                 .then(literal("service").executes(ctx -> service(plugin, ctx)))
                 .then(literal("schedule").executes(ctx -> schedule(plugin, ctx)))
+                .then(literal("openbook").executes(ctx -> openBook(plugin, ctx)))
                 .then(literal("perms").executes(ApiTestCommand::perms))
                 .then(literal("teleport")
                         .then(argument("position", arguments().position())
@@ -559,6 +561,23 @@ public final class ApiTestCommand {
                         world.key(), new ChunkPos(0, 0), () -> plugin.msg(source, "[TestPlugin] Scheduler OK"), 40L);
 
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int openBook(final TestPlugin plugin, final CommandContext<CommandSource> ctx) {
+        final CommandSource source = ctx.getSource();
+        if (source.executor() instanceof final Player player) {
+            plugin.msg(source, "[TestPlugin] Opening Book at " + player.name());
+            final Book book = Book.builder()
+                    .author(Component.text("API TEST"))
+                    .title(Component.text("Test API Test"))
+                    .addPage(Component.text("Test API PAGE 1"))
+                    .addPage(Component.text("Test API PAGE 2"))
+                    .pages(Component.text("Test API PAGE 3"))
+                    .build();
+            player.openBook(book);
+            return Command.SINGLE_SUCCESS;
+        }
+        return 0;
     }
 
     private static int perms(final CommandContext<CommandSource> ctx) {

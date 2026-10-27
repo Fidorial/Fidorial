@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SwingAnimation;
+import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import io.netty.handler.codec.DecoderException;
@@ -52,6 +53,7 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.ENCHANTMENTS, enchantmentsCodec());
         register(DataComponentTypes.STORED_ENCHANTMENTS, enchantmentsCodec());
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, booleanCodec());
+        register(DataComponentTypes.WRITTEN_BOOK_CONTENT, writtenBookContentCodec());
     }
 
     private DataComponentNetworkCodecs() {
@@ -201,6 +203,46 @@ public class DataComponentNetworkCodecs {
                     levels.put(enchantment, level);
                 }
                 return new ItemEnchantments(levels);
+            }
+        };
+    }
+
+    private static Codec<WrittenBookContent> writtenBookContentCodec() {
+        return new Codec<>() {
+            @Override
+            public void write(final PacketBuffer buf, final RegistryHolder frozen, final WrittenBookContent value) {
+                buf.writeString(value.title());
+                buf.writeBoolean(false);
+                buf.writeString(value.author());
+                buf.writeVarInt(value.generation());
+                buf.writeVarInt(value.pages().size());
+                for (final Component page : value.pages()) {
+                    buf.writeComponent(page);
+                    buf.writeBoolean(false);
+                }
+                buf.writeBoolean(value.resolved());
+            }
+
+            @Override
+            public WrittenBookContent read(final PacketBuffer buf, final RegistryHolder frozen) {
+                final String title = buf.readString(WrittenBookContent.MAX_TITLE_LENGTH);
+                if (buf.readBoolean()) {
+                    buf.readString(WrittenBookContent.MAX_TITLE_LENGTH);
+                }
+                final String author = buf.readString(Short.MAX_VALUE);
+                final int generation = buf.readVarInt();
+                if (generation < 0 || generation > WrittenBookContent.MAX_GENERATION) {
+                    throw new DecoderException("Implausible book generation: " + generation);
+                }
+                final int size = readBoundedLength(buf, WrittenBookContent.MAX_PAGES, "book");
+                final List<Component> pages = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    pages.add(buf.readComponent(MAX_COMPONENT_TEXT_LENGTH));
+                    if (buf.readBoolean()) {
+                        buf.readComponent(MAX_COMPONENT_TEXT_LENGTH);
+                    }
+                }
+                return new WrittenBookContent(title, author, generation, pages, buf.readBoolean());
             }
         };
     }

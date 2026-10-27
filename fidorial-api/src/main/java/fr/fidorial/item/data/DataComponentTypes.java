@@ -5,6 +5,7 @@ import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
+import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.map.MapManager;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
 import net.kyori.adventure.key.Key;
@@ -112,6 +113,12 @@ public class DataComponentTypes {
      */
     public static final DataComponentType<Boolean> ENCHANTMENT_GLINT_OVERRIDE =
             register(DataComponentTypeKeys.ENCHANTMENT_GLINT_OVERRIDE.key(), Boolean.class);
+
+    /**
+     * The title, author and pages of a signed book.
+     */
+    public static final DataComponentType<WrittenBookContent> WRITTEN_BOOK_CONTENT =
+            register(DataComponentTypeKeys.WRITTEN_BOOK_CONTENT.key(), WrittenBookContent.class);
 
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");

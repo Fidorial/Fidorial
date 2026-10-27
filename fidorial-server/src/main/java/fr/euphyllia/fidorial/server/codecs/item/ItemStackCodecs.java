@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.RecordBuilder;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
@@ -13,6 +14,7 @@ import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
+import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
@@ -27,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -82,6 +85,24 @@ public final class ItemStackCodecs {
             Codec.unboundedMap(Codec.STRING, MAP_DECORATION_ENTRY_CODEC)
                     .xmap(entries -> new MapItemDecorations(Map.copyOf(entries)), MapItemDecorations::entries);
 
+    private static <T> Codec<T> filterableRaw(final Codec<T> codec) {
+        final Codec<T> full = RecordCodecBuilder.create(instance -> instance.group(
+                codec.fieldOf("raw").forGetter(raw -> raw),
+                codec.optionalFieldOf("filtered").forGetter(raw -> Optional.empty())
+        ).apply(instance, (raw, filtered) -> raw));
+        return Codec.withAlternative(full, codec);
+    }
+
+    public static final Codec<WrittenBookContent> WRITTEN_BOOK_CONTENT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            filterableRaw(Codec.string(0, WrittenBookContent.MAX_TITLE_LENGTH)).fieldOf("title").forGetter(WrittenBookContent::title),
+            Codec.STRING.fieldOf("author").forGetter(WrittenBookContent::author),
+            Codec.intRange(0, WrittenBookContent.MAX_GENERATION).optionalFieldOf("generation", 0)
+                    .forGetter(WrittenBookContent::generation),
+            filterableRaw(ComponentCodecs.COMPONENT_CODEC).listOf(0, WrittenBookContent.MAX_PAGES)
+                    .optionalFieldOf("pages", List.of()).forGetter(WrittenBookContent::pages),
+            Codec.BOOL.optionalFieldOf("resolved", false).forGetter(WrittenBookContent::resolved)
+    ).apply(instance, WrittenBookContent::new));
+
     static {
         register(DataComponentTypes.MAX_STACK_SIZE, Codec.INT);
         register(DataComponentTypes.MAX_DAMAGE, Codec.INT);
@@ -97,6 +118,7 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.ENCHANTMENTS, ENCHANTMENTS_CODEC);
         register(DataComponentTypes.STORED_ENCHANTMENTS, ENCHANTMENTS_CODEC);
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Codec.BOOL);
+        register(DataComponentTypes.WRITTEN_BOOK_CONTENT, WRITTEN_BOOK_CONTENT_CODEC);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {
