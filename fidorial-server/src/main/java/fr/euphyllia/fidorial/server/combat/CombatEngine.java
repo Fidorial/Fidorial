@@ -20,7 +20,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerCombatKillPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSystemChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
 import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -405,7 +404,7 @@ public final class CombatEngine implements CombatService {
                 player.entityId(), shown == null ? Component.empty() : shown));
 
         if (shown != null) {
-            server.players().broadcast(new ClientboundSystemChatPacket(shown, false));
+            server.sendMessage(shown);
         }
 
         if (!event.keepInventory()) {
@@ -449,10 +448,12 @@ public final class CombatEngine implements CombatService {
     }
 
     private Component deathMessage(final ServerPlayer player, final @Nullable Entity killer) {
+        final Component victim = player.displayName().hoverEvent(player);
         if (killer == null) {
-            return Component.text(player.name() + " died");
+            return Component.translatable("death.attack.generic", victim);
         }
-        return Component.text(player.name() + " was slain by ").append(killer.displayName());
+        final String key = killer instanceof Player ? "death.attack.player" : "death.attack.mob";
+        return Component.translatable(key, victim, killer.displayName().hoverEvent(killer));
     }
 
     private void aggro(final AbstractMob mob, final @Nullable Entity attacker) {
