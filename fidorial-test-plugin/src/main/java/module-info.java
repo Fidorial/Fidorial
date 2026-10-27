@@ -3,11 +3,5 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 module fr.fidorial.test {
     requires fr.fidorial;
-    requires net.kyori.adventure.api;
-    requires net.kyori.adventure.key;
-    requires net.kyori.adventure.nbt;
-    requires net.kyori.adventure.text.logger.slf4j;
-    requires net.kyori.adventure.text.minimessage;
-    requires net.kyori.adventure.text.serializer.plain;
     requires com.google.gson;
 }

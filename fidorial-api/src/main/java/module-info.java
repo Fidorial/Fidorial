@@ -106,14 +106,14 @@ module fr.fidorial {
     requires com.google.common;
     requires com.google.gson;
     requires transitive java.desktop;
-    requires net.kyori.adventure.api;
-    requires net.kyori.adventure.key;
-    requires net.kyori.adventure.nbt;
-    requires net.kyori.adventure.text.logger.slf4j;
-    requires net.kyori.adventure.text.minimessage;
+    requires transitive net.kyori.adventure.api;
+    requires transitive net.kyori.adventure.key;
+    requires transitive net.kyori.adventure.nbt;
+    requires transitive net.kyori.adventure.text.logger.slf4j;
+    requires transitive net.kyori.adventure.text.minimessage;
+    requires transitive net.kyori.adventure.text.serializer.plain;
 
     requires static org.jetbrains.annotations;
     requires static org.jspecify;
     requires com.google.j2objc.annotations;
-    requires net.kyori.adventure.text.serializer.plain;
 }
