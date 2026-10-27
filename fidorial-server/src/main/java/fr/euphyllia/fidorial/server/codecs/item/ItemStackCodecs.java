@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
+import fr.euphyllia.fidorial.server.codecs.item.component.WrittenBookTexts;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
@@ -22,6 +23,7 @@ import fr.fidorial.item.data.TypedDataComponentValue;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.DataComponentValue;
 import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -94,11 +96,14 @@ public final class ItemStackCodecs {
     }
 
     public static final Codec<WrittenBookContent> WRITTEN_BOOK_CONTENT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            filterableRaw(Codec.string(0, WrittenBookContent.MAX_TITLE_LENGTH)).fieldOf("title").forGetter(WrittenBookContent::title),
-            Codec.STRING.fieldOf("author").forGetter(WrittenBookContent::author),
+            filterableRaw(Codec.string(0, WrittenBookContent.MAX_TITLE_LENGTH))
+                    .<Component>xmap(Component::text, WrittenBookTexts::title)
+                    .fieldOf("title").forGetter(WrittenBookContent::title),
+            Codec.STRING.<Component>xmap(Component::text, WrittenBookTexts::author)
+                    .fieldOf("author").forGetter(WrittenBookContent::author),
             Codec.intRange(0, WrittenBookContent.MAX_GENERATION).optionalFieldOf("generation", 0)
                     .forGetter(WrittenBookContent::generation),
-            filterableRaw(ComponentCodecs.COMPONENT_CODEC).listOf(0, WrittenBookContent.MAX_PAGES)
+            filterableRaw(ComponentCodecs.COMPONENT_CODEC).listOf()
                     .optionalFieldOf("pages", List.of()).forGetter(WrittenBookContent::pages),
             Codec.BOOL.optionalFieldOf("resolved", false).forGetter(WrittenBookContent::resolved)
     ).apply(instance, WrittenBookContent::new));

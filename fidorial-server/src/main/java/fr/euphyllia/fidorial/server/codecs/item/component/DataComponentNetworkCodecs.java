@@ -211,9 +211,9 @@ public class DataComponentNetworkCodecs {
         return new Codec<>() {
             @Override
             public void write(final PacketBuffer buf, final RegistryHolder frozen, final WrittenBookContent value) {
-                buf.writeString(value.title());
+                buf.writeString(WrittenBookTexts.title(value.title()));
                 buf.writeBoolean(false);
-                buf.writeString(value.author());
+                buf.writeString(WrittenBookTexts.author(value.author()));
                 buf.writeVarInt(value.generation());
                 buf.writeVarInt(value.pages().size());
                 for (final Component page : value.pages()) {
@@ -225,17 +225,17 @@ public class DataComponentNetworkCodecs {
 
             @Override
             public WrittenBookContent read(final PacketBuffer buf, final RegistryHolder frozen) {
-                final String title = buf.readString(WrittenBookContent.MAX_TITLE_LENGTH);
+                final Component title = Component.text(buf.readString(WrittenBookContent.MAX_TITLE_LENGTH));
                 if (buf.readBoolean()) {
                     buf.readString(WrittenBookContent.MAX_TITLE_LENGTH);
                 }
-                final String author = buf.readString(Short.MAX_VALUE);
+                final Component author = Component.text(buf.readString(Short.MAX_VALUE));
                 final int generation = buf.readVarInt();
                 if (generation < 0 || generation > WrittenBookContent.MAX_GENERATION) {
                     throw new DecoderException("Implausible book generation: " + generation);
                 }
                 final int size = readBoundedLength(buf, WrittenBookContent.MAX_PAGES, "book");
-                final List<Component> pages = new ArrayList<>(size);
+                final List<Component> pages = new ArrayList<>(Math.min(size, 16));
                 for (int i = 0; i < size; i++) {
                     pages.add(buf.readComponent(MAX_COMPONENT_TEXT_LENGTH));
                     if (buf.readBoolean()) {

@@ -5,7 +5,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.inventory.BookLike;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import java.util.List;
 
@@ -15,25 +14,28 @@ import java.util.List;
  * <p>As a {@link BookLike}, it can be opened directly with
  * {@link Audience#openBook(BookLike)}.</p>
  *
- * @param title      the title, at most {@value #MAX_TITLE_LENGTH} characters
- * @param author     the name of the author
+ * <p>The client only knows the title and author as plain text: they are flattened when the book
+ * is sent or saved, and the title is cut to {@value #MAX_TITLE_LENGTH} characters.</p>
+ *
+ * @param title      the title
+ * @param author     the author
  * @param generation how many times the book was copied, from {@code 0} (original) to {@value #MAX_GENERATION}
- * @param pages      the pages, at most {@value #MAX_PAGES}
+ * @param pages      the pages
  * @param resolved   whether the selectors, scores and NBT the pages hold were already resolved
  * @since 0.1.0
  */
-public record WrittenBookContent(String title, String author, int generation, List<Component> pages,
+public record WrittenBookContent(Component title, Component author, int generation, List<Component> pages,
                                  boolean resolved) implements BookLike {
 
     /**
-     * The longest title the client accepts.
+     * The longest title, in plain text characters, the client accepts.
      */
     public static final int MAX_TITLE_LENGTH = 32;
 
     /**
      * The most pages a written book holds.
      */
-    public static final int MAX_PAGES = 100;
+    public static final int MAX_PAGES = Integer.MAX_VALUE;
 
     /**
      * The highest generation, a copy of a copy.
@@ -44,19 +46,13 @@ public record WrittenBookContent(String title, String author, int generation, Li
         Preconditions.checkArgument(title != null, "The title of a written book must not be null");
         Preconditions.checkArgument(author != null, "The author of a written book must not be null");
         Preconditions.checkArgument(pages != null, "The pages of a written book must not be null");
-        Preconditions.checkArgument(title.length() <= MAX_TITLE_LENGTH,
-                "The title of a written book is limited to %s characters, got %s", MAX_TITLE_LENGTH, title.length());
         Preconditions.checkArgument(generation >= 0 && generation <= MAX_GENERATION,
                 "The generation of a written book must be between 0 and %s, got %s", MAX_GENERATION, generation);
-        Preconditions.checkArgument(pages.size() <= MAX_PAGES,
-                "A written book is limited to %s pages, got %s", MAX_PAGES, pages.size());
         pages = List.copyOf(pages);
     }
 
     /**
-     * Converts an Adventure book. Its title and author are flattened to plain text, the only form
-     * written books keep them in; the title is cut to {@value #MAX_TITLE_LENGTH} characters and the
-     * pages to the first {@value #MAX_PAGES}.
+     * Converts an Adventure book, keeping its title, author and pages as they are.
      *
      * @param book the book
      * @return the contents of an original, already resolved written book
@@ -64,18 +60,11 @@ public record WrittenBookContent(String title, String author, int generation, Li
     public static WrittenBookContent of(final BookLike book) {
         Preconditions.checkArgument(book != null, "The book passed to WrittenBookContent.of() must not be null");
         final Book adventure = book.asBook();
-        final String title = PlainTextComponentSerializer.plainText().serialize(adventure.title());
-        final List<Component> pages = adventure.pages();
-        return new WrittenBookContent(
-                title.length() > MAX_TITLE_LENGTH ? title.substring(0, MAX_TITLE_LENGTH) : title,
-                PlainTextComponentSerializer.plainText().serialize(adventure.author()),
-                0,
-                pages.size() > MAX_PAGES ? pages.subList(0, MAX_PAGES) : pages,
-                true);
+        return new WrittenBookContent(adventure.title(), adventure.author(), 0, adventure.pages(), true);
     }
 
     @Override
     public Book asBook() {
-        return Book.book(Component.text(title), Component.text(author), pages);
+        return Book.book(title, author, pages);
     }
 }
