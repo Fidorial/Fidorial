@@ -153,6 +153,10 @@ public final class StructureRegistry implements TemplateSource {
     private @Nullable PoolElement parseElement(final JsonObject object, final Key pool, final @Nullable Projection forced) {
         final String type = string(object, "element_type", "minecraft:single_pool_element").replace("minecraft:", "");
         final Projection projection = forced != null ? forced : Projection.byName(string(object, "projection", "rigid"));
+        if (object.has("corner_constraint")) {
+            problems.warn("Pool " + pool.asString() + " has an element with a corner_constraint: density functions are"
+                    + " not evaluated, it is placed without the check");
+        }
         return switch (type) {
             case "single_pool_element", "legacy_single_pool_element" -> {
                 final Key location = Keys.parse(string(object, "location", ""));

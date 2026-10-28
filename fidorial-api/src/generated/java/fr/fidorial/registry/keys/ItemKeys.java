@@ -6722,6 +6722,26 @@ public final class ItemKeys {
     public static final TypedKey<Item> SNOW_BLOCK = create("snow_block");
 
     /**
+     * Key for {@code minecraft:snow_brick_slab}.
+     */
+    public static final TypedKey<Item> SNOW_BRICK_SLAB = create("snow_brick_slab");
+
+    /**
+     * Key for {@code minecraft:snow_brick_stairs}.
+     */
+    public static final TypedKey<Item> SNOW_BRICK_STAIRS = create("snow_brick_stairs");
+
+    /**
+     * Key for {@code minecraft:snow_brick_wall}.
+     */
+    public static final TypedKey<Item> SNOW_BRICK_WALL = create("snow_brick_wall");
+
+    /**
+     * Key for {@code minecraft:snow_bricks}.
+     */
+    public static final TypedKey<Item> SNOW_BRICKS = create("snow_bricks");
+
+    /**
      * Key for {@code minecraft:snow_golem_spawn_egg}.
      */
     public static final TypedKey<Item> SNOW_GOLEM_SPAWN_EGG = create("snow_golem_spawn_egg");
@@ -9694,6 +9714,10 @@ public final class ItemKeys {
         SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE,
         SNOW,
         SNOW_BLOCK,
+        SNOW_BRICK_SLAB,
+        SNOW_BRICK_STAIRS,
+        SNOW_BRICK_WALL,
+        SNOW_BRICKS,
         SNOW_GOLEM_SPAWN_EGG,
         SNOWBALL,
         SNOWY_VILLAGE_MAP,

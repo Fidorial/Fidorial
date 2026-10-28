@@ -447,6 +447,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.fallDistance = Math.max(0.0, fallDistance);
     }
 
+    public void updateFallDistance(final Location from, final Location to) {
+        setFallDistance(FallDistanceModifiers.afterMovement((ServerWorld) world(), from, to, fallDistance));
+    }
+
     public boolean isFalling() {
         return falling;
     }

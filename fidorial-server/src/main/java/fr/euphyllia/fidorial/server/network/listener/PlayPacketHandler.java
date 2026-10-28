@@ -1406,13 +1406,15 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void trackFall(final Location previous, final Location current, final boolean wasOnGround, final boolean isOnGround) {
-        if (wasOnGround && isOnGround) return;
+        if (player == null || wasOnGround && isOnGround) return;
 
         if (player.gameMode() == GameMode.CREATIVE || player.gameMode() == GameMode.SPECTATOR) {
             player.setFallDistance(0.0);
             player.setFalling(false);
             return;
         }
+
+        player.updateFallDistance(previous, current);
 
         if (isOnGround) {
             if (player.fallDistance() > 0.0) {
@@ -1422,9 +1424,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
 
-        final double dy = current.y() - previous.y();
-        if (dy < 0.0) {
-            player.setFallDistance(player.fallDistance() - dy);
+        if (current.y() < previous.y()) {
             player.setFalling(true);
         }
     }

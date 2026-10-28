@@ -1,6 +1,5 @@
 # Vanilla map color of every block, by registry path.
 # <block> <color id> [<property>=<value>:<color id> ...]
-# Generated from data extracted from the 1.20.4 client, completed by hand for newer blocks.
 acacia_button 0
 acacia_door 15
 acacia_fence 15
@@ -56,7 +55,7 @@ bamboo_trapdoor 18
 bamboo_wall_hanging_sign 18
 bamboo_wall_sign 18
 barrel 13
-barrier 0
+barrier 0 waterlogged=true:12
 basalt 29
 beacon 31
 bedrock 11
@@ -207,6 +206,7 @@ chiseled_cinnabar 28
 chiseled_copper 15
 chiseled_deepslate 59
 chiseled_nether_bricks 35
+chiseled_packed_ice 5
 chiseled_polished_blackstone 29
 chiseled_quartz_block 14
 chiseled_red_sandstone 15
@@ -227,7 +227,7 @@ cinnabar_slab 28
 cinnabar_stairs 28
 cinnabar_wall 28
 clay 9
-closed_eyeblossom 7
+closed_eyeblossom 6
 coal_block 29
 coal_ore 11
 coarse_dirt 10
@@ -253,7 +253,7 @@ copper_chest 15
 copper_door 15
 copper_golem_statue 15
 copper_grate 15
-copper_lantern 15
+copper_lantern 6
 copper_ore 11
 copper_torch 0
 copper_trapdoor 15
@@ -416,7 +416,7 @@ exposed_copper_chest 44
 exposed_copper_door 44
 exposed_copper_golem_statue 44
 exposed_copper_grate 44
-exposed_copper_lantern 44
+exposed_copper_lantern 6
 exposed_copper_trapdoor 44
 exposed_cut_copper 44
 exposed_cut_copper_slab 44
@@ -501,7 +501,7 @@ horn_coral_fan 18
 horn_coral_wall_fan 18
 ice 5
 ice_crystal 5
-icicle 5
+icicle 17
 infested_chiseled_stone_bricks 9
 infested_cobblestone 9
 infested_cracked_stone_bricks 9
@@ -549,7 +549,7 @@ lava_cauldron 11
 leaf_litter 26
 lectern 13
 lever 0
-light 0
+light 0 waterlogged=true:12
 light_blue_banner 13
 light_blue_bed 17 part=head:3
 light_blue_candle 17
@@ -706,7 +706,7 @@ oak_wood 13
 observer 11
 obsidian 29
 ochre_froglight 2
-open_eyeblossom 7
+open_eyeblossom 15
 orange_banner 13
 orange_bed 15 part=head:3
 orange_candle 15
@@ -737,27 +737,31 @@ oxidized_copper_chest 55
 oxidized_copper_door 55
 oxidized_copper_golem_statue 55
 oxidized_copper_grate 55
-oxidized_copper_lantern 55
+oxidized_copper_lantern 6
 oxidized_copper_trapdoor 55
 oxidized_cut_copper 55
 oxidized_cut_copper_slab 55
 oxidized_cut_copper_stairs 55
 oxidized_lightning_rod 55
 packed_ice 5
+packed_ice_brick_slab 5
+packed_ice_brick_stairs 5
+packed_ice_brick_wall 5
+packed_ice_bricks 5
 packed_mud 10
 pale_hanging_moss 22
 pale_moss_block 22
 pale_moss_carpet 22
-pale_oak_button 14
+pale_oak_button 0
 pale_oak_door 14
 pale_oak_fence 14
 pale_oak_fence_gate 14
 pale_oak_hanging_sign 14
-pale_oak_leaves 7
+pale_oak_leaves 6
 pale_oak_log 14 axis=x:11 axis=z:11
 pale_oak_planks 14
 pale_oak_pressure_plate 14
-pale_oak_sapling 7
+pale_oak_sapling 6
 pale_oak_shelf 14
 pale_oak_sign 14
 pale_oak_slab 14
@@ -835,26 +839,26 @@ polished_tuff 43
 polished_tuff_slab 43
 polished_tuff_stairs 43
 polished_tuff_wall 43
-poplar_button 2
-poplar_door 2
-poplar_fence 2
-poplar_fence_gate 2
-poplar_hanging_sign 2
-poplar_log 2 axis=x:22 axis=z:22
-poplar_planks 2
-poplar_pressure_plate 2
-poplar_sapling 7
-poplar_shelf 2
-poplar_sign 2
-poplar_slab 2
-poplar_stairs 2
-poplar_trapdoor 2
-poplar_wall_hanging_sign 2
-poplar_wall_sign 2
-poplar_wood 22
+poplar_button 0
+poplar_door 22
+poplar_fence 22
+poplar_fence_gate 22
+poplar_hanging_sign 22
+poplar_log 22 axis=x:34 axis=z:34
+poplar_planks 22
+poplar_pressure_plate 22
+poplar_sapling 6
+poplar_shelf 22
+poplar_sign 22
+poplar_slab 22
+poplar_stairs 22
+poplar_trapdoor 22
+poplar_wall_hanging_sign 22
+poplar_wall_sign 22
+poplar_wood 34
 poppy 7
 potatoes 7
-potent_sulfur 18
+potent_sulfur 30
 potted_acacia_sapling 0
 potted_allium 0
 potted_azalea_bush 0
@@ -959,7 +963,7 @@ red_sandstone 15
 red_sandstone_slab 15
 red_sandstone_stairs 15
 red_sandstone_wall 15
-red_shrub 28
+red_shrub 52
 red_shulker_box 28
 red_stained_glass 28
 red_stained_glass_pane 0
@@ -970,7 +974,7 @@ red_wool 28
 red_wool_slab 28
 red_wool_stairs 28
 redstone_block 4
-redstone_lamp 0
+redstone_lamp 37
 redstone_ore 11
 redstone_torch 0
 redstone_wall_torch 0
@@ -978,12 +982,12 @@ redstone_wire 0
 reinforced_deepslate 59
 repeater 0
 repeating_command_block 24
-resin_block 15
+resin_block 37
 resin_brick_slab 37
 resin_brick_stairs 37
 resin_brick_wall 37
 resin_bricks 37
-resin_clump 15
+resin_clump 37
 respawn_anchor 29
 rooted_dirt 10
 rose_bush 7
@@ -1001,7 +1005,7 @@ sculk_vein 29
 sea_lantern 14
 sea_pickle 27
 seagrass 12
-shelf_mushroom 26
+shelf_mushroom 40
 short_dry_grass 18
 short_grass 7
 shroomlight 28
@@ -1028,6 +1032,10 @@ smooth_stone_slab 11
 sniffer_egg 28
 snow 8
 snow_block 8
+snow_brick_slab 8
+snow_brick_stairs 8
+snow_brick_wall 8
+snow_bricks 8
 soul_campfire 34
 soul_fire 17
 soul_lantern 6
@@ -1053,7 +1061,7 @@ spruce_sign 34
 spruce_slab 34
 spruce_stairs 34
 spruce_trapdoor 34
-spruce_wall_hanging_sign 13
+spruce_wall_hanging_sign 34
 spruce_wall_sign 34
 spruce_wood 34
 sticky_piston 11
@@ -1067,7 +1075,7 @@ stone_pressure_plate 11
 stone_slab 11
 stone_stairs 11
 stonecutter 11
-straw_bed 18 part=head:3
+straw_bed 18
 stripped_acacia_log 15
 stripped_acacia_wood 15
 stripped_bamboo_block 18
@@ -1087,8 +1095,8 @@ stripped_oak_log 13
 stripped_oak_wood 13
 stripped_pale_oak_log 14
 stripped_pale_oak_wood 14
-stripped_poplar_log 2
-stripped_poplar_wood 2
+stripped_poplar_log 22
+stripped_poplar_wood 22
 stripped_spruce_log 34
 stripped_spruce_wood 34
 stripped_warped_hyphae 57
@@ -1115,7 +1123,7 @@ tall_seagrass 12
 target 14
 terracotta 15
 test_block 22
-test_instance_block 22
+test_instance_block 0
 tinted_glass 21
 tnt 4
 torch 0
@@ -1176,7 +1184,7 @@ waxed_copper_chest 15
 waxed_copper_door 15
 waxed_copper_golem_statue 15
 waxed_copper_grate 15
-waxed_copper_lantern 15
+waxed_copper_lantern 6
 waxed_copper_trapdoor 15
 waxed_cut_copper 15
 waxed_cut_copper_slab 15
@@ -1190,7 +1198,7 @@ waxed_exposed_copper_chest 44
 waxed_exposed_copper_door 44
 waxed_exposed_copper_golem_statue 44
 waxed_exposed_copper_grate 44
-waxed_exposed_copper_lantern 44
+waxed_exposed_copper_lantern 6
 waxed_exposed_copper_trapdoor 44
 waxed_exposed_cut_copper 44
 waxed_exposed_cut_copper_slab 44
@@ -1206,7 +1214,7 @@ waxed_oxidized_copper_chest 55
 waxed_oxidized_copper_door 55
 waxed_oxidized_copper_golem_statue 55
 waxed_oxidized_copper_grate 55
-waxed_oxidized_copper_lantern 55
+waxed_oxidized_copper_lantern 6
 waxed_oxidized_copper_trapdoor 55
 waxed_oxidized_cut_copper 55
 waxed_oxidized_cut_copper_slab 55
@@ -1221,7 +1229,7 @@ waxed_weathered_copper_chest 56
 waxed_weathered_copper_door 56
 waxed_weathered_copper_golem_statue 56
 waxed_weathered_copper_grate 56
-waxed_weathered_copper_lantern 56
+waxed_weathered_copper_lantern 6
 waxed_weathered_copper_trapdoor 56
 waxed_weathered_cut_copper 56
 waxed_weathered_cut_copper_slab 56
@@ -1236,7 +1244,7 @@ weathered_copper_chest 56
 weathered_copper_door 56
 weathered_copper_golem_statue 56
 weathered_copper_grate 56
-weathered_copper_lantern 56
+weathered_copper_lantern 6
 weathered_copper_trapdoor 56
 weathered_cut_copper 56
 weathered_cut_copper_slab 56
@@ -1245,7 +1253,7 @@ weathered_lightning_rod 56
 weeping_vines 35
 weeping_vines_plant 35
 wet_sponge 18
-wheat 7
+wheat 7 age=6:18 age=7:18
 white_banner 13
 white_bed 8 part=head:3
 white_candle 3

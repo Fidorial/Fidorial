@@ -2042,6 +2042,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> BLOCK_ICE_STEP = create("block.ice.step");
 
     /**
+     * Key for {@code minecraft:block.ice_crystal.ambient}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_ICE_CRYSTAL_AMBIENT = create("block.ice_crystal.ambient");
+
+    /**
      * Key for {@code minecraft:block.ice_crystal.break}.
      */
     public static final TypedKey<SoundEvent> BLOCK_ICE_CRYSTAL_BREAK = create("block.ice_crystal.break");
@@ -10618,6 +10623,7 @@ public final class SoundEventKeys {
         BLOCK_ICE_HIT,
         BLOCK_ICE_PLACE,
         BLOCK_ICE_STEP,
+        BLOCK_ICE_CRYSTAL_AMBIENT,
         BLOCK_ICE_CRYSTAL_BREAK,
         BLOCK_ICE_CRYSTAL_FALL,
         BLOCK_ICE_CRYSTAL_HIT,

@@ -5172,6 +5172,26 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> SNOW_BLOCK = create("snow_block");
 
     /**
+     * Key for {@code minecraft:snow_brick_slab}.
+     */
+    public static final TypedKey<BlockType> SNOW_BRICK_SLAB = create("snow_brick_slab");
+
+    /**
+     * Key for {@code minecraft:snow_brick_stairs}.
+     */
+    public static final TypedKey<BlockType> SNOW_BRICK_STAIRS = create("snow_brick_stairs");
+
+    /**
+     * Key for {@code minecraft:snow_brick_wall}.
+     */
+    public static final TypedKey<BlockType> SNOW_BRICK_WALL = create("snow_brick_wall");
+
+    /**
+     * Key for {@code minecraft:snow_bricks}.
+     */
+    public static final TypedKey<BlockType> SNOW_BRICKS = create("snow_bricks");
+
+    /**
      * Key for {@code minecraft:soul_campfire}.
      */
     public static final TypedKey<BlockType> SOUL_CAMPFIRE = create("soul_campfire");
@@ -7514,6 +7534,10 @@ public final class BlockTypeKeys {
         SNIFFER_EGG,
         SNOW,
         SNOW_BLOCK,
+        SNOW_BRICK_SLAB,
+        SNOW_BRICK_STAIRS,
+        SNOW_BRICK_WALL,
+        SNOW_BRICKS,
         SOUL_CAMPFIRE,
         SOUL_FIRE,
         SOUL_LANTERN,

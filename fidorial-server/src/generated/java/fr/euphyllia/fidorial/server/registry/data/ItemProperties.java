@@ -1450,6 +1450,10 @@ public final class ItemProperties {
         register(ItemKeys.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE.key(), 64, 0, List.of());
         register(ItemKeys.SNOW.key(), 64, 0, List.of());
         register(ItemKeys.SNOW_BLOCK.key(), 64, 0, List.of());
+        register(ItemKeys.SNOW_BRICK_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.SNOW_BRICK_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.SNOW_BRICK_WALL.key(), 64, 0, List.of());
+        register(ItemKeys.SNOW_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.SNOW_GOLEM_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.SNOWBALL.key(), 16, 0, List.of());
         register(ItemKeys.SNOWY_VILLAGE_MAP.key(), 64, 0, List.of());
@@ -1504,13 +1508,13 @@ public final class ItemProperties {
         register(ItemKeys.STONE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.STONE_SWORD.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
         register(ItemKeys.STONECUTTER.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems7() {
         register(ItemKeys.STRAW_BED.key(), 16, 0, List.of());
         register(ItemKeys.STRAY_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRIDER_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRING.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems7() {
         register(ItemKeys.STRIPPED_ACACIA_LOG.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_ACACIA_WOOD.key(), 64, 0, List.of());
         register(ItemKeys.STRIPPED_BAMBOO_BLOCK.key(), 64, 0, List.of());
@@ -1707,13 +1711,13 @@ public final class ItemProperties {
         register(ItemKeys.WEATHERED_CUT_COPPER_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_CUT_COPPER_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_LIGHTNING_ROD.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems8() {
         register(ItemKeys.WEEPING_VINES.key(), 64, 0, List.of());
         register(ItemKeys.WET_SPONGE.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT_SEEDS.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems8() {
         register(ItemKeys.WHITE_BANNER.key(), 16, 0, List.of());
         register(ItemKeys.WHITE_BED.key(), 1, 0, List.of());
         register(ItemKeys.WHITE_BUNDLE.key(), 1, 0, List.of());

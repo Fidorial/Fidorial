@@ -1094,6 +1094,10 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.SNIFFER_EGG.key(), 0, 0);
         register(BlockTypeKeys.SNOW.key(), 0, 0);
         register(BlockTypeKeys.SNOW_BLOCK.key(), 0, 15);
+        register(BlockTypeKeys.SNOW_BRICK_SLAB.key(), 0, 0);
+        register(BlockTypeKeys.SNOW_BRICK_STAIRS.key(), 0, 0);
+        register(BlockTypeKeys.SNOW_BRICK_WALL.key(), 0, 0);
+        register(BlockTypeKeys.SNOW_BRICKS.key(), 0, 15);
         register(BlockTypeKeys.SOUL_CAMPFIRE.key(), 10, 0);
         register(BlockTypeKeys.SOUL_FIRE.key(), 10, 0);
         register(BlockTypeKeys.SOUL_LANTERN.key(), 10, 0);
@@ -1108,13 +1112,13 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.SPRUCE_DOOR.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_FENCE.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_FENCE_GATE.key(), 0, 0);
+    }
+
+    private static void registerLight7() {
         register(BlockTypeKeys.SPRUCE_HANGING_SIGN.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_LEAVES.key(), 0, 1);
         register(BlockTypeKeys.SPRUCE_LOG.key(), 0, 15);
         register(BlockTypeKeys.SPRUCE_PLANKS.key(), 0, 15);
-    }
-
-    private static void registerLight7() {
         register(BlockTypeKeys.SPRUCE_PRESSURE_PLATE.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_SAPLING.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_SHELF.key(), 0, 0);
@@ -1261,13 +1265,13 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_GRATE.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_LANTERN.key(), 15, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_TRAPDOOR.key(), 0, 0);
+    }
+
+    private static void registerLight8() {
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER.key(), 0, 15);
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER_SLAB.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER_STAIRS.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_LIGHTNING_ROD.key(), 0, 0);
-    }
-
-    private static void registerLight8() {
         register(BlockTypeKeys.WAXED_LIGHTNING_ROD.key(), 0, 0);
         register(BlockTypeKeys.WAXED_OXIDIZED_CHISELED_COPPER.key(), 0, 15);
         register(BlockTypeKeys.WAXED_OXIDIZED_COPPER.key(), 0, 15);
