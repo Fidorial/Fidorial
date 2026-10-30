@@ -1,7 +1,13 @@
 package fr.fidorial.attribute;
 
 import net.kyori.adventure.key.Key;
+import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * @deprecated Use {@link fr.fidorial.registry.keys.AttributeKeys} instead.
+ */
+@Deprecated
+@ApiStatus.Obsolete
 public class Attribute {
 
     /**

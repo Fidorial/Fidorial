@@ -7,6 +7,7 @@ import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.data.TypedDataComponentValue;
+import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.event.DataComponentValue;
 import net.kyori.adventure.text.event.DataComponentValueConverterRegistry;
@@ -31,12 +32,10 @@ import java.util.function.UnaryOperator;
 public record ItemStack(Key id, int count, DataComponentMap components)
         implements DataComponentHolder, Translatable, HoverEventSource<HoverEvent.ShowItem> {
 
-    private static final Key AIR = Key.key("air");
-
     /**
      * The absence of an item. Slots hold this rather than {@code null}.
      */
-    public static final ItemStack EMPTY = new ItemStack(AIR, 0, DataComponentMap.EMPTY);
+    public static final ItemStack EMPTY = new ItemStack(ItemKeys.AIR.key(), 0, DataComponentMap.EMPTY);
 
     public ItemStack {
         Preconditions.checkArgument(id != null, "The ID of an item stack must not be null");
@@ -188,7 +187,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @return {@code true} when this stack holds nothing
      */
     public boolean isEmpty() {
-        return count <= 0 || id.equals(AIR);
+        return count <= 0 || id.equals(ItemKeys.AIR.key());
     }
 
     /**

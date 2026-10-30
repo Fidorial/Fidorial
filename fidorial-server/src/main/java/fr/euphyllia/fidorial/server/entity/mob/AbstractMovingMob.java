@@ -29,8 +29,8 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.world.ChunkPos;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -47,8 +47,6 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private static final double DEFAULT_HALF_WIDTH = 0.3;
     private static final double DEFAULT_HEIGHT = 1.7;
     private static final double DEFAULT_MOVEMENT_SPEED = 0.25;
-
-    private static final Key POWDER_SNOW_WALKABLE = Key.key("powder_snow_walkable_mobs");
 
     protected final GoalSelector goals = new GoalSelector();
 
@@ -85,7 +83,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         this.sentPitch = pitch;
         this.sentHeadYaw = yaw;
         this.walksOnPowderSnow = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), POWDER_SNOW_WALKABLE);
+                .isTagged(type.key(), EntityTypeTagKeys.POWDER_SNOW_WALKABLE_MOBS.key());
     }
 
     public final ServerWorld serverWorld() {

@@ -1,6 +1,7 @@
 package fr.fidorial.world.dimension;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
@@ -31,7 +32,7 @@ public final class DimensionTypeBuilder {
     private int logicalHeight = 384;
     private int minY = -64;
     private int height = 384;
-    private Key infiniburn = Key.key("infiniburn_overworld");
+    private Key infiniburn = BlockTypeTagKeys.INFINIBURN_OVERWORLD.key();
     private Skybox skybox = Skybox.OVERWORLD;
     private CardinalLight cardinalLight = CardinalLight.DEFAULT;
     private EnvironmentAttributes.Builder attributes = EnvironmentAttributes.builder();

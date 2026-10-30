@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.Chunk;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
@@ -15,8 +16,9 @@ import java.util.Set;
 
 public class BlockView {
 
-    private static final Set<Key> PASSABLE = Set.of(Key.key("water"));
-    private static final Key POWDER_SNOW = Key.key("pathfinding/powder_snow");
+    private static final Set<Key> PASSABLE = Set.of(
+            BlockTypeKeys.WATER.key()
+    );
 
     private BlockView() {
     }
@@ -45,7 +47,7 @@ public class BlockView {
     }
 
     public static boolean isPowderSnow(final BlockState state) {
-        return isTagged(POWDER_SNOW, state);
+        return isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW.key(), state);
     }
 
     public static boolean isTagged(final Key tag, final BlockState state) {

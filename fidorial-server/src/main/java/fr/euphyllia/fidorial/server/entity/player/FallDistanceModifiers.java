@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
 import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.fluid.FluidState;
 import fr.fidorial.world.fluid.FluidType;
@@ -18,7 +19,6 @@ import java.util.Set;
 @SinceMinecraft("26.4")
 final class FallDistanceModifiers {
 
-    private static final Key FALL_DAMAGE_RESETTING = Key.key("fall_damage_resetting");
     private static final Set<Key> ALWAYS_PORTALS = Set.of(BlockTypeKeys.END_PORTAL.key(), BlockTypeKeys.END_GATEWAY.key());
     private static final Key NETHER_PORTAL = BlockTypeKeys.NETHER_PORTAL.key();
     /**
@@ -101,7 +101,7 @@ final class FallDistanceModifiers {
                     final Key name = state.name();
                     if (ALWAYS_PORTALS.contains(name) || netherPortalResets && name.equals(NETHER_PORTAL)) {
                         resets = true;
-                    } else if (BlockView.isTagged(FALL_DAMAGE_RESETTING, state)
+                    } else if (BlockView.isTagged(BlockTypeTagKeys.FALL_DAMAGE_RESETTING.key(), state)
                             && centerCrosses(from, to, x, y, z)) {
                         resets = true;
                     }

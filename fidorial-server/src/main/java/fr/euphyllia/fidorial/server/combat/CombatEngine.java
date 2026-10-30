@@ -42,6 +42,8 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
+import fr.fidorial.registry.keys.DamageTypeTagKeys;
+import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -77,12 +79,7 @@ public final class CombatEngine implements CombatService {
 
     private static final byte ENTITY_EVENT_DEATH = 3;
 
-    private static final Key FREEZE_IMMUNE = Key.key("freeze_immune_entity_types");
-    private static final Key FREEZE_HURTS_EXTRA = Key.key("freeze_hurts_extra_types");
     private static final float FREEZE_HURTS_EXTRA_MULTIPLIER = 5.0f;
-
-    private static final Key BYPASSES_ENCHANTMENTS = Key.key("bypasses_enchantments");
-    private static final Key IS_PROJECTILE = Key.key("is_projectile");
 
     /**
      * The hits that run the post-attack effects of the enchantments of the attacker, such as Fire Aspect.
@@ -182,10 +179,10 @@ public final class CombatEngine implements CombatService {
         }
         final ServerRegistry<EntityType> entityTypes = server.registries().registry(RegistryKey.ENTITY_TYPE);
         final Key victimType = victim.type().key();
-        if (entityTypes.isTagged(victimType, FREEZE_IMMUNE)) {
+        if (entityTypes.isTagged(victimType, EntityTypeTagKeys.IMMUNE_TO_FREEZING.key())) {
             return false;
         }
-        final float scaled = entityTypes.isTagged(victimType, FREEZE_HURTS_EXTRA)
+        final float scaled = entityTypes.isTagged(victimType, EntityTypeTagKeys.FREEZE_HURTS_EXTRA_TYPES.key())
                 ? amount * FREEZE_HURTS_EXTRA_MULTIPLIER
                 : amount;
         return applyScaledDamage(victim, source, scaled, knockback);
@@ -256,7 +253,7 @@ public final class CombatEngine implements CombatService {
         }
 
         if (source.causingEntity() != null && source.causingEntity() != victim
-                && (MELEE_ATTACKS.contains(source.type()) || hasDamageTag(source, IS_PROJECTILE))) {
+                && (MELEE_ATTACKS.contains(source.type()) || hasDamageTag(source, DamageTypeTagKeys.IS_PROJECTILE.key()))) {
             // Fire Aspect, Thorns, Bane of Arthropods... like vanilla, the effects of the attacker
             // only follow a melee hit, those of the victim any attack.
             EnchantmentEngine.postAttack(victim, source, dealt, MELEE_ATTACKS.contains(source.type()));
@@ -302,7 +299,7 @@ public final class CombatEngine implements CombatService {
             damage = CombatRules.damageAfterArmor(damage, (float) victim.armor(), (float) victim.armorToughness(),
                     share -> EnchantmentEngine.armorEffectiveness(victim, source, share));
         }
-        if (!hasDamageTag(source, BYPASSES_ENCHANTMENTS)) {
+        if (!hasDamageTag(source, DamageTypeTagKeys.BYPASSES_ENCHANTMENTS.key())) {
             damage = CombatRules.damageAfterProtection(damage, EnchantmentEngine.protection(victim, source));
         }
         return Math.max(0f, damage);

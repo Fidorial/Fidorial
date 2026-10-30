@@ -1,5 +1,6 @@
 package fr.fidorial.world.fluid;
 
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -12,11 +13,11 @@ public enum FluidType {
     /**
      * Water: fast, and two adjacent sources form a new one.
      */
-    WATER(Key.key("water"), 5, 1, 7, true),
+    WATER(BlockTypeKeys.WATER.key(), 5, 1, 7, true),
     /**
      * Lava: slower than water, and spreading less far.
      */
-    LAVA(Key.key("lava"), 30, 2, 6, false);
+    LAVA(BlockTypeKeys.LAVA.key(), 30, 2, 6, false);
 
     private final Key blockKey;
     private final int tickDelay;
