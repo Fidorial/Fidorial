@@ -31,9 +31,7 @@ public record KnownPackNegotiation(List<KnownPack> packs) {
         return new Result.Accepted(Set.copyOf(packs));
     }
 
-    public sealed
-
-    interface Result {
+    public sealed interface Result {
 
         /**
          * Used when the server and client agree on all their known packs.

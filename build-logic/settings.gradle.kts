@@ -5,7 +5,9 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         register("libs") {
-            from(files("../gradle/libs.versions.toml"))
+            from(files("../gradle/build-libs.versions.toml"))
         }
     }
 }
+
+rootProject.name = "build-logic"

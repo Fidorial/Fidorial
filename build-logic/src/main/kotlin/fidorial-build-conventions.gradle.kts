@@ -10,7 +10,10 @@ repositories {
     mavenCentral()
     maven("https://libraries.minecraft.net")
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.opencollab.dev/maven-snapshots") // geyser's configurate fork
+    maven("https://repo.lucko.me/")
+    // geyser's configurate fork
+    maven("https://repo.opencollab.dev/maven-releases")
+    maven("https://repo.opencollab.dev/maven-snapshots")
 }
 
 java {

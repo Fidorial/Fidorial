@@ -21,14 +21,16 @@ final class ScenarioTestScanner {
     static List<ScenarioTestInstance> scanPackages(final Collection<ClassLoader> loaders, final String... packages) {
         final List<ScenarioTestInstance> result = new ArrayList<>();
         try (final ScanResult scan = new ClassGraph()
+                .enableClassInfo()
                 .enableMethodInfo()
                 .enableAnnotationInfo()
-                .overrideClassLoaders(loaders.toArray(new ClassLoader[0]))
+                .enableClassLoaders(loaders.toArray(ClassLoader[]::new))
                 .acceptPackages(packages) // recursive
                 .scan()) {
 
             for (final ClassInfo classInfo : scan.getClassesWithMethodAnnotation(ScenarioTest.class)) {
-                final Class<?> clazz = classInfo.loadClass();
+                final Class<?> clazz = loadClass(classInfo.getName(), loaders);
+
                 for (final Method method : clazz.getDeclaredMethods()) {
                     final ScenarioTest annotation = method.getAnnotation(ScenarioTest.class);
                     if (annotation != null) {
@@ -53,5 +55,15 @@ final class ScenarioTestScanner {
                             + " needs to open that package to the fidorial-api module.", e);
         }
         return new ScenarioTestInstance(method, annotation.group(), annotation.timeoutTicks(), annotation.required());
+    }
+
+    private static Class<?> loadClass(final String name, final Collection<ClassLoader> loaders) {
+        for (final ClassLoader loader : loaders) {
+            try {
+                return Class.forName(name, false, loader);
+            } catch (final ClassNotFoundException _) {}
+        }
+
+        throw new IllegalStateException("Cannot load scanned class " + name + " with any supplied classloader.");
     }
 }
