@@ -8,14 +8,13 @@ repositories {
 }
 
 dependencies {
-    implementation("net.kyori:adventure-api:5.2.0")
-    implementation("com.google.code.gson:gson:2.13.1")
+    implementation(libs.adventure.api)
+    implementation(libs.gson)
     implementation("com.palantir.javapoet:javapoet:0.18.0")
 
     testImplementation(platform("org.junit:junit-bom:5.13.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
-
 
 gradlePlugin {
     plugins {

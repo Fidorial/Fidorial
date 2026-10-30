@@ -310,7 +310,7 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         final List<Entry<T>> entries = snapshot.entries;
         final List<RegistryEntry> network = new ArrayList<>(entries.size());
         for (final Entry<T> entry : entries) {
-            final @Nullable BinaryTag data;
+            final BinaryTag data;
             if (entry.custom) {
                 data = encode(entry);
             } else {

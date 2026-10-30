@@ -1,29 +1,27 @@
 [versions]
-netty = "4.2.18.Final"
-gson = "2.14.0"
-slf4j = "2.0.17"
-logback = "1.6.5"
-faststats = "0.30.2"
+netty = "4.2.19.Final"
+gson = "2.15.0"
+slf4j = "2.0.20"
+logback = "1.6.6"
+faststats = "0.31.0"
 fastutil = "8.5.19"
 adventure = "5.2.0"
-guava = "33.6.0-jre"
+guava = "33.7.2-jre"
 brigadier = "1.3.11"
-jetbrains-annotations = "26.0.2"
+jetbrains-annotations = "26.1.0"
 jspecify = "1.0.1"
-jline = "4.4.3"
-spotless = "8.10.2"
-spotless-lib = "4.8.0"
-classgraph = "4.8.180"
+jline = "4.4.8"
+classgraph = "6.0.1"
 shadow = "9.6.1"
-dfu = "10.0.21"
+dfu = "11.0.22"
 adventure-nbt-dfu = "0.1.2"
 spark = "1.10.182-SNAPSHOT"
 spark-api = "0.1-SNAPSHOT"
 leafpile = "1.3.2"
 configurate = "4.3.0-SNAPSHOT"
-configurate-geyser = "4.2.0-GeyserMC-SNAPSHOT"
-lz4 = "1.12.0"
-zstd-jni = "1.5.7-21"
+configurate-geyser = "4.3.0-GeyserMC"
+lz4 = "1.12.1"
+zstd-jni = "1.5.7-24"
 
 [libraries]
 netty-buffer = { module = "io.netty:netty-buffer", version.ref = "netty" }
@@ -57,9 +55,6 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "j
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 jline-ffm = { module = "org.jline:jline-terminal-ffm", version.ref = "jline" }
 jline-reader = { module = "org.jline:jline-reader", version.ref = "jline" }
-spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
-spotless-lib = { module = "com.diffplug.spotless:spotless-lib", version.ref = "spotless-lib" }
-spotless-lib-extra = { module = "com.diffplug.spotless:spotless-lib-extra", version.ref = "spotless-lib" }
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 fastutil = { module = "it.unimi.dsi:fastutil", version.ref = "fastutil" }
 dfu = { module = "com.mojang:datafixerupper", version.ref = "dfu" }
