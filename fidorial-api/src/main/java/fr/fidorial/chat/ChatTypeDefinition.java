@@ -3,7 +3,6 @@ package fr.fidorial.chat;
 import com.google.common.base.Preconditions;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.ChatType;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
@@ -19,7 +18,7 @@ public record ChatTypeDefinition(
         Key key,
         ChatTypeDecoration chat,
         ChatTypeDecoration narration
-) implements ChatType, net.kyori.adventure.chat.ChatType {
+) implements net.kyori.adventure.chat.ChatType {
 
     public ChatTypeDefinition {
         Preconditions.checkArgument(key != null, "The key of a chat type definition must not be null");
@@ -51,7 +50,7 @@ public record ChatTypeDefinition(
      * {@return this chat type's key, typed against the {@code minecraft:chat_type} registry}
      */
     @Contract(value = "-> new", pure = true)
-    public TypedKey<fr.fidorial.registry.data.ChatType> typedKey() {
+    public TypedKey<ChatTypeDefinition> typedKey() {
         return TypedKey.create(RegistryKey.CHAT_TYPE, key);
     }
 }

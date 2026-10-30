@@ -10,7 +10,7 @@ import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.registry.data.Biome;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -35,11 +35,11 @@ public final class WorldgenCommand {
                 .then(literal("spawn").executes(this::spawn))
                 .then(literal("locate")
                         .then(argument("biome", arguments().resource(RegistryKey.BIOME))
-                                .executes(ctx -> locate(ctx, ctx.getArgument("biome", Biome.class).key(), DEFAULT_RADIUS))
+                                .executes(ctx -> locate(ctx, ctx.getArgument("biome", BiomeDefinition.class).key(), DEFAULT_RADIUS))
                                 .then(argument("radius", IntegerArgumentType.integer(16, 30000))
                                         .executes(ctx -> locate(
                                                 ctx,
-                                                ctx.getArgument("biome", Biome.class).key(),
+                                                ctx.getArgument("biome", BiomeDefinition.class).key(),
                                                 IntegerArgumentType.getInteger(ctx, "radius"))))))
                 .build();
     }

@@ -4,7 +4,6 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
@@ -24,7 +23,7 @@ public interface EnchantedItem {
      *
      * @since 0.1.0
      */
-    TypedKey<Enchantment> enchantment();
+    TypedKey<EnchantmentDefinition> enchantment();
 
     /**
      * {@return the level of the enchantment on the stack, starting at {@code 1}}

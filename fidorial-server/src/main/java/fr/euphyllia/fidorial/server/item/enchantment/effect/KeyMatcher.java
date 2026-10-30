@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.item.enchantment.effect;
 import com.google.gson.JsonElement;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.item.enchantment.KeySetImpl;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -28,7 +29,8 @@ public record KeyMatcher(Key registry, KeySetImpl entries) {
     public boolean test(final Key value) {
         final Optional<Key> tag = entries.tag();
         if (tag.isPresent()) {
-            return FidorialServer.getInstance().registries().network().isTagged(registry, tag.get(), value);
+            final ServerRegistry<?> tagged = FidorialServer.getInstance().registries().registry(registry);
+            return tagged != null && tagged.isTagged(value, tag.get());
         }
         return entries.keys().contains(value);
     }
@@ -39,7 +41,8 @@ public record KeyMatcher(Key registry, KeySetImpl entries) {
     public List<Key> resolve() {
         final Optional<Key> tag = entries.tag();
         if (tag.isPresent()) {
-            return new ArrayList<>(FidorialServer.getInstance().registries().network().tag(registry, tag.get()));
+            final ServerRegistry<?> tagged = FidorialServer.getInstance().registries().registry(registry);
+            return tagged == null ? new ArrayList<>() : new ArrayList<>(tagged.tag(tag.get()));
         }
         return new ArrayList<>(entries.keys());
     }

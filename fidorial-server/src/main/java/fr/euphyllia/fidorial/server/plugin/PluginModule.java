@@ -40,7 +40,7 @@ public final class PluginModule implements ServerModule, PluginManager {
             final ServiceRegistry services, final RegistryModule registries) {
         this.registries = registries;
         this.spark = config.spark().enabled() ? new SparkService(server, config.spark().path()) : null;
-        this.manager = new JavaPluginManager(server, events, services, registries.permissions(), config.general().pluginsPath());
+        this.manager = new JavaPluginManager(server, events, services, registries, config.general().pluginsPath());
     }
 
     @Override

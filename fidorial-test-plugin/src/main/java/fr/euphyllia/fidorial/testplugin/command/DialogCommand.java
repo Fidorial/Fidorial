@@ -13,9 +13,12 @@ import fr.fidorial.dialog.DialogAction;
 import fr.fidorial.dialog.DialogActionButton;
 import fr.fidorial.dialog.DialogBase;
 import fr.fidorial.dialog.DialogDefinition;
-import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.dialog.NoticeDialog;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.registry.Registry;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.DialogTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -86,16 +89,15 @@ public final class DialogCommand {
 
         final CommandSource source = ctx.getSource();
         final Key key = Key.key(TestDialogs.NAMESPACE, name);
-        final DialogRegistry dialogs = plugin.server().registries().dialogs();
-        if (!dialogs.contains(key)) {
+        final Registry<DialogDefinition> dialogs = plugin.server().registries().registry(RegistryKey.DIALOG);
+        if (!dialogs.contains(TypedKey.create(RegistryKey.DIALOG, key))) {
             plugin.msg(source, "<red>Nothing is recorded under" + key.asString());
             return 0;
         }
 
         // Sent as a single id: only works because the entry reached the client at configuration time.
         player.showDialog(Dialog.reference(key));
-        plugin.msg(source, "<green>Reference <white>%s<green> sent (network id <aqua>%d<green>)."
-                .formatted(key.asString(), dialogs.networkId(key)));
+        plugin.msg(source, "<green>Reference <white>%s<green> sent.".formatted(key.asString()));
         return Command.SINGLE_SUCCESS;
     }
 
@@ -110,17 +112,16 @@ public final class DialogCommand {
 
     private static int list(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
-        final DialogRegistry dialogs = plugin.server().registries().dialogs();
+        final Registry<DialogDefinition> dialogs = plugin.server().registries().registry(RegistryKey.DIALOG);
 
-        plugin.msg(source, "<gold>%d dialogue(s) in the log:".formatted(dialogs.keys().size()));
-        for (final Key key : dialogs.keys()) {
-            final String origin = dialogs.definition(key).isPresent() ? "server" : "vanilla";
-            plugin.msg(source, "<gray> - <white>%s <gray>(id <aqua>%d<gray>, %s)"
-                    .formatted(key.asString(), dialogs.networkId(key), origin));
+        plugin.msg(source, "<gold>%d dialogue(s) in the log:".formatted(dialogs.size()));
+        for (final TypedKey<DialogDefinition> key : dialogs.keys()) {
+            final String origin = dialogs.isCustom(key) ? "plugin" : "vanilla";
+            plugin.msg(source, "<gray> - <white>%s <gray>(%s)".formatted(key.key().asString(), origin));
         }
 
-        plugin.msg(source, "<gray>Break menu: <white>" + dialogs.pauseScreenAdditions());
-        plugin.msg(source, "<gray>Quick actions:<white>" + dialogs.quickActions());
+        plugin.msg(source, "<gray>Break menu: <white>" + dialogs.tag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS));
+        plugin.msg(source, "<gray>Quick actions:<white>" + dialogs.tag(DialogTagKeys.QUICK_ACTIONS));
         return Command.SINGLE_SUCCESS;
     }
 

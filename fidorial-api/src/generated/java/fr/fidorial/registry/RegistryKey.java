@@ -1,15 +1,16 @@
 package fr.fidorial.registry;
 
+import fr.fidorial.chat.ChatTypeDefinition;
+import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.BannerPattern;
-import fr.fidorial.registry.data.Biome;
 import fr.fidorial.registry.data.BlockSoundSet;
 import fr.fidorial.registry.data.BlockTransformer;
 import fr.fidorial.registry.data.BlockType;
 import fr.fidorial.registry.data.CatSoundVariant;
 import fr.fidorial.registry.data.CatVariant;
-import fr.fidorial.registry.data.ChatType;
 import fr.fidorial.registry.data.ChickenSoundVariant;
 import fr.fidorial.registry.data.ChickenVariant;
 import fr.fidorial.registry.data.CowSoundVariant;
@@ -18,9 +19,6 @@ import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
-import fr.fidorial.registry.data.Dialog;
-import fr.fidorial.registry.data.DimensionType;
-import fr.fidorial.registry.data.Enchantment;
 import fr.fidorial.registry.data.Fluid;
 import fr.fidorial.registry.data.FrogVariant;
 import fr.fidorial.registry.data.GameEvent;
@@ -35,6 +33,9 @@ import fr.fidorial.registry.data.PaintingVariant;
 import fr.fidorial.registry.data.PigSoundVariant;
 import fr.fidorial.registry.data.PigVariant;
 import fr.fidorial.registry.data.SoundEvent;
+import fr.fidorial.registry.data.SulfurCubeArchetype;
+import fr.fidorial.registry.data.TestEnvironment;
+import fr.fidorial.registry.data.TestInstance;
 import fr.fidorial.registry.data.Timeline;
 import fr.fidorial.registry.data.TrimMaterial;
 import fr.fidorial.registry.data.TrimPattern;
@@ -44,6 +45,8 @@ import fr.fidorial.registry.data.WolfSoundVariant;
 import fr.fidorial.registry.data.WolfVariant;
 import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.registry.data.ZombieNautilusVariant;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import java.util.Objects;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
@@ -68,7 +71,7 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:worldgen/biome}.
      */
-    public static final RegistryKey<Biome> BIOME = of("worldgen/biome");
+    public static final RegistryKey<BiomeDefinition> BIOME = of("worldgen/biome");
 
     /**
      * Registry key for {@code minecraft:block_sound_set}.
@@ -98,7 +101,7 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:chat_type}.
      */
-    public static final RegistryKey<ChatType> CHAT_TYPE = of("chat_type");
+    public static final RegistryKey<ChatTypeDefinition> CHAT_TYPE = of("chat_type");
 
     /**
      * Registry key for {@code minecraft:chicken_sound_variant}.
@@ -133,7 +136,7 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:dialog}.
      */
-    public static final RegistryKey<Dialog> DIALOG = of("dialog");
+    public static final RegistryKey<DialogDefinition> DIALOG = of("dialog");
 
     /**
      * Registry key for {@code minecraft:decorated_pot_pattern}.
@@ -148,12 +151,17 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:dimension_type}.
      */
-    public static final RegistryKey<DimensionType> DIMENSION_TYPE = of("dimension_type");
+    public static final RegistryKey<DimensionTypeDefinition> DIMENSION_TYPE = of("dimension_type");
 
     /**
      * Registry key for {@code minecraft:enchantment}.
      */
-    public static final RegistryKey<Enchantment> ENCHANTMENT = of("enchantment");
+    public static final RegistryKey<EnchantmentDefinition> ENCHANTMENT = of("enchantment");
+
+    /**
+     * Registry key for {@code minecraft:entity_type}.
+     */
+    public static final RegistryKey<EntityType> ENTITY_TYPE = of("entity_type");
 
     /**
      * Registry key for {@code minecraft:frog_variant}.
@@ -226,6 +234,21 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<SoundEvent> SOUND_EVENT = of("sound_event");
 
     /**
+     * Registry key for {@code minecraft:sulfur_cube_archetype}.
+     */
+    public static final RegistryKey<SulfurCubeArchetype> SULFUR_CUBE_ARCHETYPE = of("sulfur_cube_archetype");
+
+    /**
+     * Registry key for {@code minecraft:test_environment}.
+     */
+    public static final RegistryKey<TestEnvironment> TEST_ENVIRONMENT = of("test_environment");
+
+    /**
+     * Registry key for {@code minecraft:test_instance}.
+     */
+    public static final RegistryKey<TestInstance> TEST_INSTANCE = of("test_instance");
+
+    /**
      * Registry key for {@code minecraft:timeline}.
      */
     public static final RegistryKey<Timeline> TIMELINE = of("timeline");
@@ -269,11 +292,6 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:zombie_nautilus_variant}.
      */
     public static final RegistryKey<ZombieNautilusVariant> ZOMBIE_NAUTILUS_VARIANT = of("zombie_nautilus_variant");
-
-    /**
-     * Registry key for {@code minecraft:entity_type}.
-     */
-    public static final RegistryKey<EntityType> ENTITY_TYPE = new RegistryKey<>(Key.key("entity_type"));
 
     public RegistryKey {
         Objects.requireNonNull(key, "key");

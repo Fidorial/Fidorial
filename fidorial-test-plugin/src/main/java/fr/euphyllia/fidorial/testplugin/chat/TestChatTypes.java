@@ -2,7 +2,8 @@ package fr.euphyllia.fidorial.testplugin.terrain;
 
 import fr.fidorial.chat.ChatTypeDecoration;
 import fr.fidorial.chat.ChatTypeDefinition;
-import fr.fidorial.chat.ChatTypeRegistry;
+import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.WritableRegistry;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -79,20 +80,19 @@ public final class TestChatTypes {
         return ALL;
     }
 
-    public static void registerAll(final ChatTypeRegistry chatTypes, final ComponentLogger logger) {
+    public static void registerAll(final WritableRegistry<ChatTypeDefinition> chatTypes, final Plugin owner,
+                                   final ComponentLogger logger) {
         for (final ChatTypeDefinition chatType : ALL) {
-            chatTypes.overwrite(chatType);
-            logger.info("[TestPlugin] chat type {} registered (network id {})",
-                    chatType.key().asString(), chatTypes.networkId(chatType.key()));
+            chatTypes.overwrite(chatType.typedKey(), chatType, owner);
+            logger.info("[TestPlugin] chat type {} registered", chatType.key().asString());
         }
 
-        logger.info("[TestPlugin] {} chat types registered, {} of them defined by the server",
-                chatTypes.totalRegistered(), chatTypes.definitions().size());
+        logger.info("[TestPlugin] {} chat types registered", chatTypes.size());
     }
 
-    public static void unregisterAll(final ChatTypeRegistry chatTypes) {
+    public static void unregisterAll(final WritableRegistry<ChatTypeDefinition> chatTypes) {
         for (final ChatTypeDefinition chatType : ALL) {
-            chatTypes.unregister(chatType.key());
+            chatTypes.unregister(chatType.typedKey());
         }
     }
 }

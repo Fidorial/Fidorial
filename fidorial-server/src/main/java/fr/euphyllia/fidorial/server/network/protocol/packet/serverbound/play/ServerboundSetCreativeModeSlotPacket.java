@@ -20,7 +20,7 @@ public record ServerboundSetCreativeModeSlotPacket(short slot, ItemStack stack)
         final short slot = buf.readShort();
 
         try {
-            final ItemStack stack = ItemStackReader.readSlot(buf, FidorialServer.getInstance().registries().network());
+            final ItemStack stack = ItemStackReader.readSlot(buf, FidorialServer.getInstance().registries().serverRegistries());
             return new ServerboundSetCreativeModeSlotPacket(slot, stack);
         } catch (final RuntimeException e) {
             LOGGER.warn("Unreadable creative slot {}, treating it as empty: {}", slot, e.getMessage());

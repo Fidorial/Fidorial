@@ -13,7 +13,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -39,6 +39,7 @@ import fr.fidorial.map.MapScale;
 import fr.fidorial.map.MapView;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.BlockFace;
@@ -87,7 +88,6 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
 
     static final ComponentLogger LOGGER = ComponentLogger.logger(MapModule.class);
 
-    private static final Key DECORATION_REGISTRY = Key.key("map_decoration_type");
     private static final int METADATA_ENTITY_FLAGS = 0;
     private static final int ENTITY_FLAG_INVISIBLE = 0x20;
     private static final int METADATA_FRAME_DIRECTION = 8;
@@ -543,7 +543,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
 
         // a hanging entity is placed from the block it takes up and its direction, given as the data
         final ItemStack item = view.item();
-        final RegistryHolder frozen = server.registries().frozen();
+        final ServerRegistries registries = server.registries().serverRegistries();
         player.connection().send(new ClientboundAddEntityPacket(
                 entityId,
                 UUID.randomUUID(),
@@ -561,7 +561,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
                 ClientboundSetEntityMetadataPacket.Entry.raw(METADATA_FRAME_DIRECTION, METADATA_TYPE_DIRECTION,
                         buf -> buf.writeVarInt(facing.ordinal())),
                 ClientboundSetEntityMetadataPacket.Entry.raw(METADATA_FRAME_ITEM, METADATA_TYPE_SLOT,
-                        buf -> ItemStackWriter.writeSlot(buf, item, frozen))));
+                        buf -> ItemStackWriter.writeSlot(buf, item, registries))));
         return frame;
     }
 
@@ -620,7 +620,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     @Override
     public int decorationNetworkId(final Key type) {
         return decorationIds.computeIfAbsent(type, key -> {
-            final int id = server.registries().frozen().networkId(DECORATION_REGISTRY, key);
+            final int id = server.registries().registry(RegistryKey.MAP_DECORATION_TYPE).networkId(key);
             if (id < 0 && unknownDecorations.add(key)) {
                 LOGGER.warn("Unknown map decoration type {}, not sending it", key.asString());
             }

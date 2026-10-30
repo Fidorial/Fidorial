@@ -292,6 +292,16 @@ fidorialRegistryGenerator {
         ),
     )
 
+    protocolIdRegistries.set(
+        listOf(
+            "minecraft:command_argument_type",
+            "minecraft:block_entity_type",
+            "minecraft:entity_type",
+        ),
+    )
+
+    registryValuesPackage.set("fr.euphyllia.fidorial.server.registry.data")
+
     generateRegistryKey = false
     generatePacketCatalogs = true
     generateBlockStates = true

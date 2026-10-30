@@ -10,8 +10,9 @@ import fr.euphyllia.fidorial.server.entity.mob.MobFactories;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
-import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantments;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
@@ -21,11 +22,10 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.data.TypedDataComponentValue;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.EnchantmentEffects;
-import fr.fidorial.item.enchantment.EnchantmentTags;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
 import fr.fidorial.registry.keys.EnchantmentKeys;
+import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
@@ -51,7 +51,7 @@ public final class EnchantmentTests {
         return FidorialServer.getInstance();
     }
 
-    private static FidorialEnchantmentRegistry enchantments() {
+    private static FidorialEnchantments enchantments() {
         return server().registries().enchantments();
     }
 
@@ -66,7 +66,7 @@ public final class EnchantmentTests {
         return pig;
     }
 
-    private static ItemStack enchanted(final Key item, final TypedKey<Enchantment> enchantment, final int level) {
+    private static ItemStack enchanted(final Key item, final TypedKey<EnchantmentDefinition> enchantment, final int level) {
         return enchantments().enchant(ItemStack.of(item), enchantment, level);
     }
 
@@ -76,27 +76,28 @@ public final class EnchantmentTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void vanillaEnchantmentsAreLoaded(final ScenarioTestHelper helper) {
-        final FidorialEnchantmentRegistry registry = enchantments();
+        final FidorialEnchantments enchantments = enchantments();
+        final ServerRegistry<EnchantmentDefinition> registry = enchantments.registry();
         helper.assertTrue(registry.keys().size() >= 43, "Expected the 43 vanilla enchantments, got " + registry.keys().size());
-        final EnchantmentDefinition sharpness = registry.definition(EnchantmentKeys.SHARPNESS).orElseThrow();
+        final EnchantmentDefinition sharpness = registry.get(EnchantmentKeys.SHARPNESS);
         helper.assertTrue(sharpness.maxLevel() == 5, "Sharpness should go up to V, got " + sharpness.maxLevel());
         helper.assertTrue(sharpness.hasEffect(EnchantmentEffects.DAMAGE), "Sharpness should carry minecraft:damage");
         helper.assertTrue(!registry.isCustom(EnchantmentKeys.SHARPNESS), "Sharpness is a stock enchantment");
-        helper.assertTrue(registry.isTagged(EnchantmentKeys.VANISHING_CURSE, EnchantmentTags.CURSE), "Vanishing is a curse");
-        helper.assertTrue(!registry.areCompatible(EnchantmentKeys.SHARPNESS, EnchantmentKeys.SMITE),
+        helper.assertTrue(registry.isTagged(EnchantmentKeys.VANISHING_CURSE, EnchantmentTagKeys.CURSE), "Vanishing is a curse");
+        helper.assertTrue(!enchantments.areCompatible(EnchantmentKeys.SHARPNESS, EnchantmentKeys.SMITE),
                 "Sharpness and Smite share an exclusive set");
-        helper.assertTrue(registry.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_SWORD.key()),
+        helper.assertTrue(enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_SWORD.key()),
                 "Sharpness goes on swords");
-        helper.assertTrue(!registry.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_BOOTS.key()),
+        helper.assertTrue(!enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_BOOTS.key()),
                 "Sharpness does not go on boots");
-        helper.assertTrue(registry.supportedEffectComponents().contains(EnchantmentEffects.DAMAGE_PROTECTION),
+        helper.assertTrue(enchantments.supportedEffectComponents().contains(EnchantmentEffects.DAMAGE_PROTECTION),
                 "The server runs minecraft:damage_protection");
-        helper.assertTrue(registry.networkEntries().size() == registry.keys().size(), "Every enchantment is sent");
+        helper.assertTrue(registry.networkEntries(false).size() == registry.keys().size(), "Every enchantment is sent");
     }
 
     @ScenarioTest(timeoutTicks = 20)
     public static void enchantingAStack(final ScenarioTestHelper helper) {
-        final FidorialEnchantmentRegistry registry = enchantments();
+        final FidorialEnchantments registry = enchantments();
         ItemStack sword = ItemStack.of(ItemKeys.DIAMOND_SWORD.key());
         helper.assertTrue(registry.canEnchant(sword, EnchantmentKeys.SHARPNESS), "A sword takes Sharpness");
         sword = registry.enchant(sword, EnchantmentKeys.SHARPNESS, 4);

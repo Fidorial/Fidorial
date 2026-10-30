@@ -12,6 +12,7 @@ import fr.fidorial.registrygen.task.GenerateLootTablesTask;
 import fr.fidorial.registrygen.task.GeneratePacketsTask;
 import fr.fidorial.registrygen.task.GenerateRecipesTask;
 import fr.fidorial.registrygen.task.GenerateRegistriesTask;
+import fr.fidorial.registrygen.task.GenerateRegistryValuesTask;
 import fr.fidorial.registrygen.model.RegistrySync;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
@@ -28,7 +29,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * Gradle plugin that downloads the Minecraft server, generates Mojang reports,
@@ -53,6 +53,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String RECIPES_TASK_NAME = "generateRecipes";
     public static final String LOOT_TABLES_TASK_NAME = "generateLootTables";
     public static final String BLOCK_MINING_TASK_NAME = "generateBlockMining";
+    public static final String REGISTRY_VALUES_TASK_NAME = "generateRegistryValues";
 
     private final JavaToolchainService javaToolchainService;
 
@@ -84,10 +85,11 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         final TaskProvider<GenerateRecipesTask> recipesTask = registerRecipesTask(project, extension, reportsTask);
         final TaskProvider<GenerateLootTablesTask> lootTablesTask = registerLootTablesTask(project, extension, reportsTask);
         final TaskProvider<GenerateBlockMiningTask> blockMiningTask = registerBlockMiningTask(project, extension, reportsTask, prismarineTask);
+        final TaskProvider<GenerateRegistryValuesTask> registryValuesTask = registerRegistryValuesTask(project, extension, reportsTask);
 
         registerLifecycleTask(project, registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                 entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask, lootTablesTask,
-                blockMiningTask);
+                blockMiningTask, registryValuesTask);
     }
 
     private static void configureDefaults(final Project project, final FidorialRegistryGeneratorExtension extension) {
@@ -103,10 +105,13 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         extension.getRegistryKeysPackage().convention(extension.getGeneratedPackage().map(p -> p + ".keys"));
         extension.getRegistries().convention(Map.of());
 
-        extension.getFrozenRegistries().convention(
-                Stream.concat(SupportedRegistries.ALL.stream()
-                        .filter(type -> type.sync() == RegistrySync.FROZEN)
-                        .map(RegistryTypeDefinition::identifier), Stream.of(SupportedRegistries.ENTITY_TYPE.identifier())).sorted().toList()); // cannot be added to ALL as then it generates protocol ids in api (huh?)
+        extension.getFrozenRegistries().convention(SupportedRegistries.ALL.stream()
+                .filter(type -> type.sync() == RegistrySync.FROZEN)
+                .map(RegistryTypeDefinition::identifier)
+                .sorted()
+                .toList());
+        extension.getProtocolIdRegistries().convention(List.of());
+        extension.getApiRegistryPackage().convention("fr.fidorial.registry");
 
         extension.getDataGeneratorArguments().convention(List.of("--reports"));
         extension.getPrismarineDataRepository().convention("PrismarineJS/minecraft-data");
@@ -189,6 +194,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
             task.getRegistryKeysPackage().set(extension.getRegistryKeysPackage());
             task.getRegistries().set(extension.getRegistries());
             task.getGenerateRegistryKey().set(extension.getGenerateRegistryKey().orElse(true));
+            task.getProtocolIdRegistries().set(extension.getProtocolIdRegistries());
 
             task.getReportsDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
                     .map(directory -> directory.dir("generated/reports")));
@@ -353,6 +359,30 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         });
     }
 
+    private static TaskProvider<GenerateRegistryValuesTask> registerRegistryValuesTask(final Project project,
+                                                                                       final FidorialRegistryGeneratorExtension extension,
+                                                                                       final TaskProvider<GenerateReportsTask> reportsTask) {
+
+        return project.getTasks().register(REGISTRY_VALUES_TASK_NAME, GenerateRegistryValuesTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Generates the server-side values of the registries without a bound API type.");
+            task.dependsOn(reportsTask);
+
+            task.onlyIf("fidorialRegistryGenerator.registryValuesPackage is set", _ -> extension.getRegistryValuesPackage().isPresent());
+
+            task.getRegistriesReport().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(dir -> dir.file("generated/reports/registries.json")));
+
+            task.getVanillaDataDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/data")));
+
+            task.getRegistryValuesPackage().set(extension.getRegistryValuesPackage());
+            task.getApiRegistryPackage().set(extension.getApiRegistryPackage());
+
+            task.getGeneratedSourcesDirectory().set(extension.getGeneratedSourcesDirectory());
+        });
+    }
+
     private static TaskProvider<GenerateRecipesTask> registerRecipesTask(final Project project,
                                                                          final FidorialRegistryGeneratorExtension extension,
                                                                          final TaskProvider<GenerateReportsTask> reportsTask) {
@@ -381,14 +411,15 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                                               final TaskProvider<GenerateFrozenRegistriesTask> frozenRegistriesTask,
                                               final TaskProvider<GenerateRecipesTask> recipesTask,
                                               final TaskProvider<GenerateLootTablesTask> lootTablesTask,
-                                              final TaskProvider<GenerateBlockMiningTask> blockMiningTask) {
+                                              final TaskProvider<GenerateBlockMiningTask> blockMiningTask,
+                                              final TaskProvider<GenerateRegistryValuesTask> registryValuesTask) {
 
         project.getTasks().register("generateAll", task -> {
             task.setGroup("fidorial registry generation");
             task.setDescription("Runs the complete generation pipeline.");
             task.dependsOn(registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                     entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask,
-                    lootTablesTask, blockMiningTask);
+                    lootTablesTask, blockMiningTask, registryValuesTask);
         });
     }
 

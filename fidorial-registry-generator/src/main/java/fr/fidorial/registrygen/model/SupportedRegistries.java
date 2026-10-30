@@ -18,6 +18,9 @@ import java.util.List;
  * both the generated {@code *Keys} classes and the runtime registry dataset. Nothing
  * in Mojang's {@code registries.json} tells a datapack registry apart from a
  * client-side one, which is why {@link RegistrySync} is declared by hand here.
+ * <p>
+ * A registry {@linkplain RegistryTypeDefinition#bind(String) bound} to an existing API type uses
+ * it for its values instead of a generated marker interface.
  *
  * @since 0.1.0
  */
@@ -27,37 +30,41 @@ public final class SupportedRegistries {
 
     public static final RegistryTypeDefinition BLOCK = registry("minecraft:block", "BlockType", RegistrySync.FROZEN);
 
-    public static final RegistryTypeDefinition DIMENSION_TYPE = registry("minecraft:dimension_type", "DimensionType", RegistrySync.DYNAMIC);
+    public static final RegistryTypeDefinition DIMENSION_TYPE = registry("minecraft:dimension_type", "DimensionType", RegistrySync.DYNAMIC)
+            .bind("fr.fidorial.world.dimension.DimensionTypeDefinition");
 
-    public static final RegistryTypeDefinition ENTITY_TYPE = registry("minecraft:entity_type", "EntityType", RegistrySync.FROZEN);
+    public static final RegistryTypeDefinition ENTITY_TYPE = registry("minecraft:entity_type", "EntityType", RegistrySync.FROZEN)
+            .bind("fr.fidorial.entity.EntityType");
 
     public static final RegistryTypeDefinition ITEM = registry("minecraft:item", "Item", RegistrySync.FROZEN);
 
     public static final List<RegistryTypeDefinition> ALL = List.of(
             registry("minecraft:attribute", "Attribute", RegistrySync.FROZEN),
             registry("minecraft:banner_pattern", "BannerPattern", RegistrySync.DYNAMIC),
-            registry("minecraft:worldgen/biome", "Biome", RegistrySync.DYNAMIC),
+            registry("minecraft:worldgen/biome", "Biome", RegistrySync.DYNAMIC).bind("fr.fidorial.world.biome.BiomeDefinition"),
             registry("minecraft:block_sound_set", "BlockSoundSet", RegistrySync.DYNAMIC),
             registry("minecraft:block_transformer", "BlockTransformer", RegistrySync.DYNAMIC),
             BLOCK,
+            registry("minecraft:block_state_provider", "BlockStateProvider", RegistrySync.DYNAMIC),
             registry("minecraft:cat_sound_variant", "CatSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cat_variant", "CatVariant", RegistrySync.DYNAMIC),
-            registry("minecraft:chat_type", "ChatType", RegistrySync.DYNAMIC),
+            registry("minecraft:chat_type", "ChatType", RegistrySync.DYNAMIC).bind("fr.fidorial.chat.ChatTypeDefinition"),
             registry("minecraft:chicken_sound_variant", "ChickenSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:chicken_variant", "ChickenVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cow_sound_variant", "CowSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cow_variant", "CowVariant", RegistrySync.DYNAMIC),
             registry("minecraft:damage_type", "DamageType", RegistrySync.DYNAMIC),
             registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN),
-            registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC),
+            registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC).bind("fr.fidorial.dialog.DialogDefinition"),
             registry("minecraft:decorated_pot_pattern", "DecoratedPotPattern", RegistrySync.DYNAMIC),
-            registry("minecraft:debug_subscription",  "DebugSubscription", RegistrySync.FROZEN),
+            registry("minecraft:debug_subscription", "DebugSubscription", RegistrySync.FROZEN),
             DIMENSION_TYPE,
-            registry("minecraft:enchantment", "Enchantment", RegistrySync.DYNAMIC),
+            registry("minecraft:enchantment", "Enchantment", RegistrySync.DYNAMIC).bind("fr.fidorial.item.enchantment.EnchantmentDefinition"),
+            ENTITY_TYPE,
             registry("minecraft:frog_variant", "FrogVariant", RegistrySync.DYNAMIC),
             registry("minecraft:fluid", "Fluid", RegistrySync.FROZEN),
             registry("minecraft:game_event", "GameEvent", RegistrySync.FROZEN),
-            registry("minecraft:game_rule", "GameRule"),
+            registry("minecraft:game_rule", "GameRule", RegistrySync.FROZEN),
             registry("minecraft:instrument", "Instrument", RegistrySync.DYNAMIC),
             ITEM,
             registry("minecraft:jukebox_song", "JukeboxSong", RegistrySync.DYNAMIC),
@@ -67,12 +74,15 @@ public final class SupportedRegistries {
             registry("minecraft:painting_variant", "PaintingVariant", RegistrySync.DYNAMIC),
             registry("minecraft:pig_sound_variant", "PigSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:pig_variant", "PigVariant", RegistrySync.DYNAMIC),
-            registry("minecraft:sound_event", "SoundEvent"),
+            registry("minecraft:sound_event", "SoundEvent", RegistrySync.FROZEN),
+            registry("minecraft:sulfur_cube_archetype", "SulfurCubeArchetype", RegistrySync.DYNAMIC),
+            registry("minecraft:test_environment", "TestEnvironment", RegistrySync.DYNAMIC),
+            registry("minecraft:test_instance", "TestInstance", RegistrySync.DYNAMIC),
             registry("minecraft:timeline", "Timeline", RegistrySync.DYNAMIC),
             registry("minecraft:trim_material", "TrimMaterial", RegistrySync.DYNAMIC),
             registry("minecraft:trim_pattern", "TrimPattern", RegistrySync.DYNAMIC),
-            registry("minecraft:villager_profession", "VillagerProfession"),
-            registry("minecraft:villager_type", "VillagerType"),
+            registry("minecraft:villager_profession", "VillagerProfession", RegistrySync.FROZEN),
+            registry("minecraft:villager_type", "VillagerType", RegistrySync.FROZEN),
             registry("minecraft:wolf_sound_variant", "WolfSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:wolf_variant", "WolfVariant", RegistrySync.DYNAMIC),
             registry("minecraft:world_clock", "WorldClock", RegistrySync.DYNAMIC),

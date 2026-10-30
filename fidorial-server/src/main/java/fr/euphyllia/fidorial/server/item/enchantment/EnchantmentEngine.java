@@ -41,7 +41,7 @@ public final class EnchantmentEngine {
         throw new UnsupportedOperationException("EnchantmentEngine cannot be instantiated.");
     }
 
-    public static FidorialEnchantmentRegistry registry() {
+    public static FidorialEnchantments registry() {
         return FidorialServer.getInstance().registries().enchantments();
     }
 
@@ -55,7 +55,7 @@ public final class EnchantmentEngine {
      * where that enchantment acts.
      */
     static void forEachEquipped(final LivingEntity owner, final String hook, final Visitor visitor) {
-        final FidorialEnchantmentRegistry registry = registry();
+        final FidorialEnchantments registry = registry();
         for (final EquipmentSlot slot : EquipmentSlot.values()) {
             final ItemStack stack = owner.equipment(slot);
             if (stack.isEmpty()) {
@@ -70,7 +70,7 @@ public final class EnchantmentEngine {
      *
      * @param checkSlot {@code true} to skip the enchantments that do not act in {@code slot}
      */
-    static void visit(final FidorialEnchantmentRegistry registry, final LivingEntity owner, final ItemStack stack,
+    static void visit(final FidorialEnchantments registry, final LivingEntity owner, final ItemStack stack,
                       final @Nullable EquipmentSlot slot, final boolean checkSlot, final String hook, final Visitor visitor) {
         final ItemEnchantments enchantments = stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.EMPTY);
         if (enchantments.isEmpty()) {

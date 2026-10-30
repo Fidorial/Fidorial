@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPack;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPackNegotiation;
-import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
 import fr.euphyllia.fidorial.server.network.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
@@ -23,13 +22,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configur
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundFinishConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundSelectKnownPacksPacket;
-import fr.euphyllia.fidorial.server.registry.Registry;
-import fr.euphyllia.fidorial.server.registry.RegistryEntry;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
-import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
-import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
-import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
-import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -37,27 +30,15 @@ import net.kyori.adventure.resource.ResourcePackRequest;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 public final class ConfigurationPacketHandler implements ConfigurationPacketListener {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ConfigurationPacketHandler.class);
 
     private static final KnownPackNegotiation KNOWN_PACKS = KnownPackNegotiation.packs(KnownPack.core());
-
-    /**
-     * Registries that should be sent with full NBT.
-     */
-    private static final Set<Key> FULL_DATA_REGISTRIES = Set.of(
-            FidorialBiomeRegistry.REGISTRY_NAME,
-            FidorialDialogRegistry.REGISTRY_NAME,
-            FidorialDimensionTypeRegistry.REGISTRY_NAME,
-            FidorialChatTypeRegistry.REGISTRY_NAME,
-            FidorialEnchantmentRegistry.REGISTRY_NAME);
 
     private final ClientConnection connection;
     private final FidorialServer server;
@@ -193,63 +174,19 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
         connection.send(new ClientboundFinishConfigurationPacket());
     }
 
+    /**
+     * Vanilla entries are sent without data to a client that has the vanilla data pack; entries added
+     * or replaced by plugins are always sent with theirs.
+     */
     private void sendRegistries(final Set<KnownPack> negotiatedPacks) {
-        final RegistryHolder dynamic = server.registries().dynamic();
-        if (dynamic.isEmpty()) {
-            LOGGER.warn("No dynamic registry to send (GeneratedRegistryData is empty).");
-            return;
-        }
-
         final boolean hasKnownPacks = !negotiatedPacks.isEmpty();
-
-        for (final Registry reg : dynamic.all()) {
-            if (FULL_DATA_REGISTRIES.contains(reg.name())) {
-                continue;
-            }
-            connection.send(hasKnownPacks
-                    ? ClientboundRegistryDataPacket.knownOnly(reg.name(), reg.entries())
-                    : new ClientboundRegistryDataPacket(reg.name(), reg.networkEntries()));
+        for (final ServerRegistry<?> registry : server.registries().serverRegistries().synced()) {
+            connection.send(new ClientboundRegistryDataPacket(registry.name(), registry.networkEntries(hasKnownPacks)));
         }
-
-        connection.send(new ClientboundRegistryDataPacket(
-                FidorialBiomeRegistry.REGISTRY_NAME,
-                forClient(server.registries().biomes().networkEntries(),
-                        server.registries().biomes()::isCustom, hasKnownPacks)));
-
-        connection.send(new ClientboundRegistryDataPacket(
-                FidorialDialogRegistry.REGISTRY_NAME,
-                forClient(server.registries().dialogs().networkEntries(),
-                        server.registries().dialogs()::isCustom, hasKnownPacks)));
-
-        connection.send(new ClientboundRegistryDataPacket(
-                FidorialDimensionTypeRegistry.REGISTRY_NAME,
-                forClient(server.registries().dimensionTypes().networkEntries(),
-                        server.registries().dimensionTypes()::isCustom, hasKnownPacks)));
-
-        connection.send(new ClientboundRegistryDataPacket(
-                FidorialChatTypeRegistry.REGISTRY_NAME,
-                forClient(server.registries().chatTypes().networkEntries(),
-                        server.registries().chatTypes()::isCustom, hasKnownPacks)));
-
-        final FidorialEnchantmentRegistry enchantments = server.registries().enchantments();
-        connection.send(new ClientboundRegistryDataPacket(
-                FidorialEnchantmentRegistry.REGISTRY_NAME,
-                forClient(enchantments.networkEntries(), enchantments::isCustom, hasKnownPacks)));
     }
 
     private void sendTags() {
-        connection.send(new ClientboundUpdateTagsPacket(
-                server.registries().network(), server.registries().biomes(), server.registries().dialogs(),
-                server.registries().dimensionTypes(), server.registries().chatTypes(), server.registries().enchantments()));
-    }
-
-    private List<RegistryEntry> forClient(final List<RegistryEntry> entries, final Predicate<Key> isCustom, final boolean hasKnownPacks) {
-        if (!hasKnownPacks) {
-            return entries;
-        }
-        return entries.stream()
-                .map(e -> isCustom.test(e.key()) ? e : RegistryEntry.known(e.key()))
-                .toList();
+        connection.send(new ClientboundUpdateTagsPacket(server.registries().serverRegistries().all()));
     }
 
     private boolean sendResourcePackIfConfigured() {

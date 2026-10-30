@@ -5,6 +5,7 @@ import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The GenerateRegistriesTask is a Gradle task designed for generating registry source files
@@ -49,6 +51,9 @@ public abstract class GenerateRegistriesTask extends DefaultTask {
 
     @Input
     public abstract Property<Boolean> getGenerateRegistryKey();
+
+    @Input
+    public abstract ListProperty<String> getProtocolIdRegistries();
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -93,7 +98,7 @@ public abstract class GenerateRegistriesTask extends DefaultTask {
                   .toList();
 
         new RegistryGenerator().generate(registriesJson, vanillaDataDirectory, outputDirectory, datasetDirectory,
-                registryTypes, getGeneratedPackage().get(), getRegistryDataPackage().get(),
-                getRegistryKeysPackage().get(), getGenerateRegistryKey().get());
+                registryTypes, Set.copyOf(getProtocolIdRegistries().getOrElse(List.of())), getGeneratedPackage().get(),
+                getRegistryDataPackage().get(), getRegistryKeysPackage().get(), getGenerateRegistryKey().get());
     }
 }

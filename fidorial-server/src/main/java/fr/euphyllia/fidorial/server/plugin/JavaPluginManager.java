@@ -5,6 +5,7 @@ import com.google.gson.JsonSyntaxException;
 import fr.euphyllia.fidorial.bootstrap.Artifact;
 import fr.euphyllia.fidorial.bootstrap.BootstrapException;
 import fr.euphyllia.fidorial.server.events.SimpleEventBus;
+import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.fidorial.Server;
 import fr.fidorial.permission.PermissionDefinition;
 import fr.fidorial.permission.PermissionNode;
@@ -52,6 +53,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
 
     private final Map<String, Loaded> plugins = new LinkedHashMap<>();
 
+    private final RegistryModule registries;
     private final PermissionRegistry permissions;
     private final Map<String, List<PermissionNode>> declaredByPlugin = new ConcurrentHashMap<>();
 
@@ -59,13 +61,14 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             final Server server,
             final SimpleEventBus events,
             final ServiceRegistry services,
-            final PermissionRegistry permissions,
+            final RegistryModule registries,
             final Path pluginsFolder
     ) {
         this.server = server;
         this.events = events;
         this.services = services;
-        this.permissions = permissions;
+        this.registries = registries;
+        this.permissions = registries.permissions();
         this.pluginsFolder = pluginsFolder;
     }
 
@@ -127,8 +130,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 loaded.enabled = false;
                 events.unsubscribeAll(loaded.plugin);
                 services.unregisterAll(loaded.plugin);
-                server.registries().recipes().unregisterAll(loaded.plugin);
-                server.registries().enchantments().unregisterAll(loaded.plugin);
+                registries.unregisterAll(loaded.plugin);
                 removePluginPermissions(loaded.meta.id());
             }
         }
@@ -296,8 +298,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         }
         events.unsubscribeAll(plugin);
         services.unregisterAll(plugin);
-        server.registries().recipes().unregisterAll(plugin);
-        server.registries().enchantments().unregisterAll(plugin);
+        registries.unregisterAll(plugin);
         removePluginPermissions(pluginId);
         if (context != null) {
             try {

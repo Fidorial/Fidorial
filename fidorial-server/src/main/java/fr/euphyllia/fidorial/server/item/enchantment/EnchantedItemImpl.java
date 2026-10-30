@@ -4,12 +4,12 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.enchantment.EnchantedItem;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
 import org.jspecify.annotations.Nullable;
 
 public record EnchantedItemImpl(
-        TypedKey<Enchantment> enchantment,
+        TypedKey<EnchantmentDefinition> enchantment,
         int level,
         ItemStack item,
         @Nullable EquipmentSlot slot,

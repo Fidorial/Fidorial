@@ -21,13 +21,14 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
@@ -76,12 +77,10 @@ public final class CombatEngine implements CombatService {
 
     private static final byte ENTITY_EVENT_DEATH = 3;
 
-    private static final Key ENTITY_TYPES = RegistryKey.ENTITY_TYPE.key();
     private static final Key FREEZE_IMMUNE = Key.key("freeze_immune_entity_types");
     private static final Key FREEZE_HURTS_EXTRA = Key.key("freeze_hurts_extra_types");
     private static final float FREEZE_HURTS_EXTRA_MULTIPLIER = 5.0f;
 
-    private static final Key DAMAGE_TYPES = RegistryKey.DAMAGE_TYPE.key();
     private static final Key BYPASSES_ENCHANTMENTS = Key.key("bypasses_enchantments");
     private static final Key IS_PROJECTILE = Key.key("is_projectile");
 
@@ -181,12 +180,12 @@ public final class CombatEngine implements CombatService {
         if (!source.type().equals(DamageTypeKeys.FREEZE)) {
             return applyScaledDamage(victim, source, amount, knockback);
         }
-        final RegistryHolder registries = server.registries().frozen();
+        final ServerRegistry<EntityType> entityTypes = server.registries().registry(RegistryKey.ENTITY_TYPE);
         final Key victimType = victim.type().key();
-        if (registries.isTagged(ENTITY_TYPES, FREEZE_IMMUNE, victimType)) {
+        if (entityTypes.isTagged(victimType, FREEZE_IMMUNE)) {
             return false;
         }
-        final float scaled = registries.isTagged(ENTITY_TYPES, FREEZE_HURTS_EXTRA, victimType)
+        final float scaled = entityTypes.isTagged(victimType, FREEZE_HURTS_EXTRA)
                 ? amount * FREEZE_HURTS_EXTRA_MULTIPLIER
                 : amount;
         return applyScaledDamage(victim, source, scaled, knockback);
@@ -310,7 +309,7 @@ public final class CombatEngine implements CombatService {
     }
 
     private boolean hasDamageTag(final DamageSource source, final Key tag) {
-        return server.registries().dynamic().isTagged(DAMAGE_TYPES, tag, source.type().key());
+        return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type().key(), tag);
     }
 
     private float soakWithAbsorption(final AbstractLivingEntity victim, final float damage) {
@@ -464,7 +463,7 @@ public final class CombatEngine implements CombatService {
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
         final int damageTypeId =
-                server.registries().dynamic().networkId(Key.key("minecraft", "damage_type"), source.type().key());
+                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type().key());
         if (damageTypeId >= 0) {
             sendToViewersAndSelf(victim, new ClientboundDamageEventPacket(
                     victim.entityId(),

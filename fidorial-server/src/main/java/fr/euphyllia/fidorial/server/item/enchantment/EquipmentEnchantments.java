@@ -51,7 +51,7 @@ public final class EquipmentEnchantments {
      * @param alive {@code false} while the player is dead: nothing counts as equipped then
      */
     public void tick(final boolean alive) {
-        final FidorialEnchantmentRegistry registry = EnchantmentEngine.registry();
+        final FidorialEnchantments registry = EnchantmentEngine.registry();
         final Object version = registry.version();
         final boolean registryChanged = version != registryVersion;
         registryVersion = version;
@@ -84,7 +84,7 @@ public final class EquipmentEnchantments {
      * Unequips everything, as when the player leaves, without telling the client.
      */
     public void clear() {
-        final FidorialEnchantmentRegistry registry = EnchantmentEngine.registry();
+        final FidorialEnchantments registry = EnchantmentEngine.registry();
         for (int i = 0; i < SLOTS.length; i++) {
             unequip(registry, i);
             worn[i] = ItemStack.EMPTY;
@@ -95,14 +95,14 @@ public final class EquipmentEnchantments {
         return current == previous || current.equals(previous);
     }
 
-    private void unequip(final FidorialEnchantmentRegistry registry, final int slot) {
+    private void unequip(final FidorialEnchantments registry, final int slot) {
         for (final EnchantedItemImpl item : active.get(slot)) {
             run(registry, item, "onUnequip", behaviour -> behaviour.onUnequip(item));
         }
         active.set(slot, List.of());
     }
 
-    private void equip(final FidorialEnchantmentRegistry registry, final int slot) {
+    private void equip(final FidorialEnchantments registry, final int slot) {
         final ItemStack stack = worn[slot];
         if (stack.isEmpty()) {
             return;
@@ -130,7 +130,7 @@ public final class EquipmentEnchantments {
      * {@return the attribute modifiers of every equipped enchantment, by attribute, each id suffixed with
      * its slot as vanilla does}
      */
-    private Map<Key, Map<Key, AttributeModifier>> modifiers(final FidorialEnchantmentRegistry registry) {
+    private Map<Key, Map<Key, AttributeModifier>> modifiers(final FidorialEnchantments registry) {
         final Map<Key, Map<Key, AttributeModifier>> modifiers = new LinkedHashMap<>();
         for (final List<EnchantedItemImpl> items : active) {
             for (final EnchantedItemImpl item : items) {
@@ -149,7 +149,7 @@ public final class EquipmentEnchantments {
         return modifiers;
     }
 
-    private void run(final FidorialEnchantmentRegistry registry, final EnchantedItemImpl item, final String hook,
+    private void run(final FidorialEnchantments registry, final EnchantedItemImpl item, final String hook,
                      final Consumer<EnchantmentBehaviour> action) {
         for (final EnchantmentBehaviour behaviour : registry.behaviours(item.enchantment().key())) {
             try {

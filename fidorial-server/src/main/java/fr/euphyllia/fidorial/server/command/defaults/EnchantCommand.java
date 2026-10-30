@@ -7,7 +7,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
-import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
+import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantments;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.EntitiesResolver;
 import fr.fidorial.entity.Entity;
@@ -18,7 +18,6 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -72,14 +71,13 @@ public final class EnchantCommand {
     }
 
     private static int enchant(final CommandContext<CommandSource> context, final int level) throws CommandSyntaxException {
-        final Enchantment enchantment = context.getArgument("enchantment", Enchantment.class);
-        final FidorialEnchantmentRegistry registry = context.getSource().server().registries().enchantments() instanceof
-                final FidorialEnchantmentRegistry fidorial ? fidorial : null;
+        final EnchantmentDefinition definition = context.getArgument("enchantment", EnchantmentDefinition.class);
+        final FidorialEnchantments registry = context.getSource().server().registries().enchantments() instanceof
+                final FidorialEnchantments fidorial ? fidorial : null;
         if (registry == null) {
             throw FAILED.create();
         }
-        final TypedKey<Enchantment> key = TypedKey.create(RegistryKey.ENCHANTMENT, enchantment.key());
-        final EnchantmentDefinition definition = registry.definition(key).orElseThrow(FAILED::create);
+        final TypedKey<EnchantmentDefinition> key = TypedKey.create(RegistryKey.ENCHANTMENT, definition.key());
         if (level > definition.maxLevel()) {
             throw LEVEL_TOO_HIGH.create(level, definition.maxLevel());
         }
@@ -124,8 +122,8 @@ public final class EnchantCommand {
         return outcomes.size();
     }
 
-    private static Outcome apply(final FidorialEnchantmentRegistry registry, final LivingEntity living,
-                                 final TypedKey<Enchantment> key, final int level) {
+    private static Outcome apply(final FidorialEnchantments registry, final LivingEntity living,
+                                 final TypedKey<EnchantmentDefinition> key, final int level) {
         if (!(living instanceof final Player player)) {
             return living.equipment(EquipmentSlot.MAIN_HAND).isEmpty() ? Outcome.NO_ITEM : Outcome.INCOMPATIBLE;
         }

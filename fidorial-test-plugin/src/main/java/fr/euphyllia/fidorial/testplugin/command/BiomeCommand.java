@@ -6,13 +6,17 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.world.biome.BiomeDefinition;
-import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.environment.Attribute;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static fr.fidorial.command.Commands.argument;
@@ -64,54 +68,50 @@ public final class BiomeCommand {
                 .build();
     }
 
-    private static BiomeRegistry biomes() {
-        return plugin.server().registries().biomes();
+    private static WritableRegistry<BiomeDefinition> biomes() {
+        return plugin.server().registries().writable(RegistryKey.BIOME);
+    }
+
+    private static TypedKey<BiomeDefinition> typed(final Key key) {
+        return TypedKey.create(RegistryKey.BIOME, key);
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
-        final BiomeRegistry biomes = biomes();
+        final WritableRegistry<BiomeDefinition> biomes = biomes();
+        final List<TypedKey<BiomeDefinition>> custom = biomes.keys().stream().filter(biomes::isCustom).toList();
 
-        if (biomes.definitions().isEmpty()) {
-            plugin.msg(source, "<yellow>No biome is defined by the server.");
+        if (custom.isEmpty()) {
+            plugin.msg(source, "<yellow>No biome is added or replaced by a plugin.");
             return Command.SINGLE_SUCCESS;
         }
 
-        plugin.msg(source, "<gold>Biomes defined by the server:");
-        for (final BiomeDefinition biome : biomes.definitions()) {
-            plugin.msg(source, "<gray> - <white>%s <gray>(network id <aqua>%d<gray>)"
-                    .formatted(biome.key().asString(), biomes.networkId(biome.key())));
+        plugin.msg(source, "<gold>Biomes added or replaced by plugins:");
+        for (final TypedKey<BiomeDefinition> biome : custom) {
+            plugin.msg(source, "<gray> - <white>%s".formatted(biome.key().asString()));
         }
         return Command.SINGLE_SUCCESS;
     }
 
     private static int count(final CommandContext<CommandSource> ctx) {
-        final BiomeRegistry biomes = biomes();
-        plugin.msg(ctx.getSource(),
-                "<gold>%d biomes registered, <aqua>%d<gold> of them defined here. Fallback: <white>%s"
-                        .formatted(biomes.totalRegistered(), biomes.definitions().size(),
-                                biomes.fallback().asString()));
+        final WritableRegistry<BiomeDefinition> biomes = biomes();
+        plugin.msg(ctx.getSource(), "<gold>%d biomes registered, <aqua>%d<gold> of them from plugins."
+                .formatted(biomes.size(), biomes.keys().stream().filter(biomes::isCustom).count()));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int info(final CommandContext<CommandSource> ctx, final Key key) {
         final CommandSource source = ctx.getSource();
-        final BiomeRegistry biomes = biomes();
+        final WritableRegistry<BiomeDefinition> biomes = biomes();
+        final Optional<BiomeDefinition> biome = biomes.find(typed(key));
 
-        if (!biomes.contains(key)) {
+        if (biome.isEmpty()) {
             plugin.msg(source, "<red>Unknown biome: " + key.asString());
             return 0;
         }
 
-        plugin.msg(source, "<gold>%s <gray>- network id <aqua>%d<gray>, custom: <white>%s"
-                .formatted(key.asString(), biomes.networkId(key), biomes.isCustom(key)));
-
-        biomes.definition(key).ifPresentOrElse(
-                biome -> describe(source, biome),
-                () -> plugin.msg(source,
-                        "<gray>Vanilla biome: the client resolves it from its own pack, "
-                                + "the server only keeps the key."));
-
+        plugin.msg(source, "<gold>%s <gray>- custom: <white>%s".formatted(key.asString(), biomes.isCustom(typed(key))));
+        describe(source, biome.get());
         return Command.SINGLE_SUCCESS;
     }
 
@@ -156,50 +156,41 @@ public final class BiomeCommand {
 
     private static int register(final CommandContext<CommandSource> ctx, final Key key) {
         final CommandSource source = ctx.getSource();
-        final BiomeRegistry biomes = biomes();
+        final WritableRegistry<BiomeDefinition> biomes = biomes();
 
-        if (biomes.contains(key)) {
+        if (biomes.contains(typed(key))) {
             plugin.msg(source, "<red>" + key.asString() + " already exists.");
             return 0;
         }
 
         final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(key).build();
-        biomes.register(clone);
+        biomes.register(clone, plugin);
 
-        plugin.msg(source, "<green>%s registered (network id %d). Reconnect to see it."
-                .formatted(key.asString(), biomes.networkId(key)));
+        plugin.msg(source, "<green>%s registered. Reconnect to see it.".formatted(key.asString()));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int unregister(final CommandContext<CommandSource> ctx, final Key key) {
         final CommandSource source = ctx.getSource();
 
-        try {
-            if (!biomes().unregister(key)) {
-                plugin.msg(source, "<red>No biome registered under " + key.asString());
-                return 0;
-            }
-        } catch (final IllegalArgumentException refused) {
-            plugin.msg(source, "<red>" + refused.getMessage());
+        if (!biomes().unregister(typed(key))) {
+            plugin.msg(source, "<red>No biome registered by a plugin under " + key.asString());
             return 0;
         }
 
-        plugin.msg(source, "<green>%s removed. Every following network id shifted down by one."
-                .formatted(key.asString()));
+        plugin.msg(source, "<green>%s removed, or restored to vanilla.".formatted(key.asString()));
         return Command.SINGLE_SUCCESS;
     }
 
     private static int fromJson(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
         final Key key = Key.key("fidorial", "datapack_sample");
-        final BiomeRegistry biomes = biomes();
+        final WritableRegistry<BiomeDefinition> biomes = biomes();
 
-        if (biomes.contains(key)) {
-            biomes.unregister(key);
-        }
+        biomes.unregister(typed(key));
 
         try {
-            final BiomeDefinition biome = biomes.registerFromJson(key, SAMPLE_JSON);
+            final BiomeDefinition biome = biomes.registerFromJson(typed(key), SAMPLE_JSON, plugin);
             plugin.msg(source, "<green>JSON read: %s, temperature %s, sky %s"
                     .formatted(biome.key().asString(), biome.temperature(),
                             attribute(biome.attributes().skyColor())));

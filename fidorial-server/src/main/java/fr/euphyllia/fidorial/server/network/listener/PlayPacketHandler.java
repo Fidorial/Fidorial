@@ -74,7 +74,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemOnPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemPacket;
 import fr.euphyllia.fidorial.server.network.session.ChunkViewTracker;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -112,6 +111,7 @@ import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
@@ -174,8 +174,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void onEnter() {
-        final RegistryHolder dynamic = server.registries().dynamic();
-        if (dynamic.isEmpty()) {
+        if (server.registries().serverRegistries().synced().isEmpty()) {
             LOGGER.error("Missing dynamic registries (GeneratedRegistryData empty): unable to join the game");
             connection.close();
             return;
@@ -310,7 +309,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void sendLoginSequence() {
-        final int dimensionType = server.registries().dimensionTypes().networkId(serverWorld().generator.dimensionType().key());
+        final int dimensionType = server.registries().registry(RegistryKey.DIMENSION_TYPE).networkId(serverWorld().generator.dimensionType().key());
         final Key[] dimensions = worldManager().worlds().stream().map(ServerWorld::key).toArray(Key[]::new);
         connection.send(new ClientboundLoginPacket(
                 player.entityId(),
@@ -349,7 +348,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 connection,
                 server.workers().chunkWorker(),
                 world,
-                new ChunkNetworkSerializer(server.registries().blockStates(), server.registries().biomes()),
+                new ChunkNetworkSerializer(server.registries().blockStates(), server.registries().registry(RegistryKey.BIOME)),
                 connection.effectiveViewDistance()
         );
         this.ticket = spawnChunk;
@@ -1037,7 +1036,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         teleporting.setLocation(location);
                         target.addEntity(teleporting);
 
-                        final int dimensionType = server.registries().dimensionTypes().networkId(target.generator.dimensionType().key());
+                        final int dimensionType = server.registries().registry(RegistryKey.DIMENSION_TYPE).networkId(target.generator.dimensionType().key());
                         connection.send(new ClientboundRespawnPacket(
                                 target.dimension().id(),
                                 dimensionType,
@@ -1285,7 +1284,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         player.resetOnRespawn();
 
-        final int dimensionType = server.registries().dimensionTypes().networkId(world.generator.dimensionType().key());
+        final int dimensionType = server.registries().registry(RegistryKey.DIMENSION_TYPE).networkId(world.generator.dimensionType().key());
         connection.send(new ClientboundRespawnPacket(
                 world.dimension().id(),
                 dimensionType,

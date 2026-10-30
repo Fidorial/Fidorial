@@ -6,11 +6,14 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.EnchantmentEffects;
-import fr.fidorial.item.enchantment.EnchantmentRegistry;
-import fr.fidorial.item.enchantment.EnchantmentTags;
+import fr.fidorial.item.enchantment.Enchantments;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.Registry;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.EnchantmentKeys;
+import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
@@ -27,12 +30,13 @@ public final class EnchantmentPluginTests {
     @ScenarioTest(group = "testplugin.enchantments", timeoutTicks = 20)
     public static void pluginEnchantmentsAreRegistered(final ScenarioTestHelper helper) {
         final Player probe = helper.summonPlayer("Probe", Location.of(helper.world(), 0.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final EnchantmentRegistry enchantments = probe.server().registries().enchantments();
-        helper.assertTrue(enchantments.isCustom(TestEnchantments.LIFESTEAL), "Lifesteal should be registered");
-        helper.assertTrue(enchantments.isCustom(TestEnchantments.GLACIAL), "Glacial should be registered");
-        helper.assertTrue(enchantments.isTagged(TestEnchantments.LIFESTEAL, EnchantmentTags.IN_ENCHANTING_TABLE),
+        final Enchantments enchantments = probe.server().registries().enchantments();
+        final Registry<EnchantmentDefinition> registry = probe.server().registries().registry(RegistryKey.ENCHANTMENT);
+        helper.assertTrue(registry.isCustom(TestEnchantments.LIFESTEAL), "Lifesteal should be registered");
+        helper.assertTrue(registry.isCustom(TestEnchantments.GLACIAL), "Glacial should be registered");
+        helper.assertTrue(registry.isTagged(TestEnchantments.LIFESTEAL, EnchantmentTagKeys.IN_ENCHANTING_TABLE),
                 "Lifesteal should be offered by the enchanting table");
-        helper.assertTrue(enchantments.definition(TestEnchantments.GLACIAL).orElseThrow().hasEffect(EnchantmentEffects.POST_ATTACK),
+        helper.assertTrue(registry.get(TestEnchantments.GLACIAL).hasEffect(EnchantmentEffects.POST_ATTACK),
                 "Glacial should carry its post-attack effect");
         helper.assertTrue(!enchantments.areCompatible(TestEnchantments.GLACIAL, EnchantmentKeys.FIRE_ASPECT),
                 "Glacial and Fire Aspect are exclusive, both ways");
@@ -56,7 +60,7 @@ public final class EnchantmentPluginTests {
     @ScenarioTest(group = "testplugin.enchantments", timeoutTicks = 20)
     public static void lifestealHealsTheAttacker(final ScenarioTestHelper helper) {
         final Player player = helper.summonPlayer("Vampire", Location.of(helper.world(), 0.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final EnchantmentRegistry enchantments = player.server().registries().enchantments();
+        final Enchantments enchantments = player.server().registries().enchantments();
         player.setHealth(10f);
         player.setHeldItem(enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD.key()), TestEnchantments.LIFESTEAL, 3));
         final Mob cow = cow(player, helper, 1.5);
@@ -70,7 +74,7 @@ public final class EnchantmentPluginTests {
     @ScenarioTest(group = "testplugin.enchantments", timeoutTicks = 20)
     public static void glacialSlowsAndHitsBurningTargetsHarder(final ScenarioTestHelper helper) {
         final Player cold = helper.summonPlayer("Cold", Location.of(helper.world(), 0.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
-        final EnchantmentRegistry enchantments = cold.server().registries().enchantments();
+        final Enchantments enchantments = cold.server().registries().enchantments();
         final ItemStack sword = enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD.key()), TestEnchantments.GLACIAL, 2);
         final Player colder = helper.summonPlayer("Colder", Location.of(helper.world(), 3.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
         cold.setHeldItem(sword);

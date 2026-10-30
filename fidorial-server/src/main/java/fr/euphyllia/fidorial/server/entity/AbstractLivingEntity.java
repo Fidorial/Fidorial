@@ -337,7 +337,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     protected boolean canBeAffected(final MobEffectInstance effect) {
         final Key immunityTag = EFFECT_IMMUNITY_TAGS.get(effect.type().key());
         return immunityTag == null
-                || !server().registries().frozen().isTagged(RegistryKey.ENTITY_TYPE.key(), immunityTag, type().key());
+                || !server().registries().registry(RegistryKey.ENTITY_TYPE).isTagged(type().key(), immunityTag);
     }
 
     protected void onEffectUpdated(final MobEffectInstance effect) {

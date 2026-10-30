@@ -23,6 +23,7 @@ import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -52,6 +53,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(WorldModule.class);
 
     private final ServiceRegistry services;
+    private final RegistryModule registries;
     private final PlayerList online;
     private final ServerWorldManager manager;
     private final StructureService structures;
@@ -70,6 +72,7 @@ public final class WorldModule implements ServerModule, WorldManager {
             final RegistryModule registries, final WorkerModule scheduler, final PlayerModule players,
             final EntityModule entities, final DebugModule debug) throws IOException {
         this.services = services;
+        this.registries = registries;
         this.online = players.connections();
 
         this.manager = ServerWorldManager.openOrCreate(
@@ -80,9 +83,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.weather = new WeatherEngine(manager);
         this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates(), online::broadcast);
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
-        this.dayNight = new DayNightThread(manager, registries.dynamic());
+        this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
         this.bossBars = new BossBarRegistry(manager.levelData(), online::players);
-        this.chunkSerializer = new ChunkNetworkSerializer(registries.blockStates(), registries.biomes());
+        this.chunkSerializer = new ChunkNetworkSerializer(registries.blockStates(), registries.registry(RegistryKey.BIOME));
         this.light = new LightUpdateDispatcher(
                 config.threading().lightWorkers(), online::broadcast, chunkSerializer, manager::world);
         this.blockEdits = new BlockEditService(
@@ -118,7 +121,7 @@ public final class WorldModule implements ServerModule, WorldManager {
 
     @Override
     public void start() {
-        structures.load();
+        structures.load(registries.datapacks());
         manager.overworld();
         weather.start();
         dayNight.start();

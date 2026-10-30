@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
+import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.world.dimension.CardinalLight;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
-import fr.fidorial.world.dimension.DimensionTypeRegistry;
 import fr.fidorial.world.dimension.IntProvider;
 import fr.fidorial.world.dimension.Skybox;
 import fr.fidorial.world.dimension.TimelineReference;
@@ -158,20 +159,19 @@ public final class TestDimensionTypes {
         return ALL;
     }
 
-    public static void registerAll(final DimensionTypeRegistry dimensions, final ComponentLogger logger) {
+    public static void registerAll(final WritableRegistry<DimensionTypeDefinition> dimensions, final Plugin owner,
+                                   final ComponentLogger logger) {
         for (final DimensionTypeDefinition dimensionType : ALL) {
-            dimensions.overwrite(dimensionType);
-            logger.info("[TestPlugin] dimension type {} registered (network id {})",
-                    dimensionType.key().asString(), dimensions.networkId(dimensionType.key()));
+            dimensions.overwrite(dimensionType.typedKey(), dimensionType, owner);
+            logger.info("[TestPlugin] dimension type {} registered", dimensionType.key().asString());
         }
 
-        logger.info("[TestPlugin] {} dimension types registered, {} of them defined by the server",
-                dimensions.totalRegistered(), dimensions.definitions().size());
+        logger.info("[TestPlugin] {} dimension types registered", dimensions.size());
     }
 
-    public static void unregisterAll(final DimensionTypeRegistry dimensions) {
+    public static void unregisterAll(final WritableRegistry<DimensionTypeDefinition> dimensions) {
         for (final DimensionTypeDefinition dimensionType : ALL) {
-            dimensions.unregister(dimensionType.key());
+            dimensions.unregister(dimensionType.typedKey());
         }
     }
 }

@@ -2,7 +2,6 @@ package fr.euphyllia.fidorial.server.world.structure;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.datapack.DatapackContents;
-import fr.euphyllia.fidorial.server.datapack.DatapackLoader;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelChunkWithLightPacket;
 import fr.euphyllia.fidorial.server.world.ChunkGenerator;
@@ -71,15 +70,11 @@ public final class StructureService implements StructureManager {
         return folder;
     }
 
-    public void load() {
+    /**
+     * @param contents the data packs of {@link #folder()}, read by the registry module
+     */
+    public void load(final DatapackContents contents) {
         final long start = System.nanoTime();
-        DatapackContents contents;
-        try {
-            contents = DatapackLoader.load(folder);
-        } catch (final IOException failure) {
-            LOGGER.error("[datapacks] Unable to read {}", folder, failure);
-            contents = DatapackContents.empty();
-        }
         final StructureRegistry loaded = StructureRegistry.build(contents, validator);
         this.registry = loaded;
         for (final StructureChunkGenerator generator : generators.values()) {
@@ -134,7 +129,7 @@ public final class StructureService implements StructureManager {
 
     @Override
     public CompletableFuture<Void> reload() {
-        return CompletableFuture.runAsync(this::load, worker);
+        return CompletableFuture.runAsync(() -> load(FidorialServer.getInstance().registries().datapacks()), worker);
     }
 
     public void shutdown() {
@@ -256,11 +251,8 @@ public final class StructureService implements StructureManager {
 
     private static void resend(final ServerWorld world, final ChunkColumn column) {
         final FidorialServer server = FidorialServer.getInstance();
-        final ClientboundLevelChunkWithLightPacket packet;
-        synchronized (world.lightManager()) {
-            packet = new ClientboundLevelChunkWithLightPacket(
-                    server.worlds().chunkSerializer(), column, world.generator.dimensionType().hasSkylight());
-        }
+        final ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(
+                server.worlds().chunkSerializer(), column, world.generator.dimensionType().hasSkylight());
         final int range = server.config().general().viewDistance() + 1;
         for (final ServerPlayer player : server.players().online()) {
             if (player.isRemoved() || !player.world().equals(world)) {
