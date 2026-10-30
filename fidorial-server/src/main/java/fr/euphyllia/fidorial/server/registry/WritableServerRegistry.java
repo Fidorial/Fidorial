@@ -15,6 +15,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,13 +25,27 @@ import java.util.Set;
 /**
  * A data registry plugins can add entries to. The vanilla entries are kept aside, to be restored
  * when the plugin entries replacing them are unregistered.
+ * <p>
+ * Tag changes made by plugins are kept in a ledger and replayed over the base tags (vanilla and data packs).
+ * This lets {@link #unregisterAll(Plugin)} roll back exactly what a plugin did, whatever
+ * other plugins did in between, and lets data packs be reloaded without losing the changes made by plugins.
  *
  * @param <T> the value type
  */
 public final class WritableServerRegistry<T> extends ServerRegistry<T> implements WritableRegistry<T> {
 
+    /**
+     * @param tag    the tag
+     * @param member the entry added or removed, {@code null} to only make sure the tag exists
+     * @param add    {@code true} to add the entry, {@code false} to remove it
+     * @param owner  the plugin that made the change
+     */
+    private record TagChange(Key tag, @Nullable Key member, boolean add, Plugin owner) {
+    }
+
     private final RegistryBinding.Data<T> data;
     private final Map<Key, Entry<T>> vanilla;
+    private final List<TagChange> tagChanges = new ArrayList<>(); // guarded by this
 
     WritableServerRegistry(final ServerRegistries registries, final RegistryKey<T> registryKey,
                            final RegistryBinding.Data<T> data, final boolean synced,
@@ -57,7 +72,8 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
             }
             final List<@Nullable Entry<T>> next = new ArrayList<>(current.byId);
             next.add(Entry.custom(checked, value, owner));
-            snapshot = Snapshot.of(next, withReferencedTags(current.tags, value));
+            recordReferencedTags(value, owner);
+            snapshot = Snapshot.of(next, effectiveTags());
         }
         changed(checked.asString() + " registered");
         return value;
@@ -90,7 +106,8 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
             } else {
                 next.set(current.ids.getInt(checked), entry);
             }
-            snapshot = Snapshot.of(next, withReferencedTags(current.tags, value));
+            recordReferencedTags(value, owner);
+            snapshot = Snapshot.of(next, effectiveTags());
         }
         changed(checked.asString() + (previous == null ? " registered" : " replaced"));
         return previous == null ? Optional.empty() : previousValue(previous);
@@ -135,66 +152,113 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
                     owned.add(entry);
                 }
             }
-            if (owned.isEmpty()) {
+            final boolean tagsTouched = tagChanges.removeIf(tagChange -> tagChange.owner() == owner);
+            if (owned.isEmpty() && !tagsTouched) {
                 return;
             }
-            change = remove(current, owned);
+            if (owned.isEmpty()) {
+                snapshot = Snapshot.of(current.byId, effectiveTags());
+                change = "Tag changes of " + owner.getClass().getSimpleName() + " rolled back";
+            } else {
+                change = remove(current, owned);
+            }
         }
         changed(change);
     }
 
     @Override
-    public boolean addToTag(final TagKey<T> tag, final TypedKey<T> key) {
+    public boolean addToTag(final TagKey<T> tag, final TypedKey<T> key, final Plugin owner) {
         checkRegistry(tag.registry());
         checkRegistry(key.registry());
+        Objects.requireNonNull(owner, "owner");
+        final boolean added;
         synchronized (this) {
             final Snapshot<T> current = snapshot;
             if (!current.byKey.containsKey(key.key())) {
                 throw new IllegalArgumentException("Nothing is registered under " + key.key().asString() + " in " + name().asString());
             }
-            final List<Key> members = current.tags.getOrDefault(tag.key(), List.of());
-            if (members.contains(key.key())) {
-                return false;
-            }
-            final List<Key> grown = new ArrayList<>(members);
-            grown.add(key.key());
-            final Map<Key, List<Key>> next = new LinkedHashMap<>(current.tags);
-            next.put(tag.key(), grown);
-            snapshot = Snapshot.of(current.byId, next);
+            added = !isTagged(key.key(), tag.key());
+            // Recorded even if the entry already belongs to the tag: another plugin's rollback must not strip it.
+            record(new TagChange(tag.key(), key.key(), true, owner));
+            snapshot = Snapshot.of(current.byId, effectiveTags());
         }
-        changed(key.key().asString() + " added to #" + tag.key().asString());
-        return true;
+        if (added) {
+            changed(key.key().asString() + " added to #" + tag.key().asString());
+        }
+        return added;
     }
 
     @Override
-    public boolean removeFromTag(final TagKey<T> tag, final TypedKey<T> key) {
+    public boolean removeFromTag(final TagKey<T> tag, final TypedKey<T> key, final Plugin owner) {
         checkRegistry(tag.registry());
         checkRegistry(key.registry());
+        Objects.requireNonNull(owner, "owner");
+        final boolean removed;
         synchronized (this) {
             final Snapshot<T> current = snapshot;
-            final List<Key> members = current.tags.get(tag.key());
-            if (members == null || !members.contains(key.key())) {
+            if (!current.byKey.containsKey(key.key())) {
                 return false;
             }
-            final List<Key> shrunk = new ArrayList<>(members);
-            shrunk.remove(key.key());
-            final Map<Key, List<Key>> next = new LinkedHashMap<>(current.tags);
-            next.put(tag.key(), shrunk);
-            snapshot = Snapshot.of(current.byId, next);
+            removed = isTagged(key.key(), tag.key());
+            record(new TagChange(tag.key(), key.key(), false, owner));
+            snapshot = Snapshot.of(current.byId, effectiveTags());
         }
-        changed(key.key().asString() + " removed from #" + tag.key().asString());
-        return true;
+        if (removed) {
+            changed(key.key().asString() + " removed from #" + tag.key().asString());
+        }
+        return removed;
     }
 
     /**
-     * Restores the vanilla entries the given ones replace, and removes the others, with their tags.
-     * Called while holding the lock.
+     * The base tags with every plugin tag change replayed on top, in the order they were made.
+     */
+    @Override
+    Map<Key, List<Key>> effectiveTags() {
+        if (tagChanges.isEmpty()) {
+            return baseTags;
+        }
+        final Map<Key, Set<Key>> work = new LinkedHashMap<>();
+        baseTags.forEach((tag, members) -> work.put(tag, new LinkedHashSet<>(members)));
+        for (final TagChange change : tagChanges) {
+            final Set<Key> members = work.computeIfAbsent(change.tag(), _ -> new LinkedHashSet<>());
+            if (change.member() == null) {
+                continue; // only makes sure the tag exists
+            }
+            if (change.add()) {
+                members.add(change.member());
+            } else {
+                members.remove(change.member());
+            }
+        }
+        final Map<Key, List<Key>> result = new LinkedHashMap<>(work.size());
+        work.forEach((tag, members) -> result.put(tag, List.copyOf(members)));
+        return result;
+    }
+
+    /**
+     * Adds a change to the ledger. An equal change moves to the end, so the last word wins.
+     */
+    private void record(final TagChange change) {
+        tagChanges.remove(change);
+        tagChanges.add(change);
+    }
+
+    /**
+     * Tags the value refers to are created empty if missing, so that clients find them. Rolled back with the plugin.
+     */
+    private void recordReferencedTags(final T value, final Plugin owner) {
+        for (final Key tag : data.validator().referencedTags(value)) {
+            record(new TagChange(tag, null, true, owner));
+        }
+    }
+
+    /**
+     * Restores the vanilla entries the given ones replace, and removes the others, with their tag changes.
      *
      * @return the change, for the log
      */
     private String remove(final Snapshot<T> current, final List<Entry<T>> removed) {
         final List<@Nullable Entry<T>> next = new ArrayList<>(current.byId);
-        Map<Key, List<Key>> tags = current.tags;
         boolean restored = false;
         for (final Entry<T> entry : removed) {
             final Entry<T> stock = vanilla.get(entry.key);
@@ -202,12 +266,13 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
             if (stock != null) {
                 restored = true;
             } else {
-                tags = withoutMember(tags, entry.key);
+                // Its tag changes must not come back if the key is registered again.
+                tagChanges.removeIf(tagChange -> entry.key.equals(tagChange.member()));
             }
         }
         // A data registry has no unused ID: the removed entries are the only holes.
         next.removeIf(Objects::isNull);
-        snapshot = Snapshot.of(next, tags);
+        snapshot = Snapshot.of(next, effectiveTags());
         if (removed.size() > 1) {
             return removed.size() + " entries unregistered";
         }
@@ -233,18 +298,6 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
         if (!registry.key().equals(name())) {
             throw new IllegalArgumentException(registry.key().asString() + " is not " + name().asString());
         }
-    }
-
-    private Map<Key, List<Key>> withReferencedTags(final Map<Key, List<Key>> tags, final T value) {
-        final Set<Key> referenced = data.validator().referencedTags(value);
-        if (tags.keySet().containsAll(referenced)) {
-            return tags;
-        }
-        final Map<Key, List<Key>> next = new LinkedHashMap<>(tags);
-        for (final Key tag : referenced) {
-            next.putIfAbsent(tag, List.of());
-        }
-        return next;
     }
 
     private void changed(final String change) {

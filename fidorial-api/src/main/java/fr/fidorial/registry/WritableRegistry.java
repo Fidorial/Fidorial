@@ -98,19 +98,21 @@ public interface WritableRegistry<T> extends Registry<T> {
      *
      * @param tag the tag
      * @param key the key of the entry
+     * @param owner the plugin registering it
      * @return {@code true} if the entry was added, {@code false} if it already belonged to the tag
      * @throws IllegalArgumentException if nothing is registered under {@code key}
      * @since 0.1.0
      */
-    boolean addToTag(TagKey<T> tag, TypedKey<T> key);
+    boolean addToTag(TagKey<T> tag, TypedKey<T> key, Plugin owner);
 
     /**
      * Removes an entry from a tag.
      *
      * @param tag the tag
      * @param key the key of the entry
+     * @param owner the plugin
      * @return {@code true} if the entry was removed, {@code false} if it did not belong to the tag
      * @since 0.1.0
      */
-    boolean removeFromTag(TagKey<T> tag, TypedKey<T> key);
+    boolean removeFromTag(TagKey<T> tag, TypedKey<T> key, Plugin owner);
 }

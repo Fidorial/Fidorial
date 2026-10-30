@@ -122,13 +122,24 @@ public final class ServerRegistries {
      * Applies the tags of the data packs on top of the vanilla ones. Only while the server loads.
      */
     public void applyDatapackTags(final DatapackContents contents) {
-        for (final Map.Entry<String, Map<Key, List<TagFile>>> files : contents.tags().entrySet()) {
-            final ServerRegistry<?> registry = registries.get(Key.key(files.getKey()));
-            if (registry == null) {
-                LOGGER.warn("[datapacks] Tags of the unknown registry {} are ignored", files.getKey());
-                continue;
+        final Map<Key, Map<Key, List<TagFile>>> byRegistry = new LinkedHashMap<>();
+        contents.tags().forEach((path, files) -> {
+            final Key name = Key.key(path);
+            if (!registries.containsKey(name)) {
+                LOGGER.warn("[datapacks] Tags of the unknown registry {} are ignored", path);
+                return;
             }
-            registry.replaceTags(TagResolver.resolve(registry, files.getValue()));
+            byRegistry.put(name, files);
+        });
+
+        for (final ServerRegistry<?> registry : registries.values()) {
+            final Map<Key, List<TagFile>> files = byRegistry.get(registry.name());
+            final Map<Key, List<Key>> tags = files == null
+                    ? registry.vanillaTags()
+                    : TagResolver.resolve(registry, files);
+            if (registry.replaceTags(tags)) {
+                changed(registry, "Data pack tags reloaded");
+            }
         }
     }
 

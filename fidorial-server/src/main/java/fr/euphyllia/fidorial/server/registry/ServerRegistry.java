@@ -31,8 +31,11 @@ import java.util.stream.Stream;
 
 /**
  * A registry: its entries in network order, their values, decoded on first use, and its tags.
- *
- * <p>Reads go through an immutable snapshot, replaced as a whole on every change.</p>
+ * <p>
+ * Reads go through an immutable snapshot, replaced as a whole on every change.
+ * <p>
+ * Tags come in layers: the vanilla tags, never changed; the base tags, the vanilla ones with the
+ * data packs applied; and the effective tags, the base ones with the changes of plugins on top.
  *
  * @param <T> the value type
  */
@@ -42,6 +45,8 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     private final RegistryKey<T> registryKey;
     private final RegistryBinding<T> binding;
     private final boolean synced;
+    private final Map<Key, List<Key>> vanillaTags;
+    volatile Map<Key, List<Key>> baseTags;
     volatile Snapshot<T> snapshot;
 
     ServerRegistry(final ServerRegistries registries, final RegistryKey<T> registryKey, final RegistryBinding<T> binding,
@@ -50,6 +55,8 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         this.registryKey = registryKey;
         this.binding = binding;
         this.synced = synced;
+        this.vanillaTags = tags;
+        this.baseTags = tags;
         this.snapshot = Snapshot.of(entries, tags);
     }
 
@@ -58,6 +65,20 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
      */
     public final Key name() {
         return registryKey.key();
+    }
+
+    /**
+     * {@return the tags a new snapshot carries}
+     */
+    Map<Key, List<Key>> effectiveTags() {
+        return baseTags;
+    }
+
+    /**
+     * {@return the tags of the vanilla data, without data packs or plugins}
+     */
+    final Map<Key, List<Key>> vanillaTags() {
+        return vanillaTags;
     }
 
     /**
@@ -257,7 +278,7 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
             }
             final List<@Nullable Entry<T>> next = new ArrayList<>(current.byId);
             next.add(Entry.custom(key, value, null));
-            snapshot = Snapshot.of(next, current.tags);
+            snapshot = Snapshot.of(next, effectiveTags());
         }
     }
 
@@ -274,8 +295,8 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
                 return false;
             }
             final List<@Nullable Entry<T>> next = new ArrayList<>(current.byId);
-            next.remove(current.ids.getInt(key));
-            snapshot = Snapshot.of(next, withoutMember(current.tags, key));
+            next.set(current.ids.getInt(key), null);
+            snapshot = Snapshot.of(next, effectiveTags());
             return true;
         }
     }
@@ -301,11 +322,19 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     }
 
     /**
-     * Replaces every tag, without notifying anyone: only while the server loads.
+     * Replaces the data pack layer of the tags. The changes of plugins are replayed on top.
+     *
+     * @param tags the vanilla tags with the data packs applied
+     * @return whether anything changed
      */
-    final void replaceTags(final Map<Key, List<Key>> tags) {
+    final boolean replaceTags(final Map<Key, List<Key>> tags) {
         synchronized (this) {
-            snapshot = Snapshot.of(snapshot.byId, tags);
+            if (tags.equals(baseTags)) {
+                return false;
+            }
+            baseTags = tags;
+            snapshot = Snapshot.of(snapshot.byId, effectiveTags());
+            return true;
         }
     }
 
@@ -361,20 +390,6 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     private boolean matches(final Entry<T> entry, final T value) {
         final T registered = value(entry);
         return registered == value || registered.equals(value);
-    }
-
-    static Map<Key, List<Key>> withoutMember(final Map<Key, List<Key>> tags, final Key member) {
-        final Map<Key, List<Key>> next = new LinkedHashMap<>();
-        tags.forEach((tag, members) -> {
-            if (members.contains(member)) {
-                final List<Key> kept = new ArrayList<>(members);
-                kept.remove(member);
-                next.put(tag, kept);
-            } else {
-                next.put(tag, members);
-            }
-        });
-        return next;
     }
 
     /**

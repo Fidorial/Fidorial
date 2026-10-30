@@ -109,8 +109,8 @@ public final class TestDialogs {
         dialogs.overwrite(typed(SERVER_LINKS), serverLinks(), owner);
         dialogs.overwrite(typed(ROOT), root(), owner);
 
-        dialogs.addToTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(ROOT));
-        dialogs.addToTag(DialogTagKeys.QUICK_ACTIONS, typed(ROOT));
+        dialogs.addToTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(ROOT), owner);
+        dialogs.addToTag(DialogTagKeys.QUICK_ACTIONS, typed(ROOT), owner);
 
         logger.info("[TestPlugin] {} recorded dialogues, root menu = {}",
                 6, ROOT.asString());
@@ -121,10 +121,10 @@ public final class TestDialogs {
      *
      * @param dialogs the server dialog registry
      */
-    public static void unregisterAll(final WritableRegistry<DialogDefinition> dialogs) {
+    public static void unregisterAll(final WritableRegistry<DialogDefinition> dialogs, final Plugin owner) {
         for (final Key key : List.of(ROOT, SERVER_LINKS, MULTI_ACTION, FORM, CONFIRMATION, NOTICE)) {
-            dialogs.removeFromTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(key));
-            dialogs.removeFromTag(DialogTagKeys.QUICK_ACTIONS, typed(key));
+            dialogs.removeFromTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(key), owner);
+            dialogs.removeFromTag(DialogTagKeys.QUICK_ACTIONS, typed(key), owner);
             dialogs.unregister(typed(key));
         }
     }

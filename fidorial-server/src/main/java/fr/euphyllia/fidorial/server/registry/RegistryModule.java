@@ -71,16 +71,26 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         TranslationStore.setStore(translations);
 
         try {
-            datapacks = DatapackLoader.load(datapacksFolder);
+            reloadDatapacks();
         } catch (final IOException failure) {
             LOGGER.error("[datapacks] Unable to read {}", datapacksFolder, failure);
         }
-        registries.applyDatapackTags(datapacks);
 
         final VanillaRecipeLoader loader = new VanillaRecipeLoader(registries.registry(RegistryKey.ITEM)::contains);
         recipes.loadVanilla(loader.load());
         LOGGER.info("Loaded {} vanilla crafting recipes, {} other vanilla recipes are not supported yet",
                 recipes.recipes().size(), loader.skipped().values().stream().mapToInt(Integer::intValue).sum());
+    }
+
+    /**
+     * Reads the data packs again and applies their tags.
+     * Clients are resynced if a tag of a synced registry changed.
+     *
+     * @throws IOException if the data packs cannot be read
+     */
+    public void reloadDatapacks() throws IOException {
+        datapacks = DatapackLoader.load(datapacksFolder);
+        registries.applyDatapackTags(datapacks);
     }
 
     /**
@@ -124,7 +134,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     }
 
     /**
-     * {@return the data packs, read on load}
+     * {@return the data packs, read on load and on every reload}
      */
     public DatapackContents datapacks() {
         return datapacks;

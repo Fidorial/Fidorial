@@ -186,7 +186,7 @@ public final class TestPlugin implements Plugin {
         }
         server.commands().unregisterNamespace(context.meta());
         TestBiomes.unregisterAll(server.registries().writable(RegistryKey.BIOME));
-        TestDialogs.unregisterAll(server.registries().writable(RegistryKey.DIALOG));
+        TestDialogs.unregisterAll(server.registries().writable(RegistryKey.DIALOG), this);
         TestDimensionTypes.unregisterAll(server.registries().writable(RegistryKey.DIMENSION_TYPE));
         TestChatTypes.unregisterAll(server.registries().writable(RegistryKey.CHAT_TYPE));
         BullMobs.unregisterAll(server.registries().mobs(), this);

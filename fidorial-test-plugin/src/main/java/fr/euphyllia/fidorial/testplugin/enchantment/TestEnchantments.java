@@ -95,7 +95,7 @@ public final class TestEnchantments {
         for (final TypedKey<EnchantmentDefinition> enchantment : List.of(LIFESTEAL, GLACIAL)) {
             for (final TagKey<EnchantmentDefinition> tag : List.of(EnchantmentTagKeys.IN_ENCHANTING_TABLE,
                     EnchantmentTagKeys.NON_TREASURE, EnchantmentTagKeys.TRADEABLE, EnchantmentTagKeys.ON_RANDOM_LOOT)) {
-                enchantments.addToTag(tag, enchantment);
+                enchantments.addToTag(tag, enchantment, owner);
             }
         }
         logger.info("[TestPlugin] Enchantments {} and {} registered", LIFESTEAL.key(), GLACIAL.key());
