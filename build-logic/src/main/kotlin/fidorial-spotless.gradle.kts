@@ -1,3 +1,5 @@
+import fr.euphyllia.fidorial.gradle.FinalizeVariables
+
 plugins {
     id("com.diffplug.spotless")
 }
@@ -45,6 +47,7 @@ spotless {
         formatAnnotations()
         removeUnusedImports()
         //custom("Wrap declaration parameters", WrapDeclarationParameters())
+        custom("Finalize parameters and locals", FinalizeVariables())
         replaceRegex("Expand empty code blocks", """(?m)^([ \t]*)(.+) \{\}$""", "$1$2 {\n$1}")
         replaceRegex(
             "Separate module requires static",

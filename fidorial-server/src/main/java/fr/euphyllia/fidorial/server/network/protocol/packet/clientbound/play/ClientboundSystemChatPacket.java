@@ -15,7 +15,7 @@ public record ClientboundSystemChatPacket(Component message, boolean overlay)
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeComponent(message);
         buf.writeBoolean(overlay);
     }

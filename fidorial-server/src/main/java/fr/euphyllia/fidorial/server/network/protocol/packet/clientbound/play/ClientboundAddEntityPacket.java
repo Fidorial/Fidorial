@@ -26,8 +26,8 @@ public record ClientboundAddEntityPacket(
         int data)
         implements ClientboundPacket {
 
-    public static ClientboundAddEntityPacket of(AbstractEntity entity) {
-        Location location = entity.location();
+    public static ClientboundAddEntityPacket of(final AbstractEntity entity) {
+        final Location location = entity.location();
         return new ClientboundAddEntityPacket(
                 entity.entityId(),
                 entity.uuid(),
@@ -36,7 +36,7 @@ public record ClientboundAddEntityPacket(
                 new PositionData.VelocityVec3D(0.0, 0.0, 0.0),
                 location.pitch(),
                 location.yaw(),
-                entity instanceof LivingEntity living ? living.headYaw() : 0.0f,
+                entity instanceof final LivingEntity living ? living.headYaw() : 0.0f,
                 0);
     }
 
@@ -46,7 +46,7 @@ public record ClientboundAddEntityPacket(
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         buf.writeUuid(uuid);
         buf.writeVarInt(typeNetworkId);

@@ -15,6 +15,6 @@ public record ClientboundStartConfigurationPacket() implements ClientboundPacket
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
     }
 }

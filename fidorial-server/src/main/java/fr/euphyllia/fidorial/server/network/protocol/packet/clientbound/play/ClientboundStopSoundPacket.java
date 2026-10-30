@@ -18,7 +18,7 @@ public record ClientboundStopSoundPacket(
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         int flags = 0;
         if (source != null) {
             flags |= 0x01;

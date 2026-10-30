@@ -13,9 +13,9 @@ public record ClientboundRemoveEntitiesPacket(int... entityIds) implements Clien
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityIds.length);
-        for (int entityId : entityIds) {
+        for (final int entityId : entityIds) {
             buf.writeVarInt(entityId);
         }
     }

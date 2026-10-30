@@ -18,14 +18,14 @@ public record ClientboundCommandSuggestionsPacket(int id, int start, int length,
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(id);
         buf.writeVarInt(start);
         buf.writeVarInt(length);
 
         buf.writeVarInt(entries.size());
 
-        for (Entry entry : entries) {
+        for (final Entry entry : entries) {
             buf.writeString(entry.text());
 
             if (entry.tooltip() != null) {

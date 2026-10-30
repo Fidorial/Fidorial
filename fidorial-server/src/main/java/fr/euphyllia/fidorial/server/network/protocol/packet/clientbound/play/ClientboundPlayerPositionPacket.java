@@ -15,7 +15,7 @@ public record ClientboundPlayerPositionPacket(int teleportId, PositionData.Posit
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(teleportId);
         moveData.writeTo(buf);
         buf.writeInt(0);                                    // flags (tout absolu)

@@ -13,7 +13,7 @@ public record ClientboundStatusResponsePacket(String json) implements Clientboun
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeString(json);
     }
 }

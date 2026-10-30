@@ -18,8 +18,8 @@ public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, fl
     private static final float DEFAULT_FLY_SPEED = 0.05f;
     private static final float DEFAULT_FOV_MODIFIER = 0.1f;
 
-    public static ClientboundPlayerAbilitiesPacket forGameMode(GameMode mode) {
-        byte flags =
+    public static ClientboundPlayerAbilitiesPacket forGameMode(final GameMode mode) {
+        final byte flags =
                 switch (mode) {
                     case SURVIVAL, ADVENTURE -> 0;
                     case CREATIVE -> (byte) (INVULNERABLE | ALLOW_FLYING | CREATIVE_MODE);
@@ -34,7 +34,7 @@ public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, fl
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeByte(flags).writeFloat(flyingSpeed).writeFloat(fovModifier);
     }
 }

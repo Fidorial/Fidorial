@@ -13,7 +13,7 @@ public record ClientboundPongResponsePacket(long payload) implements Clientbound
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeLong(payload);
     }
 }

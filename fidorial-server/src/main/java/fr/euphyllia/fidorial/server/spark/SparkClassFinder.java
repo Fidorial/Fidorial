@@ -38,7 +38,7 @@ public final class SparkClassFinder implements ClassFinder {
         for (final PluginMeta meta : pluginManager.loaded()) {
             pluginManager
                     .plugin(meta.id())
-                    .map((Plugin plugin) -> plugin.getClass().getClassLoader())
+                    .map((final Plugin plugin) -> plugin.getClass().getClassLoader())
                     .ifPresent(this.pluginClassLoaders::add);
         }
     }

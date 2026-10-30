@@ -14,7 +14,7 @@ public record ClientboundCustomQueryPacket(int transactionId, Key channel, byte[
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(transactionId)
                 .writeKey(channel)
                 .writeRawBytes(payload);
