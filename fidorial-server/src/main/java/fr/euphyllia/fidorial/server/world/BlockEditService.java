@@ -48,7 +48,7 @@ public final class BlockEditService {
             LOGGER.error("Block change impossible at {},{},{}", pos.x(), pos.y(), pos.z(), e);
             return false;
         }
-        broadcaster.broadcast(pos, blockRegistry.networkId(state));
+        broadcaster.broadcast(world, pos, blockRegistry.networkId(state));
         fluidNotifier.notifyBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
         lightNotifier.onBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
 
@@ -61,7 +61,7 @@ public final class BlockEditService {
 
     @FunctionalInterface
     public interface BlockChangeBroadcaster {
-        void broadcast(BlockPosition pos, int stateId);
+        void broadcast(ServerWorld world, BlockPosition pos, int stateId);
     }
 
     @FunctionalInterface

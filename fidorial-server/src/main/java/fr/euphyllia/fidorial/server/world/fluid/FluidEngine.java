@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.world.fluid;
 
 import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
-import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
@@ -27,7 +26,6 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 public final class FluidEngine implements FluidManager {
 
@@ -41,7 +39,6 @@ public final class FluidEngine implements FluidManager {
     private final ServerWorldManager worlds;
     private final ThreadedRegionRegionizer regionizer;
     private final BlockStateRegistry blockRegistry;
-    private final Consumer<ClientboundPacket> broadcaster;
 
     private final Map<Key, Set<Long>> pending = new ConcurrentHashMap<>();
     private volatile LightHook lightHook = (_, _, _, _) -> {};
@@ -50,13 +47,11 @@ public final class FluidEngine implements FluidManager {
     public FluidEngine(
             final ServerWorldManager worlds,
             final ThreadedRegionRegionizer regionizer,
-            final BlockStateRegistry blockRegistry,
-            final Consumer<ClientboundPacket> broadcaster
+            final BlockStateRegistry blockRegistry
     ) {
         this.worlds = worlds;
         this.regionizer = regionizer;
         this.blockRegistry = blockRegistry;
-        this.broadcaster = broadcaster;
     }
 
     private static long pack(final int x, final int y, final int z) {
@@ -353,7 +348,8 @@ public final class FluidEngine implements FluidManager {
             LOGGER.error("Fluid writing impossible in {},{},{}", x, y, z, e);
             return false;
         }
-        broadcaster.accept(new ClientboundBlockUpdatePacket(Position.block(x, y, z), blockRegistry.networkId(state)));
+        world.sendToChunkViewers(x >> 4, z >> 4,
+                new ClientboundBlockUpdatePacket(Position.block(x, y, z), blockRegistry.networkId(state)));
         lightHook.onBlockChanged(world.dimension().id(), x, y, z);
         return true;
     }

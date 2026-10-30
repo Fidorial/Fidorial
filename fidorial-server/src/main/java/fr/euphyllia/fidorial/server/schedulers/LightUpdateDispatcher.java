@@ -4,7 +4,6 @@ import ca.spottedleaf.concurrentutil.collection.MultiThreadedQueue;
 import ca.spottedleaf.concurrentutil.executor.PrioritisedExecutor;
 import ca.spottedleaf.concurrentutil.executor.thread.BalancedPrioritisedThreadPool;
 import ca.spottedleaf.concurrentutil.util.Priority;
-import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLightUpdatePacket;
 import fr.euphyllia.fidorial.server.util.ConcurrentLongSet;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
@@ -34,7 +33,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class LightUpdateDispatcher {
@@ -51,7 +49,6 @@ public class LightUpdateDispatcher {
     private final Map<Key, ChunkRegionScheduler> regionSchedulers = new ConcurrentHashMap<>();
 
     private final AtomicInteger lightThreadId = new AtomicInteger(0);
-    private final Consumer<ClientboundPacket> broadcaster;
     private final ChunkNetworkSerializer serializer;
     private final Function<Key, @Nullable ServerWorld> worldLookup;
 
@@ -64,7 +61,6 @@ public class LightUpdateDispatcher {
 
     public LightUpdateDispatcher(
             final int lightWorkers,
-            final Consumer<ClientboundPacket> broadcaster,
             final ChunkNetworkSerializer serializer,
             final Function<Key, @Nullable ServerWorld> worldLookup
     ) {
@@ -77,7 +73,6 @@ public class LightUpdateDispatcher {
         );
         this.lightExecutor = lightPool.createOrderedStreamGroup().createExecutor();
         this.lightPool.adjustThreadCount(Math.max(1, lightWorkers));
-        this.broadcaster = broadcaster;
         this.serializer = serializer;
         this.worldLookup = worldLookup;
         LOGGER.info("Light pool started with {} workers", lightWorkers);
@@ -312,7 +307,8 @@ public class LightUpdateDispatcher {
             if (column == null) {
                 continue;
             }
-            broadcaster.accept(new ClientboundLightUpdatePacket(serializer, column, serverWorld.dimensionType().hasSkylight()));
+            serverWorld.sendToChunkViewers(key,
+                    new ClientboundLightUpdatePacket(serializer, column, serverWorld.dimensionType().hasSkylight()));
         }
     }
 

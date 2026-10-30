@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.network.session;
 import ca.spottedleaf.concurrentutil.util.Priority;
 import fr.euphyllia.fidorial.server.debug.ChunkDebugValues;
 import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundForgetLevelChunkPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelChunkWithLightPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetChunkCacheCenterPacket;
@@ -217,6 +218,11 @@ public final class ChunkViewTracker implements ChunkViewSource {
         synchronized (lock) {
             return !closed && (sent.contains(chunkKey) || pending.contains(chunkKey));
         }
+    }
+
+    @Override
+    public void send(final ClientboundPacket packet) {
+        connection.send(packet);
     }
 
     public void forEachSent(final LongConsumer action) {

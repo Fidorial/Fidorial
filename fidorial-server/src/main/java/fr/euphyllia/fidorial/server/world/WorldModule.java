@@ -81,16 +81,17 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.structures = new StructureService(
                 config.worlds().path().resolve("datapacks"), new RegistryBlockValidator(registries.blocks()));
         this.weather = new WeatherEngine(manager);
-        this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates(), online::broadcast);
+        this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates());
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
         this.bossBars = new BossBarRegistry(manager.levelData(), online::players);
         this.chunkSerializer = new ChunkNetworkSerializer(registries.blockStates(), registries.registry(RegistryKey.BIOME));
         this.light = new LightUpdateDispatcher(
-                config.threading().lightWorkers(), online::broadcast, chunkSerializer, manager::world);
+                config.threading().lightWorkers(), chunkSerializer, manager::world);
         this.blockEdits = new BlockEditService(
                 registries.blockStates(),
-                (pos, stateId) -> online.broadcast(new ClientboundBlockUpdatePacket(pos, stateId)),
+                (world, pos, stateId) -> world.sendToChunkViewers(
+                        pos.chunk().key(), new ClientboundBlockUpdatePacket(pos, stateId)),
                 fluids::notifyBlockChanged,
                 light::queueBlockChange);
 
