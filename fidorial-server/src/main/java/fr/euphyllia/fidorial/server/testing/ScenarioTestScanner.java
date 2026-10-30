@@ -61,7 +61,8 @@ final class ScenarioTestScanner {
         for (final ClassLoader loader : loaders) {
             try {
                 return Class.forName(name, false, loader);
-            } catch (final ClassNotFoundException _) {}
+            } catch (final ClassNotFoundException _) {
+            }
         }
 
         throw new IllegalStateException("Cannot load scanned class " + name + " with any supplied classloader.");
