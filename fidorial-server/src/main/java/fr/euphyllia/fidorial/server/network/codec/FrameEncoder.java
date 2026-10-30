@@ -8,8 +8,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 public final class FrameEncoder extends MessageToByteEncoder<ByteBuf> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf msg, ByteBuf out) {
-        int length = msg.readableBytes();
+    protected void encode(final ChannelHandlerContext ctx, final ByteBuf msg, final ByteBuf out) {
+        final int length = msg.readableBytes();
         out.ensureWritable(VarInts.varIntSize(length) + length);
         VarInts.writeVarInt(out, length);
         out.writeBytes(msg);

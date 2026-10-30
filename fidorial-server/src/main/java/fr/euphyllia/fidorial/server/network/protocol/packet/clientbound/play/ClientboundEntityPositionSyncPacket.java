@@ -20,7 +20,7 @@ public record ClientboundEntityPositionSyncPacket(
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         position.writeTo(buf);
         rotation.writeTo(buf);

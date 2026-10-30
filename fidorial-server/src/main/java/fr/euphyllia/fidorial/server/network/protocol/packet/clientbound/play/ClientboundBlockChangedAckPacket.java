@@ -14,7 +14,7 @@ public record ClientboundBlockChangedAckPacket(int sequence) implements Clientbo
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(sequence);
     }
 }

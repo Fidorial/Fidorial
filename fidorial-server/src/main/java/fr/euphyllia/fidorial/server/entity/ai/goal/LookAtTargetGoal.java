@@ -13,7 +13,7 @@ public final class LookAtTargetGoal implements Goal {
     private final double rangeSq;
     private int remainingTicks;
 
-    public LookAtTargetGoal(AbstractPathfinderMob mob, int priority, double range) {
+    public LookAtTargetGoal(final AbstractPathfinderMob mob, final int priority, final double range) {
         this.mob = mob;
         this.priority = priority;
         this.rangeSq = range * range;
@@ -26,7 +26,7 @@ public final class LookAtTargetGoal implements Goal {
 
     @Override
     public boolean canStart() {
-        ServerPlayer target = mob.target();
+        final ServerPlayer target = mob.target();
         return target != null
                 && mob.distanceSqTo(target) <= rangeSq
                 && ThreadLocalRandom.current().nextInt(40) == 0;
@@ -34,7 +34,7 @@ public final class LookAtTargetGoal implements Goal {
 
     @Override
     public boolean shouldContinue() {
-        ServerPlayer target = mob.target();
+        final ServerPlayer target = mob.target();
         return remainingTicks > 0 && target != null && mob.distanceSqTo(target) <= rangeSq;
     }
 
@@ -46,7 +46,7 @@ public final class LookAtTargetGoal implements Goal {
     @Override
     public void tick() {
         remainingTicks--;
-        ServerPlayer target = mob.target();
+        final ServerPlayer target = mob.target();
         if (target != null) {
             mob.lookAt(target);
         }

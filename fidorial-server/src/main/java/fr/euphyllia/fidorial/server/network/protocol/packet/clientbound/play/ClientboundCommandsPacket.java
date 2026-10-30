@@ -17,8 +17,8 @@ public record ClientboundCommandsPacket(CommandDispatcher<CommandSource> dispatc
     }
 
     @Override
-    public void write(PacketBuffer buf) {
-        RootCommandNode<CommandSource> filtered = CommandTreeSerializer.filter(dispatcher.getRoot(), source);
+    public void write(final PacketBuffer buf) {
+        final RootCommandNode<CommandSource> filtered = CommandTreeSerializer.filter(dispatcher.getRoot(), source);
         CommandTreeSerializer.write(buf, filtered);
     }
 }

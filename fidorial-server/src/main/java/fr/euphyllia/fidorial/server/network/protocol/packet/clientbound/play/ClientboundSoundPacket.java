@@ -14,7 +14,7 @@ public record ClientboundSoundPacket(Sound sound, double x, double y, double z) 
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         SoundEventWriter.writeSoundEvent(buf, sound);
         buf.writeVarInt(SoundEventWriter.sourceId(sound.source()));
         buf.writeInt((int) (x * 8.0));

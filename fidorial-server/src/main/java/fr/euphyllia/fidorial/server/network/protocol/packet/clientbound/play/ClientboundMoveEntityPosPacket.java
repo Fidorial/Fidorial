@@ -16,7 +16,7 @@ public record ClientboundMoveEntityPosPacket(int entityId, PositionData.DeltaVec
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         buf.writeBoolean(onGround);
         delta.writeTo(buf);

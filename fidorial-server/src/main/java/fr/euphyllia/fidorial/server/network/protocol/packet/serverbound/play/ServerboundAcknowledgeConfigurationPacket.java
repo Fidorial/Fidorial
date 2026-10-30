@@ -13,7 +13,7 @@ public record ServerboundAcknowledgeConfigurationPacket() implements Serverbound
     }
 
     @Override
-    public void handle(PacketListener listener) {
+    public void handle(final PacketListener listener) {
         ((PlayPacketListener) listener).handleAcknowledgeConfiguration(this);
     }
 }

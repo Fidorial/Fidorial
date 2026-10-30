@@ -28,35 +28,35 @@ public final class MojangSessionService {
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
-    private static UUID undash(String id) {
+    private static UUID undash(final String id) {
         return UUID.fromString(id.replaceFirst(
                 "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
     }
 
-    public Optional<GameProfile> hasJoined(String username, String serverHash)
+    public Optional<GameProfile> hasJoined(final String username, final String serverHash)
             throws IOException, InterruptedException {
-        String url = HAS_JOINED_URL.formatted(
+        final String url = HAS_JOINED_URL.formatted(
                 URLEncoder.encode(username, StandardCharsets.UTF_8), serverHash);
 
-        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+        final HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(10))
                 .GET()
                 .build();
 
-        HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+        final HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200 || response.body().isBlank()) {
             return Optional.empty(); // 204 = session invalide
         }
 
-        JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-        UUID uuid = undash(json.get("id").getAsString());
-        String name = json.get("name").getAsString();
+        final JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+        final UUID uuid = undash(json.get("id").getAsString());
+        final String name = json.get("name").getAsString();
 
-        List<GameProfile.Property> props = new ArrayList<>();
+        final List<GameProfile.Property> props = new ArrayList<>();
         if (json.has("properties")) {
-            JsonArray array = json.getAsJsonArray("properties");
-            for (JsonElement el : array) {
-                JsonObject p = el.getAsJsonObject();
+            final JsonArray array = json.getAsJsonArray("properties");
+            for (final JsonElement el : array) {
+                final JsonObject p = el.getAsJsonObject();
                 props.add(new GameProfile.Property(
                         p.get("name").getAsString(),
                         p.get("value").getAsString(),

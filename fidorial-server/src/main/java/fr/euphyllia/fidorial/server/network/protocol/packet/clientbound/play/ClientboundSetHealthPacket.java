@@ -14,7 +14,7 @@ public record ClientboundSetHealthPacket(float health, int food, float saturatio
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeFloat(health);
         buf.writeVarInt(food);
         buf.writeFloat(saturation);

@@ -15,7 +15,7 @@ public record ClientboundBrandPacket(String brand) implements ClientboundPacket 
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeKey(BRAND_CHANNEL).writeString(brand);
     }
 }

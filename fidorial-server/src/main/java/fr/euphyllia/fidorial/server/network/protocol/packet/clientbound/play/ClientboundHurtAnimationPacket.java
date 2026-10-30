@@ -14,7 +14,7 @@ public record ClientboundHurtAnimationPacket(int entityId, float yaw) implements
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         buf.writeFloat(yaw);
     }

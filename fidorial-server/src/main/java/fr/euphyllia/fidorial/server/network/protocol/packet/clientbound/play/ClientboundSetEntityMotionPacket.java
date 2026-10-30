@@ -18,7 +18,7 @@ public record ClientboundSetEntityMotionPacket(int entityId, PositionData.Veloci
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         velocity.writeTo(buf);
     }
