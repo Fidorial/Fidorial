@@ -38,8 +38,7 @@ public final class RegistryKeysGenerator {
      * @param registryType    configured Java type information
      * @param registry        parsed Mojang registry definition
      * @param registryPackage package holding {@code RegistryKey}/{@code TypedKey}
-     * @param dataPackage     package holding the marker interface (already resolved, including
-     *                        the registry type's own subpackage if any)
+     * @param valueType       fully qualified type of the registry values
      * @param keysPackage     package this class is written to (already resolved, including
      *                        the registry type's own subpackage if any)
      * @param outputDirectory generated Java source root
@@ -48,14 +47,14 @@ public final class RegistryKeysGenerator {
     public void generate(final RegistryTypeDefinition registryType,
                          final RegistryDefinition registry,
                          final String registryPackage,
-                         final String dataPackage,
+                         final String valueType,
                          final String keysPackage,
                          final Path outputDirectory) throws IOException {
 
         Objects.requireNonNull(registryType, "registryType");
         Objects.requireNonNull(registry, "registry");
         Objects.requireNonNull(registryPackage, "registryPackage");
-        Objects.requireNonNull(dataPackage, "dataPackage");
+        Objects.requireNonNull(valueType, "valueType");
         Objects.requireNonNull(keysPackage, "keysPackage");
         Objects.requireNonNull(outputDirectory, "outputDirectory");
 
@@ -65,7 +64,7 @@ public final class RegistryKeysGenerator {
 
         final ClassName registryKey = ClassName.get(registryPackage, "RegistryKey");
         final ClassName typedKey = ClassName.get(registryPackage, "TypedKey");
-        final ClassName markerType = ClassName.get(dataPackage, registryType.typeName());
+        final ClassName markerType = ClassName.bestGuess(valueType);
 
         final ParameterizedTypeName typedKeyType = ParameterizedTypeName.get(typedKey, markerType);
 

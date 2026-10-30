@@ -1,26 +1,22 @@
 package fr.fidorial.registry;
 
 import fr.fidorial.Server;
-import fr.fidorial.chat.ChatTypeRegistry;
-import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.effect.MobEffectRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.item.ItemRegistry;
-import fr.fidorial.item.enchantment.EnchantmentRegistry;
+import fr.fidorial.item.enchantment.Enchantments;
 import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.recipe.RecipeRegistry;
-import fr.fidorial.world.biome.BiomeRegistry;
-import fr.fidorial.world.dimension.DimensionTypeRegistry;
 import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 /**
- * The server-wide registries plugins can extend: content sent to clients (biomes, dimension
- * types, chat types, dialogs, enchantments) and content defined in code (mobs, effects, items,
- * permissions).
+ * The server-wide registries: every {@linkplain #registry(RegistryKey) data registry}, with the
+ * vanilla entries and those plugins add, and the content defined in code (mobs, effects, items,
+ * recipes, permissions).
  *
  * @see Server#registries()
  * @since 0.1.0
@@ -28,47 +24,36 @@ import org.jetbrains.annotations.Contract;
 public interface GameRegistries {
 
     /**
-     * Gets the server-wide biome registry.
+     * Gets a registry.
      *
-     * <p>Biomes registered there are sent to every client, and may be referenced
-     * by {@link WorldGenerator generators} through
-     * {@link GeneratedChunk#setBiome(int, int, int, Key)}.</p>
+     * <p>Every {@link RegistryKey} has one, populated with the vanilla entries from the start.</p>
      *
-     * @return the biome registry
+     * @param key the key of the registry
+     * @param <T> the type of the values
+     * @return the registry
+     * @throws IllegalArgumentException if the server has no such registry
      * @since 0.1.0
      */
     @Contract(pure = true)
-    BiomeRegistry biomes();
+    <T> Registry<T> registry(RegistryKey<T> key);
 
     /**
-     * Gets the server-wide dimension type registry.
+     * Gets a registry plugins can add entries to, such as {@link RegistryKey#BIOME},
+     * {@link RegistryKey#DIMENSION_TYPE}, {@link RegistryKey#CHAT_TYPE}, {@link RegistryKey#DIALOG}
+     * or {@link RegistryKey#ENCHANTMENT}.
      *
-     * <p>Dimension types registered there are sent to every client, and may be returned by
-     * {@link WorldGenerator#dimensionType() generators} to shape the worlds they drive.</p>
+     * <p>Biomes registered there may be referenced by {@link WorldGenerator generators} through
+     * {@link GeneratedChunk#setBiome(int, int, int, Key)}, and dimension types returned by
+     * {@link WorldGenerator#dimensionType()}.</p>
      *
-     * @return the dimension type registry
+     * @param key the key of the registry
+     * @param <T> the type of the values
+     * @return the registry
+     * @throws IllegalArgumentException if the registry is not writable
      * @since 0.1.0
      */
     @Contract(pure = true)
-    DimensionTypeRegistry dimensionTypes();
-
-    /**
-     * Gets the server-wide chat type registry.
-     *
-     * @return the chat type registry
-     * @since 0.1.0
-     */
-    @Contract(pure = true)
-    ChatTypeRegistry chatTypes();
-
-    /**
-     * Gets the server-wide dialog registry.
-     *
-     * @return the dialog registry
-     * @since 0.1.0
-     */
-    @Contract(pure = true)
-    DialogRegistry dialogs();
+    <T> WritableRegistry<T> writable(RegistryKey<T> key);
 
     /**
      * Gets the server-wide mob registry.
@@ -97,16 +82,17 @@ public interface GameRegistries {
     MobEffectRegistry effects();
 
     /**
-     * Gets the server-wide enchantment registry.
+     * Gets the enchantment behaviours and helpers.
      *
-     * <p>Where plugins {@linkplain EnchantmentRegistry#register register} enchantments of their own
-     * and {@linkplain EnchantmentRegistry#attach give behaviour} to vanilla enchantments.</p>
+     * <p>The enchantments themselves live in the {@link RegistryKey#ENCHANTMENT} registry. This is
+     * where plugins {@linkplain Enchantments#define define} enchantments and
+     * {@linkplain Enchantments#attach give behaviour} to them, vanilla ones included.</p>
      *
-     * @return the enchantment registry
+     * @return the enchantments
      * @since 0.1.0
      */
     @Contract(pure = true)
-    EnchantmentRegistry enchantments();
+    Enchantments enchantments();
 
     /**
      * Gets the server-wide item registry.

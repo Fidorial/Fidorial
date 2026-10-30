@@ -3,9 +3,9 @@ package fr.fidorial.world.biome;
 import com.google.common.base.Preconditions;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Biome;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 
 
@@ -29,7 +29,7 @@ public record BiomeDefinition(
         float downfall,
         BiomeEffects effects,
         EnvironmentAttributes attributes
-) implements Biome {
+) implements Keyed {
 
     public BiomeDefinition {
         Preconditions.checkArgument(key != null, "The key of a biome definition must not be null");
@@ -65,7 +65,7 @@ public record BiomeDefinition(
      * {@return this biome's key, typed against the {@code minecraft:worldgen/biome} registry}
      */
     @Contract(value = "-> new", pure = true)
-    public TypedKey<Biome> typedKey() {
+    public TypedKey<BiomeDefinition> typedKey() {
         return TypedKey.create(RegistryKey.BIOME, key);
     }
 }

@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.fidorial.item.ItemStack;
 import net.kyori.adventure.key.Key;
 
@@ -28,7 +28,7 @@ import java.util.List;
  * <p><a href="https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Container_Content">Packets#Set_Container_Content</a>
  */
 public record ClientboundContainerSetContentPacket(
-        int windowId, int stateId, List<ItemStack> slots, ItemStack carried, RegistryHolder frozen)
+        int windowId, int stateId, List<ItemStack> slots, ItemStack carried, ServerRegistries registries)
         implements ClientboundPacket {
 
     public ClientboundContainerSetContentPacket {
@@ -46,8 +46,8 @@ public record ClientboundContainerSetContentPacket(
         buf.writeVarInt(stateId); // State ID
         buf.writeVarInt(slots.size()); // slot count
         for (final ItemStack stack : slots) {
-            ItemStackWriter.writeSlot(buf, stack, frozen);
+            ItemStackWriter.writeSlot(buf, stack, registries);
         }
-        ItemStackWriter.writeSlot(buf, carried, frozen); // Carried item (cursor)
+        ItemStackWriter.writeSlot(buf, carried, registries); // Carried item (cursor)
     }
 }

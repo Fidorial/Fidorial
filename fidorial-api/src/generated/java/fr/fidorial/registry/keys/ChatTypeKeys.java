@@ -1,8 +1,8 @@
 package fr.fidorial.registry.keys;
 
+import fr.fidorial.chat.ChatTypeDefinition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.ChatType;
 import java.util.List;
 import java.util.stream.Stream;
 import net.kyori.adventure.key.KeyPattern;
@@ -14,39 +14,39 @@ public final class ChatTypeKeys {
     /**
      * Key for {@code minecraft:chat}.
      */
-    public static final TypedKey<ChatType> CHAT = create("chat");
+    public static final TypedKey<ChatTypeDefinition> CHAT = create("chat");
 
     /**
      * Key for {@code minecraft:emote_command}.
      */
-    public static final TypedKey<ChatType> EMOTE_COMMAND = create("emote_command");
+    public static final TypedKey<ChatTypeDefinition> EMOTE_COMMAND = create("emote_command");
 
     /**
      * Key for {@code minecraft:msg_command_incoming}.
      */
-    public static final TypedKey<ChatType> MSG_COMMAND_INCOMING = create("msg_command_incoming");
+    public static final TypedKey<ChatTypeDefinition> MSG_COMMAND_INCOMING = create("msg_command_incoming");
 
     /**
      * Key for {@code minecraft:msg_command_outgoing}.
      */
-    public static final TypedKey<ChatType> MSG_COMMAND_OUTGOING = create("msg_command_outgoing");
+    public static final TypedKey<ChatTypeDefinition> MSG_COMMAND_OUTGOING = create("msg_command_outgoing");
 
     /**
      * Key for {@code minecraft:say_command}.
      */
-    public static final TypedKey<ChatType> SAY_COMMAND = create("say_command");
+    public static final TypedKey<ChatTypeDefinition> SAY_COMMAND = create("say_command");
 
     /**
      * Key for {@code minecraft:team_msg_command_incoming}.
      */
-    public static final TypedKey<ChatType> TEAM_MSG_COMMAND_INCOMING = create("team_msg_command_incoming");
+    public static final TypedKey<ChatTypeDefinition> TEAM_MSG_COMMAND_INCOMING = create("team_msg_command_incoming");
 
     /**
      * Key for {@code minecraft:team_msg_command_outgoing}.
      */
-    public static final TypedKey<ChatType> TEAM_MSG_COMMAND_OUTGOING = create("team_msg_command_outgoing");
+    public static final TypedKey<ChatTypeDefinition> TEAM_MSG_COMMAND_OUTGOING = create("team_msg_command_outgoing");
 
-    private static final List<TypedKey<ChatType>> VALUES = List.of(
+    private static final List<TypedKey<ChatTypeDefinition>> VALUES = List.of(
         CHAT,
         EMOTE_COMMAND,
         MSG_COMMAND_INCOMING,
@@ -60,7 +60,7 @@ public final class ChatTypeKeys {
         throw new UnsupportedOperationException("ChatTypeKeys cannot be instantiated.");
     }
 
-    private static TypedKey<ChatType> create(@KeyPattern final String value) {
+    private static TypedKey<ChatTypeDefinition> create(@KeyPattern final String value) {
         return TypedKey.create(RegistryKey.CHAT_TYPE, value);
     }
 
@@ -69,7 +69,7 @@ public final class ChatTypeKeys {
      *
      * @return a stream of registry keys
      */
-    public static Stream<TypedKey<ChatType>> values() {
+    public static Stream<TypedKey<ChatTypeDefinition>> values() {
         return VALUES.stream();
     }
 }

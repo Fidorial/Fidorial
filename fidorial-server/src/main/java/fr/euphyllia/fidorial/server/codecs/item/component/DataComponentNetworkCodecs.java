@@ -1,15 +1,16 @@
 package fr.euphyllia.fidorial.server.codecs.item.component;
 
-import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
+import fr.fidorial.registry.RegistryKey;
 import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -32,9 +33,9 @@ public class DataComponentNetworkCodecs {
 
     public interface Codec<T> {
 
-        void write(PacketBuffer buf, RegistryHolder frozen, T value);
+        void write(PacketBuffer buf, ServerRegistries registries, T value);
 
-        T read(PacketBuffer buf, RegistryHolder frozen);
+        T read(PacketBuffer buf, ServerRegistries registries);
     }
 
     private static final Map<DataComponentType<?>, Codec<?>> CODECS = new LinkedHashMap<>();
@@ -74,7 +75,7 @@ public class DataComponentNetworkCodecs {
     }
 
     public static <T> void writeErased(final PacketBuffer buf,
-                                       final RegistryHolder frozen,
+                                       final ServerRegistries registries,
                                        final DataComponentType<T> type,
                                        final Object value) {
 
@@ -82,18 +83,18 @@ public class DataComponentNetworkCodecs {
         if (codec == null) {
             throw new IllegalStateException("No wire codec for component " + type);
         }
-        codec.write(buf, frozen, type.valueType().cast(value));
+        codec.write(buf, registries, type.valueType().cast(value));
     }
 
     private static Codec<Integer> varIntCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final Integer value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final Integer value) {
                 buf.writeVarInt(value);
             }
 
             @Override
-            public Integer read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public Integer read(final PacketBuffer buf, final ServerRegistries registries) {
                 return buf.readVarInt();
             }
         };
@@ -102,12 +103,12 @@ public class DataComponentNetworkCodecs {
     private static Codec<Boolean> booleanCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final Boolean value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final Boolean value) {
                 buf.writeBoolean(value);
             }
 
             @Override
-            public Boolean read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public Boolean read(final PacketBuffer buf, final ServerRegistries registries) {
                 return buf.readBoolean();
             }
         };
@@ -116,12 +117,12 @@ public class DataComponentNetworkCodecs {
     private static Codec<Key> identifierCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final Key value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final Key value) {
                 buf.writeKey(value);
             }
 
             @Override
-            public Key read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public Key read(final PacketBuffer buf, final ServerRegistries registries) {
                 return buf.readKey();
             }
         };
@@ -130,12 +131,12 @@ public class DataComponentNetworkCodecs {
     private static Codec<Component> textCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final Component value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final Component value) {
                 buf.writeComponent(value);
             }
 
             @Override
-            public Component read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public Component read(final PacketBuffer buf, final ServerRegistries registries) {
                 return buf.readComponent(MAX_COMPONENT_TEXT_LENGTH);
             }
         };
@@ -144,7 +145,7 @@ public class DataComponentNetworkCodecs {
     private static Codec<ItemLore> loreCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final ItemLore value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final ItemLore value) {
                 buf.writeVarInt(value.size());
                 for (final Component line : value.lines()) {
                     buf.writeComponent(line);
@@ -152,7 +153,7 @@ public class DataComponentNetworkCodecs {
             }
 
             @Override
-            public ItemLore read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public ItemLore read(final PacketBuffer buf, final ServerRegistries registries) {
                 final int size = readBoundedLength(buf, ItemLore.MAX_LINES, "lore");
 
                 final List<Component> lines = new ArrayList<>(size);
@@ -168,8 +169,8 @@ public class DataComponentNetworkCodecs {
     private static Codec<ItemEnchantments> enchantmentsCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final ItemEnchantments value) {
-                final FidorialEnchantmentRegistry registry = FidorialServer.getInstance().registries().enchantments();
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final ItemEnchantments value) {
+                final ServerRegistry<EnchantmentDefinition> registry = registries.registry(RegistryKey.ENCHANTMENT);
                 final Map<Integer, Integer> known = new LinkedHashMap<>();
                 for (final Map.Entry<Key, Integer> level : value.levels().entrySet()) {
                     final int id = registry.networkId(level.getKey());
@@ -187,8 +188,8 @@ public class DataComponentNetworkCodecs {
             }
 
             @Override
-            public ItemEnchantments read(final PacketBuffer buf, final RegistryHolder frozen) {
-                final FidorialEnchantmentRegistry registry = FidorialServer.getInstance().registries().enchantments();
+            public ItemEnchantments read(final PacketBuffer buf, final ServerRegistries registries) {
+                final ServerRegistry<EnchantmentDefinition> registry = registries.registry(RegistryKey.ENCHANTMENT);
                 final int size = readBoundedLength(buf, MAX_ENCHANTMENTS, "enchantments");
                 final Map<Key, Integer> levels = new LinkedHashMap<>();
                 for (int i = 0; i < size; i++) {
@@ -210,7 +211,7 @@ public class DataComponentNetworkCodecs {
     private static Codec<WrittenBookContent> writtenBookContentCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final WrittenBookContent value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final WrittenBookContent value) {
                 buf.writeString(WrittenBookTexts.title(value.title()));
                 buf.writeBoolean(false);
                 buf.writeString(WrittenBookTexts.author(value.author()));
@@ -224,7 +225,7 @@ public class DataComponentNetworkCodecs {
             }
 
             @Override
-            public WrittenBookContent read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public WrittenBookContent read(final PacketBuffer buf, final ServerRegistries registries) {
                 final Component title = Component.text(buf.readString(WrittenBookContent.MAX_TITLE_LENGTH));
                 if (buf.readBoolean()) {
                     buf.readString(WrittenBookContent.MAX_TITLE_LENGTH);
@@ -250,13 +251,13 @@ public class DataComponentNetworkCodecs {
     private static Codec<SwingAnimation> swingAnimationCodec() {
         return new Codec<>() {
             @Override
-            public void write(final PacketBuffer buf, final RegistryHolder frozen, final SwingAnimation value) {
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final SwingAnimation value) {
                 buf.writeVarInt(networkId(value.type()));
                 buf.writeVarInt(value.duration());
             }
 
             @Override
-            public SwingAnimation read(final PacketBuffer buf, final RegistryHolder frozen) {
+            public SwingAnimation read(final PacketBuffer buf, final ServerRegistries registries) {
                 final SwingAnimation.SwingAnimationType type = fromNetworkId(buf.readVarInt());
                 final int duration = buf.readVarInt();
                 return new SwingAnimation(type, duration);

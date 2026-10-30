@@ -11,11 +11,15 @@ import fr.fidorial.dialog.DialogBody;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogInput;
 import fr.fidorial.dialog.DialogListDialog;
-import fr.fidorial.dialog.DialogRegistry;
 import fr.fidorial.dialog.MultiActionDialog;
 import fr.fidorial.dialog.NoticeDialog;
 import fr.fidorial.dialog.ServerLinksDialog;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.WritableRegistry;
+import fr.fidorial.registry.keys.DialogTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
@@ -93,18 +97,20 @@ public final class TestDialogs {
      * hotkey.
      *
      * @param dialogs the server dialog registry
+     * @param owner   the plugin registering them
      * @param logger  where the outcome is reported
      */
-    public static void registerAll(final DialogRegistry dialogs, final ComponentLogger logger) {
-        dialogs.overwrite(NOTICE, notice());
-        dialogs.overwrite(CONFIRMATION, confirmation());
-        dialogs.overwrite(FORM, form());
-        dialogs.overwrite(MULTI_ACTION, multiAction());
-        dialogs.overwrite(SERVER_LINKS, serverLinks());
-        dialogs.overwrite(ROOT, root());
+    public static void registerAll(final WritableRegistry<DialogDefinition> dialogs, final Plugin owner,
+                                   final ComponentLogger logger) {
+        dialogs.overwrite(typed(NOTICE), notice(), owner);
+        dialogs.overwrite(typed(CONFIRMATION), confirmation(), owner);
+        dialogs.overwrite(typed(FORM), form(), owner);
+        dialogs.overwrite(typed(MULTI_ACTION), multiAction(), owner);
+        dialogs.overwrite(typed(SERVER_LINKS), serverLinks(), owner);
+        dialogs.overwrite(typed(ROOT), root(), owner);
 
-        dialogs.addToPauseScreen(ROOT);
-        dialogs.addToQuickActions(ROOT);
+        dialogs.addToTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(ROOT));
+        dialogs.addToTag(DialogTagKeys.QUICK_ACTIONS, typed(ROOT));
 
         logger.info("[TestPlugin] {} recorded dialogues, root menu = {}",
                 6, ROOT.asString());
@@ -115,11 +121,16 @@ public final class TestDialogs {
      *
      * @param dialogs the server dialog registry
      */
-    public static void unregisterAll(final DialogRegistry dialogs) {
+    public static void unregisterAll(final WritableRegistry<DialogDefinition> dialogs) {
         for (final Key key : List.of(ROOT, SERVER_LINKS, MULTI_ACTION, FORM, CONFIRMATION, NOTICE)) {
-            dialogs.removeFromMenus(key);
-            dialogs.unregister(key);
+            dialogs.removeFromTag(DialogTagKeys.PAUSE_SCREEN_ADDITIONS, typed(key));
+            dialogs.removeFromTag(DialogTagKeys.QUICK_ACTIONS, typed(key));
+            dialogs.unregister(typed(key));
         }
+    }
+
+    private static TypedKey<DialogDefinition> typed(final Key key) {
+        return TypedKey.create(RegistryKey.DIALOG, key);
     }
 
     /**

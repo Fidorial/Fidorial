@@ -11,9 +11,9 @@ import java.util.List;
  * Server-side behaviour of an enchantment.
  *
  * <p>The behaviours of an enchantment run in the following order: the
- * {@linkplain EnchantmentRegistry#supportedEffectComponents() supported} effect components of its
+ * {@linkplain Enchantments#supportedEffectComponents() supported} effect components of its
  * data, the behaviour of its {@linkplain EnchantmentDefinition.Builder#behaviour definition}, then the
- * behaviours {@linkplain EnchantmentRegistry#attach attached} to it. Each modifying hook receives the
+ * behaviours {@linkplain Enchantments#attach attached} to it. Each modifying hook receives the
  * value returned by the previous one.</p>
  *
  * <p>Hooks related to an attack only consider the weapon held in the main hand. Other hooks consider

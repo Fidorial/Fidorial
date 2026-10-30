@@ -355,11 +355,11 @@ public final class StructureRegistry implements TemplateSource {
     }
 
     public Set<Key> biomeTag(final Key tag) {
-        return resolveTag(contents.biomeTags(), biomeTags, tag, new HashSet<>(), "biome");
+        return resolveTag(contents.tags("worldgen/biome"), biomeTags, tag, new HashSet<>(), "biome");
     }
 
     public Set<Key> blockTag(final Key tag) {
-        return resolveTag(contents.blockTags(), blockTags, tag, new HashSet<>(), "block");
+        return resolveTag(contents.tags("block"), blockTags, tag, new HashSet<>(), "block");
     }
 
     private Set<Key> resolveTag(final Map<Key, List<TagFile>> files, final Map<Key, Set<Key>> cache, final Key tag,

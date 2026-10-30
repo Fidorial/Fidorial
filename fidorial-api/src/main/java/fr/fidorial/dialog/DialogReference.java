@@ -6,7 +6,7 @@ import net.kyori.adventure.key.Key;
 
 
 /**
- * A pointer to a dialog held by the {@linkplain DialogRegistry dialog registry}.
+ * A pointer to a dialog held by the {@linkplain fr.fidorial.registry.RegistryKey#DIALOG dialog registry}.
  *
  * @param key the key the dialog is registered under
  * @see Dialog#reference(Key)

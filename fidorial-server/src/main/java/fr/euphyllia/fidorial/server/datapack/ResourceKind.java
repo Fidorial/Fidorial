@@ -8,8 +8,10 @@ public enum ResourceKind {
     STRUCTURE_SET(".json", "worldgen/structure_set/"),
     TEMPLATE_POOL(".json", "worldgen/template_pool/"),
     PROCESSOR_LIST(".json", "worldgen/processor_list/"),
-    BIOME_TAG(".json", "tags/worldgen/biome/"),
-    BLOCK_TAG(".json", "tags/block/", "tags/blocks/");
+    /**
+     * A tag of any registry: the path starts with the registry, such as {@code worldgen/biome/is_ocean}.
+     */
+    TAG(".json", "tags/");
 
     private final String extension;
     private final String[] prefixes;

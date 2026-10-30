@@ -1,30 +1,21 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration;
 
-import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantmentRegistry;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.registry.Registry;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
-import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
-import fr.euphyllia.fidorial.server.registry.chat.FidorialChatTypeRegistry;
-import fr.euphyllia.fidorial.server.registry.dialog.FidorialDialogRegistry;
-import fr.euphyllia.fidorial.server.registry.dimension.FidorialDimensionTypeRegistry;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.ToIntFunction;
 
-public record ClientboundUpdateTagsPacket(
-        RegistryHolder network,
-        FidorialBiomeRegistry biomes,
-        FidorialDialogRegistry dialogs,
-        FidorialDimensionTypeRegistry dimensionTypes,
-        FidorialChatTypeRegistry chatTypes,
-        FidorialEnchantmentRegistry enchantments
-) implements ClientboundPacket {
+/**
+ * The tags of every registry, their members by network ID.
+ */
+public record ClientboundUpdateTagsPacket(Collection<ServerRegistry<?>> registries) implements ClientboundPacket {
 
     @Override
     public Key name() {
@@ -33,50 +24,23 @@ public record ClientboundUpdateTagsPacket(
 
     @Override
     public void write(final PacketBuffer buf) {
-        buf.writeVarInt(network.size());
-
-        for (final Registry reg : network.all()) {
-            final Map<Key, List<Key>> tags;
-            final ToIntFunction<Key> networkId;
-
-            if (reg.name().equals(FidorialBiomeRegistry.REGISTRY_NAME)) {
-                tags = reg.tags();
-                networkId = biomes::networkId;
-            } else if (reg.name().equals(FidorialDialogRegistry.REGISTRY_NAME)) {
-                tags = dialogs.networkTags();
-                networkId = dialogs::networkId;
-            } else if (reg.name().equals(FidorialDimensionTypeRegistry.REGISTRY_NAME)) {
-                tags = reg.tags();
-                networkId = dimensionTypes::networkId;
-            } else if (reg.name().equals(FidorialChatTypeRegistry.REGISTRY_NAME)) {
-                tags = reg.tags();
-                networkId = chatTypes::networkId;
-            } else if (reg.name().equals(FidorialEnchantmentRegistry.REGISTRY_NAME)) {
-                tags = enchantments.networkTags();
-                networkId = enchantments::networkId;
-            } else {
-                tags = reg.tags();
-                final List<Key> entries = reg.entries();
-                networkId = entries::indexOf;
-            }
-
-            buf.writeKey(reg.name());
+        buf.writeVarInt(registries.size());
+        for (final ServerRegistry<?> registry : registries) {
+            final Map<Key, List<Key>> tags = registry.tagMap();
+            buf.writeKey(registry.name());
             buf.writeVarInt(tags.size());
-
             for (final Map.Entry<Key, List<Key>> tag : tags.entrySet()) {
-                final List<Integer> ids = new ArrayList<>(tag.getValue().size());
-
-                for (final Key entry : tag.getValue()) {
-                    final int id = networkId.applyAsInt(entry);
+                final IntList ids = new IntArrayList(tag.getValue().size());
+                for (final Key member : tag.getValue()) {
+                    final int id = registry.networkId(member);
                     if (id >= 0) {
                         ids.add(id);
                     }
                 }
-
                 buf.writeKey(tag.getKey());
                 buf.writeVarInt(ids.size());
-                for (final int id : ids) {
-                    buf.writeVarInt(id);
+                for (int i = 0; i < ids.size(); i++) {
+                    buf.writeVarInt(ids.getInt(i));
                 }
             }
         }

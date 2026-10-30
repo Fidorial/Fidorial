@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Contract;
 import java.util.List;
 
 /**
- * A dialog to show a player: either a full definition, or a reference to one held by the {@link DialogRegistry}.
+ * A dialog to show a player: either a full definition, or a reference to one held by the {@link fr.fidorial.registry.RegistryKey#DIALOG dialog registry}.
  *
  * @since 0.1.0
  */
@@ -18,7 +18,7 @@ import java.util.List;
 public sealed interface Dialog extends DialogLike permits DialogDefinition, DialogReference {
 
     /**
-     * Points at a dialog held by the {@linkplain DialogRegistry registry} rather than describing
+     * Points at a dialog held by the {@linkplain fr.fidorial.registry.RegistryKey#DIALOG registry} rather than describing
      * one.
      *
      * @param key the key the dialog is registered under
@@ -31,14 +31,14 @@ public sealed interface Dialog extends DialogLike permits DialogDefinition, Dial
     }
 
     /**
-     * Points at a dialog held by the {@linkplain DialogRegistry registry}.
+     * Points at a dialog held by the {@linkplain fr.fidorial.registry.RegistryKey#DIALOG registry}.
      *
      * @param key the typed key the dialog is registered under
      * @return the reference
      * @since 0.1.0
      */
     @Contract("_ -> new")
-    static DialogReference reference(final TypedKey<fr.fidorial.registry.data.Dialog> key) {
+    static DialogReference reference(final TypedKey<DialogDefinition> key) {
         return new DialogReference(key.key());
     }
 

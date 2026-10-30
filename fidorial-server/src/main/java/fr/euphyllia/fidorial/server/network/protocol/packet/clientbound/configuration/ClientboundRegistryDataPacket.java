@@ -12,10 +12,6 @@ import java.util.List;
 public record ClientboundRegistryDataPacket(Key registryId, List<RegistryEntry> entries)
         implements ClientboundPacket {
 
-    public static ClientboundRegistryDataPacket knownOnly(final Key registryId, final List<Key> keys) {
-        return new ClientboundRegistryDataPacket(registryId, keys.stream().map(RegistryEntry::known).toList());
-    }
-
     @Override
     public Key name() {
         return ConfigurationClientboundPackets.REGISTRY_DATA;

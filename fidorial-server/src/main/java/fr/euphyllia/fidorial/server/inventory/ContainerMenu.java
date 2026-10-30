@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetDataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.inventory.PlayerInventory;
@@ -666,8 +666,8 @@ public abstract class ContainerMenu {
         player.connection().send(packet);
     }
 
-    private RegistryHolder registries() {
-        return player.connection().server().registries().network();
+    private ServerRegistries registries() {
+        return player.connection().server().registries().serverRegistries();
     }
 
     /**

@@ -4,8 +4,8 @@ import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * A complete enchantment definition, ready to be sent to clients.
  *
- * <p>Definitions are created through {@link EnchantmentRegistry#define(TypedKey)} or read from data
+ * <p>Definitions are created through {@link Enchantments#define(TypedKey)} or read from data
  * pack JSON. Vanilla enchantments are exposed as definitions as well.</p>
  *
  * <p>The {@code minecraft:enchantment} registry is synchronised with clients during the configuration
@@ -30,7 +30,7 @@ import java.util.Set;
  * @since 0.1.0
  */
 @ApiStatus.NonExtendable
-public interface EnchantmentDefinition extends Enchantment {
+public interface EnchantmentDefinition extends Keyed {
 
     /**
      * The highest level of an enchantment.
@@ -52,7 +52,7 @@ public interface EnchantmentDefinition extends Enchantment {
      * @since 0.1.0
      */
     @Contract(pure = true)
-    default TypedKey<Enchantment> typedKey() {
+    default TypedKey<EnchantmentDefinition> typedKey() {
         return TypedKey.create(RegistryKey.ENCHANTMENT, key());
     }
 
@@ -147,7 +147,7 @@ public interface EnchantmentDefinition extends Enchantment {
      * {@return the effect components declared by the enchantment, such as {@code minecraft:damage}}
      *
      * @see EnchantmentEffects
-     * @see EnchantmentRegistry#supportedEffectComponents()
+     * @see Enchantments#supportedEffectComponents()
      * @since 0.1.0
      */
     Set<Key> effectComponents();
@@ -173,7 +173,7 @@ public interface EnchantmentDefinition extends Enchantment {
     /**
      * {@return the behaviour of this definition, if any}
      *
-     * <p>Behaviours {@linkplain EnchantmentRegistry#attach attached} to the enchantment are not
+     * <p>Behaviours {@linkplain Enchantments#attach attached} to the enchantment are not
      * included.</p>
      *
      * @since 0.1.0
@@ -295,7 +295,7 @@ public interface EnchantmentDefinition extends Enchantment {
          * @return this builder
          * @since 0.1.0
          */
-        Builder exclusiveWith(Collection<TypedKey<Enchantment>> enchantments);
+        Builder exclusiveWith(Collection<TypedKey<EnchantmentDefinition>> enchantments);
 
         /**
          * @param maxLevel the maximum level, between {@code 1} and {@value EnchantmentDefinition#MAX_LEVEL}
@@ -362,7 +362,7 @@ public interface EnchantmentDefinition extends Enchantment {
          * {@code {"minecraft:damage": [{"effect": {"type": "minecraft:add", "value": 2}}]}}.
          *
          * <p>Every component is sent to clients; the server runs the
-         * {@linkplain EnchantmentRegistry#supportedEffectComponents() supported} ones.</p>
+         * {@linkplain Enchantments#supportedEffectComponents() supported} ones.</p>
          *
          * @param json the {@code effects} JSON object, or {@code null} to remove every effect component
          * @return this builder

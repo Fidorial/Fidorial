@@ -39,6 +39,7 @@ import fr.fidorial.event.server.ServerStatusRequestEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.plugin.PluginContext;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
@@ -122,19 +123,19 @@ public final class TestPlugin implements Plugin {
         this.logger = context.logger();
         this.server = context.server();
 
-        TestBiomes.registerAll(context.server().registries().biomes(), context.logger());
+        TestBiomes.registerAll(context.server().registries().writable(RegistryKey.BIOME), this, context.logger());
 
-        TestDialogs.registerAll(context.server().registries().dialogs(), context.logger());
+        TestDialogs.registerAll(context.server().registries().writable(RegistryKey.DIALOG), this, context.logger());
 
-        TestDimensionTypes.registerAll(context.server().registries().dimensionTypes(), context.logger());
+        TestDimensionTypes.registerAll(context.server().registries().writable(RegistryKey.DIMENSION_TYPE), this, context.logger());
 
-        TestChatTypes.registerAll(context.server().registries().chatTypes(), context.logger());
+        TestChatTypes.registerAll(context.server().registries().writable(RegistryKey.CHAT_TYPE), this, context.logger());
 
 //        BullMobs.attachToCows(context.server().registries().mobs(), this, context.logger());
         BullMobs.registerBull(context.server().registries().mobs(), this, context.logger());
         CompanionMobs.register(context.server().registries().mobs(), this, context.logger());
         TestEffects.registerAll(context.server().registries().effects(), this, context.logger());
-        TestEnchantments.registerAll(context.server().registries().enchantments(), this, context.logger());
+        TestEnchantments.registerAll(context.server().registries(), this, context.logger());
 
         final long seed = resolveSeed(context.logger());
         this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
@@ -184,14 +185,14 @@ public final class TestPlugin implements Plugin {
             task.cancel();
         }
         server.commands().unregisterNamespace(context.meta());
-        TestBiomes.unregisterAll(server.registries().biomes());
-        TestDialogs.unregisterAll(server.registries().dialogs());
-        TestDimensionTypes.unregisterAll(context.server().registries().dimensionTypes());
-        TestChatTypes.unregisterAll(server.registries().chatTypes());
+        TestBiomes.unregisterAll(server.registries().writable(RegistryKey.BIOME));
+        TestDialogs.unregisterAll(server.registries().writable(RegistryKey.DIALOG));
+        TestDimensionTypes.unregisterAll(server.registries().writable(RegistryKey.DIMENSION_TYPE));
+        TestChatTypes.unregisterAll(server.registries().writable(RegistryKey.CHAT_TYPE));
         BullMobs.unregisterAll(server.registries().mobs(), this);
         server.registries().mobs().unregisterAll(this);
         TestEffects.unregisterAll(server.registries().effects(), this);
-        TestEnchantments.unregisterAll(server.registries().enchantments(), this);
+        TestEnchantments.unregisterAll(server.registries(), this);
         TestRecipes.unregisterAll(server.registries().recipes(), this);
         TestPluginTranslations.unregister();
     }

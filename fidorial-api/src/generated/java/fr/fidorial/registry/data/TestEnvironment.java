@@ -4,12 +4,12 @@ import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Marker type for entries in the {@code minecraft:enchantment} registry.
+ * Marker type for entries in the {@code minecraft:test_environment} registry.
  *
  * <p>This interface is used as the generic type for typed registry keys.</p>
  *
  * <p>Calling {@link net.kyori.adventure.key.Keyed#key()} returns the entry's registry key.</p>
  */
 @ApiStatus.NonExtendable
-public interface Enchantment extends Keyed {
+public interface TestEnvironment extends Keyed {
 }

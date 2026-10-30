@@ -28,7 +28,6 @@ public final class RegistryKeyGenerator {
 
     private static final ClassName KEY = ClassName.get(Key.class);
     private static final ClassName KEY_PATTERN = ClassName.get(KeyPattern.class);
-    private static final ClassName ENTITY_TYPE = ClassName.get("fr.fidorial.entity", "EntityType");
 
     /**
      * Generates {@code RegistryKey.java}.
@@ -36,7 +35,8 @@ public final class RegistryKeyGenerator {
      * @param registryTypes   configured supported registries
      * @param registryPackage package {@code RegistryKey} itself is written to
      * @param dataPackage     base package for marker interfaces (each registry type's own
-     *                        subpackage is resolved against this, if it has one)
+     *                        subpackage is resolved against this, if it has one); bound
+     *                        registries use their own type instead
      * @param outputDirectory generated source root
      * @throws IOException if the generated file cannot be written
      */
@@ -51,7 +51,6 @@ public final class RegistryKeyGenerator {
         Objects.requireNonNull(outputDirectory, "outputDirectory");
 
         final ClassName registryKey = ClassName.get(registryPackage, "RegistryKey");
-        final ParameterizedTypeName entityTypeRegistryKey = ParameterizedTypeName.get(registryKey, ENTITY_TYPE);
 
         final MethodSpec constructor = MethodSpec.compactConstructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
@@ -69,7 +68,6 @@ public final class RegistryKeyGenerator {
                 .addJavadoc("@param key namespaced registry identifier\n");
 
         addRegistryFields(registryKeyType, registryTypes, registryKey, dataPackage);
-        registryKeyType.addField(createEntityTypeRegistryKey(registryKey, entityTypeRegistryKey));
         registryKeyType.addMethod(createFactoryMethod(registryKey));
         registryKeyType.addMethod(createFactoryKeyMethod(registryKey));
         registryKeyType.addMethod(createToStringMethod());
@@ -84,7 +82,7 @@ public final class RegistryKeyGenerator {
 
         for (final RegistryTypeDefinition registryType : registryTypes) {
 
-            final ClassName markerType = ClassName.get(registryType.dataPackage(dataPackage), registryType.typeName());
+            final ClassName markerType = ClassName.bestGuess(registryType.valueType(dataPackage));
             final ParameterizedTypeName fieldType = ParameterizedTypeName.get(registryKey, markerType);
 
 
@@ -94,18 +92,6 @@ public final class RegistryKeyGenerator {
                     .addJavadoc("Registry key for {@code $L}.\n", registryType.identifier())
                     .build());
         }
-    }
-
-    private static FieldSpec createEntityTypeRegistryKey(final ClassName registryKey, final ParameterizedTypeName entityTypeRegistryKey) {
-
-        return FieldSpec.builder(entityTypeRegistryKey,
-                        "ENTITY_TYPE",
-                        Modifier.PUBLIC,
-                        Modifier.STATIC,
-                        Modifier.FINAL)
-                .initializer("new $T<>($T.key($S))", registryKey, Key.class, "entity_type")
-                .addJavadoc("Registry key for {@code minecraft:entity_type}.\n")
-                .build();
     }
 
     /**

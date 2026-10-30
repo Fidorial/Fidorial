@@ -56,6 +56,24 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract MapProperty<String, String> getRegistries();
 
     /**
+     * Registries emitted as raw protocol ID constants instead of typed keys, such as
+     * {@code minecraft:entity_type -> EntityTypeIds}. Defaults to none.
+     */
+    public abstract ListProperty<String> getProtocolIdRegistries();
+
+    /**
+     * Package of the API's {@code RegistryKey}; marker interfaces live in its {@code .data}
+     * subpackage. Defaults to {@code fr.fidorial.registry}.
+     */
+    public abstract Property<String> getApiRegistryPackage();
+
+    /**
+     * Package receiving {@code RegistryValues}, the server-side values of every registry that
+     * has no bound API type. Leave unset to skip it.
+     */
+    public abstract Property<String> getRegistryValuesPackage();
+
+    /**
      * Directory receiving the runtime registry dataset: {@code registries_frozen.json}
      * and {@code registries_dynamic.json}, holding the protocol-ordered entries and the
      * tags of every registry that reaches the client.

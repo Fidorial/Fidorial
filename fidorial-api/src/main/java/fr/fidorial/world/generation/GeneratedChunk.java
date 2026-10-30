@@ -100,7 +100,7 @@ public interface GeneratedChunk {
      * @param x     the X coordinate inside the chunk, {@code 0} to {@code 15}
      * @param y     the absolute Y coordinate
      * @param z     the Z coordinate inside the chunk, {@code 0} to {@code 15}
-     * @param biome the biome key, registered in the {@link fr.fidorial.world.biome.BiomeRegistry}
+     * @param biome the biome key, registered in the {@link fr.fidorial.registry.RegistryKey#BIOME biome registry}
      * @since 0.1.0
      */
     void setBiome(int x, int y, int z, Key biome);

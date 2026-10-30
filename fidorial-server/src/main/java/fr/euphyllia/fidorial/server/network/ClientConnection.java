@@ -44,6 +44,7 @@ import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.math.Location;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.translation.TranslationStore;
 import io.netty.buffer.ByteBuf;
@@ -691,7 +692,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         switch (dialog) {
             case final DialogDefinition definition -> send(ClientboundShowDialogPacket.inline(packetKey, definition));
             case final DialogReference reference -> {
-                final int id = server.registries().dialogs().networkId(reference.key());
+                final int id = server.registries().registry(RegistryKey.DIALOG).networkId(reference.key());
                 if (id < 0) {
                     LOGGER.warn(
                             "{} cannot be shown dialog {}: nothing is registered under that key.",

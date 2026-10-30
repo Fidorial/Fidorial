@@ -16,7 +16,6 @@ import java.util.Set;
 public class BlockView {
 
     private static final Set<Key> PASSABLE = Set.of(Key.key("water"));
-    private static final Key BLOCKS = RegistryKey.BLOCK.key();
     private static final Key POWDER_SNOW = Key.key("pathfinding/powder_snow");
 
     private BlockView() {
@@ -50,7 +49,7 @@ public class BlockView {
     }
 
     public static boolean isTagged(final Key tag, final BlockState state) {
-        return FidorialServer.getInstance().registries().frozen().isTagged(BLOCKS, tag, state.name());
+        return FidorialServer.getInstance().registries().registry(RegistryKey.BLOCK).isTagged(state.name(), tag);
     }
 
     public static boolean isSolidGround(final ServerWorld world, final int x, final int y, final int z) {

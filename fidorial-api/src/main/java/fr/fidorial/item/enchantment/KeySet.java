@@ -9,8 +9,8 @@ import java.util.Set;
 /**
  * A set of registry entries, either a tag or an explicit list of keys, as data packs declare it.
  *
- * <p>Resolving a tag requires the server registries: use {@link EnchantmentRegistry#isSupportedItem}
- * or {@link EnchantmentRegistry#areCompatible} to test membership.</p>
+ * <p>Resolving a tag requires the server registries: use {@link Enchantments#isSupportedItem}
+ * or {@link Enchantments#areCompatible} to test membership.</p>
  *
  * @since 0.1.0
  */

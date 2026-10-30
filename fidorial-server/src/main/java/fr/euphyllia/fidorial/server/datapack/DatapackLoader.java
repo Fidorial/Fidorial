@@ -32,6 +32,9 @@ public final class DatapackLoader {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(DatapackLoader.class);
     private static final String MCMETA = "pack.mcmeta";
+    private static final String WORLDGEN = "worldgen/";
+    private static final String BLOCK_TAGS = "block";
+    private static final String LEGACY_BLOCK_TAGS = "blocks";
 
     private DatapackLoader() {
     }
@@ -175,8 +178,7 @@ public final class DatapackLoader {
         private final List<Datapack> packs = new ArrayList<>();
         private final Map<Key, byte[]> templates = new LinkedHashMap<>();
         private final EnumMap<ResourceKind, Map<Key, JsonElement>> json = new EnumMap<>(ResourceKind.class);
-        private final Map<Key, List<TagFile>> biomeTags = new LinkedHashMap<>();
-        private final Map<Key, List<TagFile>> blockTags = new LinkedHashMap<>();
+        private final Map<String, Map<Key, List<TagFile>>> tags = new LinkedHashMap<>();
 
         void add(final RawPack pack) {
             final EnumMap<ResourceKind, Integer> counts = new EnumMap<>(ResourceKind.class);
@@ -186,6 +188,10 @@ public final class DatapackLoader {
                 final String namespace = path.substring(5, namespaceEnd);
                 final ResourceKind.Match match = ResourceKind.classify(path.substring(namespaceEnd + 1));
                 if (match == null) {
+                    continue;
+                }
+                if (match.kind() == ResourceKind.TAG) {
+                    addTag(namespace, match.path(), file.getValue(), pack.id(), path);
                     continue;
                 }
                 final Key key = Keys.parse(namespace + ":" + match.path());
@@ -205,11 +211,7 @@ public final class DatapackLoader {
                     LOGGER.warn("[datapacks] {}: {} is not valid JSON ({})", pack.id(), path, invalid.getMessage());
                     continue;
                 }
-                switch (match.kind()) {
-                    case BIOME_TAG -> addTag(biomeTags, key, element, pack.id(), path);
-                    case BLOCK_TAG -> addTag(blockTags, key, element, pack.id(), path);
-                    default -> json.computeIfAbsent(match.kind(), _ -> new LinkedHashMap<>()).put(key, element);
-                }
+                json.computeIfAbsent(match.kind(), _ -> new LinkedHashMap<>()).put(key, element);
             }
             packs.add(new Datapack(
                     pack.id(),
@@ -228,13 +230,41 @@ public final class DatapackLoader {
                     counts.getOrDefault(ResourceKind.STRUCTURE_SET, 0));
         }
 
-        private static void addTag(final Map<Key, List<TagFile>> tags, final Key key, final JsonElement element,
-                                   final String pack, final String path) {
+        /**
+         * @param tagPath the path after {@code tags/}: the registry, then the tag
+         */
+        private void addTag(final String namespace, final String tagPath, final byte[] content,
+                            final String pack, final String path) {
+            final String registry = registryOf(tagPath);
+            final Key key = registry == null ? null : Keys.parse(namespace + ":" + tagPath.substring(registry.length() + 1));
+            if (key == null) {
+                LOGGER.warn("[datapacks] {}: '{}' is not a valid tag location, file skipped", pack, path);
+                return;
+            }
             try {
-                tags.computeIfAbsent(key, _ -> new ArrayList<>()).add(TagFile.parse(element));
+                final JsonElement element = JsonParser.parseString(stripBom(new String(content, StandardCharsets.UTF_8)));
+                tags.computeIfAbsent(registry.equals(LEGACY_BLOCK_TAGS) ? BLOCK_TAGS : registry, _ -> new LinkedHashMap<>())
+                        .computeIfAbsent(key, _ -> new ArrayList<>())
+                        .add(TagFile.parse(element));
             } catch (final RuntimeException invalid) {
                 LOGGER.warn("[datapacks] {}: tag {} is invalid ({})", pack, path, invalid.getMessage());
             }
+        }
+
+        /**
+         * {@return the registry a tag path starts with: its first directory, or its first two for a
+         * {@code worldgen} registry; {@code null} if the path has no tag after it}
+         */
+        private static @Nullable String registryOf(final String tagPath) {
+            final int first = tagPath.indexOf('/');
+            if (first < 0) {
+                return null;
+            }
+            if (!tagPath.startsWith(WORLDGEN)) {
+                return tagPath.substring(0, first);
+            }
+            final int second = tagPath.indexOf('/', first + 1);
+            return second < 0 ? null : tagPath.substring(0, second);
         }
 
         DatapackContents build() {
@@ -245,8 +275,7 @@ public final class DatapackLoader {
                     frozen(json.getOrDefault(ResourceKind.STRUCTURE_SET, Map.of())),
                     frozen(json.getOrDefault(ResourceKind.TEMPLATE_POOL, Map.of())),
                     frozen(json.getOrDefault(ResourceKind.PROCESSOR_LIST, Map.of())),
-                    frozen(biomeTags),
-                    frozen(blockTags));
+                    frozen(tags));
         }
 
         private static <K, V> Map<K, V> frozen(final Map<K, V> map) {

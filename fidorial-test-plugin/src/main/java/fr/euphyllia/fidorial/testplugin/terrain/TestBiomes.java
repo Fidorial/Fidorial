@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
+import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.world.biome.BiomeDefinition;
-import fr.fidorial.world.biome.BiomeRegistry;
 import fr.fidorial.world.biome.GrassColorModifier;
 import fr.fidorial.world.biome.TemperatureModifier;
 import fr.fidorial.world.environment.AdditionsSound;
@@ -175,20 +176,19 @@ public final class TestBiomes {
         return ALL;
     }
 
-    public static void registerAll(final BiomeRegistry biomes, final ComponentLogger logger) {
+    public static void registerAll(final WritableRegistry<BiomeDefinition> biomes, final Plugin owner,
+                                   final ComponentLogger logger) {
         for (final BiomeDefinition biome : ALL) {
-            biomes.overwrite(biome);
-            logger.info("[TestPlugin] biome {} registered (network id {})",
-                    biome.key().asString(), biomes.networkId(biome.key()));
+            biomes.overwrite(biome.typedKey(), biome, owner);
+            logger.info("[TestPlugin] biome {} registered", biome.key().asString());
         }
 
-        logger.info("[TestPlugin] {} biomes registered, {} of them defined by the server",
-                biomes.totalRegistered(), biomes.definitions().size());
+        logger.info("[TestPlugin] {} biomes registered", biomes.size());
     }
 
-    public static void unregisterAll(final BiomeRegistry biomes) {
+    public static void unregisterAll(final WritableRegistry<BiomeDefinition> biomes) {
         for (final BiomeDefinition biome : ALL) {
-            biomes.unregister(biome.key());
+            biomes.unregister(biome.typedKey());
         }
     }
 }

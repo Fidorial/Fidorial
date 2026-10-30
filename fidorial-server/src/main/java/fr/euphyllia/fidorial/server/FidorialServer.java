@@ -98,7 +98,7 @@ public final class FidorialServer implements Server {
 
         try {
             telemetry = modules.add(new TelemetryModule(this));
-            registries = modules.add(new RegistryModule());
+            registries = modules.add(new RegistryModule(config.worlds().path().resolve("datapacks")));
             workers = modules.add(new WorkerModule(config));
             moderation = modules.add(new ModerationModule(config));
             players = modules.add(new PlayerModule(this, config, services, moderation));

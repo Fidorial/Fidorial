@@ -12,7 +12,7 @@ import java.util.Map;
  * {@code minecraft:stored_enchantments}.
  *
  * @param levels the level of each enchantment, keyed by enchantment, {@code 1}-{@value #MAX_LEVEL}
- * @see fr.fidorial.item.enchantment.EnchantmentRegistry#enchant
+ * @see fr.fidorial.item.enchantment.Enchantments#enchant
  * @since 0.1.0
  */
 public record ItemEnchantments(Map<Key, Integer> levels) {

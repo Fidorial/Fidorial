@@ -66,9 +66,8 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
         final boolean remainingHasNamespace = remaining.indexOf(Key.DEFAULT_SEPARATOR) >= 0;
         final String minecraftPrefix = Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR;
 
-        final Registry<T> registryLookup = registryLookup();
-        for (final T value : registryLookup.values()) {
-            final String full = registryLookup.key(value).key().asString();
+        for (final TypedKey<T> key : registryLookup().keys()) {
+            final String full = key.key().asString();
             final String path = full.startsWith(minecraftPrefix) ? full.substring(minecraftPrefix.length()) : full;
 
             if (remainingHasNamespace ? full.contains(remaining) : path.contains(remaining)) {

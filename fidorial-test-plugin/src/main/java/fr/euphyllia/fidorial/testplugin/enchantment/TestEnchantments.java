@@ -1,12 +1,14 @@
 package fr.euphyllia.fidorial.testplugin.enchantment;
 
 import fr.fidorial.inventory.EquipmentSlotGroup;
-import fr.fidorial.item.enchantment.EnchantmentRegistry;
-import fr.fidorial.item.enchantment.EnchantmentTags;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Enchantment;
+import fr.fidorial.registry.WritableRegistry;
+import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -24,10 +26,10 @@ import java.util.List;
  */
 public final class TestEnchantments {
 
-    public static final TypedKey<Enchantment> LIFESTEAL =
+    public static final TypedKey<EnchantmentDefinition> LIFESTEAL =
             TypedKey.create(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "lifesteal"));
 
-    public static final TypedKey<Enchantment> GLACIAL =
+    public static final TypedKey<EnchantmentDefinition> GLACIAL =
             TypedKey.create(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "glacial"));
 
     private static final String GLACIAL_JSON = """
@@ -74,8 +76,9 @@ public final class TestEnchantments {
     private TestEnchantments() {
     }
 
-    public static void registerAll(final EnchantmentRegistry enchantments, final Plugin owner, final ComponentLogger logger) {
-        enchantments.register(enchantments.define(LIFESTEAL)
+    public static void registerAll(final GameRegistries registries, final Plugin owner, final ComponentLogger logger) {
+        final WritableRegistry<EnchantmentDefinition> enchantments = registries.writable(RegistryKey.ENCHANTMENT);
+        enchantments.register(registries.enchantments().define(LIFESTEAL)
                 .description(Component.text("Lifesteal", NamedTextColor.DARK_RED))
                 .supportedItemTag(Key.key("enchantable/weapon"))
                 .primaryItemTag(Key.key("enchantable/sharp_weapon"))
@@ -89,17 +92,16 @@ public final class TestEnchantments {
                 .build(), owner);
         enchantments.registerFromJson(GLACIAL, GLACIAL_JSON, owner);
 
-        for (final TypedKey<Enchantment> enchantment : List.of(LIFESTEAL, GLACIAL)) {
-            for (final Key tag : List.of(EnchantmentTags.IN_ENCHANTING_TABLE, EnchantmentTags.NON_TREASURE,
-                    EnchantmentTags.TRADEABLE, EnchantmentTags.ON_RANDOM_LOOT)) {
+        for (final TypedKey<EnchantmentDefinition> enchantment : List.of(LIFESTEAL, GLACIAL)) {
+            for (final TagKey<EnchantmentDefinition> tag : List.of(EnchantmentTagKeys.IN_ENCHANTING_TABLE,
+                    EnchantmentTagKeys.NON_TREASURE, EnchantmentTagKeys.TRADEABLE, EnchantmentTagKeys.ON_RANDOM_LOOT)) {
                 enchantments.addToTag(tag, enchantment);
             }
         }
-        logger.info("[TestPlugin] Enchantments {} (network ID {}) and {} (network ID {}) registered",
-                LIFESTEAL.key(), enchantments.networkId(LIFESTEAL), GLACIAL.key(), enchantments.networkId(GLACIAL));
+        logger.info("[TestPlugin] Enchantments {} and {} registered", LIFESTEAL.key(), GLACIAL.key());
     }
 
-    public static void unregisterAll(final EnchantmentRegistry enchantments, final Plugin owner) {
-        enchantments.unregisterAll(owner);
+    public static void unregisterAll(final GameRegistries registries, final Plugin owner) {
+        registries.writable(RegistryKey.ENCHANTMENT).unregisterAll(owner);
     }
 }

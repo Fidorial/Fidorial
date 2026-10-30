@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.registry.biome.FidorialBiomeRegistry;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.BitPacking;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -25,15 +26,26 @@ public final class ChunkNetworkSerializer {
     private static final boolean BIKINI_BOTTOM = Boolean.getBoolean("Fidorial.bikiniBottom");
 
     private final BlockStateRegistry blockRegistry;
-    private final FidorialBiomeRegistry biomes;
+    private final ServerRegistry<BiomeDefinition> biomes;
     private static final int MAX_INDIRECT_BIOME_BITS = 8;
+
+    private static final Key FALLBACK_BIOME = Key.key("plains");
 
     private static final int HEIGHTMAP_WORLD_SURFACE = 1;
     private static final int HEIGHTMAP_MOTION_BLOCKING = 4;
 
-    public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final FidorialBiomeRegistry biomes) {
+    public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes) {
         this.blockRegistry = blockRegistry;
         this.biomes = biomes;
+    }
+
+    private int biomeId(final Key biome) {
+        final int id = biomes.networkId(biome);
+        if (id >= 0) {
+            return id;
+        }
+        final int fallback = biomes.networkId(FALLBACK_BIOME);
+        return Math.max(fallback, 0);
     }
 
     public void writeChunk(final PacketBuffer p, final ByteBufAllocator alloc, final ChunkColumn chunk, final boolean hasSkylight) {
@@ -141,7 +153,7 @@ public final class ChunkNetworkSerializer {
 
         if (palette.size() == 1) {
             sp.writeByte(0);
-            sp.writeVarInt(biomes.networkIdOrFallback(palette.getFirst()));
+            sp.writeVarInt(biomeId(palette.getFirst()));
             return;
         }
 
@@ -149,18 +161,18 @@ public final class ChunkNetworkSerializer {
             sp.writeByte(snap.bits());
             sp.writeVarInt(palette.size());
             for (final Key biome : palette) {
-                sp.writeVarInt(biomes.networkIdOrFallback(biome));
+                sp.writeVarInt(biomeId(biome));
             }
             writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BIOME_COUNT);
             return;
         }
 
         final PalettedContainer.PalettedContainerSnapshot<Key> full = container.snapshot();
-        final int directBits = BitPacking.bitsFor(biomes.totalRegistered(), 1);
+        final int directBits = BitPacking.bitsFor(biomes.size(), 1);
         sp.writeByte(directBits);
         final int[] global = new int[ChunkSection.BIOME_COUNT];
         for (int i = 0; i < global.length; i++) {
-            global[i] = biomes.networkIdOrFallback(full.get(i));
+            global[i] = biomeId(full.get(i));
         }
         writeLongs(sp, BitPacking.pack(global, directBits), directBits, ChunkSection.BIOME_COUNT);
     }

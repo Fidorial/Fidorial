@@ -10,7 +10,6 @@ import fr.fidorial.registrygen.model.ProtocolIdTarget;
 import fr.fidorial.registrygen.model.RegistriesHolder;
 import fr.fidorial.registrygen.model.RegistryDefinition;
 import fr.fidorial.registrygen.model.RegistryEntryDefinition;
-import fr.fidorial.registrygen.model.RegistrySync;
 import fr.fidorial.registrygen.model.RegistryTagDefinition;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
@@ -53,6 +52,8 @@ public final class RegistryGenerator {
     private final EntityTypesGenerator entityTypesGenerator;
     private final EntityPropertiesGenerator entityPropertiesGenerator;
     private final FrozenRegistriesGenerator frozenRegistriesGenerator;
+    private final RegistryTagKeysGenerator tagKeysGenerator;
+    private final RegistryValuesGenerator registryValuesGenerator;
 
     /**
      * Creates a registry generator using the standard parser and
@@ -124,27 +125,29 @@ public final class RegistryGenerator {
         this.entityTypesGenerator = new EntityTypesGenerator();
         this.entityPropertiesGenerator = new EntityPropertiesGenerator();
         this.frozenRegistriesGenerator = new FrozenRegistriesGenerator();
+        this.tagKeysGenerator = new RegistryTagKeysGenerator();
+        this.registryValuesGenerator = new RegistryValuesGenerator();
     }
 
     /**
      * Parses a Mojang registry report and generates all configured
      * Fidorial registry source files.
      *
-     * @param registriesJson      path to Mojang's {@code registries.json}
+     * @param registriesJson       path to Mojang's {@code registries.json}
      * @param vanillaDataDirectory root of the vanilla data dump produced by the
      *                             {@code --server} data generator flag (the directory
      *                             directly containing {@code minecraft/}), used to
      *                             resolve each registry's tags. May be {@code null} or
      *                             non-existent, in which case the dataset is written
      *                             with empty tags.
-     * @param outputDirectory     generated Java source root
-     * @param datasetDirectory    directory receiving {@code registries_frozen.json} and
-     *                            {@code registries_dynamic.json}, or {@code null} to skip them
-     * @param registryTypes       the registries to generate
-     * @param dataPackage         the subpackage for generated registry marker interfaces
-     * @param keysPackage         the subpackage for generated registry keys
-     * @param registryPackage     the package for generated registries
-     * @param generateRegistryKey whether to generate the {@code RegistryKey} class
+     * @param outputDirectory      generated Java source root
+     * @param datasetDirectory     directory receiving {@code registries_dynamic.json}, or {@code null} to skip it
+     * @param registryTypes        the registries to generate
+     * @param protocolIdRegistries identifiers of the registries emitted as raw protocol ID constants
+     * @param registryPackage      the package for generated registries
+     * @param dataPackage          the subpackage for generated registry marker interfaces
+     * @param keysPackage          the subpackage for generated registry keys
+     * @param generateRegistryKey  whether to generate the {@code RegistryKey} class
      * @throws IOException if parsing or source generation fails
      */
     public void generate(final Path registriesJson,
@@ -152,6 +155,7 @@ public final class RegistryGenerator {
                          final Path outputDirectory,
                          final Path datasetDirectory,
                          final List<RegistryTypeDefinition> registryTypes,
+                         final Set<String> protocolIdRegistries,
                          final String registryPackage,
                          final String dataPackage,
                          final String keysPackage,
@@ -160,6 +164,7 @@ public final class RegistryGenerator {
         Objects.requireNonNull(registriesJson, "registriesJson");
         Objects.requireNonNull(outputDirectory, "outputDirectory");
         Objects.requireNonNull(registryTypes, "registryTypes");
+        Objects.requireNonNull(protocolIdRegistries, "protocolIdRegistries");
         Objects.requireNonNull(registryPackage, "registryPackage");
         Objects.requireNonNull(dataPackage, "dataPackage");
         Objects.requireNonNull(keysPackage, "keysPackage");
@@ -172,14 +177,11 @@ public final class RegistryGenerator {
 
         final Map<String, RegistryDefinition> generatedRegistries = new LinkedHashMap<>();
         final Map<String, List<RegistryTagDefinition>> resolvedTags = new LinkedHashMap<>();
+        final List<RegistryTypeDefinition> keyedRegistryTypes = new ArrayList<>();
 
         for (final RegistryTypeDefinition registryType : registryTypes) {
 
-            Optional<RegistryDefinition> registryDefinition = registries.registry(registryType.identifier());
-
-            if (registryDefinition.isEmpty()) {
-                registryDefinition = datapackRegistryDiscoverer.scan(vanillaDataDirectory, registryType);
-            }
+            final Optional<RegistryDefinition> registryDefinition = resolve(registries, vanillaDataDirectory, registryType);
 
             if (registryDefinition.isEmpty()) {
                 System.out.println("Registry missing from report: " + registryType.identifier());
@@ -190,32 +192,38 @@ public final class RegistryGenerator {
              * Registries that only ever travel over the wire as a VarInt are
              * emitted as plain int constants instead of typed keys.
              */
-            final Optional<ProtocolIdTarget> protocolIdTarget =
-                    ProtocolIdRegistries.byIdentifier(registryType.identifier());
-
-            if (protocolIdTarget.isPresent()) {
-                protocolIdGenerator.generate(registryDefinition.get(), protocolIdTarget.get(), outputDirectory);
+            if (protocolIdRegistries.contains(registryType.identifier())) {
+                final ProtocolIdTarget target = ProtocolIdRegistries.byIdentifier(registryType.identifier())
+                        .orElseThrow(() -> new IOException("No protocol ID target for " + registryType.identifier()));
+                protocolIdGenerator.generate(registryDefinition.get(), target, outputDirectory);
                 continue;
             }
 
             generatedRegistries.put(registryType.identifier(), registryDefinition.get());
+            keyedRegistryTypes.add(registryType);
 
-            if (registryType.sync() != RegistrySync.NONE) {
+            final Set<String> knownEntryIdentifiers = registryDefinition.get().entries().stream()
+                    .map(RegistryEntryDefinition::identifier)
+                    .collect(Collectors.toUnmodifiableSet());
 
-                final Set<String> knownEntryIdentifiers = registryDefinition.get().entries().stream()
-                        .map(RegistryEntryDefinition::identifier)
-                        .collect(Collectors.toUnmodifiableSet());
+            final List<RegistryTagDefinition> tags =
+                    tagReportParser.parse(vanillaDataDirectory, registryType.path(), knownEntryIdentifiers);
+            resolvedTags.put(registryType.identifier(), tags);
 
-                resolvedTags.put(registryType.identifier(),
-                        tagReportParser.parse(vanillaDataDirectory, registryType.path(), knownEntryIdentifiers));
+            final String valueType = registryType.valueType(dataPackage);
+
+            if (!registryType.isBound()) {
+                dataGenerator.generate(registryType, registryType.dataPackage(dataPackage), outputDirectory);
             }
-
-            dataGenerator.generate(registryType, registryType.dataPackage(dataPackage), outputDirectory);
             keysGenerator.generate(
                     registryType, registryDefinition.get(),
-                    registryPackage, registryType.dataPackage(dataPackage),
+                    registryPackage, valueType,
                     registryType.keysPackage(keysPackage), outputDirectory
             );
+            if (!tags.isEmpty()) {
+                tagKeysGenerator.generate(registryType, tags, registryPackage, valueType,
+                        registryType.keysPackage(keysPackage), outputDirectory);
+            }
 
             if (registryType.identifier().equals(SupportedRegistries.DIMENSION_TYPE.identifier())) {
                 dimensionTypesGenerator.generate(registryType, registryDefinition.get(), registryType.keysPackage(keysPackage), outputDirectory);
@@ -228,22 +236,61 @@ public final class RegistryGenerator {
          * registries, and it is the server, not the API, that needs them at runtime.
          */
         if (datasetDirectory != null) {
-            datasetGenerator.generate(generatedRegistries, resolvedTags, registryTypes, vanillaDataDirectory, datasetDirectory);
+            datasetGenerator.generate(generatedRegistries, resolvedTags, keyedRegistryTypes, vanillaDataDirectory, datasetDirectory);
         }
-
-        /*
-         * Protocol-ID-only registries have no marker type in the data package,
-         * so they must not appear in RegistryKey.
-         */
-        final List<RegistryTypeDefinition> keyedRegistryTypes = registryTypes.stream()
-                .filter(registryType -> ProtocolIdRegistries.byIdentifier(registryType.identifier()).isEmpty())
-                .toList();
 
         if (!generateRegistryKey) {
             return;
         }
 
+        // Only the registries generated above: the others have no value type to point at.
         registryKeyGenerator.generate(keyedRegistryTypes, registryPackage, dataPackage, outputDirectory);
+    }
+
+    /**
+     * Generates {@code RegistryValues}, the server-side values of every supported registry
+     * without a bound API type, and present in this version's data.
+     *
+     * @param registriesJson       path to Mojang's {@code registries.json}
+     * @param vanillaDataDirectory root of the vanilla data dump, may be {@code null}
+     * @param outputDirectory      generated Java source root
+     * @param valuesPackage        package {@code RegistryValues} is written into
+     * @param apiRegistryPackage   package of the API's {@code RegistryKey}
+     * @throws IOException if parsing or source generation fails
+     */
+    public void generateRegistryValues(final Path registriesJson,
+                                       final Path vanillaDataDirectory,
+                                       final Path outputDirectory,
+                                       final String valuesPackage,
+                                       final String apiRegistryPackage) throws IOException {
+
+        Objects.requireNonNull(registriesJson, "registriesJson");
+        Objects.requireNonNull(outputDirectory, "outputDirectory");
+        Objects.requireNonNull(valuesPackage, "valuesPackage");
+        Objects.requireNonNull(apiRegistryPackage, "apiRegistryPackage");
+
+        validateInput(registriesJson);
+
+        final RegistriesHolder registries = parser.parse(registriesJson);
+        final List<RegistryTypeDefinition> types = new ArrayList<>();
+        for (final RegistryTypeDefinition type : SupportedRegistries.ALL) {
+            if (!type.isBound() && resolve(registries, vanillaDataDirectory, type).isPresent()) {
+                types.add(type);
+            }
+        }
+
+        Files.createDirectories(outputDirectory);
+        registryValuesGenerator.generate(types, valuesPackage, apiRegistryPackage, outputDirectory);
+    }
+
+    /**
+     * {@return the definition of a registry, from the report or, for a datapack registry, the vanilla data}
+     */
+    private Optional<RegistryDefinition> resolve(final RegistriesHolder registries,
+                                                 final Path vanillaDataDirectory,
+                                                 final RegistryTypeDefinition registryType) throws IOException {
+        final Optional<RegistryDefinition> reported = registries.registry(registryType.identifier());
+        return reported.isPresent() ? reported : datapackRegistryDiscoverer.scan(vanillaDataDirectory, registryType);
     }
 
     /**

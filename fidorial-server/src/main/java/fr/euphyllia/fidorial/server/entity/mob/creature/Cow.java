@@ -186,11 +186,7 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
     }
 
     public int variantNetworkId() {
-        final Key entry = variant.key();
-        final int dynamicId = server().registries().dynamic().networkId(RegistryKey.COW_VARIANT.key(), entry);
-        return dynamicId >= 0
-                ? dynamicId
-                : server().registries().frozen().networkId(RegistryKey.COW_VARIANT.key(), entry);
+        return server().registries().registry(RegistryKey.COW_VARIANT).networkId(variant.key());
     }
 
     @Override

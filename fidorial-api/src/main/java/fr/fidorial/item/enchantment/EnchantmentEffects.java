@@ -6,7 +6,7 @@ import net.kyori.adventure.key.Key;
  * The vanilla effect components an enchantment may declare in its {@code effects} object.
  *
  * <p>Every component is sent to clients. Only the components listed by
- * {@link EnchantmentRegistry#supportedEffectComponents()} are run by the server.</p>
+ * {@link Enchantments#supportedEffectComponents()} are run by the server.</p>
  *
  * @see EnchantmentDefinition#hasEffect(Key)
  * @since 0.1.0

@@ -1,13 +1,15 @@
 package fr.euphyllia.fidorial.server.item;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.ItemDefinition;
 import fr.fidorial.item.ItemRegistry;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -23,22 +25,20 @@ public final class FidorialItemRegistry implements ItemRegistry {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialItemRegistry.class);
 
-    private static final Key ITEM_REGISTRY = Key.key("item");
-
     private final Map<Key, ItemDefinition> definitions = new ConcurrentHashMap<>();
     private final Map<Key, Object> definitionOwners = new ConcurrentHashMap<>();
 
     @Override
     public void register(final ItemDefinition definition, final Plugin owner) {
 
-        final RegistryHolder frozen = FidorialServer.getInstance().registries().network();
+        final ServerRegistry<Item> items = vanillaItems();
 
-        if (frozen.networkId(ITEM_REGISTRY, definition.networkType()) < 0) {
+        if (!items.contains(definition.networkType())) {
             throw new IllegalArgumentException(
                     "Unknown network item " + definition.networkType() + " for the item " + definition.key());
         }
 
-        if (frozen.networkId(ITEM_REGISTRY, definition.key()) >= 0) {
+        if (items.contains(definition.key())) {
             throw new IllegalArgumentException(
                     "Item " + definition.key() + " is a vanilla item and cannot be redeclared");
         }
@@ -87,10 +87,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
     @Override
     public Set<Key> types() {
 
-        final RegistryHolder frozen = FidorialServer.getInstance().registries().network();
-        final fr.euphyllia.fidorial.server.registry.Registry items = frozen.get(ITEM_REGISTRY);
-
-        final Set<Key> keys = new LinkedHashSet<>(items == null ? List.of() : items.entries());
+        final Set<Key> keys = new LinkedHashSet<>(vanillaItems().keyList());
         keys.addAll(definitions.keySet());
 
         return Set.copyOf(keys);
@@ -99,7 +96,11 @@ public final class FidorialItemRegistry implements ItemRegistry {
     @Override
     public boolean isItem(final Key itemType) {
         return definitions.containsKey(itemType)
-                || FidorialServer.getInstance().registries().network().networkId(ITEM_REGISTRY, itemType) >= 0;
+                || vanillaItems().contains(itemType);
+    }
+
+    private static ServerRegistry<Item> vanillaItems() {
+        return FidorialServer.getInstance().registries().registry(RegistryKey.ITEM);
     }
 
     @Override

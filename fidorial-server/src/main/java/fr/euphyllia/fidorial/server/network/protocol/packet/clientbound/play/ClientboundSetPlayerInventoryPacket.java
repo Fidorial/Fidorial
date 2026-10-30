@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.fidorial.item.ItemStack;
 import net.kyori.adventure.key.Key;
 
@@ -16,9 +16,9 @@ import net.kyori.adventure.key.Key;
  * @param slot   the inventory slot: {@code 0}-{@code 8} for the hotbar, {@code 9}-{@code 35} for the
  *               main inventory, then armor and off hand
  * @param stack  the stack to show in it
- * @param frozen the registries the item and its components are numbered from
+ * @param registries the registries the item and its components are numbered from
  */
-public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack, RegistryHolder frozen)
+public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack, ServerRegistries registries)
         implements ClientboundPacket {
 
     @Override
@@ -29,6 +29,6 @@ public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack, Reg
     @Override
     public void write(final PacketBuffer buf) {
         buf.writeVarInt(slot);
-        ItemStackWriter.writeSlot(buf, stack, frozen);
+        ItemStackWriter.writeSlot(buf, stack, registries);
     }
 }

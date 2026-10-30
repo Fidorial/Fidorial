@@ -646,7 +646,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         final ItemStack stack = item;
         return ClientboundSetEntityMetadataPacket.of(entityId(),
                 ClientboundSetEntityMetadataPacket.Entry.raw(METADATA_ITEM, METADATA_TYPE_SLOT,
-                        buf -> ItemStackWriter.writeSlot(buf, stack, FidorialServer.getInstance().registries().frozen())));
+                        buf -> ItemStackWriter.writeSlot(buf, stack, FidorialServer.getInstance().registries().serverRegistries())));
     }
 
     private void syncItem() {

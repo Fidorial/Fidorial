@@ -2,12 +2,14 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -41,13 +43,16 @@ public final class FidorialMobRegistry implements MobRegistry {
 
         final boolean known = EntityTypes.get(definition.key()) != null && !syntheticTypes.contains(definition.key());
         if (!known) {
-            EntityTypes.registerCustom(
-                    new EntityType(
-                            definition.key(),
-                            networkType.category(),
-                            (float) definition.width(),
-                            (float) definition.height()),
-                    EntityTypes.networkId(networkType));
+            final EntityType type = new EntityType(
+                    definition.key(),
+                    networkType.category(),
+                    (float) definition.width(),
+                    (float) definition.height());
+            EntityTypes.registerCustom(type, EntityTypes.networkId(networkType));
+            // So that commands such as /summon find it.
+            final ServerRegistry<EntityType> types = FidorialServer.getInstance().registries().registry(RegistryKey.ENTITY_TYPE);
+            types.unregisterCode(type.key());
+            types.registerCode(type.key(), type);
             syntheticTypes.add(definition.key());
         }
 
@@ -74,6 +79,7 @@ public final class FidorialMobRegistry implements MobRegistry {
         definitionOwners.remove(mobType);
         if (syntheticTypes.remove(mobType)) {
             EntityTypes.unregister(mobType);
+            FidorialServer.getInstance().registries().registry(RegistryKey.ENTITY_TYPE).unregisterCode(mobType);
         }
         LOGGER.debug("Mob {} unregistered", removed.key());
         return true;

@@ -3,9 +3,9 @@ package fr.fidorial.world.dimension;
 import com.google.common.base.Preconditions;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.DimensionType;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -59,7 +59,7 @@ public record DimensionTypeDefinition(
         EnvironmentAttributes attributes,
         @Nullable Key defaultClock,
         List<TimelineReference> timelines
-) implements DimensionType {
+) implements Keyed {
 
     public DimensionTypeDefinition {
         Preconditions.checkArgument(key != null, "The key of a dimension type definition must not be null");
@@ -118,7 +118,7 @@ public record DimensionTypeDefinition(
      * {@return this dimension type's key, typed against the {@code minecraft:dimension_type} registry}
      */
     @Contract(value = "-> new", pure = true)
-    public TypedKey<DimensionType> typedKey() {
+    public TypedKey<DimensionTypeDefinition> typedKey() {
         return TypedKey.create(RegistryKey.DIMENSION_TYPE, key);
     }
 }

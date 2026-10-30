@@ -70,8 +70,8 @@ public final class ResourceKeyArgument<T> implements ArgumentType<TypedKey<T>> {
 
         final boolean hasNamespace = remaining.indexOf(':') >= 0;
 
-        for (final T value : registry.values()) {
-            final Key key = registry.key(value).key();
+        for (final TypedKey<T> typedKey : registry.keys()) {
+            final Key key = typedKey.key();
 
             final String namespace = key.namespace();
             final String path = key.value();

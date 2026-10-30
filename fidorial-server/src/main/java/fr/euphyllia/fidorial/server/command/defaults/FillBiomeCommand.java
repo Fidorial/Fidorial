@@ -7,6 +7,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundChunksBiomesPacket;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.command.CommandSource;
@@ -14,10 +15,9 @@ import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.registry.data.Biome;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.biome.BiomeRegistry;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -55,7 +55,7 @@ public final class FillBiomeCommand {
                                                 .then(argument("filter", arguments().resource(RegistryKey.BIOME))
                                                         .executes(context -> fill(
                                                                 context,
-                                                                context.getArgument("filter", Biome.class).key())))))))
+                                                                context.getArgument("filter", BiomeDefinition.class).key())))))))
                 .build();
     }
 
@@ -65,9 +65,9 @@ public final class FillBiomeCommand {
     ) throws CommandSyntaxException {
 
         final FidorialServer server = FidorialServer.getInstance();
-        final BiomeRegistry biomes = server.registries().biomes();
+        final ServerRegistry<BiomeDefinition> biomes = server.registries().registry(RegistryKey.BIOME);
 
-        final Biome target = context.getArgument("biome", Biome.class);
+        final BiomeDefinition target = context.getArgument("biome", BiomeDefinition.class);
         final Key biome = target.key();
 
         if (filter != null && !biomes.contains(filter)) {

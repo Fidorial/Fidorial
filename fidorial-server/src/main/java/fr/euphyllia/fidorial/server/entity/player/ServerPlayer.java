@@ -38,7 +38,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundTabListPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateAttributesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.attribute.Attribute;
@@ -126,7 +126,6 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public static final int MD_DISPLAYED_SKIN_PARTS =
             16; // The Displayed Skin Parts bit mask that is sent in Client Information
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
-    private static final Key ATTRIBUTE_REGISTRY = RegistryKey.ATTRIBUTE.key();
     private static final Key MOB_EFFECT_REGISTRY = RegistryKey.MOB_EFFECT.key();
     private static final double EYE_HEIGHT = 1.62;
     private static final double SNEAKING_EYE_HEIGHT = 1.27;
@@ -312,7 +311,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.containerMenu = menu;
         connection.send(new ClientboundOpenScreenPacket(
                 menu.windowId(),
-                connection.server().registries().frozen().networkId(RegistryKey.MENU.key(), menu.menuType().key()),
+                connection.server().registries().registry(RegistryKey.MENU).networkId(menu.menuType().key()),
                 menu.title()));
         menu.sendAllDataToRemote();
         menu.onOpened();
@@ -713,10 +712,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         final int slot = selectedSlot;
         final ItemStack written = ItemStack.of(ItemKeys.WRITTEN_BOOK.key())
                 .with(DataComponentTypes.WRITTEN_BOOK_CONTENT, WrittenBookContent.of(book));
-        final RegistryHolder frozen = connection.server().registries().frozen();
-        connection.send(new ClientboundSetPlayerInventoryPacket(slot, written, frozen));
+        final ServerRegistries registries = connection.server().registries().serverRegistries();
+        connection.send(new ClientboundSetPlayerInventoryPacket(slot, written, registries));
         connection.send(new ClientboundOpenBookPacket(false));
-        connection.send(new ClientboundSetPlayerInventoryPacket(slot, inventory.get(slot), frozen));
+        connection.send(new ClientboundSetPlayerInventoryPacket(slot, inventory.get(slot), registries));
     }
 
     @Override
@@ -979,7 +978,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private int attributeNetworkId(final Key attribute) {
-        return connection.server().registries().frozen().networkId(ATTRIBUTE_REGISTRY, attribute);
+        return connection.server().registries().registry(RegistryKey.ATTRIBUTE).networkId(attribute);
     }
 
     public void setInput(final PlayerInput input) {

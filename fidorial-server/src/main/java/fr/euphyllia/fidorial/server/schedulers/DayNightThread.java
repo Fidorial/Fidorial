@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTimePacket;
-import fr.euphyllia.fidorial.server.registry.RegistryHolder;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
@@ -29,7 +29,7 @@ public class DayNightThread implements AutoCloseable {
     private static final int SYNC_INTERVAL_TICKS = 20;
 
     private final ServerWorldManager worldManager;
-    private final RegistryHolder registries;
+    private final ServerRegistry<?> clocks;
     private final ScheduledExecutorService ticker;
     private final Set<Key> unknownClocks = ConcurrentHashMap.newKeySet();
     private final Set<Key> attached = ConcurrentHashMap.newKeySet();
@@ -38,9 +38,9 @@ public class DayNightThread implements AutoCloseable {
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
 
-    public DayNightThread(final ServerWorldManager worldManager, final RegistryHolder registries) {
+    public DayNightThread(final ServerWorldManager worldManager, final ServerRegistry<?> clocks) {
         this.worldManager = worldManager;
-        this.registries = registries;
+        this.clocks = clocks;
         this.ticker = Executors.newSingleThreadScheduledExecutor(
                 r -> Thread.ofPlatform().name("fidorial-daynight-thread").unstarted(r));
     }
@@ -135,7 +135,7 @@ public class DayNightThread implements AutoCloseable {
     }
 
     private @Nullable ClientboundSetTimePacket packetFor(final ServerWorld world, final WorldTimeEngine cycle) {
-        final int networkId = registries.networkId(WorldClocks.REGISTRY, cycle.clock());
+        final int networkId = clocks.networkId(cycle.clock());
         if (networkId < 0) {
             if (unknownClocks.add(cycle.clock())) {
                 LOGGER.warn("Clock missing from register {} : {}", WorldClocks.REGISTRY, cycle.clock());
