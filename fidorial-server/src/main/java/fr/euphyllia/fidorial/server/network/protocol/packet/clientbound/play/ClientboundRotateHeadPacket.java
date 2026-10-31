@@ -13,7 +13,7 @@ public record ClientboundRotateHeadPacket(int entityId, float headYaw) implement
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         buf.writeAngle(headYaw);
     }

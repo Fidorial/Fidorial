@@ -34,23 +34,23 @@ public class VelocityForwarding {
     public record ForwardedData(String remoteAddress, GameProfile profile) {
     }
 
-    public static ForwardedData decode(byte[] payload, String secret) throws ForwardingException {
+    public static ForwardedData decode(final byte[] payload, final String secret) throws ForwardingException {
         if (payload.length <= SIGNATURE_LENGTH) {
             throw new ForwardingException("Forwarding payload too short");
         }
 
-        byte[] signature = new byte[SIGNATURE_LENGTH];
+        final byte[] signature = new byte[SIGNATURE_LENGTH];
         System.arraycopy(payload, 0, signature, 0, SIGNATURE_LENGTH);
 
-        byte[] data = new byte[payload.length - SIGNATURE_LENGTH];
+        final byte[] data = new byte[payload.length - SIGNATURE_LENGTH];
         System.arraycopy(payload, SIGNATURE_LENGTH, data, 0, data.length);
 
         byte[] expected;
         try {
-            Mac mac = Mac.getInstance(ALGORITHM);
+            final Mac mac = Mac.getInstance(ALGORITHM);
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), ALGORITHM));
             expected = mac.doFinal(data);
-        } catch (GeneralSecurityException e) {
+        } catch (final GeneralSecurityException e) {
             throw new ForwardingException("Unable to calculate the HMAC", e);
         }
         if (!MessageDigest.isEqual(expected, signature)) {
@@ -58,9 +58,9 @@ public class VelocityForwarding {
                     "Invalid signature: the Velocity secret does not match.");
         }
 
-        PacketBuffer buf = new PacketBuffer(Unpooled.wrappedBuffer(data));
+        final PacketBuffer buf = new PacketBuffer(Unpooled.wrappedBuffer(data));
         try {
-            int version = buf.readVarInt();
+            final int version = buf.readVarInt();
             if (version == MODERN_WITH_KEY || version == MODERN_WITH_KEY_V2) {
                 throw new ForwardingException("Forwarding " + version + "(with player key) not supported; the client is too old.");
             }
@@ -68,23 +68,23 @@ public class VelocityForwarding {
                 throw new ForwardingException("Unknown forwarding version:" + version);
             }
 
-            String address = buf.readString(Short.MAX_VALUE);
-            UUID uuid = buf.readUuid();
-            String username = buf.readString(16);
+            final String address = buf.readString(Short.MAX_VALUE);
+            final UUID uuid = buf.readUuid();
+            final String username = buf.readString(16);
 
-            int propertyCount = buf.readVarInt();
-            List<GameProfile.Property> properties = new ArrayList<>(propertyCount);
+            final int propertyCount = buf.readVarInt();
+            final List<GameProfile.Property> properties = new ArrayList<>(propertyCount);
             for (int i = 0; i < propertyCount; i++) {
-                String name = buf.readString(Short.MAX_VALUE);
-                String value = buf.readString(Short.MAX_VALUE);
-                String sig = buf.readBoolean() ? buf.readString(Short.MAX_VALUE) : null;
+                final String name = buf.readString(Short.MAX_VALUE);
+                final String value = buf.readString(Short.MAX_VALUE);
+                final String sig = buf.readBoolean() ? buf.readString(Short.MAX_VALUE) : null;
                 properties.add(new GameProfile.Property(name, value, sig));
             }
 
             return new ForwardedData(address, new GameProfile(uuid, username, uuid, properties));
-        } catch (ForwardingException e) {
+        } catch (final ForwardingException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ForwardingException("Malformed forwarding payload", e);
         } finally {
             buf.nettyBuf().release();
@@ -92,11 +92,11 @@ public class VelocityForwarding {
     }
 
     public static final class ForwardingException extends Exception {
-        public ForwardingException(String message) {
+        public ForwardingException(final String message) {
             super(message);
         }
 
-        public ForwardingException(String message, Throwable cause) {
+        public ForwardingException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }

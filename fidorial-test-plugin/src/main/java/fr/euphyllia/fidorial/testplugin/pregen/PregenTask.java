@@ -35,7 +35,7 @@ public class PregenTask {
     private final Thread thread = Thread.ofPlatform().name("fidorial-pregen").unstarted(() -> {
         try {
             run();
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (final ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     });

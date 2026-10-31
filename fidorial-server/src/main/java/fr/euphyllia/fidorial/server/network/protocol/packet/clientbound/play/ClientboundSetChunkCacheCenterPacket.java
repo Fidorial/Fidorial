@@ -13,7 +13,7 @@ public record ClientboundSetChunkCacheCenterPacket(int chunkX, int chunkZ) imple
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(chunkX).writeVarInt(chunkZ);
     }
 }

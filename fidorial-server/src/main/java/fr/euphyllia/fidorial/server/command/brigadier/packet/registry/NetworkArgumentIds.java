@@ -45,7 +45,7 @@ public final class NetworkArgumentIds {
         return registrar;
     }
 
-    public static boolean hasId(ArgumentTypeRegistrar<? extends ArgumentType<?>,?> registrar) {
+    public static boolean hasId(final ArgumentTypeRegistrar<? extends ArgumentType<?>,?> registrar) {
         return IDS.containsKey(registrar);
     }
 }

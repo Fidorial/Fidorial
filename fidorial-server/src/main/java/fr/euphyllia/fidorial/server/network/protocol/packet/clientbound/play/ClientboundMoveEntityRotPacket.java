@@ -16,7 +16,7 @@ public record ClientboundMoveEntityRotPacket(int entityId, PositionData.AngleRot
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeVarInt(entityId);
         buf.writeBoolean(onGround);
         rotation.writeTo(buf);

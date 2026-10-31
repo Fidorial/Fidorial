@@ -13,7 +13,7 @@ public record ClientboundFinishConfigurationPacket() implements ClientboundPacke
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         // aucun champ
     }
 }

@@ -48,18 +48,18 @@ public final class NbtTypeUtil extends TypeUtil<BinaryTag> {
             return null;
         }
         return switch (input) {
-            case CompoundBinaryTag c -> NbtMapType.of(c);
-            case ListBinaryTag l -> NbtListType.of(l);
-            case ByteBinaryTag b -> b.value();
-            case ShortBinaryTag s -> s.value();
-            case IntBinaryTag i -> i.value();
-            case LongBinaryTag l -> l.value();
-            case FloatBinaryTag f -> f.value();
-            case DoubleBinaryTag d -> d.value();
-            case StringBinaryTag s -> s.value();
-            case ByteArrayBinaryTag b -> b.value();
-            case IntArrayBinaryTag i -> i.value();
-            case LongArrayBinaryTag l -> l.value();
+            case final CompoundBinaryTag c -> NbtMapType.of(c);
+            case final ListBinaryTag l -> NbtListType.of(l);
+            case final ByteBinaryTag b -> b.value();
+            case final ShortBinaryTag s -> s.value();
+            case final IntBinaryTag i -> i.value();
+            case final LongBinaryTag l -> l.value();
+            case final FloatBinaryTag f -> f.value();
+            case final DoubleBinaryTag d -> d.value();
+            case final StringBinaryTag s -> s.value();
+            case final ByteArrayBinaryTag b -> b.value();
+            case final IntArrayBinaryTag i -> i.value();
+            case final LongArrayBinaryTag l -> l.value();
             default -> throw new IllegalStateException("Unhandled tag type: " + input.type());
         };
     }
@@ -70,18 +70,18 @@ public final class NbtTypeUtil extends TypeUtil<BinaryTag> {
             return EndBinaryTag.endBinaryTag();
         }
         return switch (input) {
-            case NbtMapType m -> m.toCompound();
-            case NbtListType l -> l.toListTag();
-            case Byte b -> ByteBinaryTag.byteBinaryTag(b);
-            case Short s -> ShortBinaryTag.shortBinaryTag(s);
-            case Integer i -> IntBinaryTag.intBinaryTag(i);
-            case Long l -> LongBinaryTag.longBinaryTag(l);
-            case Float f -> FloatBinaryTag.floatBinaryTag(f);
-            case Double d -> DoubleBinaryTag.doubleBinaryTag(d);
-            case String s -> StringBinaryTag.stringBinaryTag(s);
-            case byte[] b -> ByteArrayBinaryTag.byteArrayBinaryTag(b);
-            case int[] i -> IntArrayBinaryTag.intArrayBinaryTag(i);
-            case long[] l -> LongArrayBinaryTag.longArrayBinaryTag(l);
+            case final NbtMapType m -> m.toCompound();
+            case final NbtListType l -> l.toListTag();
+            case final Byte b -> ByteBinaryTag.byteBinaryTag(b);
+            case final Short s -> ShortBinaryTag.shortBinaryTag(s);
+            case final Integer i -> IntBinaryTag.intBinaryTag(i);
+            case final Long l -> LongBinaryTag.longBinaryTag(l);
+            case final Float f -> FloatBinaryTag.floatBinaryTag(f);
+            case final Double d -> DoubleBinaryTag.doubleBinaryTag(d);
+            case final String s -> StringBinaryTag.stringBinaryTag(s);
+            case final byte[] b -> ByteArrayBinaryTag.byteArrayBinaryTag(b);
+            case final int[] i -> IntArrayBinaryTag.intArrayBinaryTag(i);
+            case final long[] l -> LongArrayBinaryTag.longArrayBinaryTag(l);
             default -> throw new IllegalStateException("Cannot convert to BinaryTag: " + input.getClass());
         };
     }

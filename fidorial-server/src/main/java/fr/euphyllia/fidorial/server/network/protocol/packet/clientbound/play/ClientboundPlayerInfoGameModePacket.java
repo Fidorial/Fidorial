@@ -18,7 +18,7 @@ public record ClientboundPlayerInfoGameModePacket(UUID uuid, int gameMode)
     }
 
     @Override
-    public void write(PacketBuffer buf) {
+    public void write(final PacketBuffer buf) {
         buf.writeByte(ACTIONS);
         buf.writeVarInt(1);
         buf.writeUuid(uuid);

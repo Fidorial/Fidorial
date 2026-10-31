@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.spotless)
     implementation(libs.spotless.lib)
     implementation(libs.spotless.lib.extra)
+    implementation(libs.javaparser.core)
 }
 
 gradlePlugin {

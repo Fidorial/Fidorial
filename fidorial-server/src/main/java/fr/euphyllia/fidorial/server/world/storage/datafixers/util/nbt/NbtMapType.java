@@ -193,12 +193,12 @@ public final class NbtMapType extends MapType {
 
     private static Number boxedValue(final NumberBinaryTag n) {
         return switch (n) {
-            case ByteBinaryTag b -> b.value();
-            case ShortBinaryTag s -> s.value();
-            case IntBinaryTag i -> i.value();
-            case LongBinaryTag l -> l.value();
-            case FloatBinaryTag f -> f.value();
-            case DoubleBinaryTag d -> d.value();
+            case final ByteBinaryTag b -> b.value();
+            case final ShortBinaryTag s -> s.value();
+            case final IntBinaryTag i -> i.value();
+            case final LongBinaryTag l -> l.value();
+            case final FloatBinaryTag f -> f.value();
+            case final DoubleBinaryTag d -> d.value();
         };
     }
 

@@ -1,8 +1,10 @@
 [versions]
 spotless = "8.10.2"
 spotless-lib = "4.8.0"
+javaparser = "3.28.2"
 
 [libraries]
 spotless = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 spotless-lib = { module = "com.diffplug.spotless:spotless-lib", version.ref = "spotless-lib" }
 spotless-lib-extra = { module = "com.diffplug.spotless:spotless-lib-extra", version.ref = "spotless-lib" }
+javaparser-core = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }

@@ -26,7 +26,7 @@ public final class SimpleServiceRegistry implements ServiceRegistry {
         final List<Provider<?>> list = providers.computeIfAbsent(service, s -> new ArrayList<>());
         synchronized (list) {
             list.add(new Provider<>(implementation, owner, priority));
-            list.sort(Comparator.comparing((Provider<?> p) -> p.priority).reversed());
+            list.sort(Comparator.comparing((final Provider<?> p) -> p.priority).reversed());
         }
         LOGGER.debug(
                 "Service {} provided by {} (priority {})",

@@ -26,7 +26,7 @@ public interface CommandRegistry {
      * @param command   the command builder to register
      * @since 0.1.0
      */
-    default void register(String namespace, LiteralArgumentBuilder<CommandSource> command) {
+    default void register(final String namespace, final LiteralArgumentBuilder<CommandSource> command) {
         register(namespace, command.build());
     }
 
@@ -37,7 +37,7 @@ public interface CommandRegistry {
      * @param command the command builder to register
      * @since 0.1.0
      */
-    default void register(PluginMeta meta, LiteralArgumentBuilder<CommandSource> command) {
+    default void register(final PluginMeta meta, final LiteralArgumentBuilder<CommandSource> command) {
         register(meta.id(), command.build());
     }
 
@@ -48,7 +48,7 @@ public interface CommandRegistry {
      * @param command   the command node to register
      * @since 0.1.0
      */
-    default void register(String namespace, LiteralCommandNode<CommandSource> command) {
+    default void register(final String namespace, final LiteralCommandNode<CommandSource> command) {
         register(namespace, command, Set.of());
     }
 
@@ -59,7 +59,7 @@ public interface CommandRegistry {
      * @param command the command node to register
      * @since 0.1.0
      */
-    default void register(PluginMeta meta, LiteralCommandNode<CommandSource> command) {
+    default void register(final PluginMeta meta, final LiteralCommandNode<CommandSource> command) {
         register(meta.id(), command, Set.of());
     }
 
@@ -71,7 +71,7 @@ public interface CommandRegistry {
      * @param aliases   additional aliases that should point to this command
      * @since 0.1.0
      */
-    default void register(String namespace, LiteralArgumentBuilder<CommandSource> command, Set<String> aliases) {
+    default void register(final String namespace, final LiteralArgumentBuilder<CommandSource> command, final Set<String> aliases) {
         register(namespace, command.build(), aliases);
     }
 
@@ -83,7 +83,7 @@ public interface CommandRegistry {
      * @param aliases additional aliases that should point to this command
      * @since 0.1.0
      */
-    default void register(PluginMeta meta, LiteralArgumentBuilder<CommandSource> command, Set<String> aliases) {
+    default void register(final PluginMeta meta, final LiteralArgumentBuilder<CommandSource> command, final Set<String> aliases) {
         register(meta.id(), command.build(), aliases);
     }
 
@@ -111,7 +111,7 @@ public interface CommandRegistry {
      * @param aliases additional aliases that should point to this command
      * @since 0.1.0
      */
-    default void register(PluginMeta meta, LiteralCommandNode<CommandSource> command, Set<String> aliases) {
+    default void register(final PluginMeta meta, final LiteralCommandNode<CommandSource> command, final Set<String> aliases) {
         register(meta.id(), command, aliases);
     }
 
@@ -142,7 +142,7 @@ public interface CommandRegistry {
      * @apiNote This removes both the namespaced {@code namespace:alias} and plain {@code alias} command nodes.
      * @since 0.1.0
      */
-    default void unregisterNamespace(PluginMeta meta) {
+    default void unregisterNamespace(final PluginMeta meta) {
         unregisterNamespace(meta.id());
     }
 
@@ -187,7 +187,7 @@ public interface CommandRegistry {
      * @return a future completed with the result of the command execution; never completes exceptionally
      * @since 0.1.0
      */
-    default CompletableFuture<Boolean> dispatchAsync(CommandSource source, String cmdLine) {
+    default CompletableFuture<Boolean> dispatchAsync(final CommandSource source, final String cmdLine) {
         return dispatchAsyncResult(source, cmdLine).thenApply(CommandResult::executed);
     }
 
