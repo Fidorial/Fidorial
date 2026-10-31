@@ -14,9 +14,6 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public final class ChunkStorage implements AutoCloseable {
@@ -29,7 +26,7 @@ public final class ChunkStorage implements AutoCloseable {
     private final Key defaultBiome;
     private final Function<Key, RegionCompression> compression;
 
-    private final Map<RegionKey, RegionFile> regionCache = new ConcurrentHashMap<>();
+    private final RegionFileCache regions = new RegionFileCache(RegionFileCache.DEFAULT_MAX_OPEN);
 
     public ChunkStorage(
             final WorldPathsImpl paths,
@@ -45,29 +42,23 @@ public final class ChunkStorage implements AutoCloseable {
         this.compression = compression;
     }
 
-    private record RegionKey(Key dimension, int regionX, int regionZ) {
-    }
-
-    private RegionFile region(final Dimension dim, final int chunkX, final int chunkZ) {
+    private <R> R withRegion(final Dimension dim, final int chunkX, final int chunkZ,
+                             final RegionFileCache.RegionAction<R> action) throws IOException {
         final int rx = RegionConstants.chunkToRegion(chunkX);
         final int rz = RegionConstants.chunkToRegion(chunkZ);
-        final RegionKey key = new RegionKey(dim.id(), rx, rz);
-        return regionCache.computeIfAbsent(key, k -> {
-            final Path file = paths.regionDir(dim).resolve(RegionConstants.fileName(rx, rz));
-            try {
-                return new RegionFile(file);
-            } catch (final IOException e) {
-                throw new RuntimeException("Unable to open the region file: " + file, e);
-            }
-        });
+        return regions.with(dim.id(), rx, rz, paths.regionDir(dim).resolve(RegionConstants.fileName(rx, rz)), action);
     }
 
     public @Nullable ChunkColumn load(final Dimension dim, final int chunkX, final int chunkZ, final int minY, final int height) throws IOException {
-        final RegionFile rf = region(dim, chunkX, chunkZ);
-        final RegionFile.ChunkRead read = rf.read(chunkX, chunkZ);
+        final RegionFile.ChunkRead read = withRegion(dim, chunkX, chunkZ, rf -> {
+            final RegionFile.ChunkRead found = rf.read(chunkX, chunkZ);
+            if (found != null) {
+                convertIfNeeded(rf, dim, chunkX, chunkZ, found);
+            }
+            return found;
+        });
         if (read == null) return null;
         final CompoundBinaryTag nbt = DataFixersRegistry.update(DataFixerType.CHUNK, read.tag(), true);
-        convertIfNeeded(rf, dim, chunkX, chunkZ, read);
         return serializer.fromNbt(nbt, minY, height, defaultBlock, defaultBiome);
     }
 
@@ -94,24 +85,20 @@ public final class ChunkStorage implements AutoCloseable {
      */
     RegionRecompressor.Result convertAll(final Dimension dim, final RegionCompression target) throws IOException {
         return RegionRecompressor.convertDirectory(paths.regionDir(dim), target,
-                (rx, rz) -> regionCache.get(new RegionKey(dim.id(), rx, rz)));
+                (rx, rz) -> regions.peek(dim.id(), rx, rz));
     }
 
     public void save(final Dimension dim, final ChunkColumn chunk) throws IOException {
         chunk.setLastUpdate(System.currentTimeMillis() / 50L);
         final CompoundBinaryTag nbt = serializer.toNbt(chunk);
-        final RegionFile rf = region(dim, chunk.chunkX(), chunk.chunkZ());
-        rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
+        withRegion(dim, chunk.chunkX(), chunk.chunkZ(), rf -> {
+            rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
+            return null;
+        });
     }
 
     @Override
     public void close() {
-        for (final RegionFile rf : regionCache.values()) {
-            try {
-                rf.close();
-            } catch (final IOException ignored) {
-            }
-        }
-        regionCache.clear();
+        regions.close();
     }
 }
