@@ -8,7 +8,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_6-purple.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
-[![Licence](https://img.shields.io/badge/license-MIT-blue)](LICENCE)
+[![Licence](https://img.shields.io/badge/license-MIT%20%2F%20GPLv3-blue)](LICENCE.md)
 [![Serveurs](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Dservers&style=flat)](https://faststats.dev/project/fidorial)
 [![Téléchargements](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Ddownloads&style=flat)](https://faststats.dev/project/fidorial)
 
@@ -126,4 +126,4 @@ les bienvenues sur [GitHub](https://github.com/Euphillya/Fidorial), et les discu
 
 ## Licence
 
-[MIT](LICENCE) © 2026 Euphyllia Bierque
+MIT © 2026 Euphyllia Bierque, sauf `fidorial-server`, sous licence GPLv3 : voir [LICENCE.md](LICENCE.md).
