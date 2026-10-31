@@ -14,6 +14,7 @@ import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
+import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import net.kyori.adventure.key.Key;
 
@@ -28,13 +29,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractLivingEntity extends AbstractEntity implements LivingEntity {
 
     private static final Map<Key, Key> EFFECT_IMMUNITY_TAGS = Map.of(
-            MobEffectKeys.INFESTED.key(), Key.key("immune_to_infested"),
-            MobEffectKeys.FREEZING.key(), Key.key("immune_to_freezing"),
-            MobEffectKeys.OOZING.key(), Key.key("immune_to_oozing"),
-            MobEffectKeys.REGENERATION.key(), Key.key("immune_to_regeneration"),
-            MobEffectKeys.POISON.key(), Key.key("immune_to_poison"),
-            MobEffectKeys.WITHER.key(), Key.key("immune_to_wither"),
-            MobEffectKeys.WEAKNESS.key(), Key.key("immune_to_weakness"));
+            MobEffectKeys.INFESTED.key(), EntityTypeTagKeys.IMMUNE_TO_INFESTED.key(),
+            MobEffectKeys.FREEZING.key(), EntityTypeTagKeys.IMMUNE_TO_FREEZING.key(),
+            MobEffectKeys.OOZING.key(), EntityTypeTagKeys.IMMUNE_TO_OOZING.key(),
+            MobEffectKeys.REGENERATION.key(), EntityTypeTagKeys.IMMUNE_TO_REGENERATION.key(),
+            MobEffectKeys.POISON.key(), EntityTypeTagKeys.IMMUNE_TO_POISON.key(),
+            MobEffectKeys.WITHER.key(), EntityTypeTagKeys.IMMUNE_TO_WITHER.key(),
+            MobEffectKeys.WEAKNESS.key(), EntityTypeTagKeys.IMMUNE_TO_WEAKNESS.key());
 
     public static final int DEATH_TICKS = 20;
     public static final int INVULNERABILITY_TICKS = 20;

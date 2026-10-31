@@ -20,6 +20,8 @@ import fr.fidorial.item.enchantment.KeySet;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.EnchantmentTagKeys;
+import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -40,9 +42,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * {@code minecraft:enchantment} registry, rebuilt whenever it changes.
  */
 public final class FidorialEnchantments implements Enchantments {
-
-    private static final Key ENCHANTED_BOOK = Key.key("enchanted_book");
-    private static final Key CURSE = Key.key("curse");
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialEnchantments.class);
 
@@ -265,7 +264,7 @@ public final class FidorialEnchantments implements Enchantments {
     }
 
     private static DataComponentType<ItemEnchantments> componentFor(final ItemStack stack) {
-        return stack.id().equals(ENCHANTED_BOOK) ? DataComponentTypes.STORED_ENCHANTMENTS : DataComponentTypes.ENCHANTMENTS;
+        return stack.id().equals(ItemKeys.ENCHANTED_BOOK.key()) ? DataComponentTypes.STORED_ENCHANTMENTS : DataComponentTypes.ENCHANTMENTS;
     }
 
     @Override
@@ -318,7 +317,7 @@ public final class FidorialEnchantments implements Enchantments {
 
     @Override
     public ItemStack enchantedBook(final TypedKey<EnchantmentDefinition> enchantment, final int level) {
-        return enchant(ItemStack.of(ENCHANTED_BOOK), enchantment, level);
+        return enchant(ItemStack.of(ItemKeys.ENCHANTED_BOOK.key()), enchantment, level);
     }
 
     @Override
@@ -327,7 +326,7 @@ public final class FidorialEnchantments implements Enchantments {
         final Component description = definition == null
                 ? Component.translatable(EnchantmentDefinitionImpl.descriptionId(enchantment.key()))
                 : definition.description();
-        final NamedTextColor color = isTagged(enchantment.key(), CURSE) ? NamedTextColor.RED : NamedTextColor.GRAY;
+        final NamedTextColor color = isTagged(enchantment.key(), EnchantmentTagKeys.CURSE.key()) ? NamedTextColor.RED : NamedTextColor.GRAY;
         Component name = Component.empty().color(color).append(description);
         if (level != 1 || definition == null || definition.maxLevel() != 1) {
             name = name.append(Component.space()).append(Component.translatable("enchantment.level." + level));

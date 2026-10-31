@@ -21,9 +21,9 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -81,7 +81,6 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
     private static final int POWDER_SNOW_TICKS_BEFORE_CONVERSION = 140;
     private static final int FROSTBITE_CONVERSION_TICKS = 300;
 
-    private static final Key BURN_IN_DAYLIGHT = Key.key("burn_in_daylight");
     private static final int AMBIENT_CHANCE = 80;
 
     private static final int MD_BABY = 16;
@@ -116,7 +115,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         this.followRange = data.followRange();
         this.reinforcementChance = data.reinforcementChance();
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), BURN_IN_DAYLIGHT);
+                .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT.key());
 
         if (canBreakDoors) {
             goals.add(new BreakDoorGoal(this, 0));

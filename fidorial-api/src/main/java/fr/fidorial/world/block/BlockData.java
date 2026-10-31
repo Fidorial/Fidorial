@@ -1,5 +1,6 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.fluid.FluidType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
@@ -21,19 +22,19 @@ public interface BlockData {
      *
      * @since 0.1.0
      */
-    Key AIR = Key.key("air");
+    Key AIR = BlockTypeKeys.AIR.key();
     /**
      * The key of cave air.
      *
      * @since 0.1.0
      */
-    Key CAVE_AIR = Key.key("cave_air");
+    Key CAVE_AIR = BlockTypeKeys.CAVE_AIR.key();
     /**
      * The key of void air, below the world.
      *
      * @since 0.1.0
      */
-    Key VOID_AIR = Key.key("void_air");
+    Key VOID_AIR = BlockTypeKeys.VOID_AIR.key();
 
     /**
      * {@return the block type of this state}
