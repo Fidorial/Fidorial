@@ -2,8 +2,10 @@ package fr.fidorial.registrygen;
 
 import fr.fidorial.registrygen.task.DownloadPrismarineDataTask;
 import fr.fidorial.registrygen.task.DownloadServerJarTask;
+import fr.fidorial.registrygen.task.GenerateBlockItemsTask;
 import fr.fidorial.registrygen.task.GenerateBlockMiningTask;
 import fr.fidorial.registrygen.task.GenerateBlockStatesTask;
+import fr.fidorial.registrygen.task.GenerateBlockSupportTask;
 import fr.fidorial.registrygen.task.GenerateEntityPropertiesTask;
 import fr.fidorial.registrygen.task.GenerateEntityTypesTask;
 import fr.fidorial.registrygen.task.GenerateFrozenRegistriesTask;
@@ -19,6 +21,7 @@ import fr.fidorial.registrygen.model.SupportedRegistries;
 import fr.fidorial.registrygen.task.GenerateReportsTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.Directory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
@@ -54,6 +57,8 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String LOOT_TABLES_TASK_NAME = "generateLootTables";
     public static final String BLOCK_MINING_TASK_NAME = "generateBlockMining";
     public static final String REGISTRY_VALUES_TASK_NAME = "generateRegistryValues";
+    public static final String BLOCK_SUPPORT_TASK_NAME = "generateBlockSupport";
+    public static final String BLOCK_ITEMS_TASK_NAME = "generateBlockItems";
 
     private final JavaToolchainService javaToolchainService;
 
@@ -86,10 +91,13 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         final TaskProvider<GenerateLootTablesTask> lootTablesTask = registerLootTablesTask(project, extension, reportsTask);
         final TaskProvider<GenerateBlockMiningTask> blockMiningTask = registerBlockMiningTask(project, extension, reportsTask, prismarineTask);
         final TaskProvider<GenerateRegistryValuesTask> registryValuesTask = registerRegistryValuesTask(project, extension, reportsTask);
+        final TaskProvider<GenerateBlockSupportTask> blockSupportTask =
+                registerBlockSupportTask(project, extension, reportsTask, prismarineTask);
+        final TaskProvider<GenerateBlockItemsTask> blockItemsTask = registerBlockItemsTask(project, extension, reportsTask);
 
         registerLifecycleTask(project, registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                 entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask, lootTablesTask,
-                blockMiningTask, registryValuesTask);
+                blockMiningTask, registryValuesTask, blockSupportTask, blockItemsTask);
     }
 
     private static void configureDefaults(final Project project, final FidorialRegistryGeneratorExtension extension) {
@@ -412,14 +420,17 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                                               final TaskProvider<GenerateRecipesTask> recipesTask,
                                               final TaskProvider<GenerateLootTablesTask> lootTablesTask,
                                               final TaskProvider<GenerateBlockMiningTask> blockMiningTask,
-                                              final TaskProvider<GenerateRegistryValuesTask> registryValuesTask) {
+                                              final TaskProvider<GenerateRegistryValuesTask> registryValuesTask,
+                                              final TaskProvider<GenerateBlockSupportTask> blockSupportTask,
+                                              final TaskProvider<GenerateBlockItemsTask> blockItemsTask) {
 
         project.getTasks().register("generateAll", task -> {
             task.setGroup("fidorial registry generation");
             task.setDescription("Runs the complete generation pipeline.");
             task.dependsOn(registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                     entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask,
-                    lootTablesTask, blockMiningTask, registryValuesTask);
+                    lootTablesTask, blockMiningTask, registryValuesTask, blockSupportTask,
+                    blockItemsTask);
         });
     }
 
@@ -465,6 +476,51 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                             .map(dir -> dir.file("generated/reports/items.json")));
 
             task.getBlockMiningDataset().set(extension.getBlockMiningDataset());
+        });
+    }
+
+    private static TaskProvider<GenerateBlockSupportTask> registerBlockSupportTask(final Project project,
+                                                                                   final FidorialRegistryGeneratorExtension extension,
+                                                                                   final TaskProvider<GenerateReportsTask> reportsTask,
+                                                                                   final TaskProvider<DownloadPrismarineDataTask> prismarineTask) {
+
+        return project.getTasks().register(BLOCK_SUPPORT_TASK_NAME, GenerateBlockSupportTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Writes which block states conduct redstone and which faces hold other blocks.");
+            task.dependsOn(reportsTask, prismarineTask);
+
+            task.onlyIf("fidorialRegistryGenerator.blockSupportDataset is set",
+                    _ -> extension.getBlockSupportDataset().isPresent() && extension.getPrismarineMinecraftData().isPresent());
+
+            task.getPrismarineCollisionShapes().set(extension.getPrismarineMinecraftData()
+                    .flatMap(_ -> prismarineTask.flatMap(DownloadPrismarineDataTask::getDataDirectory))
+                    .map(dir -> dir.file("blockCollisionShapes.json")));
+            task.getPrismarineBlocksReport().set(extension.getPrismarineMinecraftData()
+                    .flatMap(_ -> prismarineTask.flatMap(DownloadPrismarineDataTask::getDataDirectory))
+                    .map(dir -> dir.file("blocks.json")));
+            task.getBlockTags().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/data/minecraft/tags/block")));
+            task.getBlockSupportDataset().set(extension.getBlockSupportDataset());
+        });
+    }
+
+    private static TaskProvider<GenerateBlockItemsTask> registerBlockItemsTask(final Project project,
+                                                                               final FidorialRegistryGeneratorExtension extension,
+                                                                               final TaskProvider<GenerateReportsTask> reportsTask) {
+
+        return project.getTasks().register(BLOCK_ITEMS_TASK_NAME, GenerateBlockItemsTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Writes which block each item places, from Mojang's reports, loot tables and tags.");
+            task.dependsOn(reportsTask);
+
+            task.onlyIf("fidorialRegistryGenerator.blockItemsDataset is set", _ -> extension.getBlockItemsDataset().isPresent());
+
+            final Provider<Directory> data = reportsTask.flatMap(GenerateReportsTask::getDataDirectory);
+            task.getBlocksReport().set(data.map(directory -> directory.file("generated/reports/blocks.json")));
+            task.getItemComponentsReports().set(data.map(directory -> directory.dir("generated/reports/minecraft/components/item")));
+            task.getBlockLootTables().set(data.map(directory -> directory.dir("generated/data/minecraft/loot_table/blocks")));
+            task.getBlockTags().set(data.map(directory -> directory.dir("generated/data/minecraft/tags/block")));
+            task.getBlockItemsDataset().set(extension.getBlockItemsDataset());
         });
     }
 }

@@ -109,6 +109,21 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract RegularFileProperty getBlockMiningDataset();
 
     /**
+     * Where the {@code generateBlockSupport} task writes, for each block state, whether it conducts
+     * redstone power and which faces hold other blocks. The task only runs when this and
+     * {@link #getPrismarineMinecraftData()} are set, and needs {@code "--server"} among the data
+     * generator arguments for the block tags.
+     */
+    public abstract RegularFileProperty getBlockSupportDataset();
+
+    /**
+     * Where the {@code generateBlockItems} task writes which block each item places. The task only
+     * runs when this is set, and needs {@code "--reports"} and {@code "--server"} among the data
+     * generator arguments.
+     */
+    public abstract RegularFileProperty getBlockItemsDataset();
+
+    /**
      * Additional arguments passed to Mojang's data generator.
      */
     public abstract ListProperty<String> getDataGeneratorArguments();
