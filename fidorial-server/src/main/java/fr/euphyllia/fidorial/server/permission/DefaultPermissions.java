@@ -47,6 +47,7 @@ public final class DefaultPermissions {
                 command("spawnpoint", "Sets where players respawn, in the world they are currently in."),
                 command("stop", "Stop the server."),
                 command("summon", "Summon an entity."),
+                command("teleport", "Teleport entities."),
                 command("time", "Change the time of a world."),
                 command("tps", "View per-region TPS."),
                 command("weather", "Change the weather."),

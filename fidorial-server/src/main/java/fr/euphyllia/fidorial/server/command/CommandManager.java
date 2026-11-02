@@ -35,6 +35,7 @@ import fr.euphyllia.fidorial.server.command.defaults.RespawnCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SpawnPointCommand;
 import fr.euphyllia.fidorial.server.command.defaults.StopCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SummonCommand;
+import fr.euphyllia.fidorial.server.command.defaults.TeleportCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TimeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TpsCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WeatherCommand;
@@ -115,6 +116,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(PostEffectCommand.create());
         registerInternal(EffectCommand.create());
         registerInternal(EnchantCommand.create());
+        registerInternal(TeleportCommand.create(), Set.of("tp"));
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command) {

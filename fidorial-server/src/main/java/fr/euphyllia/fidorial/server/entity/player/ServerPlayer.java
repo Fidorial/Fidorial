@@ -339,7 +339,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         final double range = attributeBase(Attribute.BLOCK_INTERACTION_RANGE)
                 .orElse(PlayerAttributeDefaults.base(Attribute.BLOCK_INTERACTION_RANGE)) + buffer;
         final Location at = location();
-        final double eyeY = at.y() + (isSneaking() ? SNEAKING_EYE_HEIGHT : EYE_HEIGHT);
+        final double eyeY = at.y() + eyeHeight();
         final double dx = Math.max(Math.max(pos.blockX() - at.x(), at.x() - (pos.blockX() + 1)), 0.0);
         final double dy = Math.max(Math.max(pos.blockY() - eyeY, eyeY - (pos.blockY() + 1)), 0.0);
         final double dz = Math.max(Math.max(pos.blockZ() - at.z(), at.z() - (pos.blockZ() + 1)), 0.0);
@@ -849,6 +849,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public PlayerInput input() {
         return input;
+    }
+
+    @Override
+    public double eyeHeight() {
+        return isSneaking() ? SNEAKING_EYE_HEIGHT : EYE_HEIGHT;
     }
 
     @Override

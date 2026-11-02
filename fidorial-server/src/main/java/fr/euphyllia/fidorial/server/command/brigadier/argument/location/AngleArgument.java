@@ -38,15 +38,19 @@ public final class AngleArgument implements ArgumentType<AngleResolver> {
 
         return source -> {
             final float baseYaw = relative ? PositionParsing.origin(source).yaw() : 0.0F;
-            float result = (relative ? baseYaw + value : value) % 360.0F;
-            if (result >= 180.0F) {
-                result -= 360.0F;
-            }
-            if (result < -180.0F) {
-                result += 360.0F;
-            }
-            return result;
+            return wrapDegrees(relative ? baseYaw + value : value);
         };
+    }
+
+    public static float wrapDegrees(final float degrees) {
+        float result = degrees % 360.0F;
+        if (result >= 180.0F) {
+            result -= 360.0F;
+        }
+        if (result < -180.0F) {
+            result += 360.0F;
+        }
+        return result;
     }
 
     public static final class Info implements ArgumentTypeRegistrar<AngleArgument, Info.Spec> {

@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.NamedColorAr
 import fr.euphyllia.fidorial.server.command.brigadier.argument.chat.StyleArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ClientSuggestionsArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSuggestionsArgumentType;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityAnchorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.UuidArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.TimeArgument;
@@ -17,6 +18,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.location.AngleArg
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.BlockPositionArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.ColumnPosArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.DimensionArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.location.RotationArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.location.Vec3Argument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.nbt.NbtDataArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.player.GameModeArgument;
@@ -58,6 +60,8 @@ public final class ArgumentTypes {
         register(new StyleArgument.Info(), ArgumentTypeIds.STYLE_ARGUMENT_ID);
         register(new NbtDataArgument.Info(), ArgumentTypeIds.NBT_PATH_ARGUMENT_ID);
         register(new AngleArgument.Info(), ArgumentTypeIds.ANGLE_ARGUMENT_ID);
+        register(new RotationArgument.Info(), ArgumentTypeIds.ROTATION_ARGUMENT_ID);
+        register(new EntityAnchorArgument.Info(), ArgumentTypeIds.ENTITY_ANCHOR_ARGUMENT_ID);
         register(new KeyArgument.Info(), ArgumentTypeIds.RESOURCE_LOCATION_ARGUMENT_ID);
         register(new RangeArgument.Ints.Info(), ArgumentTypeIds.INT_RANGE_ARGUMENT_ID);
         register(new RangeArgument.Floats.Info(), ArgumentTypeIds.FLOAT_RANGE_ARGUMENT_ID);

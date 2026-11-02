@@ -145,6 +145,12 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     PlayerInput input();
 
     /**
+     *
+     * {@return how high above their feet this player's eyes are, lower while sneaking}
+     */
+    double eyeHeight();
+
+    /**
      * Changes the base value of an attribute for this player.
      *
      * <p>The player's client applies it at once: a {@link Attribute#MOVEMENT_SPEED movement speed} of
