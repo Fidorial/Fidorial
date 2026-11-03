@@ -6,7 +6,6 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -15,7 +14,8 @@ import java.util.List;
 /**
  * A complete dimension type definition, ready to be sent to clients.
  *
- * @param key                         the namespaced identifier of the dimension type
+ * @param key                         the key of the dimension type, typed against the
+ *                                    {@code minecraft:dimension_type} registry
  * @param coordinateScale             multiplier applied to coordinates when leaving the dimension,
  *                                    within {@code [0.00001, 30000000.0]}
  * @param hasSkylight                 whether the dimension has skylight; disables weather when {@code false}
@@ -60,7 +60,7 @@ public record DimensionTypeDefinition(
         EnvironmentAttributes attributes,
         @Nullable TypedKey<WorldClock> defaultClock,
         List<TimelineReference> timelines
-) implements Keyed {
+) {
 
     public DimensionTypeDefinition {
         Preconditions.checkArgument(key != null, "The key of a dimension type definition must not be null");
@@ -113,13 +113,5 @@ public record DimensionTypeDefinition(
     @Contract(value = "_ -> new", pure = true)
     public static DimensionTypeBuilder builder(final DimensionTypeDefinition definition) {
         return new DimensionTypeBuilder(definition);
-    }
-
-    /**
-     * {@return this dimension type's key, typed against the {@code minecraft:dimension_type} registry}
-     */
-    @Contract(pure = true)
-    public TypedKey<DimensionTypeDefinition> typedKey() {
-        return key;
     }
 }

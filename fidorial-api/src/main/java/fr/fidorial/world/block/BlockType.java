@@ -1,7 +1,6 @@
 package fr.fidorial.world.block;
 
 import fr.fidorial.registry.TypedKey;
-import net.kyori.adventure.key.Keyed;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
@@ -22,7 +21,7 @@ import java.util.Map;
  *
  * @since 0.1.0
  */
-public final class BlockType implements Keyed {
+public final class BlockType {
 
     private final TypedKey<BlockType> key;
     private final List<BlockProperty> properties;
@@ -40,11 +39,11 @@ public final class BlockType implements Keyed {
             expected *= property.values().size();
         }
         if (stateIds.length != expected) {
-            throw new IllegalArgumentException("Block '" + key.asString() + "' expects " + expected
+            throw new IllegalArgumentException("Block '" + key.key().asString() + "' expects " + expected
                     + " states but got " + stateIds.length);
         }
         if (defaultOrdinal < 0 || defaultOrdinal >= expected) {
-            throw new IllegalArgumentException("Default ordinal out of range for '" + key.asString() + "'");
+            throw new IllegalArgumentException("Default ordinal out of range for '" + key.key().asString() + "'");
         }
         this.stateIds = stateIds.clone();
         this.defaultOrdinal = defaultOrdinal;
@@ -85,7 +84,11 @@ public final class BlockType implements Keyed {
         return new Builder(key);
     }
 
-    @Override
+    /**
+     * {@return the key of this block type}
+     *
+     * @since 0.1.0
+     */
     public TypedKey<BlockType> key() {
         return key;
     }
@@ -225,14 +228,14 @@ public final class BlockType implements Keyed {
                 final int index = property.indexOf(value);
                 if (index < 0) {
                     throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                            + propertyName + "' of block '" + key.asString() + "'");
+                            + propertyName + "' of block '" + key.key().asString() + "'");
                 }
                 final int current = (ordinal / radix) % size;
                 return ordinal + (index - current) * radix;
             }
             radix *= size;
         }
-        throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.asString() + "'");
+        throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.key().asString() + "'");
     }
 
     private Map<String, @Nullable String> valuesOf(final int ordinal) {
@@ -274,7 +277,7 @@ public final class BlockType implements Keyed {
 
     @Override
     public String toString() {
-        return "BlockType[" + key.asString() + ", states=" + stateIds.length + "]";
+        return "BlockType[" + key.key().asString() + ", states=" + stateIds.length + "]";
     }
 
     private record DataHandler(BlockType type, int ordinal) implements InvocationHandler {
@@ -314,7 +317,7 @@ public final class BlockType implements Keyed {
             final int index = value == null ? 0 : property.indexOf(value);
             if (index < 0) {
                 throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                        + property.name() + "' of block '" + key.asString() + "'");
+                        + property.name() + "' of block '" + key.key().asString() + "'");
             }
             ordinal = ordinal * property.values().size() + index;
         }
@@ -355,7 +358,7 @@ public final class BlockType implements Keyed {
             for (final BlockProperty declared : properties) {
                 if (declared.name().equals(property.name())) {
                     throw new IllegalArgumentException("Property '" + property.name()
-                            + "' declared twice on block '" + key.asString() + "'");
+                            + "' declared twice on block '" + key.key().asString() + "'");
                 }
             }
             properties.add(property);
@@ -484,7 +487,7 @@ public final class BlockType implements Keyed {
                 } else {
                     throw new IllegalStateException(
                             "firstStateId(...), stateIds(...) or appearance(...) must be set for '"
-                                    + key.asString() + "'");
+                                    + key.key().asString() + "'");
                 }
             } else {
                 ids = stateIds;

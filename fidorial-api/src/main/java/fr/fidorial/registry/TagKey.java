@@ -6,13 +6,14 @@ import net.kyori.adventure.key.KeyPattern;
 /**
  * A tag bound to the registry its members belong to.
  * <p>
- * It is a {@link Key} itself, without the leading {@code #}, and can be passed wherever one is
- * expected. Like any key, it equals every other key with the same namespace and value.
+ * It is not a {@link Key}: use {@link #key()} to get the plain key of the tag, without the leading
+ * {@code #}. Two tag keys are equal when they have the same registry and the same key, and a tag
+ * key never equals a {@link TypedKey}, even one with the same namespace and value.
  *
  * @param <T> the type of the members
  * @since 0.1.0
  */
-public sealed interface TagKey<T> extends Key permits TagKeyImpl {
+public sealed interface TagKey<T> permits TagKeyImpl {
 
     /**
      * {@return a tag of the given registry}
@@ -50,6 +51,5 @@ public sealed interface TagKey<T> extends Key permits TagKeyImpl {
      *
      * @since 0.1.0
      */
-    @Override
     Key key();
 }

@@ -234,7 +234,7 @@ public record ItemStack(TypedKey<Item> id, int count, DataComponentMap component
      */
     @Override
     public HoverEvent<HoverEvent.ShowItem> asHoverEvent(final UnaryOperator<HoverEvent.ShowItem> op) {
-        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id, count, hoverComponents())));
+        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id.key(), count, hoverComponents())));
     }
 
     private Map<Key, DataComponentValue> hoverComponents() {
@@ -243,10 +243,10 @@ public record ItemStack(TypedKey<Item> id, int count, DataComponentMap component
         }
         final Map<Key, DataComponentValue> values = new LinkedHashMap<>();
         for (final Map.Entry<DataComponentType<?>, Object> entry : components.entries()) {
-            values.put(entry.getKey().key(), hoverValue(entry.getKey(), entry.getValue()));
+            values.put(entry.getKey().key().key(), hoverValue(entry.getKey(), entry.getValue()));
         }
         for (final DataComponentType<?> removed : components.removedTypes()) {
-            values.put(removed.key(), DataComponentValue.removed());
+            values.put(removed.key().key(), DataComponentValue.removed());
         }
         return values;
     }
@@ -257,12 +257,12 @@ public record ItemStack(TypedKey<Item> id, int count, DataComponentMap component
 
     @Override
     public String translationKey() {
-        return "item." + id.asString().replace(":", ".");
+        return "item." + id.key().asString().replace(":", ".");
     }
 
     @Override
     public String toString() {
-        return "ItemStack{" + id.asString() + " x" + count
+        return "ItemStack{" + id.key().asString() + " x" + count
                 + (components.isEmpty() ? "" : ", " + components)
                 + "}";
     }

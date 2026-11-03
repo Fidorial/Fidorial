@@ -59,7 +59,8 @@ public final class SupportedRegistries {
             registry("minecraft:cow_variant", "CowVariant", RegistrySync.DYNAMIC),
             registry("minecraft:custom_stat", "CustomStat", RegistrySync.FROZEN),
             registry("minecraft:damage_type", "DamageType", RegistrySync.DYNAMIC),
-            registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN),
+            registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN)
+                    .bind("fr.fidorial.item.data.DataComponentType<?>"),
             registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC).bind("fr.fidorial.dialog.DialogDefinition"),
             registry("minecraft:decorated_pot_pattern", "DecoratedPotPattern", RegistrySync.DYNAMIC),
             registry("minecraft:debug_subscription", "DebugSubscription", RegistrySync.FROZEN),

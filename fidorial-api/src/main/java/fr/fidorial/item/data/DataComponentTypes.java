@@ -7,6 +7,7 @@ import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.map.MapManager;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -124,9 +125,9 @@ public class DataComponentTypes {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");
     }
 
-    private static <T> DataComponentType<T> register(final Key key, final Class<T> valueType) {
+    private static <T> DataComponentType<T> register(final TypedKey<DataComponentType<?>> key, final Class<T> valueType) {
         final DataComponentType<T> type = DataComponentType.of(key, valueType);
-        BY_KEY.put(key, type);
+        BY_KEY.put(key.key(), type);
         return type;
     }
 
@@ -156,6 +157,4 @@ public class DataComponentTypes {
     public static Collection<DataComponentType<?>> values() {
         return Collections.unmodifiableCollection(BY_KEY.values());
     }
-
-
 }

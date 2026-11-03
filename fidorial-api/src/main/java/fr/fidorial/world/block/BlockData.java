@@ -90,10 +90,11 @@ public interface BlockData {
      * @since 0.1.0
      */
     default String asString() {
+        final String id = key().key().asString();
         if (type().properties().isEmpty()) {
-            return key().asString();
+            return id;
         }
-        final StringBuilder builder = new StringBuilder(key().asString()).append('[');
+        final StringBuilder builder = new StringBuilder(id).append('[');
         boolean first = true;
         for (final Map.Entry<String, String> entry : propertyMap().entrySet()) {
             if (!first) {

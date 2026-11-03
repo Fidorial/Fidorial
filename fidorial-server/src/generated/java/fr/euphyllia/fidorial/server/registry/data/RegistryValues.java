@@ -16,7 +16,6 @@ import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
 import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
-import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Fluid;
@@ -98,7 +97,6 @@ public final class RegistryValues {
         factories.put(RegistryKey.COW_VARIANT.key(), CowVariantValue::new);
         factories.put(RegistryKey.CUSTOM_STAT.key(), CustomStatValue::new);
         factories.put(RegistryKey.DAMAGE_TYPE.key(), DamageTypeValue::new);
-        factories.put(RegistryKey.DATA_COMPONENT_TYPE.key(), DataComponentTypeValue::new);
         factories.put(RegistryKey.DECORATED_POT_PATTERN.key(), DecoratedPotPatternValue::new);
         factories.put(RegistryKey.DEBUG_SUBSCRIPTION.key(), DebugSubscriptionValue::new);
         factories.put(RegistryKey.FROG_VARIANT.key(), FrogVariantValue::new);
@@ -267,15 +265,6 @@ public final class RegistryValues {
      */
     public record DamageTypeValue(Key key) implements DamageType {
         public DamageTypeValue {
-            Objects.requireNonNull(key, "key");
-        }
-    }
-
-    /**
-     * A {@code minecraft:data_component_type} entry.
-     */
-    public record DataComponentTypeValue(Key key) implements DataComponentType {
-        public DataComponentTypeValue {
             Objects.requireNonNull(key, "key");
         }
     }

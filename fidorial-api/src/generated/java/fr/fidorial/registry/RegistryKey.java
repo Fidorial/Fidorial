@@ -3,6 +3,7 @@ package fr.fidorial.registry;
 import fr.fidorial.chat.ChatTypeDefinition;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.BannerPattern;
@@ -19,7 +20,6 @@ import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
 import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
-import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Fluid;
@@ -161,7 +161,7 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:data_component_type}.
      */
-    public static final RegistryKey<DataComponentType> DATA_COMPONENT_TYPE = of("data_component_type");
+    public static final RegistryKey<DataComponentType<?>> DATA_COMPONENT_TYPE = of("data_component_type");
 
     /**
      * Registry key for {@code minecraft:dialog}.

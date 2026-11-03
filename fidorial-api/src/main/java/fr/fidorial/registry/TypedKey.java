@@ -6,13 +6,13 @@ import net.kyori.adventure.key.KeyPattern;
 /**
  * A key bound to the registry it belongs to, so lookups are type-safe.
  * <p>
- * It is a {@link Key} itself and can be passed wherever one is expected. Like any key, it equals
- * every other key with the same namespace and value, whatever its registry.
+ * It is not a {@link Key}: use {@link #key()} to get the plain key. Two typed keys are equal when
+ * they have the same registry and the same key.
  *
  * @param <T> the type of the entry
  * @since 0.1.0
  */
-public sealed interface TypedKey<T> extends Key, Reference<T> permits TypedKeyImpl {
+public sealed interface TypedKey<T> extends Reference<T> permits TypedKeyImpl {
 
     /**
      * {@return a key of the given registry}
@@ -50,6 +50,5 @@ public sealed interface TypedKey<T> extends Key, Reference<T> permits TypedKeyIm
      *
      * @since 0.1.0
      */
-    @Override
     Key key();
 }

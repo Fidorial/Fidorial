@@ -28,7 +28,7 @@ public final class ChatTypeBuilder {
     }
 
     ChatTypeBuilder(final ChatTypeDefinition definition) {
-        this.key = definition.key();
+        this.key = definition.typedKey();
         this.chat = definition.chat();
         this.narration = definition.narration();
     }
