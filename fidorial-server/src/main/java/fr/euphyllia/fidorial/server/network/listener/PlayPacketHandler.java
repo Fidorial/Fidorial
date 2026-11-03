@@ -320,7 +320,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 config.general().viewDistance(),
                 config.general().viewDistance(),
                 player.gameMode().id(),
-                describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
                 config.network().onlineMode(),
                 config.network().enforceSecureChat(),
@@ -1042,7 +1041,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                                 dimensionType,
                                 teleporting.gameMode().id(),
                                 ClientboundRespawnPacket.KEEP_ALL,
-                                describeGenerator(target) instanceof ChunkGeneratorConfig.Debug,
                                 describeGenerator(target) instanceof ChunkGeneratorConfig.Flat));
                         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(teleporting.gameMode()));
                         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
@@ -1290,7 +1288,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 dimensionType,
                 player.gameMode().id(),
                 ClientboundRespawnPacket.KEEP_NOTHING,
-                describeGenerator(world) instanceof ChunkGeneratorConfig.Debug,
                 describeGenerator(world) instanceof ChunkGeneratorConfig.Flat));
         connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
         connection.send(new ClientboundSetHealthPacket(player.health(), 20, 5.0f));

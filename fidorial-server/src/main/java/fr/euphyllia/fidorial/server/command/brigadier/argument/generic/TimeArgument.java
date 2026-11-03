@@ -12,15 +12,17 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.fidorial.annotation.SinceMinecraft;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public record TimeArgument(int minimum) implements ArgumentType<Integer> {
+public record TimeArgument(int minimum, int maximum) implements ArgumentType<Integer> {
 
     private static final SimpleCommandExceptionType ERROR_INVALID_UNIT = ExceptionFactory.simple("argument.time.invalid_unit");
     private static final Dynamic2CommandExceptionType ERROR_TICK_COUNT_TOO_LOW = ExceptionFactory.dynamic2Reversed("argument.time.tick_count_too_low");
+    private static final Dynamic2CommandExceptionType ERROR_TICK_COUNT_TOO_HIGH = ExceptionFactory.dynamic2Reversed("argument.time.tick_count_too_high");
 
     private static final Map<String, Integer> UNITS = new LinkedHashMap<>();
 
@@ -32,17 +34,22 @@ public record TimeArgument(int minimum) implements ArgumentType<Integer> {
     }
 
     public static TimeArgument time() {
-        return new TimeArgument(0);
+        return new TimeArgument(0, Integer.MAX_VALUE);
     }
 
     public static TimeArgument time(final int minimum) {
-        return new TimeArgument(minimum);
+        return new TimeArgument(minimum, Integer.MAX_VALUE);
+    }
+
+    @SinceMinecraft("26.4-snapshot-7")
+    public static TimeArgument time(final int minimum, final int maximum) {
+        return new TimeArgument(minimum, maximum);
     }
 
     @Override
     public Integer parse(final StringReader reader) throws CommandSyntaxException {
 
-        final float value = reader.readFloat();
+        final double value = reader.readDouble();
 
         final String unit = reader.readUnquotedString();
 
@@ -52,13 +59,17 @@ public record TimeArgument(int minimum) implements ArgumentType<Integer> {
             throw ERROR_INVALID_UNIT.createWithContext(reader);
         }
 
-        final int ticks = Math.round(value * factor);
+        final long ticks = Math.round(value * factor);
 
         if (ticks < minimum) {
             throw ERROR_TICK_COUNT_TOO_LOW.createWithContext(reader, ticks, minimum);
         }
 
-        return ticks;
+        if (ticks > maximum) {
+            throw ERROR_TICK_COUNT_TOO_HIGH.createWithContext(reader, ticks, maximum);
+        }
+
+        return (int) ticks;
     }
 
     @Override
@@ -66,7 +77,7 @@ public record TimeArgument(int minimum) implements ArgumentType<Integer> {
         final StringReader reader = new StringReader(builder.getRemaining());
 
         try {
-            reader.readFloat();
+            reader.readDouble();
         } catch (final CommandSyntaxException exception) {
             return builder.buildFuture();
         }

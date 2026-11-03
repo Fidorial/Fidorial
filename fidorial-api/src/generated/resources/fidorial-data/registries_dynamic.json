@@ -2592,6 +2592,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 25
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     }
                   ],
                   "underground_water_creature": [
@@ -4320,6 +4325,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 25
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     }
                   ],
                   "underground_water_creature": [
@@ -4489,6 +4499,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 25
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     },
                     {
                       "type": "minecraft:spider",
@@ -4713,6 +4728,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 25
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     }
                   ],
                   "underground_water_creature": [
@@ -5419,6 +5439,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 10
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     },
                     {
                       "type": "minecraft:spider",
@@ -9094,6 +9119,11 @@
                       "type": "minecraft:frostbite",
                       "count": 4,
                       "weight": 10
+                    },
+                    {
+                      "type": "minecraft:stray",
+                      "count": 4,
+                      "weight": 95
                     },
                     {
                       "type": "minecraft:spider",
@@ -13352,6 +13382,16 @@
         }
       },
       {
+        "id": "minecraft:chiseled_soulshale",
+        "data": {
+          "break_sound": "minecraft:block.chiseled_soulshale.break",
+          "fall_sound": "minecraft:block.chiseled_soulshale.fall",
+          "hit_sound": "minecraft:block.chiseled_soulshale.hit",
+          "place_sound": "minecraft:block.chiseled_soulshale.place",
+          "step_sound": "minecraft:block.chiseled_soulshale.step"
+        }
+      },
+      {
         "id": "minecraft:cinnabar",
         "data": {
           "break_sound": "minecraft:block.cinnabar.break",
@@ -14373,17 +14413,6 @@
           "hit_sound": "minecraft:block.tuff_bricks.hit",
           "place_sound": "minecraft:block.tuff_bricks.place",
           "step_sound": "minecraft:block.tuff_bricks.step"
-        }
-      },
-      {
-        "id": "minecraft:twisting_vines",
-        "data": {
-          "break_sound": "minecraft:block.weeping_vines.break",
-          "fall_sound": "minecraft:block.weeping_vines.fall",
-          "hit_sound": "minecraft:block.weeping_vines.hit",
-          "pitch": 0.5,
-          "place_sound": "minecraft:block.weeping_vines.place",
-          "step_sound": "minecraft:block.weeping_vines.step"
         }
       },
       {
@@ -21457,6 +21486,17 @@
           },
           "length_in_seconds": 174.0,
           "sound_event": "minecraft:music_disc.far"
+        }
+      },
+      {
+        "id": "minecraft:flurry",
+        "data": {
+          "comparator_output": 7,
+          "description": {
+            "translate": "jukebox_song.minecraft.flurry"
+          },
+          "length_in_seconds": 154.0,
+          "sound_event": "minecraft:music_disc.flurry"
         }
       },
       {

@@ -8,7 +8,7 @@ import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Respawn
 @NeedsToBeRevisited("Sends stubs for some fields")
-public record ClientboundRespawnPacket(Key dimensionKey, int dimensionTypeId, int gameMode, int dataToKeep, boolean isDebug, boolean isFlat)
+public record ClientboundRespawnPacket(Key dimensionKey, int dimensionTypeId, int gameMode, int dataToKeep, boolean isFlat)
         implements ClientboundPacket {
 
     /**
@@ -28,8 +28,8 @@ public record ClientboundRespawnPacket(Key dimensionKey, int dimensionTypeId, in
      */
     public static final int KEEP_ALL = KEEP_ATTRIBUTES | KEEP_METADATA;
 
-    public ClientboundRespawnPacket(final Key dimensionKey, final int dimensionTypeId, final int gameMode, final boolean isDebug, final boolean isFlat) {
-        this(dimensionKey, dimensionTypeId, gameMode, KEEP_NOTHING, isDebug, isFlat);
+    public ClientboundRespawnPacket(final Key dimensionKey, final int dimensionTypeId, final int gameMode, final boolean isFlat) {
+        this(dimensionKey, dimensionTypeId, gameMode, KEEP_NOTHING, isFlat);
     }
 
     @Override
@@ -43,7 +43,6 @@ public record ClientboundRespawnPacket(Key dimensionKey, int dimensionTypeId, in
         buf.writeKey(dimensionKey); // dimension name
         buf.writeVarInt(gameMode); // game mode (unsigned byte)
         buf.writeVarInt(0); // previous game mode (0 = undefined)
-        buf.writeBoolean(isDebug); // isDebug
         buf.writeBoolean(isFlat); // isFlat
         buf.writeBoolean(false); // has death location
         buf.writeVarInt(0); // portal cooldown ticks

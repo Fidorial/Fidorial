@@ -1022,6 +1022,31 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> BLOCK_CHISELED_BOOKSHELF_STEP = create("block.chiseled_bookshelf.step");
 
     /**
+     * Key for {@code minecraft:block.chiseled_soulshale.break}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_CHISELED_SOULSHALE_BREAK = create("block.chiseled_soulshale.break");
+
+    /**
+     * Key for {@code minecraft:block.chiseled_soulshale.fall}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_CHISELED_SOULSHALE_FALL = create("block.chiseled_soulshale.fall");
+
+    /**
+     * Key for {@code minecraft:block.chiseled_soulshale.hit}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_CHISELED_SOULSHALE_HIT = create("block.chiseled_soulshale.hit");
+
+    /**
+     * Key for {@code minecraft:block.chiseled_soulshale.place}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_CHISELED_SOULSHALE_PLACE = create("block.chiseled_soulshale.place");
+
+    /**
+     * Key for {@code minecraft:block.chiseled_soulshale.step}.
+     */
+    public static final TypedKey<SoundEvent> BLOCK_CHISELED_SOULSHALE_STEP = create("block.chiseled_soulshale.step");
+
+    /**
      * Key for {@code minecraft:block.chorus_flower.death}.
      */
     public static final TypedKey<SoundEvent> BLOCK_CHORUS_FLOWER_DEATH = create("block.chorus_flower.death");
@@ -7142,6 +7167,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> ENTITY_PARROT_IMITATE_EVOKER = create("entity.parrot.imitate.evoker");
 
     /**
+     * Key for {@code minecraft:entity.parrot.imitate.frostbite}.
+     */
+    public static final TypedKey<SoundEvent> ENTITY_PARROT_IMITATE_FROSTBITE = create("entity.parrot.imitate.frostbite");
+
+    /**
      * Key for {@code minecraft:entity.parrot.imitate.ghast}.
      */
     public static final TypedKey<SoundEvent> ENTITY_PARROT_IMITATE_GHAST = create("entity.parrot.imitate.ghast");
@@ -10087,6 +10117,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> MUSIC_DISC_FAR = create("music_disc.far");
 
     /**
+     * Key for {@code minecraft:music_disc.flurry}.
+     */
+    public static final TypedKey<SoundEvent> MUSIC_DISC_FLURRY = create("music_disc.flurry");
+
+    /**
      * Key for {@code minecraft:music_disc.lava_chicken}.
      */
     public static final TypedKey<SoundEvent> MUSIC_DISC_LAVA_CHICKEN = create("music_disc.lava_chicken");
@@ -10419,6 +10454,11 @@ public final class SoundEventKeys {
         BLOCK_CHISELED_BOOKSHELF_PICKUP_ENCHANTED,
         BLOCK_CHISELED_BOOKSHELF_PLACE,
         BLOCK_CHISELED_BOOKSHELF_STEP,
+        BLOCK_CHISELED_SOULSHALE_BREAK,
+        BLOCK_CHISELED_SOULSHALE_FALL,
+        BLOCK_CHISELED_SOULSHALE_HIT,
+        BLOCK_CHISELED_SOULSHALE_PLACE,
+        BLOCK_CHISELED_SOULSHALE_STEP,
         BLOCK_CHORUS_FLOWER_DEATH,
         BLOCK_CHORUS_FLOWER_GROW,
         BLOCK_CINNABAR_BREAK,
@@ -11643,6 +11683,7 @@ public final class SoundEventKeys {
         ENTITY_PARROT_IMITATE_ENDER_DRAGON,
         ENTITY_PARROT_IMITATE_ENDERMITE,
         ENTITY_PARROT_IMITATE_EVOKER,
+        ENTITY_PARROT_IMITATE_FROSTBITE,
         ENTITY_PARROT_IMITATE_GHAST,
         ENTITY_PARROT_IMITATE_GUARDIAN,
         ENTITY_PARROT_IMITATE_HOGLIN,
@@ -12232,6 +12273,7 @@ public final class SoundEventKeys {
         MUSIC_DISC_CREATOR,
         MUSIC_DISC_CREATOR_MUSIC_BOX,
         MUSIC_DISC_FAR,
+        MUSIC_DISC_FLURRY,
         MUSIC_DISC_LAVA_CHICKEN,
         MUSIC_DISC_MALL,
         MUSIC_DISC_MELLOHI,

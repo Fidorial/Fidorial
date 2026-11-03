@@ -130,11 +130,6 @@ public final class EntityTypeTagKeys {
     public static final TagKey<EntityType> FALL_DAMAGE_IMMUNE = create("fall_damage_immune");
 
     /**
-     * Tag {@code #minecraft:flying}.
-     */
-    public static final TagKey<EntityType> FLYING = create("flying");
-
-    /**
      * Tag {@code #minecraft:followable_friendly_mobs}.
      */
     public static final TagKey<EntityType> FOLLOWABLE_FRIENDLY_MOBS = create("followable_friendly_mobs");
@@ -263,11 +258,6 @@ public final class EntityTypeTagKeys {
      * Tag {@code #minecraft:skeletons}.
      */
     public static final TagKey<EntityType> SKELETONS = create("skeletons");
-
-    /**
-     * Tag {@code #minecraft:swimming}.
-     */
-    public static final TagKey<EntityType> SWIMMING = create("swimming");
 
     /**
      * Tag {@code #minecraft:undead}.

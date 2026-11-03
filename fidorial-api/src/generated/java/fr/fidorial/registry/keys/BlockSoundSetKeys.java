@@ -137,6 +137,11 @@ public final class BlockSoundSetKeys {
     public static final TypedKey<BlockSoundSet> CHISELED_BOOKSHELF = create("chiseled_bookshelf");
 
     /**
+     * Key for {@code minecraft:chiseled_soulshale}.
+     */
+    public static final TypedKey<BlockSoundSet> CHISELED_SOULSHALE = create("chiseled_soulshale");
+
+    /**
      * Key for {@code minecraft:cinnabar}.
      */
     public static final TypedKey<BlockSoundSet> CINNABAR = create("cinnabar");
@@ -652,11 +657,6 @@ public final class BlockSoundSetKeys {
     public static final TypedKey<BlockSoundSet> TUFF_BRICKS = create("tuff_bricks");
 
     /**
-     * Key for {@code minecraft:twisting_vines}.
-     */
-    public static final TypedKey<BlockSoundSet> TWISTING_VINES = create("twisting_vines");
-
-    /**
      * Key for {@code minecraft:vault}.
      */
     public static final TypedKey<BlockSoundSet> VAULT = create("vault");
@@ -722,6 +722,7 @@ public final class BlockSoundSetKeys {
         CHERRY_WOOD,
         CHERRY_WOOD_HANGING_SIGN,
         CHISELED_BOOKSHELF,
+        CHISELED_SOULSHALE,
         CINNABAR,
         COBWEB,
         COPPER,
@@ -825,7 +826,6 @@ public final class BlockSoundSetKeys {
         TRIAL_SPAWNER,
         TUFF,
         TUFF_BRICKS,
-        TWISTING_VINES,
         VAULT,
         VINE,
         WART_BLOCK,

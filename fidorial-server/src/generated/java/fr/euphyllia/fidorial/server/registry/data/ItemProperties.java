@@ -307,6 +307,10 @@ public final class ItemProperties {
         register(ItemKeys.CACTUS_FLOWER.key(), 64, 0, List.of());
         register(ItemKeys.CAKE.key(), 1, 0, List.of());
         register(ItemKeys.CALCITE.key(), 64, 0, List.of());
+        register(ItemKeys.CALCITE_PILLAR.key(), 64, 0, List.of());
+        register(ItemKeys.CALCITE_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.CALCITE_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.CALCITE_WALL.key(), 64, 0, List.of());
         register(ItemKeys.CALIBRATED_SCULK_SENSOR.key(), 64, 0, List.of());
         register(ItemKeys.CAMEL_HUSK_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.CAMEL_SPAWN_EGG.key(), 64, 0, List.of());
@@ -359,6 +363,7 @@ public final class ItemProperties {
         register(ItemKeys.CHISELED_RED_SANDSTONE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_RESIN_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_SANDSTONE.key(), 64, 0, List.of());
+        register(ItemKeys.CHISELED_SOULSHALE.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_STONE_BRICKS.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_SULFUR.key(), 64, 0, List.of());
         register(ItemKeys.CHISELED_TUFF.key(), 64, 0, List.of());
@@ -488,14 +493,14 @@ public final class ItemProperties {
         register(ItemKeys.CYAN_CONCRETE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_CUSHION.key(), 16, 0, List.of());
         register(ItemKeys.CYAN_DYE.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems2() {
         register(ItemKeys.CYAN_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_HARNESS.key(), 1, 0, List.of());
         register(ItemKeys.CYAN_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_STAINED_GLASS_PANE.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems2() {
         register(ItemKeys.CYAN_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL.key(), 64, 0, List.of());
         register(ItemKeys.CYAN_WOOL_SLAB.key(), 64, 0, List.of());
@@ -691,14 +696,14 @@ public final class ItemProperties {
         register(ItemKeys.GOAT_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.GOLD_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.GOLD_INGOT.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems3() {
         register(ItemKeys.GOLD_NUGGET.key(), 64, 0, List.of());
         register(ItemKeys.GOLD_ORE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_APPLE.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_AXE.key(), 1, 32, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_BOOTS.key(), 1, 91, List.of(ItemKeys.GOLD_INGOT.key()));
-    }
-
-    private static void registerItems3() {
         register(ItemKeys.GOLDEN_CARROT.key(), 64, 0, List.of());
         register(ItemKeys.GOLDEN_CHESTPLATE.key(), 1, 112, List.of(ItemKeys.GOLD_INGOT.key()));
         register(ItemKeys.GOLDEN_DANDELION.key(), 64, 0, List.of());
@@ -894,14 +899,14 @@ public final class ItemProperties {
         register(ItemKeys.LIGHT_GRAY_DYE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_HARNESS.key(), 1, 0, List.of());
+    }
+
+    private static void registerItems4() {
         register(ItemKeys.LIGHT_GRAY_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_STAINED_GLASS.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_STAINED_GLASS_PANE.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems4() {
         register(ItemKeys.LIGHT_GRAY_WOOL_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_GRAY_WOOL_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.LIGHT_WEIGHTED_PRESSURE_PLATE.key(), 64, 0, List.of());
@@ -1016,6 +1021,7 @@ public final class ItemProperties {
         register(ItemKeys.MUSIC_DISC_CREATOR.key(), 1, 0, List.of());
         register(ItemKeys.MUSIC_DISC_CREATOR_MUSIC_BOX.key(), 1, 0, List.of());
         register(ItemKeys.MUSIC_DISC_FAR.key(), 1, 0, List.of());
+        register(ItemKeys.MUSIC_DISC_FLURRY.key(), 1, 0, List.of());
         register(ItemKeys.MUSIC_DISC_LAVA_CHICKEN.key(), 1, 0, List.of());
         register(ItemKeys.MUSIC_DISC_MALL.key(), 1, 0, List.of());
         register(ItemKeys.MUSIC_DISC_MELLOHI.key(), 1, 0, List.of());
@@ -1096,15 +1102,15 @@ public final class ItemProperties {
         register(ItemKeys.ORANGE_CARPET.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_CONCRETE.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_CONCRETE_POWDER.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems5() {
         register(ItemKeys.ORANGE_CONCRETE_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_CONCRETE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_CUSHION.key(), 16, 0, List.of());
         register(ItemKeys.ORANGE_DYE.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_HARNESS.key(), 1, 0, List.of());
-    }
-
-    private static void registerItems5() {
         register(ItemKeys.ORANGE_POPLAR_LEAVES.key(), 64, 0, List.of());
         register(ItemKeys.ORANGE_SHULKER_BOX.key(), 1, 0, List.of());
         register(ItemKeys.ORANGE_STAINED_GLASS.key(), 64, 0, List.of());
@@ -1219,6 +1225,14 @@ public final class ItemProperties {
         register(ItemKeys.POLISHED_BLACKSTONE_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.POLISHED_BLACKSTONE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.POLISHED_BLACKSTONE_WALL.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_BRICK_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_BRICK_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_BRICK_WALL.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_BRICKS.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_SLAB.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_STAIRS.key(), 64, 0, List.of());
+        register(ItemKeys.POLISHED_CALCITE_WALL.key(), 64, 0, List.of());
         register(ItemKeys.POLISHED_CINNABAR.key(), 64, 0, List.of());
         register(ItemKeys.POLISHED_CINNABAR_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.POLISHED_CINNABAR_STAIRS.key(), 64, 0, List.of());
@@ -1291,6 +1305,9 @@ public final class ItemProperties {
         register(ItemKeys.PURPLE_CONCRETE_POWDER.key(), 64, 0, List.of());
         register(ItemKeys.PURPLE_CONCRETE_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.PURPLE_CONCRETE_STAIRS.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems6() {
         register(ItemKeys.PURPLE_CUSHION.key(), 16, 0, List.of());
         register(ItemKeys.PURPLE_DYE.key(), 64, 0, List.of());
         register(ItemKeys.PURPLE_GLAZED_TERRACOTTA.key(), 64, 0, List.of());
@@ -1305,9 +1322,6 @@ public final class ItemProperties {
         register(ItemKeys.PURPUR_BLOCK.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_PILLAR.key(), 64, 0, List.of());
         register(ItemKeys.PURPUR_SLAB.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems6() {
         register(ItemKeys.PURPUR_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ.key(), 64, 0, List.of());
         register(ItemKeys.QUARTZ_BLOCK.key(), 64, 0, List.of());
@@ -1494,6 +1508,9 @@ public final class ItemProperties {
         register(ItemKeys.STICKY_PISTON.key(), 64, 0, List.of());
         register(ItemKeys.STONE.key(), 64, 0, List.of());
         register(ItemKeys.STONE_AXE.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
+    }
+
+    private static void registerItems7() {
         register(ItemKeys.STONE_BRICK_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BRICK_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.STONE_BRICK_WALL.key(), 64, 0, List.of());
@@ -1508,9 +1525,6 @@ public final class ItemProperties {
         register(ItemKeys.STONE_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.STONE_SWORD.key(), 1, 131, List.of(ItemKeys.COBBLED_DEEPSLATE.key(), ItemKeys.COBBLESTONE.key(), ItemKeys.BLACKSTONE.key()));
         register(ItemKeys.STONECUTTER.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems7() {
         register(ItemKeys.STRAW_BED.key(), 16, 0, List.of());
         register(ItemKeys.STRAY_SPAWN_EGG.key(), 64, 0, List.of());
         register(ItemKeys.STRIDER_SPAWN_EGG.key(), 64, 0, List.of());
@@ -1697,6 +1711,9 @@ public final class ItemProperties {
         register(ItemKeys.WAXED_WEATHERED_LIGHTNING_ROD.key(), 64, 0, List.of());
         register(ItemKeys.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_CHISELED_COPPER.key(), 64, 0, List.of());
+    }
+
+    private static void registerItems8() {
         register(ItemKeys.WEATHERED_COPPER.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_COPPER_BARS.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_COPPER_BULB.key(), 64, 0, List.of());
@@ -1711,9 +1728,6 @@ public final class ItemProperties {
         register(ItemKeys.WEATHERED_CUT_COPPER_SLAB.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_CUT_COPPER_STAIRS.key(), 64, 0, List.of());
         register(ItemKeys.WEATHERED_LIGHTNING_ROD.key(), 64, 0, List.of());
-    }
-
-    private static void registerItems8() {
         register(ItemKeys.WEEPING_VINES.key(), 64, 0, List.of());
         register(ItemKeys.WET_SPONGE.key(), 64, 0, List.of());
         register(ItemKeys.WHEAT.key(), 64, 0, List.of());

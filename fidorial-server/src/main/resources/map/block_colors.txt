@@ -169,6 +169,10 @@ cactus 7
 cactus_flower 20
 cake 0
 calcite 36
+calcite_pillar 36
+calcite_slab 36
+calcite_stairs 36
+calcite_wall 36
 calibrated_sculk_sensor 23
 campfire 34
 candle 2
@@ -212,6 +216,7 @@ chiseled_quartz_block 14
 chiseled_red_sandstone 15
 chiseled_resin_bricks 37
 chiseled_sandstone 2
+chiseled_soulshale 56
 chiseled_stone_bricks 11
 chiseled_sulfur 18
 chiseled_tuff 43
@@ -817,6 +822,14 @@ polished_blackstone_pressure_plate 29
 polished_blackstone_slab 29
 polished_blackstone_stairs 29
 polished_blackstone_wall 29
+polished_calcite 36
+polished_calcite_brick_slab 36
+polished_calcite_brick_stairs 36
+polished_calcite_brick_wall 36
+polished_calcite_bricks 36
+polished_calcite_slab 36
+polished_calcite_stairs 36
+polished_calcite_wall 36
 polished_cinnabar 28
 polished_cinnabar_slab 28
 polished_cinnabar_stairs 28

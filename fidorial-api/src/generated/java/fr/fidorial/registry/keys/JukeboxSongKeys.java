@@ -62,6 +62,11 @@ public final class JukeboxSongKeys {
     public static final TypedKey<JukeboxSong> FAR = create("far");
 
     /**
+     * Key for {@code minecraft:flurry}.
+     */
+    public static final TypedKey<JukeboxSong> FLURRY = create("flurry");
+
+    /**
      * Key for {@code minecraft:lava_chicken}.
      */
     public static final TypedKey<JukeboxSong> LAVA_CHICKEN = create("lava_chicken");
@@ -132,6 +137,7 @@ public final class JukeboxSongKeys {
         CREATOR,
         CREATOR_MUSIC_BOX,
         FAR,
+        FLURRY,
         LAVA_CHICKEN,
         MALL,
         MELLOHI,

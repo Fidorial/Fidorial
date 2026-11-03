@@ -216,6 +216,10 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.CACTUS_FLOWER.key(), 0, 0);
         register(BlockTypeKeys.CAKE.key(), 0, 0);
         register(BlockTypeKeys.CALCITE.key(), 0, 15);
+        register(BlockTypeKeys.CALCITE_PILLAR.key(), 0, 15);
+        register(BlockTypeKeys.CALCITE_SLAB.key(), 0, 0);
+        register(BlockTypeKeys.CALCITE_STAIRS.key(), 0, 0);
+        register(BlockTypeKeys.CALCITE_WALL.key(), 0, 0);
         register(BlockTypeKeys.CALIBRATED_SCULK_SENSOR.key(), 1, 0);
         register(BlockTypeKeys.CAMPFIRE.key(), 15, 0);
         register(BlockTypeKeys.CANDLE.key(), 0, 0);
@@ -259,6 +263,7 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.CHISELED_RED_SANDSTONE.key(), 0, 15);
         register(BlockTypeKeys.CHISELED_RESIN_BRICKS.key(), 0, 15);
         register(BlockTypeKeys.CHISELED_SANDSTONE.key(), 0, 15);
+        register(BlockTypeKeys.CHISELED_SOULSHALE.key(), 0, 15);
         register(BlockTypeKeys.CHISELED_STONE_BRICKS.key(), 0, 15);
         register(BlockTypeKeys.CHISELED_SULFUR.key(), 0, 15);
         register(BlockTypeKeys.CHISELED_TUFF.key(), 0, 15);
@@ -342,14 +347,14 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.CUT_RED_SANDSTONE.key(), 0, 15);
         register(BlockTypeKeys.CUT_RED_SANDSTONE_SLAB.key(), 0, 0);
         register(BlockTypeKeys.CUT_SANDSTONE.key(), 0, 15);
+    }
+
+    private static void registerLight2() {
         register(BlockTypeKeys.CUT_SANDSTONE_SLAB.key(), 0, 0);
         register(BlockTypeKeys.CYAN_BANNER.key(), 0, 0);
         register(BlockTypeKeys.CYAN_BED.key(), 0, 0);
         register(BlockTypeKeys.CYAN_CANDLE.key(), 0, 0);
         register(BlockTypeKeys.CYAN_CANDLE_CAKE.key(), 0, 0);
-    }
-
-    private static void registerLight2() {
         register(BlockTypeKeys.CYAN_CARPET.key(), 0, 0);
         register(BlockTypeKeys.CYAN_CONCRETE.key(), 0, 15);
         register(BlockTypeKeys.CYAN_CONCRETE_POWDER.key(), 0, 15);
@@ -495,14 +500,14 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.GOLD_BLOCK.key(), 0, 15);
         register(BlockTypeKeys.GOLD_ORE.key(), 0, 15);
         register(BlockTypeKeys.GOLDEN_DANDELION.key(), 0, 0);
+    }
+
+    private static void registerLight3() {
         register(BlockTypeKeys.GRANITE.key(), 0, 15);
         register(BlockTypeKeys.GRANITE_SLAB.key(), 0, 0);
         register(BlockTypeKeys.GRANITE_STAIRS.key(), 0, 0);
         register(BlockTypeKeys.GRANITE_WALL.key(), 0, 0);
         register(BlockTypeKeys.GRASS_BLOCK.key(), 0, 15);
-    }
-
-    private static void registerLight3() {
         register(BlockTypeKeys.GRAVEL.key(), 0, 15);
         register(BlockTypeKeys.GRAY_BANNER.key(), 0, 0);
         register(BlockTypeKeys.GRAY_BED.key(), 0, 0);
@@ -648,14 +653,14 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.LIME_BED.key(), 0, 0);
         register(BlockTypeKeys.LIME_CANDLE.key(), 0, 0);
         register(BlockTypeKeys.LIME_CANDLE_CAKE.key(), 0, 0);
+    }
+
+    private static void registerLight4() {
         register(BlockTypeKeys.LIME_CARPET.key(), 0, 0);
         register(BlockTypeKeys.LIME_CONCRETE.key(), 0, 15);
         register(BlockTypeKeys.LIME_CONCRETE_POWDER.key(), 0, 15);
         register(BlockTypeKeys.LIME_CONCRETE_SLAB.key(), 0, 0);
         register(BlockTypeKeys.LIME_CONCRETE_STAIRS.key(), 0, 0);
-    }
-
-    private static void registerLight4() {
         register(BlockTypeKeys.LIME_GLAZED_TERRACOTTA.key(), 0, 15);
         register(BlockTypeKeys.LIME_SHULKER_BOX.key(), 0, 1);
         register(BlockTypeKeys.LIME_STAINED_GLASS.key(), 0, 0);
@@ -801,14 +806,14 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.OXIDIZED_LIGHTNING_ROD.key(), 0, 0);
         register(BlockTypeKeys.PACKED_ICE.key(), 0, 15);
         register(BlockTypeKeys.PACKED_ICE_BRICK_SLAB.key(), 0, 0);
+    }
+
+    private static void registerLight5() {
         register(BlockTypeKeys.PACKED_ICE_BRICK_STAIRS.key(), 0, 0);
         register(BlockTypeKeys.PACKED_ICE_BRICK_WALL.key(), 0, 0);
         register(BlockTypeKeys.PACKED_ICE_BRICKS.key(), 0, 15);
         register(BlockTypeKeys.PACKED_MUD.key(), 0, 15);
         register(BlockTypeKeys.PALE_HANGING_MOSS.key(), 0, 0);
-    }
-
-    private static void registerLight5() {
         register(BlockTypeKeys.PALE_MOSS_BLOCK.key(), 0, 15);
         register(BlockTypeKeys.PALE_MOSS_CARPET.key(), 0, 0);
         register(BlockTypeKeys.PALE_OAK_BUTTON.key(), 0, 0);
@@ -876,6 +881,14 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.POLISHED_BLACKSTONE_SLAB.key(), 0, 0);
         register(BlockTypeKeys.POLISHED_BLACKSTONE_STAIRS.key(), 0, 0);
         register(BlockTypeKeys.POLISHED_BLACKSTONE_WALL.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE.key(), 0, 15);
+        register(BlockTypeKeys.POLISHED_CALCITE_BRICK_SLAB.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE_BRICK_STAIRS.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE_BRICK_WALL.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE_BRICKS.key(), 0, 15);
+        register(BlockTypeKeys.POLISHED_CALCITE_SLAB.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE_STAIRS.key(), 0, 0);
+        register(BlockTypeKeys.POLISHED_CALCITE_WALL.key(), 0, 0);
         register(BlockTypeKeys.POLISHED_CINNABAR.key(), 0, 15);
         register(BlockTypeKeys.POLISHED_CINNABAR_SLAB.key(), 0, 0);
         register(BlockTypeKeys.POLISHED_CINNABAR_STAIRS.key(), 0, 0);
@@ -946,6 +959,9 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.POTTED_ORANGE_TULIP.key(), 0, 0);
         register(BlockTypeKeys.POTTED_OXEYE_DAISY.key(), 0, 0);
         register(BlockTypeKeys.POTTED_PALE_OAK_SAPLING.key(), 0, 0);
+    }
+
+    private static void registerLight6() {
         register(BlockTypeKeys.POTTED_PINK_TULIP.key(), 0, 0);
         register(BlockTypeKeys.POTTED_POPLAR_SAPLING.key(), 0, 0);
         register(BlockTypeKeys.POTTED_POPPY.key(), 0, 0);
@@ -959,9 +975,6 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.POTTED_WITHER_ROSE.key(), 0, 0);
         register(BlockTypeKeys.POWDER_SNOW.key(), 0, 1);
         register(BlockTypeKeys.POWDER_SNOW_CAULDRON.key(), 0, 0);
-    }
-
-    private static void registerLight6() {
         register(BlockTypeKeys.POWERED_RAIL.key(), 0, 0);
         register(BlockTypeKeys.PRISMARINE.key(), 0, 15);
         register(BlockTypeKeys.PRISMARINE_BRICK_SLAB.key(), 0, 0);
@@ -1099,6 +1112,9 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.SNOW_BRICK_WALL.key(), 0, 0);
         register(BlockTypeKeys.SNOW_BRICKS.key(), 0, 15);
         register(BlockTypeKeys.SOUL_CAMPFIRE.key(), 10, 0);
+    }
+
+    private static void registerLight7() {
         register(BlockTypeKeys.SOUL_FIRE.key(), 10, 0);
         register(BlockTypeKeys.SOUL_LANTERN.key(), 10, 0);
         register(BlockTypeKeys.SOUL_SAND.key(), 0, 15);
@@ -1112,9 +1128,6 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.SPRUCE_DOOR.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_FENCE.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_FENCE_GATE.key(), 0, 0);
-    }
-
-    private static void registerLight7() {
         register(BlockTypeKeys.SPRUCE_HANGING_SIGN.key(), 0, 0);
         register(BlockTypeKeys.SPRUCE_LEAVES.key(), 0, 1);
         register(BlockTypeKeys.SPRUCE_LOG.key(), 0, 15);
@@ -1252,6 +1265,9 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.WAXED_COPPER_LANTERN.key(), 15, 0);
         register(BlockTypeKeys.WAXED_COPPER_TRAPDOOR.key(), 0, 0);
         register(BlockTypeKeys.WAXED_CUT_COPPER.key(), 0, 15);
+    }
+
+    private static void registerLight8() {
         register(BlockTypeKeys.WAXED_CUT_COPPER_SLAB.key(), 0, 0);
         register(BlockTypeKeys.WAXED_CUT_COPPER_STAIRS.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_CHISELED_COPPER.key(), 0, 15);
@@ -1265,9 +1281,6 @@ public final class BlockStateLightProperties {
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_GRATE.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_LANTERN.key(), 15, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_COPPER_TRAPDOOR.key(), 0, 0);
-    }
-
-    private static void registerLight8() {
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER.key(), 0, 15);
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER_SLAB.key(), 0, 0);
         register(BlockTypeKeys.WAXED_EXPOSED_CUT_COPPER_STAIRS.key(), 0, 0);

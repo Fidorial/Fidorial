@@ -857,6 +857,26 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> CALCITE = create("calcite");
 
     /**
+     * Key for {@code minecraft:calcite_pillar}.
+     */
+    public static final TypedKey<BlockType> CALCITE_PILLAR = create("calcite_pillar");
+
+    /**
+     * Key for {@code minecraft:calcite_slab}.
+     */
+    public static final TypedKey<BlockType> CALCITE_SLAB = create("calcite_slab");
+
+    /**
+     * Key for {@code minecraft:calcite_stairs}.
+     */
+    public static final TypedKey<BlockType> CALCITE_STAIRS = create("calcite_stairs");
+
+    /**
+     * Key for {@code minecraft:calcite_wall}.
+     */
+    public static final TypedKey<BlockType> CALCITE_WALL = create("calcite_wall");
+
+    /**
      * Key for {@code minecraft:calibrated_sculk_sensor}.
      */
     public static final TypedKey<BlockType> CALIBRATED_SCULK_SENSOR = create("calibrated_sculk_sensor");
@@ -1070,6 +1090,11 @@ public final class BlockTypeKeys {
      * Key for {@code minecraft:chiseled_sandstone}.
      */
     public static final TypedKey<BlockType> CHISELED_SANDSTONE = create("chiseled_sandstone");
+
+    /**
+     * Key for {@code minecraft:chiseled_soulshale}.
+     */
+    public static final TypedKey<BlockType> CHISELED_SOULSHALE = create("chiseled_soulshale");
 
     /**
      * Key for {@code minecraft:chiseled_stone_bricks}.
@@ -4097,6 +4122,46 @@ public final class BlockTypeKeys {
     public static final TypedKey<BlockType> POLISHED_BLACKSTONE_WALL = create("polished_blackstone_wall");
 
     /**
+     * Key for {@code minecraft:polished_calcite}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE = create("polished_calcite");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_slab}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_BRICK_SLAB = create("polished_calcite_brick_slab");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_stairs}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_BRICK_STAIRS = create("polished_calcite_brick_stairs");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_wall}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_BRICK_WALL = create("polished_calcite_brick_wall");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_bricks}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_BRICKS = create("polished_calcite_bricks");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_slab}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_SLAB = create("polished_calcite_slab");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_stairs}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_STAIRS = create("polished_calcite_stairs");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_wall}.
+     */
+    public static final TypedKey<BlockType> POLISHED_CALCITE_WALL = create("polished_calcite_wall");
+
+    /**
      * Key for {@code minecraft:polished_cinnabar}.
      */
     public static final TypedKey<BlockType> POLISHED_CINNABAR = create("polished_cinnabar");
@@ -6671,6 +6736,10 @@ public final class BlockTypeKeys {
         CACTUS_FLOWER,
         CAKE,
         CALCITE,
+        CALCITE_PILLAR,
+        CALCITE_SLAB,
+        CALCITE_STAIRS,
+        CALCITE_WALL,
         CALIBRATED_SCULK_SENSOR,
         CAMPFIRE,
         CANDLE,
@@ -6714,6 +6783,7 @@ public final class BlockTypeKeys {
         CHISELED_RED_SANDSTONE,
         CHISELED_RESIN_BRICKS,
         CHISELED_SANDSTONE,
+        CHISELED_SOULSHALE,
         CHISELED_STONE_BRICKS,
         CHISELED_SULFUR,
         CHISELED_TUFF,
@@ -7319,6 +7389,14 @@ public final class BlockTypeKeys {
         POLISHED_BLACKSTONE_SLAB,
         POLISHED_BLACKSTONE_STAIRS,
         POLISHED_BLACKSTONE_WALL,
+        POLISHED_CALCITE,
+        POLISHED_CALCITE_BRICK_SLAB,
+        POLISHED_CALCITE_BRICK_STAIRS,
+        POLISHED_CALCITE_BRICK_WALL,
+        POLISHED_CALCITE_BRICKS,
+        POLISHED_CALCITE_SLAB,
+        POLISHED_CALCITE_STAIRS,
+        POLISHED_CALCITE_WALL,
         POLISHED_CINNABAR,
         POLISHED_CINNABAR_SLAB,
         POLISHED_CINNABAR_STAIRS,

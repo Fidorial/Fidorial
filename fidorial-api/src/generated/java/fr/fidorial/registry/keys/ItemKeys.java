@@ -1082,6 +1082,26 @@ public final class ItemKeys {
     public static final TypedKey<Item> CALCITE = create("calcite");
 
     /**
+     * Key for {@code minecraft:calcite_pillar}.
+     */
+    public static final TypedKey<Item> CALCITE_PILLAR = create("calcite_pillar");
+
+    /**
+     * Key for {@code minecraft:calcite_slab}.
+     */
+    public static final TypedKey<Item> CALCITE_SLAB = create("calcite_slab");
+
+    /**
+     * Key for {@code minecraft:calcite_stairs}.
+     */
+    public static final TypedKey<Item> CALCITE_STAIRS = create("calcite_stairs");
+
+    /**
+     * Key for {@code minecraft:calcite_wall}.
+     */
+    public static final TypedKey<Item> CALCITE_WALL = create("calcite_wall");
+
+    /**
      * Key for {@code minecraft:calibrated_sculk_sensor}.
      */
     public static final TypedKey<Item> CALIBRATED_SCULK_SENSOR = create("calibrated_sculk_sensor");
@@ -1340,6 +1360,11 @@ public final class ItemKeys {
      * Key for {@code minecraft:chiseled_sandstone}.
      */
     public static final TypedKey<Item> CHISELED_SANDSTONE = create("chiseled_sandstone");
+
+    /**
+     * Key for {@code minecraft:chiseled_soulshale}.
+     */
+    public static final TypedKey<Item> CHISELED_SOULSHALE = create("chiseled_soulshale");
 
     /**
      * Key for {@code minecraft:chiseled_stone_bricks}.
@@ -4582,6 +4607,11 @@ public final class ItemKeys {
     public static final TypedKey<Item> MUSIC_DISC_FAR = create("music_disc_far");
 
     /**
+     * Key for {@code minecraft:music_disc_flurry}.
+     */
+    public static final TypedKey<Item> MUSIC_DISC_FLURRY = create("music_disc_flurry");
+
+    /**
      * Key for {@code minecraft:music_disc_lava_chicken}.
      */
     public static final TypedKey<Item> MUSIC_DISC_LAVA_CHICKEN = create("music_disc_lava_chicken");
@@ -5580,6 +5610,46 @@ public final class ItemKeys {
      * Key for {@code minecraft:polished_blackstone_wall}.
      */
     public static final TypedKey<Item> POLISHED_BLACKSTONE_WALL = create("polished_blackstone_wall");
+
+    /**
+     * Key for {@code minecraft:polished_calcite}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE = create("polished_calcite");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_slab}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_BRICK_SLAB = create("polished_calcite_brick_slab");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_stairs}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_BRICK_STAIRS = create("polished_calcite_brick_stairs");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_brick_wall}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_BRICK_WALL = create("polished_calcite_brick_wall");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_bricks}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_BRICKS = create("polished_calcite_bricks");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_slab}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_SLAB = create("polished_calcite_slab");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_stairs}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_STAIRS = create("polished_calcite_stairs");
+
+    /**
+     * Key for {@code minecraft:polished_calcite_wall}.
+     */
+    public static final TypedKey<Item> POLISHED_CALCITE_WALL = create("polished_calcite_wall");
 
     /**
      * Key for {@code minecraft:polished_cinnabar}.
@@ -8586,6 +8656,10 @@ public final class ItemKeys {
         CACTUS_FLOWER,
         CAKE,
         CALCITE,
+        CALCITE_PILLAR,
+        CALCITE_SLAB,
+        CALCITE_STAIRS,
+        CALCITE_WALL,
         CALIBRATED_SCULK_SENSOR,
         CAMEL_HUSK_SPAWN_EGG,
         CAMEL_SPAWN_EGG,
@@ -8638,6 +8712,7 @@ public final class ItemKeys {
         CHISELED_RED_SANDSTONE,
         CHISELED_RESIN_BRICKS,
         CHISELED_SANDSTONE,
+        CHISELED_SOULSHALE,
         CHISELED_STONE_BRICKS,
         CHISELED_SULFUR,
         CHISELED_TUFF,
@@ -9286,6 +9361,7 @@ public final class ItemKeys {
         MUSIC_DISC_CREATOR,
         MUSIC_DISC_CREATOR_MUSIC_BOX,
         MUSIC_DISC_FAR,
+        MUSIC_DISC_FLURRY,
         MUSIC_DISC_LAVA_CHICKEN,
         MUSIC_DISC_MALL,
         MUSIC_DISC_MELLOHI,
@@ -9486,6 +9562,14 @@ public final class ItemKeys {
         POLISHED_BLACKSTONE_SLAB,
         POLISHED_BLACKSTONE_STAIRS,
         POLISHED_BLACKSTONE_WALL,
+        POLISHED_CALCITE,
+        POLISHED_CALCITE_BRICK_SLAB,
+        POLISHED_CALCITE_BRICK_STAIRS,
+        POLISHED_CALCITE_BRICK_WALL,
+        POLISHED_CALCITE_BRICKS,
+        POLISHED_CALCITE_SLAB,
+        POLISHED_CALCITE_STAIRS,
+        POLISHED_CALCITE_WALL,
         POLISHED_CINNABAR,
         POLISHED_CINNABAR_SLAB,
         POLISHED_CINNABAR_STAIRS,

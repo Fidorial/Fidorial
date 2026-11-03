@@ -17,7 +17,6 @@ public record ClientboundLoginPacket(
         int viewDistance,
         int simulationDistance,
         int gameMode,
-        boolean isDebug,
         boolean isFlat,
         boolean onlineMode,
         boolean enforcesSecureChat,
@@ -46,7 +45,6 @@ public record ClientboundLoginPacket(
         buf.writeKey(dimensionKey);
         buf.writeVarInt(gameMode); // gameMode (survie)
         buf.writeVarInt(0); // previousGameMode
-        buf.writeBoolean(isDebug); // isDebug
         buf.writeBoolean(isFlat); // isFlat
         buf.writeBoolean(false); // hasDeathLocation
         buf.writeVarInt(0); // portalCooldown
