@@ -1,6 +1,5 @@
 package fr.fidorial.entity.player;
 
-import fr.fidorial.attribute.Attribute;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.entity.GameMode;
@@ -13,6 +12,7 @@ import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBarViewer;
 import net.kyori.adventure.identity.Identified;
@@ -153,13 +153,13 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     /**
      * Changes the base value of an attribute for this player.
      *
-     * <p>The player's client applies it at once: a {@link Attribute#MOVEMENT_SPEED movement speed} of
-     * {@code 0} stops them from walking, a {@link Attribute#BLOCK_INTERACTION_RANGE block interaction
+     * <p>The player's client applies it at once: a {@link AttributeKeys#MOVEMENT_SPEED movement speed} of
+     * {@code 0} stops them from walking, a {@link AttributeKeys#BLOCK_INTERACTION_RANGE block interaction
      * range} of {@code 0} from reaching any block. The value is kept until it is
      * {@linkplain #resetAttributeBase(Key) reset} or the player disconnects, including across respawns
      * and world changes. The client clamps it to the range of the attribute.</p>
      *
-     * @param attribute the attribute, see {@link Attribute}
+     * @param attribute the attribute, see {@link AttributeKeys}
      * @param base      the new base value
      * @throws IllegalArgumentException if the attribute does not exist or {@code base} is not finite
      * @since 0.1.0
@@ -171,7 +171,7 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      *
      * <p>Does nothing when the base value was not {@linkplain #setAttributeBase(Key, double) changed}.</p>
      *
-     * @param attribute the attribute, see {@link Attribute}
+     * @param attribute the attribute, see {@link AttributeKeys}
      * @throws IllegalArgumentException if the attribute does not exist
      * @since 0.1.0
      */
@@ -180,7 +180,7 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     /**
      * Returns the base value set for an attribute.
      *
-     * @param attribute the attribute, see {@link Attribute}
+     * @param attribute the attribute, see {@link AttributeKeys}
      * @return the value given to {@link #setAttributeBase(Key, double)}, or empty when the attribute has
      * the base value a vanilla player has
      * @since 0.1.0

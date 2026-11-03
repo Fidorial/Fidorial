@@ -41,7 +41,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.fidorial.attribute.Attribute;
 import fr.fidorial.attribute.AttributeModifier;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
@@ -68,6 +67,7 @@ import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ItemKeys;
@@ -336,8 +336,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      * interaction range, plus {@code buffer}, from their eyes.
      */
     public boolean isWithinBlockInteractionRange(final BlockPosition pos, final double buffer) {
-        final double range = attributeBase(Attribute.BLOCK_INTERACTION_RANGE)
-                .orElse(PlayerAttributeDefaults.base(Attribute.BLOCK_INTERACTION_RANGE)) + buffer;
+        final double range = attributeBase(AttributeKeys.BLOCK_INTERACTION_RANGE.key())
+                .orElse(PlayerAttributeDefaults.base(AttributeKeys.BLOCK_INTERACTION_RANGE.key())) + buffer;
         final Location at = location();
         final double eyeY = at.y() + eyeHeight();
         final double dx = Math.max(Math.max(pos.blockX() - at.x(), at.x() - (pos.blockX() + 1)), 0.0);
@@ -1142,7 +1142,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      */
     @Override
     public void igniteForTicks(final int ticks) {
-        super.igniteForTicks((int) Math.round(ticks * Math.max(0.0, attributeValue(Attribute.BURNING_TIME))));
+        super.igniteForTicks((int) Math.round(ticks * Math.max(0.0, attributeValue(AttributeKeys.BURNING_TIME.key()))));
     }
 
     @Override

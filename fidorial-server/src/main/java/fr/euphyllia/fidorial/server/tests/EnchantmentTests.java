@@ -13,7 +13,6 @@ import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantments;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
-import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.PlayerInventory;
@@ -24,6 +23,7 @@ import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.EnchantmentEffects;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.EnchantmentKeys;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import fr.fidorial.registry.keys.ItemKeys;
@@ -198,10 +198,10 @@ public final class EnchantmentTests {
         final ServerPlayer player = player(helper, "Miner", 0.5);
         helper.sequence()
                 .execute(() -> player.setHeldItem(enchanted(ItemKeys.DIAMOND_PICKAXE.key(), EnchantmentKeys.EFFICIENCY, 5)))
-                .waitUntil(() -> player.attributeValue(Attribute.MINING_EFFICIENCY) == 26.0,
-                        "Efficiency V should give 26 mining efficiency, got " + player.attributeValue(Attribute.MINING_EFFICIENCY))
+                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()) == 26.0,
+                        "Efficiency V should give 26 mining efficiency, got " + player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()))
                 .execute(() -> player.setHeldItem(ItemStack.EMPTY))
-                .waitUntil(() -> player.attributeValue(Attribute.MINING_EFFICIENCY) == 0.0,
+                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()) == 0.0,
                         "Putting the pickaxe away should remove the modifier")
                 .build();
     }

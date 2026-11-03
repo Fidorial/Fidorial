@@ -24,7 +24,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.Po
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
-import fr.fidorial.attribute.Attribute;
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
@@ -41,6 +40,7 @@ import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.registry.keys.DamageTypeTagKeys;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
@@ -511,7 +511,7 @@ public final class CombatEngine implements CombatService {
     private void sweep(final ServerPlayer attacker, final AbstractLivingEntity primary, final DamageSource source,
                        final float damage, final float strength) {
         final Location center = primary.location();
-        final float sweepDamage = SWEEP_DAMAGE + (float) attacker.attributeValue(Attribute.SWEEPING_DAMAGE_RATIO) * damage;
+        final float sweepDamage = SWEEP_DAMAGE + (float) attacker.attributeValue(AttributeKeys.SWEEPING_DAMAGE_RATIO.key()) * damage;
         for (final AbstractLivingEntity nearby : nearbyLivingEntities(attacker, center)) {
             if (nearby == primary || nearby == attacker || !nearby.isAlive() || !canHarm(attacker, nearby)) {
                 continue;
