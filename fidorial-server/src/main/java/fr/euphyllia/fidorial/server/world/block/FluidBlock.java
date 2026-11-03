@@ -1,25 +1,25 @@
 package fr.euphyllia.fidorial.server.world.block;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
-import net.kyori.adventure.key.Key;
 
 import java.util.Objects;
 
 public final class FluidBlock implements BlockBehaviour {
 
-    public static final FluidBlock WATER = new FluidBlock(BlockTypeKeys.WATER.key(), 1, 0);
+    public static final FluidBlock WATER = new FluidBlock(BlockTypeKeys.WATER, 1, 0);
 
-    public static final FluidBlock LAVA = new FluidBlock(BlockTypeKeys.LAVA.key(), 15, 15);
+    public static final FluidBlock LAVA = new FluidBlock(BlockTypeKeys.LAVA, 15, 15);
 
-    private final Key key;
+    private final TypedKey<BlockType> key;
     private final int opacity;
     private final int emission;
 
-    private FluidBlock(final Key key, final int opacity, final int emission) {
+    private FluidBlock(final TypedKey<BlockType> key, final int opacity, final int emission) {
         this.key = key;
         this.opacity = opacity;
         this.emission = emission;

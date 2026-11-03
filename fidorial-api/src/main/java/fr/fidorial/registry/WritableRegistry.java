@@ -47,7 +47,7 @@ public interface WritableRegistry<T> extends Registry<T> {
         if (!(value instanceof final Keyed keyed)) {
             throw new IllegalArgumentException("The values of " + registryKey() + " do not carry their key");
         }
-        return register(TypedKey.create(registryKey(), keyed.key()), value, owner);
+        return register(TypedKey.withRegistry(registryKey(), keyed.key()), value, owner);
     }
 
     /**

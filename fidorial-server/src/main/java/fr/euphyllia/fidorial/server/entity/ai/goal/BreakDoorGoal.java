@@ -147,8 +147,8 @@ public final class BreakDoorGoal implements Goal {
         clearDestroyStage();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
-        server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()));
-        server.worlds().blockEdits().set(world, other, BlockState.of(BlockTypeKeys.AIR.key()));
+        server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR));
+        server.worlds().blockEdits().set(world, other, BlockState.withoutProperties(BlockTypeKeys.AIR));
 
         server.players().broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
                 new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos, 0, false));

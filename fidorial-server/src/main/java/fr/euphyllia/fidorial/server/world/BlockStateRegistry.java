@@ -3,14 +3,17 @@ package fr.euphyllia.fidorial.server.world;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockGetter;
 import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -18,9 +21,6 @@ import java.util.Map;
 
 public final class BlockStateRegistry {
     private static final int AIR_NETWORK_ID = 0;
-
-    private static final Key WATER_BUCKET = Key.key("water_bucket");
-    private static final Key LAVA_BUCKET = Key.key("lava_bucket");
 
     private final BlockRegistry registry;
     private final @Nullable BlockState[] stateByNetworkId;
@@ -37,7 +37,7 @@ public final class BlockStateRegistry {
 
     private void indexGeneratedStates() {
         for (final BlockType type : registry.types()) {
-            final Key key = type.key();
+            final TypedKey<BlockType> key = type.key();
             final BlockState[] chunkStates = BlockStates.statesOf(key);
             if (chunkStates == null) {
                 continue;
@@ -68,9 +68,9 @@ public final class BlockStateRegistry {
         }
         final BlockData data = registry.fromNetworkId(networkId);
         if (data == null) {
-            return BlockState.of(BlockTypeKeys.AIR.key());
+            return BlockState.withoutProperties(BlockTypeKeys.AIR);
         }
-        return BlockState.of(data.key(), data.propertyMap());
+        return BlockState.withProperties(data.key(), data.propertyMap());
     }
 
     public boolean contains(final BlockState state) {
@@ -78,7 +78,7 @@ public final class BlockStateRegistry {
     }
 
     public BlockState toBlockState(final BlockData data) {
-        return BlockState.of(data.key(), data.propertyMap());
+        return BlockState.withProperties(data.key(), data.propertyMap());
     }
 
     public @Nullable BlockState placementState(final BlockState state, final BlockPlaceContext context) {
@@ -113,20 +113,20 @@ public final class BlockStateRegistry {
         return type.dataOrNull(state.properties());
     }
 
-    public @Nullable BlockState blockForItem(final @Nullable Key itemId) {
+    public @Nullable BlockState blockForItem(final @Nullable TypedKey<Item> itemId) {
         // Todo : Match the item to the block it is actually supposed to relate to. This method is just for testing purposes and will need to be removed!
         if (itemId == null) {
             return null;
         }
 
-        if (itemId.equals(WATER_BUCKET)) {
-            return BlockState.of(BlockTypeKeys.WATER.key(), Map.of("level", "0"));
+        if (itemId.equals(ItemKeys.WATER_BUCKET)) {
+            return BlockState.withProperties(BlockTypeKeys.WATER, Map.of("level", "0"));
         }
-        if (itemId.equals(LAVA_BUCKET)) {
-            return BlockState.of(BlockTypeKeys.LAVA.key(), Map.of("level", "0"));
+        if (itemId.equals(ItemKeys.LAVA_BUCKET)) {
+            return BlockState.withProperties(BlockTypeKeys.LAVA, Map.of("level", "0"));
         }
 
-        final BlockState defaultState = BlockStates.defaultStateOf(itemId);
-        return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE.key());
+        final BlockState defaultState = BlockStates.defaultStateOf(TypedKey.withRegistry(RegistryKey.BLOCK, itemId));
+        return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE);
     }
 }

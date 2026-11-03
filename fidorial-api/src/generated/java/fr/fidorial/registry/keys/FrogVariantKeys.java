@@ -37,7 +37,7 @@ public final class FrogVariantKeys {
     }
 
     private static TypedKey<FrogVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.FROG_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.FROG_VARIANT, value);
     }
 
     /**

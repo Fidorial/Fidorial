@@ -37,7 +37,7 @@ public final class PigSoundVariantKeys {
     }
 
     private static TypedKey<PigSoundVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.PIG_SOUND_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.PIG_SOUND_VARIANT, value);
     }
 
     /**

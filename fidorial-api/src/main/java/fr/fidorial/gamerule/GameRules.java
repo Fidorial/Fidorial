@@ -3,7 +3,6 @@ package fr.fidorial.gamerule;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 import java.util.Collection;
@@ -47,7 +46,7 @@ public interface GameRules {
      * @since 0.1.0
      */
     @Contract(pure = true)
-    Optional<GameRuleDefinition> definition(Key key);
+    Optional<GameRuleDefinition> definition(TypedKey<GameRule> key);
 
     /**
      * Gets the value of a boolean rule.

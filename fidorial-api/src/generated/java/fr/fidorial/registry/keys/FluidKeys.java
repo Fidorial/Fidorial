@@ -37,7 +37,7 @@ public final class FluidKeys {
     }
 
     private static TypedKey<Fluid> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.FLUID, value);
+        return TypedKey.withRegistry(RegistryKey.FLUID, value);
     }
 
     /**

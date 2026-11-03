@@ -4,8 +4,8 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
-import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.place.BlockTarget;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
@@ -17,7 +17,7 @@ import java.util.Set;
 public final class ColumnTarget implements BlockTarget {
 
     private static final Set<String> POSITION_KEYS = Set.of("x", "y", "z", "id", "keepPacked");
-    private static final BlockState AIR = BlockState.of(Keys.AIR);
+    private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
 
     private final ChunkColumn column;
     private final int minX;

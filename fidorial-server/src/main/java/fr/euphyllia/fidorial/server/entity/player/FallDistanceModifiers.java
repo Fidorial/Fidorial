@@ -19,17 +19,17 @@ import java.util.Set;
 @SinceMinecraft("26.4")
 final class FallDistanceModifiers {
 
-    private static final Set<Key> ALWAYS_PORTALS = Set.of(BlockTypeKeys.END_PORTAL.key(), BlockTypeKeys.END_GATEWAY.key());
-    private static final Key NETHER_PORTAL = BlockTypeKeys.NETHER_PORTAL.key();
+    private static final Set<Key> ALWAYS_PORTALS = Set.of(BlockTypeKeys.END_PORTAL, BlockTypeKeys.END_GATEWAY);
+    private static final Key NETHER_PORTAL = BlockTypeKeys.NETHER_PORTAL;
     /**
      * The blocks whose fluid is always a water source, without a {@code waterlogged} property.
      */
     private static final Set<Key> ALWAYS_WATERLOGGED = Set.of(
-            BlockTypeKeys.BUBBLE_COLUMN.key(),
-            BlockTypeKeys.KELP.key(),
-            BlockTypeKeys.KELP_PLANT.key(),
-            BlockTypeKeys.SEAGRASS.key(),
-            BlockTypeKeys.TALL_SEAGRASS.key());
+            BlockTypeKeys.BUBBLE_COLUMN,
+            BlockTypeKeys.KELP,
+            BlockTypeKeys.KELP_PLANT,
+            BlockTypeKeys.SEAGRASS,
+            BlockTypeKeys.TALL_SEAGRASS);
 
     private static final float WATER_MULTIPLIER = 0.0f;
     private static final float LAVA_MULTIPLIER = 0.5f;
@@ -101,7 +101,7 @@ final class FallDistanceModifiers {
                     final Key name = state.name();
                     if (ALWAYS_PORTALS.contains(name) || netherPortalResets && name.equals(NETHER_PORTAL)) {
                         resets = true;
-                    } else if (BlockView.isTagged(BlockTypeTagKeys.FALL_DAMAGE_RESETTING.key(), state)
+                    } else if (BlockView.isTagged(BlockTypeTagKeys.FALL_DAMAGE_RESETTING, state)
                             && centerCrosses(from, to, x, y, z)) {
                         resets = true;
                     }

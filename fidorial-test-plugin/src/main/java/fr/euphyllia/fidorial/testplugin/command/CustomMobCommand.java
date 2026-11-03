@@ -7,9 +7,10 @@ import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.fidorial.command.CommandSource;
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.math.Location;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 
 import java.util.Optional;
 
@@ -38,7 +39,7 @@ public final class CustomMobCommand {
         return summon(ctx, CompanionMobs.COMPANION);
     }
 
-    private int summon(final CommandContext<CommandSource> ctx, final Key key) {
+    private int summon(final CommandContext<CommandSource> ctx, final TypedKey<EntityType> key) {
         final CommandSource source = ctx.getSource();
         final Location location = source.location();
         if (location == null) {

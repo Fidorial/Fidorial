@@ -94,7 +94,7 @@ public final class StateTransforms {
             }
         }
 
-        return props.equals(source) ? state : BlockState.of(state.name(), props);
+        return props.equals(source) ? state : BlockState.withProperties(state.name(), props);
     }
 
     private static @Nullable String rotateRailShape(final String shape, final StructureRotation rotation) {
@@ -127,6 +127,6 @@ public final class StateTransforms {
         }
         final Map<String, String> props = new HashMap<>(state.properties());
         props.put(property, value);
-        return BlockState.of(state.name(), props);
+        return BlockState.withProperties(state.name(), props);
     }
 }

@@ -175,7 +175,7 @@ public final class MenuTypeKeys {
     }
 
     private static TypedKey<MenuType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.MENU, value);
+        return TypedKey.withRegistry(RegistryKey.MENU, value);
     }
 
     /**

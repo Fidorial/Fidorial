@@ -26,11 +26,12 @@ import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -92,20 +93,17 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
      * Blocks an item falls through even though they are not air: plants, rails, signs and the
      * like. A rough stand-in until blocks carry their collision shapes.
      */
-    private static final Set<Key> NO_COLLISION_TAGS = Set.of(
-            BlockTypeTagKeys.REPLACEABLE.key(),
-            BlockTypeTagKeys.FLOWERS.key(),
-            BlockTypeTagKeys.SAPLINGS.key(),
-            BlockTypeTagKeys.CROPS.key(),
-            BlockTypeTagKeys.RAILS.key(),
-            BlockTypeTagKeys.BUTTONS.key(),
-            BlockTypeTagKeys.PRESSURE_PLATES.key(),
-            BlockTypeTagKeys.ALL_SIGNS.key(),
-            BlockTypeTagKeys.BANNERS.key(),
-            BlockTypeTagKeys.FIRE.key());
-
-    private static final Key LAVA = BlockTypeKeys.LAVA.key();
-    private static final Key WATER = BlockTypeKeys.WATER.key();
+    private static final Set<TagKey<BlockType>> NO_COLLISION_TAGS = Set.of(
+            BlockTypeTagKeys.REPLACEABLE,
+            BlockTypeTagKeys.FLOWERS,
+            BlockTypeTagKeys.SAPLINGS,
+            BlockTypeTagKeys.CROPS,
+            BlockTypeTagKeys.RAILS,
+            BlockTypeTagKeys.BUTTONS,
+            BlockTypeTagKeys.PRESSURE_PLATES,
+            BlockTypeTagKeys.ALL_SIGNS,
+            BlockTypeTagKeys.BANNERS,
+            BlockTypeTagKeys.FIRE);
 
     private volatile ItemStack item;
     private volatile int pickupDelay;
@@ -285,7 +283,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
             return;
         }
 
-        move(world, before, LAVA.equals(inside.name()) || WATER.equals(inside.name()));
+        move(world, before, BlockTypeKeys.LAVA.equals(inside.name()) || BlockTypeKeys.WATER.equals(inside.name()));
         if (isRemoved()) {
             return;
         }
@@ -462,7 +460,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         if (state.isAir() || state.isFluid()) {
             return false;
         }
-        for (final Key tag : NO_COLLISION_TAGS) {
+        for (final TagKey<BlockType> tag : NO_COLLISION_TAGS) {
             if (BlockView.isTagged(tag, state)) {
                 return false;
             }
@@ -471,7 +469,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
     }
 
     private boolean burnsIn(final BlockState state) {
-        if (!LAVA.equals(state.name()) && !BlockView.isTagged(BlockTypeTagKeys.FIRE.key(), state)) {
+        if (!BlockTypeKeys.LAVA.equals(state.name()) && !BlockView.isTagged(BlockTypeTagKeys.FIRE, state)) {
             return false;
         }
         // Netherite and ancient debris shrug off fire and lava, as in vanilla.

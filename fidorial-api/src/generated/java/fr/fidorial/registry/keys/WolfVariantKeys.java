@@ -73,7 +73,7 @@ public final class WolfVariantKeys {
     }
 
     private static TypedKey<WolfVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.WOLF_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.WOLF_VARIANT, value);
     }
 
     /**

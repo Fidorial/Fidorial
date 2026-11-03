@@ -1,6 +1,6 @@
 package fr.fidorial.world.block;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.KeyPattern;
 import org.jspecify.annotations.Nullable;
 
@@ -60,7 +60,7 @@ public final class Blocks {
      * @param key the block key
      * @since 0.1.0
      */
-    public static @Nullable BlockType type(final Key key) {
+    public static @Nullable BlockType type(final TypedKey<BlockType> key) {
         return registry().type(key).orElse(null);
     }
 

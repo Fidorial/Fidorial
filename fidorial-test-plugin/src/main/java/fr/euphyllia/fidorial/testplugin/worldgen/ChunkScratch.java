@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.testplugin.worldgen;
 
 import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.euphyllia.fidorial.testplugin.worldgen.shape.TerrainShape;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.generation.GeneratedChunk;
 import net.kyori.adventure.key.Key;
 
@@ -213,7 +215,7 @@ public final class ChunkScratch {
                     for (int dy = 0; dy < CELL; dy++) {
                         for (int dz = 0; dz < CELL; dz++) {
                             for (int dx = 0; dx < CELL; dx++) {
-                                chunk.setBiome((cellX << 2) | dx, worldY + dy, (cellZ << 2) | dz, biome);
+                                chunk.setBiome((cellX << 2) | dx, worldY + dy, (cellZ << 2) | dz, TypedKey.withRegistry(RegistryKey.BIOME, biome));
                             }
                         }
                     }

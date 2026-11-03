@@ -1,9 +1,12 @@
 package fr.fidorial.world.dimension;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -20,7 +23,7 @@ import java.util.function.Consumer;
  */
 public final class DimensionTypeBuilder {
 
-    private Key key;
+    private TypedKey<DimensionTypeDefinition> key;
     private double coordinateScale = 1.0D;
     private boolean hasSkylight = true;
     private boolean hasCeiling = false;
@@ -32,14 +35,14 @@ public final class DimensionTypeBuilder {
     private int logicalHeight = 384;
     private int minY = -64;
     private int height = 384;
-    private Key infiniburn = BlockTypeTagKeys.INFINIBURN_OVERWORLD.key();
+    private TagKey<BlockType> infiniburn = BlockTypeTagKeys.INFINIBURN_OVERWORLD;
     private Skybox skybox = Skybox.OVERWORLD;
     private CardinalLight cardinalLight = CardinalLight.DEFAULT;
     private EnvironmentAttributes.Builder attributes = EnvironmentAttributes.builder();
-    private @Nullable Key defaultClock;
+    private @Nullable TypedKey<WorldClock> defaultClock;
     private final List<TimelineReference> timelines = new ArrayList<>();
 
-    DimensionTypeBuilder(final Key key) {
+    DimensionTypeBuilder(final TypedKey<DimensionTypeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key of a dimension type builder must not be null");
         this.key = key;
     }
@@ -70,7 +73,7 @@ public final class DimensionTypeBuilder {
      * @return this builder
      */
     @Contract("_ -> this")
-    public DimensionTypeBuilder key(final Key key) {
+    public DimensionTypeBuilder key(final TypedKey<DimensionTypeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key passed to DimensionTypeBuilder.key() must not be null");
         this.key = key;
         return this;
@@ -224,7 +227,7 @@ public final class DimensionTypeBuilder {
      * @return this builder
      */
     @Contract("_ -> this")
-    public DimensionTypeBuilder infiniburn(final Key infiniburn) {
+    public DimensionTypeBuilder infiniburn(final TagKey<BlockType> infiniburn) {
         Preconditions.checkArgument(infiniburn != null, "The infiniburn passed to DimensionTypeBuilder.infiniburn() must not be null");
         this.infiniburn = infiniburn;
         return this;
@@ -282,7 +285,7 @@ public final class DimensionTypeBuilder {
      * @return this builder
      */
     @Contract("_ -> this")
-    public DimensionTypeBuilder defaultClock(final @Nullable Key defaultClock) {
+    public DimensionTypeBuilder defaultClock(final @Nullable TypedKey<WorldClock> defaultClock) {
         this.defaultClock = defaultClock;
         return this;
     }

@@ -31,7 +31,7 @@ public final class ChickenSoundVariantKeys {
     }
 
     private static TypedKey<ChickenSoundVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.CHICKEN_SOUND_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.CHICKEN_SOUND_VARIANT, value);
     }
 
     /**

@@ -15,6 +15,10 @@ import fr.fidorial.recipe.Recipe;
 import fr.fidorial.recipe.ShapedRecipe;
 import fr.fidorial.recipe.ShapelessRecipe;
 import fr.fidorial.recipe.TransmuteRecipe;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -191,7 +195,7 @@ public final class VanillaRecipeLoader {
 
     private @Nullable ItemStack result(final JsonObject recipe) {
         final JsonObject json = recipe.getAsJsonObject("result");
-        final Key id = Key.key(json.get("id").getAsString());
+        final TypedKey<Item> id = TypedKey.withRegistry(RegistryKey.ITEM, json.get("id").getAsString());
         if (!knownItem.test(id)) {
             throw new IllegalArgumentException("unknown result item " + id.asString());
         }
@@ -216,20 +220,20 @@ public final class VanillaRecipeLoader {
 
     private Ingredient ingredient(final JsonElement json) {
         if (json.isJsonArray()) {
-            final List<Key> items = new ArrayList<>();
+            final List<TypedKey<Item>> items = new ArrayList<>();
             for (final JsonElement item : json.getAsJsonArray()) {
                 final String id = item.getAsString();
                 if (id.startsWith(TAG_PREFIX)) {
                     throw new IllegalArgumentException("a tag inside an item list: " + id);
                 }
-                items.add(Key.key(id));
+                items.add(TypedKey.withRegistry(RegistryKey.ITEM, id));
             }
             return IngredientImpl.items(new LinkedHashSet<>(items));
         }
         final String id = json.getAsString();
         return id.startsWith(TAG_PREFIX)
-                ? IngredientImpl.tag(Key.key(id.substring(TAG_PREFIX.length())))
-                : IngredientImpl.items(Set.of(Key.key(id)));
+                ? IngredientImpl.tag(TagKey.withRegistry(RegistryKey.ITEM, id.substring(TAG_PREFIX.length())))
+                : IngredientImpl.items(Set.of(TypedKey.withRegistry(RegistryKey.ITEM, id)));
     }
 
     private static String string(final JsonObject json, final String member) {

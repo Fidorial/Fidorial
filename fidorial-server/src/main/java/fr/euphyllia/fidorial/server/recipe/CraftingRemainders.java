@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.recipe;
 
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.ItemKeys;
-import net.kyori.adventure.key.Key;
 
 import java.util.Map;
 
@@ -12,13 +13,13 @@ import java.util.Map;
  */
 public final class CraftingRemainders {
 
-    private static final Map<Key, Key> REMAINDERS = Map.of(
-            ItemKeys.WATER_BUCKET.key(), ItemKeys.BUCKET.key(),
-            ItemKeys.LAVA_BUCKET.key(), ItemKeys.BUCKET.key(),
-            ItemKeys.MILK_BUCKET.key(), ItemKeys.BUCKET.key(),
-            ItemKeys.POWDER_SNOW_BUCKET.key(), ItemKeys.BUCKET.key(),
-            ItemKeys.HONEY_BOTTLE.key(), ItemKeys.GLASS_BOTTLE.key(),
-            ItemKeys.DRAGON_BREATH.key(), ItemKeys.GLASS_BOTTLE.key());
+    private static final Map<TypedKey<Item>, TypedKey<Item>> REMAINDERS = Map.of(
+            ItemKeys.WATER_BUCKET, ItemKeys.BUCKET,
+            ItemKeys.LAVA_BUCKET, ItemKeys.BUCKET,
+            ItemKeys.MILK_BUCKET, ItemKeys.BUCKET,
+            ItemKeys.POWDER_SNOW_BUCKET, ItemKeys.BUCKET,
+            ItemKeys.HONEY_BOTTLE, ItemKeys.GLASS_BOTTLE,
+            ItemKeys.DRAGON_BREATH, ItemKeys.GLASS_BOTTLE);
 
     private CraftingRemainders() {
     }
@@ -31,7 +32,7 @@ public final class CraftingRemainders {
         if (consumed.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        final Key remainder = REMAINDERS.get(consumed.id());
+        final TypedKey<Item> remainder = REMAINDERS.get(consumed.id());
         return remainder == null ? ItemStack.EMPTY : ItemStack.of(remainder, consumed.count());
     }
 }

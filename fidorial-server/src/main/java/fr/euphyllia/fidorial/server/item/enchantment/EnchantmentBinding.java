@@ -11,6 +11,8 @@ import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.KeySet;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -54,7 +56,10 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
         final ServerRegistry<EnchantmentDefinition> enchantments = server.registries().registry(RegistryKey.ENCHANTMENT);
         try {
             return EnchantmentJson.toNbt(EnchantmentJson.write(value,
-                    item -> items.isItem(item) ? items.networkType(item) : null,
+                    item -> {
+                        final TypedKey<Item> typed = TypedKey.withRegistry(RegistryKey.ITEM, item);
+                        return items.isItem(typed) ? items.networkType(typed) : null;
+                    },
                     enchantment -> enchantments.contains(enchantment) ? enchantment : null));
         } catch (final RuntimeException exception) {
             LOGGER.error("Could not encode the enchantment {} for clients, sending a bare one instead",

@@ -18,6 +18,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.MenuTypeKeys;
@@ -25,7 +26,7 @@ import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +39,8 @@ public final class BlockMenuTests {
         return (ServerPlayer) helper.summonPlayer(name, Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
     }
 
-    private static int stateId(final Key block) {
-        return FidorialServer.getInstance().registries().blockStates().networkId(BlockState.of(block));
+    private static int stateId(final TypedKey<BlockType> block) {
+        return FidorialServer.getInstance().registries().blockStates().networkId(BlockState.withoutProperties(block));
     }
 
     /**
@@ -67,14 +68,14 @@ public final class BlockMenuTests {
         final ServerPlayer second = player(helper, "TableUserTwo");
 
         helper.sequence()
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTING_TABLE.key())))
-                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTING_TABLE.key()))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTING_TABLE)))
+                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTING_TABLE))
                 .execute(() -> {
                     helper.assertTrue(use(first, position) && use(second, position), "Using a crafting table should be handled");
                     helper.assertTrue(first.containerMenu() instanceof CraftingMenu && second.containerMenu() instanceof CraftingMenu,
                             "Using a crafting table should open a 3x3 crafting window");
                 })
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.AIR.key())))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.AIR)))
                 .waitUntil(() -> first.containerMenu() == first.inventoryMenu()
                                 && second.containerMenu() == second.inventoryMenu(),
                         "Breaking the crafting table should close the window of every player using it")
@@ -88,8 +89,8 @@ public final class BlockMenuTests {
         final ServerPlayer player = player(helper, "TableWalker");
 
         helper.sequence()
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTING_TABLE.key())))
-                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTING_TABLE.key()))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTING_TABLE)))
+                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTING_TABLE))
                 .execute(() -> {
                     helper.assertTrue(use(player, position), "Using a crafting table should be handled");
                     helper.assertTrue(player.containerMenu() instanceof CraftingMenu && player.containerMenu().stillValid(),
@@ -108,8 +109,8 @@ public final class BlockMenuTests {
         final ServerPlayer player = player(helper, "EnderChestUser");
 
         helper.sequence()
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.ENDER_CHEST.key())))
-                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.ENDER_CHEST.key()))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.ENDER_CHEST)))
+                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.ENDER_CHEST))
                 .execute(() -> {
                     helper.assertTrue(use(player, position), "Using an ender chest should be handled");
                     helper.assertTrue(player.containerMenu() instanceof EnderChestMenu, "Using an ender chest should open it");
@@ -130,8 +131,8 @@ public final class BlockMenuTests {
         final BlockPosition position = Position.block(2, 65, 2);
         final ServerPlayer player = player(helper, "InventoryOpener");
         helper.sequence()
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.ENDER_CHEST.key())))
-                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.ENDER_CHEST.key()))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.ENDER_CHEST)))
+                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.ENDER_CHEST))
                 .execute(() -> {
                     final List<PlayerOpenInventoryEvent> seen = new ArrayList<>();
                     final Subscription subscription = FidorialServer.getInstance().events()
@@ -174,31 +175,31 @@ public final class BlockMenuTests {
         final AtomicReference<CrafterMenu> firstMenu = new AtomicReference<>();
 
         helper.sequence()
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTER.key())))
-                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTER.key()))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.CRAFTER)))
+                .waitUntil(() -> helper.assertBlockAt(position, BlockTypeKeys.CRAFTER))
                 .execute(() -> {
                     helper.assertTrue(use(first, position), "Using a crafter should be handled");
                     helper.assertTrue(first.containerMenu() instanceof CrafterMenu, "Using a crafter should open its window");
                     final CrafterMenu menu = (CrafterMenu) first.containerMenu();
                     firstMenu.set(menu);
-                    first.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.OAK_LOG.key(), 5));
+                    first.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.OAK_LOG, 5));
                 })
                 .execute(() -> {
                     final CrafterMenu menu = firstMenu.get();
                     // window slot 9 is the first slot of the main inventory, right after the crafter's nine
                     click(menu, 9);
                     click(menu, 0);
-                    helper.assertTrue(menu.crafter().get(0).equals(ItemStack.of(ItemKeys.OAK_LOG.key(), 5)),
+                    helper.assertTrue(menu.crafter().get(0).equals(ItemStack.of(ItemKeys.OAK_LOG, 5)),
                             "The logs should sit in the crafter's first slot, got " + menu.crafter().get(0));
-                    helper.assertTrue(menu.preview().equals(ItemStack.of(ItemKeys.OAK_PLANKS.key(), 4)),
+                    helper.assertTrue(menu.preview().equals(ItemStack.of(ItemKeys.OAK_PLANKS, 4)),
                             "The crafter should show the planks its grid makes, got " + menu.preview());
                     helper.assertTrue(menu.setSlotState(4, false), "An empty slot should be disabled");
                     helper.assertTrue(!menu.setSlotState(0, false), "A slot holding items cannot be disabled");
 
-                    first.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.STICK.key(), 1));
+                    first.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.STICK, 1));
                     click(menu, 9);
                     click(menu, 4);
-                    helper.assertTrue(menu.crafter().get(4).isEmpty() && menu.carried().id().equals(ItemKeys.STICK.key()),
+                    helper.assertTrue(menu.crafter().get(4).isEmpty() && menu.carried().id().equals(ItemKeys.STICK),
                             "A disabled slot should refuse items");
                     menu.returnCarried();
 
@@ -213,13 +214,13 @@ public final class BlockMenuTests {
                     final CrafterMenu reopened = (CrafterMenu) first.containerMenu();
                     helper.assertTrue(reopened != null && reopened.crafter() != firstMenu.get().crafter(),
                             "With nobody looking, the crafter should be read again from its block entity");
-                    helper.assertTrue(reopened.crafter().get(0).equals(ItemStack.of(ItemKeys.OAK_LOG.key(), 5))
+                    helper.assertTrue(reopened.crafter().get(0).equals(ItemStack.of(ItemKeys.OAK_LOG, 5))
                                     && reopened.crafter().isSlotDisabled(4),
                             "The crafter's slots should be saved in its block entity");
                     helper.assertTrue(((ServerWorld) world).blockEntityData(position) != null,
                             "The crafter should have a block entity");
                 })
-                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.AIR.key())))
+                .execute(() -> world.setBlockStateId(position, stateId(BlockTypeKeys.AIR)))
                 .waitUntil(() -> first.containerMenu() == first.inventoryMenu(), "Breaking the crafter should close its window")
                 .execute(() -> helper.assertTrue(((ServerWorld) world).blockEntityData(position) == null,
                         "Breaking the crafter should remove its block entity"))
@@ -227,7 +228,7 @@ public final class BlockMenuTests {
                     int logs = 0;
                     for (final var entity : world.entities()) {
                         if (entity instanceof final ItemEntity item && !item.isRemoved()
-                                && item.item().id().equals(ItemKeys.OAK_LOG.key())) {
+                                && item.item().id().equals(ItemKeys.OAK_LOG)) {
                             logs += item.item().count();
                         }
                     }

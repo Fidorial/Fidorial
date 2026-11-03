@@ -23,6 +23,7 @@ import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.EnchantmentEffects;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.EnchantmentKeys;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
@@ -31,7 +32,6 @@ import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
@@ -66,7 +66,7 @@ public final class EnchantmentTests {
         return pig;
     }
 
-    private static ItemStack enchanted(final Key item, final TypedKey<EnchantmentDefinition> enchantment, final int level) {
+    private static ItemStack enchanted(final TypedKey<Item> item, final TypedKey<EnchantmentDefinition> enchantment, final int level) {
         return enchantments().enchant(ItemStack.of(item), enchantment, level);
     }
 
@@ -86,9 +86,9 @@ public final class EnchantmentTests {
         helper.assertTrue(registry.isTagged(EnchantmentKeys.VANISHING_CURSE, EnchantmentTagKeys.CURSE), "Vanishing is a curse");
         helper.assertTrue(!enchantments.areCompatible(EnchantmentKeys.SHARPNESS, EnchantmentKeys.SMITE),
                 "Sharpness and Smite share an exclusive set");
-        helper.assertTrue(enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_SWORD.key()),
+        helper.assertTrue(enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_SWORD),
                 "Sharpness goes on swords");
-        helper.assertTrue(!enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_BOOTS.key()),
+        helper.assertTrue(!enchantments.isSupportedItem(EnchantmentKeys.SHARPNESS, ItemKeys.DIAMOND_BOOTS),
                 "Sharpness does not go on boots");
         helper.assertTrue(enchantments.supportedEffectComponents().contains(EnchantmentEffects.DAMAGE_PROTECTION),
                 "The server runs minecraft:damage_protection");
@@ -98,7 +98,7 @@ public final class EnchantmentTests {
     @ScenarioTest(timeoutTicks = 20)
     public static void enchantingAStack(final ScenarioTestHelper helper) {
         final FidorialEnchantments registry = enchantments();
-        ItemStack sword = ItemStack.of(ItemKeys.DIAMOND_SWORD.key());
+        ItemStack sword = ItemStack.of(ItemKeys.DIAMOND_SWORD);
         helper.assertTrue(registry.canEnchant(sword, EnchantmentKeys.SHARPNESS), "A sword takes Sharpness");
         sword = registry.enchant(sword, EnchantmentKeys.SHARPNESS, 4);
         helper.assertTrue(registry.level(sword, EnchantmentKeys.SHARPNESS) == 4, "The sword should have Sharpness IV");
@@ -114,7 +114,7 @@ public final class EnchantmentTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void enchantmentsSurviveSaveAndLoad(final ScenarioTestHelper helper) throws IOException {
-        final ItemStack sword = enchanted(ItemKeys.DIAMOND_SWORD.key(), EnchantmentKeys.SHARPNESS, 5)
+        final ItemStack sword = enchanted(ItemKeys.DIAMOND_SWORD, EnchantmentKeys.SHARPNESS, 5)
                 .with(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false);
         final Optional<ItemStack> loadedSword = ContainerCodecs.readItem(ContainerCodecs.writeItem(sword));
         helper.assertTrue(loadedSword.isPresent() && loadedSword.get().equals(sword), "The sword changed: " + loadedSword);
@@ -162,9 +162,9 @@ public final class EnchantmentTests {
         final ServerPlayer plain = player(helper, "PlainSword", 0.5);
         final ServerPlayer sharp = player(helper, "SharpSword", 3.5);
         final ServerPlayer holy = player(helper, "HolySword", 6.5);
-        plain.setHeldItem(ItemStack.of(ItemKeys.DIAMOND_SWORD.key()));
-        sharp.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD.key(), EnchantmentKeys.SHARPNESS, 5));
-        holy.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD.key(), EnchantmentKeys.SMITE, 5));
+        plain.setHeldItem(ItemStack.of(ItemKeys.DIAMOND_SWORD));
+        sharp.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD, EnchantmentKeys.SHARPNESS, 5));
+        holy.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD, EnchantmentKeys.SMITE, 5));
         final AbstractMob first = pig(helper, 1.5);
         final AbstractMob second = pig(helper, 4.5);
         final AbstractMob third = pig(helper, 7.5);
@@ -182,8 +182,8 @@ public final class EnchantmentTests {
         final ServerPlayer armored = player(helper, "Armored", 0.5);
         final ServerPlayer falling = player(helper, "Falling", 3.5);
         final ServerPlayer bare = player(helper, "Bare", 6.5);
-        armored.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE.key(), EnchantmentKeys.PROTECTION, 4));
-        falling.inventory().set(PlayerInventory.FEET, enchanted(ItemKeys.IRON_BOOTS.key(), EnchantmentKeys.FEATHER_FALLING, 4));
+        armored.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE, EnchantmentKeys.PROTECTION, 4));
+        falling.inventory().set(PlayerInventory.FEET, enchanted(ItemKeys.IRON_BOOTS, EnchantmentKeys.FEATHER_FALLING, 4));
 
         armored.damage(DamageSource.mobAttack(null), 10f);
         falling.damage(DamageSource.fall(), 10f);
@@ -197,11 +197,11 @@ public final class EnchantmentTests {
     public static void efficiencyGivesItsAttributeWhileHeld(final ScenarioTestHelper helper) {
         final ServerPlayer player = player(helper, "Miner", 0.5);
         helper.sequence()
-                .execute(() -> player.setHeldItem(enchanted(ItemKeys.DIAMOND_PICKAXE.key(), EnchantmentKeys.EFFICIENCY, 5)))
-                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()) == 26.0,
-                        "Efficiency V should give 26 mining efficiency, got " + player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()))
+                .execute(() -> player.setHeldItem(enchanted(ItemKeys.DIAMOND_PICKAXE, EnchantmentKeys.EFFICIENCY, 5)))
+                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY) == 26.0,
+                        "Efficiency V should give 26 mining efficiency, got " + player.attributeValue(AttributeKeys.MINING_EFFICIENCY))
                 .execute(() -> player.setHeldItem(ItemStack.EMPTY))
-                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY.key()) == 0.0,
+                .waitUntil(() -> player.attributeValue(AttributeKeys.MINING_EFFICIENCY) == 0.0,
                         "Putting the pickaxe away should remove the modifier")
                 .build();
     }
@@ -209,7 +209,7 @@ public final class EnchantmentTests {
     @ScenarioTest(timeoutTicks = 20)
     public static void fireAspectSetsTheVictimOnFire(final ScenarioTestHelper helper) {
         final ServerPlayer player = player(helper, "Burner", 0.5);
-        player.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD.key(), EnchantmentKeys.FIRE_ASPECT, 2));
+        player.setHeldItem(enchanted(ItemKeys.DIAMOND_SWORD, EnchantmentKeys.FIRE_ASPECT, 2));
         final AbstractMob pig = pig(helper, 1.5);
         helper.assertTrue(server().entities().combat().attack(player, pig), "The hit should land");
         helper.assertTrue(pig.fireTicks() >= 150, "Fire Aspect II burns for 8 seconds, got " + pig.fireTicks() + " ticks");
@@ -219,7 +219,7 @@ public final class EnchantmentTests {
     public static void thornsHurtsTheAttacker(final ScenarioTestHelper helper) {
         final ServerPlayer player = player(helper, "Spiky", 0.5);
         // Level VII: 15% per level, so every hit is returned.
-        player.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE.key(), EnchantmentKeys.THORNS, 7));
+        player.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE, EnchantmentKeys.THORNS, 7));
         final AbstractMob pig = pig(helper, 1.5);
         server().entities().combat().damage(player, DamageSource.mobAttack(pig), 1f);
         helper.assertTrue(pig.health() < pig.maxHealth(), "Thorns should have hurt the pig, it has " + pig.health());
@@ -228,7 +228,7 @@ public final class EnchantmentTests {
     @ScenarioTest(timeoutTicks = 20)
     public static void curseOfBindingKeepsTheArmorOn(final ScenarioTestHelper helper) {
         final ServerPlayer survival = player(helper, "Bound", 0.5);
-        final ItemStack helmet = enchanted(ItemKeys.IRON_HELMET.key(), EnchantmentKeys.BINDING_CURSE, 1);
+        final ItemStack helmet = enchanted(ItemKeys.IRON_HELMET, EnchantmentKeys.BINDING_CURSE, 1);
         survival.inventory().set(PlayerInventory.HEAD, helmet);
         final ContainerMenu menu = survival.inventoryMenu();
         menu.click(new ServerboundContainerClickPacket(menu.windowId(), menu.stateId(), (short) InventoryMenu.ARMOR_FROM,
@@ -251,17 +251,17 @@ public final class EnchantmentTests {
         final ServerPlayer player = player(helper, "Vanishing", 8.5);
         helper.sequence()
                 .execute(() -> {
-                    player.inventory().set(0, enchanted(ItemKeys.DIAMOND_SWORD.key(), EnchantmentKeys.VANISHING_CURSE, 1));
-                    player.inventory().set(1, ItemStack.of(ItemKeys.APPLE.key(), 3));
+                    player.inventory().set(0, enchanted(ItemKeys.DIAMOND_SWORD, EnchantmentKeys.VANISHING_CURSE, 1));
+                    player.inventory().set(1, ItemStack.of(ItemKeys.APPLE, 3));
                     player.kill(player);
                 })
-                .waitUntil(() -> count(world, ItemKeys.APPLE.key()) == 3, "The apples should be dropped")
-                .execute(() -> helper.assertTrue(count(world, ItemKeys.DIAMOND_SWORD.key()) == 0,
+                .waitUntil(() -> count(world, ItemKeys.APPLE) == 3, "The apples should be dropped")
+                .execute(() -> helper.assertTrue(count(world, ItemKeys.DIAMOND_SWORD) == 0,
                         "The cursed sword should vanish"))
                 .build();
     }
 
-    private static int count(final World world, final Key item) {
+    private static int count(final World world, final TypedKey<Item> item) {
         int total = 0;
         for (final var entity : world.entities()) {
             if (entity instanceof final ServerItemEntity dropped && !dropped.isRemoved() && dropped.item().id().equals(item)) {

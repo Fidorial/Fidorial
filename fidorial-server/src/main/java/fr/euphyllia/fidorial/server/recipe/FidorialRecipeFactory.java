@@ -10,6 +10,9 @@ import fr.fidorial.recipe.RecipeFactory;
 import fr.fidorial.recipe.ShapedRecipe;
 import fr.fidorial.recipe.ShapelessRecipe;
 import fr.fidorial.recipe.TransmuteRecipe;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -38,13 +41,13 @@ public final class FidorialRecipeFactory implements RecipeFactory {
     }
 
     @Override
-    public Ingredient items(final Collection<Key> items) {
+    public Ingredient items(final Collection<TypedKey<Item>> items) {
         Preconditions.checkArgument(items != null, "The items passed to Ingredient.of() must not be null");
         return IngredientImpl.items(new LinkedHashSet<>(items));
     }
 
     @Override
-    public Ingredient tag(final Key tag) {
+    public Ingredient tag(final TagKey<Item> tag) {
         return IngredientImpl.tag(tag);
     }
 

@@ -9,6 +9,7 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
 import fr.euphyllia.fidorial.server.codecs.DispatchCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.StyleCodecs;
 import fr.fidorial.dialog.ConfirmationDialog;
 import fr.fidorial.dialog.Dialog;
@@ -24,6 +25,9 @@ import fr.fidorial.dialog.DialogReference;
 import fr.fidorial.dialog.MultiActionDialog;
 import fr.fidorial.dialog.NoticeDialog;
 import fr.fidorial.dialog.ServerLinksDialog;
+import fr.fidorial.registry.Reference;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -234,13 +238,14 @@ public final class DialogCodecs {
     }
 
     private static Codec<Dialog> eitherReferenceOr(final Codec<DialogDefinition> definition) {
-        return Codec.either(KEY_CODEC, definition).xmap(
-                either -> either.<Dialog>map(Dialog::reference, dialog -> dialog),
-                dialog -> {
-                    if (dialog instanceof final DialogReference reference) {
-                        return Either.left(reference.key());
-                    }
-                    return Either.right((DialogDefinition) dialog);
+        return ReferenceCodecs.reference(RegistryKey.DIALOG, definition).xmap(
+                reference -> switch (reference) {
+                    case final TypedKey<DialogDefinition> key -> Dialog.reference(key);
+                    case final Reference.Inline<DialogDefinition> inline -> inline.value();
+                },
+                dialog -> switch (dialog) {
+                    case final DialogReference reference -> reference.key();
+                    case final DialogDefinition inline -> Reference.inline(inline);
                 });
     }
 

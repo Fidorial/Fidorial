@@ -12,6 +12,8 @@ import fr.fidorial.recipe.Ingredient;
 import fr.fidorial.recipe.ItemTagLookup;
 import fr.fidorial.recipe.ShapelessRecipe;
 import fr.fidorial.recipe.TransmuteRecipe;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -27,7 +29,7 @@ public final class TransmuteRecipeImpl implements TransmuteRecipe {
     private final Ingredient material;
     private final int minMaterials;
     private final int maxMaterials;
-    private final @Nullable Key resultItem;
+    private final @Nullable TypedKey<Item> resultItem;
     private final int resultCount;
     private final DataComponentMap resultComponents;
     private final boolean addMaterialCountToResult;
@@ -74,7 +76,7 @@ public final class TransmuteRecipeImpl implements TransmuteRecipe {
     }
 
     @Override
-    public @Nullable Key resultItem() {
+    public @Nullable TypedKey<Item> resultItem() {
         return resultItem;
     }
 
@@ -168,7 +170,7 @@ public final class TransmuteRecipeImpl implements TransmuteRecipe {
         private @Nullable Ingredient material;
         private int minMaterials = 1;
         private int maxMaterials = 1;
-        private @Nullable Key resultItem;
+        private @Nullable TypedKey<Item> resultItem;
         private int resultCount = 1;
         private DataComponentMap resultComponents = DataComponentMap.EMPTY;
         private boolean addMaterialCountToResult;

@@ -54,7 +54,7 @@ public interface EntityEffect {
             case "damage_entity" -> damageEntity(
                     LevelValue.parse(object.get("min_damage")),
                     LevelValue.parse(object.get("max_damage")),
-                    TypedKey.create(RegistryKey.DAMAGE_TYPE, EffectJson.key(object, "damage_type")));
+                    TypedKey.withRegistry(RegistryKey.DAMAGE_TYPE, EffectJson.key(object, "damage_type")));
             case "apply_mob_effect" -> applyMobEffect(
                     KeyMatcher.parse(MOB_EFFECT, object.get("to_apply")),
                     LevelValue.parse(object.get("min_duration")),
@@ -121,7 +121,7 @@ public interface EntityEffect {
                 return;
             }
             final MobEffectRegistry registry = FidorialServer.getInstance().registries().effects();
-            final TypedKey<MobEffect> chosen = TypedKey.create(RegistryKey.MOB_EFFECT,
+            final TypedKey<MobEffect> chosen = TypedKey.withRegistry(RegistryKey.MOB_EFFECT,
                     candidates.get(context.random().nextInt(candidates.size())));
             if (!registry.isEffect(chosen)) {
                 return;

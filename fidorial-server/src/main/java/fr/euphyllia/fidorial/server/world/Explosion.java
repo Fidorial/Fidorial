@@ -39,6 +39,7 @@ public final class Explosion {
 
     private static final float DEFAULT_BLAST_RESISTANCE = 0.5f;
     // TODO : Add the `BLAST_RESISTANCE` method to BlockState.
+    // TODO: Migrate to registry keys
     private static final Map<String, Float> BLAST_RESISTANCE = Map.ofEntries(
             Map.entry("minecraft:bedrock", 3_600_000f),
             Map.entry("minecraft:barrier", 3_600_000f),
@@ -101,7 +102,7 @@ public final class Explosion {
         final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
 
         for (final BlockPosition pos : toDestroy) {
-            if (server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                 destroyed.add(pos);
             }
             if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {

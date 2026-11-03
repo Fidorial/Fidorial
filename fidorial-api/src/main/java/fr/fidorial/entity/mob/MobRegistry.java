@@ -1,7 +1,8 @@
 package fr.fidorial.entity.mob;
 
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public interface MobRegistry {
      * @param owner   the plugin attaching it
      * @since 0.1.0
      */
-    void attach(Key mobType, MobBehaviour.Factory factory, Object owner);
+    void attach(TypedKey<EntityType> mobType, MobBehaviour.Factory factory, Object owner);
 
     /**
      * Drops a definition declared through {@link #register(MobDefinition, Object)}.
@@ -41,7 +42,7 @@ public interface MobRegistry {
      * @return {@code true} if a definition was registered under that key
      * @since 0.1.0
      */
-    boolean unregister(Key mobType);
+    boolean unregister(TypedKey<EntityType> mobType);
 
     /**
      * Drops the behaviours one plugin attached to a mob.
@@ -51,7 +52,7 @@ public interface MobRegistry {
      * @return {@code true} if at least one behaviour was dropped
      * @since 0.1.0
      */
-    boolean detach(Key mobType, Object owner);
+    boolean detach(TypedKey<EntityType> mobType, Object owner);
 
     /**
      * Drops every definition and behaviour a plugin declared.
@@ -66,7 +67,7 @@ public interface MobRegistry {
      * @return the definition registered under that key, empty for a built-in mob
      * @since 0.1.0
      */
-    Optional<MobDefinition> definition(Key mobType);
+    Optional<MobDefinition> definition(TypedKey<EntityType> mobType);
 
     /**
      * @return every definition registered by a plugin
@@ -78,14 +79,14 @@ public interface MobRegistry {
      * @return every key that can be spawned, built-in mobs included
      * @since 0.1.0
      */
-    Set<Key> types();
+    Set<TypedKey<EntityType>> types();
 
     /**
      * @param mobType the key to test
      * @return {@code true} when a mob can be spawned under that key
      * @since 0.1.0
      */
-    boolean isMob(Key mobType);
+    boolean isMob(TypedKey<EntityType> mobType);
 
     /**
      * Spawns a mob into the world.
@@ -95,5 +96,5 @@ public interface MobRegistry {
      * @return the mob, empty when the key is unknown or its implementation exposes no handle
      * @since 0.1.0
      */
-    Optional<Mob> spawn(Key mobType, Location location);
+    Optional<Mob> spawn(TypedKey<EntityType> mobType, Location location);
 }

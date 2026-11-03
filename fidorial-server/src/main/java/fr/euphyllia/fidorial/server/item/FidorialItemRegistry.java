@@ -9,8 +9,8 @@ import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.util.Collection;
@@ -25,8 +25,8 @@ public final class FidorialItemRegistry implements ItemRegistry {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialItemRegistry.class);
 
-    private final Map<Key, ItemDefinition> definitions = new ConcurrentHashMap<>();
-    private final Map<Key, Object> definitionOwners = new ConcurrentHashMap<>();
+    private final Map<TypedKey<Item>, ItemDefinition> definitions = new ConcurrentHashMap<>();
+    private final Map<TypedKey<Item>, Object> definitionOwners = new ConcurrentHashMap<>();
 
     @Override
     public void register(final ItemDefinition definition, final Plugin owner) {
@@ -51,7 +51,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public boolean unregister(final Key itemType) {
+    public boolean unregister(final TypedKey<Item> itemType) {
 
         final ItemDefinition removed = definitions.remove(itemType);
 
@@ -67,7 +67,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
 
     @Override
     public void unregisterAll(final Plugin owner) {
-        for (final Map.Entry<Key, Object> entry : definitionOwners.entrySet()) {
+        for (final Map.Entry<TypedKey<Item>, Object> entry : definitionOwners.entrySet()) {
             if (entry.getValue() == owner) {
                 unregister(entry.getKey());
             }
@@ -75,7 +75,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public Optional<ItemDefinition> definition(final Key itemType) {
+    public Optional<ItemDefinition> definition(final TypedKey<Item> itemType) {
         return Optional.ofNullable(definitions.get(itemType));
     }
 
@@ -85,16 +85,16 @@ public final class FidorialItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public Set<Key> types() {
+    public Set<TypedKey<Item>> types() {
 
-        final Set<Key> keys = new LinkedHashSet<>(vanillaItems().keyList());
+        final Set<TypedKey<Item>> keys = new LinkedHashSet<>(vanillaItems().keys());
         keys.addAll(definitions.keySet());
 
         return Set.copyOf(keys);
     }
 
     @Override
-    public boolean isItem(final Key itemType) {
+    public boolean isItem(final TypedKey<Item> itemType) {
         return definitions.containsKey(itemType)
                 || vanillaItems().contains(itemType);
     }
@@ -104,12 +104,12 @@ public final class FidorialItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public boolean isCustom(final Key itemType) {
+    public boolean isCustom(final TypedKey<Item> itemType) {
         return definitions.containsKey(itemType);
     }
 
     @Override
-    public Key networkType(final Key itemType) {
+    public TypedKey<Item> networkType(final TypedKey<Item> itemType) {
         final ItemDefinition definition = definitions.get(itemType);
         return definition != null ? definition.networkType() : itemType;
     }
@@ -145,7 +145,7 @@ public final class FidorialItemRegistry implements ItemRegistry {
     }
 
     @Override
-    public ItemStack create(final Key itemType, final int count) {
+    public ItemStack create(final TypedKey<Item> itemType, final int count) {
 
         final ItemDefinition definition = definitions.get(itemType);
 

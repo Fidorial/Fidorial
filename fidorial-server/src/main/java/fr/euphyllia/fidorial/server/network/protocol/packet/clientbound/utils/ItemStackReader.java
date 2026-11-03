@@ -8,6 +8,8 @@ import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -31,7 +33,7 @@ public class ItemStackReader {
         }
 
         final int itemId = buf.readVarInt();
-        final Key item = registries.registry(RegistryKey.ITEM).byNetworkId(itemId);
+        final TypedKey<Item> item = registries.registry(RegistryKey.ITEM).byNetworkId(itemId);
         if (item == null) {
             throw new DecoderException("Unknown item network id: " + itemId);
         }

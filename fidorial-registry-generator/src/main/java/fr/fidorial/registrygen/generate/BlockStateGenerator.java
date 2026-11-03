@@ -216,7 +216,7 @@ public final class BlockStateGenerator {
 
     private static CodeBlock createBlockTypeInitializer(final BlockReportDefinition block, final Packages pkgs) {
 
-        return CodeBlock.of("$T.of($T.$N.key(), $L, $L, $L)",
+        return CodeBlock.of("$T.of($T.$N, $L, $L, $L)",
                 pkgs.blockType(),
                 pkgs.blockTypeKeys(),
                 keysFieldName(block.identifier()),
@@ -335,7 +335,7 @@ public final class BlockStateGenerator {
 
         for (final BlockReportDefinition block : blocks) {
             final PrismarineBlockLightPropertiesDefinition entry = lighting.get(GenerationUtils.path(block.identifier()));
-            chunkMethod.addStatement("register($T.$N.key(), $L, $L)",
+            chunkMethod.addStatement("register($T.$N, $L, $L)",
                     pkgs.blockTypeKeys(), keysFieldName(block.identifier()), entry.emitLight(), entry.filterLight());
         }
 

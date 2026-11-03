@@ -5,6 +5,8 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.light.LightType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -254,7 +256,7 @@ public class AnvilChunkSerializer {
         final String name = c.getString("Name");
         final CompoundBinaryTag props = c.getCompound("Properties");
         if (props.keySet().isEmpty()) {
-            return BlockState.of(Key.key(name));
+            return BlockState.withoutProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name));
         }
         final Map<String, String> map = new TreeMap<>();
         for (final String key : props.keySet()) {
@@ -262,6 +264,6 @@ public class AnvilChunkSerializer {
                 map.put(key, st.value());
             }
         }
-        return BlockState.of(Key.key(name), map);
+        return BlockState.withProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name), map);
     }
 }

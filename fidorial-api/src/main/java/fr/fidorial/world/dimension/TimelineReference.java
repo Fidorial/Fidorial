@@ -1,7 +1,9 @@
 package fr.fidorial.world.dimension;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Timeline;
 import org.jetbrains.annotations.Contract;
 
 
@@ -18,7 +20,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      * @return the reference
      */
     @Contract(value = "_ -> new", pure = true)
-    static TimelineReference id(final Key key) {
+    static TimelineReference id(final TypedKey<Timeline> key) {
         return new Id(key);
     }
 
@@ -27,7 +29,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      * @return the reference
      */
     @Contract(value = "_ -> new", pure = true)
-    static TimelineReference tag(final Key key) {
+    static TimelineReference tag(final TagKey<Timeline> key) {
         return new Tag(key);
     }
 
@@ -35,7 +37,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      * @param key the timeline's namespaced identifier
      * @since 0.1.0
      */
-    record Id(Key key) implements TimelineReference {
+    record Id(TypedKey<Timeline> key) implements TimelineReference {
         public Id {
             Preconditions.checkArgument(key != null, "The key of a timeline reference id must not be null");
         }
@@ -45,7 +47,7 @@ public sealed interface TimelineReference permits TimelineReference.Id, Timeline
      * @param key the tag's namespaced identifier, without the leading {@code #}
      * @since 0.1.0
      */
-    record Tag(Key key) implements TimelineReference {
+    record Tag(TagKey<Timeline> key) implements TimelineReference {
         public Tag {
             Preconditions.checkArgument(key != null, "The key of a timeline reference tag must not be null");
         }

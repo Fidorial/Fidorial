@@ -43,7 +43,7 @@ public final class DimensionTypeKeys {
     }
 
     private static TypedKey<DimensionTypeDefinition> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DIMENSION_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, value);
     }
 
     /**

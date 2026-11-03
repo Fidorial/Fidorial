@@ -13,7 +13,9 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 
@@ -61,7 +63,7 @@ public final class ItemArgument<T> implements ArgumentType<T> {
             if (reader.canRead()) reader.skip();
         }
 
-        return converter.apply(new ItemInput(key));
+        return converter.apply(new ItemInput(TypedKey.withRegistry(RegistryKey.ITEM, key)));
     }
 
     @Override
@@ -75,7 +77,7 @@ public final class ItemArgument<T> implements ArgumentType<T> {
         return builder.buildFuture();
     }
 
-    public record ItemInput(Key id) {
+    public record ItemInput(TypedKey<Item> id) {
         public ItemStack createItemStack(final int count) {
             return ItemStack.of(id, count);
         }

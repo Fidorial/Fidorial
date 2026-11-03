@@ -61,7 +61,7 @@ public final class ChatTypeKeys {
     }
 
     private static TypedKey<ChatTypeDefinition> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.CHAT_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.CHAT_TYPE, value);
     }
 
     /**

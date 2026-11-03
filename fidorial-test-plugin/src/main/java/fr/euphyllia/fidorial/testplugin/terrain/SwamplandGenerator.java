@@ -1,5 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.GenerationDescriptor;
@@ -8,36 +12,36 @@ import net.kyori.adventure.key.Key;
 
 public final class SwamplandGenerator implements WorldGenerator {
 
-    private static final Key BEDROCK = Key.key("bedrock");
-    private static final Key STONE = Key.key("stone");
-    private static final Key DEEPSLATE = Key.key("deepslate");
-    private static final Key COBBLESTONE = Key.key("cobblestone");
-    private static final Key GRAVEL = Key.key("gravel");
-    private static final Key COARSE_DIRT = Key.key("coarse_dirt");
-    private static final Key ASH = Key.key("gray_concrete_powder");
-    private static final Key SCORCHED_ROCK = Key.key("blackstone");
-    private static final Key CRACKED_STONE_BRICKS = Key.key("cracked_stone_bricks");
-    private static final Key CRACKED_DEEPSLATE_BRICKS = Key.key("cracked_deepslate_bricks");
-    private static final Key WATER = Key.key("water");
-    private static final Key LAVA = Key.key("lava");
-    private static final Key MAGMA_BLOCK = Key.key("magma_block");
-    private static final Key BASALT = Key.key("basalt");
-    private static final Key DEAD_BUSH = Key.key("dead_bush");
-    private static final Key WITHER_ROSE = Key.key("wither_rose");
-    private static final Key IRON_BLOCK = Key.key("iron_block");
-    private static final Key CHAIN = Key.key("chain");
-    private static final Key SEA_LANTERN = Key.key("sea_lantern");
-    private static final Key MUSHROOM_STEM = Key.key("mushroom_stem");
-    private static final Key RED_MUSHROOM_BLOCK = Key.key("red_mushroom_block");
-    private static final Key BROWN_MUSHROOM_BLOCK = Key.key("brown_mushroom_block");
-    private static final Key RED_MUSHROOM = Key.key("red_mushroom");
-    private static final Key BROWN_MUSHROOM = Key.key("brown_mushroom");
+    private static final TypedKey<BlockType> BEDROCK = TypedKey.withRegistry(RegistryKey.BLOCK, "bedrock");
+    private static final TypedKey<BlockType> STONE = TypedKey.withRegistry(RegistryKey.BLOCK, "stone");
+    private static final TypedKey<BlockType> DEEPSLATE = TypedKey.withRegistry(RegistryKey.BLOCK, "deepslate");
+    private static final TypedKey<BlockType> COBBLESTONE = TypedKey.withRegistry(RegistryKey.BLOCK, "cobblestone");
+    private static final TypedKey<BlockType> GRAVEL = TypedKey.withRegistry(RegistryKey.BLOCK, "gravel");
+    private static final TypedKey<BlockType> COARSE_DIRT = TypedKey.withRegistry(RegistryKey.BLOCK, "coarse_dirt");
+    private static final TypedKey<BlockType> ASH = TypedKey.withRegistry(RegistryKey.BLOCK, "gray_concrete_powder");
+    private static final TypedKey<BlockType> SCORCHED_ROCK = TypedKey.withRegistry(RegistryKey.BLOCK, "blackstone");
+    private static final TypedKey<BlockType> CRACKED_STONE_BRICKS = TypedKey.withRegistry(RegistryKey.BLOCK, "cracked_stone_bricks");
+    private static final TypedKey<BlockType> CRACKED_DEEPSLATE_BRICKS = TypedKey.withRegistry(RegistryKey.BLOCK, "cracked_deepslate_bricks");
+    private static final TypedKey<BlockType> WATER = TypedKey.withRegistry(RegistryKey.BLOCK, "water");
+    private static final TypedKey<BlockType> LAVA = TypedKey.withRegistry(RegistryKey.BLOCK, "lava");
+    private static final TypedKey<BlockType> MAGMA_BLOCK = TypedKey.withRegistry(RegistryKey.BLOCK, "magma_block");
+    private static final TypedKey<BlockType> BASALT = TypedKey.withRegistry(RegistryKey.BLOCK, "basalt");
+    private static final TypedKey<BlockType> DEAD_BUSH = TypedKey.withRegistry(RegistryKey.BLOCK, "dead_bush");
+    private static final TypedKey<BlockType> WITHER_ROSE = TypedKey.withRegistry(RegistryKey.BLOCK, "wither_rose");
+    private static final TypedKey<BlockType> IRON_BLOCK = TypedKey.withRegistry(RegistryKey.BLOCK, "iron_block");
+    private static final TypedKey<BlockType> CHAIN = TypedKey.withRegistry(RegistryKey.BLOCK, "chain");
+    private static final TypedKey<BlockType> SEA_LANTERN = TypedKey.withRegistry(RegistryKey.BLOCK, "sea_lantern");
+    private static final TypedKey<BlockType> MUSHROOM_STEM = TypedKey.withRegistry(RegistryKey.BLOCK, "mushroom_stem");
+    private static final TypedKey<BlockType> RED_MUSHROOM_BLOCK = TypedKey.withRegistry(RegistryKey.BLOCK, "red_mushroom_block");
+    private static final TypedKey<BlockType> BROWN_MUSHROOM_BLOCK = TypedKey.withRegistry(RegistryKey.BLOCK, "brown_mushroom_block");
+    private static final TypedKey<BlockType> RED_MUSHROOM = TypedKey.withRegistry(RegistryKey.BLOCK, "red_mushroom");
+    private static final TypedKey<BlockType> BROWN_MUSHROOM = TypedKey.withRegistry(RegistryKey.BLOCK, "brown_mushroom");
 
-    private static final Key BIOME_CRATER = TestBiomes.TOXIC_CRATERS.key();
-    private static final Key BIOME_MOLTEN = TestBiomes.MOLTEN_CRATERS.key();
-    private static final Key BIOME_RUBBLE_FLATS = TestBiomes.RUBBLE_FLATS.key();
-    private static final Key BIOME_WASTELAND = TestBiomes.ASHEN_WASTELAND.key();
-    private static final Key BIOME_RIDGES = TestBiomes.IRRADIATED_RIDGES.key();
+    private static final TypedKey<BiomeDefinition> BIOME_CRATER = TestBiomes.TOXIC_CRATERS.key();
+    private static final TypedKey<BiomeDefinition> BIOME_MOLTEN = TestBiomes.MOLTEN_CRATERS.key();
+    private static final TypedKey<BiomeDefinition> BIOME_RUBBLE_FLATS = TestBiomes.RUBBLE_FLATS.key();
+    private static final TypedKey<BiomeDefinition> BIOME_WASTELAND = TestBiomes.ASHEN_WASTELAND.key();
+    private static final TypedKey<BiomeDefinition> BIOME_RIDGES = TestBiomes.IRRADIATED_RIDGES.key();
 
     private final int baseHeight;
     private final int reliefAmplitude;
@@ -171,7 +175,7 @@ public final class SwamplandGenerator implements WorldGenerator {
                         chunk.setBlock(x, y, z, ASH);
                     }
                 } else {
-                    final Key topBlock = pickWastelandTop(worldX, worldZ);
+                    final TypedKey<BlockType> topBlock = pickWastelandTop(worldX, worldZ);
                     final int depth = blendDepth(worldX, worldZ);
                     for (int y = Math.max(minY + 1, surface - depth); y < surface; y++) {
                         chunk.setBlock(x, y, z, COARSE_DIRT);
@@ -180,7 +184,7 @@ public final class SwamplandGenerator implements WorldGenerator {
                 }
 
                 if (underLiquid) {
-                    final Key liquid = isLava ? LAVA : WATER;
+                    final TypedKey<BlockType> liquid = isLava ? LAVA : WATER;
                     final int ceiling = ridgePool ? poolRim : seaLevel;
                     for (int y = surface + 1; y <= ceiling; y++) {
                         chunk.setBlock(x, y, z, liquid);
@@ -194,10 +198,10 @@ public final class SwamplandGenerator implements WorldGenerator {
                     } else if (deco < 0.075) {
                         chunk.setBlock(x, surface + 1, z, WITHER_ROSE);
                     } else if (deco < 0.085) {
-                        final Key scrap = hash01(worldX * 13 + 9, worldZ * 13 + 9) < 0.5 ? IRON_BLOCK : CHAIN;
+                        final TypedKey<BlockType> scrap = hash01(worldX * 13 + 9, worldZ * 13 + 9) < 0.5 ? IRON_BLOCK : CHAIN;
                         chunk.setBlock(x, surface + 1, z, scrap);
                     } else if (deco < 0.105) {
-                        final Key mushroom =
+                        final TypedKey<BlockType> mushroom =
                                 hash01(worldX * 17 + 5, worldZ * 17 + 5) < 0.5 ? RED_MUSHROOM : BROWN_MUSHROOM;
                         chunk.setBlock(x, surface + 1, z, mushroom);
                     } else if (deco < 0.107) {
@@ -213,7 +217,7 @@ public final class SwamplandGenerator implements WorldGenerator {
                 }
 
                 if ((x & 3) == 0 && (z & 3) == 0) {
-                    final Key biome = isRidge && !underLiquid ? BIOME_RIDGES
+                    final TypedKey<BiomeDefinition> biome = isRidge && !underLiquid ? BIOME_RIDGES
                             : underLiquid && isLava ? BIOME_MOLTEN
                             : underLiquid ? BIOME_CRATER
                             : surface <= seaLevel + 2 ? BIOME_RUBBLE_FLATS
@@ -284,7 +288,7 @@ public final class SwamplandGenerator implements WorldGenerator {
             chunk.setBlock(x, y, z, MUSHROOM_STEM);
         }
 
-        final Key cap = red ? RED_MUSHROOM_BLOCK : BROWN_MUSHROOM_BLOCK;
+        final TypedKey<BlockType> cap = red ? RED_MUSHROOM_BLOCK : BROWN_MUSHROOM_BLOCK;
         for (int dz = -2; dz <= 2; dz++) {
             for (int dx = -2; dx <= 2; dx++) {
                 if (Math.abs(dx) == 2 && Math.abs(dz) == 2) {
@@ -340,7 +344,7 @@ public final class SwamplandGenerator implements WorldGenerator {
         return Math.min(surface, maxY - 2);
     }
 
-    private Key pickWastelandTop(final int worldX, final int worldZ) {
+    private TypedKey<BlockType> pickWastelandTop(final int worldX, final int worldZ) {
         final double n = (detailNoise.fbm(worldX * 0.05, worldZ * 0.05, 3) + 1.0) / 2.0;
         if (n < 0.35) {
             return ASH;
@@ -352,7 +356,7 @@ public final class SwamplandGenerator implements WorldGenerator {
         return GRAVEL;
     }
 
-    private Key pickScreeTop(final int worldX, final int worldZ) {
+    private TypedKey<BlockType> pickScreeTop(final int worldX, final int worldZ) {
         final double h = hash01(worldX * 11 + 5, worldZ * 11 + 5);
         if (h < 0.65) {
             return SCORCHED_ROCK;

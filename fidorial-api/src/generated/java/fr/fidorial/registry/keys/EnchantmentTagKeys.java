@@ -124,6 +124,6 @@ public final class EnchantmentTagKeys {
     }
 
     private static TagKey<EnchantmentDefinition> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.ENCHANTMENT, value);
+        return TagKey.withRegistry(RegistryKey.ENCHANTMENT, value);
     }
 }

@@ -68,7 +68,7 @@ public final class DimensionTypesGenerator {
                                 Modifier.FINAL
                         )
                         .initializer(
-                                "$T.builder($T.$N.key()).build()",
+                                "$T.builder($T.$N).build()",
                                 DIMENSION_TYPE_DEFINITION,
                                 registryKeysClass,
                                 fieldName

@@ -37,7 +37,7 @@ public final class DialogKeys {
     }
 
     private static TypedKey<DialogDefinition> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DIALOG, value);
+        return TypedKey.withRegistry(RegistryKey.DIALOG, value);
     }
 
     /**

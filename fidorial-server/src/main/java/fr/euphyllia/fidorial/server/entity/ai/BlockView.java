@@ -5,9 +5,12 @@ import fr.euphyllia.fidorial.server.world.ServerChunk;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.Chunk;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -16,8 +19,8 @@ import java.util.Set;
 
 public class BlockView {
 
-    private static final Set<Key> PASSABLE = Set.of(
-            BlockTypeKeys.WATER.key()
+    private static final Set<TypedKey<BlockType>> PASSABLE = Set.of(
+            BlockTypeKeys.WATER
     );
 
     private BlockView() {
@@ -25,7 +28,7 @@ public class BlockView {
 
     public static @Nullable BlockState blockAt(final ServerWorld world, final int x, final int y, final int z) {
         if (y < world.minY() || y >= world.minY() + world.height()) {
-            return BlockState.of(BlockTypeKeys.AIR.key());
+            return BlockState.withoutProperties(BlockTypeKeys.AIR);
         }
         final Optional<Chunk> optionalChunk = world.chunkIfLoaded(x >> 4, z >> 4);
         if (optionalChunk.isEmpty()) return null;
@@ -42,15 +45,15 @@ public class BlockView {
         if (state.isAir()) {
             return true;
         }
-        final Key name = state.name();
+        final TypedKey<BlockType> name = state.name();
         return PASSABLE.contains(name);
     }
 
     public static boolean isPowderSnow(final BlockState state) {
-        return isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW.key(), state);
+        return isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, state);
     }
 
-    public static boolean isTagged(final Key tag, final BlockState state) {
+    public static boolean isTagged(final TagKey<BlockType> tag, final BlockState state) {
         return FidorialServer.getInstance().registries().registry(RegistryKey.BLOCK).isTagged(state.name(), tag);
     }
 

@@ -38,7 +38,7 @@ public final class CrafterMenu extends ContainerMenu {
 
     public CrafterMenu(final ServerPlayer player, final int windowId, final ServerWorld world,
                        final BlockPosition position, final CrafterContainer crafter) {
-        super(player, windowId, position, BlockTypeKeys.CRAFTER.key());
+        super(player, windowId, position, BlockTypeKeys.CRAFTER);
         this.world = world;
         this.position = position;
         this.crafter = crafter;

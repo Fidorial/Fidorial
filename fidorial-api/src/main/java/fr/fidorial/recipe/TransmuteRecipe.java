@@ -2,6 +2,8 @@ package fr.fidorial.recipe;
 
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.data.DataComponentMap;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -57,7 +59,7 @@ public interface TransmuteRecipe extends CraftingRecipe {
      * @return the item the input becomes, {@code null} when it stays the same item
      * @since 0.1.0
      */
-    @Nullable Key resultItem();
+    @Nullable TypedKey<Item> resultItem();
 
     /**
      * @return how many items one craft gives, before {@linkplain #addMaterialCountToResult() materials are added}

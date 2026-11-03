@@ -238,7 +238,7 @@ public final class ItemPropertiesGenerator {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
             }
 
-            current.addStatement("register($T.$L.key(), $L, $L, $L)",
+            current.addStatement("register($T.$L, $L, $L, $L)",
                     itemKeys,
                     GenerationUtils.constantName(item.identifier()),
                     prismarine.stackSize(),
@@ -294,7 +294,7 @@ public final class ItemPropertiesGenerator {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
             }
 
-            current.addStatement("EQUIPMENT_SLOT.put($T.$L.key(), $S)",
+            current.addStatement("EQUIPMENT_SLOT.put($T.$L, $S)",
                     itemKeys, GenerationUtils.constantName(item.identifier()), slot);
 
             if (++inCurrent >= ITEMS_PER_METHOD) {
@@ -322,7 +322,7 @@ public final class ItemPropertiesGenerator {
             if (!first) {
                 arguments.add(", ");
             }
-            arguments.add("$T.$L.key()", itemKeys, GenerationUtils.constantName(material));
+            arguments.add("$T.$L", itemKeys, GenerationUtils.constantName(material));
             first = false;
         }
 

@@ -24,6 +24,6 @@ public final class DialogTagKeys {
     }
 
     private static TagKey<DialogDefinition> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.DIALOG, value);
+        return TagKey.withRegistry(RegistryKey.DIALOG, value);
     }
 }

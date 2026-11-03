@@ -1,7 +1,8 @@
 package fr.fidorial.item;
 
 import fr.fidorial.plugin.Plugin;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public interface ItemRegistry {
      * @return {@code true} if a definition was registered under that key
      * @since 0.1.0
      */
-    boolean unregister(Key itemType);
+    boolean unregister(TypedKey<Item> itemType);
 
     /**
      * Drops every definition a plugin declared.
@@ -47,7 +48,7 @@ public interface ItemRegistry {
      * @return the definition registered under that key, empty for a vanilla item
      * @since 0.1.0
      */
-    Optional<ItemDefinition> definition(Key itemType);
+    Optional<ItemDefinition> definition(TypedKey<Item> itemType);
 
     /**
      * @return every definition registered by a plugin
@@ -59,21 +60,21 @@ public interface ItemRegistry {
      * @return every key that can be created, vanilla items included
      * @since 0.1.0
      */
-    Set<Key> types();
+    Set<TypedKey<Item>> types();
 
     /**
      * @param itemType the key to test
      * @return {@code true} when a stack can be created under that key
      * @since 0.1.0
      */
-    boolean isItem(Key itemType);
+    boolean isItem(TypedKey<Item> itemType);
 
     /**
      * @param itemType the key to test
      * @return {@code true} when a plugin declared this key
      * @since 0.1.0
      */
-    boolean isCustom(Key itemType);
+    boolean isCustom(TypedKey<Item> itemType);
 
     /**
      * Resolves the vanilla item the client is sent for a key.
@@ -82,7 +83,7 @@ public interface ItemRegistry {
      * @return the declared {@link ItemDefinition#networkType()}, or the key itself when vanilla
      * @since 0.1.0
      */
-    Key networkType(Key itemType);
+    TypedKey<Item> networkType(TypedKey<Item> itemType);
 
     /**
      * Creates a stack of one.
@@ -91,7 +92,7 @@ public interface ItemRegistry {
      * @return the stack, {@link ItemStack#EMPTY} when the key is unknown
      * @since 0.1.0
      */
-    default ItemStack create(final Key itemType) {
+    default ItemStack create(final TypedKey<Item> itemType) {
         return create(itemType, 1);
     }
 
@@ -103,5 +104,5 @@ public interface ItemRegistry {
      * @return the stack, {@link ItemStack#EMPTY} when the key is unknown
      * @since 0.1.0
      */
-    ItemStack create(Key itemType, int count);
+    ItemStack create(TypedKey<Item> itemType, int count);
 }

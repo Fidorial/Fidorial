@@ -31,7 +31,7 @@ public final class CowSoundVariantKeys {
     }
 
     private static TypedKey<CowSoundVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.COW_SOUND_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.COW_SOUND_VARIANT, value);
     }
 
     /**

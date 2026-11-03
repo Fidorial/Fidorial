@@ -265,7 +265,7 @@ public final class MobEffectKeys {
     }
 
     private static TypedKey<MobEffect> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.MOB_EFFECT, value);
+        return TypedKey.withRegistry(RegistryKey.MOB_EFFECT, value);
     }
 
     /**

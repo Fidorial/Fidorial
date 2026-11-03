@@ -485,7 +485,7 @@ public final class ServerMapView implements MapView {
 
     @Override
     public ItemStack item() {
-        return ItemStack.builder(ItemKeys.FILLED_MAP.key()).set(DataComponentTypes.MAP_ID, id).build();
+        return ItemStack.builder(ItemKeys.FILLED_MAP).set(DataComponentTypes.MAP_ID, id).build();
     }
 
     /**
@@ -694,14 +694,14 @@ public final class ServerMapView implements MapView {
             int rotation = 0;
             final Key type;
             if (inside) {
-                type = MapDecorationTypeKeys.PLAYER.key();
+                type = MapDecorationTypeKeys.PLAYER;
                 rotation = player.inCeilingWorld()
                         ? spin(tick)
                         : (MapMath.directionOf(player.yaw()) + 8) & 15;
             } else if (Math.abs(x) < OFF_MAP_RANGE && Math.abs(z) < OFF_MAP_RANGE) {
-                type = MapDecorationTypeKeys.PLAYER_OFF_MAP.key();
+                type = MapDecorationTypeKeys.PLAYER_OFF_MAP;
             } else if (showFar) {
-                type = MapDecorationTypeKeys.PLAYER_OFF_LIMITS.key();
+                type = MapDecorationTypeKeys.PLAYER_OFF_LIMITS;
             } else {
                 continue;
             }

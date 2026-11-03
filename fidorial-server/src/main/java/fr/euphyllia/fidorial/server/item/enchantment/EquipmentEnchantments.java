@@ -8,8 +8,9 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
-import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -112,12 +113,12 @@ public final class EquipmentEnchantments {
             return;
         }
         final List<EnchantedItemImpl> items = new ArrayList<>(enchantments.levels().size());
-        for (final Map.Entry<Key, Integer> enchantment : enchantments.levels().entrySet()) {
+        for (final Map.Entry<TypedKey<EnchantmentDefinition>, Integer> enchantment : enchantments.levels().entrySet()) {
             final EnchantmentDefinitionImpl definition = registry.definition(enchantment.getKey());
             if (definition == null || !definition.matchesSlot(SLOTS[slot]) || registry.behaviours(enchantment.getKey()).isEmpty()) {
                 continue;
             }
-            items.add(new EnchantedItemImpl(TypedKey.create(RegistryKey.ENCHANTMENT, enchantment.getKey()),
+            items.add(new EnchantedItemImpl(enchantment.getKey(),
                     enchantment.getValue(), stack, SLOTS[slot], owner));
         }
         active.set(slot, List.copyOf(items));
@@ -130,8 +131,8 @@ public final class EquipmentEnchantments {
      * {@return the attribute modifiers of every equipped enchantment, by attribute, each id suffixed with
      * its slot as vanilla does}
      */
-    private Map<Key, Map<Key, AttributeModifier>> modifiers(final FidorialEnchantments registry) {
-        final Map<Key, Map<Key, AttributeModifier>> modifiers = new LinkedHashMap<>();
+    private Map<TypedKey<Attribute>, Map<Key, AttributeModifier>> modifiers(final FidorialEnchantments registry) {
+        final Map<TypedKey<Attribute>, Map<Key, AttributeModifier>> modifiers = new LinkedHashMap<>();
         for (final List<EnchantedItemImpl> items : active) {
             for (final EnchantedItemImpl item : items) {
                 run(registry, item, "attributeModifiers", behaviour -> {

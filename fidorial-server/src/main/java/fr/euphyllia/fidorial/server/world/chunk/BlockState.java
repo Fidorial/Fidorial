@@ -1,9 +1,10 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockData;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -12,7 +13,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class BlockState {
-    private final Key name;
+    private final TypedKey<BlockType> name;
     private final Map<String, String> properties;
     private final int hashCode;
     private final boolean air;
@@ -23,19 +24,19 @@ public final class BlockState {
     private volatile int mapColor = -1;
     private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
-    private BlockState(final Key name, final Map<String, String> properties) {
+    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties) {
         this.name = name;
         this.properties = properties.isEmpty()
                 ? Collections.emptyMap()
                 : Collections.unmodifiableMap(new TreeMap<>(properties));
         this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
-        this.air = name.equals(BlockTypeKeys.AIR.key()) || name.equals(BlockTypeKeys.CAVE_AIR.key()) || name.equals(BlockTypeKeys.VOID_AIR.key());
-        this.fluid = name.equals(BlockTypeKeys.WATER.key())
-                || name.equals(BlockTypeKeys.LAVA.key())
+        this.air = name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
+        this.fluid = name.equals(BlockTypeKeys.WATER)
+                || name.equals(BlockTypeKeys.LAVA)
                 || "true".equals(this.properties.get("waterlogged"));
     }
 
-    private BlockState(final Key name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean fluid) {
+    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean fluid) {
         this.name = name;
         this.properties = properties;
         this.hashCode = hashCode;
@@ -43,15 +44,15 @@ public final class BlockState {
         this.fluid = fluid;
     }
 
-    public static BlockState of(final Key name) {
-        return of(name, Collections.emptyMap(), true);
+    public static BlockState withoutProperties(final TypedKey<BlockType> name) {
+        return withProperties(name, Collections.emptyMap(), true);
     }
 
-    public static BlockState of(final Key name, final Map<String, String> properties) {
-        return of(name, properties, true);
+    public static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties) {
+        return withProperties(name, properties, true);
     }
 
-    static BlockState of(final Key name, final Map<String, String> properties, final boolean checkIntern) {
+    static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties, final boolean checkIntern) {
         if (checkIntern) {
             final int hash = 31 * name.hashCode() + properties.hashCode();
             final BlockState existing = INTERN.get(new BlockState(name, properties, hash, false, false)); // safe to pass whatever value for air and fluid as they're discarded in this context
@@ -64,7 +65,7 @@ public final class BlockState {
         return previous != null ? previous : created;
     }
 
-    public Key name() {
+    public TypedKey<BlockType> name() {
         return name;
     }
 

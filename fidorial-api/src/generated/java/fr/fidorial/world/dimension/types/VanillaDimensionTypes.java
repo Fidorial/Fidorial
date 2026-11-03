@@ -23,26 +23,26 @@ public final class VanillaDimensionTypes {
      *
      * @since 0.1.0
      */
-    public static final DimensionTypeDefinition OVERWORLD = DimensionTypeDefinition.builder(DimensionTypeKeys.OVERWORLD.key()).build();
+    public static final DimensionTypeDefinition OVERWORLD = DimensionTypeDefinition.builder(DimensionTypeKeys.OVERWORLD).build();
 
     /**
      * The {@code minecraft:overworld_caves} dimension type.
      *
      * @since 0.1.0
      */
-    public static final DimensionTypeDefinition OVERWORLD_CAVES = DimensionTypeDefinition.builder(DimensionTypeKeys.OVERWORLD_CAVES.key()).build();
+    public static final DimensionTypeDefinition OVERWORLD_CAVES = DimensionTypeDefinition.builder(DimensionTypeKeys.OVERWORLD_CAVES).build();
 
     /**
      * The {@code minecraft:the_end} dimension type.
      *
      * @since 0.1.0
      */
-    public static final DimensionTypeDefinition THE_END = DimensionTypeDefinition.builder(DimensionTypeKeys.THE_END.key()).build();
+    public static final DimensionTypeDefinition THE_END = DimensionTypeDefinition.builder(DimensionTypeKeys.THE_END).build();
 
     /**
      * The {@code minecraft:the_nether} dimension type.
      *
      * @since 0.1.0
      */
-    public static final DimensionTypeDefinition THE_NETHER = DimensionTypeDefinition.builder(DimensionTypeKeys.THE_NETHER.key()).build();
+    public static final DimensionTypeDefinition THE_NETHER = DimensionTypeDefinition.builder(DimensionTypeKeys.THE_NETHER).build();
 }

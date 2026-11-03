@@ -131,7 +131,7 @@ public final class RegistryKeyGenerator {
                 .addTypeVariable(typeVariable)
                 .returns(returnType)
                 .addParameter(pathParameter)
-                .addStatement("return new $T<>($N)", registryKey, "key")
+                .addStatement("return new $T<>($N)", registryKey, "key.key()")
                 .build();
     }
 

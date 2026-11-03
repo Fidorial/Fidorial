@@ -86,7 +86,7 @@ public final class RegistryTagKeysGenerator {
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(tagKeyType)
                 .addParameter(ParameterSpec.builder(String.class, "value", Modifier.FINAL).addAnnotation(KEY_PATTERN).build())
-                .addStatement("return $T.create($T.$N, $N)", tagKey, registryKey,
+                .addStatement("return $T.withRegistry($T.$N, $N)", tagKey, registryKey,
                         GenerationUtils.constantName(registryType.path(), true), "value")
                 .build());
 

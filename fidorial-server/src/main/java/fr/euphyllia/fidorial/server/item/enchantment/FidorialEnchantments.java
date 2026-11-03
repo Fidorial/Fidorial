@@ -20,6 +20,7 @@ import fr.fidorial.item.enchantment.KeySet;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
@@ -196,7 +197,7 @@ public final class FidorialEnchantments implements Enchantments {
     }
 
     @Override
-    public boolean isSupportedItem(final TypedKey<EnchantmentDefinition> enchantment, final Key item) {
+    public boolean isSupportedItem(final TypedKey<EnchantmentDefinition> enchantment, final TypedKey<Item> item) {
         final EnchantmentDefinitionImpl definition = definition(enchantment.key());
         return definition != null && matchesItem(definition.supportedItems(), item);
     }
@@ -204,7 +205,7 @@ public final class FidorialEnchantments implements Enchantments {
     /**
      * {@return {@code true} if {@code item}, or the vanilla item a plugin item is rendered as, belongs to {@code set}}
      */
-    public boolean matchesItem(final KeySet set, final Key item) {
+    public boolean matchesItem(final KeySet set, final TypedKey<Item> item) {
         if (containsItem(set, item)) {
             return true;
         }
@@ -212,7 +213,7 @@ public final class FidorialEnchantments implements Enchantments {
         if (!itemRegistry.isCustom(item)) {
             return false;
         }
-        final Key rendered = itemRegistry.networkType(item);
+        final TypedKey<Item> rendered = itemRegistry.networkType(item);
         return !rendered.equals(item) && containsItem(set, rendered);
     }
 
@@ -264,7 +265,7 @@ public final class FidorialEnchantments implements Enchantments {
     }
 
     private static DataComponentType<ItemEnchantments> componentFor(final ItemStack stack) {
-        return stack.id().equals(ItemKeys.ENCHANTED_BOOK.key()) ? DataComponentTypes.STORED_ENCHANTMENTS : DataComponentTypes.ENCHANTMENTS;
+        return stack.id().equals(ItemKeys.ENCHANTED_BOOK) ? DataComponentTypes.STORED_ENCHANTMENTS : DataComponentTypes.ENCHANTMENTS;
     }
 
     @Override
@@ -272,7 +273,7 @@ public final class FidorialEnchantments implements Enchantments {
         if (stack.isEmpty()) {
             return 0;
         }
-        return stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.EMPTY).level(enchantment.key());
+        return stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.EMPTY).level(enchantment);
     }
 
     @Override
@@ -300,7 +301,7 @@ public final class FidorialEnchantments implements Enchantments {
             return stack;
         }
         final DataComponentType<ItemEnchantments> type = componentFor(stack);
-        return stack.with(type, stack.getOrDefault(type, ItemEnchantments.EMPTY).with(enchantment.key(), level));
+        return stack.with(type, stack.getOrDefault(type, ItemEnchantments.EMPTY).with(enchantment, level));
     }
 
     @Override
@@ -309,15 +310,15 @@ public final class FidorialEnchantments implements Enchantments {
         Preconditions.checkArgument(enchantment != null, "The enchantment must not be null");
         final DataComponentType<ItemEnchantments> type = componentFor(stack);
         final ItemEnchantments current = stack.get(type);
-        if (current == null || !current.has(enchantment.key())) {
+        if (current == null || !current.has(enchantment)) {
             return stack;
         }
-        return stack.with(type, current.without(enchantment.key()));
+        return stack.with(type, current.without(enchantment));
     }
 
     @Override
     public ItemStack enchantedBook(final TypedKey<EnchantmentDefinition> enchantment, final int level) {
-        return enchant(ItemStack.of(ItemKeys.ENCHANTED_BOOK.key()), enchantment, level);
+        return enchant(ItemStack.of(ItemKeys.ENCHANTED_BOOK), enchantment, level);
     }
 
     @Override
@@ -326,7 +327,7 @@ public final class FidorialEnchantments implements Enchantments {
         final Component description = definition == null
                 ? Component.translatable(EnchantmentDefinitionImpl.descriptionId(enchantment.key()))
                 : definition.description();
-        final NamedTextColor color = isTagged(enchantment.key(), EnchantmentTagKeys.CURSE.key()) ? NamedTextColor.RED : NamedTextColor.GRAY;
+        final NamedTextColor color = isTagged(enchantment.key(), EnchantmentTagKeys.CURSE) ? NamedTextColor.RED : NamedTextColor.GRAY;
         Component name = Component.empty().color(color).append(description);
         if (level != 1 || definition == null || definition.maxLevel() != 1) {
             name = name.append(Component.space()).append(Component.translatable("enchantment.level." + level));

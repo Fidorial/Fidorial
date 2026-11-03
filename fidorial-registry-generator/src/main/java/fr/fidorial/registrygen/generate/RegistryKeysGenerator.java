@@ -164,7 +164,7 @@ public final class RegistryKeysGenerator {
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(typedKeyType)
                 .addParameter(valueParameter)
-                .addStatement("return $T.create($T.$N, $N)", typedKey, registryKey, registryFieldName, "value")
+                .addStatement("return $T.withRegistry($T.$N, $N)", typedKey, registryKey, registryFieldName, "value")
                 .build();
     }
 
@@ -182,7 +182,7 @@ public final class RegistryKeysGenerator {
     }
 
     /**
-     * Returns the value passed to {@code TypedKey.create}.
+     * Returns the value passed to {@code TypedKey.withRegistry}.
      *
      * <p>Minecraft identifiers use only their path:</p>
      *

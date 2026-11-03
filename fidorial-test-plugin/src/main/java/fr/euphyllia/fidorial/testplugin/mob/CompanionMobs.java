@@ -1,17 +1,20 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.EntityTypeKeys;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 public final class CompanionMobs {
 
     /** {@code /summon fidorialtest:companion}. */
-    public static final Key COMPANION = Key.key("fidorialtest", "companion");
+    public static final TypedKey<EntityType> COMPANION = TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, "fidorialtest:companion");
 
-    public static final Key AXOLOTL = Key.key("axolotl");
+    public static final TypedKey<EntityType> AXOLOTL = EntityTypeKeys.AXOLOTL;
 
     private static final float COMPANION_HEALTH = 14f;
     private static final double COMPANION_SPEED = 0.24;

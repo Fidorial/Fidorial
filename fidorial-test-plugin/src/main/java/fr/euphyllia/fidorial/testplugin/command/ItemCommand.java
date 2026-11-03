@@ -25,7 +25,7 @@ import static fr.fidorial.command.Commands.literal;
 
 public final class ItemCommand {
     private static TestPlugin plugin;
-    public static final Key BEE_NEST = ItemKeys.BEE_NEST.key();
+    public static final Key BEE_NEST = ItemKeys.BEE_NEST;
     private static final int HIVE_MIN_TICKS = 60;
 
     public ItemCommand(final TestPlugin plugin) {
@@ -48,7 +48,7 @@ public final class ItemCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        final ItemStack sword = ItemStack.builder(ItemKeys.NETHERITE_SWORD.key())
+        final ItemStack sword = ItemStack.builder(ItemKeys.NETHERITE_SWORD)
                 .edit(components -> {
                     components.set(DataComponentTypes.CUSTOM_NAME, Component.text("Fidorial's Fang", NamedTextColor.LIGHT_PURPLE)
                             .decoration(TextDecoration.ITALIC, false));

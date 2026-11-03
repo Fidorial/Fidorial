@@ -15,22 +15,22 @@ public interface PathPenalty {
         if (state == null) {
             return 0.0;
         }
-        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING.key(), state) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW.key(), state)) {
+        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, state) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, state)) {
             return BLOCKED;
         }
         final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
-        if (ground != null && (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING.key(), ground) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW.key(), ground))) {
+        if (ground != null && (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, ground) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, ground))) {
             return BLOCKED;
         }
 
         double cost = 0.0;
-        if (state.name().equals(BlockTypeKeys.WATER.key())) {
+        if (state.name().equals(BlockTypeKeys.WATER)) {
             cost += 8.0;
         }
-        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_RAILS.key(), state)) {
+        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_RAILS, state)) {
             cost += 16.0;
         }
-        if (ground != null && BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_STICKY.key(), ground)) {
+        if (ground != null && BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_STICKY, ground)) {
             cost += 8.0;
         }
         return cost;

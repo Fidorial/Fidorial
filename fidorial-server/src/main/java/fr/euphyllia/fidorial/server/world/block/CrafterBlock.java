@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
@@ -18,7 +19,6 @@ import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +36,7 @@ public final class CrafterBlock implements BlockBehaviour {
 
     public static final CrafterBlock INSTANCE = new CrafterBlock();
 
-    public static final Key KEY = BlockTypeKeys.CRAFTER.key();
+    public static final TypedKey<BlockType> KEY = BlockTypeKeys.CRAFTER;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(CrafterBlock.class);
     private static final String ORIENTATION = "orientation";

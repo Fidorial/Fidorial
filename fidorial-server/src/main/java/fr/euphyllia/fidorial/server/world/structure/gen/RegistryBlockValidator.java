@@ -2,11 +2,11 @@ package fr.euphyllia.fidorial.server.world.structure.gen;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.structure.BlockValidator;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class RegistryBlockValidator implements BlockValidator {
 
-    private record Request(Key name, Map<String, String> properties) {
+    private record Request(TypedKey<BlockType> name, Map<String, String> properties) {
     }
 
     private final BlockRegistry registry;
@@ -27,12 +27,13 @@ public final class RegistryBlockValidator implements BlockValidator {
     }
 
     @Override
-    public @Nullable BlockState resolve(final Key name, final Map<String, String> properties) {
+    public @Nullable BlockState resolve(final TypedKey<BlockType> name, final Map<String, String> properties) {
         return cache.computeIfAbsent(new Request(name, Map.copyOf(properties)), this::compute).orElse(null);
     }
 
     private Optional<BlockState> compute(final Request request) {
-        final BlockType type = registry.type(request.name()).orElse(null);
+        final TypedKey<BlockType> name = request.name();
+        final BlockType type = registry.type(name).orElse(null);
         if (type == null) {
             return Optional.empty();
         }
@@ -48,7 +49,7 @@ public final class RegistryBlockValidator implements BlockValidator {
             data = type.defaultData();
         }
         if (data == null) {
-            return Optional.of(BlockState.of(request.name(), valid));
+            return Optional.of(BlockState.withProperties(name, valid));
         }
         final Map<String, String> full = new HashMap<>();
         data.propertyMap().forEach((property, value) -> {
@@ -56,6 +57,6 @@ public final class RegistryBlockValidator implements BlockValidator {
                 full.put(property, value);
             }
         });
-        return Optional.of(BlockState.of(data.key(), full));
+        return Optional.of(BlockState.withProperties(data.key(), full));
     }
 }

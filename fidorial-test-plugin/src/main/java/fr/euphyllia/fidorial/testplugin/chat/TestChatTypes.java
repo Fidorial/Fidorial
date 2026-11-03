@@ -3,8 +3,9 @@ package fr.euphyllia.fidorial.testplugin.terrain;
 import fr.fidorial.chat.ChatTypeDecoration;
 import fr.fidorial.chat.ChatTypeDefinition;
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.WritableRegistry;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -15,7 +16,7 @@ import java.util.List;
 public final class TestChatTypes {
 
     public static final ChatTypeDefinition ARRIVAL = ChatTypeDefinition
-            .builder(Key.key("fidorial", "arrival"))
+            .builder(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, "fidorial:arrival"))
             .chat(ChatTypeDecoration.builder("%s has joined the server: %s")
                     .parameters("sender", "content")
                     .style(Style.style(NamedTextColor.GREEN, TextDecoration.ITALIC))
@@ -26,7 +27,7 @@ public final class TestChatTypes {
             .build();
 
     public static final ChatTypeDefinition DEPARTURE = ChatTypeDefinition
-            .builder(Key.key("fidorial", "departure"))
+            .builder(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, "fidorial:departure"))
             .chat(ChatTypeDecoration.builder("%s has left the server: %s")
                     .parameters("sender", "content")
                     .style(Style.style(NamedTextColor.YELLOW, TextDecoration.ITALIC))
@@ -37,7 +38,7 @@ public final class TestChatTypes {
             .build();
 
     public static final ChatTypeDefinition SERVER_WHISPER = ChatTypeDefinition
-            .builder(Key.key("fidorial", "server_whisper"))
+            .builder(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, "fidorial:server_whisper"))
             .chat(ChatTypeDecoration.builder("[%s -> %s] %s")
                     .parameters("sender", "target", "content")
                     .style(Style.style(NamedTextColor.AQUA))
@@ -48,7 +49,7 @@ public final class TestChatTypes {
             .build();
 
     public static final ChatTypeDefinition ANNOUNCEMENT = ChatTypeDefinition
-            .builder(Key.key("fidorial", "announcement"))
+            .builder(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, "fidorial:announcement"))
             .chat(ChatTypeDecoration.builder("[!] %s")
                     .parameters("content")
                     .style(Style.style(NamedTextColor.GOLD, TextDecoration.BOLD))
@@ -59,7 +60,7 @@ public final class TestChatTypes {
             .build();
 
     public static final ChatTypeDefinition EMOTE = ChatTypeDefinition
-            .builder(Key.key("fidorial", "emote"))
+            .builder(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, "fidorial:emote"))
             .chat(ChatTypeDecoration.builder("* %s %s")
                     .parameters("sender", "content")
                     .style(Style.style(NamedTextColor.LIGHT_PURPLE, TextDecoration.ITALIC))

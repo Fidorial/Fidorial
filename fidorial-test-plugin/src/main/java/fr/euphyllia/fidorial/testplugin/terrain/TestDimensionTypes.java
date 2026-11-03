@@ -1,14 +1,18 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.WritableRegistry;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.registry.keys.TimelineTagKeys;
+import fr.fidorial.registry.keys.WorldClockKeys;
 import fr.fidorial.world.dimension.CardinalLight;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.IntProvider;
 import fr.fidorial.world.dimension.Skybox;
 import fr.fidorial.world.dimension.TimelineReference;
 import fr.fidorial.world.environment.BedRule;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -18,7 +22,7 @@ import java.util.Optional;
 public final class TestDimensionTypes {
 
     public static final DimensionTypeDefinition VOLCANIC_DEPTHS = DimensionTypeDefinition
-            .builder(Key.key("fidorial", "volcanic_depths"))
+            .builder(TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, "fidorial:volcanic_depths"))
             .coordinateScale(8.0)
             .hasSkylight(false)
             .hasCeiling(true)
@@ -29,7 +33,7 @@ public final class TestDimensionTypes {
             .monsterSpawnLightLevel(IntProvider.constant(7))
             .logicalHeight(128)
             .bounds(0, 256)
-            .infiniburn(Key.key("infiniburn_nether"))
+            .infiniburn(BlockTypeTagKeys.INFINIBURN_NETHER)
             .skybox(Skybox.NONE)
             .cardinalLight(CardinalLight.NETHER)
             .attributes(attributes -> attributes
@@ -48,11 +52,11 @@ public final class TestDimensionTypes {
                             ))
                     )
             )
-            .addTimeline(TimelineReference.tag(Key.key("in_nether")))
+            .addTimeline(TimelineReference.tag(TimelineTagKeys.IN_NETHER))
             .build();
 
     public static final DimensionTypeDefinition FROZEN_VOID = DimensionTypeDefinition
-            .builder(Key.key("fidorial", "frozen_void"))
+            .builder(TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, "fidorial:frozen_void"))
             .coordinateScale(1.0)
             .hasSkylight(true)
             .hasCeiling(false)
@@ -63,10 +67,10 @@ public final class TestDimensionTypes {
             .monsterSpawnLightLevel(IntProvider.constant(15))
             .logicalHeight(192)
             .bounds(0, 192)
-            .infiniburn(Key.key("infiniburn_end"))
+            .infiniburn(BlockTypeTagKeys.INFINIBURN_END)
             .skybox(Skybox.END)
-            .defaultClock(Key.key("the_end"))
-            .addTimeline(TimelineReference.tag(Key.key("in_end")))
+            .defaultClock(WorldClockKeys.THE_END)
+            .addTimeline(TimelineReference.tag(TimelineTagKeys.IN_END))
             .attributes(attributes -> attributes
                     .respawnAnchorWorks(false)
                     .skyColor(0x0A0F2C)
@@ -75,7 +79,7 @@ public final class TestDimensionTypes {
             .build();
 
     public static final DimensionTypeDefinition SKYLANDS = DimensionTypeDefinition
-            .builder(Key.key("fidorial", "skylands"))
+            .builder(TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, "fidorial:skylands"))
             .coordinateScale(4.0)
             .hasSkylight(true)
             .hasCeiling(false)
@@ -86,9 +90,9 @@ public final class TestDimensionTypes {
             .monsterSpawnLightLevel(IntProvider.biasedToBottom(0, 7))
             .logicalHeight(384)
             .bounds(-16, 384)
-            .infiniburn(Key.key("infiniburn_overworld"))
-            .defaultClock(Key.key("overworld"))
-            .addTimeline(TimelineReference.tag(Key.key("in_overworld")))
+            .infiniburn(BlockTypeTagKeys.INFINIBURN_OVERWORLD)
+            .defaultClock(WorldClockKeys.OVERWORLD)
+            .addTimeline(TimelineReference.tag(TimelineTagKeys.IN_OVERWORLD))
             .attributes(attributes -> attributes
                     .respawnAnchorWorks(false)
                     .skyColor(0x8FD3FF)
@@ -97,7 +101,7 @@ public final class TestDimensionTypes {
             .build();
 
     public static final DimensionTypeDefinition TOXIC_SWAMPLAND = DimensionTypeDefinition
-            .builder(Key.key("fidorial", "toxic_swampland"))
+            .builder(TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, "fidorial:toxic_swampland"))
             .coordinateScale(1.0)
             .hasSkylight(true)
             .hasCeiling(false)
@@ -108,9 +112,9 @@ public final class TestDimensionTypes {
             .monsterSpawnLightLevel(IntProvider.uniform(0, 10))
             .logicalHeight(384)
             .bounds(-64, 384)
-            .infiniburn(Key.key("infiniburn_overworld"))
-            .defaultClock(Key.key("overworld"))
-            .addTimeline(TimelineReference.tag(Key.key("in_overworld")))
+            .infiniburn(BlockTypeTagKeys.INFINIBURN_OVERWORLD)
+            .defaultClock(WorldClockKeys.OVERWORLD)
+            .addTimeline(TimelineReference.tag(TimelineTagKeys.IN_OVERWORLD))
             .attributes(attributes -> attributes
                     .respawnAnchorWorks(false)
                     .waterEvaporates(false)
@@ -120,7 +124,7 @@ public final class TestDimensionTypes {
             .build();
 
     public static final DimensionTypeDefinition IRRADIATED_WASTELAND = DimensionTypeDefinition
-            .builder(Key.key("fidorial", "irradiated_wasteland"))
+            .builder(TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, "fidorial:irradiated_wasteland"))
             .coordinateScale(1.0)
             .hasSkylight(true)
             .hasCeiling(false)
@@ -131,9 +135,9 @@ public final class TestDimensionTypes {
             .monsterSpawnLightLevel(IntProvider.uniform(0, 12))
             .logicalHeight(384)
             .bounds(-64, 384)
-            .infiniburn(Key.key("infiniburn_overworld"))
-            .defaultClock(Key.key("overworld"))
-            .addTimeline(TimelineReference.tag(Key.key("in_overworld")))
+            .infiniburn(BlockTypeTagKeys.INFINIBURN_OVERWORLD)
+            .defaultClock(WorldClockKeys.OVERWORLD)
+            .addTimeline(TimelineReference.tag(TimelineTagKeys.IN_OVERWORLD))
             .cardinalLight(CardinalLight.NETHER)
             .attributes(attributes -> attributes
                     .respawnAnchorWorks(false)

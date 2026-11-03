@@ -30,95 +30,95 @@ public class DataComponentTypes {
      * How many of this item fit in one slot, {@code 1}-{@code 99}.
      */
     public static final DataComponentType<Integer> MAX_STACK_SIZE =
-            register(DataComponentTypeKeys.MAX_STACK_SIZE.key(), Integer.class);
+            register(DataComponentTypeKeys.MAX_STACK_SIZE, Integer.class);
 
     /**
      * Total durability. Absent on items that cannot break.
      */
     public static final DataComponentType<Integer> MAX_DAMAGE =
-            register(DataComponentTypeKeys.MAX_DAMAGE.key(), Integer.class);
+            register(DataComponentTypeKeys.MAX_DAMAGE, Integer.class);
 
     /**
      * Durability already spent. {@code 0} is pristine.
      */
     public static final DataComponentType<Integer> DAMAGE =
-            register(DataComponentTypeKeys.DAMAGE.key(), Integer.class);
+            register(DataComponentTypeKeys.DAMAGE, Integer.class);
 
     /**
      * A player-assigned name, drawn in italics. This is what an anvil sets.
      */
     public static final DataComponentType<Component> CUSTOM_NAME =
-            register(DataComponentTypeKeys.CUSTOM_NAME.key(), Component.class);
+            register(DataComponentTypeKeys.CUSTOM_NAME, Component.class);
 
     /**
      * The item's own name, drawn upright. Unlike {@link #CUSTOM_NAME} it survives
      * being renamed and does not mark the item as user-named.
      */
     public static final DataComponentType<Component> ITEM_NAME =
-            register(DataComponentTypeKeys.ITEM_NAME.key(), Component.class);
+            register(DataComponentTypeKeys.ITEM_NAME, Component.class);
 
     /**
      * The model a resource pack draws for this item, overriding the one implied by
      * the item id.
      */
     public static final DataComponentType<Key> ITEM_MODEL =
-            register(DataComponentTypeKeys.ITEM_MODEL.key(), Key.class);
+            register(DataComponentTypeKeys.ITEM_MODEL, Key.class);
 
     /**
      * Extra tooltip lines, drawn under the item's name. Capped at
      * {@value ItemLore#MAX_LINES} lines.
      */
     public static final DataComponentType<ItemLore> LORE =
-            register(DataComponentTypeKeys.LORE.key(), ItemLore.class);
+            register(DataComponentTypeKeys.LORE, ItemLore.class);
 
     /**
      * The animation to play when this item is used to attack something.
      */
     public static final DataComponentType<SwingAnimation> ATTACK_ANIMATION =
-            register(DataComponentTypeKeys.ATTACK_ANIMATION.key(), SwingAnimation.class);
+            register(DataComponentTypeKeys.ATTACK_ANIMATION, SwingAnimation.class);
 
     /**
      * The animation to play when this item is used to interact with something.
      */
     public static final DataComponentType<SwingAnimation> INTERACT_ANIMATION =
-            register(DataComponentTypeKeys.INTERACT_ANIMATION.key(), SwingAnimation.class);
+            register(DataComponentTypeKeys.INTERACT_ANIMATION, SwingAnimation.class);
 
     /**
      * The id of the map a {@code filled_map} shows, see {@link MapManager#of}.
      */
     public static final DataComponentType<Integer> MAP_ID =
-            register(DataComponentTypeKeys.MAP_ID.key(), Integer.class);
+            register(DataComponentTypeKeys.MAP_ID, Integer.class);
 
     /**
      * Icons a {@code filled_map} adds to its map while carried, like the target of an explorer map.
      * Kept on the server only.
      */
     public static final DataComponentType<MapItemDecorations> MAP_DECORATIONS =
-            register(DataComponentTypeKeys.MAP_DECORATIONS.key(), MapItemDecorations.class);
+            register(DataComponentTypeKeys.MAP_DECORATIONS, MapItemDecorations.class);
 
     /**
      * The enchantments of a stack, such as silk touch or fortune on a tool.
      */
     public static final DataComponentType<ItemEnchantments> ENCHANTMENTS =
-            register(DataComponentTypeKeys.ENCHANTMENTS.key(), ItemEnchantments.class);
+            register(DataComponentTypeKeys.ENCHANTMENTS, ItemEnchantments.class);
 
     /**
      * The enchantments stored in an enchanted book, applied to another stack in an anvil.
      */
     public static final DataComponentType<ItemEnchantments> STORED_ENCHANTMENTS =
-            register(DataComponentTypeKeys.STORED_ENCHANTMENTS.key(), ItemEnchantments.class);
+            register(DataComponentTypeKeys.STORED_ENCHANTMENTS, ItemEnchantments.class);
 
     /**
      * Whether a stack shows the enchantment glint, regardless of its enchantments.
      */
     public static final DataComponentType<Boolean> ENCHANTMENT_GLINT_OVERRIDE =
-            register(DataComponentTypeKeys.ENCHANTMENT_GLINT_OVERRIDE.key(), Boolean.class);
+            register(DataComponentTypeKeys.ENCHANTMENT_GLINT_OVERRIDE, Boolean.class);
 
     /**
      * The title, author and pages of a signed book.
      */
     public static final DataComponentType<WrittenBookContent> WRITTEN_BOOK_CONTENT =
-            register(DataComponentTypeKeys.WRITTEN_BOOK_CONTENT.key(), WrittenBookContent.class);
+            register(DataComponentTypeKeys.WRITTEN_BOOK_CONTENT, WrittenBookContent.class);
 
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");

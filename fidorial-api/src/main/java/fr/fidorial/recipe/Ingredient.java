@@ -1,7 +1,9 @@
 package fr.fidorial.recipe;
 
 import fr.fidorial.item.ItemStack;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Arrays;
@@ -28,7 +30,7 @@ public interface Ingredient {
      * @throws IllegalArgumentException if {@code items} is empty
      * @since 0.1.0
      */
-    static Ingredient of(final Key... items) {
+    static Ingredient of(final TypedKey<Item>... items) {
         return of(Arrays.asList(items));
     }
 
@@ -38,7 +40,7 @@ public interface Ingredient {
      * @throws IllegalArgumentException if {@code items} is empty
      * @since 0.1.0
      */
-    static Ingredient of(final Collection<Key> items) {
+    static Ingredient of(final Collection<TypedKey<Item>> items) {
         return RecipeFactory.factory().items(items);
     }
 
@@ -47,7 +49,7 @@ public interface Ingredient {
      * @return an ingredient taking one of any item of the tag
      * @since 0.1.0
      */
-    static Ingredient tag(final Key tag) {
+    static Ingredient tag(final TagKey<Item> tag) {
         return RecipeFactory.factory().tag(tag);
     }
 
@@ -95,7 +97,7 @@ public interface Ingredient {
      * Whether the item of {@code stack} is accepted, regardless of how many there are.
      *
      * @param stack the stack to test
-     * @param tags  resolves {@linkplain #tag(Key) tag} ingredients
+     * @param tags  resolves {@linkplain #tag(TagKey) tag} ingredients
      * @return {@code true} when {@code stack} is not empty and its item is accepted
      * @since 0.1.0
      */
@@ -106,7 +108,7 @@ public interface Ingredient {
      * are at least {@link #count()} of it.
      *
      * @param stack the stack to test
-     * @param tags  resolves {@linkplain #tag(Key) tag} ingredients
+     * @param tags  resolves {@linkplain #tag(TagKey) tag} ingredients
      * @return {@code true} when one craft can take its share from {@code stack}
      * @since 0.1.0
      */

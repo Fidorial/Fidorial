@@ -1,5 +1,9 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.generation.GeneratedChunk;
@@ -9,17 +13,17 @@ import net.kyori.adventure.key.Key;
 
 public final class HillsGenerator implements WorldGenerator {
 
-    private static final Key BEDROCK = Key.key("bedrock");
-    private static final Key STONE = Key.key("stone");
-    private static final Key DIRT = Key.key("dirt");
-    private static final Key GRASS_BLOCK = Key.key("grass_block");
-    private static final Key SAND = Key.key("sand");
-    private static final Key WATER = Key.key("water");
+    private static final TypedKey<BlockType> BEDROCK = TypedKey.withRegistry(RegistryKey.BLOCK, "bedrock");
+    private static final TypedKey<BlockType> STONE = TypedKey.withRegistry(RegistryKey.BLOCK, "stone");
+    private static final TypedKey<BlockType> DIRT = TypedKey.withRegistry(RegistryKey.BLOCK, "dirt");
+    private static final TypedKey<BlockType> GRASS_BLOCK = TypedKey.withRegistry(RegistryKey.BLOCK, "grass_block");
+    private static final TypedKey<BlockType> SAND = TypedKey.withRegistry(RegistryKey.BLOCK, "sand");
+    private static final TypedKey<BlockType> WATER = TypedKey.withRegistry(RegistryKey.BLOCK, "water");
 
-    private static final Key BIOME_PLAINS = TestBiomes.VOLCANIC_PLAINS.key();
-    private static final Key BIOME_BEACH = TestBiomes.CRYSTAL_SHORE.key();
-    private static final Key BIOME_RIVER = TestBiomes.TOXIC_RIVER.key();
-    private static final Key BIOME_PEAKS = TestBiomes.FROZEN_PEAKS.key();
+    private static final TypedKey<BiomeDefinition> BIOME_PLAINS = TestBiomes.VOLCANIC_PLAINS.key();
+    private static final TypedKey<BiomeDefinition> BIOME_BEACH = TestBiomes.CRYSTAL_SHORE.key();
+    private static final TypedKey<BiomeDefinition> BIOME_RIVER = TestBiomes.TOXIC_RIVER.key();
+    private static final TypedKey<BiomeDefinition> BIOME_PEAKS = TestBiomes.FROZEN_PEAKS.key();
 
     /**
      * Hauteur de base du terrain.
@@ -100,7 +104,7 @@ public final class HillsGenerator implements WorldGenerator {
                 // biome : resolution 4x4x4, donc un seul appel par cellule
                 // (coin de cellule uniquement, pour eviter 16 ecritures redondantes)
                 if ((x & 3) == 0 && (z & 3) == 0) {
-                    final Key biome = underWater ? BIOME_RIVER
+                    final TypedKey<BiomeDefinition> biome = underWater ? BIOME_RIVER
                             : surface <= seaLevel + 2 ? BIOME_BEACH
                             : surface >= highlandLevel ? BIOME_PEAKS
                             : BIOME_PLAINS;

@@ -4,7 +4,9 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.recipe.Ingredient;
 import fr.fidorial.recipe.ItemTagLookup;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -24,11 +26,11 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
         Preconditions.checkArgument(count >= 1, "An ingredient must take at least one item, got %s", count);
     }
 
-    static IngredientImpl items(final Set<Key> items) {
+    static IngredientImpl items(final Set<TypedKey<Item>> items) {
         return new IngredientImpl(new AnyOf(items), 1);
     }
 
-    static IngredientImpl tag(final Key tag) {
+    static IngredientImpl tag(final TagKey<Item> tag) {
         return new IngredientImpl(new Tag(tag), 1);
     }
 
@@ -53,8 +55,8 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
             return false;
         }
         return switch (choice) {
-            case AnyOf(final Set<Key> items) -> items.contains(stack.id());
-            case Tag(final Key tag) -> tags.isTagged(tag, stack.id());
+            case AnyOf(final Set<TypedKey<Item>> items) -> items.contains(stack.id());
+            case Tag(final TagKey<Item> tag) -> tags.isTagged(tag, stack.id());
             case Exact(final ItemStack expected) -> expected.isSimilar(stack);
             case Matching(final Predicate<ItemStack> predicate) -> predicate.test(stack);
         };
@@ -68,8 +70,8 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
     @Override
     public String toString() {
         final String accepted = switch (choice) {
-            case AnyOf(final Set<Key> items) -> items.toString();
-            case Tag(final Key tag) -> "#" + tag.asString();
+            case AnyOf(final Set<TypedKey<Item>> items) -> items.toString();
+            case Tag(final TagKey<Item> tag) -> "#" + tag.asString();
             case Exact(final ItemStack stack) -> stack.toString();
             case Matching _ -> "<predicate>";
         };
@@ -85,7 +87,7 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
     /**
      * Any of a set of items.
      */
-    public record AnyOf(Set<Key> items) implements Choice {
+    public record AnyOf(Set<TypedKey<Item>> items) implements Choice {
 
         public AnyOf {
             Preconditions.checkArgument(items != null, "The items of an ingredient must not be null");
@@ -97,7 +99,7 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
     /**
      * Any item of an item tag.
      */
-    public record Tag(Key tag) implements Choice {
+    public record Tag(TagKey<Item> tag) implements Choice {
 
         public Tag {
             Preconditions.checkArgument(tag != null, "The tag of an ingredient must not be null");

@@ -172,7 +172,7 @@ final class MapFile {
             }
             final BinaryTag name = tag.get("label");
             final Component label = name == null ? null : labels.read(name);
-            markers.put(id, new MapDecoration(TypedKey.create(RegistryKey.MAP_DECORATION_TYPE, type),
+            markers.put(id, new MapDecoration(TypedKey.withRegistry(RegistryKey.MAP_DECORATION_TYPE, type),
                     tag.getDouble("x"), tag.getDouble("y"), Math.floorMod(tag.getInt("direction"), 16), label));
         }
         return new Data(world, centerX, centerZ, scale, root.getBoolean(LOCKED),

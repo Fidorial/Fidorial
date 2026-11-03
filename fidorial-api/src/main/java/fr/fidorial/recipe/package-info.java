@@ -13,9 +13,9 @@
  * server.registries().recipes().register(
  *         ShapedRecipe.builder(Key.key("myplugin", "compressed_pickaxe"))
  *                 .pattern("DDD", " S ", " S ")
- *                 .define('D', Ingredient.of(ItemKeys.DIAMOND_BLOCK.key()).withCount(16))
- *                 .define('S', Ingredient.of(ItemKeys.STICK.key()))
- *                 .result(ItemStack.of(ItemKeys.DIAMOND_PICKAXE.key()))
+ *                 .define('D', Ingredient.of(ItemKeys.DIAMOND_BLOCK).withCount(16))
+ *                 .define('S', Ingredient.of(ItemKeys.STICK))
+ *                 .result(ItemStack.of(ItemKeys.DIAMOND_PICKAXE))
  *                 .build(),
  *         plugin);
  * }</pre>

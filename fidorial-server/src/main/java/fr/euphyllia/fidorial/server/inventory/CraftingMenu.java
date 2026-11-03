@@ -25,7 +25,7 @@ public final class CraftingMenu extends AbstractCraftingMenu {
     private static final int GRID_TO = GRID_FROM + GRID_SIZE * GRID_SIZE;
 
     public CraftingMenu(final ServerPlayer player, final int windowId, final BlockPosition position) {
-        super(player, windowId, position, BlockTypeKeys.CRAFTING_TABLE.key(), GRID_SIZE, GRID_SIZE);
+        super(player, windowId, position, BlockTypeKeys.CRAFTING_TABLE, GRID_SIZE, GRID_SIZE);
     }
 
     @Override

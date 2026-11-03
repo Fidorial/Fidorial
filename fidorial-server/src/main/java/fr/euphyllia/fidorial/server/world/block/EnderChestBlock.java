@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockBehaviour;
@@ -15,14 +16,13 @@ import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Waterlogged;
-import net.kyori.adventure.key.Key;
 
 
 public final class EnderChestBlock implements BlockBehaviour {
 
     public static final EnderChestBlock INSTANCE = new EnderChestBlock();
 
-    public static final Key KEY = BlockTypeKeys.ENDER_CHEST.key();
+    public static final TypedKey<BlockType> KEY = BlockTypeKeys.ENDER_CHEST;
 
     public static final int LIGHT_EMISSION = 7;
 

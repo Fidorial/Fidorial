@@ -1,7 +1,7 @@
 package fr.fidorial.entity;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 
 
 /**
@@ -13,7 +13,7 @@ import net.kyori.adventure.key.Key;
  * @param height   the height of the hitbox, in blocks
  * @since 0.1.0
  */
-public record EntityType(Key key, Category category, float width, float height) {
+public record EntityType(TypedKey<EntityType> key, Category category, float width, float height) {
 
     /**
      * Validates the components.

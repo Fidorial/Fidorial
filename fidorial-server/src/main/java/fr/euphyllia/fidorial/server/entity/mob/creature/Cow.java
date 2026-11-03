@@ -112,13 +112,13 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
         this.panicGoal = new PanicGoal(this, 0, PANIC_SPEED);
         goals.add(panicGoal);
         goals.add(new FollowParentGoal(this, 1, FOLLOW_PARENT_SPEED));
-        goals.add(new TemptGoal(this, 2, TEMPT_SPEED, Set.of(ItemKeys.WHEAT.key()), TEMPT_RANGE, TEMPT_STOP_RANGE));
+        goals.add(new TemptGoal(this, 2, TEMPT_SPEED, Set.of(ItemKeys.WHEAT), TEMPT_RANGE, TEMPT_STOP_RANGE));
         goals.add(new RandomStrollGoal(this, 3, STROLL_SPEED));
     }
 
     public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
-        if (ground == null || !ground.name().equals(BlockTypeKeys.GRASS_BLOCK.key())) {
+        if (ground == null || !ground.name().equals(BlockTypeKeys.GRASS_BLOCK)) {
             return false;
         }
         if (!BlockView.isPassable(world, x, y, z) || !BlockView.isPassable(world, x, y + 1, z)) {

@@ -11,6 +11,7 @@ import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -172,7 +173,7 @@ public class DataComponentNetworkCodecs {
             public void write(final PacketBuffer buf, final ServerRegistries registries, final ItemEnchantments value) {
                 final ServerRegistry<EnchantmentDefinition> registry = registries.registry(RegistryKey.ENCHANTMENT);
                 final Map<Integer, Integer> known = new LinkedHashMap<>();
-                for (final Map.Entry<Key, Integer> level : value.levels().entrySet()) {
+                for (final Map.Entry<TypedKey<EnchantmentDefinition>, Integer> level : value.levels().entrySet()) {
                     final int id = registry.networkId(level.getKey());
                     if (id < 0) {
                         LOGGER.debug("Dropping the enchantment {}: absent from the registry", level.getKey().asString());
@@ -191,9 +192,9 @@ public class DataComponentNetworkCodecs {
             public ItemEnchantments read(final PacketBuffer buf, final ServerRegistries registries) {
                 final ServerRegistry<EnchantmentDefinition> registry = registries.registry(RegistryKey.ENCHANTMENT);
                 final int size = readBoundedLength(buf, MAX_ENCHANTMENTS, "enchantments");
-                final Map<Key, Integer> levels = new LinkedHashMap<>();
+                final Map<TypedKey<EnchantmentDefinition>, Integer> levels = new LinkedHashMap<>();
                 for (int i = 0; i < size; i++) {
-                    final Key enchantment = registry.byNetworkId(buf.readVarInt());
+                    final TypedKey<EnchantmentDefinition> enchantment = registry.byNetworkId(buf.readVarInt());
                     final int level = buf.readVarInt();
                     if (enchantment == null) {
                         throw new DecoderException("Unknown enchantment network id");

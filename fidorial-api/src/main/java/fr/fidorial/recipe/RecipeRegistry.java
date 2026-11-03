@@ -1,5 +1,6 @@
 package fr.fidorial.recipe;
 
+import fr.fidorial.registry.TagKey;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
@@ -77,7 +78,7 @@ public interface RecipeRegistry {
     Optional<CraftingMatch> matchCrafting(CraftingInput input);
 
     /**
-     * @return the item tags the server resolves {@linkplain Ingredient#tag(Key) tag ingredients} with
+     * @return the item tags the server resolves {@linkplain Ingredient#tag(TagKey) tag ingredients} with
      * @since 0.1.0
      */
     ItemTagLookup tags();

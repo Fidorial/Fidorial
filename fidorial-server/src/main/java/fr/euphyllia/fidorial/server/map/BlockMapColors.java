@@ -2,9 +2,11 @@ package fr.euphyllia.fidorial.server.map;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.map.MapColor;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -37,7 +39,7 @@ public final class BlockMapColors {
     private static final BlockMapColors INSTANCE = load();
 
     private final Map<String, Entry> vanilla;
-    private final Set<Key> warned = ConcurrentHashMap.newKeySet();
+    private final Set<TypedKey<BlockType>> warned = ConcurrentHashMap.newKeySet();
 
     private BlockMapColors(final Map<String, Entry> vanilla) {
         this.vanilla = vanilla;
@@ -114,7 +116,7 @@ public final class BlockMapColors {
         return custom != null ? custom : vanilla(data.key(), data.propertyMap());
     }
 
-    private MapColor resolve(final Key name, final Map<String, String> properties) {
+    private MapColor resolve(final TypedKey<BlockType> name, final Map<String, String> properties) {
         final BlockData data = data(name, properties);
         if (data != null) {
             final MapColor custom = custom(data);
@@ -125,7 +127,7 @@ public final class BlockMapColors {
         return vanilla(name, properties);
     }
 
-    private static @Nullable BlockData data(final Key name, final Map<String, String> properties) {
+    private static @Nullable BlockData data(final TypedKey<BlockType> name, final Map<String, String> properties) {
         try {
             final BlockRegistry registry = Blocks.registry();
             return registry.type(name).map(type -> type.dataOrNull(properties)).orElse(null);
@@ -149,7 +151,7 @@ public final class BlockMapColors {
      * @param name       the block
      * @param properties the properties of the state
      */
-    public MapColor vanilla(final Key name, final Map<String, String> properties) {
+    public MapColor vanilla(final TypedKey<BlockType> name, final Map<String, String> properties) {
         final Entry entry = Key.MINECRAFT_NAMESPACE.equals(name.namespace()) ? vanilla.get(name.value()) : null;
         if (entry == null) {
             if (warned.add(name)) {

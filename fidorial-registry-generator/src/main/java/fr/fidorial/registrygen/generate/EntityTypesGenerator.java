@@ -40,6 +40,8 @@ public final class EntityTypesGenerator {
     private static final float DEFAULT_HEIGHT = 1.8f;
 
     private static final ClassName ENTITY_TYPE = ClassName.get("fr.fidorial.entity", "EntityType");
+    private static final ClassName REGISTRY_KEY = ClassName.get("fr.fidorial.registry", "RegistryKey");
+    private static final ClassName TYPED_KEY = ClassName.get("fr.fidorial.registry", "TypedKey");
     private static final ClassName CATEGORY = ENTITY_TYPE.nestedClass("Category");
     private static final ClassName NULLABLE = ClassName.get("org.jspecify.annotations", "Nullable");
 
@@ -148,7 +150,8 @@ public final class EntityTypesGenerator {
                 .addParameter(ParameterSpec.builder(int.class, "networkId", Modifier.FINAL).build())
                 .addParameter(ParameterSpec.builder(float.class, "width", Modifier.FINAL).build())
                 .addParameter(ParameterSpec.builder(float.class, "height", Modifier.FINAL).build())
-                .addStatement("final $T key = $T.key(name)", Key.class, Key.class)
+                .addStatement("final $T key = $T.withRegistry($T.ENTITY_TYPE, name)",
+                        ParameterizedTypeName.get(TYPED_KEY, ENTITY_TYPE), TYPED_KEY, REGISTRY_KEY)
                 .addStatement("final $T type = new $T(key, category, width, height)", ENTITY_TYPE, ENTITY_TYPE)
                 .addStatement("register(type)")
                 .addStatement("NETWORK_IDS.put(key, networkId)")

@@ -6,6 +6,7 @@ import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Contract;
@@ -74,7 +75,7 @@ public interface Enchantments {
      * @param item        the item, such as {@code minecraft:diamond_sword}
      * @since 0.1.0
      */
-    boolean isSupportedItem(TypedKey<EnchantmentDefinition> enchantment, Key item);
+    boolean isSupportedItem(TypedKey<EnchantmentDefinition> enchantment, TypedKey<Item> item);
 
     /**
      * {@return whether the two enchantments can be applied to the same stack}

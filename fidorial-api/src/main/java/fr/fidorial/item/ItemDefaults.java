@@ -4,7 +4,8 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentTypes;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -58,20 +59,20 @@ public final class ItemDefaults {
          * @param item namespaced item identifier
          * @return how many of this item fit in one slot
          */
-        int maxStackSize(Key item);
+        int maxStackSize(TypedKey<Item> item);
 
         /**
          * @param item namespaced item identifier
          * @return total durability, or {@code 0} when the item cannot break
          */
-        int maxDamage(Key item);
+        int maxDamage(TypedKey<Item> item);
 
         /**
          * @param item namespaced item identifier
          * @return where the item is worn, {@code null} when it cannot be
          * @since 0.1.0
          */
-        default @Nullable EquipmentSlot equipmentSlot(final Key item) {
+        default @Nullable EquipmentSlot equipmentSlot(final TypedKey<Item> item) {
             return null;
         }
     }
@@ -85,17 +86,17 @@ public final class ItemDefaults {
     private static final Source FALLBACK = new Source() {
 
         @Override
-        public int maxStackSize(final Key item) {
+        public int maxStackSize(final TypedKey<Item> item) {
             return DEFAULT_STACK_SIZE;
         }
 
         @Override
-        public int maxDamage(final Key item) {
+        public int maxDamage(final TypedKey<Item> item) {
             return 0;
         }
     };
 
-    private static final Map<Key, Properties> OVERRIDES = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<Item>, Properties> OVERRIDES = new ConcurrentHashMap<>();
 
     private static volatile Source source = FALLBACK;
 
@@ -120,7 +121,7 @@ public final class ItemDefaults {
      * @param item       namespaced item identifier
      * @param properties the defaults to record
      */
-    public static void register(final Key item, final Properties properties) {
+    public static void register(final TypedKey<Item> item, final Properties properties) {
         Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.register() must not be null");
         Preconditions.checkArgument(properties != null, "The properties passed to ItemDefaults.register() must not be null");
         OVERRIDES.put(item, properties);
@@ -132,7 +133,7 @@ public final class ItemDefaults {
      * @param item namespaced item identifier
      * @return {@code true} when an override was removed
      */
-    public static boolean unregister(final Key item) {
+    public static boolean unregister(final TypedKey<Item> item) {
         Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.unregister() must not be null");
         return OVERRIDES.remove(item) != null;
     }
@@ -141,7 +142,7 @@ public final class ItemDefaults {
      * @param item namespaced item identifier
      * @return {@code true} when this item has registered defaults of its own
      */
-    public static boolean isRegistered(final Key item) {
+    public static boolean isRegistered(final TypedKey<Item> item) {
         Preconditions.checkArgument(item != null, "The item passed to ItemDefaults.isRegistered() must not be null");
         return OVERRIDES.containsKey(item);
     }
@@ -150,7 +151,7 @@ public final class ItemDefaults {
      * @param item namespaced item identifier
      * @return how many of this item fit in one slot
      */
-    public static int maxStackSize(final Key item) {
+    public static int maxStackSize(final TypedKey<Item> item) {
         final Properties override = OVERRIDES.get(item);
         return override != null ? override.maxStackSize() : source.maxStackSize(item);
     }
@@ -159,7 +160,7 @@ public final class ItemDefaults {
      * @param item namespaced item identifier
      * @return total durability, or {@code 0} when the item cannot break
      */
-    public static int maxDamage(final Key item) {
+    public static int maxDamage(final TypedKey<Item> item) {
         final Properties override = OVERRIDES.get(item);
         return override != null ? override.maxDamage() : source.maxDamage(item);
     }
@@ -169,7 +170,7 @@ public final class ItemDefaults {
      * @return where the item is worn, {@code null} when it cannot be
      * @since 0.1.0
      */
-    public static @Nullable EquipmentSlot equipmentSlot(final Key item) {
+    public static @Nullable EquipmentSlot equipmentSlot(final TypedKey<Item> item) {
         final Properties override = OVERRIDES.get(item);
         return override != null ? override.equipmentSlot() : source.equipmentSlot(item);
     }
@@ -183,7 +184,7 @@ public final class ItemDefaults {
      * @return how many of this item fit in one slot
      * @since 0.1.0
      */
-    public static int maxStackSize(final Key item, final DataComponentHolder patch) {
+    public static int maxStackSize(final TypedKey<Item> item, final DataComponentHolder patch) {
         final Integer patched = patch.get(DataComponentTypes.MAX_STACK_SIZE);
         return patched != null ? patched : maxStackSize(item);
     }
@@ -197,7 +198,7 @@ public final class ItemDefaults {
      * @return total durability, or {@code 0} when the item cannot break
      * @since 0.1.0
      */
-    public static int maxDamage(final Key item, final DataComponentHolder patch) {
+    public static int maxDamage(final TypedKey<Item> item, final DataComponentHolder patch) {
         final Integer patched = patch.get(DataComponentTypes.MAX_DAMAGE);
         return patched != null ? patched : maxDamage(item);
     }

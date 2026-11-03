@@ -10,6 +10,7 @@ import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -27,11 +28,11 @@ public final class FidorialMobRegistry implements MobRegistry {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialMobRegistry.class);
 
-    private final Map<Key, MobDefinition> definitions = new ConcurrentHashMap<>();
-    private final Map<Key, Object> definitionOwners = new ConcurrentHashMap<>();
-    private final Map<Key, List<Attachment>> attachments = new ConcurrentHashMap<>();
+    private final Map<TypedKey<EntityType>, MobDefinition> definitions = new ConcurrentHashMap<>();
+    private final Map<TypedKey<EntityType>, Object> definitionOwners = new ConcurrentHashMap<>();
+    private final Map<TypedKey<EntityType>, List<Attachment>> attachments = new ConcurrentHashMap<>();
 
-    private final Set<Key> syntheticTypes = ConcurrentHashMap.newKeySet();
+    private final Set<TypedKey<EntityType>> syntheticTypes = ConcurrentHashMap.newKeySet();
 
     @Override
     public void register(final MobDefinition definition, final Object owner) {
@@ -63,7 +64,7 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public void attach(final Key mobType, final MobBehaviour.Factory factory, final Object owner) {
+    public void attach(final TypedKey<EntityType> mobType, final MobBehaviour.Factory factory, final Object owner) {
         attachments
                 .computeIfAbsent(mobType, _ -> new CopyOnWriteArrayList<>())
                 .add(new Attachment(factory, owner));
@@ -71,7 +72,7 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public boolean unregister(final Key mobType) {
+    public boolean unregister(final TypedKey<EntityType> mobType) {
         final MobDefinition removed = definitions.remove(mobType);
         if (removed == null) {
             return false;
@@ -86,7 +87,7 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public boolean detach(final Key mobType, final Object owner) {
+    public boolean detach(final TypedKey<EntityType> mobType, final Object owner) {
         final List<Attachment> list = attachments.get(mobType);
         if (list == null) {
             return false;
@@ -100,18 +101,18 @@ public final class FidorialMobRegistry implements MobRegistry {
 
     @Override
     public void unregisterAll(final Object owner) {
-        for (final Map.Entry<Key, Object> entry : definitionOwners.entrySet()) {
+        for (final Map.Entry<TypedKey<EntityType>, Object> entry : definitionOwners.entrySet()) {
             if (entry.getValue() == owner) {
                 unregister(entry.getKey());
             }
         }
-        for (final Key mobType : Set.copyOf(attachments.keySet())) {
+        for (final TypedKey<EntityType> mobType : Set.copyOf(attachments.keySet())) {
             detach(mobType, owner);
         }
     }
 
     @Override
-    public Optional<MobDefinition> definition(final Key mobType) {
+    public Optional<MobDefinition> definition(final TypedKey<EntityType> mobType) {
         return Optional.ofNullable(definitions.get(mobType));
     }
 
@@ -121,19 +122,19 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     @Override
-    public Set<Key> types() {
-        final Set<Key> keys = new LinkedHashSet<>(MobFactories.builtInKeys());
+    public Set<TypedKey<EntityType>> types() {
+        final Set<TypedKey<EntityType>> keys = new LinkedHashSet<>(MobFactories.builtInKeys());
         keys.addAll(definitions.keySet());
         return Set.copyOf(keys);
     }
 
     @Override
-    public boolean isMob(final Key mobType) {
+    public boolean isMob(final TypedKey<EntityType> mobType) {
         return definitions.containsKey(mobType) || MobFactories.isBuiltIn(mobType);
     }
 
     @Override
-    public Optional<Mob> spawn(final Key mobType, final Location location) {
+    public Optional<Mob> spawn(final TypedKey<EntityType> mobType, final Location location) {
         final EntityType type = EntityTypes.get(mobType);
         if (type == null || !isMob(mobType)) {
             return Optional.empty();

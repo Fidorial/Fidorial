@@ -10,9 +10,9 @@ import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.enchantment.EnchantedItem;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -76,7 +76,7 @@ public final class EnchantmentEngine {
         if (enchantments.isEmpty()) {
             return;
         }
-        for (final Map.Entry<Key, Integer> enchantment : enchantments.levels().entrySet()) {
+        for (final Map.Entry<TypedKey<EnchantmentDefinition>, Integer> enchantment : enchantments.levels().entrySet()) {
             final List<EnchantmentBehaviour> behaviours = registry.behaviours(enchantment.getKey());
             if (behaviours.isEmpty()) {
                 continue;
@@ -87,7 +87,7 @@ public final class EnchantmentEngine {
                     continue;
                 }
             }
-            final EnchantedItem item = new EnchantedItemImpl(TypedKey.create(RegistryKey.ENCHANTMENT, enchantment.getKey()),
+            final EnchantedItem item = new EnchantedItemImpl(TypedKey.withRegistry(RegistryKey.ENCHANTMENT, enchantment.getKey()),
                     enchantment.getValue(), stack, slot, owner);
             for (final EnchantmentBehaviour behaviour : behaviours) {
                 try {

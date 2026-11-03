@@ -109,7 +109,7 @@ public final class VillagerProfessionKeys {
     }
 
     private static TypedKey<VillagerProfession> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.VILLAGER_PROFESSION, value);
+        return TypedKey.withRegistry(RegistryKey.VILLAGER_PROFESSION, value);
     }
 
     /**

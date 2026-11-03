@@ -3,7 +3,9 @@ package fr.fidorial.item.enchantment;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import net.kyori.adventure.text.Component;
@@ -53,7 +55,7 @@ public interface EnchantmentDefinition extends Keyed {
      */
     @Contract(pure = true)
     default TypedKey<EnchantmentDefinition> typedKey() {
-        return TypedKey.create(RegistryKey.ENCHANTMENT, key());
+        return TypedKey.withRegistry(RegistryKey.ENCHANTMENT, key());
     }
 
     /**
@@ -254,7 +256,7 @@ public interface EnchantmentDefinition extends Keyed {
          * @return this builder
          * @since 0.1.0
          */
-        Builder supportedItemTag(Key tag);
+        Builder supportedItemTag(TagKey<Item> tag);
 
         /**
          * @param items the items the enchantment can be applied to
@@ -262,21 +264,21 @@ public interface EnchantmentDefinition extends Keyed {
          * @throws IllegalArgumentException if {@code items} is empty
          * @since 0.1.0
          */
-        Builder supportedItems(Collection<Key> items);
+        Builder supportedItems(Collection<TypedKey<Item>> items);
 
         /**
          * @param tag the item tag the enchanting table offers the enchantment for
          * @return this builder
          * @since 0.1.0
          */
-        Builder primaryItemTag(Key tag);
+        Builder primaryItemTag(TagKey<Item> tag);
 
         /**
          * @param items the items the enchanting table offers the enchantment for
          * @return this builder
          * @since 0.1.0
          */
-        Builder primaryItems(Collection<Key> items);
+        Builder primaryItems(Collection<TypedKey<Item>> items);
 
         /**
          * Makes the enchantment incompatible with every enchantment of a tag, such as
@@ -286,7 +288,7 @@ public interface EnchantmentDefinition extends Keyed {
          * @return this builder
          * @since 0.1.0
          */
-        Builder exclusiveSetTag(Key tag);
+        Builder exclusiveSetTag(TagKey<EnchantmentDefinition> tag);
 
         /**
          * Makes the enchantment incompatible with the given enchantments.

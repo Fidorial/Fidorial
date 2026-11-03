@@ -217,7 +217,7 @@ public final class ChunkColumn {
 
     public BlockState getBlock(final int localX, final int worldY, final int localZ) {
         final ChunkSection s = sectionForY(worldY);
-        return s == null ? BlockState.of(BlockTypeKeys.AIR.key()) : s.getBlock(localX, worldY & 15, localZ);
+        return s == null ? BlockState.withoutProperties(BlockTypeKeys.AIR) : s.getBlock(localX, worldY & 15, localZ);
     }
 
     // https://minecraft.wiki/w/Heightmap

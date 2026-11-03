@@ -8,6 +8,7 @@ import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
 import fr.euphyllia.fidorial.server.codecs.item.component.WrittenBookTexts;
@@ -54,7 +55,7 @@ public final class ItemStackCodecs {
                             : DataResult.success(new ItemLore(lines)),
                     ItemLore::lines);
 
-    public static final Codec<ItemEnchantments> ENCHANTMENTS_CODEC = Codec.unboundedMap(KEY_CODEC, Codec.intRange(1, ItemEnchantments.MAX_LEVEL))
+    public static final Codec<ItemEnchantments> ENCHANTMENTS_CODEC = Codec.unboundedMap(ReferenceCodecs.key(RegistryKey.ENCHANTMENT), Codec.intRange(1, ItemEnchantments.MAX_LEVEL))
             .xmap(ItemEnchantments::new, ItemEnchantments::levels);
 
     public static final Codec<SwingAnimation.SwingAnimationType> SWING_ANIMATION_TYPE_CODEC = Codec.STRING.comapFlatMap(
@@ -77,7 +78,7 @@ public final class ItemStackCodecs {
     public static final Codec<MapItemDecorations.Entry> MAP_DECORATION_ENTRY_CODEC =
             RecordCodec.builder(MapItemDecorations.Entry.class)
                     .required("type", MapItemDecorations.Entry::type,
-                            KEY_CODEC.xmap(key -> TypedKey.create(RegistryKey.MAP_DECORATION_TYPE, key), TypedKey::key))
+                            KEY_CODEC.xmap(key -> TypedKey.withRegistry(RegistryKey.MAP_DECORATION_TYPE, key), TypedKey::key))
                     .required("x", MapItemDecorations.Entry::x, Codec.DOUBLE)
                     .required("z", MapItemDecorations.Entry::z, Codec.DOUBLE)
                     .required("rotation", MapItemDecorations.Entry::rotation, Codec.FLOAT)

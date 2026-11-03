@@ -3,6 +3,9 @@ package fr.euphyllia.fidorial.server.world.structure;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -17,7 +20,12 @@ public final class StateParser {
     private StateParser() {
     }
 
-    public record Parsed(Key name, Map<String, String> properties) {
+    public record Parsed(TypedKey<BlockType> name, Map<String, String> properties) {
+    }
+
+    private static @Nullable TypedKey<BlockType> block(final @Nullable String raw) {
+        final Key key = Keys.parse(raw);
+        return key == null ? null : TypedKey.withRegistry(RegistryKey.BLOCK, key);
     }
 
     public static @Nullable Parsed parseString(final String raw) {
@@ -40,7 +48,7 @@ public final class StateParser {
                 }
             }
         }
-        final Key key = Keys.parse(name);
+        final TypedKey<BlockType> key = block(name);
         return key == null ? null : new Parsed(key, properties);
     }
 
@@ -55,7 +63,7 @@ public final class StateParser {
             return null;
         }
         final JsonObject object = element.getAsJsonObject();
-        final Key key = Keys.parse(object.has("Name") ? object.get("Name").getAsString() : null);
+        final TypedKey<BlockType> key = block(object.has("Name") ? object.get("Name").getAsString() : null);
         if (key == null) {
             return null;
         }
@@ -69,7 +77,7 @@ public final class StateParser {
     }
 
     public static @Nullable Parsed parseNbt(final CompoundBinaryTag compound) {
-        final Key key = Keys.parse(compound.getString("Name"));
+        final TypedKey<BlockType> key = block(compound.getString("Name"));
         if (key == null) {
             return null;
         }

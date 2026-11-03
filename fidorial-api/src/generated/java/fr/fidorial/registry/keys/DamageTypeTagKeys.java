@@ -199,6 +199,6 @@ public final class DamageTypeTagKeys {
     }
 
     private static TagKey<DamageType> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.DAMAGE_TYPE, value);
+        return TagKey.withRegistry(RegistryKey.DAMAGE_TYPE, value);
     }
 }

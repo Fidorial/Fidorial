@@ -4,9 +4,11 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,8 +103,8 @@ public final class ScenarioTestHelper {
      * @param expected the expected block key; {@code minecraft:air} matches any kind of air
      * @since 0.1.0
      */
-    public void assertBlockAt(final BlockPosition position, final Key expected) {
-        final Key actual = world.blockKeyAt(position).orElse(Key.key("air"));
+    public void assertBlockAt(final BlockPosition position, final TypedKey<BlockType> expected) {
+        final TypedKey<BlockType> actual = world.blockKeyAt(position).orElse(BlockTypeKeys.AIR);
         assertTrue(expected.equals(actual),
                 "Expected " + expected + " at " + position + " but found " + actual);
     }

@@ -8,6 +8,9 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.dimension.CardinalLight;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.Skybox;
@@ -47,7 +50,9 @@ public final class DimensionTypeCodecs {
                     return DataResult.error(() -> "Not a valid key: " + s);
                 }
                 final Key key = Key.key(raw);
-                return DataResult.success(s.startsWith("#") ? TimelineReference.tag(key) : TimelineReference.id(key));
+                return DataResult.success(s.startsWith("#")
+                        ? TimelineReference.tag(TagKey.withRegistry(RegistryKey.TIMELINE, key))
+                        : TimelineReference.id(TypedKey.withRegistry(RegistryKey.TIMELINE, key)));
             },
             timeline -> switch (timeline) {
                 case final TimelineReference.Id id -> id.key().asString();

@@ -997,7 +997,7 @@ public final class EntityTypeKeys {
     }
 
     private static TypedKey<EntityType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.ENTITY_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, value);
     }
 
     /**

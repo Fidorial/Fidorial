@@ -31,7 +31,7 @@ public final class WorldClockKeys {
     }
 
     private static TypedKey<WorldClock> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.WORLD_CLOCK, value);
+        return TypedKey.withRegistry(RegistryKey.WORLD_CLOCK, value);
     }
 
     /**

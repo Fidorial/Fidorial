@@ -66,6 +66,7 @@ import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.GameEvent;
 import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
@@ -157,8 +158,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile GameMode gameMode;
     private volatile int selectedSlot;
     private volatile PlayerInput input = PlayerInput.NONE;
-    private final Map<Key, Double> attributeBases = new ConcurrentHashMap<>();
-    private final Map<Key, Map<Key, AttributeModifier>> attributeModifiers = new ConcurrentHashMap<>();
+    private final Map<TypedKey<Attribute>, Double> attributeBases = new ConcurrentHashMap<>();
+    private final Map<TypedKey<Attribute>, Map<Key, AttributeModifier>> attributeModifiers = new ConcurrentHashMap<>();
     private final EquipmentEnchantments equipmentEnchantments = new EquipmentEnchantments(this);
     private volatile boolean sprinting;
     private volatile boolean sneaking;
@@ -336,8 +337,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      * interaction range, plus {@code buffer}, from their eyes.
      */
     public boolean isWithinBlockInteractionRange(final BlockPosition pos, final double buffer) {
-        final double range = attributeBase(AttributeKeys.BLOCK_INTERACTION_RANGE.key())
-                .orElse(PlayerAttributeDefaults.base(AttributeKeys.BLOCK_INTERACTION_RANGE.key())) + buffer;
+        final double range = attributeBase(AttributeKeys.BLOCK_INTERACTION_RANGE)
+                .orElse(PlayerAttributeDefaults.base(AttributeKeys.BLOCK_INTERACTION_RANGE)) + buffer;
         final Location at = location();
         final double eyeY = at.y() + eyeHeight();
         final double dx = Math.max(Math.max(pos.blockX() - at.x(), at.x() - (pos.blockX() + 1)), 0.0);
@@ -710,7 +711,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public void openBook(final Book book) {
         final int slot = selectedSlot;
-        final ItemStack written = ItemStack.of(ItemKeys.WRITTEN_BOOK.key())
+        final ItemStack written = ItemStack.of(ItemKeys.WRITTEN_BOOK)
                 .with(DataComponentTypes.WRITTEN_BOOK_CONTENT, WrittenBookContent.of(book));
         final ServerRegistries registries = connection.server().registries().serverRegistries();
         connection.send(new ClientboundSetPlayerInventoryPacket(slot, written, registries));
@@ -857,7 +858,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public void setAttributeBase(final Key attribute, final double base) {
+    public void setAttributeBase(final TypedKey<Attribute> attribute, final double base) {
         final int id = attributeId(attribute);
         if (!Double.isFinite(base)) {
             throw new IllegalArgumentException("Attribute base value must be finite: " + base);
@@ -867,7 +868,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public void resetAttributeBase(final Key attribute) {
+    public void resetAttributeBase(final TypedKey<Attribute> attribute) {
         final int id = attributeId(attribute);
         if (attributeBases.remove(attribute) != null) {
             connection.send(new ClientboundUpdateAttributesPacket(entityId(), List.of(attributeSnapshot(attribute, id))));
@@ -875,16 +876,16 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     @Override
-    public OptionalDouble attributeBase(final Key attribute) {
+    public OptionalDouble attributeBase(final TypedKey<Attribute> attribute) {
         final Double base = attributeBases.get(attribute);
         return base == null ? OptionalDouble.empty() : OptionalDouble.of(base);
     }
 
     public void resendAttributeBases() {
-        final Set<Key> attributes = new LinkedHashSet<>(attributeBases.keySet());
+        final Set<TypedKey<Attribute>> attributes = new LinkedHashSet<>(attributeBases.keySet());
         attributes.addAll(attributeModifiers.keySet());
         final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>(attributes.size());
-        for (final Key attribute : attributes) {
+        for (final TypedKey<Attribute> attribute : attributes) {
             values.add(attributeSnapshot(attribute, attributeId(attribute)));
         }
         if (!values.isEmpty()) {
@@ -892,12 +893,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
     }
 
-    private ClientboundUpdateAttributesPacket.Value attributeSnapshot(final Key attribute, final int id) {
+    private ClientboundUpdateAttributesPacket.Value attributeSnapshot(final TypedKey<Attribute> attribute, final int id) {
         final Map<Key, AttributeModifier> modifiers = attributeModifiers.getOrDefault(attribute, Map.of());
         return ClientboundUpdateAttributesPacket.Value.of(id, baseValue(attribute), modifiers.values());
     }
 
-    private double baseValue(final Key attribute) {
+    private double baseValue(final TypedKey<Attribute> attribute) {
         final Double base = attributeBases.get(attribute);
         return base == null ? PlayerAttributeDefaults.base(attribute) : base;
     }
@@ -908,7 +909,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      *
      * @param attribute the attribute
      */
-    public double attributeValue(final Key attribute) {
+    public double attributeValue(final TypedKey<Attribute> attribute) {
         final double base = baseValue(attribute);
         final Map<Key, AttributeModifier> modifiers = attributeModifiers.get(attribute);
         if (modifiers == null || modifiers.isEmpty()) {
@@ -937,7 +938,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     /**
      * {@return the attribute modifiers the equipped enchantments give, by attribute}
      */
-    public Map<Key, Map<Key, AttributeModifier>> attributeModifiers() {
+    public Map<TypedKey<Attribute>, Map<Key, AttributeModifier>> attributeModifiers() {
         return Map.copyOf(attributeModifiers);
     }
 
@@ -947,11 +948,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      *
      * @param modifiers the new modifiers, by attribute
      */
-    public void setEnchantmentModifiers(final Map<Key, Map<Key, AttributeModifier>> modifiers) {
-        final Set<Key> touched = new LinkedHashSet<>(attributeModifiers.keySet());
+    public void setEnchantmentModifiers(final Map<TypedKey<Attribute>, Map<Key, AttributeModifier>> modifiers) {
+        final Set<TypedKey<Attribute>> touched = new LinkedHashSet<>(attributeModifiers.keySet());
         touched.addAll(modifiers.keySet());
         final List<ClientboundUpdateAttributesPacket.Value> values = new ArrayList<>();
-        for (final Key attribute : touched) {
+        for (final TypedKey<Attribute> attribute : touched) {
             final Map<Key, AttributeModifier> next = modifiers.getOrDefault(attribute, Map.of());
             final Map<Key, AttributeModifier> previous = attributeModifiers.getOrDefault(attribute, Map.of());
             if (next.equals(previous)) {
@@ -974,7 +975,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
     }
 
-    private int attributeId(final Key attribute) {
+    private int attributeId(final TypedKey<Attribute> attribute) {
         final int id = attributeNetworkId(attribute);
         if (id < 0) {
             throw new IllegalArgumentException("Unknown attribute: " + attribute.asString());
@@ -982,7 +983,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return id;
     }
 
-    private int attributeNetworkId(final Key attribute) {
+    private int attributeNetworkId(final TypedKey<Attribute> attribute) {
         return connection.server().registries().registry(RegistryKey.ATTRIBUTE).networkId(attribute);
     }
 
@@ -1142,7 +1143,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
      */
     @Override
     public void igniteForTicks(final int ticks) {
-        super.igniteForTicks((int) Math.round(ticks * Math.max(0.0, attributeValue(AttributeKeys.BURNING_TIME.key()))));
+        super.igniteForTicks((int) Math.round(ticks * Math.max(0.0, attributeValue(AttributeKeys.BURNING_TIME))));
     }
 
     @Override

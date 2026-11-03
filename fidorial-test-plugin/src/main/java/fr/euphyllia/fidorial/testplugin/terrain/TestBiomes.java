@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.testplugin.terrain;
 
 import fr.fidorial.plugin.Plugin;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.biome.GrassColorModifier;
@@ -20,7 +22,7 @@ import java.util.List;
 public final class TestBiomes {
 
     public static final BiomeDefinition VOLCANIC_PLAINS = BiomeDefinition
-            .builder(Key.key("fidorial", "volcanic_plains"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:volcanic_plains"))
             .temperature(2.0F)
             .downfall(0.0F)
             .hasPrecipitation(false)
@@ -43,7 +45,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition FROZEN_PEAKS = BiomeDefinition
-            .builder(Key.key("fidorial", "frozen_peaks"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:frozen_peaks"))
             .temperature(-0.7F)
             .temperatureModifier(TemperatureModifier.FROZEN)
             .downfall(0.9F)
@@ -58,7 +60,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition TOXIC_RIVER = BiomeDefinition
-            .builder(Key.key("fidorial", "toxic_river"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:toxic_river"))
             .temperature(0.8F)
             .downfall(0.9F)
             .effects(effects -> effects
@@ -74,7 +76,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition CRYSTAL_SHORE = BiomeDefinition
-            .builder(Key.key("fidorial", "crystal_shore"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:crystal_shore"))
             .temperature(0.5F)
             .downfall(0.4F)
             .effects(effects -> effects.waterColor(0x5DB7EF))
@@ -82,7 +84,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition ASHEN_WASTELAND = BiomeDefinition
-            .builder(Key.key("fidorial", "ashen_wasteland"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:ashen_wasteland"))
             .temperature(1.6F)
             .downfall(0.0F)
             .hasPrecipitation(false)
@@ -105,7 +107,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition TOXIC_CRATERS = BiomeDefinition
-            .builder(Key.key("fidorial", "toxic_craters"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:toxic_craters"))
             .temperature(0.9F)
             .downfall(0.9F)
             .effects(effects -> effects
@@ -121,7 +123,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition MOLTEN_CRATERS = BiomeDefinition
-            .builder(Key.key("fidorial", "molten_craters"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:molten_craters"))
             .temperature(2.0F)
             .downfall(0.0F)
             .hasPrecipitation(false)
@@ -144,7 +146,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition RUBBLE_FLATS = BiomeDefinition
-            .builder(Key.key("fidorial", "rubble_flats"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:rubble_flats"))
             .temperature(1.3F)
             .downfall(0.2F)
             .effects(effects -> effects.waterColor(0x736B5C))
@@ -152,7 +154,7 @@ public final class TestBiomes {
             .build();
 
     public static final BiomeDefinition IRRADIATED_RIDGES = BiomeDefinition
-            .builder(Key.key("fidorial", "irradiated_ridges"))
+            .builder(TypedKey.withRegistry(RegistryKey.BIOME, "fidorial:irradiated_ridges"))
             .temperature(0.3F)
             .downfall(0.1F)
             .hasPrecipitation(false)

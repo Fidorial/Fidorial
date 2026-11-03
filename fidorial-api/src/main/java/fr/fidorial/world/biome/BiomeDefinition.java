@@ -1,10 +1,8 @@
 package fr.fidorial.world.biome;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 
@@ -22,7 +20,7 @@ import org.jetbrains.annotations.Contract;
  * @since 0.1.0
  */
 public record BiomeDefinition(
-        Key key,
+        TypedKey<BiomeDefinition> key,
         boolean hasPrecipitation,
         float temperature,
         TemperatureModifier temperatureModifier,
@@ -47,7 +45,7 @@ public record BiomeDefinition(
      * @param key the namespaced identifier of the biome
      */
     @Contract(value = "_ -> new", pure = true)
-    public static BiomeBuilder builder(final Key key) {
+    public static BiomeBuilder builder(final TypedKey<BiomeDefinition> key) {
         return new BiomeBuilder(key);
     }
 
@@ -64,8 +62,8 @@ public record BiomeDefinition(
     /**
      * {@return this biome's key, typed against the {@code minecraft:worldgen/biome} registry}
      */
-    @Contract(value = "-> new", pure = true)
+    @Contract(pure = true)
     public TypedKey<BiomeDefinition> typedKey() {
-        return TypedKey.create(RegistryKey.BIOME, key);
+        return key;
     }
 }

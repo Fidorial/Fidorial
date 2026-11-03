@@ -3,12 +3,14 @@ package fr.euphyllia.fidorial.server.codecs.container;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.item.ItemStackCodecs;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.data.DataComponentMap;
+import fr.fidorial.registry.RegistryKey;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
@@ -26,8 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static fr.euphyllia.fidorial.server.codecs.CommonCodecs.KEY_CODEC;
-
 public final class ContainerCodecs {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ContainerCodecs.class);
@@ -39,7 +39,7 @@ public final class ContainerCodecs {
     }
 
     public static final MapCodec<ItemStack> ITEM_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            KEY_CODEC.fieldOf("id").forGetter(ItemStack::id),
+            ReferenceCodecs.key(RegistryKey.ITEM).fieldOf("id").forGetter(ItemStack::id),
             Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::count),
             ItemStackCodecs.COMPONENT_MAP_CODEC.optionalFieldOf("components", DataComponentMap.EMPTY).forGetter(ItemStack::components)
     ).apply(instance, ItemStack::new));

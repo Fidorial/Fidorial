@@ -115,7 +115,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         this.followRange = data.followRange();
         this.reinforcementChance = data.reinforcementChance();
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT.key());
+                .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT);
 
         if (canBreakDoors) {
             goals.add(new BreakDoorGoal(this, 0));

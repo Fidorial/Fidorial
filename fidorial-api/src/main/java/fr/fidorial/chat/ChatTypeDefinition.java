@@ -1,9 +1,7 @@
 package fr.fidorial.chat;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -15,7 +13,7 @@ import org.jetbrains.annotations.Contract;
  * @since 0.1.0
  */
 public record ChatTypeDefinition(
-        Key key,
+        TypedKey<ChatTypeDefinition> key,
         ChatTypeDecoration chat,
         ChatTypeDecoration narration
 ) implements net.kyori.adventure.chat.ChatType {
@@ -32,7 +30,7 @@ public record ChatTypeDefinition(
      * @param key the namespaced identifier of the chat type
      */
     @Contract(value = "_ -> new", pure = true)
-    public static ChatTypeBuilder builder(final Key key) {
+    public static ChatTypeBuilder builder(final TypedKey<ChatTypeDefinition> key) {
         return new ChatTypeBuilder(key);
     }
 
@@ -49,8 +47,8 @@ public record ChatTypeDefinition(
     /**
      * {@return this chat type's key, typed against the {@code minecraft:chat_type} registry}
      */
-    @Contract(value = "-> new", pure = true)
+    @Contract(pure = true)
     public TypedKey<ChatTypeDefinition> typedKey() {
-        return TypedKey.create(RegistryKey.CHAT_TYPE, key);
+        return key;
     }
 }

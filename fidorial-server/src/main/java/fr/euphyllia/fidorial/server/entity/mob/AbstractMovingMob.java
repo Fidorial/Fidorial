@@ -83,7 +83,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         this.sentPitch = pitch;
         this.sentHeadYaw = yaw;
         this.walksOnPowderSnow = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), EntityTypeTagKeys.POWDER_SNOW_WALKABLE_MOBS.key());
+                .isTagged(type.key(), EntityTypeTagKeys.POWDER_SNOW_WALKABLE_MOBS);
     }
 
     public final ServerWorld serverWorld() {

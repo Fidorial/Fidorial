@@ -277,7 +277,7 @@ public final class BannerPatternKeys {
     }
 
     private static TypedKey<BannerPattern> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.BANNER_PATTERN, value);
+        return TypedKey.withRegistry(RegistryKey.BANNER_PATTERN, value);
     }
 
     /**

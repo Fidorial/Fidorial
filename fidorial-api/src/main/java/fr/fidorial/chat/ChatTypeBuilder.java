@@ -1,7 +1,7 @@
 package fr.fidorial.chat;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 import org.jetbrains.annotations.Contract;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  */
 public final class ChatTypeBuilder {
 
-    private Key key;
+    private TypedKey<ChatTypeDefinition> key;
     private ChatTypeDecoration chat = ChatTypeDecoration.builder("chat.type.text")
             .parameters("sender", "content")
             .build();
@@ -22,7 +22,7 @@ public final class ChatTypeBuilder {
             .parameters("sender", "content")
             .build();
 
-    ChatTypeBuilder(final Key key) {
+    ChatTypeBuilder(final TypedKey<ChatTypeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key of a chat type builder must not be null");
         this.key = key;
     }
@@ -38,7 +38,7 @@ public final class ChatTypeBuilder {
      * @return this builder
      */
     @Contract("_ -> this")
-    public ChatTypeBuilder key(final Key key) {
+    public ChatTypeBuilder key(final TypedKey<ChatTypeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key passed to ChatTypeBuilder.key() must not be null");
         this.key = key;
         return this;

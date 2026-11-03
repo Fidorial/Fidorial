@@ -27,7 +27,7 @@ public final class EnderChestMenu extends ContainerMenu {
     private final BlockPosition position;
 
     public EnderChestMenu(final ServerPlayer player, final int windowId, final BlockPosition position) {
-        super(player, windowId, position, BlockTypeKeys.ENDER_CHEST.key());
+        super(player, windowId, position, BlockTypeKeys.ENDER_CHEST);
         this.position = position;
     }
 
@@ -61,14 +61,14 @@ public final class EnderChestMenu extends ContainerMenu {
     public void onOpened() {
         final int viewers = server().players().blockViewers().open(player.world().key(), position);
         lid(viewers);
-        sound(SoundEventKeys.BLOCK_ENDER_CHEST_OPEN.key());
+        sound(SoundEventKeys.BLOCK_ENDER_CHEST_OPEN);
     }
 
     @Override
     protected void onClosed() {
         final int viewers = server().players().blockViewers().close(player.world().key(), position);
         lid(viewers);
-        sound(SoundEventKeys.BLOCK_ENDER_CHEST_CLOSE.key());
+        sound(SoundEventKeys.BLOCK_ENDER_CHEST_CLOSE);
     }
 
     private FidorialServer server() {

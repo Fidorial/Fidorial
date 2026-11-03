@@ -232,7 +232,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     @Override
     public Optional<MapView> of(final ItemStack stack) {
         Preconditions.checkArgument(stack != null, "The item must not be null");
-        if (!stack.id().equals(ItemKeys.FILLED_MAP.key())) {
+        if (!stack.id().equals(ItemKeys.FILLED_MAP)) {
             return Optional.empty();
         }
         final Integer id = stack.get(DataComponentTypes.MAP_ID);
@@ -643,7 +643,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         final int selected = player.selectedSlot();
         for (int slot = 0; slot < PlayerInventory.SIZE; slot++) {
             final ItemStack stack = inventory.get(slot);
-            if (stack.isEmpty() || !stack.id().equals(ItemKeys.FILLED_MAP.key())) {
+            if (stack.isEmpty() || !stack.id().equals(ItemKeys.FILLED_MAP)) {
                 continue;
             }
             final Integer id = stack.get(DataComponentTypes.MAP_ID);
@@ -699,7 +699,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         final PlayerInventory inventory = player.inventory();
         final int slot = offHand ? PlayerInventory.OFF_HAND : player.selectedSlot();
         final ItemStack stack = inventory.get(slot);
-        if (stack.isEmpty() || !stack.id().equals(ItemKeys.MAP.key())) {
+        if (stack.isEmpty() || !stack.id().equals(ItemKeys.MAP)) {
             return false;
         }
         final Location location = player.location();
@@ -744,7 +744,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
      */
     public boolean useMapOn(final ServerPlayer player, final BlockPosition pos) {
         final ItemStack held = player.inventory().get(player.selectedSlot());
-        if (held.isEmpty() || !held.id().equals(ItemKeys.FILLED_MAP.key())
+        if (held.isEmpty() || !held.id().equals(ItemKeys.FILLED_MAP)
                 || !(player.world() instanceof final ServerWorld world)) {
             return false;
         }
@@ -847,7 +847,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
      */
     private static final class WorldSource implements MapTerrain.Source {
 
-        private static final BlockState AIR = BlockState.of(BlockTypeKeys.AIR.key());
+        private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
 
         private final ServerWorld world;
         private final boolean ceiling;

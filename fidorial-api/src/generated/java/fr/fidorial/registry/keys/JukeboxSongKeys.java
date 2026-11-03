@@ -157,7 +157,7 @@ public final class JukeboxSongKeys {
     }
 
     private static TypedKey<JukeboxSong> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.JUKEBOX_SONG, value);
+        return TypedKey.withRegistry(RegistryKey.JUKEBOX_SONG, value);
     }
 
     /**

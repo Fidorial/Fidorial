@@ -2,6 +2,7 @@ package fr.fidorial.dialog;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.annotation.SinceMinecraft;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 
 
@@ -13,7 +14,7 @@ import net.kyori.adventure.key.Key;
  * @since 0.1.0
  */
 @SinceMinecraft("1.21.6")
-public record DialogReference(Key key) implements Dialog {
+public record DialogReference(TypedKey<DialogDefinition> key) implements Dialog {
 
     /**
      * @param key the key the dialog is registered under

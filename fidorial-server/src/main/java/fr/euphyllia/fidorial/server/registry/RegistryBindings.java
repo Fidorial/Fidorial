@@ -8,6 +8,8 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentBinding;
 import fr.euphyllia.fidorial.server.registry.data.RegistryValues;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
@@ -25,7 +27,9 @@ final class RegistryBindings {
             RegistryKey.CHAT_TYPE.key(), RegistryBinding.Data.of(RegistryCodec.of(ChatTypeCodecs::codec)),
             RegistryKey.DIALOG.key(), RegistryBinding.Data.of(RegistryCodec.of(_ -> DialogCodecs.DEFINITION_CODEC)),
             RegistryKey.ENCHANTMENT.key(), EnchantmentBinding.create(),
-            RegistryKey.ENTITY_TYPE.key(), new RegistryBinding.Fixed<>(EntityTypes::get));
+            RegistryKey.ENTITY_TYPE.key(), new RegistryBinding.Fixed<>(EntityTypes::get),
+            RegistryKey.BLOCK.key(), new RegistryBinding.Fixed<>(
+                    key -> Blocks.type(TypedKey.withRegistry(RegistryKey.BLOCK, key))));
 
     private RegistryBindings() {
         throw new UnsupportedOperationException("RegistryBindings cannot be instantiated.");

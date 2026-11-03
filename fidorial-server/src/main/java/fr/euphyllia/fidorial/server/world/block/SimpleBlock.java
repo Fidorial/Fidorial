@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
@@ -7,32 +8,31 @@ import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
 public final class SimpleBlock implements BlockBehaviour {
 
-    private final Key key;
+    private final TypedKey<BlockType> key;
     private final int opacity;
     private final int emission;
 
-    private SimpleBlock(final Key key, final int opacity, final int emission) {
+    private SimpleBlock(final TypedKey<BlockType> key, final int opacity, final int emission) {
         this.key = key;
         this.opacity = opacity;
         this.emission = emission;
     }
 
-    public static SimpleBlock opaque(final Key key) {
+    public static SimpleBlock opaque(final TypedKey<BlockType> key) {
         return new SimpleBlock(key, 15, 0);
     }
 
-    public static SimpleBlock transparent(final Key key) {
+    public static SimpleBlock transparent(final TypedKey<BlockType> key) {
         return new SimpleBlock(key, 0, 0);
     }
 
-    public static SimpleBlock of(final Key key, final int opacity, final int emission) {
+    public static SimpleBlock of(final TypedKey<BlockType> key, final int opacity, final int emission) {
         return new SimpleBlock(key, opacity, emission);
     }
 

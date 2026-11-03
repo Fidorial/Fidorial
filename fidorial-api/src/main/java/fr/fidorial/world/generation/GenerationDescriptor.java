@@ -1,5 +1,8 @@
 package fr.fidorial.world.generation;
 
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -26,7 +29,7 @@ public sealed interface GenerationDescriptor {
      * @param biome          the biome of the whole world
      * @since 0.1.0
      */
-    static GenerationDescriptor flat(final Key floorBlock, final int floorThickness, final Key biome) {
+    static GenerationDescriptor flat(final TypedKey<BlockType> floorBlock, final int floorThickness, final TypedKey<BiomeDefinition> biome) {
         return new Flat(floorBlock, floorThickness, biome);
     }
 
@@ -49,7 +52,7 @@ public sealed interface GenerationDescriptor {
      * @param biome          the biome of the whole world
      * @since 0.1.0
      */
-    record Flat(Key floorBlock, int floorThickness, Key biome) implements GenerationDescriptor {
+    record Flat(TypedKey<BlockType> floorBlock, int floorThickness, TypedKey<BiomeDefinition> biome) implements GenerationDescriptor {
     }
 
     /**

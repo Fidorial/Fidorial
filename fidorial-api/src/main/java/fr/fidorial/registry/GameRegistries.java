@@ -10,7 +10,6 @@ import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.recipe.RecipeRegistry;
 import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.WorldGenerator;
-import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -43,7 +42,7 @@ public interface GameRegistries {
      * or {@link RegistryKey#ENCHANTMENT}.
      *
      * <p>Biomes registered there may be referenced by {@link WorldGenerator generators} through
-     * {@link GeneratedChunk#setBiome(int, int, int, Key)}, and dimension types returned by
+     * {@link GeneratedChunk#setBiome(int, int, int, TypedKey)}, and dimension types returned by
      * {@link WorldGenerator#dimensionType()}.</p>
      *
      * @param key the key of the registry

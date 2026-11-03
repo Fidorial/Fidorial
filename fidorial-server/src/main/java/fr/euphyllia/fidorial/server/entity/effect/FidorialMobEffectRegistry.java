@@ -124,8 +124,8 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
     @Override
     public Set<TypedKey<MobEffect>> types() {
         final Set<TypedKey<MobEffect>> types = new LinkedHashSet<>();
-        vanillaIds.keySet().forEach(key -> types.add(TypedKey.create(RegistryKey.MOB_EFFECT, key)));
-        registered.keySet().forEach(key -> types.add(TypedKey.create(RegistryKey.MOB_EFFECT, key)));
+        vanillaIds.keySet().forEach(key -> types.add(TypedKey.withRegistry(RegistryKey.MOB_EFFECT, key)));
+        registered.keySet().forEach(key -> types.add(TypedKey.withRegistry(RegistryKey.MOB_EFFECT, key)));
         return Set.copyOf(types);
     }
 

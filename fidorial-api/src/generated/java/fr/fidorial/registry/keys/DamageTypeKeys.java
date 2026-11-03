@@ -325,7 +325,7 @@ public final class DamageTypeKeys {
     }
 
     private static TypedKey<DamageType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DAMAGE_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.DAMAGE_TYPE, value);
     }
 
     /**

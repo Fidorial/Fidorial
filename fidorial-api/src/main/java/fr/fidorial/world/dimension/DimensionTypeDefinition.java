@@ -1,10 +1,11 @@
 package fr.fidorial.world.dimension;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.WorldClock;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
@@ -41,7 +42,7 @@ import java.util.List;
  * @since 0.1.0
  */
 public record DimensionTypeDefinition(
-        Key key,
+        TypedKey<DimensionTypeDefinition> key,
         double coordinateScale,
         boolean hasSkylight,
         boolean hasCeiling,
@@ -53,11 +54,11 @@ public record DimensionTypeDefinition(
         int logicalHeight,
         int minY,
         int height,
-        Key infiniburn,
+        TagKey<BlockType> infiniburn,
         Skybox skybox,
         CardinalLight cardinalLight,
         EnvironmentAttributes attributes,
-        @Nullable Key defaultClock,
+        @Nullable TypedKey<WorldClock> defaultClock,
         List<TimelineReference> timelines
 ) implements Keyed {
 
@@ -100,7 +101,7 @@ public record DimensionTypeDefinition(
      * @param key the namespaced identifier of the dimension type
      */
     @Contract(value = "_ -> new", pure = true)
-    public static DimensionTypeBuilder builder(final Key key) {
+    public static DimensionTypeBuilder builder(final TypedKey<DimensionTypeDefinition> key) {
         return new DimensionTypeBuilder(key);
     }
 
@@ -117,8 +118,8 @@ public record DimensionTypeDefinition(
     /**
      * {@return this dimension type's key, typed against the {@code minecraft:dimension_type} registry}
      */
-    @Contract(value = "-> new", pure = true)
+    @Contract(pure = true)
     public TypedKey<DimensionTypeDefinition> typedKey() {
-        return TypedKey.create(RegistryKey.DIMENSION_TYPE, key);
+        return key;
     }
 }

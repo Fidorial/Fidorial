@@ -1,8 +1,11 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.mob.MobDefinition;
 import fr.fidorial.entity.mob.MobRegistry;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.EntityTypeKeys;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -11,10 +14,10 @@ public final class BullMobs {
     /**
      *  {@code /summon fidorialtest:bull}
      */
-    public static final Key BULL = Key.key("fidorialtest", "bull");
+    public static final TypedKey<EntityType> BULL = TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, "fidorialtest:bull");
 
 
-    public static final Key COW = Key.key("cow");
+    public static final TypedKey<EntityType> COW = EntityTypeKeys.COW;
 
     private static final float BULL_HEALTH = 24f;
     private static final double BULL_SPEED = 0.28;

@@ -373,7 +373,7 @@ public final class GameRuleKeys {
     }
 
     private static TypedKey<GameRule> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.GAME_RULE, value);
+        return TypedKey.withRegistry(RegistryKey.GAME_RULE, value);
     }
 
     /**

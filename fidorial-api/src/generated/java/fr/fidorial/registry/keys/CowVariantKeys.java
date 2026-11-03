@@ -37,7 +37,7 @@ public final class CowVariantKeys {
     }
 
     private static TypedKey<CowVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.COW_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.COW_VARIANT, value);
     }
 
     /**

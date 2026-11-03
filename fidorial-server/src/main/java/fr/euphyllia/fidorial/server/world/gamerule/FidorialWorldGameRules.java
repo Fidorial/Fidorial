@@ -8,7 +8,6 @@ import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -61,7 +60,7 @@ final class FidorialWorldGameRules implements WorldGameRules {
     }
 
     @Override
-    public Optional<GameRuleDefinition> definition(final Key key) {
+    public Optional<GameRuleDefinition> definition(final TypedKey<GameRule> key) {
         return rules.definition(key);
     }
 

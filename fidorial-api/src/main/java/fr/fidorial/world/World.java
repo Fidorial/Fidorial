@@ -6,13 +6,14 @@ import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.block.BlockRegistry;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.time.DayNightCycle;
 import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.audience.ForwardingAudience;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 
 import java.io.UncheckedIOException;
@@ -223,7 +224,7 @@ public interface World extends Keyed, ForwardingAudience {
      * @return the block key, or empty for any kind of air
      * @since 0.1.0
      */
-    Optional<Key> blockKeyAt(BlockPosition pos);
+    Optional<TypedKey<BlockType>> blockKeyAt(BlockPosition pos);
 
     /**
      * Gets the block state at a position, loading the chunk when needed.

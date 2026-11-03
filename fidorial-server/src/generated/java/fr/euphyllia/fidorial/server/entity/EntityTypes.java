@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.entity;
 
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.kyori.adventure.key.Key;
@@ -839,7 +841,7 @@ public final class EntityTypes {
 
     private static EntityType vanilla(final String name, final EntityType.Category category,
             final int networkId, final float width, final float height) {
-        final Key key = Key.key(name);
+        final TypedKey<EntityType> key = TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, name);
         final EntityType type = new EntityType(key, category, width, height);
         register(type);
         NETWORK_IDS.put(key, networkId);

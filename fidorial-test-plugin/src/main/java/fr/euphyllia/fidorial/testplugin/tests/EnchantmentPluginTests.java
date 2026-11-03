@@ -14,11 +14,11 @@ import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.EnchantmentKeys;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
+import fr.fidorial.registry.keys.EntityTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -40,7 +40,7 @@ public final class EnchantmentPluginTests {
                 "Glacial should carry its post-attack effect");
         helper.assertTrue(!enchantments.areCompatible(TestEnchantments.GLACIAL, EnchantmentKeys.FIRE_ASPECT),
                 "Glacial and Fire Aspect are exclusive, both ways");
-        helper.assertTrue(enchantments.canEnchant(ItemStack.of(ItemKeys.IRON_SWORD.key()), TestEnchantments.LIFESTEAL),
+        helper.assertTrue(enchantments.canEnchant(ItemStack.of(ItemKeys.IRON_SWORD), TestEnchantments.LIFESTEAL),
                 "Lifesteal goes on swords");
     }
 
@@ -62,7 +62,7 @@ public final class EnchantmentPluginTests {
         final Player player = helper.summonPlayer("Vampire", Location.of(helper.world(), 0.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final Enchantments enchantments = player.server().registries().enchantments();
         player.setHealth(10f);
-        player.setHeldItem(enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD.key()), TestEnchantments.LIFESTEAL, 3));
+        player.setHeldItem(enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD), TestEnchantments.LIFESTEAL, 3));
         final Mob cow = cow(player, helper, 1.5);
         helper.assertTrue(combat(player).attack(player, cow), "The hit should land");
         final float dealt = cow.maxHealth() - cow.health();
@@ -75,7 +75,7 @@ public final class EnchantmentPluginTests {
     public static void glacialSlowsAndHitsBurningTargetsHarder(final ScenarioTestHelper helper) {
         final Player cold = helper.summonPlayer("Cold", Location.of(helper.world(), 0.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final Enchantments enchantments = cold.server().registries().enchantments();
-        final ItemStack sword = enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD.key()), TestEnchantments.GLACIAL, 2);
+        final ItemStack sword = enchantments.enchant(ItemStack.of(ItemKeys.IRON_SWORD), TestEnchantments.GLACIAL, 2);
         final Player colder = helper.summonPlayer("Colder", Location.of(helper.world(), 3.5, FLOOR, 0.5, 0f, 0f), GameMode.SURVIVAL);
         cold.setHeldItem(sword);
         colder.setHeldItem(sword);
@@ -101,7 +101,7 @@ public final class EnchantmentPluginTests {
      */
     private static Mob cow(final Player player, final ScenarioTestHelper helper, final double x) {
         return player.server().registries().mobs()
-                .spawn(Key.key("cow"), Location.of(helper.world(), x, FLOOR, 0.5, 0f, 0f))
+                .spawn(EntityTypeKeys.COW, Location.of(helper.world(), x, FLOOR, 0.5, 0f, 0f))
                 .orElseThrow(() -> new IllegalStateException("The cow could not be spawned"));
     }
 }

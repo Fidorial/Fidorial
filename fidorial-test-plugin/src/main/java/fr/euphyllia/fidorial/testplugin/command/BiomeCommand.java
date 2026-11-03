@@ -73,7 +73,7 @@ public final class BiomeCommand {
     }
 
     private static TypedKey<BiomeDefinition> typed(final Key key) {
-        return TypedKey.create(RegistryKey.BIOME, key);
+        return TypedKey.withRegistry(RegistryKey.BIOME, key);
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {
@@ -163,7 +163,7 @@ public final class BiomeCommand {
             return 0;
         }
 
-        final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(key).build();
+        final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(typed(key)).build();
         biomes.register(clone, plugin);
 
         plugin.msg(source, "<green>%s registered. Reconnect to see it.".formatted(key.asString()));

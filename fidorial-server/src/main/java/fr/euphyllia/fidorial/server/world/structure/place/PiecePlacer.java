@@ -20,27 +20,39 @@ import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.JigsawStructure;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.structure.StructureRotation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class PiecePlacer {
 
     private static final int MAX_FOUNDATION_DEPTH = 12;
+    private static final Set<TypedKey<BlockType>> DIRT_GROUND =
+            Set.of(BlockTypeKeys.GRASS_BLOCK, BlockTypeKeys.MYCELIUM, BlockTypeKeys.PODZOL);
+    private static final Set<TypedKey<BlockType>> NETHERRACK_GROUND =
+            Set.of(BlockTypeKeys.CRIMSON_NYLIUM, BlockTypeKeys.WARPED_NYLIUM);
 
     private final StructureRegistry registry;
     private final TerrainView terrain;
     private final BlockState air;
+    private final @Nullable BlockState dirt;
+    private final @Nullable BlockState netherrack;
     private final StructureProcessor jigsawReplacement;
 
     public PiecePlacer(final StructureRegistry registry, final TerrainView terrain) {
         this.registry = registry;
         this.terrain = terrain;
         final BlockState resolvedAir = registry.validator().resolve(Keys.AIR, Map.of());
-        this.air = resolvedAir == null ? BlockState.of(Keys.AIR) : resolvedAir;
+        this.air = resolvedAir == null ? BlockState.withoutProperties(Keys.AIR) : resolvedAir;
+        this.dirt = registry.validator().resolve(BlockTypeKeys.DIRT, Map.of());
+        this.netherrack = registry.validator().resolve(BlockTypeKeys.NETHERRACK, Map.of());
         this.jigsawReplacement = Processors.jigsawReplacement(registry.validator());
     }
 
@@ -83,10 +95,10 @@ public final class PiecePlacer {
                     placeElement(child, x, y, z, rotation, target, waterlog);
                 }
             }
-            case final PoolElement.Feature feature -> {
+            case PoolElement.Feature _ -> {
                 // features are not supported: nothing to place
             }
-            case final PoolElement.Empty empty -> {
+            case PoolElement.Empty _ -> {
                 // nothing to place
             }
         }
@@ -204,11 +216,12 @@ public final class PiecePlacer {
     }
 
     private BlockState foundationBlock(final BlockState ground) {
-        final String name = ground.name().value();
-        if (name.equals("grass_block") || name.equals("mycelium") || name.equals("podzol") || name.contains("nylium")) {
-            final BlockState dirt = registry.validator().resolve(net.kyori.adventure.key.Key.key(
-                    name.contains("nylium") ? "netherrack" : "dirt"), Map.of());
+        final TypedKey<BlockType> name = ground.name();
+        if (DIRT_GROUND.contains(name)) {
             return dirt == null ? ground : dirt;
+        }
+        if (NETHERRACK_GROUND.contains(name)) {
+            return netherrack == null ? ground : netherrack;
         }
         return ground;
     }

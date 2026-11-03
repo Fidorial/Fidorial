@@ -29,13 +29,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public abstract class AbstractLivingEntity extends AbstractEntity implements LivingEntity {
 
     private static final Map<Key, Key> EFFECT_IMMUNITY_TAGS = Map.of(
-            MobEffectKeys.INFESTED.key(), EntityTypeTagKeys.IMMUNE_TO_INFESTED.key(),
-            MobEffectKeys.FREEZING.key(), EntityTypeTagKeys.IMMUNE_TO_FREEZING.key(),
-            MobEffectKeys.OOZING.key(), EntityTypeTagKeys.IMMUNE_TO_OOZING.key(),
-            MobEffectKeys.REGENERATION.key(), EntityTypeTagKeys.IMMUNE_TO_REGENERATION.key(),
-            MobEffectKeys.POISON.key(), EntityTypeTagKeys.IMMUNE_TO_POISON.key(),
-            MobEffectKeys.WITHER.key(), EntityTypeTagKeys.IMMUNE_TO_WITHER.key(),
-            MobEffectKeys.WEAKNESS.key(), EntityTypeTagKeys.IMMUNE_TO_WEAKNESS.key());
+            MobEffectKeys.INFESTED, EntityTypeTagKeys.IMMUNE_TO_INFESTED,
+            MobEffectKeys.FREEZING, EntityTypeTagKeys.IMMUNE_TO_FREEZING,
+            MobEffectKeys.OOZING, EntityTypeTagKeys.IMMUNE_TO_OOZING,
+            MobEffectKeys.REGENERATION, EntityTypeTagKeys.IMMUNE_TO_REGENERATION,
+            MobEffectKeys.POISON, EntityTypeTagKeys.IMMUNE_TO_POISON,
+            MobEffectKeys.WITHER, EntityTypeTagKeys.IMMUNE_TO_WITHER,
+            MobEffectKeys.WEAKNESS, EntityTypeTagKeys.IMMUNE_TO_WEAKNESS);
 
     public static final int DEATH_TICKS = 20;
     public static final int INVULNERABILITY_TICKS = 20;

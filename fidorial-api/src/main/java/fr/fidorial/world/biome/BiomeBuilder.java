@@ -1,11 +1,11 @@
 package fr.fidorial.world.biome;
 
 import com.google.common.base.Preconditions;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.environment.AmbientParticle;
 import fr.fidorial.world.environment.AmbientSounds;
 import fr.fidorial.world.environment.BackgroundMusic;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  */
 public final class BiomeBuilder {
 
-    private Key key;
+    private TypedKey<BiomeDefinition> key;
     private boolean hasPrecipitation = true;
     private float temperature = 0.8F;
     private TemperatureModifier temperatureModifier = TemperatureModifier.NONE;
@@ -26,7 +26,7 @@ public final class BiomeBuilder {
     private BiomeEffects effects = BiomeEffects.DEFAULT;
     private EnvironmentAttributes.Builder attributes = EnvironmentAttributes.builder();
 
-    BiomeBuilder(final Key key) {
+    BiomeBuilder(final TypedKey<BiomeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key of a biome builder must not be null");
         this.key = key;
     }
@@ -46,7 +46,7 @@ public final class BiomeBuilder {
      * @return this builder
      */
     @Contract("_ -> this")
-    public BiomeBuilder key(final Key key) {
+    public BiomeBuilder key(final TypedKey<BiomeDefinition> key) {
         Preconditions.checkArgument(key != null, "The key passed to BiomeBuilder.key() must not be null");
         this.key = key;
         return this;

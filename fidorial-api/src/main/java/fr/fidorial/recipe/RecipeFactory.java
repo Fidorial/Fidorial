@@ -1,6 +1,9 @@
 package fr.fidorial.recipe;
 
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -13,7 +16,7 @@ import java.util.function.Predicate;
  * Creates the recipe objects of this package, implemented by the server.
  *
  * <p>Plugins do not call it: they go through the static methods of the types it creates, such as
- * {@link ShapedRecipe#builder(Key)} or {@link Ingredient#of(Key...)}.</p>
+ * {@link ShapedRecipe#builder(Key)} or {@link Ingredient#of(TypedKey...)}.</p>
  *
  * @since 0.1.0
  */
@@ -51,12 +54,12 @@ public interface RecipeFactory {
     /**
      * @see Ingredient#of(Collection)
      */
-    Ingredient items(Collection<Key> items);
+    Ingredient items(Collection<TypedKey<Item>> items);
 
     /**
-     * @see Ingredient#tag(Key)
+     * @see Ingredient#tag(TagKey)
      */
-    Ingredient tag(Key tag);
+    Ingredient tag(TagKey<Item> tag);
 
     /**
      * @see Ingredient#exact(ItemStack)

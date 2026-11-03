@@ -5,12 +5,12 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.CraftingMenu;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
-import net.kyori.adventure.key.Key;
 
 /**
  * The crafting table: using it opens a 3×3 crafting grid. The grid belongs to the player, not to
@@ -20,7 +20,7 @@ public final class CraftingTableBlock implements BlockBehaviour {
 
     public static final CraftingTableBlock INSTANCE = new CraftingTableBlock();
 
-    public static final Key KEY = BlockTypeKeys.CRAFTING_TABLE.key();
+    public static final TypedKey<BlockType> KEY = BlockTypeKeys.CRAFTING_TABLE;
 
     private CraftingTableBlock() {
     }

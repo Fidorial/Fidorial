@@ -9,7 +9,9 @@ import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.KeySet;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -136,35 +138,35 @@ public record EnchantmentDefinitionImpl(
         }
 
         @Override
-        public Builder supportedItemTag(final Key tag) {
+        public Builder supportedItemTag(final TagKey<Item> tag) {
             Preconditions.checkArgument(tag != null, "The supported item tag of %s must not be null", key);
             this.supportedItems = KeySetImpl.ofTag(tag);
             return this;
         }
 
         @Override
-        public Builder supportedItems(final Collection<Key> items) {
+        public Builder supportedItems(final Collection<TypedKey<Item>> items) {
             Preconditions.checkArgument(items != null && !items.isEmpty(), "The supported items of %s must not be empty", key);
             this.supportedItems = KeySetImpl.of(copy(items, "supported item"));
             return this;
         }
 
         @Override
-        public Builder primaryItemTag(final Key tag) {
+        public Builder primaryItemTag(final TagKey<Item> tag) {
             Preconditions.checkArgument(tag != null, "The primary item tag of %s must not be null", key);
             this.primaryItems = KeySetImpl.ofTag(tag);
             return this;
         }
 
         @Override
-        public Builder primaryItems(final Collection<Key> items) {
+        public Builder primaryItems(final Collection<TypedKey<Item>> items) {
             Preconditions.checkArgument(items != null, "The primary items of %s must not be null", key);
             this.primaryItems = KeySetImpl.of(copy(items, "primary item"));
             return this;
         }
 
         @Override
-        public Builder exclusiveSetTag(final Key tag) {
+        public Builder exclusiveSetTag(final TagKey<EnchantmentDefinition> tag) {
             Preconditions.checkArgument(tag != null, "The exclusive set tag of %s must not be null", key);
             this.exclusiveSet = KeySetImpl.ofTag(tag);
             return this;
@@ -269,7 +271,7 @@ public record EnchantmentDefinitionImpl(
                     effectsTree, effects, Optional.ofNullable(behaviour));
         }
 
-        private List<Key> copy(final Collection<Key> keys, final String what) {
+        private List<Key> copy(final Collection<? extends Key> keys, final String what) {
             final List<Key> copy = new ArrayList<>(keys.size());
             for (final Key item : keys) {
                 Preconditions.checkArgument(item != null, "A %s of %s must not be null", what, key);

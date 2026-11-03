@@ -90,7 +90,7 @@ public final class DialogCommand {
         final CommandSource source = ctx.getSource();
         final Key key = Key.key(TestDialogs.NAMESPACE, name);
         final Registry<DialogDefinition> dialogs = plugin.server().registries().registry(RegistryKey.DIALOG);
-        if (!dialogs.contains(TypedKey.create(RegistryKey.DIALOG, key))) {
+        if (!dialogs.contains(TypedKey.withRegistry(RegistryKey.DIALOG, key))) {
             plugin.msg(source, "<red>Nothing is recorded under" + key.asString());
             return 0;
         }

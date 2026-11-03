@@ -751,7 +751,7 @@ public final class DataComponentTypeKeys {
     }
 
     private static TypedKey<DataComponentType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DATA_COMPONENT_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.DATA_COMPONENT_TYPE, value);
     }
 
     /**

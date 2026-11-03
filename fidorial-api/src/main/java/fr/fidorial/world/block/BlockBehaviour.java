@@ -4,8 +4,8 @@ import fr.fidorial.entity.player.Player;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.map.MapManager;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -28,7 +28,7 @@ public interface BlockBehaviour {
      *
      * @since 0.1.0
      */
-    default Key key() {
+    default TypedKey<BlockType> key() {
         return type().key();
     }
 
