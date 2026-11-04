@@ -47,7 +47,7 @@ val deployToRun =
 
 tasks.compileJava {
     options.errorprone {
-        // we do not care about those here
+        // we do not care about those here, so dial them down to just warnings
         warn(
             "StringCaseLocaleUsage",
             "DefaultLocale",

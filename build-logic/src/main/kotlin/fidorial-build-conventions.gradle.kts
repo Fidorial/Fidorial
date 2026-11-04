@@ -33,37 +33,45 @@ tasks.withType<JavaCompile>().configureEach {
         options.compilerArgs.addAll(
             listOf(
                 "--add-reads",
-                "$it=ALL-UNNAMED"
+                "$it=ALL-UNNAMED",
             )
         )
     }
 
     options.errorprone {
+        // mostly noise
         disable(
             "MissingSummary", "ReferenceEquality", "AvoidCommonTypeNames", "SameNameButDifferent",
             "IdentityHashMapUsage", "ThreadLocalUsage", "UnnecessaryLambda", "UnnecessaryMethodReference",
             "NonApiType", "InlineFormatString", "StringConcatToTextBlock", "RefactorSwitch",
-            "UnusedTypeParameter", "ExposedPrivateType", "LoopOverCharArray"
+            "UnusedTypeParameter", "ExposedPrivateType", "LoopOverCharArray",
         )
 
         option("NullAway:OnlyNullMarked", "true")
         option("NullAway:JSpecifyMode", "true")
         option("NullAway:JSpecifyExperimental", "true")
 
+        warn(
+            // nullability checks that are off by default
+            "RequireExplicitNullMarking",
+            "JSpecifyUnrecognizedAnnotationLocation",
+        )
+
+        // add important checks here, so they error for sure & to prevent regressions
         error(
             "EqualsIncompatibleType",
             "CollectionIncompatibleType",
             "StringCaseLocaleUsage",
             "DefaultLocale",
             "DefaultCharset",
-            "UnsafeLocaleUsage"
+            "UnsafeLocaleUsage",
         )
     }
 
     options.compilerArgs.addAll(
         listOf(
             "-Xmaxwarns", "10000",
-            "-Xmaxerrs", "10000"
+            "-Xmaxerrs", "10000",
         )
     )
 }
