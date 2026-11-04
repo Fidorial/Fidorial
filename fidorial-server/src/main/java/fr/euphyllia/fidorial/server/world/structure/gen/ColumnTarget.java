@@ -12,7 +12,6 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
-import java.util.Optional;
 import java.util.Set;
 
 public final class ColumnTarget implements BlockTarget {
@@ -90,8 +89,10 @@ public final class ColumnTarget implements BlockTarget {
         final CompoundBinaryTag data = nbt == null ? null : clean(nbt);
         column.setBlock(localX, y, localZ, state, data);
         if (data != null) {
-            final Optional<TypedKey<BlockEntityType>> type = BlockEntityTypes.typeIdentifier(state.name());
-            type.ifPresent(key -> column.putBlockEntity(new BlockEntity(localX, y, localZ, key, data)));
+            final TypedKey<BlockEntityType> type = BlockEntityTypes.typeIdentifier(state.name());
+            if (type != null) {
+                column.putBlockEntity(new BlockEntity(localX, y, localZ, type, data));
+            }
         }
         placed.set(index(x, y, z));
         written++;

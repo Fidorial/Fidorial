@@ -2,6 +2,7 @@ package fr.fidorial.registrygen.generate;
 
 import fr.fidorial.registrygen.model.BlockReportDefinition;
 import fr.fidorial.registrygen.model.PacketCatalogs;
+import fr.fidorial.registrygen.model.PrismarineBlockEntityDefinition;
 import fr.fidorial.registrygen.model.PrismarineBlockLightPropertiesDefinition;
 import fr.fidorial.registrygen.model.PrismarineEntityDefinition;
 import fr.fidorial.registrygen.model.PrismarineItemDefinition;
@@ -54,6 +55,8 @@ public final class RegistryGenerator {
     private final FrozenRegistriesGenerator frozenRegistriesGenerator;
     private final RegistryTagKeysGenerator tagKeysGenerator;
     private final RegistryValuesGenerator registryValuesGenerator;
+    private final PrismarineBlockEntityReportParser prismarineBlockEntityReportParser;
+    private final BlockEntityTypeBlocksGenerator blockEntityTypeBlocksGenerator;
 
     /**
      * Creates a registry generator using the standard parser and
@@ -127,6 +130,8 @@ public final class RegistryGenerator {
         this.frozenRegistriesGenerator = new FrozenRegistriesGenerator();
         this.tagKeysGenerator = new RegistryTagKeysGenerator();
         this.registryValuesGenerator = new RegistryValuesGenerator();
+        this.prismarineBlockEntityReportParser = new PrismarineBlockEntityReportParser();
+        this.blockEntityTypeBlocksGenerator = new BlockEntityTypeBlocksGenerator();
     }
 
     /**
@@ -399,6 +404,56 @@ public final class RegistryGenerator {
                 equipmentSlots,
                 registryDataPackage,
                 itemKeysPackage,
+                outputDirectory);
+    }
+
+    /**
+     * Generates the {@code BlockEntityTypeBlocks} class from Mojang's block and block entity
+     * type registries and Prismarine's block entities report.
+     *
+     * @param registriesJson             path to Mojang's {@code registries.json}
+     * @param prismarineBlockEntities    path to Prismarine's {@code blockEntities.json}
+     * @param outputDirectory            generated Java source root
+     * @param registryDataPackage        package the class is written into
+     * @param blockTypeKeysPackage       package holding {@code BlockTypeKeys}
+     * @param blockEntityTypeKeysPackage package holding {@code BlockEntityTypeKeys}
+     *
+     * @throws IOException if a report cannot be read or the class cannot be written
+     */
+    public void generateBlockEntityTypeBlocks(final Path registriesJson,
+                                              final Path prismarineBlockEntities,
+                                              final Path outputDirectory,
+                                              final String registryDataPackage,
+                                              final String blockTypeKeysPackage,
+                                              final String blockEntityTypeKeysPackage) throws IOException {
+
+        Objects.requireNonNull(registriesJson, "registriesJson");
+        Objects.requireNonNull(prismarineBlockEntities, "prismarineBlockEntities");
+        Objects.requireNonNull(outputDirectory, "outputDirectory");
+
+        validateInput(registriesJson);
+
+        final RegistriesHolder registries = parser.parse(registriesJson);
+        final Optional<RegistryDefinition> blocks = registries.registry(SupportedRegistries.BLOCK.identifier());
+        final Optional<RegistryDefinition> blockEntityTypes = registries.registry("minecraft:block_entity_type");
+
+        if (blocks.isEmpty() || blockEntityTypes.isEmpty()) {
+            System.out.println("Registry missing from report: minecraft:block or minecraft:block_entity_type");
+            return;
+        }
+
+        final List<PrismarineBlockEntityDefinition> prismarine =
+                prismarineBlockEntityReportParser.parse(prismarineBlockEntities);
+
+        Files.createDirectories(outputDirectory);
+
+        blockEntityTypeBlocksGenerator.generate(
+                blocks.get().entries(),
+                blockEntityTypes.get().entries(),
+                prismarine,
+                registryDataPackage,
+                blockTypeKeysPackage,
+                blockEntityTypeKeysPackage,
                 outputDirectory);
     }
 

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.bootstrap;
 
 import fr.euphyllia.fidorial.server.debug.DebugChannels;
+import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeBlocks;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
@@ -109,6 +110,7 @@ public final class GameBootstrap {
         BlockStateIds.registerAll(registry);
         BlockStates.bootstrap(registry);
         BlockStateLightProperties.bootstrap();
+        BlockEntityTypeBlocks.bootstrap();
         Blocks.bootstrap(registry);
         registerBlockBehaviours(registry);
         LOGGER.debug("{} blocks defined in code", registry.definedCount());

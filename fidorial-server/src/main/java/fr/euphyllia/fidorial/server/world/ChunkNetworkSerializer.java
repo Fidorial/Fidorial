@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
@@ -28,6 +29,7 @@ public final class ChunkNetworkSerializer {
 
     private final BlockStateRegistry blockRegistry;
     private final ServerRegistry<BiomeDefinition> biomes;
+    private final ServerRegistry<BlockEntityType> blockEntityTypes;
     private static final int MAX_INDIRECT_BIOME_BITS = 8;
 
     private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
@@ -35,9 +37,10 @@ public final class ChunkNetworkSerializer {
     private static final int HEIGHTMAP_WORLD_SURFACE = 1;
     private static final int HEIGHTMAP_MOTION_BLOCKING = 4;
 
-    public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes) {
+    public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
         this.blockRegistry = blockRegistry;
         this.biomes = biomes;
+        this.blockEntityTypes = blockEntityTypes;
     }
 
     private int biomeId(final TypedKey<BiomeDefinition> biome) {
@@ -84,7 +87,7 @@ public final class ChunkNetworkSerializer {
         final List<BlockEntity> encodable = new ArrayList<>();
 
         for (final BlockEntity blockEntity : chunk.blockEntities()) {
-            if (blockEntity.isKnown()) {
+            if (blockEntityTypes.networkId(blockEntity.type()) >= 0) {
                 encodable.add(blockEntity);
             } else {
                 LOGGER.warn("Skipping block entity with unknown type '{}' at {},{},{} in chunk {},{}.",
@@ -102,9 +105,10 @@ public final class ChunkNetworkSerializer {
         for (final BlockEntity blockEntity : encodable) {
             p.writeByte(blockEntity.packedXz());
             p.writeShort(blockEntity.y());
-            p.writeVarInt(blockEntity.protocolId());
+            final int networkId = blockEntityTypes.networkId(blockEntity.type());
+            p.writeVarInt(networkId);
             p.writeNbt(blockEntity.data());
-            LOGGER.debug("BlockEntity : {} protocolId : {}", blockEntity.type(), blockEntity.protocolId());
+            LOGGER.debug("BlockEntity : {} protocolId : {}", blockEntity.type(), networkId);
         }
     }
 
