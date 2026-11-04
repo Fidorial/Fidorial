@@ -96,8 +96,8 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     }
 
     /**
-     * Fails if a key of another registry is used on this one. Equality of keys ignores the registry, so without
-     * this a key of another registry would silently find the entry with the same name.
+     * Fails if a key of another registry is used on this one. Lookups use the plain key, so such a key
+     * (only possible with a forged {@link RegistryKey}) would otherwise match the entry with the same name.
      */
     final void checkRegistry(final RegistryKey<?> other) {
         if (!registryKey.equals(other)) {
