@@ -1,6 +1,7 @@
 package fr.fidorial.world.time;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.WorldClock;
 
 /**
  * The clock of a world: its age, its time of day and how fast time flows.
@@ -88,7 +89,7 @@ public interface DayNightCycle {
      *
      * @since 0.1.0
      */
-    Key clock();
+    TypedKey<WorldClock> clock();
 
     /**
      * {@return the number of ticks this world has existed, whatever the cycle does}

@@ -3,8 +3,9 @@ package fr.euphyllia.fidorial.server.item.enchantment.effect;
 import com.google.gson.JsonElement;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.item.enchantment.KeySetImpl;
-import fr.euphyllia.fidorial.server.registry.ServerRegistry;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -16,21 +17,21 @@ import java.util.Optional;
  *
  * @param registry the registry, such as {@code minecraft:entity_type}
  * @param entries  the tag or the listed ids
+ * @param <T>      the type of the entries
  */
-public record KeyMatcher(Key registry, KeySetImpl entries) {
+public record KeyMatcher<T>(RegistryKey<T> registry, KeySetImpl<T> entries) {
 
-    public static KeyMatcher parse(final Key registry, final @Nullable JsonElement element) {
+    public static <T> KeyMatcher<T> parse(final RegistryKey<T> registry, final @Nullable JsonElement element) {
         if (element == null || element.isJsonNull()) {
-            throw new IllegalArgumentException("Missing entries of " + registry.asString());
+            throw new IllegalArgumentException("Missing entries of " + registry.key().asString());
         }
-        return new KeyMatcher(registry, KeySetImpl.parse(element, "Entries of " + registry.asString()));
+        return new KeyMatcher<>(registry, KeySetImpl.parse(registry, element, "Entries of " + registry.key().asString()));
     }
 
-    public boolean test(final Key value) {
-        final Optional<Key> tag = entries.tag();
+    public boolean test(final TypedKey<T> value) {
+        final Optional<TagKey<T>> tag = entries.tag();
         if (tag.isPresent()) {
-            final ServerRegistry<?> tagged = FidorialServer.getInstance().registries().registry(registry);
-            return tagged != null && tagged.isTagged(value, tag.get());
+            return FidorialServer.getInstance().registries().registry(registry).isTagged(value, tag.get());
         }
         return entries.keys().contains(value);
     }
@@ -38,11 +39,10 @@ public record KeyMatcher(Key registry, KeySetImpl entries) {
     /**
      * {@return every entry, the members of the tag for a tag}
      */
-    public List<Key> resolve() {
-        final Optional<Key> tag = entries.tag();
+    public List<TypedKey<T>> resolve() {
+        final Optional<TagKey<T>> tag = entries.tag();
         if (tag.isPresent()) {
-            final ServerRegistry<?> tagged = FidorialServer.getInstance().registries().registry(registry);
-            return tagged == null ? new ArrayList<>() : new ArrayList<>(tagged.tag(tag.get()));
+            return new ArrayList<>(FidorialServer.getInstance().registries().registry(registry).tag(tag.get()));
         }
         return new ArrayList<>(entries.keys());
     }

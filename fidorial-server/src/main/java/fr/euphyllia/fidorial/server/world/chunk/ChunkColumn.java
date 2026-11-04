@@ -4,7 +4,10 @@ import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.UnknownNullability;
@@ -33,7 +36,7 @@ public final class ChunkColumn {
     private volatile boolean lightPopulated;
     private @Nullable ChunkLightData lightData;
 
-    public ChunkColumn(final int chunkX, final int chunkZ, final int minY, final int height, final BlockState fillBlock, final @UnknownNullability Key fillBiome) {
+    public ChunkColumn(final int chunkX, final int chunkZ, final int minY, final int height, final BlockState fillBlock, final @UnknownNullability TypedKey<BiomeDefinition> fillBiome) {
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.minY = minY;
@@ -81,7 +84,7 @@ public final class ChunkColumn {
         }
     }
 
-    public boolean setBiome(final int localX, final int worldY, final int localZ, final Key biome) {
+    public boolean setBiome(final int localX, final int worldY, final int localZ, final TypedKey<BiomeDefinition> biome) {
         final ChunkSection section = sectionForY(worldY);
         if (section == null) {
             return false;
@@ -97,7 +100,7 @@ public final class ChunkColumn {
         return true;
     }
 
-    public @Nullable Key getBiome(final int localX, final int worldY, final int localZ) {
+    public @Nullable TypedKey<BiomeDefinition> getBiome(final int localX, final int worldY, final int localZ) {
         final ChunkSection chunkSection = sectionForY(worldY);
         return chunkSection == null ? null : chunkSection.getBiome(localX, worldY & 15, localZ);
     }
@@ -204,7 +207,7 @@ public final class ChunkColumn {
 
         removeBlockEntity(localX, worldY, localZ);
 
-        final Optional<Key> type = BlockEntityTypes.typeIdentifier(state.name());
+        final Optional<TypedKey<BlockEntityType>> type = BlockEntityTypes.typeIdentifier(state.name());
         // ifPresent would allocate a capturing lambda on every block change, resulting in unholy allocations
         // Over a minute-long profile of a radius-100 pregen, per chunk worker (4):
         // with .ifPresent -> ~8.8GB allocated by the lambda
@@ -217,7 +220,7 @@ public final class ChunkColumn {
 
     public BlockState getBlock(final int localX, final int worldY, final int localZ) {
         final ChunkSection s = sectionForY(worldY);
-        return s == null ? BlockState.of(BlockTypeKeys.AIR.key()) : s.getBlock(localX, worldY & 15, localZ);
+        return s == null ? BlockState.withoutProperties(BlockTypeKeys.AIR) : s.getBlock(localX, worldY & 15, localZ);
     }
 
     // https://minecraft.wiki/w/Heightmap

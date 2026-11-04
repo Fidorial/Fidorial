@@ -10,8 +10,8 @@ import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import static fr.fidorial.command.Commands.argument;
@@ -66,7 +66,7 @@ public final class WorldgenCommand {
         plugin.msg(source, "<gold>Generation en <white>%d, %d<gold> (graine <white>%d<gold>)"
                 .formatted(x, z, generator.settings().seed()));
         plugin.msg(source, "<gray>  biome <white>%s<gray>, sol a <white>y=%d"
-                .formatted(generator.biomeAt(x, z).asString(), ground));
+                .formatted(generator.biomeAt(x, z).key().asString(), ground));
         plugin.msg(source, "<gray>  temperature <white>%.3f<gray> (niveau %d), humidite <white>%.3f<gray> (niveau %d)"
                 .formatted(point.temperature(), point.temperatureLevel(), point.humidity(), point.humidityLevel()));
         plugin.msg(source, "<gray>  continentalite <white>%.3f<gray> (%s), erosion <white>%.3f<gray> (niveau %d)"
@@ -96,7 +96,7 @@ public final class WorldgenCommand {
         return Command.SINGLE_SUCCESS;
     }
 
-    private int locate(final CommandContext<CommandSource> ctx, final Key biome, final int radius) {
+    private int locate(final CommandContext<CommandSource> ctx, final TypedKey<BiomeDefinition> biome, final int radius) {
         final CommandSource source = ctx.getSource();
         final OverworldGenerator generator = generator(source);
         if (generator == null) {
@@ -119,12 +119,12 @@ public final class WorldgenCommand {
                     continue;
                 }
                 plugin.msg(source, "<green>%s trouve a <white>%d, %d<green> (%d blocs, sol y=%d)"
-                        .formatted(biome.asString(), x, z, distance, generator.surfaceAt(x, z, -64, 319)));
+                        .formatted(biome.key().asString(), x, z, distance, generator.surfaceAt(x, z, -64, 319)));
                 return Command.SINGLE_SUCCESS;
             }
         }
 
-        plugin.msg(source, "<red>%s introuvable dans un rayon de %d blocs.".formatted(biome.asString(), radius));
+        plugin.msg(source, "<red>%s introuvable dans un rayon de %d blocs.".formatted(biome.key().asString(), radius));
         return 0;
     }
 

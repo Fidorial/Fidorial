@@ -14,7 +14,9 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 
@@ -43,8 +45,8 @@ public final class ItemPredicateArgument<T> implements ArgumentType<T> {
         return new ItemPredicateArgument<>(converter);
     }
 
-    private boolean exists(final Key key) {
-        return ItemKeys.values().anyMatch(item -> item.key().equals(key));
+    private boolean exists(final TypedKey<Item> key) {
+        return ItemKeys.values().anyMatch(key::equals);
     }
 
     @Override
@@ -55,11 +57,12 @@ public final class ItemPredicateArgument<T> implements ArgumentType<T> {
         }
 
         final int start = reader.getCursor();
-        final Key key = KeyReader.readKey(reader);
+        final Key raw = KeyReader.readKey(reader);
+        final TypedKey<Item> key = TypedKey.withRegistry(RegistryKey.ITEM, raw);
 
         if (!exists(key)) {
             reader.setCursor(start);
-            throw ERROR_UNKNOWN_ITEM.createWithContext(reader, key.asString());
+            throw ERROR_UNKNOWN_ITEM.createWithContext(reader, raw.asString());
         }
 
         // TODO: ("[key=value,...]") are not parsed yet.

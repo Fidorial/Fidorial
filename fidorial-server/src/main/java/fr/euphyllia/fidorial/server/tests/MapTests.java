@@ -44,7 +44,7 @@ public final class MapTests {
         final MapView view = maps().create(helper.world(), 0, 0, MapScale.ONE_TO_TWO);
         helper.assertTrue(maps().get(view.id()).orElse(null) == view, "The new map is not found by its id");
         final ItemStack item = view.item();
-        helper.assertTrue(item.id().equals(ItemKeys.FILLED_MAP.key()), "The item of a map is not a filled map");
+        helper.assertTrue(item.id().equals(ItemKeys.FILLED_MAP), "The item of a map is not a filled map");
         helper.assertTrue(maps().of(item).orElse(null) == view, "The item does not lead back to its map");
         helper.assertTrue(view.world().orElseThrow().equals(helper.world().key()), "The map does not show its world");
         helper.assertTrue(maps().createBlank().id() > view.id(), "Ids are not allocated in order");
@@ -94,12 +94,12 @@ public final class MapTests {
     public static void usingAnEmptyMapCreatesOne(final ScenarioTestHelper helper) {
         final Player player = helper.summonPlayer("Mapper", helper.world(),
                 Location.of(helper.world(), 100.5, -60, 30.5, 0f, 0f), GameMode.SURVIVAL);
-        player.inventory().set(player.selectedSlot(), ItemStack.of(ItemKeys.MAP.key(), 1));
+        player.inventory().set(player.selectedSlot(), ItemStack.of(ItemKeys.MAP, 1));
         helper.sequence()
                 .execute(() -> player.execute(() ->
                         FidorialServer.getInstance().maps().useEmptyMap((ServerPlayer) player, false)))
                 .waitUntil(() -> helper.assertTrue(
-                        player.inventory().get(player.selectedSlot()).id().equals(ItemKeys.FILLED_MAP.key()),
+                        player.inventory().get(player.selectedSlot()).id().equals(ItemKeys.FILLED_MAP),
                         "The empty map was not turned into a map"))
                 .execute(() -> {
                     final ItemStack held = player.inventory().get(player.selectedSlot());

@@ -10135,7 +10135,7 @@ public final class ItemKeys {
     }
 
     private static TypedKey<Item> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.ITEM, value);
+        return TypedKey.withRegistry(RegistryKey.ITEM, value);
     }
 
     /**

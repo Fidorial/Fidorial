@@ -10,6 +10,8 @@ import fr.euphyllia.fidorial.testplugin.worldgen.stage.OreStage;
 import fr.euphyllia.fidorial.testplugin.worldgen.stage.RavineCarver;
 import fr.euphyllia.fidorial.testplugin.worldgen.stage.SurfaceStage;
 import fr.euphyllia.fidorial.testplugin.worldgen.stage.TerrainStage;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.generation.GeneratedChunk;
@@ -86,14 +88,14 @@ public final class OverworldGenerator implements WorldGenerator {
 
     @Override
     public GenerationDescriptor describeForSave() {
-        return GenerationDescriptor.noise(dimensionType.key(), Key.key("fidorial", "overworld"));
+        return GenerationDescriptor.noise(dimensionType.key().key(), Key.key("fidorial", "overworld"));
     }
 
     public ClimatePoint climateAt(final int worldX, final int worldZ) {
         return climate.sample(worldX, worldZ);
     }
 
-    public Key biomeAt(final int worldX, final int worldZ) {
+    public TypedKey<BiomeDefinition> biomeAt(final int worldX, final int worldZ) {
         return BiomeTable.surface(climate.sample(worldX, worldZ));
     }
 

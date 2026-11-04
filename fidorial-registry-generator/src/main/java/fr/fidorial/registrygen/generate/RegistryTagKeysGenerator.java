@@ -57,7 +57,7 @@ public final class RegistryTagKeysGenerator {
 
         final ClassName registryKey = ClassName.get(registryPackage, "RegistryKey");
         final ClassName tagKey = ClassName.get(registryPackage, "TagKey");
-        final ParameterizedTypeName tagKeyType = ParameterizedTypeName.get(tagKey, ClassName.bestGuess(valueType));
+        final ParameterizedTypeName tagKeyType = ParameterizedTypeName.get(tagKey, GenerationUtils.typeName(valueType));
 
         final TypeSpec.Builder type = TypeSpec.classBuilder(registryType.tagKeysClassName())
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -86,7 +86,7 @@ public final class RegistryTagKeysGenerator {
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(tagKeyType)
                 .addParameter(ParameterSpec.builder(String.class, "value", Modifier.FINAL).addAnnotation(KEY_PATTERN).build())
-                .addStatement("return $T.create($T.$N, $N)", tagKey, registryKey,
+                .addStatement("return $T.withRegistry($T.$N, $N)", tagKey, registryKey,
                         GenerationUtils.constantName(registryType.path(), true), "value")
                 .build());
 

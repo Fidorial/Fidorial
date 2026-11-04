@@ -325,7 +325,7 @@ public final class PaintingVariantKeys {
     }
 
     private static TypedKey<PaintingVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.PAINTING_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.PAINTING_VARIANT, value);
     }
 
     /**

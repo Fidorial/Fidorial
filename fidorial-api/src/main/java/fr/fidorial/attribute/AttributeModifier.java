@@ -2,6 +2,8 @@ package fr.fidorial.attribute;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.inventory.EquipmentSlotGroup;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -17,7 +19,7 @@ import java.util.Locale;
  * @param slot      the equipment slots the modifier applies in
  * @since 0.1.0
  */
-public record AttributeModifier(Key attribute, Key id, double amount, Operation operation, EquipmentSlotGroup slot) {
+public record AttributeModifier(TypedKey<Attribute> attribute, Key id, double amount, Operation operation, EquipmentSlotGroup slot) {
 
     /**
      * Validates the components.
@@ -41,7 +43,7 @@ public record AttributeModifier(Key attribute, Key id, double amount, Operation 
      * @since 0.1.0
      */
     public static AttributeModifier of(
-            final Key attribute,
+            final TypedKey<Attribute> attribute,
             final Key id,
             final double amount,
             final Operation operation,
@@ -60,7 +62,7 @@ public record AttributeModifier(Key attribute, Key id, double amount, Operation 
      * @return the modifier
      * @since 0.1.0
      */
-    public static AttributeModifier of(final Key attribute, final Key id, final double amount, final Operation operation) {
+    public static AttributeModifier of(final TypedKey<Attribute> attribute, final Key id, final double amount, final Operation operation) {
         return new AttributeModifier(attribute, id, amount, operation, EquipmentSlotGroup.ANY);
     }
 

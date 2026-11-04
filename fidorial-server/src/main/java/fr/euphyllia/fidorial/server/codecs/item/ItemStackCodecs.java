@@ -8,6 +8,7 @@ import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
 import fr.euphyllia.fidorial.server.codecs.item.component.WrittenBookTexts;
@@ -21,7 +22,6 @@ import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.data.TypedDataComponentValue;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.DataComponentValue;
@@ -54,7 +54,7 @@ public final class ItemStackCodecs {
                             : DataResult.success(new ItemLore(lines)),
                     ItemLore::lines);
 
-    public static final Codec<ItemEnchantments> ENCHANTMENTS_CODEC = Codec.unboundedMap(KEY_CODEC, Codec.intRange(1, ItemEnchantments.MAX_LEVEL))
+    public static final Codec<ItemEnchantments> ENCHANTMENTS_CODEC = Codec.unboundedMap(ReferenceCodecs.key(RegistryKey.ENCHANTMENT), Codec.intRange(1, ItemEnchantments.MAX_LEVEL))
             .xmap(ItemEnchantments::new, ItemEnchantments::levels);
 
     public static final Codec<SwingAnimation.SwingAnimationType> SWING_ANIMATION_TYPE_CODEC = Codec.STRING.comapFlatMap(
@@ -77,7 +77,7 @@ public final class ItemStackCodecs {
     public static final Codec<MapItemDecorations.Entry> MAP_DECORATION_ENTRY_CODEC =
             RecordCodec.builder(MapItemDecorations.Entry.class)
                     .required("type", MapItemDecorations.Entry::type,
-                            KEY_CODEC.xmap(key -> TypedKey.create(RegistryKey.MAP_DECORATION_TYPE, key), TypedKey::key))
+                            ReferenceCodecs.key(RegistryKey.MAP_DECORATION_TYPE))
                     .required("x", MapItemDecorations.Entry::x, Codec.DOUBLE)
                     .required("z", MapItemDecorations.Entry::z, Codec.DOUBLE)
                     .required("rotation", MapItemDecorations.Entry::rotation, Codec.FLOAT)
@@ -166,11 +166,11 @@ public final class ItemStackCodecs {
                     continue;
                 }
 
-                record.add(type.key().asString(), encodeErased(ops, type, codec, entry.getValue()));
+                record.add(type.key().key().asString(), encodeErased(ops, type, codec, entry.getValue()));
             }
 
             for (final DataComponentType<?> removed : input.removedTypes()) {
-                record.add(REMOVED_PREFIX + removed.key().asString(), ops.emptyMap());
+                record.add(REMOVED_PREFIX + removed.key().key().asString(), ops.emptyMap());
             }
 
             return record.build(prefix);

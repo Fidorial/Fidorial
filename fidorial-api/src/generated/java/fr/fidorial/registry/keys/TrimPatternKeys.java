@@ -127,7 +127,7 @@ public final class TrimPatternKeys {
     }
 
     private static TypedKey<TrimPattern> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.TRIM_PATTERN, value);
+        return TypedKey.withRegistry(RegistryKey.TRIM_PATTERN, value);
     }
 
     /**

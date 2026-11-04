@@ -417,7 +417,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             LOGGER.error("Error during onDisconnect", t);
         }
         server.players().disconnect(this);
-        saveInventoryOnDisconnect();
+        saveInventoryOnDisconnect().exceptionally(throwable -> {
+            LOGGER.error("Unable to save inventory on disconnect", throwable);
+            return null;
+        });
     }
 
     public CompletableFuture<Boolean> enterConfiguration() {
@@ -433,7 +436,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         return CompletableFuture.completedFuture(false);
     }
 
-    public CompletableFuture<Void> saveInventoryOnDisconnect() {
+    public CompletableFuture<@Nullable Void> saveInventoryOnDisconnect() {
         final ServerPlayer disconnecting = this.player;
         if (disconnecting == null) {
             return CompletableFuture.completedFuture(null);
@@ -696,7 +699,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                 if (id < 0) {
                     LOGGER.warn(
                             "{} cannot be shown dialog {}: nothing is registered under that key.",
-                            username, reference.key().asString());
+                            username, reference.key());
                     return;
                 }
                 send(ClientboundShowDialogPacket.reference(packetKey, reference, id));

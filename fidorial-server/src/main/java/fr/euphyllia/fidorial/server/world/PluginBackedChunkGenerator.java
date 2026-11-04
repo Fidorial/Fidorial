@@ -2,6 +2,10 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.generation.GenerationDescriptor;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -11,7 +15,6 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 public final class PluginBackedChunkGenerator implements ChunkGenerator {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(PluginBackedChunkGenerator.class);
-    private static final Key DEFAULT_BIOME = Key.key("plains");
 
     private final WorldGenerator generator;
     private final ChunkGenerator fallback;
@@ -25,7 +28,7 @@ public final class PluginBackedChunkGenerator implements ChunkGenerator {
 
     @Override
     public ChunkColumn generate(final int chunkX, final int chunkZ) {
-        final PluginGeneratedChunk chunk = new PluginGeneratedChunk(chunkX, chunkZ, dimensionType.minY(), dimensionType.height(), DEFAULT_BIOME);
+        final PluginGeneratedChunk chunk = new PluginGeneratedChunk(chunkX, chunkZ, dimensionType.minY(), dimensionType.height(), BiomeKeys.PLAINS);
         try {
             generator.generate(chunk);
             return chunk.column();
@@ -43,9 +46,9 @@ public final class PluginBackedChunkGenerator implements ChunkGenerator {
     @Override
     public ChunkGeneratorConfig describeForSave() {
         return switch (generator.describeForSave()) {
-            case GenerationDescriptor.Flat(final Key floorBlock, final int floorThickness, final Key biome) ->
+            case GenerationDescriptor.Flat(final TypedKey<BlockType> floorBlock, final int floorThickness, final TypedKey<BiomeDefinition> biome) ->
                     new ChunkGeneratorConfig.Flat(
-                            BlockState.of(floorBlock), floorThickness, biome);
+                            BlockState.withoutProperties(floorBlock), floorThickness, biome);
             case GenerationDescriptor.Noise(final Key settings, final Key biomeSourcePreset) ->
                     new ChunkGeneratorConfig.Noise(settings, biomeSourcePreset);
             case GenerationDescriptor.Unknown _ -> fallback.describeForSave();

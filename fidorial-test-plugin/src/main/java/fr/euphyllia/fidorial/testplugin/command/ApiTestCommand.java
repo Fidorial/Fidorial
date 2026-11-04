@@ -24,6 +24,7 @@ import fr.fidorial.math.Position;
 import fr.fidorial.nbt.NbtPath;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.SoundEvent;
+import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.scheduler.RegionTps;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
@@ -671,7 +672,7 @@ public final class ApiTestCommand {
     private static int itemHover(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
 
-        final ItemStack diamond = ItemStack.of(Key.key("diamond"), 64);
+        final ItemStack diamond = ItemStack.of(ItemKeys.DIAMOND, 64);
 
         final Component item = Component.translatable(diamond)
                 .color(NamedTextColor.AQUA)

@@ -1,8 +1,7 @@
 package fr.fidorial.item.data;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Keyed;
+import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
 
@@ -12,13 +11,13 @@ import org.jspecify.annotations.Nullable;
  * @param <T> the type of the value
  * @since 0.1.0
  */
-public final class DataComponentType<T> implements Keyed {
+public final class DataComponentType<T> {
 
-    private final Key key;
+    private final TypedKey<DataComponentType<?>> key;
     private final Class<T> valueType;
     private final boolean persistent;
 
-    private DataComponentType(final Key key, final Class<T> valueType, final boolean persistent) {
+    private DataComponentType(final TypedKey<DataComponentType<?>> key, final Class<T> valueType, final boolean persistent) {
         Preconditions.checkArgument(key != null, "The key of a data component type must not be null");
         Preconditions.checkArgument(valueType != null, "The value type of a data component type must not be null");
         this.key = key;
@@ -35,7 +34,7 @@ public final class DataComponentType<T> implements Keyed {
      * @param <T>       the value this component carries
      * @return a new component type
      */
-    public static <T> DataComponentType<T> of(final Key key, final Class<T> valueType) {
+    public static <T> DataComponentType<T> of(final TypedKey<DataComponentType<?>> key, final Class<T> valueType) {
         return new DataComponentType<>(key, valueType, true);
     }
 
@@ -53,8 +52,10 @@ public final class DataComponentType<T> implements Keyed {
         return persistent;
     }
 
-    @Override
-    public Key key() {
+    /**
+     * @return the key of this component type
+     */
+    public TypedKey<DataComponentType<?>> key() {
         return key;
     }
 
@@ -81,6 +82,6 @@ public final class DataComponentType<T> implements Keyed {
 
     @Override
     public String toString() {
-        return key.asString();
+        return key.key().asString();
     }
 }

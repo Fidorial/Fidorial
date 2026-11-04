@@ -1,7 +1,8 @@
 package fr.fidorial.entity.mob;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.entity.EntityType;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.sound.Sound;
 
 
@@ -22,8 +23,8 @@ import net.kyori.adventure.sound.Sound;
  * @since 0.1.0
  */
 public record MobDefinition(
-        Key key,
-        Key networkType,
+        TypedKey<EntityType> key,
+        TypedKey<EntityType> networkType,
         float maxHealth,
         double movementSpeed,
         double width,
@@ -53,7 +54,7 @@ public record MobDefinition(
      * @return a builder pre-filled with the defaults of a small walking animal
      * @since 0.1.0
      */
-    public static Builder builder(final Key key, final Key networkType) {
+    public static Builder builder(final TypedKey<EntityType> key, final TypedKey<EntityType> networkType) {
         return new Builder(key, networkType);
     }
 
@@ -64,8 +65,8 @@ public record MobDefinition(
      */
     public static final class Builder {
 
-        private final Key key;
-        private final Key networkType;
+        private final TypedKey<EntityType> key;
+        private final TypedKey<EntityType> networkType;
 
         private float maxHealth = 10f;
         private double movementSpeed = 0.25;
@@ -78,7 +79,7 @@ public record MobDefinition(
         };
         private boolean persistent = true;
 
-        private Builder(final Key key, final Key networkType) {
+        private Builder(final TypedKey<EntityType> key, final TypedKey<EntityType> networkType) {
             this.key = key;
             this.networkType = networkType;
         }

@@ -8,6 +8,8 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -23,7 +25,7 @@ public final class ChunkStorage implements AutoCloseable {
     private final WorldPathsImpl paths;
     private final AnvilChunkSerializer serializer;
     private final BlockState defaultBlock;
-    private final Key defaultBiome;
+    private final TypedKey<BiomeDefinition> defaultBiome;
     private final Function<Key, RegionCompression> compression;
 
     private final RegionFileCache regions = new RegionFileCache(RegionFileCache.DEFAULT_MAX_OPEN);
@@ -32,7 +34,7 @@ public final class ChunkStorage implements AutoCloseable {
             final WorldPathsImpl paths,
             final AnvilChunkSerializer serializer,
             final BlockState defaultBlock,
-            final Key defaultBiome,
+            final TypedKey<BiomeDefinition> defaultBiome,
             final Function<Key, RegionCompression> compression
     ) {
         this.paths = paths;

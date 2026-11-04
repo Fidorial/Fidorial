@@ -21,6 +21,7 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
@@ -115,7 +116,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         this.followRange = data.followRange();
         this.reinforcementChance = data.reinforcementChance();
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT.key());
+                .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT);
 
         if (canBreakDoors) {
             goals.add(new BreakDoorGoal(this, 0));
@@ -482,7 +483,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
                 (int) Math.floor(loc.x()),
                 (int) Math.floor(loc.y() + height() * 0.85),
                 (int) Math.floor(loc.z()));
-        return state != null && state.name().equals("minecraft:water");
+        return state != null && state.name().equals(BlockTypeKeys.WATER);
     }
 
     private boolean canSeeSky() {

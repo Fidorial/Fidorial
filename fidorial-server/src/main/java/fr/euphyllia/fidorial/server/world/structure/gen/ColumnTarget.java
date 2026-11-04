@@ -4,9 +4,10 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
-import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.place.BlockTarget;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -17,7 +18,7 @@ import java.util.Set;
 public final class ColumnTarget implements BlockTarget {
 
     private static final Set<String> POSITION_KEYS = Set.of("x", "y", "z", "id", "keepPacked");
-    private static final BlockState AIR = BlockState.of(Keys.AIR);
+    private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
 
     private final ChunkColumn column;
     private final int minX;
@@ -89,7 +90,7 @@ public final class ColumnTarget implements BlockTarget {
         final CompoundBinaryTag data = nbt == null ? null : clean(nbt);
         column.setBlock(localX, y, localZ, state, data);
         if (data != null) {
-            final Optional<Key> type = BlockEntityTypes.typeIdentifier(state.name());
+            final Optional<TypedKey<BlockEntityType>> type = BlockEntityTypes.typeIdentifier(state.name());
             type.ifPresent(key -> column.putBlockEntity(new BlockEntity(localX, y, localZ, key, data)));
         }
         placed.set(index(x, y, z));

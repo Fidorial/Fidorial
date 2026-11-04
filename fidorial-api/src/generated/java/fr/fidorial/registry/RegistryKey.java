@@ -3,20 +3,23 @@ package fr.fidorial.registry;
 import fr.fidorial.chat.ChatTypeDefinition;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.BannerPattern;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.data.BlockSoundSet;
+import fr.fidorial.registry.data.BlockStateProvider;
 import fr.fidorial.registry.data.BlockTransformer;
-import fr.fidorial.registry.data.BlockType;
 import fr.fidorial.registry.data.CatSoundVariant;
 import fr.fidorial.registry.data.CatVariant;
 import fr.fidorial.registry.data.ChickenSoundVariant;
 import fr.fidorial.registry.data.ChickenVariant;
+import fr.fidorial.registry.data.ConsumeEffectType;
 import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
+import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
-import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Fluid;
@@ -30,9 +33,15 @@ import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.registry.data.MenuType;
 import fr.fidorial.registry.data.MobEffect;
 import fr.fidorial.registry.data.PaintingVariant;
+import fr.fidorial.registry.data.ParticleType;
 import fr.fidorial.registry.data.PigSoundVariant;
 import fr.fidorial.registry.data.PigVariant;
+import fr.fidorial.registry.data.Potion;
+import fr.fidorial.registry.data.RecipeBookCategory;
+import fr.fidorial.registry.data.RecipeDisplay;
+import fr.fidorial.registry.data.SlotDisplay;
 import fr.fidorial.registry.data.SoundEvent;
+import fr.fidorial.registry.data.StatType;
 import fr.fidorial.registry.data.SulfurCubeArchetype;
 import fr.fidorial.registry.data.TestEnvironment;
 import fr.fidorial.registry.data.TestInstance;
@@ -46,6 +55,7 @@ import fr.fidorial.registry.data.WolfVariant;
 import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.registry.data.ZombieNautilusVariant;
 import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import java.util.Objects;
 import net.kyori.adventure.key.Key;
@@ -74,6 +84,11 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<BiomeDefinition> BIOME = of("worldgen/biome");
 
     /**
+     * Registry key for {@code minecraft:block_entity_type}.
+     */
+    public static final RegistryKey<BlockEntityType> BLOCK_ENTITY_TYPE = of("block_entity_type");
+
+    /**
      * Registry key for {@code minecraft:block_sound_set}.
      */
     public static final RegistryKey<BlockSoundSet> BLOCK_SOUND_SET = of("block_sound_set");
@@ -87,6 +102,11 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:block}.
      */
     public static final RegistryKey<BlockType> BLOCK = of("block");
+
+    /**
+     * Registry key for {@code minecraft:worldgen/block_state_provider}.
+     */
+    public static final RegistryKey<BlockStateProvider> BLOCK_STATE_PROVIDER = of("worldgen/block_state_provider");
 
     /**
      * Registry key for {@code minecraft:cat_sound_variant}.
@@ -114,6 +134,11 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<ChickenVariant> CHICKEN_VARIANT = of("chicken_variant");
 
     /**
+     * Registry key for {@code minecraft:consume_effect_type}.
+     */
+    public static final RegistryKey<ConsumeEffectType> CONSUME_EFFECT_TYPE = of("consume_effect_type");
+
+    /**
      * Registry key for {@code minecraft:cow_sound_variant}.
      */
     public static final RegistryKey<CowSoundVariant> COW_SOUND_VARIANT = of("cow_sound_variant");
@@ -124,6 +149,11 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<CowVariant> COW_VARIANT = of("cow_variant");
 
     /**
+     * Registry key for {@code minecraft:custom_stat}.
+     */
+    public static final RegistryKey<CustomStat> CUSTOM_STAT = of("custom_stat");
+
+    /**
      * Registry key for {@code minecraft:damage_type}.
      */
     public static final RegistryKey<DamageType> DAMAGE_TYPE = of("damage_type");
@@ -131,7 +161,7 @@ public record RegistryKey<T>(Key key) {
     /**
      * Registry key for {@code minecraft:data_component_type}.
      */
-    public static final RegistryKey<DataComponentType> DATA_COMPONENT_TYPE = of("data_component_type");
+    public static final RegistryKey<DataComponentType<?>> DATA_COMPONENT_TYPE = of("data_component_type");
 
     /**
      * Registry key for {@code minecraft:dialog}.
@@ -219,6 +249,11 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<PaintingVariant> PAINTING_VARIANT = of("painting_variant");
 
     /**
+     * Registry key for {@code minecraft:particle_type}.
+     */
+    public static final RegistryKey<ParticleType> PARTICLE_TYPE = of("particle_type");
+
+    /**
      * Registry key for {@code minecraft:pig_sound_variant}.
      */
     public static final RegistryKey<PigSoundVariant> PIG_SOUND_VARIANT = of("pig_sound_variant");
@@ -229,9 +264,34 @@ public record RegistryKey<T>(Key key) {
     public static final RegistryKey<PigVariant> PIG_VARIANT = of("pig_variant");
 
     /**
+     * Registry key for {@code minecraft:potion}.
+     */
+    public static final RegistryKey<Potion> POTION = of("potion");
+
+    /**
+     * Registry key for {@code minecraft:recipe_book_category}.
+     */
+    public static final RegistryKey<RecipeBookCategory> RECIPE_BOOK_CATEGORY = of("recipe_book_category");
+
+    /**
+     * Registry key for {@code minecraft:recipe_display}.
+     */
+    public static final RegistryKey<RecipeDisplay> RECIPE_DISPLAY = of("recipe_display");
+
+    /**
+     * Registry key for {@code minecraft:slot_display}.
+     */
+    public static final RegistryKey<SlotDisplay> SLOT_DISPLAY = of("slot_display");
+
+    /**
      * Registry key for {@code minecraft:sound_event}.
      */
     public static final RegistryKey<SoundEvent> SOUND_EVENT = of("sound_event");
+
+    /**
+     * Registry key for {@code minecraft:stat_type}.
+     */
+    public static final RegistryKey<StatType> STAT_TYPE = of("stat_type");
 
     /**
      * Registry key for {@code minecraft:sulfur_cube_archetype}.
@@ -302,7 +362,7 @@ public record RegistryKey<T>(Key key) {
     }
 
     public static <T> RegistryKey<T> of(final Key key) {
-        return new RegistryKey<>(key);
+        return new RegistryKey<>(key.key());
     }
 
     @Override

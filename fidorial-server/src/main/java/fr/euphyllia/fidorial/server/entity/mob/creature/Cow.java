@@ -17,12 +17,13 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.CowSoundVariantKeys;
 import fr.fidorial.registry.keys.CowVariantKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.sound.SoundEvents;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -59,34 +60,34 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
     private static final float PITCH_MAX = 1.2f;
     private static final float BABY_PITCH_BONUS = 0.5f;
 
-    private static final Set<Key> WARM_BIOMES = Set.of(
-            Key.key("savanna"),
-            Key.key("savanna_plateau"),
-            Key.key("windswept_savanna"),
-            Key.key("jungle"),
-            Key.key("sparse_jungle"),
-            Key.key("bamboo_jungle"),
-            Key.key("badlands"),
-            Key.key("eroded_badlands"),
-            Key.key("wooded_badlands"));
+    private static final Set<TypedKey<BiomeDefinition>> WARM_BIOMES = Set.of(
+            BiomeKeys.SAVANNA,
+            BiomeKeys.SAVANNA_PLATEAU,
+            BiomeKeys.WINDSWEPT_SAVANNA,
+            BiomeKeys.JUNGLE,
+            BiomeKeys.SPARSE_JUNGLE,
+            BiomeKeys.BAMBOO_JUNGLE,
+            BiomeKeys.BADLANDS,
+            BiomeKeys.ERODED_BADLANDS,
+            BiomeKeys.WOODED_BADLANDS);
 
-    private static final Set<Key> COLD_BIOMES = Set.of(
-            Key.key("taiga"),
-            Key.key("snowy_taiga"),
-            Key.key("old_growth_pine_taiga"),
-            Key.key("old_growth_spruce_taiga"),
-            Key.key("windswept_hills"),
-            Key.key("windswept_gravelly_hills"),
-            Key.key("windswept_forest"),
-            Key.key("dappled_forest"));
+    private static final Set<TypedKey<BiomeDefinition>> COLD_BIOMES = Set.of(
+            BiomeKeys.TAIGA,
+            BiomeKeys.SNOWY_TAIGA,
+            BiomeKeys.OLD_GROWTH_PINE_TAIGA,
+            BiomeKeys.OLD_GROWTH_SPRUCE_TAIGA,
+            BiomeKeys.WINDSWEPT_HILLS,
+            BiomeKeys.WINDSWEPT_GRAVELLY_HILLS,
+            BiomeKeys.WINDSWEPT_FOREST,
+            BiomeKeys.DAPPLED_FOREST);
 
 
-    private static final Set<Key> EXCLUDED_SPAWN_BIOMES = Set.of(
-            Key.key("snowy_plains"),
-            Key.key("meadow"),
-            Key.key("cherry_grove"),
-            Key.key("mangrove_swamp"),
-            Key.key("pale_garden"));
+    private static final Set<TypedKey<BiomeDefinition>> EXCLUDED_SPAWN_BIOMES = Set.of(
+            BiomeKeys.SNOWY_PLAINS,
+            BiomeKeys.MEADOW,
+            BiomeKeys.CHERRY_GROVE,
+            BiomeKeys.MANGROVE_SWAMP,
+            BiomeKeys.PALE_GARDEN);
 
     private final PanicGoal panicGoal;
 
@@ -112,13 +113,13 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
         this.panicGoal = new PanicGoal(this, 0, PANIC_SPEED);
         goals.add(panicGoal);
         goals.add(new FollowParentGoal(this, 1, FOLLOW_PARENT_SPEED));
-        goals.add(new TemptGoal(this, 2, TEMPT_SPEED, Set.of(ItemKeys.WHEAT.key()), TEMPT_RANGE, TEMPT_STOP_RANGE));
+        goals.add(new TemptGoal(this, 2, TEMPT_SPEED, Set.of(ItemKeys.WHEAT), TEMPT_RANGE, TEMPT_STOP_RANGE));
         goals.add(new RandomStrollGoal(this, 3, STROLL_SPEED));
     }
 
     public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
-        if (ground == null || !ground.name().equals(BlockTypeKeys.GRASS_BLOCK.key())) {
+        if (ground == null || !ground.name().equals(BlockTypeKeys.GRASS_BLOCK)) {
             return false;
         }
         if (!BlockView.isPassable(world, x, y, z) || !BlockView.isPassable(world, x, y + 1, z)) {
@@ -127,11 +128,11 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
         if (world.lightLevelAt(x, y, z) < MIN_SPAWN_LIGHT) {
             return false;
         }
-        final Key biome = BlockView.biomeAt(world, x, y, z);
+        final TypedKey<BiomeDefinition> biome = BlockView.biomeAt(world, x, y, z);
         return biome == null || !EXCLUDED_SPAWN_BIOMES.contains(biome);
     }
 
-    public static TypedKey<CowVariant> variantForBiome(final @Nullable Key biome) {
+    public static TypedKey<CowVariant> variantForBiome(final @Nullable TypedKey<BiomeDefinition> biome) {
         if (biome == null) {
             return CowVariantKeys.TEMPERATE;
         }
@@ -186,7 +187,7 @@ public final class Cow extends AbstractAgeableMob implements Category.Neutral {
     }
 
     public int variantNetworkId() {
-        return server().registries().registry(RegistryKey.COW_VARIANT).networkId(variant.key());
+        return server().registries().registry(RegistryKey.COW_VARIANT).networkId(variant);
     }
 
     @Override

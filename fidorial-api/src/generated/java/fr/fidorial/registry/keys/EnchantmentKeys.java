@@ -277,7 +277,7 @@ public final class EnchantmentKeys {
     }
 
     private static TypedKey<EnchantmentDefinition> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.ENCHANTMENT, value);
+        return TypedKey.withRegistry(RegistryKey.ENCHANTMENT, value);
     }
 
     /**

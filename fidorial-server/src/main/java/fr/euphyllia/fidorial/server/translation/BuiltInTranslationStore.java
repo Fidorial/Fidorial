@@ -57,13 +57,8 @@ public final class BuiltInTranslationStore implements TranslationStore {
         if (name.isBlank()) {
             return null;
         }
-        final String[] parts = name.split("_");
-        return switch (parts.length) {
-            case 1 -> Locale.of(parts[0].toLowerCase(Locale.ROOT));
-            case 2 -> Locale.of(parts[0].toLowerCase(Locale.ROOT), parts[1].toUpperCase(Locale.ROOT));
-            case 3 -> Locale.of(parts[0].toLowerCase(Locale.ROOT), parts[1].toUpperCase(Locale.ROOT), parts[2]);
-            default -> null;
-        };
+        final Locale locale = Locale.forLanguageTag(name.replace('_', '-'));
+        return locale.getLanguage().isEmpty() ? null : locale;
     }
 
     private Locale resolveLocale(@Nullable final Locale locale) {

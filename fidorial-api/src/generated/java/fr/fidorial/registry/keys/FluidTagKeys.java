@@ -69,6 +69,6 @@ public final class FluidTagKeys {
     }
 
     private static TagKey<Fluid> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.FLUID, value);
+        return TagKey.withRegistry(RegistryKey.FLUID, value);
     }
 }

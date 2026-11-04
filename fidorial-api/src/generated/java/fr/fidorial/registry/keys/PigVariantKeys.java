@@ -37,7 +37,7 @@ public final class PigVariantKeys {
     }
 
     private static TypedKey<PigVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.PIG_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.PIG_VARIANT, value);
     }
 
     /**

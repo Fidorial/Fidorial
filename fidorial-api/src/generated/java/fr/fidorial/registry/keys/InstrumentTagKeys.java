@@ -29,6 +29,6 @@ public final class InstrumentTagKeys {
     }
 
     private static TagKey<Instrument> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.INSTRUMENT, value);
+        return TagKey.withRegistry(RegistryKey.INSTRUMENT, value);
     }
 }

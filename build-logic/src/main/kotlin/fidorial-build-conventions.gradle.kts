@@ -1,7 +1,9 @@
 import fr.euphyllia.fidorial.gradle.FidorialBuildExtension
+import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
     `java-library`
+    id("net.ltgt.errorprone")
 }
 
 val fidorialBuild = extensions.create<FidorialBuildExtension>("fidorialBuild")
@@ -16,7 +18,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-snapshots")
 }
 
-java {
+extensions.configure<JavaPluginExtension> {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
@@ -31,10 +33,47 @@ tasks.withType<JavaCompile>().configureEach {
         options.compilerArgs.addAll(
             listOf(
                 "--add-reads",
-                "$it=ALL-UNNAMED"
+                "$it=ALL-UNNAMED",
             )
         )
     }
+
+    options.errorprone {
+        // mostly noise
+        disable(
+            "MissingSummary", "ReferenceEquality", "AvoidCommonTypeNames", "SameNameButDifferent",
+            "IdentityHashMapUsage", "ThreadLocalUsage", "UnnecessaryLambda", "UnnecessaryMethodReference",
+            "NonApiType", "InlineFormatString", "StringConcatToTextBlock", "RefactorSwitch",
+            "UnusedTypeParameter", "ExposedPrivateType", "LoopOverCharArray",
+        )
+
+        option("NullAway:OnlyNullMarked", "true")
+        option("NullAway:JSpecifyMode", "true")
+        option("NullAway:JSpecifyExperimental", "true")
+
+        warn(
+            // nullability checks that are off by default
+            "RequireExplicitNullMarking",
+            "JSpecifyUnrecognizedAnnotationLocation",
+        )
+
+        // add important checks here, so they error for sure & to prevent regressions
+        error(
+            "EqualsIncompatibleType",
+            "CollectionIncompatibleType",
+            "StringCaseLocaleUsage",
+            "DefaultLocale",
+            "DefaultCharset",
+            "UnsafeLocaleUsage",
+        )
+    }
+
+    options.compilerArgs.addAll(
+        listOf(
+            "-Xmaxwarns", "10000",
+            "-Xmaxerrs", "10000",
+        )
+    )
 }
 
 tasks.withType<ProcessResources>().configureEach {
@@ -63,4 +102,9 @@ tasks.withType<Javadoc>().configureEach {
             "$it=ALL-UNNAMED"
         )
     }
+}
+
+dependencies {
+    errorprone("com.google.errorprone:error_prone_core:2.52.0")
+    errorprone("com.uber.nullaway:nullaway:0.14.3")
 }

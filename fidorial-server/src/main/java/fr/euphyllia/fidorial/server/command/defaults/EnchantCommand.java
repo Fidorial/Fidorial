@@ -77,7 +77,7 @@ public final class EnchantCommand {
         if (registry == null) {
             throw FAILED.create();
         }
-        final TypedKey<EnchantmentDefinition> key = TypedKey.create(RegistryKey.ENCHANTMENT, definition.key());
+        final TypedKey<EnchantmentDefinition> key = TypedKey.withRegistry(RegistryKey.ENCHANTMENT, definition.key());
         if (level > definition.maxLevel()) {
             throw LEVEL_TOO_HIGH.create(level, definition.maxLevel());
         }

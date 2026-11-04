@@ -12,6 +12,8 @@ import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.world.World;
 import net.kyori.adventure.bossbar.BossBarViewer;
@@ -156,7 +158,7 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * <p>The player's client applies it at once: a {@link AttributeKeys#MOVEMENT_SPEED movement speed} of
      * {@code 0} stops them from walking, a {@link AttributeKeys#BLOCK_INTERACTION_RANGE block interaction
      * range} of {@code 0} from reaching any block. The value is kept until it is
-     * {@linkplain #resetAttributeBase(Key) reset} or the player disconnects, including across respawns
+     * {@linkplain #resetAttributeBase(TypedKey) reset} or the player disconnects, including across respawns
      * and world changes. The client clamps it to the range of the attribute.</p>
      *
      * @param attribute the attribute, see {@link AttributeKeys}
@@ -164,28 +166,28 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @throws IllegalArgumentException if the attribute does not exist or {@code base} is not finite
      * @since 0.1.0
      */
-    void setAttributeBase(Key attribute, double base);
+    void setAttributeBase(TypedKey<Attribute> attribute, double base);
 
     /**
      * Gives an attribute back the base value a vanilla player has.
      *
-     * <p>Does nothing when the base value was not {@linkplain #setAttributeBase(Key, double) changed}.</p>
+     * <p>Does nothing when the base value was not {@linkplain #setAttributeBase(TypedKey, double) changed}.</p>
      *
      * @param attribute the attribute, see {@link AttributeKeys}
      * @throws IllegalArgumentException if the attribute does not exist
      * @since 0.1.0
      */
-    void resetAttributeBase(Key attribute);
+    void resetAttributeBase(TypedKey<Attribute> attribute);
 
     /**
      * Returns the base value set for an attribute.
      *
      * @param attribute the attribute, see {@link AttributeKeys}
-     * @return the value given to {@link #setAttributeBase(Key, double)}, or empty when the attribute has
+     * @return the value given to {@link #setAttributeBase(TypedKey, double)}, or empty when the attribute has
      * the base value a vanilla player has
      * @since 0.1.0
      */
-    OptionalDouble attributeBase(Key attribute);
+    OptionalDouble attributeBase(TypedKey<Attribute> attribute);
 
     /**
      * @return the stack in the currently {@linkplain #selectedSlot() selected} hotbar slot,

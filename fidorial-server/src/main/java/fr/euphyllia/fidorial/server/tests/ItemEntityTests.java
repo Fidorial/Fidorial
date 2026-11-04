@@ -18,12 +18,13 @@ import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public final class ItemEntityTests {
     }
 
     private static void buildFloor(final World world, final int center) {
-        final int stone = server().registries().blockStates().networkId(BlockState.of(BlockTypeKeys.STONE.key()));
+        final int stone = server().registries().blockStates().networkId(BlockState.withoutProperties(BlockTypeKeys.STONE));
         for (int x = center - FLOOR_RADIUS; x <= center + FLOOR_RADIUS; x++) {
             for (int z = center - FLOOR_RADIUS; z <= center + FLOOR_RADIUS; z++) {
                 world.setBlockStateId(Position.block(x, (int) FLOOR_TOP - 1, z), stone);
@@ -75,8 +76,8 @@ public final class ItemEntityTests {
     }
 
     private static void assertFloorBuilt(final ScenarioTestHelper helper, final int center) {
-        helper.assertBlockAt(Position.block(center - FLOOR_RADIUS, (int) FLOOR_TOP - 1, center - FLOOR_RADIUS), BlockTypeKeys.STONE.key());
-        helper.assertBlockAt(Position.block(center + FLOOR_RADIUS, (int) FLOOR_TOP - 1, center + FLOOR_RADIUS), BlockTypeKeys.STONE.key());
+        helper.assertBlockAt(Position.block(center - FLOOR_RADIUS, (int) FLOOR_TOP - 1, center - FLOOR_RADIUS), BlockTypeKeys.STONE);
+        helper.assertBlockAt(Position.block(center + FLOOR_RADIUS, (int) FLOOR_TOP - 1, center + FLOOR_RADIUS), BlockTypeKeys.STONE);
     }
 
     /**
@@ -97,7 +98,7 @@ public final class ItemEntityTests {
         return items;
     }
 
-    private static int countOnGround(final World world, final Key item) {
+    private static int countOnGround(final World world, final TypedKey<Item> item) {
         int total = 0;
         for (final ServerItemEntity entity : items(world)) {
             if (entity.item().id().equals(item)) {
@@ -107,7 +108,7 @@ public final class ItemEntityTests {
         return total;
     }
 
-    private static int count(final PlayerInventory inventory, final Key item) {
+    private static int count(final PlayerInventory inventory, final TypedKey<Item> item) {
         int total = 0;
         for (int slot = 0; slot < inventory.size(); slot++) {
             final ItemStack stack = inventory.get(slot);
@@ -131,11 +132,11 @@ public final class ItemEntityTests {
                 .execute(() -> {
                     player.set(player(helper, "Collector", center));
                     dropped.set(world.dropItem(Location.of(world, center + 0.5, FLOOR_TOP + 1.5, center + 0.5, 0f, 0f),
-                            ItemStack.of(ItemKeys.DIAMOND.key(), 3)));
+                            ItemStack.of(ItemKeys.DIAMOND, 3)));
                     helper.assertTrue(dropped.get().pickupDelay() == ItemEntity.DEFAULT_PICKUP_DELAY,
                             "A dropped item should wait before it can be picked up");
                 })
-                .waitUntil(() -> count(player.get().inventory(), ItemKeys.DIAMOND.key()) == 3,
+                .waitUntil(() -> count(player.get().inventory(), ItemKeys.DIAMOND) == 3,
                         "The player standing on the item should pick the 3 diamonds up")
                 .execute(() -> {
                     helper.assertTrue(dropped.get().isRemoved(), "A fully picked up item should be gone");
@@ -153,7 +154,7 @@ public final class ItemEntityTests {
         helper.sequence()
                 .execute(() -> buildFloor(world))
                 .waitUntil(() -> assertFloorBuilt(helper))
-                .execute(() -> dropped.set(dropStill(world, 2.5, FLOOR_TOP + 4.0, 2.5, ItemStack.of(ItemKeys.STICK.key(), 1), 0)))
+                .execute(() -> dropped.set(dropStill(world, 2.5, FLOOR_TOP + 4.0, 2.5, ItemStack.of(ItemKeys.STICK, 1), 0)))
                 .waitUntil(() -> dropped.get().onGround(), "The item should land")
                 .waitUntil(() -> stillTicks.incrementAndGet() >= 10, "Let it sit for a while")
                 .execute(() -> {
@@ -174,13 +175,13 @@ public final class ItemEntityTests {
                 .execute(() -> buildFloor(world))
                 .waitUntil(() -> assertFloorBuilt(helper))
                 .execute(() -> {
-                    dropStill(world, -2.5, FLOOR_TOP, -2.5, ItemStack.of(ItemKeys.COBBLESTONE.key(), 10), 0);
-                    dropStill(world, -2.2, FLOOR_TOP, -2.5, ItemStack.of(ItemKeys.COBBLESTONE.key(), 20), 0);
-                    diamond.set(dropStill(world, -2.5, FLOOR_TOP, -2.2, ItemStack.of(ItemKeys.DIAMOND.key(), 1), 0));
+                    dropStill(world, -2.5, FLOOR_TOP, -2.5, ItemStack.of(ItemKeys.COBBLESTONE, 10), 0);
+                    dropStill(world, -2.2, FLOOR_TOP, -2.5, ItemStack.of(ItemKeys.COBBLESTONE, 20), 0);
+                    diamond.set(dropStill(world, -2.5, FLOOR_TOP, -2.2, ItemStack.of(ItemKeys.DIAMOND, 1), 0));
                 })
                 .waitUntil(() -> items(world).size() == 2, "The two cobblestone stacks should merge into one")
                 .execute(() -> {
-                    helper.assertTrue(countOnGround(world, ItemKeys.COBBLESTONE.key()) == 30,
+                    helper.assertTrue(countOnGround(world, ItemKeys.COBBLESTONE) == 30,
                             "Merging must neither lose nor make items");
                     helper.assertTrue(!diamond.get().isRemoved() && diamond.get().item().count() == 1,
                             "A different item must not merge");
@@ -201,12 +202,12 @@ public final class ItemEntityTests {
                     player.set(player(helper, "FullPockets"));
                     final PlayerInventory inventory = player.get().inventory();
                     for (int slot = 0; slot < PlayerInventory.STORAGE_SIZE; slot++) {
-                        inventory.set(slot, ItemStack.of(ItemKeys.STONE.key(), 64));
+                        inventory.set(slot, ItemStack.of(ItemKeys.STONE, 64));
                     }
-                    inventory.set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.DIRT.key(), 60));
-                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.DIRT.key(), 10), 0));
+                    inventory.set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.DIRT, 60));
+                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.DIRT, 10), 0));
                 })
-                .waitUntil(() -> count(player.get().inventory(), ItemKeys.DIRT.key()) == 64,
+                .waitUntil(() -> count(player.get().inventory(), ItemKeys.DIRT) == 64,
                         "The player should take the 4 dirt that fit")
                 .execute(() -> helper.assertTrue(!dropped.get().isRemoved() && dropped.get().item().count() == 6,
                         "The 6 dirt that do not fit should stay on the ground, got " + dropped.get().item()))
@@ -232,16 +233,16 @@ public final class ItemEntityTests {
                             event.setCancelled(true);
                         }
                     }));
-                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.APPLE.key(), 2), 0));
+                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.APPLE, 2), 0));
                 })
                 .waitUntil(() -> attempts.get() >= 5, "The pickup event should fire while the player stands on the item")
                 .execute(() -> {
                     subscription.get().unsubscribe();
-                    helper.assertTrue(count(player.get().inventory(), ItemKeys.APPLE.key()) == 0,
+                    helper.assertTrue(count(player.get().inventory(), ItemKeys.APPLE) == 0,
                             "A cancelled pickup must give nothing");
                     helper.assertTrue(!dropped.get().isRemoved(), "A cancelled pickup must leave the item");
                 })
-                .waitUntil(() -> count(player.get().inventory(), ItemKeys.APPLE.key()) == 2,
+                .waitUntil(() -> count(player.get().inventory(), ItemKeys.APPLE) == 2,
                         "Once allowed again, the pickup should go through")
                 .build();
     }
@@ -258,16 +259,16 @@ public final class ItemEntityTests {
                 .waitUntil(() -> assertFloorBuilt(helper))
                 .execute(() -> {
                     player.set(player(helper, "NotTheOwner"));
-                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.STICK.key(), 4), 0));
+                    dropped.set(dropStill(world, 0.5, FLOOR_TOP, 0.5, ItemStack.of(ItemKeys.STICK, 4), 0));
                     dropped.get().setOwner(UUID.randomUUID());
                 })
                 .waitUntil(() -> waited.incrementAndGet() >= 20, "Give the player time to try")
                 .execute(() -> {
-                    helper.assertTrue(count(player.get().inventory(), ItemKeys.STICK.key()) == 0,
+                    helper.assertTrue(count(player.get().inventory(), ItemKeys.STICK) == 0,
                             "Only the owner may pick an owned item up");
                     dropped.get().setOwner(player.get().uuid());
                 })
-                .waitUntil(() -> count(player.get().inventory(), ItemKeys.STICK.key()) == 4,
+                .waitUntil(() -> count(player.get().inventory(), ItemKeys.STICK) == 4,
                         "The owner should pick the item up")
                 .build();
     }
@@ -279,7 +280,7 @@ public final class ItemEntityTests {
 
         helper.sequence()
                 .execute(() -> {
-                    player.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.STICK.key(), 5));
+                    player.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.STICK, 5));
                     final ContainerMenu menu = player.inventoryMenu();
                     // window slot 9 is the first slot of the main inventory; button 0 throws one item
                     menu.click(new ServerboundContainerClickPacket(menu.windowId(), menu.stateId(), (short) 9, (byte) 0,
@@ -292,7 +293,7 @@ public final class ItemEntityTests {
                     helper.assertTrue(player.inventory().get(PlayerInventory.MAIN_START).isEmpty(),
                             "Ctrl + the drop key should take the whole stack out");
                 })
-                .waitUntil(() -> countOnGround(world, ItemKeys.STICK.key()) == 5, "The 5 sticks should be on the ground")
+                .waitUntil(() -> countOnGround(world, ItemKeys.STICK) == 5, "The 5 sticks should be on the ground")
                 .execute(() -> {
                     for (final ServerItemEntity item : items(world)) {
                         helper.assertTrue(player.uuid().equals(item.thrower()), "The player should be the thrower");
@@ -310,13 +311,13 @@ public final class ItemEntityTests {
 
         helper.sequence()
                 .execute(() -> {
-                    player.inventory().set(3, ItemStack.of(ItemKeys.APPLE.key(), 7));
-                    player.inventory().set(PlayerInventory.HEAD, ItemStack.of(ItemKeys.IRON_HELMET.key(), 1));
+                    player.inventory().set(3, ItemStack.of(ItemKeys.APPLE, 7));
+                    player.inventory().set(PlayerInventory.HEAD, ItemStack.of(ItemKeys.IRON_HELMET, 1));
                     player.kill(player);
                     helper.assertTrue(player.inventory().isEmpty(), "A dead player should lose their inventory");
                 })
-                .waitUntil(() -> countOnGround(world, ItemKeys.APPLE.key()) == 7
-                                && countOnGround(world, ItemKeys.IRON_HELMET.key()) == 1,
+                .waitUntil(() -> countOnGround(world, ItemKeys.APPLE) == 7
+                                && countOnGround(world, ItemKeys.IRON_HELMET) == 1,
                         "The apples and the helmet should be on the ground")
                 .build();
     }
@@ -329,9 +330,9 @@ public final class ItemEntityTests {
                 event.setKeepInventory(true);
             }
         })) {
-            player.inventory().set(0, ItemStack.of(ItemKeys.DIAMOND.key(), 2));
+            player.inventory().set(0, ItemStack.of(ItemKeys.DIAMOND, 2));
             player.kill(player);
-            helper.assertTrue(count(player.inventory(), ItemKeys.DIAMOND.key()) == 2,
+            helper.assertTrue(count(player.inventory(), ItemKeys.DIAMOND) == 2,
                     "keepInventory should keep the diamonds");
             helper.assertTrue(items(helper.world()).isEmpty(), "Nothing should be dropped");
         }
@@ -343,7 +344,7 @@ public final class ItemEntityTests {
         final UUID owner = UUID.randomUUID();
         final UUID thrower = UUID.randomUUID();
         final ServerItemEntity original = new ServerItemEntity(server().entities().ids().allocate(),
-                Location.of(world, 1.25, 70.0, -3.75, 0f, 0f), ItemStack.of(ItemKeys.DIAMOND.key(), 17));
+                Location.of(world, 1.25, 70.0, -3.75, 0f, 0f), ItemStack.of(ItemKeys.DIAMOND, 17));
         original.setAge(1234);
         original.setPickupDelay(25);
         original.setOwner(owner);

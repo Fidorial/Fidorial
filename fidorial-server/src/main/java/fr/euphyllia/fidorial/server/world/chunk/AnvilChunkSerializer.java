@@ -5,6 +5,9 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -90,7 +93,7 @@ public class AnvilChunkSerializer {
                 }
             }
 
-            compound.putString("id", blockEntity.type().asString());
+            compound.putString("id", blockEntity.type().key().asString());
             compound.putInt("x", (chunk.chunkX() << 4) + blockEntity.localX());
             compound.putInt("y", blockEntity.y());
             compound.putInt("z", (chunk.chunkZ() << 4) + blockEntity.localZ());
@@ -123,7 +126,7 @@ public class AnvilChunkSerializer {
             chunk.putBlockEntity(new BlockEntity(localX,
                     y,
                     localZ,
-                    Key.key(compound.getString("id")),
+                    TypedKey.withRegistry(RegistryKey.BLOCK_ENTITY_TYPE, compound.getString("id")),
                     built.keySet().isEmpty() ? null : built));
         }
     }
@@ -155,8 +158,8 @@ public class AnvilChunkSerializer {
         // biomes
         final CompoundBinaryTag.Builder biomes = CompoundBinaryTag.builder();
         final ListBinaryTag.Builder<BinaryTag> biomePalette = ListBinaryTag.builder();
-        for (final Key biome : section.biomes().palette()) {
-            biomePalette.add(StringBinaryTag.stringBinaryTag(biome.asString()));
+        for (final TypedKey<BiomeDefinition> biome : section.biomes().palette()) {
+            biomePalette.add(StringBinaryTag.stringBinaryTag(biome.key().asString()));
         }
         biomes.put("palette", biomePalette.build());
         final long[] biomeData = section.biomes().packedData();
@@ -170,7 +173,7 @@ public class AnvilChunkSerializer {
 
     private CompoundBinaryTag blockStateToNbt(final BlockState state) {
         final CompoundBinaryTag.Builder c = CompoundBinaryTag.builder();
-        c.putString("Name", state.name().asString());
+        c.putString("Name", state.name().key().asString());
         if (!state.properties().isEmpty()) {
             final CompoundBinaryTag.Builder props = CompoundBinaryTag.builder();
             for (final var e : state.properties().entrySet()) {
@@ -181,7 +184,7 @@ public class AnvilChunkSerializer {
         return c.build();
     }
 
-    public ChunkColumn fromNbt(final CompoundBinaryTag root, final int minY, final int height, final BlockState defaultBlock, final Key defaultBiome) {
+    public ChunkColumn fromNbt(final CompoundBinaryTag root, final int minY, final int height, final BlockState defaultBlock, final TypedKey<BiomeDefinition> defaultBiome) {
         final int chunkX = root.getInt("xPos");
         final int chunkZ = root.getInt("zPos");
 
@@ -219,7 +222,7 @@ public class AnvilChunkSerializer {
         return chunk;
     }
 
-    private @Nullable ChunkSection sectionFromNbt(final CompoundBinaryTag c, final BlockState defaultBlock, final Key defaultBiome) {
+    private @Nullable ChunkSection sectionFromNbt(final CompoundBinaryTag c, final BlockState defaultBlock, final TypedKey<BiomeDefinition> defaultBiome) {
         if (!c.contains("Y")) return null;
         final int sectionY = c.getByte("Y");
 
@@ -236,15 +239,15 @@ public class AnvilChunkSerializer {
                 PalettedContainer.fromNbt(ChunkSection.BLOCK_COUNT, 4, blockPalette, bs.getLongArray("data"));
 
         // biomes
-        final List<Key> biomePalette = new ArrayList<>();
+        final List<TypedKey<BiomeDefinition>> biomePalette = new ArrayList<>();
         final CompoundBinaryTag bio = !c.contains("biomes") && c.contains("noise_biomes")
                 ? ((NbtMapType) V5119.expandNoiseBiomes(NbtMapType.of(c.getCompound("noise_biomes")))).toCompound()
                 : c.getCompound("biomes");
         for (final BinaryTag t : bio.getList("palette")) {
-            if (t instanceof final StringBinaryTag st) biomePalette.add(Key.key(st.value()));
+            if (t instanceof final StringBinaryTag st) biomePalette.add(TypedKey.withRegistry(RegistryKey.BIOME, st.value()));
         }
         if (biomePalette.isEmpty()) biomePalette.add(defaultBiome);
-        final PalettedContainer<Key> biomes =
+        final PalettedContainer<TypedKey<BiomeDefinition>> biomes =
                 PalettedContainer.fromNbt(ChunkSection.BIOME_COUNT, 1, biomePalette, bio.getLongArray("data"));
 
         return new ChunkSection(sectionY, blocks, biomes);
@@ -254,7 +257,7 @@ public class AnvilChunkSerializer {
         final String name = c.getString("Name");
         final CompoundBinaryTag props = c.getCompound("Properties");
         if (props.keySet().isEmpty()) {
-            return BlockState.of(Key.key(name));
+            return BlockState.withoutProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name));
         }
         final Map<String, String> map = new TreeMap<>();
         for (final String key : props.keySet()) {
@@ -262,6 +265,6 @@ public class AnvilChunkSerializer {
                 map.put(key, st.value());
             }
         }
-        return BlockState.of(Key.key(name), map);
+        return BlockState.withProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name), map);
     }
 }

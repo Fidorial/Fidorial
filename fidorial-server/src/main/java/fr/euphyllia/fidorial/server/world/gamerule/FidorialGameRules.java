@@ -72,7 +72,7 @@ public final class FidorialGameRules implements GameRules {
     }
 
     @Override
-    public Optional<GameRuleDefinition> definition(final Key key) {
+    public Optional<GameRuleDefinition> definition(final TypedKey<GameRule> key) {
         final int index = VanillaGameRules.indexOf(key);
         return index < 0 ? Optional.empty() : Optional.of(VanillaGameRules.ALL.get(index));
     }

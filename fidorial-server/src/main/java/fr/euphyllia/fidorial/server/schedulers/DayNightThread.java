@@ -9,6 +9,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -29,16 +31,16 @@ public class DayNightThread implements AutoCloseable {
     private static final int SYNC_INTERVAL_TICKS = 20;
 
     private final ServerWorldManager worldManager;
-    private final ServerRegistry<?> clocks;
+    private final ServerRegistry<WorldClock> clocks;
     private final ScheduledExecutorService ticker;
-    private final Set<Key> unknownClocks = ConcurrentHashMap.newKeySet();
+    private final Set<TypedKey<WorldClock>> unknownClocks = ConcurrentHashMap.newKeySet();
     private final Set<Key> attached = ConcurrentHashMap.newKeySet();
 
     private int sinceLastSync;
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
 
-    public DayNightThread(final ServerWorldManager worldManager, final ServerRegistry<?> clocks) {
+    public DayNightThread(final ServerWorldManager worldManager, final ServerRegistry<WorldClock> clocks) {
         this.worldManager = worldManager;
         this.clocks = clocks;
         this.ticker = Executors.newSingleThreadScheduledExecutor(

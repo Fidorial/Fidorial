@@ -26,9 +26,10 @@ import java.util.List;
  */
 public final class SupportedRegistries {
 
-    public static final RegistryTypeDefinition ARGUMENT_TYPE = registry("minecraft:command_argument_type", "ArgumentType");
+    public static final RegistryTypeDefinition ARGUMENT_TYPE = registry("minecraft:command_argument_type", "ArgumentType", RegistrySync./*FROZEN*/NONE);
 
-    public static final RegistryTypeDefinition BLOCK = registry("minecraft:block", "BlockType", RegistrySync.FROZEN);
+    public static final RegistryTypeDefinition BLOCK = registry("minecraft:block", "BlockType", RegistrySync.FROZEN)
+            .bind("fr.fidorial.world.block.BlockType");
 
     public static final RegistryTypeDefinition DIMENSION_TYPE = registry("minecraft:dimension_type", "DimensionType", RegistrySync.DYNAMIC)
             .bind("fr.fidorial.world.dimension.DimensionTypeDefinition");
@@ -39,28 +40,34 @@ public final class SupportedRegistries {
     public static final RegistryTypeDefinition ITEM = registry("minecraft:item", "Item", RegistrySync.FROZEN);
 
     public static final List<RegistryTypeDefinition> ALL = List.of(
+            // ARGUMENT_TYPE, - we don't want keys for it in the API
             registry("minecraft:attribute", "Attribute", RegistrySync.FROZEN),
             registry("minecraft:banner_pattern", "BannerPattern", RegistrySync.DYNAMIC),
             registry("minecraft:worldgen/biome", "Biome", RegistrySync.DYNAMIC).bind("fr.fidorial.world.biome.BiomeDefinition"),
+            registry("minecraft:block_entity_type", "BlockEntityType", RegistrySync.FROZEN),
             registry("minecraft:block_sound_set", "BlockSoundSet", RegistrySync.DYNAMIC),
             registry("minecraft:block_transformer", "BlockTransformer", RegistrySync.DYNAMIC),
             BLOCK,
-            registry("minecraft:block_state_provider", "BlockStateProvider", RegistrySync.DYNAMIC),
+            registry("minecraft:worldgen/block_state_provider", "BlockStateProvider", RegistrySync.DYNAMIC),
             registry("minecraft:cat_sound_variant", "CatSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cat_variant", "CatVariant", RegistrySync.DYNAMIC),
             registry("minecraft:chat_type", "ChatType", RegistrySync.DYNAMIC).bind("fr.fidorial.chat.ChatTypeDefinition"),
             registry("minecraft:chicken_sound_variant", "ChickenSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:chicken_variant", "ChickenVariant", RegistrySync.DYNAMIC),
+            registry("minecraft:consume_effect_type", "ConsumeEffectType", RegistrySync.FROZEN),
             registry("minecraft:cow_sound_variant", "CowSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:cow_variant", "CowVariant", RegistrySync.DYNAMIC),
+            registry("minecraft:custom_stat", "CustomStat", RegistrySync.FROZEN),
             registry("minecraft:damage_type", "DamageType", RegistrySync.DYNAMIC),
-            registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN),
+            registry("minecraft:data_component_type", "DataComponentType", RegistrySync.FROZEN)
+                    .bind("fr.fidorial.item.data.DataComponentType<?>"),
             registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC).bind("fr.fidorial.dialog.DialogDefinition"),
             registry("minecraft:decorated_pot_pattern", "DecoratedPotPattern", RegistrySync.DYNAMIC),
             registry("minecraft:debug_subscription", "DebugSubscription", RegistrySync.FROZEN),
             DIMENSION_TYPE,
             registry("minecraft:enchantment", "Enchantment", RegistrySync.DYNAMIC).bind("fr.fidorial.item.enchantment.EnchantmentDefinition"),
             ENTITY_TYPE,
+            // registry("minecraft:environment_attribute", "EnvironmentAttribute", RegistrySync.FROZEN).bind("fr.fidorial.world.environment.EnvironmentAttributes"), TODO - i do not know if it entirely fits the API type
             registry("minecraft:frog_variant", "FrogVariant", RegistrySync.DYNAMIC),
             registry("minecraft:fluid", "Fluid", RegistrySync.FROZEN),
             registry("minecraft:game_event", "GameEvent", RegistrySync.FROZEN),
@@ -72,9 +79,16 @@ public final class SupportedRegistries {
             registry("minecraft:menu", "MenuType", RegistrySync.FROZEN),
             registry("minecraft:mob_effect", "MobEffect", RegistrySync.FROZEN),
             registry("minecraft:painting_variant", "PaintingVariant", RegistrySync.DYNAMIC),
+            registry("minecraft:particle_type", "ParticleType", RegistrySync.FROZEN),
             registry("minecraft:pig_sound_variant", "PigSoundVariant", RegistrySync.DYNAMIC),
             registry("minecraft:pig_variant", "PigVariant", RegistrySync.DYNAMIC),
+            // TODO: those should prob be bound to existing APIs
+            registry("minecraft:potion", "Potion", RegistrySync.FROZEN),
+            registry("minecraft:recipe_book_category", "RecipeBookCategory", RegistrySync.FROZEN),
+            registry("minecraft:recipe_display", "RecipeDisplay", RegistrySync.FROZEN),
+            registry("minecraft:slot_display", "SlotDisplay", RegistrySync.FROZEN),
             registry("minecraft:sound_event", "SoundEvent", RegistrySync.FROZEN),
+            registry("minecraft:stat_type", "StatType", RegistrySync.FROZEN),
             registry("minecraft:sulfur_cube_archetype", "SulfurCubeArchetype", RegistrySync.DYNAMIC),
             registry("minecraft:test_environment", "TestEnvironment", RegistrySync.DYNAMIC),
             registry("minecraft:test_instance", "TestInstance", RegistrySync.DYNAMIC),
@@ -89,10 +103,6 @@ public final class SupportedRegistries {
             registry("minecraft:zombie_nautilus_variant", "ZombieNautilusVariant", RegistrySync.DYNAMIC));
 
     private SupportedRegistries() {
-    }
-
-    private static RegistryTypeDefinition registry(final String identifier, final String qualifiedTypeName) {
-        return RegistryTypeDefinition.parse(identifier, qualifiedTypeName, RegistrySync.NONE);
     }
 
     private static RegistryTypeDefinition registry(final String identifier, final String qualifiedTypeName, final RegistrySync sync) {

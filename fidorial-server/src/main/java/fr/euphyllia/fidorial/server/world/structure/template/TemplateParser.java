@@ -70,7 +70,7 @@ public final class TemplateParser {
                 }
                 final BlockState state = validator.resolve(parsed.name(), parsed.properties());
                 if (state == null) {
-                    missing.add(parsed.name().asString());
+                    missing.add(parsed.name().key().asString());
                     continue;
                 }
                 palette[i] = state;

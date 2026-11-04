@@ -1,6 +1,9 @@
 package fr.euphyllia.fidorial.server.world.gamerule;
 
 import fr.fidorial.gamerule.GameRuleDefinition;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.key.Key;
 
@@ -31,7 +34,7 @@ public final class VanillaGameRules {
      */
     public static final List<GameRuleDefinition> ALL;
 
-    private static final Map<Key, Integer> INDEX_BY_KEY = new LinkedHashMap<>();
+    private static final Map<TypedKey<GameRule>, Integer> INDEX_BY_KEY = new LinkedHashMap<>();
 
     static {
         final List<GameRuleDefinition> rules = new ArrayList<>(List.of(
@@ -100,9 +103,9 @@ public final class VanillaGameRules {
         rules.sort(Comparator.comparing(rule -> rule.key().key().asString()));
         ALL = List.copyOf(rules);
         for (int i = 0; i < ALL.size(); i++) {
-            final Integer previous = INDEX_BY_KEY.put(ALL.get(i).key().key(), i);
+            final Integer previous = INDEX_BY_KEY.put(ALL.get(i).key(), i);
             if (previous != null) {
-                throw new IllegalStateException("Duplicate game rule definition: " + ALL.get(i).key().key());
+                throw new IllegalStateException("Duplicate game rule definition: " + ALL.get(i).key());
             }
         }
     }
@@ -110,7 +113,7 @@ public final class VanillaGameRules {
     private VanillaGameRules() {
     }
 
-    public static int indexOf(final Key key) {
+    public static int indexOf(final TypedKey<GameRule> key) {
         final Integer index = INDEX_BY_KEY.get(key);
         return index == null ? -1 : index;
     }
@@ -119,6 +122,6 @@ public final class VanillaGameRules {
         if (!Key.parseable(id)) {
             return -1;
         }
-        return indexOf(Key.key(id));
+        return indexOf(TypedKey.withRegistry(RegistryKey.GAME_RULE, id));
     }
 }

@@ -9,12 +9,13 @@ import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.KeySet;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -26,11 +27,11 @@ import java.util.Set;
  * Server implementation of {@link EnchantmentDefinition}, with its effect components compiled.
  */
 public record EnchantmentDefinitionImpl(
-        Key key,
+        TypedKey<EnchantmentDefinition> typedKey,
         Component description,
-        KeySet supportedItems,
-        Optional<KeySet> primaryItems,
-        KeySet exclusiveSet,
+        KeySet<Item> supportedItems,
+        Optional<KeySet<Item>> primaryItems,
+        KeySet<EnchantmentDefinition> exclusiveSet,
         int maxLevel,
         int weight,
         int anvilCost,
@@ -43,7 +44,8 @@ public record EnchantmentDefinitionImpl(
 ) implements EnchantmentDefinition {
 
     public EnchantmentDefinitionImpl {
-        Preconditions.checkArgument(key != null, "The key of an enchantment must not be null");
+        Preconditions.checkArgument(typedKey != null, "The key of an enchantment must not be null");
+        final Key key = typedKey.key();
         Preconditions.checkArgument(description != null, "The description of %s must not be null", key);
         Preconditions.checkArgument(supportedItems != null && !supportedItems.isEmpty(),
                 "The supported items of %s must not be empty", key);
@@ -54,6 +56,11 @@ public record EnchantmentDefinitionImpl(
         Preconditions.checkArgument(anvilCost >= 0, "The anvil cost of %s must not be negative, got %s", key, anvilCost);
         slots = Collections.unmodifiableSet(new LinkedHashSet<>(slots));
         effectsTree = effectsTree == null || effectsTree.isEmpty() ? null : effectsTree.deepCopy();
+    }
+
+    @Override
+    public Key key() {
+        return typedKey.key();
     }
 
     @Override
@@ -78,23 +85,23 @@ public record EnchantmentDefinitionImpl(
 
     @Override
     public String toString() {
-        return "EnchantmentDefinition[" + key.asString() + "]";
+        return "EnchantmentDefinition[" + typedKey.key().asString() + "]";
     }
 
     /**
      * {@return the translation key vanilla gives an enchantment, {@code enchantment.<namespace>.<value>}}
      */
-    static String descriptionId(final Key key) {
-        return "enchantment." + key.namespace() + "." + key.value().replace('/', '.');
+    static String descriptionId(final TypedKey<EnchantmentDefinition> key) {
+        return "enchantment." + key.key().namespace() + "." + key.key().value().replace('/', '.');
     }
 
     public static final class BuilderImpl implements EnchantmentDefinition.Builder {
 
-        private final Key key;
+        private final TypedKey<EnchantmentDefinition> key;
         private Component description;
-        private @Nullable KeySet supportedItems;
-        private @Nullable KeySet primaryItems;
-        private KeySet exclusiveSet = KeySetImpl.EMPTY;
+        private @Nullable KeySet<Item> supportedItems;
+        private @Nullable KeySet<Item> primaryItems;
+        private KeySet<EnchantmentDefinition> exclusiveSet = KeySetImpl.empty();
         private int maxLevel = 1;
         private int weight = 1;
         private int anvilCost = 1;
@@ -107,12 +114,12 @@ public record EnchantmentDefinitionImpl(
 
         public BuilderImpl(final TypedKey<EnchantmentDefinition> key) {
             Preconditions.checkArgument(key != null, "The key of an enchantment must not be null");
-            this.key = key.key();
-            this.description = Component.translatable(descriptionId(this.key));
+            this.key = key;
+            this.description = Component.translatable(descriptionId(key));
         }
 
         private BuilderImpl(final EnchantmentDefinitionImpl definition) {
-            this.key = definition.key();
+            this.key = definition.typedKey();
             this.description = definition.description();
             this.supportedItems = definition.supportedItems();
             this.primaryItems = definition.primaryItems().orElse(null);
@@ -136,35 +143,35 @@ public record EnchantmentDefinitionImpl(
         }
 
         @Override
-        public Builder supportedItemTag(final Key tag) {
+        public Builder supportedItemTag(final TagKey<Item> tag) {
             Preconditions.checkArgument(tag != null, "The supported item tag of %s must not be null", key);
             this.supportedItems = KeySetImpl.ofTag(tag);
             return this;
         }
 
         @Override
-        public Builder supportedItems(final Collection<Key> items) {
+        public Builder supportedItems(final Collection<TypedKey<Item>> items) {
             Preconditions.checkArgument(items != null && !items.isEmpty(), "The supported items of %s must not be empty", key);
             this.supportedItems = KeySetImpl.of(copy(items, "supported item"));
             return this;
         }
 
         @Override
-        public Builder primaryItemTag(final Key tag) {
+        public Builder primaryItemTag(final TagKey<Item> tag) {
             Preconditions.checkArgument(tag != null, "The primary item tag of %s must not be null", key);
             this.primaryItems = KeySetImpl.ofTag(tag);
             return this;
         }
 
         @Override
-        public Builder primaryItems(final Collection<Key> items) {
+        public Builder primaryItems(final Collection<TypedKey<Item>> items) {
             Preconditions.checkArgument(items != null, "The primary items of %s must not be null", key);
             this.primaryItems = KeySetImpl.of(copy(items, "primary item"));
             return this;
         }
 
         @Override
-        public Builder exclusiveSetTag(final Key tag) {
+        public Builder exclusiveSetTag(final TagKey<EnchantmentDefinition> tag) {
             Preconditions.checkArgument(tag != null, "The exclusive set tag of %s must not be null", key);
             this.exclusiveSet = KeySetImpl.ofTag(tag);
             return this;
@@ -173,12 +180,7 @@ public record EnchantmentDefinitionImpl(
         @Override
         public Builder exclusiveWith(final Collection<TypedKey<EnchantmentDefinition>> enchantments) {
             Preconditions.checkArgument(enchantments != null, "The exclusive set of %s must not be null", key);
-            final List<Key> keys = new ArrayList<>(enchantments.size());
-            for (final TypedKey<EnchantmentDefinition> enchantment : enchantments) {
-                Preconditions.checkArgument(enchantment != null, "The exclusive set of %s must not hold null", key);
-                keys.add(enchantment.key());
-            }
-            this.exclusiveSet = KeySetImpl.of(keys);
+            this.exclusiveSet = KeySetImpl.of(copy(enchantments, "exclusive enchantment"));
             return this;
         }
 
@@ -238,15 +240,15 @@ public record EnchantmentDefinitionImpl(
             try {
                 element = JsonParser.parseString(json);
             } catch (final RuntimeException exception) {
-                throw new IllegalArgumentException("The effects of " + key.asString() + " are not valid JSON", exception);
+                throw new IllegalArgumentException("The effects of " + key + " are not valid JSON", exception);
             }
             if (!element.isJsonObject()) {
-                throw new IllegalArgumentException("The effects of " + key.asString() + " must be a JSON object");
+                throw new IllegalArgumentException("The effects of " + key + " must be a JSON object");
             }
             try {
                 this.effects = EnchantmentEffectSet.compile(element.getAsJsonObject());
             } catch (final IllegalArgumentException exception) {
-                throw new IllegalArgumentException("Invalid effects for " + key.asString() + ": " + exception.getMessage(), exception);
+                throw new IllegalArgumentException("Invalid effects for " + key + ": " + exception.getMessage(), exception);
             }
             this.effectsTree = element.getAsJsonObject();
             return this;
@@ -262,20 +264,18 @@ public record EnchantmentDefinitionImpl(
         @Override
         public EnchantmentDefinition build() {
             if (supportedItems == null || supportedItems.isEmpty()) {
-                throw new IllegalStateException("The enchantment " + key.asString() + " needs supported items");
+                throw new IllegalStateException("The enchantment " + key + " needs supported items");
             }
             return new EnchantmentDefinitionImpl(key, description, supportedItems, Optional.ofNullable(primaryItems),
                     exclusiveSet, maxLevel, weight, anvilCost, minCost, maxCost, new LinkedHashSet<>(slots),
                     effectsTree, effects, Optional.ofNullable(behaviour));
         }
 
-        private List<Key> copy(final Collection<Key> keys, final String what) {
-            final List<Key> copy = new ArrayList<>(keys.size());
-            for (final Key item : keys) {
-                Preconditions.checkArgument(item != null, "A %s of %s must not be null", what, key);
-                copy.add(item);
+        private <T> List<TypedKey<T>> copy(final Collection<TypedKey<T>> keys, final String what) {
+            for (final TypedKey<T> entry : keys) {
+                Preconditions.checkArgument(entry != null, "A %s of %s must not be null", what, key);
             }
-            return copy;
+            return List.copyOf(keys);
         }
     }
 }

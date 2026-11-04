@@ -15,7 +15,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -48,7 +48,7 @@ public abstract class ContainerMenu {
     protected final ServerPlayer player;
     private final int windowId;
     private final @Nullable BlockPosition blockPosition;
-    private final @Nullable Key blockType;
+    private final @Nullable TypedKey<BlockType> blockType;
 
     private final Set<Integer> dragSlots = new LinkedHashSet<>();
     private @Nullable List<Slot> slots;
@@ -79,7 +79,7 @@ public abstract class ContainerMenu {
      * @param blockType     the block the window needs there to stay open
      */
     protected ContainerMenu(final ServerPlayer player, final int windowId, final BlockPosition blockPosition,
-                            final Key blockType) {
+                            final TypedKey<BlockType> blockType) {
         this.player = player;
         this.windowId = windowId;
         this.blockPosition = blockPosition;

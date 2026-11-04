@@ -3,17 +3,19 @@ package fr.euphyllia.fidorial.server.registry.data;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.BannerPattern;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.data.BlockSoundSet;
+import fr.fidorial.registry.data.BlockStateProvider;
 import fr.fidorial.registry.data.BlockTransformer;
-import fr.fidorial.registry.data.BlockType;
 import fr.fidorial.registry.data.CatSoundVariant;
 import fr.fidorial.registry.data.CatVariant;
 import fr.fidorial.registry.data.ChickenSoundVariant;
 import fr.fidorial.registry.data.ChickenVariant;
+import fr.fidorial.registry.data.ConsumeEffectType;
 import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
+import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
-import fr.fidorial.registry.data.DataComponentType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
 import fr.fidorial.registry.data.Fluid;
@@ -27,9 +29,15 @@ import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.registry.data.MenuType;
 import fr.fidorial.registry.data.MobEffect;
 import fr.fidorial.registry.data.PaintingVariant;
+import fr.fidorial.registry.data.ParticleType;
 import fr.fidorial.registry.data.PigSoundVariant;
 import fr.fidorial.registry.data.PigVariant;
+import fr.fidorial.registry.data.Potion;
+import fr.fidorial.registry.data.RecipeBookCategory;
+import fr.fidorial.registry.data.RecipeDisplay;
+import fr.fidorial.registry.data.SlotDisplay;
 import fr.fidorial.registry.data.SoundEvent;
+import fr.fidorial.registry.data.StatType;
 import fr.fidorial.registry.data.SulfurCubeArchetype;
 import fr.fidorial.registry.data.TestEnvironment;
 import fr.fidorial.registry.data.TestInstance;
@@ -76,17 +84,19 @@ public final class RegistryValues {
         final Map<Key, Function<Key, ?>> factories = new HashMap<>();
         factories.put(RegistryKey.ATTRIBUTE.key(), AttributeValue::new);
         factories.put(RegistryKey.BANNER_PATTERN.key(), BannerPatternValue::new);
+        factories.put(RegistryKey.BLOCK_ENTITY_TYPE.key(), BlockEntityTypeValue::new);
         factories.put(RegistryKey.BLOCK_SOUND_SET.key(), BlockSoundSetValue::new);
         factories.put(RegistryKey.BLOCK_TRANSFORMER.key(), BlockTransformerValue::new);
-        factories.put(RegistryKey.BLOCK.key(), BlockTypeValue::new);
+        factories.put(RegistryKey.BLOCK_STATE_PROVIDER.key(), BlockStateProviderValue::new);
         factories.put(RegistryKey.CAT_SOUND_VARIANT.key(), CatSoundVariantValue::new);
         factories.put(RegistryKey.CAT_VARIANT.key(), CatVariantValue::new);
         factories.put(RegistryKey.CHICKEN_SOUND_VARIANT.key(), ChickenSoundVariantValue::new);
         factories.put(RegistryKey.CHICKEN_VARIANT.key(), ChickenVariantValue::new);
+        factories.put(RegistryKey.CONSUME_EFFECT_TYPE.key(), ConsumeEffectTypeValue::new);
         factories.put(RegistryKey.COW_SOUND_VARIANT.key(), CowSoundVariantValue::new);
         factories.put(RegistryKey.COW_VARIANT.key(), CowVariantValue::new);
+        factories.put(RegistryKey.CUSTOM_STAT.key(), CustomStatValue::new);
         factories.put(RegistryKey.DAMAGE_TYPE.key(), DamageTypeValue::new);
-        factories.put(RegistryKey.DATA_COMPONENT_TYPE.key(), DataComponentTypeValue::new);
         factories.put(RegistryKey.DECORATED_POT_PATTERN.key(), DecoratedPotPatternValue::new);
         factories.put(RegistryKey.DEBUG_SUBSCRIPTION.key(), DebugSubscriptionValue::new);
         factories.put(RegistryKey.FROG_VARIANT.key(), FrogVariantValue::new);
@@ -100,9 +110,15 @@ public final class RegistryValues {
         factories.put(RegistryKey.MENU.key(), MenuTypeValue::new);
         factories.put(RegistryKey.MOB_EFFECT.key(), MobEffectValue::new);
         factories.put(RegistryKey.PAINTING_VARIANT.key(), PaintingVariantValue::new);
+        factories.put(RegistryKey.PARTICLE_TYPE.key(), ParticleTypeValue::new);
         factories.put(RegistryKey.PIG_SOUND_VARIANT.key(), PigSoundVariantValue::new);
         factories.put(RegistryKey.PIG_VARIANT.key(), PigVariantValue::new);
+        factories.put(RegistryKey.POTION.key(), PotionValue::new);
+        factories.put(RegistryKey.RECIPE_BOOK_CATEGORY.key(), RecipeBookCategoryValue::new);
+        factories.put(RegistryKey.RECIPE_DISPLAY.key(), RecipeDisplayValue::new);
+        factories.put(RegistryKey.SLOT_DISPLAY.key(), SlotDisplayValue::new);
         factories.put(RegistryKey.SOUND_EVENT.key(), SoundEventValue::new);
+        factories.put(RegistryKey.STAT_TYPE.key(), StatTypeValue::new);
         factories.put(RegistryKey.SULFUR_CUBE_ARCHETYPE.key(), SulfurCubeArchetypeValue::new);
         factories.put(RegistryKey.TEST_ENVIRONMENT.key(), TestEnvironmentValue::new);
         factories.put(RegistryKey.TEST_INSTANCE.key(), TestInstanceValue::new);
@@ -137,6 +153,15 @@ public final class RegistryValues {
     }
 
     /**
+     * A {@code minecraft:block_entity_type} entry.
+     */
+    public record BlockEntityTypeValue(Key key) implements BlockEntityType {
+        public BlockEntityTypeValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
      * A {@code minecraft:block_sound_set} entry.
      */
     public record BlockSoundSetValue(Key key) implements BlockSoundSet {
@@ -155,10 +180,10 @@ public final class RegistryValues {
     }
 
     /**
-     * A {@code minecraft:block} entry.
+     * A {@code minecraft:worldgen/block_state_provider} entry.
      */
-    public record BlockTypeValue(Key key) implements BlockType {
-        public BlockTypeValue {
+    public record BlockStateProviderValue(Key key) implements BlockStateProvider {
+        public BlockStateProviderValue {
             Objects.requireNonNull(key, "key");
         }
     }
@@ -200,6 +225,15 @@ public final class RegistryValues {
     }
 
     /**
+     * A {@code minecraft:consume_effect_type} entry.
+     */
+    public record ConsumeEffectTypeValue(Key key) implements ConsumeEffectType {
+        public ConsumeEffectTypeValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
      * A {@code minecraft:cow_sound_variant} entry.
      */
     public record CowSoundVariantValue(Key key) implements CowSoundVariant {
@@ -218,19 +252,19 @@ public final class RegistryValues {
     }
 
     /**
-     * A {@code minecraft:damage_type} entry.
+     * A {@code minecraft:custom_stat} entry.
      */
-    public record DamageTypeValue(Key key) implements DamageType {
-        public DamageTypeValue {
+    public record CustomStatValue(Key key) implements CustomStat {
+        public CustomStatValue {
             Objects.requireNonNull(key, "key");
         }
     }
 
     /**
-     * A {@code minecraft:data_component_type} entry.
+     * A {@code minecraft:damage_type} entry.
      */
-    public record DataComponentTypeValue(Key key) implements DataComponentType {
-        public DataComponentTypeValue {
+    public record DamageTypeValue(Key key) implements DamageType {
+        public DamageTypeValue {
             Objects.requireNonNull(key, "key");
         }
     }
@@ -353,6 +387,15 @@ public final class RegistryValues {
     }
 
     /**
+     * A {@code minecraft:particle_type} entry.
+     */
+    public record ParticleTypeValue(Key key) implements ParticleType {
+        public ParticleTypeValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
      * A {@code minecraft:pig_sound_variant} entry.
      */
     public record PigSoundVariantValue(Key key) implements PigSoundVariant {
@@ -371,10 +414,55 @@ public final class RegistryValues {
     }
 
     /**
+     * A {@code minecraft:potion} entry.
+     */
+    public record PotionValue(Key key) implements Potion {
+        public PotionValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:recipe_book_category} entry.
+     */
+    public record RecipeBookCategoryValue(Key key) implements RecipeBookCategory {
+        public RecipeBookCategoryValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:recipe_display} entry.
+     */
+    public record RecipeDisplayValue(Key key) implements RecipeDisplay {
+        public RecipeDisplayValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:slot_display} entry.
+     */
+    public record SlotDisplayValue(Key key) implements SlotDisplay {
+        public SlotDisplayValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
      * A {@code minecraft:sound_event} entry.
      */
     public record SoundEventValue(Key key) implements SoundEvent {
         public SoundEventValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:stat_type} entry.
+     */
+    public record StatTypeValue(Key key) implements StatType {
+        public StatTypeValue {
             Objects.requireNonNull(key, "key");
         }
     }

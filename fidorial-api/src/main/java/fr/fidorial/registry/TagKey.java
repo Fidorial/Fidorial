@@ -1,23 +1,19 @@
 package fr.fidorial.registry;
 
-import com.google.common.base.Preconditions;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
 
 /**
  * A tag bound to the registry its members belong to.
+ * <p>
+ * It is not a {@link Key}: use {@link #key()} to get the plain key of the tag, without the leading
+ * {@code #}. Two tag keys are equal when they have the same registry and the same key, and a tag
+ * key never equals a {@link TypedKey}, even one with the same namespace and value.
  *
- * @param registry the registry of the tag
- * @param key      the key of the tag, without the leading {@code #}
- * @param <T>      the type of the members
+ * @param <T> the type of the members
  * @since 0.1.0
  */
-public record TagKey<T>(RegistryKey<T> registry, Key key) {
-
-    public TagKey {
-        Preconditions.checkArgument(registry != null, "The registry of a tag key must not be null");
-        Preconditions.checkArgument(key != null, "The key of a tag key must not be null");
-    }
+public sealed interface TagKey<T> permits TagKeyImpl {
 
     /**
      * {@return a tag of the given registry}
@@ -27,8 +23,8 @@ public record TagKey<T>(RegistryKey<T> registry, Key key) {
      * @param <T>      the type of the members
      * @since 0.1.0
      */
-    public static <T> TagKey<T> create(final RegistryKey<T> registry, final Key key) {
-        return new TagKey<>(registry, key);
+    static <T> TagKey<T> withRegistry(final RegistryKey<T> registry, final Key key) {
+        return new TagKeyImpl<>(registry, key);
     }
 
     /**
@@ -39,12 +35,21 @@ public record TagKey<T>(RegistryKey<T> registry, Key key) {
      * @param <T>      the type of the members
      * @since 0.1.0
      */
-    public static <T> TagKey<T> create(final RegistryKey<T> registry, @KeyPattern final String key) {
-        return new TagKey<>(registry, Key.key(key));
+    static <T> TagKey<T> withRegistry(final RegistryKey<T> registry, @KeyPattern final String key) {
+        return new TagKeyImpl<>(registry, Key.key(key));
     }
 
-    @Override
-    public String toString() {
-        return "TagKey[" + registry.key() + " / #" + key + "]";
-    }
+    /**
+     * {@return the registry of the tag}
+     *
+     * @since 0.1.0
+     */
+    RegistryKey<T> registry();
+
+    /**
+     * {@return the plain key of the tag, without the registry}
+     *
+     * @since 0.1.0
+     */
+    Key key();
 }

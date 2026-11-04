@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.world.time;
 
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTimePacket;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.WorldClock;
 import fr.fidorial.world.time.DayNightCycle;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -11,7 +12,7 @@ public final class WorldTimeEngine implements DayNightCycle {
 
     public static final float DEFAULT_RATE = 1.0f;
 
-    private final Key clock;
+    private final TypedKey<WorldClock> clock;
 
     private long worldAge;
     private long time;
@@ -21,12 +22,12 @@ public final class WorldTimeEngine implements DayNightCycle {
 
     private volatile @Nullable Consumer<WorldTimeEngine> broadcaster;
 
-    public WorldTimeEngine(final Key clock) {
+    public WorldTimeEngine(final TypedKey<WorldClock> clock) {
         this.clock = clock;
     }
 
     @Override
-    public Key clock() {
+    public TypedKey<WorldClock> clock() {
         return clock;
     }
 

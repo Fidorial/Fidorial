@@ -1219,6 +1219,6 @@ public final class ItemTagKeys {
     }
 
     private static TagKey<Item> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.ITEM, value);
+        return TagKey.withRegistry(RegistryKey.ITEM, value);
     }
 }

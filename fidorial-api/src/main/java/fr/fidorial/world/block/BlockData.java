@@ -1,8 +1,8 @@
 package fr.fidorial.world.block;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.fluid.FluidType;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -16,26 +16,6 @@ import java.util.Map;
  * @since 0.1.0
  */
 public interface BlockData {
-
-    /**
-     * The key of plain air.
-     *
-     * @since 0.1.0
-     */
-    Key AIR = BlockTypeKeys.AIR.key();
-    /**
-     * The key of cave air.
-     *
-     * @since 0.1.0
-     */
-    Key CAVE_AIR = BlockTypeKeys.CAVE_AIR.key();
-    /**
-     * The key of void air, below the world.
-     *
-     * @since 0.1.0
-     */
-    Key VOID_AIR = BlockTypeKeys.VOID_AIR.key();
-
     /**
      * {@return the block type of this state}
      *
@@ -48,7 +28,7 @@ public interface BlockData {
      *
      * @since 0.1.0
      */
-    default Key key() {
+    default TypedKey<BlockType> key() {
         return type().key();
     }
 
@@ -91,8 +71,8 @@ public interface BlockData {
      * @since 0.1.0
      */
     default boolean isAir() {
-        final Key name = key();
-        return name.equals(AIR) || name.equals(CAVE_AIR) || name.equals(VOID_AIR);
+        final TypedKey<BlockType> name = key();
+        return name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
     }
 
     /**
@@ -110,10 +90,11 @@ public interface BlockData {
      * @since 0.1.0
      */
     default String asString() {
+        final String id = key().key().asString();
         if (type().properties().isEmpty()) {
-            return key().asString();
+            return id;
         }
-        final StringBuilder builder = new StringBuilder(key().asString()).append('[');
+        final StringBuilder builder = new StringBuilder(id).append('[');
         boolean first = true;
         for (final Map.Entry<String, String> entry : propertyMap().entrySet()) {
             if (!first) {

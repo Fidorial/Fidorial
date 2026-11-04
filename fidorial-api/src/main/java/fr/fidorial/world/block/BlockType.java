@@ -1,6 +1,6 @@
 package fr.fidorial.world.block;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationHandler;
@@ -23,14 +23,14 @@ import java.util.Map;
  */
 public final class BlockType {
 
-    private final Key key;
+    private final TypedKey<BlockType> key;
     private final List<BlockProperty> properties;
     private final int[] stateIds;
     private final int defaultOrdinal;
     private final Class<?>[] interfaces;
     private final @Nullable BlockData defaultData;
 
-    private BlockType(final Key key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal,
+    private BlockType(final TypedKey<BlockType> key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal,
                       final List<Class<? extends BlockData>> traits) {
         this.key = key;
         this.properties = List.copyOf(properties);
@@ -39,11 +39,11 @@ public final class BlockType {
             expected *= property.values().size();
         }
         if (stateIds.length != expected) {
-            throw new IllegalArgumentException("Block '" + key.asString() + "' expects " + expected
+            throw new IllegalArgumentException("Block '" + key.key().asString() + "' expects " + expected
                     + " states but got " + stateIds.length);
         }
         if (defaultOrdinal < 0 || defaultOrdinal >= expected) {
-            throw new IllegalArgumentException("Default ordinal out of range for '" + key.asString() + "'");
+            throw new IllegalArgumentException("Default ordinal out of range for '" + key.key().asString() + "'");
         }
         this.stateIds = stateIds.clone();
         this.defaultOrdinal = defaultOrdinal;
@@ -70,7 +70,7 @@ public final class BlockType {
      * @throws IllegalArgumentException if the identifiers do not match the property combinations
      * @since 0.1.0
      */
-    public static BlockType of(final Key key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal) {
+    public static BlockType of(final TypedKey<BlockType> key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal) {
         return new BlockType(key, properties, stateIds, defaultOrdinal, BlockTraits.detect(properties));
     }
 
@@ -80,16 +80,16 @@ public final class BlockType {
      * @param key the block key
      * @since 0.1.0
      */
-    public static Builder builder(final Key key) {
+    public static Builder builder(final TypedKey<BlockType> key) {
         return new Builder(key);
     }
 
     /**
-     * {@return the block key}
+     * {@return the key of this block type}
      *
      * @since 0.1.0
      */
-    public Key key() {
+    public TypedKey<BlockType> key() {
         return key;
     }
 
@@ -228,14 +228,14 @@ public final class BlockType {
                 final int index = property.indexOf(value);
                 if (index < 0) {
                     throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                            + propertyName + "' of block '" + key.asString() + "'");
+                            + propertyName + "' of block '" + key.key().asString() + "'");
                 }
                 final int current = (ordinal / radix) % size;
                 return ordinal + (index - current) * radix;
             }
             radix *= size;
         }
-        throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.asString() + "'");
+        throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.key().asString() + "'");
     }
 
     private Map<String, @Nullable String> valuesOf(final int ordinal) {
@@ -277,7 +277,7 @@ public final class BlockType {
 
     @Override
     public String toString() {
-        return "BlockType[" + key.asString() + ", states=" + stateIds.length + "]";
+        return "BlockType[" + key.key().asString() + ", states=" + stateIds.length + "]";
     }
 
     private record DataHandler(BlockType type, int ordinal) implements InvocationHandler {
@@ -310,14 +310,14 @@ public final class BlockType {
         }
     }
 
-    private static int ordinalOf(final Key key, final List<BlockProperty> properties, final Map<String, String> values) {
+    private static int ordinalOf(final TypedKey<BlockType> key, final List<BlockProperty> properties, final Map<String, String> values) {
         int ordinal = 0;
         for (final BlockProperty property : properties) {
             final String value = values.get(property.name());
             final int index = value == null ? 0 : property.indexOf(value);
             if (index < 0) {
                 throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                        + property.name() + "' of block '" + key.asString() + "'");
+                        + property.name() + "' of block '" + key.key().asString() + "'");
             }
             ordinal = ordinal * property.values().size() + index;
         }
@@ -334,7 +334,7 @@ public final class BlockType {
      */
     public static final class Builder {
 
-        private final Key key;
+        private final TypedKey<BlockType> key;
         private final List<BlockProperty> properties = new ArrayList<>();
         private final List<Class<? extends BlockData>> extraTraits = new ArrayList<>();
         private int @Nullable [] stateIds;
@@ -342,7 +342,7 @@ public final class BlockType {
         private int fixedStateId = -1;
         private Map<String, String> defaultValues = Map.of();
 
-        private Builder(final Key key) {
+        private Builder(final TypedKey<BlockType> key) {
             this.key = key;
         }
 
@@ -358,7 +358,7 @@ public final class BlockType {
             for (final BlockProperty declared : properties) {
                 if (declared.name().equals(property.name())) {
                     throw new IllegalArgumentException("Property '" + property.name()
-                            + "' declared twice on block '" + key.asString() + "'");
+                            + "' declared twice on block '" + key.key().asString() + "'");
                 }
             }
             properties.add(property);
@@ -487,7 +487,7 @@ public final class BlockType {
                 } else {
                     throw new IllegalStateException(
                             "firstStateId(...), stateIds(...) or appearance(...) must be set for '"
-                                    + key.asString() + "'");
+                                    + key.key().asString() + "'");
                 }
             } else {
                 ids = stateIds;

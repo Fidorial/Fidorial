@@ -19,6 +19,6 @@ public final class BlockSoundSetTagKeys {
     }
 
     private static TagKey<BlockSoundSet> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.BLOCK_SOUND_SET, value);
+        return TagKey.withRegistry(RegistryKey.BLOCK_SOUND_SET, value);
     }
 }

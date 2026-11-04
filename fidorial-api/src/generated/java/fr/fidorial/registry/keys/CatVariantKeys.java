@@ -85,7 +85,7 @@ public final class CatVariantKeys {
     }
 
     private static TypedKey<CatVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.CAT_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.CAT_VARIANT, value);
     }
 
     /**

@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.world.light.BlockLightProperties;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 
 public final class ChunkSection {
 
@@ -10,11 +11,11 @@ public final class ChunkSection {
 
     private final int sectionY; // indice de section (ex. -4 pour y=-64)
     private final PalettedContainer<BlockState> blocks;
-    private final PalettedContainer<Key> biomes;
+    private final PalettedContainer<TypedKey<BiomeDefinition>> biomes;
     private int nonAirCount;
     private int fluidCount;
 
-    public ChunkSection(final int sectionY, final BlockState fillBlock, final Key fillBiome) {
+    public ChunkSection(final int sectionY, final BlockState fillBlock, final TypedKey<BiomeDefinition> fillBiome) {
         this.sectionY = sectionY;
         this.blocks = new PalettedContainer<>(BLOCK_COUNT, 4, fillBlock);
         this.biomes = new PalettedContainer<>(BIOME_COUNT, 1, fillBiome);
@@ -23,7 +24,7 @@ public final class ChunkSection {
     }
 
     public ChunkSection(final int sectionY, final PalettedContainer<BlockState> blocks,
-                        final PalettedContainer<Key> biomes) {
+                        final PalettedContainer<TypedKey<BiomeDefinition>> biomes) {
         this.sectionY = sectionY;
         this.blocks = blocks;
         this.biomes = biomes;
@@ -42,7 +43,7 @@ public final class ChunkSection {
         return blocks;
     }
 
-    public PalettedContainer<Key> biomes() {
+    public PalettedContainer<TypedKey<BiomeDefinition>> biomes() {
         return biomes;
     }
 
@@ -80,11 +81,11 @@ public final class ChunkSection {
         return blocks.get(blockIndex(x, y, z));
     }
 
-    public void setBiome(final int x, final int y, final int z, final Key biome) {
+    public void setBiome(final int x, final int y, final int z, final TypedKey<BiomeDefinition> biome) {
         biomes.set(blockIndex(x, y, z), biome);
     }
 
-    public Key getBiome(final int x, final int y, final int z) {
+    public TypedKey<BiomeDefinition> getBiome(final int x, final int y, final int z) {
         return biomes.get(blockIndex(x, y, z));
     }
 

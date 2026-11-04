@@ -1,75 +1,76 @@
 package fr.euphyllia.fidorial.testplugin.worldgen.climate;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BiomeKeys;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.biome.BiomeDefinition;
 import org.jspecify.annotations.Nullable;
 
 public final class BiomeTable {
 
-    private static final Key FROZEN_OCEAN = BiomeKeys.FROZEN_OCEAN.key();
-    private static final Key COLD_OCEAN = BiomeKeys.COLD_OCEAN.key();
-    private static final Key OCEAN = BiomeKeys.OCEAN.key();
-    private static final Key LUKEWARM_OCEAN = BiomeKeys.LUKEWARM_OCEAN.key();
-    private static final Key WARM_OCEAN = BiomeKeys.WARM_OCEAN.key();
-    private static final Key DEEP_FROZEN_OCEAN = BiomeKeys.DEEP_FROZEN_OCEAN.key();
-    private static final Key DEEP_COLD_OCEAN = BiomeKeys.DEEP_COLD_OCEAN.key();
-    private static final Key DEEP_OCEAN = BiomeKeys.DEEP_OCEAN.key();
-    private static final Key DEEP_LUKEWARM_OCEAN = BiomeKeys.DEEP_LUKEWARM_OCEAN.key();
-    private static final Key MUSHROOM_FIELDS = BiomeKeys.MUSHROOM_FIELDS.key();
+    private static final TypedKey<BiomeDefinition> FROZEN_OCEAN = BiomeKeys.FROZEN_OCEAN;
+    private static final TypedKey<BiomeDefinition> COLD_OCEAN = BiomeKeys.COLD_OCEAN;
+    private static final TypedKey<BiomeDefinition> OCEAN = BiomeKeys.OCEAN;
+    private static final TypedKey<BiomeDefinition> LUKEWARM_OCEAN = BiomeKeys.LUKEWARM_OCEAN;
+    private static final TypedKey<BiomeDefinition> WARM_OCEAN = BiomeKeys.WARM_OCEAN;
+    private static final TypedKey<BiomeDefinition> DEEP_FROZEN_OCEAN = BiomeKeys.DEEP_FROZEN_OCEAN;
+    private static final TypedKey<BiomeDefinition> DEEP_COLD_OCEAN = BiomeKeys.DEEP_COLD_OCEAN;
+    private static final TypedKey<BiomeDefinition> DEEP_OCEAN = BiomeKeys.DEEP_OCEAN;
+    private static final TypedKey<BiomeDefinition> DEEP_LUKEWARM_OCEAN = BiomeKeys.DEEP_LUKEWARM_OCEAN;
+    private static final TypedKey<BiomeDefinition> MUSHROOM_FIELDS = BiomeKeys.MUSHROOM_FIELDS;
 
-    private static final Key RIVER = BiomeKeys.RIVER.key();
-    private static final Key FROZEN_RIVER = BiomeKeys.FROZEN_RIVER.key();
-    private static final Key BEACH = BiomeKeys.BEACH.key();
-    private static final Key SNOWY_BEACH = BiomeKeys.SNOWY_BEACH.key();
-    private static final Key STONY_SHORE = BiomeKeys.STONY_SHORE.key();
+    private static final TypedKey<BiomeDefinition> RIVER = BiomeKeys.RIVER;
+    private static final TypedKey<BiomeDefinition> FROZEN_RIVER = BiomeKeys.FROZEN_RIVER;
+    private static final TypedKey<BiomeDefinition> BEACH = BiomeKeys.BEACH;
+    private static final TypedKey<BiomeDefinition> SNOWY_BEACH = BiomeKeys.SNOWY_BEACH;
+    private static final TypedKey<BiomeDefinition> STONY_SHORE = BiomeKeys.STONY_SHORE;
 
-    private static final Key PLAINS = BiomeKeys.PLAINS.key();
-    private static final Key SUNFLOWER_PLAINS = BiomeKeys.SUNFLOWER_PLAINS.key();
-    private static final Key SNOWY_PLAINS = BiomeKeys.SNOWY_PLAINS.key();
-    private static final Key ICE_SPIKES = BiomeKeys.ICE_SPIKES.key();
-    private static final Key FOREST = BiomeKeys.FOREST.key();
-    private static final Key FLOWER_FOREST = BiomeKeys.FLOWER_FOREST.key();
-    private static final Key BIRCH_FOREST = BiomeKeys.BIRCH_FOREST.key();
-    private static final Key OLD_GROWTH_BIRCH_FOREST = BiomeKeys.OLD_GROWTH_BIRCH_FOREST.key();
-    private static final Key DARK_FOREST = BiomeKeys.DARK_FOREST.key();
-    private static final Key PALE_GARDEN = BiomeKeys.PALE_GARDEN.key();
-    private static final Key TAIGA = BiomeKeys.TAIGA.key();
-    private static final Key SNOWY_TAIGA = BiomeKeys.SNOWY_TAIGA.key();
-    private static final Key OLD_GROWTH_SPRUCE_TAIGA = BiomeKeys.OLD_GROWTH_SPRUCE_TAIGA.key();
-    private static final Key OLD_GROWTH_PINE_TAIGA = BiomeKeys.OLD_GROWTH_PINE_TAIGA.key();
-    private static final Key JUNGLE = BiomeKeys.JUNGLE.key();
-    private static final Key SPARSE_JUNGLE = BiomeKeys.SPARSE_JUNGLE.key();
-    private static final Key BAMBOO_JUNGLE = BiomeKeys.BAMBOO_JUNGLE.key();
-    private static final Key SAVANNA = BiomeKeys.SAVANNA.key();
-    private static final Key SAVANNA_PLATEAU = BiomeKeys.SAVANNA_PLATEAU.key();
-    private static final Key WINDSWEPT_SAVANNA = BiomeKeys.WINDSWEPT_SAVANNA.key();
-    private static final Key DESERT = BiomeKeys.DESERT.key();
-    private static final Key SWAMP = BiomeKeys.SWAMP.key();
-    private static final Key MANGROVE_SWAMP = BiomeKeys.MANGROVE_SWAMP.key();
-    private static final Key MEADOW = BiomeKeys.MEADOW.key();
-    private static final Key CHERRY_GROVE = BiomeKeys.CHERRY_GROVE.key();
-    private static final Key GROVE = BiomeKeys.GROVE.key();
-    private static final Key SNOWY_SLOPES = BiomeKeys.SNOWY_SLOPES.key();
-    private static final Key JAGGED_PEAKS = BiomeKeys.JAGGED_PEAKS.key();
-    private static final Key FROZEN_PEAKS = BiomeKeys.FROZEN_PEAKS.key();
-    private static final Key STONY_PEAKS = BiomeKeys.STONY_PEAKS.key();
-    private static final Key BADLANDS = BiomeKeys.BADLANDS.key();
-    private static final Key ERODED_BADLANDS = BiomeKeys.ERODED_BADLANDS.key();
-    private static final Key WOODED_BADLANDS = BiomeKeys.WOODED_BADLANDS.key();
-    private static final Key WINDSWEPT_HILLS = BiomeKeys.WINDSWEPT_HILLS.key();
-    private static final Key WINDSWEPT_GRAVELLY_HILLS = BiomeKeys.WINDSWEPT_GRAVELLY_HILLS.key();
-    private static final Key WINDSWEPT_FOREST = BiomeKeys.WINDSWEPT_FOREST.key();
+    private static final TypedKey<BiomeDefinition> PLAINS = BiomeKeys.PLAINS;
+    private static final TypedKey<BiomeDefinition> SUNFLOWER_PLAINS = BiomeKeys.SUNFLOWER_PLAINS;
+    private static final TypedKey<BiomeDefinition> SNOWY_PLAINS = BiomeKeys.SNOWY_PLAINS;
+    private static final TypedKey<BiomeDefinition> ICE_SPIKES = BiomeKeys.ICE_SPIKES;
+    private static final TypedKey<BiomeDefinition> FOREST = BiomeKeys.FOREST;
+    private static final TypedKey<BiomeDefinition> FLOWER_FOREST = BiomeKeys.FLOWER_FOREST;
+    private static final TypedKey<BiomeDefinition> BIRCH_FOREST = BiomeKeys.BIRCH_FOREST;
+    private static final TypedKey<BiomeDefinition> OLD_GROWTH_BIRCH_FOREST = BiomeKeys.OLD_GROWTH_BIRCH_FOREST;
+    private static final TypedKey<BiomeDefinition> DARK_FOREST = BiomeKeys.DARK_FOREST;
+    private static final TypedKey<BiomeDefinition> PALE_GARDEN = BiomeKeys.PALE_GARDEN;
+    private static final TypedKey<BiomeDefinition> TAIGA = BiomeKeys.TAIGA;
+    private static final TypedKey<BiomeDefinition> SNOWY_TAIGA = BiomeKeys.SNOWY_TAIGA;
+    private static final TypedKey<BiomeDefinition> OLD_GROWTH_SPRUCE_TAIGA = BiomeKeys.OLD_GROWTH_SPRUCE_TAIGA;
+    private static final TypedKey<BiomeDefinition> OLD_GROWTH_PINE_TAIGA = BiomeKeys.OLD_GROWTH_PINE_TAIGA;
+    private static final TypedKey<BiomeDefinition> JUNGLE = BiomeKeys.JUNGLE;
+    private static final TypedKey<BiomeDefinition> SPARSE_JUNGLE = BiomeKeys.SPARSE_JUNGLE;
+    private static final TypedKey<BiomeDefinition> BAMBOO_JUNGLE = BiomeKeys.BAMBOO_JUNGLE;
+    private static final TypedKey<BiomeDefinition> SAVANNA = BiomeKeys.SAVANNA;
+    private static final TypedKey<BiomeDefinition> SAVANNA_PLATEAU = BiomeKeys.SAVANNA_PLATEAU;
+    private static final TypedKey<BiomeDefinition> WINDSWEPT_SAVANNA = BiomeKeys.WINDSWEPT_SAVANNA;
+    private static final TypedKey<BiomeDefinition> DESERT = BiomeKeys.DESERT;
+    private static final TypedKey<BiomeDefinition> SWAMP = BiomeKeys.SWAMP;
+    private static final TypedKey<BiomeDefinition> MANGROVE_SWAMP = BiomeKeys.MANGROVE_SWAMP;
+    private static final TypedKey<BiomeDefinition> MEADOW = BiomeKeys.MEADOW;
+    private static final TypedKey<BiomeDefinition> CHERRY_GROVE = BiomeKeys.CHERRY_GROVE;
+    private static final TypedKey<BiomeDefinition> GROVE = BiomeKeys.GROVE;
+    private static final TypedKey<BiomeDefinition> SNOWY_SLOPES = BiomeKeys.SNOWY_SLOPES;
+    private static final TypedKey<BiomeDefinition> JAGGED_PEAKS = BiomeKeys.JAGGED_PEAKS;
+    private static final TypedKey<BiomeDefinition> FROZEN_PEAKS = BiomeKeys.FROZEN_PEAKS;
+    private static final TypedKey<BiomeDefinition> STONY_PEAKS = BiomeKeys.STONY_PEAKS;
+    private static final TypedKey<BiomeDefinition> BADLANDS = BiomeKeys.BADLANDS;
+    private static final TypedKey<BiomeDefinition> ERODED_BADLANDS = BiomeKeys.ERODED_BADLANDS;
+    private static final TypedKey<BiomeDefinition> WOODED_BADLANDS = BiomeKeys.WOODED_BADLANDS;
+    private static final TypedKey<BiomeDefinition> WINDSWEPT_HILLS = BiomeKeys.WINDSWEPT_HILLS;
+    private static final TypedKey<BiomeDefinition> WINDSWEPT_GRAVELLY_HILLS = BiomeKeys.WINDSWEPT_GRAVELLY_HILLS;
+    private static final TypedKey<BiomeDefinition> WINDSWEPT_FOREST = BiomeKeys.WINDSWEPT_FOREST;
 
-    private static final Key LUSH_CAVES = BiomeKeys.LUSH_CAVES.key();
-    private static final Key DRIPSTONE_CAVES = BiomeKeys.DRIPSTONE_CAVES.key();
-    private static final Key SULFUR_CAVES = BiomeKeys.SULFUR_CAVES.key();
-    private static final Key DEEP_DARK = BiomeKeys.DEEP_DARK.key();
+    private static final TypedKey<BiomeDefinition> LUSH_CAVES = BiomeKeys.LUSH_CAVES;
+    private static final TypedKey<BiomeDefinition> DRIPSTONE_CAVES = BiomeKeys.DRIPSTONE_CAVES;
+    private static final TypedKey<BiomeDefinition> SULFUR_CAVES = BiomeKeys.SULFUR_CAVES;
+    private static final TypedKey<BiomeDefinition> DEEP_DARK = BiomeKeys.DEEP_DARK;
 
     private BiomeTable() {
         throw new UnsupportedOperationException("BiomeTable cannot be instantiated.");
     }
 
-    public static Key surface(final ClimatePoint point) {
+    public static TypedKey<BiomeDefinition> surface(final ClimatePoint point) {
         final int continent = point.continentLevel();
         final int temperature = point.temperatureLevel();
 
@@ -85,7 +86,7 @@ public final class BiomeTable {
         return inland(point, continent);
     }
 
-    public static @Nullable Key cave(final ClimatePoint point, final int y, final int surfaceY) {
+    public static @Nullable TypedKey<BiomeDefinition> cave(final ClimatePoint point, final int y, final int surfaceY) {
         final double depth = (surfaceY - y) / 128.0;
         if (depth < 0.2) {
             return null;
@@ -108,7 +109,7 @@ public final class BiomeTable {
         return null;
     }
 
-    private static Key ocean(final int temperature) {
+    private static TypedKey<BiomeDefinition> ocean(final int temperature) {
         return switch (temperature) {
             case 0 -> FROZEN_OCEAN;
             case 1 -> COLD_OCEAN;
@@ -118,7 +119,7 @@ public final class BiomeTable {
         };
     }
 
-    private static Key deepOcean(final int temperature) {
+    private static TypedKey<BiomeDefinition> deepOcean(final int temperature) {
         return switch (temperature) {
             case 0 -> DEEP_FROZEN_OCEAN;
             case 1 -> DEEP_COLD_OCEAN;
@@ -127,7 +128,7 @@ public final class BiomeTable {
         };
     }
 
-    private static Key inland(final ClimatePoint point, final int continent) {
+    private static TypedKey<BiomeDefinition> inland(final ClimatePoint point, final int continent) {
         final int erosion = point.erosionLevel();
         final int pv = point.peaksValleysLevel();
         final int temperature = point.temperatureLevel();
@@ -143,7 +144,7 @@ public final class BiomeTable {
         };
     }
 
-    private static Key erosion0(
+    private static TypedKey<BiomeDefinition> erosion0(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         switch (pv) {
             case 0 -> {
@@ -191,7 +192,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion1(
+    private static TypedKey<BiomeDefinition> erosion1(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         switch (pv) {
             case 0 -> {
@@ -251,7 +252,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion2(
+    private static TypedKey<BiomeDefinition> erosion2(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         switch (pv) {
             case 0 -> {
@@ -287,7 +288,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion3(
+    private static TypedKey<BiomeDefinition> erosion3(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         switch (pv) {
             case 0 -> {
@@ -317,7 +318,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion4(final ClimatePoint point, final int continent, final int pv) {
+    private static TypedKey<BiomeDefinition> erosion4(final ClimatePoint point, final int continent, final int pv) {
         final int temperature = point.temperatureLevel();
         switch (pv) {
             case 0 -> {
@@ -338,7 +339,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion5(
+    private static TypedKey<BiomeDefinition> erosion5(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         final int humidity = point.humidityLevel();
         final boolean windswept = point.weirdness() > 0 && temperature >= 2 && humidity <= 3;
@@ -374,7 +375,7 @@ public final class BiomeTable {
         }
     }
 
-    private static Key erosion6(
+    private static TypedKey<BiomeDefinition> erosion6(
             final ClimatePoint point, final int continent, final int pv, final int temperature) {
         switch (pv) {
             case 0 -> {
@@ -401,32 +402,32 @@ public final class BiomeTable {
         }
     }
 
-    private static Key swamp(final int temperature) {
+    private static TypedKey<BiomeDefinition> swamp(final int temperature) {
         if (temperature == 0) {
             return FROZEN_RIVER;
         }
         return temperature >= 3 ? MANGROVE_SWAMP : SWAMP;
     }
 
-    private static Key river(final int temperature) {
+    private static TypedKey<BiomeDefinition> river(final int temperature) {
         return temperature == 0 ? FROZEN_RIVER : RIVER;
     }
 
-    private static Key beach(final int temperature) {
+    private static TypedKey<BiomeDefinition> beach(final int temperature) {
         if (temperature == 0) {
             return SNOWY_BEACH;
         }
         return temperature == 4 ? DESERT : BEACH;
     }
 
-    private static Key peaks(final ClimatePoint point, final int temperature) {
+    private static TypedKey<BiomeDefinition> peaks(final ClimatePoint point, final int temperature) {
         if (temperature <= 2) {
             return point.weirdness() < 0 ? JAGGED_PEAKS : FROZEN_PEAKS;
         }
         return temperature == 3 ? STONY_PEAKS : badlands(point);
     }
 
-    private static Key badlands(final ClimatePoint point) {
+    private static TypedKey<BiomeDefinition> badlands(final ClimatePoint point) {
         final int humidity = point.humidityLevel();
         if (humidity <= 1) {
             return point.weirdness() < 0 ? BADLANDS : ERODED_BADLANDS;
@@ -434,7 +435,7 @@ public final class BiomeTable {
         return humidity == 2 ? BADLANDS : WOODED_BADLANDS;
     }
 
-    private static Key middle(final ClimatePoint point, final boolean forceWeird) {
+    private static TypedKey<BiomeDefinition> middle(final ClimatePoint point, final boolean forceWeird) {
         final int temperature = point.temperatureLevel();
         final int humidity = point.humidityLevel();
         final boolean weird = forceWeird || point.weirdness() > 0;
@@ -470,7 +471,7 @@ public final class BiomeTable {
         };
     }
 
-    private static Key plateau(final ClimatePoint point) {
+    private static TypedKey<BiomeDefinition> plateau(final ClimatePoint point) {
         final int temperature = point.temperatureLevel();
         final int humidity = point.humidityLevel();
         final boolean weird = point.weirdness() > 0;
@@ -508,7 +509,7 @@ public final class BiomeTable {
         };
     }
 
-    private static Key shattered(final ClimatePoint point) {
+    private static TypedKey<BiomeDefinition> shattered(final ClimatePoint point) {
         final int temperature = point.temperatureLevel();
         final int humidity = point.humidityLevel();
         final boolean weird = point.weirdness() > 0;

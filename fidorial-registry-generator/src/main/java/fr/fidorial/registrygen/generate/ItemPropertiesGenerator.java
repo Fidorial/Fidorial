@@ -14,7 +14,6 @@ import fr.fidorial.registrygen.GenerationUtils;
 import fr.fidorial.registrygen.model.PrismarineItemDefinition;
 import fr.fidorial.registrygen.model.RegistryEntryDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
-import net.kyori.adventure.key.Key;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -51,6 +50,8 @@ public final class ItemPropertiesGenerator {
     private static final ClassName OBJECT_2_OBJECT_OPEN_HASH_MAP =
             ClassName.get("it.unimi.dsi.fastutil.objects", "Object2ObjectOpenHashMap");
     private static final ClassName NULLABLE = ClassName.get("org.jspecify.annotations", "Nullable");
+    private static final ParameterizedTypeName ITEM_KEY = ParameterizedTypeName.get(
+            ClassName.get("fr.fidorial.registry", "TypedKey"), ClassName.get("fr.fidorial.registry.data", "Item"));
 
     /**
      * Generates the {@code ItemProperties} class.
@@ -84,13 +85,13 @@ public final class ItemPropertiesGenerator {
                 SupportedRegistries.ITEM.keysClassName());
 
         final ParameterizedTypeName intMapType =
-                ParameterizedTypeName.get(OBJECT_2_INT_OPEN_HASH_MAP, ClassName.get(Key.class));
+                ParameterizedTypeName.get(OBJECT_2_INT_OPEN_HASH_MAP, ITEM_KEY);
 
-        final ParameterizedTypeName keyListType = ParameterizedTypeName.get(LIST, ClassName.get(Key.class));
+        final ParameterizedTypeName keyListType = ParameterizedTypeName.get(LIST, ITEM_KEY);
         final ParameterizedTypeName repairMapType =
-                ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), keyListType);
+                ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ITEM_KEY, keyListType);
         final ParameterizedTypeName slotMapType =
-                ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ClassName.get(Key.class), ClassName.get(String.class));
+                ParameterizedTypeName.get(OBJECT_2_OBJECT_OPEN_HASH_MAP, ITEM_KEY, ClassName.get(String.class));
 
         final TypeSpec.Builder type = TypeSpec.classBuilder(CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -152,8 +153,8 @@ public final class ItemPropertiesGenerator {
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.INT)
-                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
-                .addJavadoc("@param item namespaced item identifier\n")
+                .addParameter(ParameterSpec.builder(ITEM_KEY, "item", Modifier.FINAL).build())
+                .addJavadoc("@param item the item\n")
                 .addJavadoc("@return " + description + "; {@code " + defaultValue
                         + "} when the item has no recorded data\n")
                 .addStatement("return $N.getInt($N)", fieldName, "item")
@@ -164,8 +165,8 @@ public final class ItemPropertiesGenerator {
         return MethodSpec.methodBuilder("isDamageable")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.BOOLEAN)
-                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
-                .addJavadoc("@param item namespaced item identifier\n")
+                .addParameter(ParameterSpec.builder(ITEM_KEY, "item", Modifier.FINAL).build())
+                .addJavadoc("@param item the item\n")
                 .addJavadoc("@return {@code true} when the item has durability to lose\n")
                 .addStatement("return MAX_DAMAGE.getInt($N) > 0", "item")
                 .build();
@@ -175,8 +176,8 @@ public final class ItemPropertiesGenerator {
         return MethodSpec.methodBuilder("repairMaterials")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(keyListType)
-                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
-                .addJavadoc("@param item namespaced item identifier\n")
+                .addParameter(ParameterSpec.builder(ITEM_KEY, "item", Modifier.FINAL).build())
+                .addJavadoc("@param item the item\n")
                 .addJavadoc("@return the materials that repair this item on an anvil, "
                         + "empty when it cannot be repaired that way\n")
                 .addStatement("return REPAIR_MATERIALS.getOrDefault($N, $T.of())", "item", LIST)
@@ -187,8 +188,8 @@ public final class ItemPropertiesGenerator {
         return MethodSpec.methodBuilder("equipmentSlot")
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(ClassName.get(String.class).annotated(AnnotationSpec.builder(NULLABLE).build()))
-                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
-                .addJavadoc("@param item namespaced item identifier\n")
+                .addParameter(ParameterSpec.builder(ITEM_KEY, "item", Modifier.FINAL).build())
+                .addJavadoc("@param item the item\n")
                 .addJavadoc("@return the slot the item is worn in, as Mojang names it ({@code head}, {@code chest},\n")
                 .addJavadoc("{@code legs}, {@code feet}, {@code offhand}, {@code body}, {@code saddle}),\n")
                 .addJavadoc("{@code null} when it cannot be worn\n")
@@ -199,7 +200,7 @@ public final class ItemPropertiesGenerator {
     private static MethodSpec registerHelper(final ParameterizedTypeName keyListType) {
         return MethodSpec.methodBuilder("register")
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                .addParameter(ParameterSpec.builder(ClassName.get(Key.class), "item", Modifier.FINAL).build())
+                .addParameter(ParameterSpec.builder(ITEM_KEY, "item", Modifier.FINAL).build())
                 .addParameter(ParameterSpec.builder(int.class, "stackSize", Modifier.FINAL).build())
                 .addParameter(ParameterSpec.builder(int.class, "maxDamage", Modifier.FINAL).build())
                 .addParameter(ParameterSpec.builder(keyListType, "repairMaterials", Modifier.FINAL).build())
@@ -238,7 +239,7 @@ public final class ItemPropertiesGenerator {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
             }
 
-            current.addStatement("register($T.$L.key(), $L, $L, $L)",
+            current.addStatement("register($T.$L, $L, $L, $L)",
                     itemKeys,
                     GenerationUtils.constantName(item.identifier()),
                     prismarine.stackSize(),
@@ -294,7 +295,7 @@ public final class ItemPropertiesGenerator {
                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
             }
 
-            current.addStatement("EQUIPMENT_SLOT.put($T.$L.key(), $S)",
+            current.addStatement("EQUIPMENT_SLOT.put($T.$L, $S)",
                     itemKeys, GenerationUtils.constantName(item.identifier()), slot);
 
             if (++inCurrent >= ITEMS_PER_METHOD) {
@@ -322,7 +323,7 @@ public final class ItemPropertiesGenerator {
             if (!first) {
                 arguments.add(", ");
             }
-            arguments.add("$T.$L.key()", itemKeys, GenerationUtils.constantName(material));
+            arguments.add("$T.$L", itemKeys, GenerationUtils.constantName(material));
             first = false;
         }
 

@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.block;
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.fidorial.annotation.SinceMinecraft;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockBehaviour;
@@ -11,18 +12,17 @@ import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.type.Speleothem;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 @SinceMinecraft("26.4")
 public class SpeleothemBlock implements BlockBehaviour {
 
-    public static final SpeleothemBlock POINTED_DRIPSTONE = new SpeleothemBlock(BlockTypeKeys.POINTED_DRIPSTONE.key());
-    public static final SpeleothemBlock SULFUR_SPIKE = new SpeleothemBlock(BlockTypeKeys.SULFUR_SPIKE.key());
+    public static final SpeleothemBlock POINTED_DRIPSTONE = new SpeleothemBlock(BlockTypeKeys.POINTED_DRIPSTONE);
+    public static final SpeleothemBlock SULFUR_SPIKE = new SpeleothemBlock(BlockTypeKeys.SULFUR_SPIKE);
 
-    private final Key key;
+    private final TypedKey<BlockType> key;
 
-    protected SpeleothemBlock(final Key key) {
+    protected SpeleothemBlock(final TypedKey<BlockType> key) {
         this.key = key;
     }
 
@@ -31,7 +31,7 @@ public class SpeleothemBlock implements BlockBehaviour {
     }
 
     @Override
-    public final Key key() {
+    public final TypedKey<BlockType> key() {
         return key;
     }
 

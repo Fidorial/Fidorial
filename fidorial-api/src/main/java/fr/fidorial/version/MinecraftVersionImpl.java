@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -61,8 +62,8 @@ record MinecraftVersionImpl(int major, int minor, int patch, Stage stage, int it
 
     private String format(final String separator, final String label) {
         final String base = patch == 0
-                ? "%d.%d".formatted(major, minor)
-                : "%d.%d.%d".formatted(major, minor, patch);
+                ? String.format(Locale.ROOT, "%d.%d", major, minor)
+                : String.format(Locale.ROOT, "%d.%d.%d", major, minor, patch);
         return stage == Stage.RELEASE ? base : String.join(separator, base, label, Integer.toString(iteration));
     }
 

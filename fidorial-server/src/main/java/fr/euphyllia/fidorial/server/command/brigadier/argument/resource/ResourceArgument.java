@@ -52,7 +52,7 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
     public T parse(final StringReader reader) throws CommandSyntaxException {
         final int start = reader.getCursor();
         final Key key = KeyReader.readKey(reader);
-        final Optional<T> value = registryLookup().find(TypedKey.create(registryKey, key));
+        final Optional<T> value = registryLookup().find(TypedKey.withRegistry(registryKey, key));
         if (value.isEmpty()) {
             reader.setCursor(start);
             throw ERROR_UNKNOWN_RESOURCE.createWithContext(reader, key.asString(), registryKey.key().asString());

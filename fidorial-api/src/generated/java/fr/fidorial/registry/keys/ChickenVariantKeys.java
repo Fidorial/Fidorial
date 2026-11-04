@@ -37,7 +37,7 @@ public final class ChickenVariantKeys {
     }
 
     private static TypedKey<ChickenVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.CHICKEN_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.CHICKEN_VARIANT, value);
     }
 
     /**

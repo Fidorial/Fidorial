@@ -1,7 +1,8 @@
 package fr.fidorial.item.component;
 
 import com.google.common.base.Preconditions;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.item.enchantment.EnchantmentDefinition;
+import fr.fidorial.registry.TypedKey;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -15,7 +16,7 @@ import java.util.Map;
  * @see fr.fidorial.item.enchantment.Enchantments#enchant
  * @since 0.1.0
  */
-public record ItemEnchantments(Map<Key, Integer> levels) {
+public record ItemEnchantments(Map<TypedKey<EnchantmentDefinition>, Integer> levels) {
 
     /**
      * The highest level an enchantment may have on a stack.
@@ -29,7 +30,7 @@ public record ItemEnchantments(Map<Key, Integer> levels) {
 
     public ItemEnchantments {
         Preconditions.checkArgument(levels != null, "The levels of item enchantments must not be null");
-        for (final Map.Entry<Key, Integer> level : levels.entrySet()) {
+        for (final Map.Entry<TypedKey<EnchantmentDefinition>, Integer> level : levels.entrySet()) {
             Preconditions.checkArgument(level.getKey() != null, "An enchantment of item enchantments must not be null");
             Preconditions.checkArgument(level.getValue() != null && level.getValue() >= 1 && level.getValue() <= MAX_LEVEL,
                     "The level of %s must be between 1 and %s, got %s", level.getKey(), MAX_LEVEL, level.getValue());
@@ -44,7 +45,7 @@ public record ItemEnchantments(Map<Key, Integer> levels) {
      * @param enchantment the enchantment
      * @since 0.1.0
      */
-    public int level(final Key enchantment) {
+    public int level(final TypedKey<EnchantmentDefinition> enchantment) {
         final Integer level = levels.get(enchantment);
         return level == null ? 0 : level;
     }
@@ -55,7 +56,7 @@ public record ItemEnchantments(Map<Key, Integer> levels) {
      * @param enchantment the enchantment
      * @since 0.1.0
      */
-    public boolean has(final Key enchantment) {
+    public boolean has(final TypedKey<EnchantmentDefinition> enchantment) {
         return levels.containsKey(enchantment);
     }
 
@@ -76,9 +77,9 @@ public record ItemEnchantments(Map<Key, Integer> levels) {
      * @throws IllegalArgumentException if the level is out of range
      * @since 0.1.0
      */
-    public ItemEnchantments with(final Key enchantment, final int level) {
+    public ItemEnchantments with(final TypedKey<EnchantmentDefinition> enchantment, final int level) {
         Preconditions.checkArgument(enchantment != null, "The enchantment must not be null");
-        final Map<Key, Integer> next = new LinkedHashMap<>(levels);
+        final Map<TypedKey<EnchantmentDefinition>, Integer> next = new LinkedHashMap<>(levels);
         next.put(enchantment, level);
         return new ItemEnchantments(next);
     }
@@ -89,11 +90,11 @@ public record ItemEnchantments(Map<Key, Integer> levels) {
      * @param enchantment the enchantment
      * @since 0.1.0
      */
-    public ItemEnchantments without(final Key enchantment) {
+    public ItemEnchantments without(final TypedKey<EnchantmentDefinition> enchantment) {
         if (!levels.containsKey(enchantment)) {
             return this;
         }
-        final Map<Key, Integer> next = new LinkedHashMap<>(levels);
+        final Map<TypedKey<EnchantmentDefinition>, Integer> next = new LinkedHashMap<>(levels);
         next.remove(enchantment);
         return next.isEmpty() ? EMPTY : new ItemEnchantments(next);
     }

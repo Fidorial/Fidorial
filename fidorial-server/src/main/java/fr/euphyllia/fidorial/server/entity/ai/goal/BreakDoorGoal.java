@@ -12,10 +12,11 @@ import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -46,8 +47,8 @@ public final class BreakDoorGoal implements Goal {
     }
 
     public static boolean isBreakableDoor(final BlockState state) {
-        final Key name = state.name();
-        return name.asString().endsWith("_door") && !name.equals(Key.key("iron_door"));
+        final TypedKey<BlockType> name = state.name();
+        return name.key().value().endsWith("_door") && !name.equals(BlockTypeKeys.IRON_DOOR);
     }
 
     private static boolean isClosed(final BlockState state) {
@@ -147,8 +148,8 @@ public final class BreakDoorGoal implements Goal {
         clearDestroyStage();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
-        server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()));
-        server.worlds().blockEdits().set(world, other, BlockState.of(BlockTypeKeys.AIR.key()));
+        server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR));
+        server.worlds().blockEdits().set(world, other, BlockState.withoutProperties(BlockTypeKeys.AIR));
 
         server.players().broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
                 new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos, 0, false));

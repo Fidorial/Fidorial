@@ -16,10 +16,12 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.ArrayList;
@@ -39,32 +41,30 @@ public final class Explosion {
 
     private static final float DEFAULT_BLAST_RESISTANCE = 0.5f;
     // TODO : Add the `BLAST_RESISTANCE` method to BlockState.
-    private static final Map<String, Float> BLAST_RESISTANCE = Map.ofEntries(
-            Map.entry("minecraft:bedrock", 3_600_000f),
-            Map.entry("minecraft:barrier", 3_600_000f),
-            Map.entry("minecraft:command_block", 3_600_000f),
-            Map.entry("minecraft:end_portal_frame", 3_600_000f),
-            Map.entry("minecraft:obsidian", 1_200f),
-            Map.entry("minecraft:crying_obsidian", 1_200f),
-            Map.entry("minecraft:respawn_anchor", 1_200f),
-            Map.entry("minecraft:reinforced_deepslate", 1_200f),
-            Map.entry("minecraft:ancient_debris", 1_200f),
-            Map.entry("minecraft:netherite_block", 1_200f),
-            Map.entry("minecraft:enchanting_table", 1_200f),
-            Map.entry("minecraft:ender_chest", 600f),
-            Map.entry("minecraft:water", 100f),
-            Map.entry("minecraft:lava", 100f),
-            Map.entry("minecraft:end_stone", 9f),
-            Map.entry("minecraft:stone", 6f),
-            Map.entry("minecraft:cobblestone", 6f),
-            Map.entry("minecraft:deepslate", 6f),
-            Map.entry("minecraft:granite", 6f),
-            Map.entry("minecraft:diorite", 6f),
-            Map.entry("minecraft:andesite", 6f),
-            Map.entry("minecraft:bricks", 6f),
-            Map.entry("minecraft:planks", 3f),
-            Map.entry("minecraft:glass", 0.3f),
-            Map.entry("minecraft:leaves", 0.2f));
+    private static final Map<TypedKey<BlockType>, Float> BLAST_RESISTANCE = Map.ofEntries(
+            Map.entry(BlockTypeKeys.BEDROCK, 3_600_000f),
+            Map.entry(BlockTypeKeys.BARRIER, 3_600_000f),
+            Map.entry(BlockTypeKeys.COMMAND_BLOCK, 3_600_000f),
+            Map.entry(BlockTypeKeys.END_PORTAL_FRAME, 3_600_000f),
+            Map.entry(BlockTypeKeys.OBSIDIAN, 1_200f),
+            Map.entry(BlockTypeKeys.CRYING_OBSIDIAN, 1_200f),
+            Map.entry(BlockTypeKeys.RESPAWN_ANCHOR, 1_200f),
+            Map.entry(BlockTypeKeys.REINFORCED_DEEPSLATE, 1_200f),
+            Map.entry(BlockTypeKeys.ANCIENT_DEBRIS, 1_200f),
+            Map.entry(BlockTypeKeys.NETHERITE_BLOCK, 1_200f),
+            Map.entry(BlockTypeKeys.ENCHANTING_TABLE, 1_200f),
+            Map.entry(BlockTypeKeys.ENDER_CHEST, 600f),
+            Map.entry(BlockTypeKeys.WATER, 100f),
+            Map.entry(BlockTypeKeys.LAVA, 100f),
+            Map.entry(BlockTypeKeys.END_STONE, 9f),
+            Map.entry(BlockTypeKeys.STONE, 6f),
+            Map.entry(BlockTypeKeys.COBBLESTONE, 6f),
+            Map.entry(BlockTypeKeys.DEEPSLATE, 6f),
+            Map.entry(BlockTypeKeys.GRANITE, 6f),
+            Map.entry(BlockTypeKeys.DIORITE, 6f),
+            Map.entry(BlockTypeKeys.ANDESITE, 6f),
+            Map.entry(BlockTypeKeys.BRICKS, 6f),
+            Map.entry(BlockTypeKeys.GLASS, 0.3f));
 
     private Explosion() {
     }
@@ -83,11 +83,10 @@ public final class Explosion {
     }
 
     private static void playExplosionSound(final FidorialServer server, final ServerWorld world, final Location center) {
-        final float pitch = (1.0f
-                + (ThreadLocalRandom.current().nextFloat()
-                - ThreadLocalRandom.current().nextFloat())
-                * 0.2f)
-                * 0.7f;
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final float first = random.nextFloat();
+        final float second = random.nextFloat();
+        final float pitch = (1.0f + (first - second) * 0.2f) * 0.7f;
         server.players().broadcastNear(world, center.x(), center.y(), center.z(),
                 new ClientboundSoundPacket(
                         Sound.sound(SoundEvents.GENERIC_EXPLODE, Sound.Source.BLOCK, 4.0f, pitch),
@@ -101,7 +100,7 @@ public final class Explosion {
         final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
 
         for (final BlockPosition pos : toDestroy) {
-            if (server.worlds().blockEdits().set(world, pos, BlockState.of(BlockTypeKeys.AIR.key()))) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                 destroyed.add(pos);
             }
             if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
@@ -163,8 +162,18 @@ public final class Explosion {
     }
 
     private static float resistanceOf(final BlockState state) {
-        return BLAST_RESISTANCE.getOrDefault(
-                state.name(), DEFAULT_BLAST_RESISTANCE); // Todo : Add the `BLAST_RESISTANCE` method to BlockState.
+        // Todo : Add the `BLAST_RESISTANCE` method to BlockState.
+        final Float resistance = BLAST_RESISTANCE.get(state.name());
+        if (resistance != null) {
+            return resistance;
+        }
+        if (BlockView.isTagged(BlockTypeTagKeys.PLANKS, state)) {
+            return 3f;
+        }
+        if (BlockView.isTagged(BlockTypeTagKeys.LEAVES, state)) {
+            return 0.2f;
+        }
+        return DEFAULT_BLAST_RESISTANCE;
     }
 
     private static void damageEntities(
@@ -314,8 +323,8 @@ public final class Explosion {
     }
 
     private static boolean isFluid(final BlockState state) {
-        final Key name = state.name();
-        return name.equals(Key.key("water")) || name.equals(Key.key("lava")); // Todo : Add isFluid to BlockState
+        final TypedKey<BlockType> name = state.name();
+        return name.equals(BlockTypeKeys.WATER) || name.equals(BlockTypeKeys.LAVA); // Todo : Add isFluid to BlockState
     }
 
     private static double eyeHeight(final AbstractEntity entity) {

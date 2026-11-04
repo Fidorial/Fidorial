@@ -7,6 +7,7 @@ import com.palantir.javapoet.JavaFile;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
 import fr.fidorial.registrygen.GenerationUtils;
 import fr.fidorial.registrygen.model.RegistryDefinition;
@@ -64,7 +65,7 @@ public final class RegistryKeysGenerator {
 
         final ClassName registryKey = ClassName.get(registryPackage, "RegistryKey");
         final ClassName typedKey = ClassName.get(registryPackage, "TypedKey");
-        final ClassName markerType = ClassName.bestGuess(valueType);
+        final TypeName markerType = GenerationUtils.typeName(valueType);
 
         final ParameterizedTypeName typedKeyType = ParameterizedTypeName.get(typedKey, markerType);
 
@@ -164,7 +165,7 @@ public final class RegistryKeysGenerator {
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .returns(typedKeyType)
                 .addParameter(valueParameter)
-                .addStatement("return $T.create($T.$N, $N)", typedKey, registryKey, registryFieldName, "value")
+                .addStatement("return $T.withRegistry($T.$N, $N)", typedKey, registryKey, registryFieldName, "value")
                 .build();
     }
 
@@ -182,7 +183,7 @@ public final class RegistryKeysGenerator {
     }
 
     /**
-     * Returns the value passed to {@code TypedKey.create}.
+     * Returns the value passed to {@code TypedKey.withRegistry}.
      *
      * <p>Minecraft identifiers use only their path:</p>
      *

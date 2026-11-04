@@ -34,6 +34,6 @@ public final class TimelineTagKeys {
     }
 
     private static TagKey<Timeline> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.TIMELINE, value);
+        return TagKey.withRegistry(RegistryKey.TIMELINE, value);
     }
 }

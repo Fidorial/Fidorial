@@ -31,7 +31,7 @@ public final class CatSoundVariantKeys {
     }
 
     private static TypedKey<CatSoundVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.CAT_SOUND_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.CAT_SOUND_VARIANT, value);
     }
 
     /**

@@ -115,7 +115,7 @@ public final class DebugSubscriptionKeys {
     }
 
     private static TypedKey<DebugSubscription> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DEBUG_SUBSCRIPTION, value);
+        return TypedKey.withRegistry(RegistryKey.DEBUG_SUBSCRIPTION, value);
     }
 
     /**

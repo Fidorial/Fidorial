@@ -7,6 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.util.TriState;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -77,7 +78,7 @@ public final class CommonCodecs {
     public static final Codec<Integer> NON_NEGATIVE_INT = Codec.intRange(0, Integer.MAX_VALUE);
 
     private static String formatHexColor(final int color) {
-        return String.format("#%06x", color & 0xFFFFFF);
+        return String.format(Locale.ROOT, "#%06x", color & 0xFFFFFF);
     }
 
     private static DataResult<Integer> parseHexColor(final String value) {
@@ -93,7 +94,7 @@ public final class CommonCodecs {
     }
 
     private static String formatHexColorARGB(final int color) {
-        return String.format("#%08x", color);
+        return String.format(Locale.ROOT, "#%08x", color);
     }
 
     private static DataResult<Integer> parseHexColorARGB(final String value) {

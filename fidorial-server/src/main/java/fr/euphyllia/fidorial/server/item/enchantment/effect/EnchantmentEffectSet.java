@@ -9,6 +9,9 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.item.enchantment.EnchantedItem;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
 import fr.fidorial.item.enchantment.EnchantmentEffects;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -209,7 +212,7 @@ public final class EnchantmentEffectSet implements EnchantmentBehaviour {
             try {
                 compiled.add(new AttributeEffect(
                         EffectJson.key(entry, "id"),
-                        EffectJson.key(entry, "attribute"),
+                        TypedKey.withRegistry(RegistryKey.ATTRIBUTE, EffectJson.key(entry, "attribute")),
                         LevelValue.parse(entry.get("amount")),
                         operation(EffectJson.string(entry, "operation"))));
             } catch (final IllegalArgumentException exception) {
@@ -380,7 +383,7 @@ public final class EnchantmentEffectSet implements EnchantmentBehaviour {
     /**
      * A {@code minecraft:attributes} entry.
      */
-    public record AttributeEffect(Key id, Key attribute, LevelValue amount, AttributeModifier.Operation operation) {
+    public record AttributeEffect(Key id, TypedKey<Attribute> attribute, LevelValue amount, AttributeModifier.Operation operation) {
     }
 
     /**

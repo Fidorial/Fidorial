@@ -7,7 +7,8 @@ import fr.euphyllia.fidorial.server.world.structure.StateParser;
 import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.IntProvider;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -25,7 +26,7 @@ public final class Processors {
     private Processors() {
     }
 
-    public static StructureProcessor ignore(final Set<Key> blocks) {
+    public static StructureProcessor ignore(final Set<TypedKey<BlockType>> blocks) {
         return (context, lx, ly, lz, current) -> blocks.contains(current.state().name()) ? null : current;
     }
 
@@ -54,7 +55,7 @@ public final class Processors {
                 current.withY(context.height(heightmap, current.x(), current.z()) + offset + ly);
     }
 
-    public static StructureProcessor blockRot(final float integrity, final @Nullable Set<Key> rottable) {
+    public static StructureProcessor blockRot(final float integrity, final @Nullable Set<TypedKey<BlockType>> rottable) {
         return (context, lx, ly, lz, current) -> {
             if (rottable != null && !rottable.contains(current.state().name())) {
                 return current;
@@ -64,7 +65,7 @@ public final class Processors {
         };
     }
 
-    public static StructureProcessor protectedBlocks(final Set<Key> cannotReplace) {
+    public static StructureProcessor protectedBlocks(final Set<TypedKey<BlockType>> cannotReplace) {
         return (context, lx, ly, lz, current) ->
                 cannotReplace.contains(context.existing(current.x(), current.y(), current.z()).name()) ? null : current;
     }
@@ -82,7 +83,7 @@ public final class Processors {
     }
 
     private static boolean isFullBlock(final BlockState state) {
-        final String name = state.name().value();
+        final String name = state.name().key().value();
         return !(name.endsWith("_slab") || name.endsWith("_stairs") || name.endsWith("_wall") || name.endsWith("_fence")
                 || name.endsWith("_pane") || name.endsWith("_bars") || name.endsWith("_door") || name.endsWith("_trapdoor"));
     }

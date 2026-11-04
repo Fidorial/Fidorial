@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -232,7 +233,7 @@ public final class LibraryStore {
 
                     Files.move(temporary, target,
                             StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-                    Log.info(String.format("  [%d/%d] %s", completed.incrementAndGet(), total, artifact.id()));
+                    Log.info(String.format(Locale.ROOT, "  [%d/%d] %s", completed.incrementAndGet(), total, artifact.id()));
                     if (!repository.equals(repositories.getFirst())) {
                         servedByFallback
                                 .computeIfAbsent(repository, key -> Collections.synchronizedList(new ArrayList<>()))
@@ -309,6 +310,6 @@ public final class LibraryStore {
     }
 
     private static String mib(final long bytes) {
-        return String.format("%.1f", bytes / (1024.0 * 1024.0));
+        return String.format(Locale.ROOT, "%.1f", bytes / (1024.0 * 1024.0));
     }
 }

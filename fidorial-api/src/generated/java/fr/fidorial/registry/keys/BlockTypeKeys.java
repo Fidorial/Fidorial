@@ -2,7 +2,7 @@ package fr.fidorial.registry.keys;
 
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.BlockType;
+import fr.fidorial.world.block.BlockType;
 import java.util.List;
 import java.util.stream.Stream;
 import net.kyori.adventure.key.KeyPattern;
@@ -7885,7 +7885,7 @@ public final class BlockTypeKeys {
     }
 
     private static TypedKey<BlockType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.BLOCK, value);
+        return TypedKey.withRegistry(RegistryKey.BLOCK, value);
     }
 
     /**

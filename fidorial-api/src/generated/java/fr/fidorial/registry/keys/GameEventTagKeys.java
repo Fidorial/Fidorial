@@ -39,6 +39,6 @@ public final class GameEventTagKeys {
     }
 
     private static TagKey<GameEvent> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.GAME_EVENT, value);
+        return TagKey.withRegistry(RegistryKey.GAME_EVENT, value);
     }
 }

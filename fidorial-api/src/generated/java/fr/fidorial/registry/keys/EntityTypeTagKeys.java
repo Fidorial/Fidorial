@@ -279,6 +279,6 @@ public final class EntityTypeTagKeys {
     }
 
     private static TagKey<EntityType> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.ENTITY_TYPE, value);
+        return TagKey.withRegistry(RegistryKey.ENTITY_TYPE, value);
     }
 }

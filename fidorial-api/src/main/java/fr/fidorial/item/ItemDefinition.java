@@ -6,7 +6,8 @@ import fr.fidorial.item.data.DataComponentHolder;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 
 import java.util.function.Consumer;
 
@@ -18,7 +19,7 @@ import java.util.function.Consumer;
  * @param components  the components every stack of this item starts with
  * @since 0.1.0
  */
-public record ItemDefinition(Key key, Key networkType, DataComponentMap components)
+public record ItemDefinition(TypedKey<Item> key, TypedKey<Item> networkType, DataComponentMap components)
         implements DataComponentHolder {
 
     /**
@@ -54,7 +55,7 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
      * @return a builder pre-filled with the defaults of a plain, unstackable tool
      * @since 0.1.0
      */
-    public static Builder builder(final Key key, final Key networkType) {
+    public static Builder builder(final TypedKey<Item> key, final TypedKey<Item> networkType) {
         return new Builder(key, networkType);
     }
 
@@ -73,17 +74,17 @@ public record ItemDefinition(Key key, Key networkType, DataComponentMap componen
      */
     public static final class Builder {
 
-        private final Key key;
-        private final Key networkType;
+        private final TypedKey<Item> key;
+        private final TypedKey<Item> networkType;
         private final DataComponentEditor components;
 
-        private Builder(final Key key, final Key networkType) {
+        private Builder(final TypedKey<Item> key, final TypedKey<Item> networkType) {
             final DataComponentEditor editor = DataComponentEditor.empty();
             editor.set(DataComponentTypes.MAX_STACK_SIZE, DEFAULT_MAX_STACK_SIZE);
             this(key, networkType, editor);
         }
 
-        private Builder(final Key key, final Key networkType, final DataComponentEditor components) {
+        private Builder(final TypedKey<Item> key, final TypedKey<Item> networkType, final DataComponentEditor components) {
             Preconditions.checkArgument(key != null, "The key of an item definition builder must not be null");
             Preconditions.checkArgument(networkType != null, "The network type of an item definition builder must not be null");
             Preconditions.checkArgument(components != null, "The components of an item definition builder must not be null");

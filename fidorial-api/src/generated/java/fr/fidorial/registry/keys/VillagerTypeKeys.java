@@ -61,7 +61,7 @@ public final class VillagerTypeKeys {
     }
 
     private static TypedKey<VillagerType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.VILLAGER_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.VILLAGER_TYPE, value);
     }
 
     /**

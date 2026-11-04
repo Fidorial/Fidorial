@@ -259,7 +259,7 @@ public final class AttributeKeys {
     }
 
     private static TypedKey<Attribute> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.ATTRIBUTE, value);
+        return TypedKey.withRegistry(RegistryKey.ATTRIBUTE, value);
     }
 
     /**

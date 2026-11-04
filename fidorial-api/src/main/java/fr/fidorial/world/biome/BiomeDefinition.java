@@ -1,18 +1,15 @@
 package fr.fidorial.world.biome;
 
 import com.google.common.base.Preconditions;
-import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.environment.EnvironmentAttributes;
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Contract;
 
 
 /**
  * A complete biome definition, ready to be sent to clients.
  *
- * @param key                 the namespaced identifier of the biome
+ * @param key                 the key of the biome, typed against the {@code minecraft:worldgen/biome} registry
  * @param hasPrecipitation    whether rain or snow may fall
  * @param temperature         biome temperature, driving snow, freezing water and the default colors
  * @param temperatureModifier how the client reinterprets {@code temperature}
@@ -22,14 +19,14 @@ import org.jetbrains.annotations.Contract;
  * @since 0.1.0
  */
 public record BiomeDefinition(
-        Key key,
+        TypedKey<BiomeDefinition> key,
         boolean hasPrecipitation,
         float temperature,
         TemperatureModifier temperatureModifier,
         float downfall,
         BiomeEffects effects,
         EnvironmentAttributes attributes
-) implements Keyed {
+) {
 
     public BiomeDefinition {
         Preconditions.checkArgument(key != null, "The key of a biome definition must not be null");
@@ -47,7 +44,7 @@ public record BiomeDefinition(
      * @param key the namespaced identifier of the biome
      */
     @Contract(value = "_ -> new", pure = true)
-    public static BiomeBuilder builder(final Key key) {
+    public static BiomeBuilder builder(final TypedKey<BiomeDefinition> key) {
         return new BiomeBuilder(key);
     }
 
@@ -59,13 +56,5 @@ public record BiomeDefinition(
     @Contract(value = "_ -> new", pure = true)
     public static BiomeBuilder builder(final BiomeDefinition definition) {
         return new BiomeBuilder(definition);
-    }
-
-    /**
-     * {@return this biome's key, typed against the {@code minecraft:worldgen/biome} registry}
-     */
-    @Contract(value = "-> new", pure = true)
-    public TypedKey<BiomeDefinition> typedKey() {
-        return TypedKey.create(RegistryKey.BIOME, key);
     }
 }

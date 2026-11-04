@@ -385,7 +385,7 @@ public final class GameEventKeys {
     }
 
     private static TypedKey<GameEvent> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.GAME_EVENT, value);
+        return TypedKey.withRegistry(RegistryKey.GAME_EVENT, value);
     }
 
     /**

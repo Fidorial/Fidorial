@@ -67,7 +67,7 @@ public final class InstrumentKeys {
     }
 
     private static TypedKey<Instrument> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.INSTRUMENT, value);
+        return TypedKey.withRegistry(RegistryKey.INSTRUMENT, value);
     }
 
     /**

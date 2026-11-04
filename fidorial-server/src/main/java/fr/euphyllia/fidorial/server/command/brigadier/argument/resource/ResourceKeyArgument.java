@@ -33,7 +33,7 @@ public final class ResourceKeyArgument<T> implements ArgumentType<TypedKey<T>> {
 
     @Override
     public TypedKey<T> parse(final StringReader reader) throws CommandSyntaxException {
-        return TypedKey.create(registryKey, KeyReader.readKey(reader));
+        return TypedKey.withRegistry(registryKey, KeyReader.readKey(reader));
     }
 
     private static final String SPLITTERS = "._/";

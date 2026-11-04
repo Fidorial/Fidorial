@@ -1,6 +1,7 @@
 package fr.fidorial.world.block;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.KeyPattern;
 import org.jspecify.annotations.Nullable;
 
@@ -23,7 +24,7 @@ public interface BlockRegistry {
      * @param key the block key
      * @since 0.1.0
      */
-    Optional<BlockType> type(Key key);
+    Optional<BlockType> type(TypedKey<BlockType> key);
 
     /**
      * {@return the block type registered under a key, if any}
@@ -32,7 +33,7 @@ public interface BlockRegistry {
      * @since 0.1.0
      */
     default Optional<BlockType> type(@KeyPattern final String key) {
-        return type(Key.key(key));
+        return type(TypedKey.withRegistry(RegistryKey.BLOCK, key));
     }
 
     /**
@@ -67,7 +68,7 @@ public interface BlockRegistry {
      * @param key the block key
      * @since 0.1.0
      */
-    default Optional<BlockBehaviour> behaviour(final Key key) {
+    default Optional<BlockBehaviour> behaviour(final TypedKey<BlockType> key) {
         return Optional.empty();
     }
 

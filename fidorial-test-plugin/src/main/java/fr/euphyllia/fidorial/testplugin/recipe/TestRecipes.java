@@ -34,9 +34,9 @@ public final class TestRecipes {
     public static void register(final RecipeRegistry recipes, final Object owner, final ComponentLogger logger) {
         recipes.register(ShapedRecipe.builder(COMPRESSED_PICKAXE)
                 .pattern("DDD", " S ", " S ")
-                .define('D', Ingredient.of(ItemKeys.DIAMOND_BLOCK.key()).withCount(16))
-                .define('S', Ingredient.of(ItemKeys.STICK.key()))
-                .result(ItemStack.builder(ItemKeys.NETHERITE_PICKAXE.key())
+                .define('D', Ingredient.of(ItemKeys.DIAMOND_BLOCK).withCount(16))
+                .define('S', Ingredient.of(ItemKeys.STICK))
+                .result(ItemStack.builder(ItemKeys.NETHERITE_PICKAXE)
                         .set(DataComponentTypes.CUSTOM_NAME,
                                 Component.text("Compressed pickaxe", NamedTextColor.AQUA))
                         .build())
@@ -44,9 +44,9 @@ public final class TestRecipes {
                 .build(), owner);
 
         recipes.register(ShapelessRecipe.builder(GOLD_PACK)
-                .ingredient(Ingredient.of(ItemKeys.GOLD_INGOT.key()).withCount(32))
-                .ingredient(Ingredient.of(ItemKeys.PAPER.key()))
-                .result(ItemStack.of(ItemKeys.GOLD_BLOCK.key(), 3))
+                .ingredient(Ingredient.of(ItemKeys.GOLD_INGOT).withCount(32))
+                .ingredient(Ingredient.of(ItemKeys.PAPER))
+                .result(ItemStack.of(ItemKeys.GOLD_BLOCK, 3))
                 .build(), owner);
 
         logger.info("[TestPlugin] Recipes {} (x16 per slot) and {} (x32 in one slot) registered",

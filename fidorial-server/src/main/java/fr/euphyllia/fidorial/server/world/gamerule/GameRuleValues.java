@@ -42,11 +42,11 @@ public final class GameRuleValues {
     }
 
     public int get(final GameRuleDefinition definition) {
-        return values.get(requireIndex(definition.key().key()));
+        return values.get(requireIndex(definition.key()));
     }
 
     int exchange(final GameRuleDefinition definition, final int value) {
-        return values.getAndSet(requireIndex(definition.key().key()), value);
+        return values.getAndSet(requireIndex(definition.key()), value);
     }
 
     public Map<Key, String> snapshot() {
@@ -59,17 +59,17 @@ public final class GameRuleValues {
     }
 
     static int index(final TypedKey<GameRule> rule, final @Nullable GameRuleType expected) {
-        final int index = requireIndex(rule.key());
+        final int index = requireIndex(rule);
         final GameRuleDefinition definition = VanillaGameRules.ALL.get(index);
         if (expected != null && definition.type() != expected) {
-            throw new IllegalArgumentException("Game rule " + rule.key() + " holds values of type "
+            throw new IllegalArgumentException("Game rule " + rule + " holds values of type "
                     + definition.type().name().toLowerCase(Locale.ROOT) + ", not "
                     + expected.name().toLowerCase(Locale.ROOT));
         }
         return index;
     }
 
-    static int requireIndex(final Key key) {
+    static int requireIndex(final TypedKey<GameRule> key) {
         final int index = VanillaGameRules.indexOf(key);
         if (index < 0) {
             throw new IllegalArgumentException("Unknown game rule: " + key);

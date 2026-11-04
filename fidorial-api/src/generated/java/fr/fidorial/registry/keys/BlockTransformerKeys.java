@@ -37,7 +37,7 @@ public final class BlockTransformerKeys {
     }
 
     private static TypedKey<BlockTransformer> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.BLOCK_TRANSFORMER, value);
+        return TypedKey.withRegistry(RegistryKey.BLOCK_TRANSFORMER, value);
     }
 
     /**

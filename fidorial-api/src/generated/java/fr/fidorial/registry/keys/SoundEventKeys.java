@@ -12307,7 +12307,7 @@ public final class SoundEventKeys {
     }
 
     private static TypedKey<SoundEvent> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.SOUND_EVENT, value);
+        return TypedKey.withRegistry(RegistryKey.SOUND_EVENT, value);
     }
 
     /**

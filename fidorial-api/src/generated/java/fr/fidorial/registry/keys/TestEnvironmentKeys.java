@@ -25,7 +25,7 @@ public final class TestEnvironmentKeys {
     }
 
     private static TypedKey<TestEnvironment> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.TEST_ENVIRONMENT, value);
+        return TypedKey.withRegistry(RegistryKey.TEST_ENVIRONMENT, value);
     }
 
     /**

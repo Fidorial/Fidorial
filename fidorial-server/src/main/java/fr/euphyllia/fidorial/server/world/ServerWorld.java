@@ -41,14 +41,17 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldPaths;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -225,7 +228,7 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public Optional<Key> blockKeyAt(final BlockPosition pos) {
+    public Optional<TypedKey<BlockType>> blockKeyAt(final BlockPosition pos) {
         try {
             final BlockState state = getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
             if (state.isAir()) {
@@ -611,12 +614,12 @@ public final class ServerWorld implements World {
     public BlockState getBlock(final int x, final int y, final int z) throws IOException {
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
-            return BlockState.of(BlockTypeKeys.AIR.key());
+            return BlockState.withoutProperties(BlockTypeKeys.AIR);
         }
         return column.getBlock(x & 15, y, z & 15);
     }
 
-    public boolean setBiome(final int x, final int y, final int z, final Key biome) throws IOException {
+    public boolean setBiome(final int x, final int y, final int z, final TypedKey<BiomeDefinition> biome) throws IOException {
         ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBiome");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
@@ -629,7 +632,7 @@ public final class ServerWorld implements World {
         return true;
     }
 
-    public @Nullable Key getBiome(final int x, final int y, final int z) throws IOException {
+    public @Nullable TypedKey<BiomeDefinition> getBiome(final int x, final int y, final int z) throws IOException {
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return null;
@@ -951,10 +954,10 @@ public final class ServerWorld implements World {
         @Override
         public BlockState blockAt(final int x, final int y, final int z) {
             if (y < minY || y >= minY + height) {
-                return BlockState.of(BlockTypeKeys.AIR.key());
+                return BlockState.withoutProperties(BlockTypeKeys.AIR);
             }
             final ChunkColumn column = loadedColumn(x >> 4, z >> 4);
-            return column == null ? BlockState.of(BlockTypeKeys.AIR.key()) : column.getBlock(x & 15, y, z & 15);
+            return column == null ? BlockState.withoutProperties(BlockTypeKeys.AIR) : column.getBlock(x & 15, y, z & 15);
         }
 
         @Override
@@ -975,7 +978,7 @@ public final class ServerWorld implements World {
             if (column == null) return null;
             return (localX, worldY, localZ) ->
                     (worldY < minY || worldY >= minY + height)
-                            ? BlockState.of(BlockTypeKeys.AIR.key())
+                            ? BlockState.withoutProperties(BlockTypeKeys.AIR)
                             : column.getBlock(localX, worldY, localZ);
         }
 
@@ -1008,7 +1011,7 @@ public final class ServerWorld implements World {
             }
             final BlockColumnAccess columnAccess = (localX, worldY, localZ) ->
                     (worldY < minY || worldY >= minY + height)
-                            ? BlockState.of(BlockTypeKeys.AIR.key())
+                            ? BlockState.withoutProperties(BlockTypeKeys.AIR)
                             : column.getBlock(localX, worldY, localZ);
             return new ColumnSnapshot(column.lightData(), columnAccess, column.topNonEmptySectionY(), column.lightPopulated());
         }

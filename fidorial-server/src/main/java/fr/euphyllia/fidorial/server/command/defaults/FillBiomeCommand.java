@@ -15,10 +15,10 @@ import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeDefinition;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -61,18 +61,18 @@ public final class FillBiomeCommand {
 
     private static int fill(
             final CommandContext<CommandSource> context,
-            final @Nullable Key filter
+            final @Nullable TypedKey<BiomeDefinition> filter
     ) throws CommandSyntaxException {
 
         final FidorialServer server = FidorialServer.getInstance();
         final ServerRegistry<BiomeDefinition> biomes = server.registries().registry(RegistryKey.BIOME);
 
         final BiomeDefinition target = context.getArgument("biome", BiomeDefinition.class);
-        final Key biome = target.key();
+        final TypedKey<BiomeDefinition> biome = target.key();
 
         if (filter != null && !biomes.contains(filter)) {
             context.getSource().sendMessage(
-                    Component.translatable("command.fillbiome.unknown", Component.text(filter.asString())));
+                    Component.translatable("command.fillbiome.unknown", Component.text(filter.key().asString())));
             return 0;
         }
 
@@ -160,7 +160,7 @@ public final class FillBiomeCommand {
             context.getSource().sendMessage(Component.translatable(
                     "command.fillbiome.success",
                     Component.text(changed.get()),
-                    Component.text(biome.asString())));
+                    Component.text(biome.key().asString())));
         });
 
         return Command.SINGLE_SUCCESS;

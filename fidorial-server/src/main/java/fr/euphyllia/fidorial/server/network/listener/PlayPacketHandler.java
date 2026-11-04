@@ -825,7 +825,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
-                server.worlds().blockEdits().set(world, packet.position(), BlockState.of(BlockTypeKeys.AIR.key()));
+                server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR));
                 server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));

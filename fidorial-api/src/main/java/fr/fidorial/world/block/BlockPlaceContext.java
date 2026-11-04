@@ -4,7 +4,6 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -18,10 +17,7 @@ import org.jspecify.annotations.Nullable;
  * @param cursorY     the height of the click on the clicked face, from {@code 0} to {@code 1}
  * @since 0.1.0
  */
-public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Location placer, BlockGetter world,
-                                float cursorY) {
-
-    private static final Key WATER = BlockTypeKeys.WATER.key();
+public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Location placer, BlockGetter world, float cursorY) {
 
     /**
      * {@return the horizontal direction the player looks towards}
@@ -115,7 +111,7 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      */
     public boolean intoWater() {
         final BlockData replaced = replaced();
-        return replaced != null && replaced.key().equals(WATER) && "0".equals(replaced.get("level"));
+        return replaced != null && replaced.key().equals(BlockTypeKeys.WATER) && "0".equals(replaced.get("level"));
     }
 
 }

@@ -8,13 +8,15 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.dimension.CardinalLight;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.Skybox;
 import fr.fidorial.world.dimension.TimelineReference;
 import fr.fidorial.world.environment.EnvironmentAttributes;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
@@ -29,29 +31,18 @@ public final class DimensionTypeCodecs {
     public static final Codec<CardinalLight> CARDINAL_LIGHT =
             byId(CardinalLight.values(), CardinalLight::id, "cardinal light");
 
-    public static final Codec<Key> TAG_KEY = Codec.STRING.comapFlatMap(
-            s -> s.startsWith("#") && Key.parseable(s.substring(1))
-                    ? DataResult.success(Key.key(s.substring(1)))
-                    : DataResult.error(() -> "Expected a #tag, got: " + s),
-            key -> "#" + key.asString());
-
     private static final Codec<Double> COORDINATE_SCALE = Codec.DOUBLE.validate(CommonCodecs.check(
             scale -> scale >= 0.00001D && scale <= 30_000_000.0D,
             scale -> "coordinate_scale out of range: " + scale
     ));
 
-    private static final Codec<TimelineReference> SINGLE_TIMELINE = Codec.STRING.comapFlatMap(
-            s -> {
-                final String raw = s.startsWith("#") ? s.substring(1) : s;
-                if (!Key.parseable(raw)) {
-                    return DataResult.error(() -> "Not a valid key: " + s);
-                }
-                final Key key = Key.key(raw);
-                return DataResult.success(s.startsWith("#") ? TimelineReference.tag(key) : TimelineReference.id(key));
-            },
+    private static final Codec<TimelineReference> SINGLE_TIMELINE = Codec.either(
+            ReferenceCodecs.tag(RegistryKey.TIMELINE), ReferenceCodecs.key(RegistryKey.TIMELINE)
+    ).xmap(
+            either -> either.map(TimelineReference::tag, TimelineReference::id),
             timeline -> switch (timeline) {
-                case final TimelineReference.Id id -> id.key().asString();
-                case final TimelineReference.Tag tag -> "#" + tag.key().asString();
+                case final TimelineReference.Id id -> Either.right(id.key());
+                case final TimelineReference.Tag tag -> Either.left(tag.key());
             });
 
     private static final Codec<List<TimelineReference>> TIMELINES = Codec.either(
@@ -64,7 +55,7 @@ public final class DimensionTypeCodecs {
         throw new UnsupportedOperationException("DimensionTypeCodecs cannot be instantiated.");
     }
 
-    public static Codec<DimensionTypeDefinition> codec(final Key key) {
+    public static Codec<DimensionTypeDefinition> codec(final TypedKey<DimensionTypeDefinition> key) {
         return RecordCodec.builder(DimensionTypeDefinition.class)
                 .given(key)
                 .required("coordinate_scale", DimensionTypeDefinition::coordinateScale, COORDINATE_SCALE)
@@ -78,11 +69,11 @@ public final class DimensionTypeCodecs {
                 .required("logical_height", DimensionTypeDefinition::logicalHeight, Codec.INT)
                 .required("min_y", DimensionTypeDefinition::minY, Codec.INT)
                 .required("height", DimensionTypeDefinition::height, Codec.INT)
-                .required("infiniburn", DimensionTypeDefinition::infiniburn, TAG_KEY)
+                .required("infiniburn", DimensionTypeDefinition::infiniburn, ReferenceCodecs.tag(RegistryKey.BLOCK))
                 .field("skybox", DimensionTypeDefinition::skybox, SKYBOX, Skybox.OVERWORLD)
                 .field("cardinal_light", DimensionTypeDefinition::cardinalLight, CARDINAL_LIGHT, CardinalLight.DEFAULT)
                 .field("attributes", DimensionTypeDefinition::attributes, EnvironmentAttributeCodecs.ATTRIBUTES, EnvironmentAttributes.EMPTY)
-                .nullable("default_clock", DimensionTypeDefinition::defaultClock, CommonCodecs.KEY_CODEC)
+                .nullable("default_clock", DimensionTypeDefinition::defaultClock, ReferenceCodecs.key(RegistryKey.WORLD_CLOCK))
                 .field("timelines", DimensionTypeDefinition::timelines, TIMELINES, List.of())
                 .build();
     }
@@ -91,28 +82,28 @@ public final class DimensionTypeCodecs {
         final BinaryTag tag = codec(dimensionType.key())
                 .encodeStart(BinaryTagOps.binaryTagOps(), dimensionType)
                 .getOrThrow(message -> new IllegalStateException(
-                        "Failed to encode dimension type " + dimensionType.key().asString() + ": " + message));
+                        "Failed to encode dimension type " + dimensionType.key() + ": " + message));
 
         if (!(tag instanceof final CompoundBinaryTag compound)) {
             throw new IllegalStateException(
-                    "Dimension type " + dimensionType.key().asString() + " did not encode to a compound tag");
+                    "Dimension type " + dimensionType.key() + " did not encode to a compound tag");
         }
 
         return compound;
     }
 
-    public static DimensionTypeDefinition fromJson(final Key key, final String json) {
+    public static DimensionTypeDefinition fromJson(final TypedKey<DimensionTypeDefinition> key, final String json) {
         final JsonElement element;
         try {
             element = JsonParser.parseString(json);
         } catch (final RuntimeException exception) {
-            throw new IllegalArgumentException("Dimension type " + key.asString() + " is not valid JSON", exception);
+            throw new IllegalArgumentException("Dimension type " + key + " is not valid JSON", exception);
         }
 
         return codec(key)
                 .parse(JsonOps.INSTANCE, element)
                 .getOrThrow(message -> new IllegalArgumentException(
-                        "Failed to read dimension type " + key.asString() + ": " + message));
+                        "Failed to read dimension type " + key + ": " + message));
     }
 
     private static <E extends Enum<E>> Codec<E> byId(

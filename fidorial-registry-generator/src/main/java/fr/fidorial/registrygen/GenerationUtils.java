@@ -1,5 +1,10 @@
 package fr.fidorial.registrygen;
 
+import com.palantir.javapoet.ClassName;
+import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
+import com.palantir.javapoet.WildcardTypeName;
+
 import java.util.Locale;
 
 /**
@@ -88,5 +93,18 @@ public final class GenerationUtils {
         final int colon = identifier.indexOf(':');
 
         return (colon >= 0) ? identifier.substring(colon + 1) : identifier;
+    }
+
+    /**
+     * Converts a qualified type name into a type, where a trailing {@code <?>} makes it a wildcard parameterization.
+     * <p>
+     * fr.fidorial.item.data.DataComponentType<?> -> DataComponentType<?>
+     */
+    public static TypeName typeName(final String qualifiedName) {
+        if (qualifiedName.endsWith("<?>")) {
+            final ClassName raw = ClassName.bestGuess(qualifiedName.substring(0, qualifiedName.length() - 3));
+            return ParameterizedTypeName.get(raw, WildcardTypeName.subtypeOf(Object.class));
+        }
+        return ClassName.bestGuess(qualifiedName);
     }
 }

@@ -243,14 +243,14 @@ final class MapTerrain {
     }
 
     private static boolean isFluid(final BlockState state) {
-        return state.isFluid() || WATER_PLANTS.contains(state.name().value());
+        return state.isFluid() || WATER_PLANTS.contains(state.name().key().value());
     }
 
     /**
      * A block holding a fluid shows the fluid, unless its top face is solid.
      */
     private static MapColor fluidColor(final BlockState state, final MapColor own) {
-        final String name = state.name().value();
+        final String name = state.name().key().value();
         if (name.equals("water") || name.equals("lava")) {
             return own;
         }

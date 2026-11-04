@@ -5,7 +5,8 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.item.ItemStack;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public final class TemptGoal implements Goal {
     private final AbstractPathfinderMob mob;
     private final int priority;
     private final double speed;
-    private final Set<Key> temptingItems;
+    private final Set<TypedKey<Item>> temptingItems;
     private final double rangeSq;
     private final double stopRangeSq;
 
@@ -30,7 +31,7 @@ public final class TemptGoal implements Goal {
 
 
     public TemptGoal(final AbstractPathfinderMob mob, final int priority, final double speed,
-                     final Set<Key> temptingItems, final double range, final double stopRange) {
+                     final Set<TypedKey<Item>> temptingItems, final double range, final double stopRange) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;

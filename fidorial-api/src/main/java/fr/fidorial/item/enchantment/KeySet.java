@@ -1,6 +1,7 @@
 package fr.fidorial.item.enchantment;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Optional;
@@ -12,10 +13,11 @@ import java.util.Set;
  * <p>Resolving a tag requires the server registries: use {@link Enchantments#isSupportedItem}
  * or {@link Enchantments#areCompatible} to test membership.</p>
  *
+ * @param <T> the type of the entries
  * @since 0.1.0
  */
 @ApiStatus.NonExtendable
-public interface KeySet {
+public interface KeySet<T> {
 
     /**
      * {@return the tag this set refers to, such as {@code minecraft:enchantable/weapon}, or empty for an
@@ -23,14 +25,14 @@ public interface KeySet {
      *
      * @since 0.1.0
      */
-    Optional<Key> tag();
+    Optional<TagKey<T>> tag();
 
     /**
      * {@return the explicitly listed keys, empty for a tag}
      *
      * @since 0.1.0
      */
-    Set<Key> keys();
+    Set<TypedKey<T>> keys();
 
     /**
      * {@return {@code true} if this set refers to a tag}

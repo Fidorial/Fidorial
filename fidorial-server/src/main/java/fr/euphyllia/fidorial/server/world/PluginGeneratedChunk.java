@@ -3,23 +3,25 @@ package fr.euphyllia.fidorial.server.world;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.generation.GeneratedChunk;
-import net.kyori.adventure.key.Key;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PluginGeneratedChunk implements GeneratedChunk {
 
-    private static final Map<Key, BlockState> BLOCK_CACHE = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<BlockType>, BlockState> BLOCK_CACHE = new ConcurrentHashMap<>();
 
     private final ChunkColumn column;
     private final int minY;
     private final int height;
 
-    public PluginGeneratedChunk(final int chunkX, final int chunkZ, final int minY, final int height, final Key defaultBiome) {
-        this.column = new ChunkColumn(chunkX, chunkZ, minY, height, BlockState.of(BlockTypeKeys.AIR.key()), defaultBiome);
+    public PluginGeneratedChunk(final int chunkX, final int chunkZ, final int minY, final int height, final TypedKey<BiomeDefinition> defaultBiome) {
+        this.column = new ChunkColumn(chunkX, chunkZ, minY, height, BlockState.withoutProperties(BlockTypeKeys.AIR), defaultBiome);
         this.minY = minY;
         this.height = height;
     }
@@ -49,24 +51,24 @@ public class PluginGeneratedChunk implements GeneratedChunk {
     }
 
     @Override
-    public void setBlock(final int x, final int y, final int z, final Key block, final Map<String, String> properties) {
+    public void setBlock(final int x, final int y, final int z, final TypedKey<BlockType> block, final Map<String, String> properties) {
         checkLocal(x, z);
         checkY(y);
         final BlockState state = properties.isEmpty()
-                ? BLOCK_CACHE.computeIfAbsent(block, BlockState::of)
-                : BlockState.of(block, properties);
+                ? BLOCK_CACHE.computeIfAbsent(block, BlockState::withoutProperties)
+                : BlockState.withProperties(block, properties);
         column.setBlock(x, y, z, state);
     }
 
     @Override
-    public Key blockAt(final int x, final int y, final int z) {
+    public TypedKey<BlockType> blockAt(final int x, final int y, final int z) {
         checkLocal(x, z);
         checkY(y);
         return column.getBlock(x, y, z).name();
     }
 
     @Override
-    public void setBiome(final int x, final int y, final int z, final Key biome) {
+    public void setBiome(final int x, final int y, final int z, final TypedKey<BiomeDefinition> biome) {
         checkLocal(x, z);
         checkY(y);
         final ChunkSection section = column.sections()[(y >> 4) - column.minSectionY()];

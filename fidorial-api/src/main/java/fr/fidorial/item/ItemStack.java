@@ -7,6 +7,9 @@ import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.data.TypedDataComponentValue;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.event.DataComponentValue;
@@ -29,13 +32,13 @@ import java.util.function.UnaryOperator;
  * @param components the patch over the item's defaults
  * @since 0.1.0
  */
-public record ItemStack(Key id, int count, DataComponentMap components)
+public record ItemStack(TypedKey<Item> id, int count, DataComponentMap components)
         implements DataComponentHolder, Translatable, HoverEventSource<HoverEvent.ShowItem> {
 
     /**
      * The absence of an item. Slots hold this rather than {@code null}.
      */
-    public static final ItemStack EMPTY = new ItemStack(ItemKeys.AIR.key(), 0, DataComponentMap.EMPTY);
+    public static final ItemStack EMPTY = new ItemStack(ItemKeys.AIR, 0, DataComponentMap.EMPTY);
 
     public ItemStack {
         Preconditions.checkArgument(id != null, "The ID of an item stack must not be null");
@@ -46,7 +49,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @param id    the item identifier
      * @param count how many
      */
-    public ItemStack(final Key id, final int count) {
+    public ItemStack(final TypedKey<Item> id, final int count) {
         this(id, count, DataComponentMap.EMPTY);
     }
 
@@ -55,7 +58,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @param count how many
      * @return a stack with no components patched
      */
-    public static ItemStack of(final Key key, final int count) {
+    public static ItemStack of(final TypedKey<Item> key, final int count) {
         return new ItemStack(key, count);
     }
 
@@ -63,7 +66,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @param key the item identifier
      * @return a stack of one, with no components patched
      */
-    public static ItemStack of(final Key key) {
+    public static ItemStack of(final TypedKey<Item> key) {
         return new ItemStack(key, 1);
     }
 
@@ -91,7 +94,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
                         TypedDataComponentValue.class, entry.getKey(), entry.getValue()));
             }
         }
-        return new ItemStack(item.item(), item.count(), components.build());
+        return new ItemStack(TypedKey.withRegistry(RegistryKey.ITEM, item.item()), item.count(), components.build());
     }
 
     private static <T> void set(final DataComponentMap.Builder components, final DataComponentType<T> type,
@@ -105,7 +108,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @param key the item identifier
      * @return a builder for a stack of one
      */
-    public static Builder builder(final Key key) {
+    public static Builder builder(final TypedKey<Item> key) {
         return new Builder(key, 1, DataComponentEditor.empty());
     }
 
@@ -187,7 +190,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      * @return {@code true} when this stack holds nothing
      */
     public boolean isEmpty() {
-        return count <= 0 || id.equals(ItemKeys.AIR.key());
+        return count <= 0 || id.equals(ItemKeys.AIR);
     }
 
     /**
@@ -231,7 +234,7 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      */
     @Override
     public HoverEvent<HoverEvent.ShowItem> asHoverEvent(final UnaryOperator<HoverEvent.ShowItem> op) {
-        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id, count, hoverComponents())));
+        return HoverEvent.showItem(op.apply(HoverEvent.ShowItem.showItem(id.key(), count, hoverComponents())));
     }
 
     private Map<Key, DataComponentValue> hoverComponents() {
@@ -240,10 +243,10 @@ public record ItemStack(Key id, int count, DataComponentMap components)
         }
         final Map<Key, DataComponentValue> values = new LinkedHashMap<>();
         for (final Map.Entry<DataComponentType<?>, Object> entry : components.entries()) {
-            values.put(entry.getKey().key(), hoverValue(entry.getKey(), entry.getValue()));
+            values.put(entry.getKey().key().key(), hoverValue(entry.getKey(), entry.getValue()));
         }
         for (final DataComponentType<?> removed : components.removedTypes()) {
-            values.put(removed.key(), DataComponentValue.removed());
+            values.put(removed.key().key(), DataComponentValue.removed());
         }
         return values;
     }
@@ -254,12 +257,12 @@ public record ItemStack(Key id, int count, DataComponentMap components)
 
     @Override
     public String translationKey() {
-        return "item." + id.asString().replace(":", ".");
+        return "item." + id.key().asString().replace(":", ".");
     }
 
     @Override
     public String toString() {
-        return "ItemStack{" + id.asString() + " x" + count
+        return "ItemStack{" + id.key().asString() + " x" + count
                 + (components.isEmpty() ? "" : ", " + components)
                 + "}";
     }
@@ -274,11 +277,11 @@ public record ItemStack(Key id, int count, DataComponentMap components)
      */
     public static final class Builder {
 
-        private final Key id;
+        private final TypedKey<Item> id;
         private final DataComponentEditor components;
         private int count;
 
-        private Builder(final Key id, final int count, final DataComponentEditor components) {
+        private Builder(final TypedKey<Item> id, final int count, final DataComponentEditor components) {
             Preconditions.checkArgument(id != null, "The ID of an item stack builder must not be null");
             this.id = id;
             this.count = count;

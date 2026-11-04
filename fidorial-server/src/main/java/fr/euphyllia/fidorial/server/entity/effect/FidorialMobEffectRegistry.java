@@ -30,17 +30,15 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialMobEffectRegistry.class);
 
-    private static final Key REGISTRY = Key.key("mob_effect");
-
-    private final Map<Key, Integer> vanillaIds;
-    private final Map<Key, Registered> registered = new ConcurrentHashMap<>();
-    private final Map<Key, List<Attachment>> attachments = new ConcurrentHashMap<>();
+    private final Map<TypedKey<MobEffect>, Integer> vanillaIds;
+    private final Map<TypedKey<MobEffect>, Registered> registered = new ConcurrentHashMap<>();
+    private final Map<TypedKey<MobEffect>, List<Attachment>> attachments = new ConcurrentHashMap<>();
 
     public FidorialMobEffectRegistry() {
-        final List<Key> vanilla = FrozenRegistries.entries().getOrDefault(REGISTRY, List.of());
-        final Map<Key, Integer> ids = new HashMap<>(vanilla.size());
+        final List<Key> vanilla = FrozenRegistries.entries().getOrDefault(RegistryKey.MOB_EFFECT.key(), List.of());
+        final Map<TypedKey<MobEffect>, Integer> ids = new HashMap<>(vanilla.size());
         for (int id = 0; id < vanilla.size(); id++) {
-            ids.put(vanilla.get(id), id);
+            ids.put(TypedKey.withRegistry(RegistryKey.MOB_EFFECT, vanilla.get(id)), id);
         }
         this.vanillaIds = Map.copyOf(ids);
     }
@@ -58,7 +56,7 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
 
     @Override
     public synchronized void register(final MobEffectDefinition definition, final Plugin owner) {
-        final Key key = definition.key().key();
+        final TypedKey<MobEffect> key = definition.key();
         Preconditions.checkArgument(!vanillaIds.containsKey(key), "%s is a vanilla effect", key);
         Preconditions.checkArgument(!registered.containsKey(key), "%s is already registered", key);
 
@@ -84,24 +82,24 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
     @Override
     public void attach(final TypedKey<MobEffect> type, final MobEffectBehaviour behaviour, final Plugin owner) {
         Preconditions.checkArgument(behaviour != null, "The behaviour must not be null");
-        attachments.computeIfAbsent(type.key(), _ -> new CopyOnWriteArrayList<>())
+        attachments.computeIfAbsent(type, _ -> new CopyOnWriteArrayList<>())
                 .add(new Attachment(behaviour, owner));
-        LOGGER.debug("Behaviour attached to {} by {}", type.key(), ownerName(owner));
+        LOGGER.debug("Behaviour attached to {} by {}", type, ownerName(owner));
     }
 
     @Override
     public synchronized boolean unregister(final TypedKey<MobEffect> type) {
-        final Registered removed = registered.remove(type.key());
+        final Registered removed = registered.remove(type);
         if (removed == null) {
             return false;
         }
-        LOGGER.debug("Effect {} unregistered", type.key());
+        LOGGER.debug("Effect {} unregistered", type);
         return true;
     }
 
     @Override
     public boolean detach(final TypedKey<MobEffect> type, final Plugin owner) {
-        final List<Attachment> list = attachments.get(type.key());
+        final List<Attachment> list = attachments.get(type);
         return list != null && list.removeIf(attachment -> attachment.owner() == owner);
     }
 
@@ -113,7 +111,7 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
 
     @Override
     public Optional<MobEffectDefinition> definition(final TypedKey<MobEffect> type) {
-        return Optional.ofNullable(registered.get(type.key())).map(Registered::definition);
+        return Optional.ofNullable(registered.get(type)).map(Registered::definition);
     }
 
     @Override
@@ -124,31 +122,27 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
     @Override
     public Set<TypedKey<MobEffect>> types() {
         final Set<TypedKey<MobEffect>> types = new LinkedHashSet<>();
-        vanillaIds.keySet().forEach(key -> types.add(TypedKey.create(RegistryKey.MOB_EFFECT, key)));
-        registered.keySet().forEach(key -> types.add(TypedKey.create(RegistryKey.MOB_EFFECT, key)));
+        types.addAll(vanillaIds.keySet());
+        types.addAll(registered.keySet());
         return Set.copyOf(types);
     }
 
     @Override
     public boolean isEffect(final TypedKey<MobEffect> type) {
-        return isKnown(type.key());
-    }
-
-    public boolean isKnown(final Key type) {
         return vanillaIds.containsKey(type) || registered.containsKey(type);
     }
 
     @Override
     public OptionalInt networkId(final TypedKey<MobEffect> type) {
-        final Integer vanilla = vanillaIds.get(type.key());
+        final Integer vanilla = vanillaIds.get(type);
         if (vanilla != null) {
             return OptionalInt.of(vanilla);
         }
-        final Registered custom = registered.get(type.key());
+        final Registered custom = registered.get(type);
         return custom == null ? OptionalInt.empty() : OptionalInt.of(custom.networkId());
     }
 
-    public int clientNetworkId(final Player player, final Key type) {
+    public int clientNetworkId(final Player player, final TypedKey<MobEffect> type) {
         final Integer vanilla = vanillaIds.get(type);
         if (vanilla != null) {
             return vanilla;
@@ -164,11 +158,11 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
         if (fallback.isEmpty()) {
             return -1;
         }
-        final Integer fallbackId = vanillaIds.get(fallback.get().key());
+        final Integer fallbackId = vanillaIds.get(fallback.get());
         return fallbackId == null ? -1 : fallbackId;
     }
 
-    public List<MobEffectBehaviour> behaviours(final Key type) {
+    public List<MobEffectBehaviour> behaviours(final TypedKey<MobEffect> type) {
         final Registered custom = registered.get(type);
         final List<Attachment> attached = attachments.getOrDefault(type, List.of());
         if (custom == null && attached.isEmpty()) {
@@ -185,7 +179,7 @@ public final class FidorialMobEffectRegistry implements MobEffectRegistry {
     }
 
     private boolean isVanilla(final TypedKey<MobEffect> type) {
-        return vanillaIds.containsKey(type.key());
+        return vanillaIds.containsKey(type);
     }
 
     private static String ownerName(final Object owner) {

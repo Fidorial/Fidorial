@@ -4,8 +4,9 @@ import fr.fidorial.entity.player.Player;
 import fr.fidorial.map.MapFrame;
 import fr.fidorial.map.MapView;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.world.BlockFace;
-import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +29,7 @@ interface MapHost {
     /**
      * {@return the network id of a decoration type, or {@code -1} if the client does not know it}
      */
-    int decorationNetworkId(Key type);
+    int decorationNetworkId(TypedKey<MapDecorationType> type);
 
     /**
      * Hangs a map in a frame only one player sees, see {@link MapView#hang}.

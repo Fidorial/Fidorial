@@ -97,7 +97,7 @@ public final class SulfurCubeArchetypeKeys {
     }
 
     private static TypedKey<SulfurCubeArchetype> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.SULFUR_CUBE_ARCHETYPE, value);
+        return TypedKey.withRegistry(RegistryKey.SULFUR_CUBE_ARCHETYPE, value);
     }
 
     /**

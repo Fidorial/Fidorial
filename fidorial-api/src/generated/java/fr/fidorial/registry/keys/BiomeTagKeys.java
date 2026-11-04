@@ -459,6 +459,6 @@ public final class BiomeTagKeys {
     }
 
     private static TagKey<BiomeDefinition> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.BIOME, value);
+        return TagKey.withRegistry(RegistryKey.BIOME, value);
     }
 }

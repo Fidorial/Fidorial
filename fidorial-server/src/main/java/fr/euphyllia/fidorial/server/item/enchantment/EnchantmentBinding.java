@@ -11,7 +11,10 @@ import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.KeySet;
 import fr.fidorial.registry.RegistryKey;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
+import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -26,7 +29,6 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
         RegistryBinding.Validator<EnchantmentDefinition> {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(EnchantmentBinding.class);
-    private static final Key ENCHANTED_BOOK = Key.key("enchanted_book");
 
     private EnchantmentBinding() {
     }
@@ -37,9 +39,9 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
     }
 
     @Override
-    public EnchantmentDefinition decode(final Key key, final JsonElement json) {
+    public EnchantmentDefinition decode(final TypedKey<EnchantmentDefinition> key, final JsonElement json) {
         if (!json.isJsonObject()) {
-            throw new IllegalArgumentException("Enchantment " + key.asString() + " must be a JSON object");
+            throw new IllegalArgumentException("Enchantment " + key + " must be a JSON object");
         }
         return EnchantmentJson.read(key, json.getAsJsonObject(), null);
     }
@@ -48,7 +50,7 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
      * Plugin items are replaced by the vanilla items clients render them as.
      */
     @Override
-    public BinaryTag encode(final Key key, final EnchantmentDefinition value) {
+    public BinaryTag encode(final TypedKey<EnchantmentDefinition> key, final EnchantmentDefinition value) {
         final FidorialServer server = FidorialServer.getInstance();
         final FidorialItemRegistry items = server.registries().items();
         final ServerRegistry<EnchantmentDefinition> enchantments = server.registries().registry(RegistryKey.ENCHANTMENT);
@@ -58,9 +60,9 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
                     enchantment -> enchantments.contains(enchantment) ? enchantment : null));
         } catch (final RuntimeException exception) {
             LOGGER.error("Could not encode the enchantment {} for clients, sending a bare one instead",
-                    key.asString(), exception);
+                    key, exception);
             return EnchantmentJson.toNbt(EnchantmentJson.write(new EnchantmentDefinitionImpl(key,
-                            value.description(), KeySetImpl.of(List.of(ENCHANTED_BOOK)), Optional.empty(), KeySetImpl.EMPTY,
+                            value.description(), KeySetImpl.of(List.of(ItemKeys.ENCHANTED_BOOK)), Optional.empty(), KeySetImpl.empty(),
                             value.maxLevel(), value.weight(), value.anvilCost(), value.minCost(),
                             value.maxCost(), value.slots(), null, EnchantmentEffectSet.EMPTY, Optional.empty()),
                     item -> item, enchantment -> null));
@@ -71,21 +73,22 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
      * The client only knows the item tags of the vanilla data: an unknown one would fail its registry.
      */
     @Override
-    public void validate(final ServerRegistries registries, final Key key, final EnchantmentDefinition value) {
+    public void validate(final ServerRegistries registries, final TypedKey<EnchantmentDefinition> key, final EnchantmentDefinition value) {
         if (!(value instanceof final EnchantmentDefinitionImpl definition)) {
             throw new IllegalArgumentException("Enchantment definitions must come from Enchantments.define(), got "
                     + value.getClass().getName());
         }
-        final ServerRegistry<?> items = registries.registry(RegistryKey.ITEM);
+        final ServerRegistry<Item> items = registries.registry(RegistryKey.ITEM);
         checkItemTag(items, key, definition.supportedItems(), "supported items");
         definition.primaryItems().ifPresent(primary -> checkItemTag(items, key, primary, "primary items"));
     }
 
-    private static void checkItemTag(final ServerRegistry<?> items, final Key key, final KeySet set, final String what) {
-        final Optional<Key> tag = set.tag();
-        if (tag.isPresent() && !items.tagMap().containsKey(tag.get())) {
-            throw new IllegalArgumentException("The " + what + " of " + key.asString() + " name the unknown item tag #"
-                    + tag.get().asString());
+    private static void checkItemTag(final ServerRegistry<Item> items, final TypedKey<EnchantmentDefinition> key,
+                                     final KeySet<Item> set, final String what) {
+        final Optional<TagKey<Item>> tag = set.tag();
+        if (tag.isPresent() && !items.tags().contains(tag.get())) {
+            throw new IllegalArgumentException("The " + what + " of " + key + " name the unknown item tag "
+                    + tag.get());
         }
     }
 
@@ -93,7 +96,7 @@ public final class EnchantmentBinding implements RegistryCodec<EnchantmentDefini
      * An exclusive set naming a tag that does not exist yet creates it empty, so that clients find it.
      */
     @Override
-    public Set<Key> referencedTags(final EnchantmentDefinition value) {
+    public Set<TagKey<EnchantmentDefinition>> referencedTags(final EnchantmentDefinition value) {
         return value.exclusiveSet().tag().map(Set::of).orElse(Set.of());
     }
 }

@@ -2,7 +2,11 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.service.ServiceRegistry;
+import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.generation.GenerationDescriptor;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -12,7 +16,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 public class ServiceBackedChunkGenerator implements ChunkGenerator {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServiceBackedChunkGenerator.class);
-    private static final Key DEFAULT_BIOME = Key.key("plains");
+    private static final TypedKey<BiomeDefinition> DEFAULT_BIOME = BiomeKeys.PLAINS;
 
     private final ServiceRegistry services;
     private final ChunkGenerator fallback;
@@ -50,9 +54,9 @@ public class ServiceBackedChunkGenerator implements ChunkGenerator {
         }
 
         return switch (custom.describeForSave()) {
-            case GenerationDescriptor.Flat(final Key floorBlock, final int floorThickness, final Key biome) ->
+            case GenerationDescriptor.Flat(final TypedKey<BlockType> floorBlock, final int floorThickness, final TypedKey<BiomeDefinition> biome) ->
                     new ChunkGeneratorConfig.Flat(
-                            BlockState.of(floorBlock), floorThickness, biome);
+                            BlockState.withoutProperties(floorBlock), floorThickness, biome);
             case GenerationDescriptor.Noise(final Key settings, final Key biomeSourcePreset) ->
                     new ChunkGeneratorConfig.Noise(settings, biomeSourcePreset);
             case GenerationDescriptor.Unknown _ -> fallback.describeForSave();

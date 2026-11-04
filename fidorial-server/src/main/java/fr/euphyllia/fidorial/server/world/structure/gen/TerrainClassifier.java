@@ -35,7 +35,7 @@ public final class TerrainClassifier {
     }
 
     private static byte compute(final BlockState state) {
-        final String name = state.name().value();
+        final String name = state.name().key().value();
         if (name.equals("water") || name.equals("lava") || name.equals("bubble_column")
                 || name.contains("kelp") || name.contains("seagrass") || name.equals("sea_pickle")
                 || name.contains("coral") || name.equals("ice") || name.equals("packed_ice")

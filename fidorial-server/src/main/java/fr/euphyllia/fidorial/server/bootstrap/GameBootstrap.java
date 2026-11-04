@@ -15,8 +15,9 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemDefaults;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.world.block.Blocks;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -87,17 +88,17 @@ public final class GameBootstrap {
         ItemDefaults.install(new ItemDefaults.Source() {
 
             @Override
-            public int maxStackSize(final Key item) {
+            public int maxStackSize(final TypedKey<Item> item) {
                 return ItemProperties.maxStackSize(item);
             }
 
             @Override
-            public int maxDamage(final Key item) {
+            public int maxDamage(final TypedKey<Item> item) {
                 return ItemProperties.maxDamage(item);
             }
 
             @Override
-            public @Nullable EquipmentSlot equipmentSlot(final Key item) {
+            public @Nullable EquipmentSlot equipmentSlot(final TypedKey<Item> item) {
                 return EquipmentSlot.byName(ItemProperties.equipmentSlot(item));
             }
         });

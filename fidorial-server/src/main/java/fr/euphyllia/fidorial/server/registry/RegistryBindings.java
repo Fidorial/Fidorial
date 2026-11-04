@@ -7,7 +7,13 @@ import fr.euphyllia.fidorial.server.codecs.world.DimensionTypeCodecs;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentBinding;
 import fr.euphyllia.fidorial.server.registry.data.RegistryValues;
+import fr.fidorial.dialog.DialogDefinition;
+import fr.fidorial.entity.EntityType;
+import fr.fidorial.item.data.DataComponentType;
+import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
@@ -23,9 +29,11 @@ final class RegistryBindings {
             RegistryKey.BIOME.key(), RegistryBinding.Data.of(RegistryCodec.of(BiomeCodecs::codec)),
             RegistryKey.DIMENSION_TYPE.key(), RegistryBinding.Data.of(RegistryCodec.of(DimensionTypeCodecs::codec)),
             RegistryKey.CHAT_TYPE.key(), RegistryBinding.Data.of(RegistryCodec.of(ChatTypeCodecs::codec)),
-            RegistryKey.DIALOG.key(), RegistryBinding.Data.of(RegistryCodec.of(_ -> DialogCodecs.DEFINITION_CODEC)),
+            RegistryKey.DIALOG.key(), RegistryBinding.Data.of(RegistryCodec.<DialogDefinition>of(_ -> DialogCodecs.DEFINITION_CODEC)),
             RegistryKey.ENCHANTMENT.key(), EnchantmentBinding.create(),
-            RegistryKey.ENTITY_TYPE.key(), new RegistryBinding.Fixed<>(EntityTypes::get));
+            RegistryKey.ENTITY_TYPE.key(), new RegistryBinding.Fixed<EntityType>(EntityTypes::get),
+            RegistryKey.BLOCK.key(), new RegistryBinding.Fixed<BlockType>(Blocks::type),
+            RegistryKey.DATA_COMPONENT_TYPE.key(), new RegistryBinding.Fixed<DataComponentType<?>>(DataComponentTypes::byKey));
 
     private RegistryBindings() {
         throw new UnsupportedOperationException("RegistryBindings cannot be instantiated.");
@@ -45,6 +53,6 @@ final class RegistryBindings {
             throw new IllegalStateException("The registry " + registry.key().asString() + " has no values: add it to "
                     + "SupportedRegistries and regenerate, or bind it in RegistryBindings");
         }
-        return new RegistryBinding.Fixed<>(factory);
+        return new RegistryBinding.Fixed<T>(key -> factory.apply(key.key()));
     }
 }

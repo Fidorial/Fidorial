@@ -40,10 +40,10 @@ public class FluidBlockCodec {
 
     public static BlockState toBlock(final FluidState state) {
         if (state.type() == null) {
-            return BlockState.of(BlockTypeKeys.AIR.key());
+            return BlockState.withoutProperties(BlockTypeKeys.AIR);
         }
         final int level = state.falling() ? FALLING_OFFSET : clamp(state.level());
-        return BlockState.of(state.type().blockKey(), Map.of(LEVEL, String.valueOf(level)));
+        return BlockState.withProperties(state.type().blockKey(), Map.of(LEVEL, String.valueOf(level)));
     }
 
     private static int clamp(final int level) {

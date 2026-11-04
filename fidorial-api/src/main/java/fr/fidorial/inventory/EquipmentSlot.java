@@ -1,7 +1,7 @@
 package fr.fidorial.inventory;
 
 import fr.fidorial.item.ItemDefaults;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -10,7 +10,7 @@ import java.util.Locale;
  * One place an entity wears or holds an item, as an item's {@code minecraft:equippable} component
  * names it.
  *
- * @see ItemDefaults#equipmentSlot(Key)
+ * @see ItemDefaults#equipmentSlot(TypedKey)
  * @see PlayerInventory#slotOf(EquipmentSlot)
  * @since 0.1.0
  */

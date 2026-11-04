@@ -259,7 +259,7 @@ public final class MapDecorationTypeKeys {
     }
 
     private static TypedKey<MapDecorationType> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.MAP_DECORATION_TYPE, value);
+        return TypedKey.withRegistry(RegistryKey.MAP_DECORATION_TYPE, value);
     }
 
     /**

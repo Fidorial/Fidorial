@@ -14,7 +14,10 @@ import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.item.enchantment.KeySet;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -39,15 +42,15 @@ public final class EnchantmentJson {
      *
      * @throws IllegalArgumentException if it is not a JSON object
      */
-    public static JsonObject parse(final Key key, final String json) {
+    public static JsonObject parse(final TypedKey<EnchantmentDefinition> key, final String json) {
         final JsonElement element;
         try {
             element = JsonParser.parseString(json);
         } catch (final RuntimeException exception) {
-            throw new IllegalArgumentException("Enchantment " + key.asString() + " is not valid JSON", exception);
+            throw new IllegalArgumentException("Enchantment " + key + " is not valid JSON", exception);
         }
         if (!element.isJsonObject()) {
-            throw new IllegalArgumentException("Enchantment " + key.asString() + " must be a JSON object");
+            throw new IllegalArgumentException("Enchantment " + key + " must be a JSON object");
         }
         return element.getAsJsonObject();
     }
@@ -61,19 +64,19 @@ public final class EnchantmentJson {
      * @return the definition
      * @throws IllegalArgumentException if a mandatory field is missing or a value is out of range
      */
-    public static EnchantmentDefinitionImpl read(final Key key, final JsonObject json,
+    public static EnchantmentDefinitionImpl read(final TypedKey<EnchantmentDefinition> key, final JsonObject json,
                                                  final @Nullable EnchantmentBehaviour behaviour) {
         try {
             final Component description = ComponentCodecs.COMPONENT_CODEC
                     .parse(JsonOps.INSTANCE, required(json, "description"))
                     .getOrThrow(message -> new IllegalArgumentException("Invalid description: " + message));
-            final KeySet supported = KeySetImpl.parse(required(json, "supported_items"), "'supported_items'");
-            final Optional<KeySet> primary = json.has("primary_items")
-                    ? Optional.of(KeySetImpl.parse(json.get("primary_items"), "'primary_items'"))
+            final KeySet<Item> supported = KeySetImpl.parse(RegistryKey.ITEM, required(json, "supported_items"), "'supported_items'");
+            final Optional<KeySet<Item>> primary = json.has("primary_items")
+                    ? Optional.of(KeySetImpl.parse(RegistryKey.ITEM, json.get("primary_items"), "'primary_items'"))
                     : Optional.empty();
-            final KeySet exclusive = json.has("exclusive_set")
-                    ? KeySetImpl.parse(json.get("exclusive_set"), "'exclusive_set'")
-                    : KeySetImpl.EMPTY;
+            final KeySet<EnchantmentDefinition> exclusive = json.has("exclusive_set")
+                    ? KeySetImpl.parse(RegistryKey.ENCHANTMENT, json.get("exclusive_set"), "'exclusive_set'")
+                    : KeySetImpl.empty();
             final Set<EquipmentSlotGroup> slots = new LinkedHashSet<>();
             for (final JsonElement slot : EffectJson.list(json, "slots")) {
                 if (!slot.isJsonPrimitive()) {
@@ -104,7 +107,7 @@ public final class EnchantmentJson {
                     effects,
                     Optional.ofNullable(behaviour));
         } catch (final IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Invalid enchantment " + key.asString() + ": " + exception.getMessage(), exception);
+            throw new IllegalArgumentException("Invalid enchantment " + key + ": " + exception.getMessage(), exception);
         }
     }
 
@@ -134,8 +137,8 @@ public final class EnchantmentJson {
      * @return the JSON object
      */
     public static JsonObject write(final EnchantmentDefinition definition,
-                                   final Function<Key, @Nullable Key> items,
-                                   final Function<Key, @Nullable Key> enchantments) {
+                                   final Function<TypedKey<Item>, @Nullable TypedKey<Item>> items,
+                                   final Function<TypedKey<EnchantmentDefinition>, @Nullable TypedKey<EnchantmentDefinition>> enchantments) {
         final JsonObject json = new JsonObject();
         json.add("description", ComponentCodecs.COMPONENT_CODEC
                 .encodeStart(JsonOps.INSTANCE, definition.description())
@@ -160,16 +163,16 @@ public final class EnchantmentJson {
         return json;
     }
 
-    private static JsonElement keySet(final KeySet set, final Function<Key, @Nullable Key> mapper) {
-        final Optional<Key> tag = set.tag();
+    private static <T> JsonElement keySet(final KeySet<T> set, final Function<TypedKey<T>, @Nullable TypedKey<T>> mapper) {
+        final Optional<TagKey<T>> tag = set.tag();
         if (tag.isPresent()) {
-            return new JsonPrimitive("#" + tag.get().asString());
+            return new JsonPrimitive("#" + tag.get().key().asString());
         }
         final Set<String> written = new LinkedHashSet<>();
-        for (final Key key : set.keys()) {
-            final Key mapped = mapper.apply(key);
+        for (final TypedKey<T> key : set.keys()) {
+            final TypedKey<T> mapped = mapper.apply(key);
             if (mapped != null) {
-                written.add(mapped.asString());
+                written.add(mapped.key().asString());
             }
         }
         final JsonArray array = new JsonArray();

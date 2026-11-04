@@ -95,7 +95,7 @@ public final class FluidEngine implements FluidManager {
         if (fluidAt(world, x, y, z).isEmpty()) {
             return false;
         }
-        final boolean applied = setAndBroadcast(w, x, y, z, BlockState.of(BlockTypeKeys.AIR.key()));
+        final boolean applied = setAndBroadcast(w, x, y, z, BlockState.withoutProperties(BlockTypeKeys.AIR));
         if (applied) {
             notifyBlockChanged(world, x, y, z);
             emitEvent(w, GameEventKeys.FLUID_PICKUP, x, y, z);
@@ -153,7 +153,7 @@ public final class FluidEngine implements FluidManager {
 
         // 1) Interactions lave <-> eau : la lave touchée par de l'eau se fige.
         if (type == FluidType.LAVA && touches(world, x, y, z, FluidType.WATER)) {
-            final BlockState solidified = self.isSource() ? BlockState.of(BlockTypeKeys.OBSIDIAN.key()) : BlockState.of(BlockTypeKeys.COBBLESTONE.key());
+            final BlockState solidified = self.isSource() ? BlockState.withoutProperties(BlockTypeKeys.OBSIDIAN) : BlockState.withoutProperties(BlockTypeKeys.COBBLESTONE);
             if (setAndBroadcast(world, x, y, z, solidified)) {
                 notifyBlockChanged(worldName, x, y, z);
             }
@@ -219,7 +219,7 @@ public final class FluidEngine implements FluidManager {
             wanted = FluidState.flowing(type, best);
         } else {
             // Plus alimenté : assèchement.
-            if (setAndBroadcast(world, x, y, z, BlockState.of(BlockTypeKeys.AIR.key()))) {
+            if (setAndBroadcast(world, x, y, z, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                 notifyBlockChanged(worldName, x, y, z);
             }
             return null;
@@ -252,7 +252,7 @@ public final class FluidEngine implements FluidManager {
 
         // La lave qui tombe dans l'eau se fige en pierre taillée.
         if (type == FluidType.LAVA && below.type() == FluidType.WATER) {
-            if (setAndBroadcast(world, x, y - 1, z, BlockState.of(BlockTypeKeys.COBBLESTONE.key()))) {
+            if (setAndBroadcast(world, x, y - 1, z, BlockState.withoutProperties(BlockTypeKeys.COBBLESTONE))) {
                 notifyBlockChanged(worldName, x, y - 1, z);
             }
             return false;

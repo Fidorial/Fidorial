@@ -1,7 +1,9 @@
 package fr.fidorial.world.generation;
 
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockData;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +55,7 @@ public interface GeneratedChunk {
      * @param block the block key
      * @since 0.1.0
      */
-    default void setBlock(final int x, final int y, final int z, final Key block) {
+    default void setBlock(final int x, final int y, final int z, final TypedKey<BlockType> block) {
         setBlock(x, y, z, block, Map.of());
     }
 
@@ -67,7 +69,7 @@ public interface GeneratedChunk {
      * @param properties property name to value, e.g. {@code half=upper}
      * @since 0.1.0
      */
-    void setBlock(int x, int y, int z, Key block, Map<String, String> properties);
+    void setBlock(int x, int y, int z, TypedKey<BlockType> block, Map<String, String> properties);
 
     /**
      * Places a block state.
@@ -92,7 +94,7 @@ public interface GeneratedChunk {
      * @return the key of the block currently stored at the position
      * @since 0.1.0
      */
-    Key blockAt(int x, int y, int z);
+    TypedKey<BlockType> blockAt(int x, int y, int z);
 
     /**
      * Sets the biome of the 4x4x4 cell holding a block.
@@ -103,5 +105,5 @@ public interface GeneratedChunk {
      * @param biome the biome key, registered in the {@link fr.fidorial.registry.RegistryKey#BIOME biome registry}
      * @since 0.1.0
      */
-    void setBiome(int x, int y, int z, Key biome);
+    void setBiome(int x, int y, int z, TypedKey<BiomeDefinition> biome);
 }

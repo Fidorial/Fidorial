@@ -13,7 +13,8 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.recipe.CraftingInput;
 import fr.fidorial.recipe.CraftingMatch;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public abstract class AbstractCraftingMenu extends ContainerMenu {
     }
 
     protected AbstractCraftingMenu(final ServerPlayer player, final int windowId, final BlockPosition blockPosition,
-                                   final Key blockType, final int gridWidth, final int gridHeight) {
+                                   final TypedKey<BlockType> blockType, final int gridWidth, final int gridHeight) {
         super(player, windowId, blockPosition, blockType);
         this.grid = new CraftingContainer(gridWidth, gridHeight);
     }

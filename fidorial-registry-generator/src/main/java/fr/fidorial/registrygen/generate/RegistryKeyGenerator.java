@@ -6,6 +6,7 @@ import com.palantir.javapoet.JavaFile;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
+import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
 import com.palantir.javapoet.TypeVariableName;
 import fr.fidorial.registrygen.GenerationUtils;
@@ -82,7 +83,7 @@ public final class RegistryKeyGenerator {
 
         for (final RegistryTypeDefinition registryType : registryTypes) {
 
-            final ClassName markerType = ClassName.bestGuess(registryType.valueType(dataPackage));
+            final TypeName markerType = GenerationUtils.typeName(registryType.valueType(dataPackage));
             final ParameterizedTypeName fieldType = ParameterizedTypeName.get(registryKey, markerType);
 
 
@@ -131,7 +132,7 @@ public final class RegistryKeyGenerator {
                 .addTypeVariable(typeVariable)
                 .returns(returnType)
                 .addParameter(pathParameter)
-                .addStatement("return new $T<>($N)", registryKey, "key")
+                .addStatement("return new $T<>($N)", registryKey, "key.key()")
                 .build();
     }
 

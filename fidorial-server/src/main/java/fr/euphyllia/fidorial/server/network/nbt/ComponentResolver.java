@@ -205,7 +205,7 @@ public final class ComponentResolver {
         final CompoundBinaryTag.Builder root = CompoundBinaryTag.builder();
         final CompoundBinaryTag extra = blockEntity.data();
 
-        root.putString("id", blockEntity.type().asString());
+        root.putString("id", blockEntity.type().key().asString());
         root.putInt("x", pos.blockX());
         root.putInt("y", pos.blockY());
         root.putInt("z", pos.blockZ());

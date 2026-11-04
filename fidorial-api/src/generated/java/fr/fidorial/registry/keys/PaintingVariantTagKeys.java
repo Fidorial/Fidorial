@@ -19,6 +19,6 @@ public final class PaintingVariantTagKeys {
     }
 
     private static TagKey<PaintingVariant> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.PAINTING_VARIANT, value);
+        return TagKey.withRegistry(RegistryKey.PAINTING_VARIANT, value);
     }
 }

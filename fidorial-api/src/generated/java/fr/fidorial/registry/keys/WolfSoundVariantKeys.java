@@ -61,7 +61,7 @@ public final class WolfSoundVariantKeys {
     }
 
     private static TypedKey<WolfSoundVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.WOLF_SOUND_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.WOLF_SOUND_VARIANT, value);
     }
 
     /**

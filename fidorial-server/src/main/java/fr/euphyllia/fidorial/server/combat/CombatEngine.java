@@ -38,6 +38,7 @@ import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.AttributeKeys;
@@ -48,7 +49,6 @@ import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -178,11 +178,11 @@ public final class CombatEngine implements CombatService {
             return applyScaledDamage(victim, source, amount, knockback);
         }
         final ServerRegistry<EntityType> entityTypes = server.registries().registry(RegistryKey.ENTITY_TYPE);
-        final Key victimType = victim.type().key();
-        if (entityTypes.isTagged(victimType, EntityTypeTagKeys.IMMUNE_TO_FREEZING.key())) {
+        final TypedKey<EntityType> victimType = victim.type().key();
+        if (entityTypes.isTagged(victimType, EntityTypeTagKeys.IMMUNE_TO_FREEZING)) {
             return false;
         }
-        final float scaled = entityTypes.isTagged(victimType, EntityTypeTagKeys.FREEZE_HURTS_EXTRA_TYPES.key())
+        final float scaled = entityTypes.isTagged(victimType, EntityTypeTagKeys.FREEZE_HURTS_EXTRA_TYPES)
                 ? amount * FREEZE_HURTS_EXTRA_MULTIPLIER
                 : amount;
         return applyScaledDamage(victim, source, scaled, knockback);
@@ -253,7 +253,7 @@ public final class CombatEngine implements CombatService {
         }
 
         if (source.causingEntity() != null && source.causingEntity() != victim
-                && (MELEE_ATTACKS.contains(source.type()) || hasDamageTag(source, DamageTypeTagKeys.IS_PROJECTILE.key()))) {
+                && (MELEE_ATTACKS.contains(source.type()) || hasDamageTag(source, DamageTypeTagKeys.IS_PROJECTILE))) {
             // Fire Aspect, Thorns, Bane of Arthropods... like vanilla, the effects of the attacker
             // only follow a melee hit, those of the victim any attack.
             EnchantmentEngine.postAttack(victim, source, dealt, MELEE_ATTACKS.contains(source.type()));
@@ -299,14 +299,14 @@ public final class CombatEngine implements CombatService {
             damage = CombatRules.damageAfterArmor(damage, (float) victim.armor(), (float) victim.armorToughness(),
                     share -> EnchantmentEngine.armorEffectiveness(victim, source, share));
         }
-        if (!hasDamageTag(source, DamageTypeTagKeys.BYPASSES_ENCHANTMENTS.key())) {
+        if (!hasDamageTag(source, DamageTypeTagKeys.BYPASSES_ENCHANTMENTS)) {
             damage = CombatRules.damageAfterProtection(damage, EnchantmentEngine.protection(victim, source));
         }
         return Math.max(0f, damage);
     }
 
-    private boolean hasDamageTag(final DamageSource source, final Key tag) {
-        return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type().key(), tag);
+    private boolean hasDamageTag(final DamageSource source, final TagKey<DamageType> tag) {
+        return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type(), tag);
     }
 
     private float soakWithAbsorption(final AbstractLivingEntity victim, final float damage) {
@@ -460,7 +460,7 @@ public final class CombatEngine implements CombatService {
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
         final int damageTypeId =
-                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type().key());
+                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type());
         if (damageTypeId >= 0) {
             sendToViewersAndSelf(victim, new ClientboundDamageEventPacket(
                     victim.entityId(),
@@ -511,7 +511,7 @@ public final class CombatEngine implements CombatService {
     private void sweep(final ServerPlayer attacker, final AbstractLivingEntity primary, final DamageSource source,
                        final float damage, final float strength) {
         final Location center = primary.location();
-        final float sweepDamage = SWEEP_DAMAGE + (float) attacker.attributeValue(AttributeKeys.SWEEPING_DAMAGE_RATIO.key()) * damage;
+        final float sweepDamage = SWEEP_DAMAGE + (float) attacker.attributeValue(AttributeKeys.SWEEPING_DAMAGE_RATIO) * damage;
         for (final AbstractLivingEntity nearby : nearbyLivingEntities(attacker, center)) {
             if (nearby == primary || nearby == attacker || !nearby.isAlive() || !canHarm(attacker, nearby)) {
                 continue;

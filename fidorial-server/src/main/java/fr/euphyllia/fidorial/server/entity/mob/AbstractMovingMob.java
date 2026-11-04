@@ -83,7 +83,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         this.sentPitch = pitch;
         this.sentHeadYaw = yaw;
         this.walksOnPowderSnow = server().registries().registry(RegistryKey.ENTITY_TYPE)
-                .isTagged(type.key(), EntityTypeTagKeys.POWDER_SNOW_WALKABLE_MOBS.key());
+                .isTagged(type.key(), EntityTypeTagKeys.POWDER_SNOW_WALKABLE_MOBS);
     }
 
     public final ServerWorld serverWorld() {
@@ -337,7 +337,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             memories.add("walk_target: " + waypoint.x() + ", " + waypoint.y() + ", " + waypoint.z());
         }
         return DebugValues.BrainInfo.forMob(
-                type().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
+                type().key().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
     }
 
     public final void forEachIntersectedBlock(final BiConsumer<BlockPosition, DebugValues.BlockIntersection> action) {

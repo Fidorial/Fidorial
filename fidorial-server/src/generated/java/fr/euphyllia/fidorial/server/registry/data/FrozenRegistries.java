@@ -19,6 +19,9 @@ public final class FrozenRegistries {
     private static final Map<Key, List<Key>> ENTRIES = Map.ofEntries(
         Map.entry(Key.key("attribute"), attribute()),
         Map.entry(Key.key("block"), block()),
+        Map.entry(Key.key("block_entity_type"), blockEntityType()),
+        Map.entry(Key.key("consume_effect_type"), consumeEffectType()),
+        Map.entry(Key.key("custom_stat"), customStat()),
         Map.entry(Key.key("data_component_type"), dataComponentType()),
         Map.entry(Key.key("debug_subscription"), debugSubscription()),
         Map.entry(Key.key("entity_type"), entityType()),
@@ -29,7 +32,13 @@ public final class FrozenRegistries {
         Map.entry(Key.key("map_decoration_type"), mapDecorationType()),
         Map.entry(Key.key("menu"), menu()),
         Map.entry(Key.key("mob_effect"), mobEffect()),
+        Map.entry(Key.key("particle_type"), particleType()),
+        Map.entry(Key.key("potion"), potion()),
+        Map.entry(Key.key("recipe_book_category"), recipeBookCategory()),
+        Map.entry(Key.key("recipe_display"), recipeDisplay()),
+        Map.entry(Key.key("slot_display"), slotDisplay()),
         Map.entry(Key.key("sound_event"), soundEvent()),
+        Map.entry(Key.key("stat_type"), statType()),
         Map.entry(Key.key("villager_profession"), villagerProfession()),
         Map.entry(Key.key("villager_type"), villagerType())
     );
@@ -37,6 +46,9 @@ public final class FrozenRegistries {
     private static final Map<Key, Map<Key, List<Key>>> TAGS = Map.ofEntries(
         Map.entry(Key.key("attribute"), attributeTags()),
         Map.entry(Key.key("block"), blockTags()),
+        Map.entry(Key.key("block_entity_type"), blockEntityTypeTags()),
+        Map.entry(Key.key("consume_effect_type"), consumeEffectTypeTags()),
+        Map.entry(Key.key("custom_stat"), customStatTags()),
         Map.entry(Key.key("data_component_type"), dataComponentTypeTags()),
         Map.entry(Key.key("debug_subscription"), debugSubscriptionTags()),
         Map.entry(Key.key("entity_type"), entityTypeTags()),
@@ -47,7 +59,13 @@ public final class FrozenRegistries {
         Map.entry(Key.key("map_decoration_type"), mapDecorationTypeTags()),
         Map.entry(Key.key("menu"), menuTags()),
         Map.entry(Key.key("mob_effect"), mobEffectTags()),
+        Map.entry(Key.key("particle_type"), particleTypeTags()),
+        Map.entry(Key.key("potion"), potionTags()),
+        Map.entry(Key.key("recipe_book_category"), recipeBookCategoryTags()),
+        Map.entry(Key.key("recipe_display"), recipeDisplayTags()),
+        Map.entry(Key.key("slot_display"), slotDisplayTags()),
         Map.entry(Key.key("sound_event"), soundEventTags()),
+        Map.entry(Key.key("stat_type"), statTypeTags()),
         Map.entry(Key.key("villager_profession"), villagerProfessionTags()),
         Map.entry(Key.key("villager_type"), villagerTypeTags())
     );
@@ -8148,6 +8166,195 @@ public final class FrozenRegistries {
         return Map.copyOf(tags);
     }
 
+    private static void blockEntityType0(final List<Key> entries) {
+        entries.add(Key.key("furnace"));
+        entries.add(Key.key("chest"));
+        entries.add(Key.key("trapped_chest"));
+        entries.add(Key.key("ender_chest"));
+        entries.add(Key.key("jukebox"));
+        entries.add(Key.key("dispenser"));
+        entries.add(Key.key("dropper"));
+        entries.add(Key.key("sign"));
+        entries.add(Key.key("hanging_sign"));
+        entries.add(Key.key("mob_spawner"));
+        entries.add(Key.key("creaking_heart"));
+        entries.add(Key.key("piston"));
+        entries.add(Key.key("brewing_stand"));
+        entries.add(Key.key("enchanting_table"));
+        entries.add(Key.key("end_portal"));
+        entries.add(Key.key("beacon"));
+        entries.add(Key.key("skull"));
+        entries.add(Key.key("daylight_detector"));
+        entries.add(Key.key("hopper"));
+        entries.add(Key.key("comparator"));
+        entries.add(Key.key("banner"));
+        entries.add(Key.key("structure_block"));
+        entries.add(Key.key("end_gateway"));
+        entries.add(Key.key("command_block"));
+        entries.add(Key.key("shulker_box"));
+        entries.add(Key.key("conduit"));
+        entries.add(Key.key("barrel"));
+        entries.add(Key.key("smoker"));
+        entries.add(Key.key("blast_furnace"));
+        entries.add(Key.key("lectern"));
+        entries.add(Key.key("bell"));
+        entries.add(Key.key("jigsaw"));
+        entries.add(Key.key("campfire"));
+        entries.add(Key.key("beehive"));
+        entries.add(Key.key("sculk_sensor"));
+        entries.add(Key.key("calibrated_sculk_sensor"));
+        entries.add(Key.key("sculk_catalyst"));
+        entries.add(Key.key("sculk_shrieker"));
+        entries.add(Key.key("chiseled_bookshelf"));
+        entries.add(Key.key("shelf"));
+        entries.add(Key.key("brushable_block"));
+        entries.add(Key.key("decorated_pot"));
+        entries.add(Key.key("crafter"));
+        entries.add(Key.key("trial_spawner"));
+        entries.add(Key.key("vault"));
+        entries.add(Key.key("test_block"));
+        entries.add(Key.key("test_instance_block"));
+        entries.add(Key.key("copper_golem_statue"));
+        entries.add(Key.key("potent_sulfur"));
+    }
+
+    /**
+     * @return {@code minecraft:block_entity_type}, indexed by network ID
+     */
+    private static List<Key> blockEntityType() {
+        final List<Key> entries = new ArrayList<>(49);
+        blockEntityType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:block_entity_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> blockEntityTypeTags() {
+        return Map.of();
+    }
+
+    private static void consumeEffectType0(final List<Key> entries) {
+        entries.add(Key.key("apply_effects"));
+        entries.add(Key.key("remove_effects"));
+        entries.add(Key.key("clear_all_effects"));
+        entries.add(Key.key("teleport_randomly"));
+        entries.add(Key.key("play_sound"));
+    }
+
+    /**
+     * @return {@code minecraft:consume_effect_type}, indexed by network ID
+     */
+    private static List<Key> consumeEffectType() {
+        final List<Key> entries = new ArrayList<>(5);
+        consumeEffectType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:consume_effect_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> consumeEffectTypeTags() {
+        return Map.of();
+    }
+
+    private static void customStat0(final List<Key> entries) {
+        entries.add(Key.key("leave_game"));
+        entries.add(Key.key("play_time"));
+        entries.add(Key.key("total_world_time"));
+        entries.add(Key.key("time_since_death"));
+        entries.add(Key.key("time_since_rest"));
+        entries.add(Key.key("sneak_time"));
+        entries.add(Key.key("walk_one_cm"));
+        entries.add(Key.key("crouch_one_cm"));
+        entries.add(Key.key("sprint_one_cm"));
+        entries.add(Key.key("walk_on_water_one_cm"));
+        entries.add(Key.key("fall_one_cm"));
+        entries.add(Key.key("climb_one_cm"));
+        entries.add(Key.key("fly_one_cm"));
+        entries.add(Key.key("walk_under_water_one_cm"));
+        entries.add(Key.key("minecart_one_cm"));
+        entries.add(Key.key("boat_one_cm"));
+        entries.add(Key.key("pig_one_cm"));
+        entries.add(Key.key("happy_ghast_one_cm"));
+        entries.add(Key.key("horse_one_cm"));
+        entries.add(Key.key("aviate_one_cm"));
+        entries.add(Key.key("swim_one_cm"));
+        entries.add(Key.key("strider_one_cm"));
+        entries.add(Key.key("nautilus_one_cm"));
+        entries.add(Key.key("jump"));
+        entries.add(Key.key("drop"));
+        entries.add(Key.key("damage_dealt"));
+        entries.add(Key.key("damage_dealt_absorbed"));
+        entries.add(Key.key("damage_dealt_resisted"));
+        entries.add(Key.key("damage_taken"));
+        entries.add(Key.key("damage_blocked_by_shield"));
+        entries.add(Key.key("damage_absorbed"));
+        entries.add(Key.key("damage_resisted"));
+        entries.add(Key.key("deaths"));
+        entries.add(Key.key("mob_kills"));
+        entries.add(Key.key("animals_bred"));
+        entries.add(Key.key("player_kills"));
+        entries.add(Key.key("fish_caught"));
+        entries.add(Key.key("talked_to_villager"));
+        entries.add(Key.key("traded_with_villager"));
+        entries.add(Key.key("eat_cake_slice"));
+        entries.add(Key.key("fill_cauldron"));
+        entries.add(Key.key("use_cauldron"));
+        entries.add(Key.key("clean_armor"));
+        entries.add(Key.key("clean_banner"));
+        entries.add(Key.key("clean_shulker_box"));
+        entries.add(Key.key("interact_with_brewingstand"));
+        entries.add(Key.key("interact_with_beacon"));
+        entries.add(Key.key("inspect_dropper"));
+        entries.add(Key.key("inspect_hopper"));
+        entries.add(Key.key("inspect_dispenser"));
+        entries.add(Key.key("play_noteblock"));
+        entries.add(Key.key("tune_noteblock"));
+        entries.add(Key.key("pot_flower"));
+        entries.add(Key.key("trigger_trapped_chest"));
+        entries.add(Key.key("open_enderchest"));
+        entries.add(Key.key("enchant_item"));
+        entries.add(Key.key("play_record"));
+        entries.add(Key.key("interact_with_furnace"));
+        entries.add(Key.key("interact_with_crafting_table"));
+        entries.add(Key.key("open_chest"));
+        entries.add(Key.key("sleep_in_bed"));
+        entries.add(Key.key("sleep_in_straw_bed"));
+        entries.add(Key.key("open_shulker_box"));
+        entries.add(Key.key("open_barrel"));
+        entries.add(Key.key("interact_with_blast_furnace"));
+        entries.add(Key.key("interact_with_smoker"));
+        entries.add(Key.key("interact_with_lectern"));
+        entries.add(Key.key("interact_with_campfire"));
+        entries.add(Key.key("interact_with_cartography_table"));
+        entries.add(Key.key("interact_with_loom"));
+        entries.add(Key.key("interact_with_stonecutter"));
+        entries.add(Key.key("bell_ring"));
+        entries.add(Key.key("raid_trigger"));
+        entries.add(Key.key("raid_win"));
+        entries.add(Key.key("interact_with_anvil"));
+        entries.add(Key.key("interact_with_grindstone"));
+        entries.add(Key.key("target_hit"));
+        entries.add(Key.key("interact_with_smithing_table"));
+    }
+
+    /**
+     * @return {@code minecraft:custom_stat}, indexed by network ID
+     */
+    private static List<Key> customStat() {
+        final List<Key> entries = new ArrayList<>(78);
+        customStat0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:custom_stat}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> customStatTags() {
+        return Map.of();
+    }
+
     private static void dataComponentType0(final List<Key> entries) {
         entries.add(Key.key("custom_data"));
         entries.add(Key.key("max_stack_size"));
@@ -12283,6 +12490,331 @@ public final class FrozenRegistries {
         return Map.of();
     }
 
+    private static void particleType0(final List<Key> entries) {
+        entries.add(Key.key("angry_villager"));
+        entries.add(Key.key("block"));
+        entries.add(Key.key("block_marker"));
+        entries.add(Key.key("bubble"));
+        entries.add(Key.key("sulfur_bubbles"));
+        entries.add(Key.key("noxious_gas"));
+        entries.add(Key.key("noxious_gas_cloud"));
+        entries.add(Key.key("geyser"));
+        entries.add(Key.key("geyser_base"));
+        entries.add(Key.key("geyser_poof"));
+        entries.add(Key.key("geyser_plume"));
+        entries.add(Key.key("cloud"));
+        entries.add(Key.key("copper_fire_flame"));
+        entries.add(Key.key("crit"));
+        entries.add(Key.key("damage_indicator"));
+        entries.add(Key.key("dragon_breath"));
+        entries.add(Key.key("dripping_lava"));
+        entries.add(Key.key("falling_lava"));
+        entries.add(Key.key("landing_lava"));
+        entries.add(Key.key("dripping_water"));
+        entries.add(Key.key("falling_water"));
+        entries.add(Key.key("dust"));
+        entries.add(Key.key("dust_color_transition"));
+        entries.add(Key.key("effect"));
+        entries.add(Key.key("elder_guardian"));
+        entries.add(Key.key("enchanted_hit"));
+        entries.add(Key.key("enchant"));
+        entries.add(Key.key("end_rod"));
+        entries.add(Key.key("entity_effect"));
+        entries.add(Key.key("explosion_emitter"));
+        entries.add(Key.key("explosion"));
+        entries.add(Key.key("freezing"));
+        entries.add(Key.key("gust"));
+        entries.add(Key.key("small_gust"));
+        entries.add(Key.key("gust_emitter_large"));
+        entries.add(Key.key("gust_emitter_small"));
+        entries.add(Key.key("sonic_boom"));
+        entries.add(Key.key("falling_dust"));
+        entries.add(Key.key("firework"));
+        entries.add(Key.key("fishing"));
+        entries.add(Key.key("flame"));
+        entries.add(Key.key("infested"));
+        entries.add(Key.key("cherry_leaves"));
+        entries.add(Key.key("pale_oak_leaves"));
+        entries.add(Key.key("red_poplar_leaves"));
+        entries.add(Key.key("orange_poplar_leaves"));
+        entries.add(Key.key("yellow_poplar_leaves"));
+        entries.add(Key.key("tinted_leaves"));
+        entries.add(Key.key("sculk_soul"));
+        entries.add(Key.key("sculk_charge"));
+        entries.add(Key.key("sculk_charge_pop"));
+        entries.add(Key.key("soul_fire_flame"));
+        entries.add(Key.key("soul"));
+        entries.add(Key.key("flash"));
+        entries.add(Key.key("happy_villager"));
+        entries.add(Key.key("composter"));
+        entries.add(Key.key("heart"));
+        entries.add(Key.key("instant_effect"));
+        entries.add(Key.key("item"));
+        entries.add(Key.key("vibration"));
+        entries.add(Key.key("trail"));
+        entries.add(Key.key("pause_mob_growth"));
+        entries.add(Key.key("reset_mob_growth"));
+        entries.add(Key.key("item_slime"));
+        entries.add(Key.key("item_cobweb"));
+        entries.add(Key.key("large_smoke"));
+        entries.add(Key.key("lava"));
+        entries.add(Key.key("mycelium"));
+        entries.add(Key.key("note"));
+        entries.add(Key.key("poof"));
+        entries.add(Key.key("portal"));
+        entries.add(Key.key("rain"));
+        entries.add(Key.key("smoke"));
+        entries.add(Key.key("white_smoke"));
+        entries.add(Key.key("sneeze"));
+        entries.add(Key.key("spit"));
+        entries.add(Key.key("squid_ink"));
+        entries.add(Key.key("sweep_attack"));
+        entries.add(Key.key("totem_of_undying"));
+        entries.add(Key.key("underwater"));
+        entries.add(Key.key("splash"));
+        entries.add(Key.key("witch"));
+        entries.add(Key.key("bubble_pop"));
+        entries.add(Key.key("current_down"));
+        entries.add(Key.key("bubble_column_up"));
+        entries.add(Key.key("nautilus"));
+        entries.add(Key.key("dolphin"));
+        entries.add(Key.key("campfire_cosy_smoke"));
+        entries.add(Key.key("campfire_signal_smoke"));
+        entries.add(Key.key("dripping_honey"));
+        entries.add(Key.key("falling_honey"));
+        entries.add(Key.key("landing_honey"));
+        entries.add(Key.key("falling_nectar"));
+        entries.add(Key.key("falling_spore_blossom"));
+        entries.add(Key.key("ash"));
+        entries.add(Key.key("crimson_spore"));
+        entries.add(Key.key("warped_spore"));
+        entries.add(Key.key("spore_blossom_air"));
+        entries.add(Key.key("dripping_obsidian_tear"));
+        entries.add(Key.key("falling_obsidian_tear"));
+        entries.add(Key.key("landing_obsidian_tear"));
+        entries.add(Key.key("reverse_portal"));
+        entries.add(Key.key("white_ash"));
+        entries.add(Key.key("small_flame"));
+        entries.add(Key.key("snowflake"));
+        entries.add(Key.key("dripping_dripstone_lava"));
+        entries.add(Key.key("falling_dripstone_lava"));
+        entries.add(Key.key("dripping_dripstone_water"));
+        entries.add(Key.key("falling_dripstone_water"));
+        entries.add(Key.key("glow_squid_ink"));
+        entries.add(Key.key("glow"));
+        entries.add(Key.key("wax_on"));
+        entries.add(Key.key("wax_off"));
+        entries.add(Key.key("electric_spark"));
+        entries.add(Key.key("scrape"));
+        entries.add(Key.key("shriek"));
+        entries.add(Key.key("egg_crack"));
+        entries.add(Key.key("dust_plume"));
+        entries.add(Key.key("trial_spawner_detection"));
+        entries.add(Key.key("trial_spawner_detection_ominous"));
+        entries.add(Key.key("vault_connection"));
+        entries.add(Key.key("dust_pillar"));
+        entries.add(Key.key("ominous_spawning"));
+        entries.add(Key.key("raid_omen"));
+        entries.add(Key.key("trial_omen"));
+        entries.add(Key.key("block_crumble"));
+        entries.add(Key.key("firefly"));
+        entries.add(Key.key("sulfur_cube_goo"));
+    }
+
+    /**
+     * @return {@code minecraft:particle_type}, indexed by network ID
+     */
+    private static List<Key> particleType() {
+        final List<Key> entries = new ArrayList<>(128);
+        particleType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:particle_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> particleTypeTags() {
+        return Map.of();
+    }
+
+    private static void potion0(final List<Key> entries) {
+        entries.add(Key.key("water"));
+        entries.add(Key.key("mundane"));
+        entries.add(Key.key("thick"));
+        entries.add(Key.key("awkward"));
+        entries.add(Key.key("night_vision"));
+        entries.add(Key.key("long_night_vision"));
+        entries.add(Key.key("invisibility"));
+        entries.add(Key.key("long_invisibility"));
+        entries.add(Key.key("leaping"));
+        entries.add(Key.key("long_leaping"));
+        entries.add(Key.key("strong_leaping"));
+        entries.add(Key.key("fire_resistance"));
+        entries.add(Key.key("long_fire_resistance"));
+        entries.add(Key.key("swiftness"));
+        entries.add(Key.key("long_swiftness"));
+        entries.add(Key.key("strong_swiftness"));
+        entries.add(Key.key("slowness"));
+        entries.add(Key.key("long_slowness"));
+        entries.add(Key.key("strong_slowness"));
+        entries.add(Key.key("turtle_master"));
+        entries.add(Key.key("long_turtle_master"));
+        entries.add(Key.key("strong_turtle_master"));
+        entries.add(Key.key("water_breathing"));
+        entries.add(Key.key("long_water_breathing"));
+        entries.add(Key.key("healing"));
+        entries.add(Key.key("strong_healing"));
+        entries.add(Key.key("harming"));
+        entries.add(Key.key("strong_harming"));
+        entries.add(Key.key("poison"));
+        entries.add(Key.key("long_poison"));
+        entries.add(Key.key("strong_poison"));
+        entries.add(Key.key("regeneration"));
+        entries.add(Key.key("long_regeneration"));
+        entries.add(Key.key("strong_regeneration"));
+        entries.add(Key.key("strength"));
+        entries.add(Key.key("long_strength"));
+        entries.add(Key.key("strong_strength"));
+        entries.add(Key.key("weakness"));
+        entries.add(Key.key("long_weakness"));
+        entries.add(Key.key("luck"));
+        entries.add(Key.key("slow_falling"));
+        entries.add(Key.key("long_slow_falling"));
+        entries.add(Key.key("wind_charged"));
+        entries.add(Key.key("weaving"));
+        entries.add(Key.key("oozing"));
+        entries.add(Key.key("infested"));
+        entries.add(Key.key("freezing"));
+        entries.add(Key.key("long_freezing"));
+    }
+
+    /**
+     * @return {@code minecraft:potion}, indexed by network ID
+     */
+    private static List<Key> potion() {
+        final List<Key> entries = new ArrayList<>(48);
+        potion0(entries);
+        return List.copyOf(entries);
+    }
+
+    private static void potionTags0(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("douses_fire"), List.of(Key.key("water")));
+        tags.put(Key.key("extinguishes_entities"), List.of(Key.key("water")));
+        tags.put(Key.key("hurts_water_sensitive_entities"), List.of(Key.key("water")));
+        tags.put(Key.key("rehydrates_axolotls"), List.of(Key.key("water")));
+        tags.put(Key.key("tradeable"), List.of(Key.key("fire_resistance"), Key.key("freezing"),
+                Key.key("harming"), Key.key("healing"), Key.key("infested"),
+                Key.key("invisibility"), Key.key("leaping"), Key.key("long_fire_resistance"),
+                Key.key("long_freezing"), Key.key("long_invisibility"), Key.key("long_leaping"),
+                Key.key("long_night_vision"), Key.key("long_poison"), Key.key("long_regeneration"),
+                Key.key("long_slow_falling"), Key.key("long_slowness"), Key.key("long_strength"),
+                Key.key("long_swiftness"), Key.key("long_turtle_master"),
+                Key.key("long_water_breathing"), Key.key("long_weakness"), Key.key("night_vision"),
+                Key.key("oozing"), Key.key("poison"), Key.key("regeneration"),
+                Key.key("slow_falling"), Key.key("slowness"), Key.key("strength"),
+                Key.key("strong_harming"), Key.key("strong_healing"), Key.key("strong_leaping"),
+                Key.key("strong_poison"), Key.key("strong_regeneration"),
+                Key.key("strong_slowness"), Key.key("strong_strength"), Key.key("strong_swiftness"),
+                Key.key("strong_turtle_master"), Key.key("swiftness"), Key.key("turtle_master"),
+                Key.key("water_breathing"), Key.key("weakness"), Key.key("weaving"),
+                Key.key("wind_charged")));
+    }
+
+    /**
+     * @return the tags of {@code minecraft:potion}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> potionTags() {
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(5);
+        potionTags0(tags);
+        return Map.copyOf(tags);
+    }
+
+    private static void recipeBookCategory0(final List<Key> entries) {
+        entries.add(Key.key("crafting_building_blocks"));
+        entries.add(Key.key("crafting_redstone"));
+        entries.add(Key.key("crafting_equipment"));
+        entries.add(Key.key("crafting_misc"));
+        entries.add(Key.key("furnace_food"));
+        entries.add(Key.key("furnace_blocks"));
+        entries.add(Key.key("furnace_misc"));
+        entries.add(Key.key("blast_furnace_blocks"));
+        entries.add(Key.key("blast_furnace_misc"));
+        entries.add(Key.key("smoker_food"));
+        entries.add(Key.key("stonecutter"));
+        entries.add(Key.key("smithing"));
+        entries.add(Key.key("campfire"));
+    }
+
+    /**
+     * @return {@code minecraft:recipe_book_category}, indexed by network ID
+     */
+    private static List<Key> recipeBookCategory() {
+        final List<Key> entries = new ArrayList<>(13);
+        recipeBookCategory0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:recipe_book_category}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> recipeBookCategoryTags() {
+        return Map.of();
+    }
+
+    private static void recipeDisplay0(final List<Key> entries) {
+        entries.add(Key.key("crafting_shapeless"));
+        entries.add(Key.key("crafting_shaped"));
+        entries.add(Key.key("furnace"));
+        entries.add(Key.key("stonecutter"));
+        entries.add(Key.key("smithing"));
+    }
+
+    /**
+     * @return {@code minecraft:recipe_display}, indexed by network ID
+     */
+    private static List<Key> recipeDisplay() {
+        final List<Key> entries = new ArrayList<>(5);
+        recipeDisplay0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:recipe_display}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> recipeDisplayTags() {
+        return Map.of();
+    }
+
+    private static void slotDisplay0(final List<Key> entries) {
+        entries.add(Key.key("empty"));
+        entries.add(Key.key("any_fuel"));
+        entries.add(Key.key("with_any_potion"));
+        entries.add(Key.key("only_with_component"));
+        entries.add(Key.key("item"));
+        entries.add(Key.key("item_stack"));
+        entries.add(Key.key("tag"));
+        entries.add(Key.key("dyed"));
+        entries.add(Key.key("smithing_trim"));
+        entries.add(Key.key("with_remainder"));
+        entries.add(Key.key("composite"));
+    }
+
+    /**
+     * @return {@code minecraft:slot_display}, indexed by network ID
+     */
+    private static List<Key> slotDisplay() {
+        final List<Key> entries = new ArrayList<>(11);
+        slotDisplay0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:slot_display}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> slotDisplayTags() {
+        return Map.of();
+    }
+
     private static void soundEvent0(final List<Key> entries) {
         entries.add(Key.key("entity.allay.ambient_with_item"));
         entries.add(Key.key("entity.allay.ambient_without_item"));
@@ -14387,6 +14919,34 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:sound_event}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> soundEventTags() {
+        return Map.of();
+    }
+
+    private static void statType0(final List<Key> entries) {
+        entries.add(Key.key("mined"));
+        entries.add(Key.key("crafted"));
+        entries.add(Key.key("used"));
+        entries.add(Key.key("broken"));
+        entries.add(Key.key("picked_up"));
+        entries.add(Key.key("dropped"));
+        entries.add(Key.key("killed"));
+        entries.add(Key.key("killed_by"));
+        entries.add(Key.key("custom"));
+    }
+
+    /**
+     * @return {@code minecraft:stat_type}, indexed by network ID
+     */
+    private static List<Key> statType() {
+        final List<Key> entries = new ArrayList<>(9);
+        statType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:stat_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> statTypeTags() {
         return Map.of();
     }
 

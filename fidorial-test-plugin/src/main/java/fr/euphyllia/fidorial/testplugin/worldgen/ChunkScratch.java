@@ -2,8 +2,9 @@ package fr.euphyllia.fidorial.testplugin.worldgen;
 
 import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.euphyllia.fidorial.testplugin.worldgen.shape.TerrainShape;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.generation.GeneratedChunk;
-import net.kyori.adventure.key.Key;
 
 import java.util.Arrays;
 
@@ -25,7 +26,7 @@ public final class ChunkScratch {
     private int cellCountY;
     private short[] blocks = new short[0];
     private double[] density = new double[0];
-    private Key[] biomeCells = new Key[0];
+    private TypedKey<BiomeDefinition>[] biomeCells = newBiomeCells(0);
 
     public void reset(final int newChunkX, final int newChunkZ, final int newMinY, final int newHeight) {
         this.chunkX = newChunkX;
@@ -48,7 +49,7 @@ public final class ChunkScratch {
 
         final int biomeSlots = 16 * cellCountY;
         if (biomeCells.length != biomeSlots) {
-            biomeCells = new Key[biomeSlots];
+            biomeCells = newBiomeCells(biomeSlots);
         }
         Arrays.fill(biomeCells, null);
 
@@ -174,21 +175,26 @@ public final class ChunkScratch {
         return density[(cornerY * 5 + cornerZ) * 5 + cornerX];
     }
 
-    public void setBiomeCell(final int cellX, final int cellY, final int cellZ, final Key biome) {
+    public void setBiomeCell(final int cellX, final int cellY, final int cellZ, final TypedKey<BiomeDefinition> biome) {
         biomeCells[(cellY * 4 + cellZ) * 4 + cellX] = biome;
     }
 
-    public Key biomeCell(final int cellX, final int cellY, final int cellZ) {
+    public TypedKey<BiomeDefinition> biomeCell(final int cellX, final int cellY, final int cellZ) {
         return biomeCells[(cellY * 4 + cellZ) * 4 + cellX];
     }
 
-    public Key surfaceBiome(final int x, final int z) {
+    public TypedKey<BiomeDefinition> surfaceBiome(final int x, final int z) {
         final int cellY = Math.clamp((surfaceY(x, z) - minY) / CELL, 0, cellCountY - 1);
-        final Key biome = biomeCell(x >> 2, cellY, z >> 2);
+        final TypedKey<BiomeDefinition> biome = biomeCell(x >> 2, cellY, z >> 2);
         if (biome != null) {
             return biome;
         }
         return biomeCell(x >> 2, Math.clamp((63 - minY) / CELL, 0, cellCountY - 1), z >> 2);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static TypedKey<BiomeDefinition>[] newBiomeCells(final int size) {
+        return (TypedKey<BiomeDefinition>[]) new TypedKey<?>[size];
     }
 
     public void flush(final GeneratedChunk chunk) {
@@ -209,7 +215,7 @@ public final class ChunkScratch {
             final int worldY = minY + cellY * CELL;
             for (int cellZ = 0; cellZ < 4; cellZ++) {
                 for (int cellX = 0; cellX < 4; cellX++) {
-                    final Key biome = biomeCell(cellX, cellY, cellZ);
+                    final TypedKey<BiomeDefinition> biome = biomeCell(cellX, cellY, cellZ);
                     for (int dy = 0; dy < CELL; dy++) {
                         for (int dz = 0; dz < CELL; dz++) {
                             for (int dx = 0; dx < CELL; dx++) {

@@ -43,7 +43,7 @@ public final class TimelineKeys {
     }
 
     private static TypedKey<Timeline> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.TIMELINE, value);
+        return TypedKey.withRegistry(RegistryKey.TIMELINE, value);
     }
 
     /**

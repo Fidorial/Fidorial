@@ -17,7 +17,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 public final class TestEffects {
 
     public static final TypedKey<MobEffect> BLEEDING =
-            TypedKey.create(RegistryKey.MOB_EFFECT, Key.key("fidorialtest", "bleeding"));
+            TypedKey.withRegistry(RegistryKey.MOB_EFFECT, Key.key("fidorialtest", "bleeding"));
 
     private static final int MAX_AMPLIFIER = 4;
 

@@ -11,12 +11,13 @@ import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.math.Location;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 final class ScenarioTestPlayer {
 
     static Player spawn(final FidorialServer server, final String name, final Location location, final GameMode gameMode) {
-        final PlayerProfile profile = new PlayerProfile(UUID.nameUUIDFromBytes(("test:" + name).getBytes()), name);
+        final PlayerProfile profile = new PlayerProfile(UUID.nameUUIDFromBytes(("test:" + name).getBytes(StandardCharsets.UTF_8)), name);
         final ClientConnection connection = ClientConnection.mock(server);
 
         final ServerPlayer player = new ServerPlayer(

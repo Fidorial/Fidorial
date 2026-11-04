@@ -69,6 +69,6 @@ public final class BannerPatternTagKeys {
     }
 
     private static TagKey<BannerPattern> create(@KeyPattern final String value) {
-        return TagKey.create(RegistryKey.BANNER_PATTERN, value);
+        return TagKey.withRegistry(RegistryKey.BANNER_PATTERN, value);
     }
 }

@@ -73,7 +73,7 @@ public final class BiomeCommand {
     }
 
     private static TypedKey<BiomeDefinition> typed(final Key key) {
-        return TypedKey.create(RegistryKey.BIOME, key);
+        return TypedKey.withRegistry(RegistryKey.BIOME, key);
     }
 
     private static int list(final CommandContext<CommandSource> ctx) {
@@ -163,7 +163,7 @@ public final class BiomeCommand {
             return 0;
         }
 
-        final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(key).build();
+        final BiomeDefinition clone = BiomeDefinition.builder(TestBiomes.VOLCANIC_PLAINS).key(typed(key)).build();
         biomes.register(clone, plugin);
 
         plugin.msg(source, "<green>%s registered. Reconnect to see it.".formatted(key.asString()));
@@ -192,7 +192,7 @@ public final class BiomeCommand {
         try {
             final BiomeDefinition biome = biomes.registerFromJson(typed(key), SAMPLE_JSON, plugin);
             plugin.msg(source, "<green>JSON read: %s, temperature %s, sky %s"
-                    .formatted(biome.key().asString(), biome.temperature(),
+                    .formatted(biome.key().key().asString(), biome.temperature(),
                             attribute(biome.attributes().skyColor())));
         } catch (final IllegalArgumentException invalid) {
             plugin.msg(source, "<red>JSON rejected: " + invalid.getMessage());

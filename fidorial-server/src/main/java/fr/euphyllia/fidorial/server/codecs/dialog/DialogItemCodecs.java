@@ -4,16 +4,17 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentTypes;
+import fr.fidorial.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
 
 import java.util.List;
 import java.util.Optional;
 
-import static fr.euphyllia.fidorial.server.codecs.CommonCodecs.KEY_CODEC;
 import static fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs.COMPONENT_CODEC;
 
 public class DialogItemCodecs {
@@ -25,7 +26,7 @@ public class DialogItemCodecs {
             .buildMap();
 
     static final Codec<ItemStack> ITEM_STACK_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            KEY_CODEC.fieldOf("id").forGetter(ItemStack::id),
+            ReferenceCodecs.key(RegistryKey.ITEM).fieldOf("id").forGetter(ItemStack::id),
             Codec.INT.optionalFieldOf("count", 1).forGetter(ItemStack::count),
             COMPONENTS_CODEC.codec().optionalFieldOf("components")
                     .forGetter(stack -> {

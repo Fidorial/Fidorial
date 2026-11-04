@@ -48,7 +48,9 @@ public final class Chicken extends AbstractPathfinderMob implements Category.Neu
     @Override
     protected float voicePitch() {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
-        return (random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f;
+        final float first = random.nextFloat();
+        final float second = random.nextFloat();
+        return (first - second) * 0.2f + 1.0f;
     }
 
     @Override

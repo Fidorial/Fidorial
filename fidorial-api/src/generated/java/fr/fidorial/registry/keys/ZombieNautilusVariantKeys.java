@@ -31,7 +31,7 @@ public final class ZombieNautilusVariantKeys {
     }
 
     private static TypedKey<ZombieNautilusVariant> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, value);
+        return TypedKey.withRegistry(RegistryKey.ZOMBIE_NAUTILUS_VARIANT, value);
     }
 
     /**

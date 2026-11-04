@@ -427,7 +427,7 @@ public final class BiomeKeys {
     }
 
     private static TypedKey<BiomeDefinition> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.BIOME, value);
+        return TypedKey.withRegistry(RegistryKey.BIOME, value);
     }
 
     /**

@@ -3,11 +3,11 @@ package fr.euphyllia.fidorial.server.world.block;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -18,16 +18,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class FidorialBlockRegistry implements BlockRegistry {
 
-    private final Map<Key, BlockType> types = new ConcurrentHashMap<>(BlockStateIds.BLOCK_COUNT);
-    private final Map<Key, BlockBehaviour> behaviours = new ConcurrentHashMap<>();
-    private final Map<Key, BlockBehaviour> fallbackBehaviours = new ConcurrentHashMap<>(BlockStateIds.BLOCK_COUNT);
+    private final Map<TypedKey<BlockType>, BlockType> types = new ConcurrentHashMap<>(BlockStateIds.BLOCK_COUNT);
+    private final Map<TypedKey<BlockType>, BlockBehaviour> behaviours = new ConcurrentHashMap<>();
+    private final Map<TypedKey<BlockType>, BlockBehaviour> fallbackBehaviours = new ConcurrentHashMap<>(BlockStateIds.BLOCK_COUNT);
     private final ConcurrentInt2ObjectMap<BlockData> byNetworkId = new ConcurrentInt2ObjectMap<>(BlockStateIds.STATE_COUNT);
 
     @Override
     public void register(final BlockType type) {
         final BlockType previous = types.put(type.key(), type);
         if (previous != null) {
-            throw new IllegalStateException("Block '" + type.key().asString() + "' is already registered");
+            throw new IllegalStateException("Block '" + type.key() + "' is already registered");
         }
         for (int ordinal = 0; ordinal < type.stateCount(); ordinal++) {
             final BlockData data = type.stateAt(ordinal);
@@ -37,18 +37,18 @@ public final class FidorialBlockRegistry implements BlockRegistry {
 
     @Override
     public void register(final BlockBehaviour behaviour) {
-        final Key key = behaviour.key();
+        final TypedKey<BlockType> key = behaviour.key();
         if (!types.containsKey(key)) {
             register(behaviour.type());
         }
         if (behaviours.putIfAbsent(key, behaviour) != null) {
-            throw new IllegalStateException("Block '" + key.asString() + "' already has a behaviour");
+            throw new IllegalStateException("Block '" + key + "' already has a behaviour");
         }
         fallbackBehaviours.remove(key);
     }
 
     @Override
-    public Optional<BlockType> type(final Key key) {
+    public Optional<BlockType> type(final TypedKey<BlockType> key) {
         return Optional.ofNullable(types.get(key));
     }
 
@@ -60,7 +60,7 @@ public final class FidorialBlockRegistry implements BlockRegistry {
     // TODO: do sth about this - prismarine data doesn't take into account things like respawn_anchor charges changing the light emission
     // we need to manually register behaviours for such cases for now, we'll need to register custom behaviours for blocks anyway in their respective classes
     @Override
-    public Optional<BlockBehaviour> behaviour(final Key key) {
+    public Optional<BlockBehaviour> behaviour(final TypedKey<BlockType> key) {
         final BlockBehaviour explicit = behaviours.get(key);
         if (explicit != null) {
             return Optional.of(explicit);

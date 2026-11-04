@@ -1,7 +1,8 @@
 package fr.fidorial.world.fluid;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -13,19 +14,19 @@ public enum FluidType {
     /**
      * Water: fast, and two adjacent sources form a new one.
      */
-    WATER(BlockTypeKeys.WATER.key(), 5, 1, 7, true),
+    WATER(BlockTypeKeys.WATER, 5, 1, 7, true),
     /**
      * Lava: slower than water, and spreading less far.
      */
-    LAVA(BlockTypeKeys.LAVA.key(), 30, 2, 6, false);
+    LAVA(BlockTypeKeys.LAVA, 30, 2, 6, false);
 
-    private final Key blockKey;
+    private final TypedKey<BlockType> blockKey;
     private final int tickDelay;
     private final int dropOff;
     private final int maxSpreadLevel;
     private final boolean canFormSources;
 
-    FluidType(final Key blockKey, final int tickDelay, final int dropOff, final int maxSpreadLevel, final boolean canFormSources) {
+    FluidType(final TypedKey<BlockType> blockKey, final int tickDelay, final int dropOff, final int maxSpreadLevel, final boolean canFormSources) {
         this.blockKey = blockKey;
         this.tickDelay = tickDelay;
         this.dropOff = dropOff;
@@ -39,7 +40,7 @@ public enum FluidType {
      * @param key the block key
      * @since 0.1.0
      */
-    public static @Nullable FluidType byBlockKey(final Key key) {
+    public static @Nullable FluidType byBlockKey(final TypedKey<BlockType> key) {
         for (final FluidType type : values()) {
             if (type.blockKey.equals(key)) {
                 return type;
@@ -53,7 +54,7 @@ public enum FluidType {
      *
      * @since 0.1.0
      */
-    public Key blockKey() {
+    public TypedKey<BlockType> blockKey() {
         return blockKey;
     }
 

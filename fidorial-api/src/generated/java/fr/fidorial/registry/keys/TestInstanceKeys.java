@@ -25,7 +25,7 @@ public final class TestInstanceKeys {
     }
 
     private static TypedKey<TestInstance> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.TEST_INSTANCE, value);
+        return TypedKey.withRegistry(RegistryKey.TEST_INSTANCE, value);
     }
 
     /**

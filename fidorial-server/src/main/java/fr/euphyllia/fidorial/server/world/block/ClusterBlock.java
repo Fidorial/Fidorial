@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.block;
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.fidorial.annotation.SinceMinecraft;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockBehaviour;
@@ -12,21 +13,20 @@ import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Waterlogged;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 @SinceMinecraft("26.4")
 public final class ClusterBlock implements BlockBehaviour {
 
-    public static final ClusterBlock AMETHYST_CLUSTER = new ClusterBlock(BlockTypeKeys.AMETHYST_CLUSTER.key());
-    public static final ClusterBlock LARGE_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.LARGE_AMETHYST_BUD.key());
-    public static final ClusterBlock MEDIUM_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.MEDIUM_AMETHYST_BUD.key());
-    public static final ClusterBlock SMALL_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.SMALL_AMETHYST_BUD.key());
-    public static final ClusterBlock ICE_CRYSTAL = new ClusterBlock(BlockTypeKeys.ICE_CRYSTAL.key());
+    public static final ClusterBlock AMETHYST_CLUSTER = new ClusterBlock(BlockTypeKeys.AMETHYST_CLUSTER);
+    public static final ClusterBlock LARGE_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.LARGE_AMETHYST_BUD);
+    public static final ClusterBlock MEDIUM_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.MEDIUM_AMETHYST_BUD);
+    public static final ClusterBlock SMALL_AMETHYST_BUD = new ClusterBlock(BlockTypeKeys.SMALL_AMETHYST_BUD);
+    public static final ClusterBlock ICE_CRYSTAL = new ClusterBlock(BlockTypeKeys.ICE_CRYSTAL);
 
-    private final Key key;
+    private final TypedKey<BlockType> key;
 
-    private ClusterBlock(final Key key) {
+    private ClusterBlock(final TypedKey<BlockType> key) {
         this.key = key;
     }
 
@@ -35,7 +35,7 @@ public final class ClusterBlock implements BlockBehaviour {
     }
 
     @Override
-    public Key key() {
+    public TypedKey<BlockType> key() {
         return key;
     }
 

@@ -85,7 +85,7 @@ public final class TrimMaterialKeys {
     }
 
     private static TypedKey<TrimMaterial> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.TRIM_MATERIAL, value);
+        return TypedKey.withRegistry(RegistryKey.TRIM_MATERIAL, value);
     }
 
     /**

@@ -20,6 +20,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.registry.keys.DialogTagKeys;
+import fr.fidorial.registry.keys.ItemKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.text.Component;
@@ -130,7 +131,7 @@ public final class TestDialogs {
     }
 
     private static TypedKey<DialogDefinition> typed(final Key key) {
-        return TypedKey.create(RegistryKey.DIALOG, key);
+        return TypedKey.withRegistry(RegistryKey.DIALOG, key);
     }
 
     /**
@@ -239,7 +240,7 @@ public final class TestDialogs {
         final DialogBase base = DialogBase.builder(Component.text("Actions", NamedTextColor.LIGHT_PURPLE))
                 .externalTitle(Component.text("Actions"))
                 .body(Component.text("One button per action type."))
-                .body(DialogBody.item(new ItemStack(Key.key("diamond"), 3))
+                .body(DialogBody.item(new ItemStack(ItemKeys.DIAMOND, 3))
                         .description(Component.text("An item-type body element."))
                         .showDecoration(true)
                         .build())

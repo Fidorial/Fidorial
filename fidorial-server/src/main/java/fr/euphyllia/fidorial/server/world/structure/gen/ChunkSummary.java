@@ -3,7 +3,9 @@ package fr.euphyllia.fidorial.server.world.structure.gen;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
+import fr.fidorial.world.biome.BiomeDefinition;
 
 import java.util.List;
 import java.util.Map;
@@ -12,9 +14,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class ChunkSummary {
 
-    private static final Map<Key, Short> BIOME_IDS = new ConcurrentHashMap<>();
-    private static final List<Key> BIOMES = new CopyOnWriteArrayList<>();
-    private static final Key PLAINS = Key.key("plains");
+    private static final Map<TypedKey<BiomeDefinition>, Short> BIOME_IDS = new ConcurrentHashMap<>();
+    private static final List<TypedKey<BiomeDefinition>> BIOMES = new CopyOnWriteArrayList<>();
+    private static final TypedKey<BiomeDefinition> PLAINS = BiomeKeys.PLAINS;
 
     private final int minY;
     private final short[] surface = new short[256];
@@ -67,7 +69,7 @@ public final class ChunkSummary {
             final int y = column.minY() + (cellY << 2);
             for (int cellZ = 0; cellZ < 4; cellZ++) {
                 for (int cellX = 0; cellX < 4; cellX++) {
-                    final Key biome = column.getBiome(cellX << 2, y, cellZ << 2);
+                    final TypedKey<BiomeDefinition> biome = column.getBiome(cellX << 2, y, cellZ << 2);
                     summary.biomes[(cellY << 4) | (cellZ << 2) | cellX] = biomeId(biome == null ? PLAINS : biome);
                 }
             }
@@ -75,7 +77,7 @@ public final class ChunkSummary {
         return summary;
     }
 
-    private static short biomeId(final Key biome) {
+    private static short biomeId(final TypedKey<BiomeDefinition> biome) {
         final Short existing = BIOME_IDS.get(biome);
         if (existing != null) {
             return existing;
@@ -96,7 +98,7 @@ public final class ChunkSummary {
         return floor[(localZ & 15) << 4 | (localX & 15)];
     }
 
-    public Key biome(final int localX, final int y, final int localZ) {
+    public TypedKey<BiomeDefinition> biome(final int localX, final int y, final int localZ) {
         final int cellY = Math.clamp((y - minY) >> 2, 0, cellsY - 1);
         return BIOMES.get(biomes[(cellY << 4) | (((localZ & 15) >> 2) << 2) | ((localX & 15) >> 2)]);
     }

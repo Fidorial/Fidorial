@@ -157,7 +157,7 @@ public final class DecoratedPotPatternKeys {
     }
 
     private static TypedKey<DecoratedPotPattern> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.DECORATED_POT_PATTERN, value);
+        return TypedKey.withRegistry(RegistryKey.DECORATED_POT_PATTERN, value);
     }
 
     /**

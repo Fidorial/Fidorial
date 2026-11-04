@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.fidorial.entity.GameMode;
 
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 public final class GameModeArgument implements ArgumentType<GameMode> {
@@ -40,10 +41,10 @@ public final class GameModeArgument implements ArgumentType<GameMode> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        final String remaining = builder.getRemaining().toLowerCase();
+        final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
 
         for (final GameMode mode : GameMode.values()) {
-            final String name = mode.name().toLowerCase();
+            final String name = mode.name().toLowerCase(Locale.ROOT);
             if (name.startsWith(remaining)) {
                 builder.suggest(name);
             }

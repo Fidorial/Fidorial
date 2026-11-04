@@ -9,6 +9,7 @@ import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.WritableRegistry;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
+import fr.fidorial.registry.keys.ItemTagKeys;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -27,10 +28,10 @@ import java.util.List;
 public final class TestEnchantments {
 
     public static final TypedKey<EnchantmentDefinition> LIFESTEAL =
-            TypedKey.create(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "lifesteal"));
+            TypedKey.withRegistry(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "lifesteal"));
 
     public static final TypedKey<EnchantmentDefinition> GLACIAL =
-            TypedKey.create(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "glacial"));
+            TypedKey.withRegistry(RegistryKey.ENCHANTMENT, Key.key("fidorialtest", "glacial"));
 
     private static final String GLACIAL_JSON = """
             {
@@ -80,8 +81,8 @@ public final class TestEnchantments {
         final WritableRegistry<EnchantmentDefinition> enchantments = registries.writable(RegistryKey.ENCHANTMENT);
         enchantments.register(registries.enchantments().define(LIFESTEAL)
                 .description(Component.text("Lifesteal", NamedTextColor.DARK_RED))
-                .supportedItemTag(Key.key("enchantable/weapon"))
-                .primaryItemTag(Key.key("enchantable/sharp_weapon"))
+                .supportedItemTag(ItemTagKeys.ENCHANTABLE_WEAPON)
+                .primaryItemTag(ItemTagKeys.ENCHANTABLE_SHARP_WEAPON)
                 .maxLevel(3)
                 .weight(2)
                 .anvilCost(4)

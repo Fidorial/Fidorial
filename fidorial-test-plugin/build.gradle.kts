@@ -1,3 +1,5 @@
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
     id("fidorial-spotless")
     id("com.gradleup.shadow")
@@ -42,3 +44,15 @@ val deployToRun =
             destination.resolve("TestPlugin.jar").delete()
         }
     }
+
+tasks.compileJava {
+    options.errorprone {
+        // we do not care about those here, so dial them down to just warnings
+        warn(
+            "StringCaseLocaleUsage",
+            "DefaultLocale",
+            "DefaultCharset",
+            "UnsafeLocaleUsage",
+        )
+    }
+}

@@ -95,14 +95,14 @@ import fr.euphyllia.fidorial.server.entity.mob.water_creature.Tadpole;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.TropicalFish;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
 
 import java.util.Map;
 import java.util.Set;
 
 public final class MobFactories {
 
-    private static final Map<Key, MobFactory> FACTORIES = Map.<Key, MobFactory>ofEntries(
+    private static final Map<TypedKey<EntityType>, MobFactory> FACTORIES = Map.<TypedKey<EntityType>, MobFactory>ofEntries(
             Map.entry(EntityTypes.ALLAY.key(), Allay::new),
             Map.entry(EntityTypes.ARMADILLO.key(), Armadillo::new),
             Map.entry(EntityTypes.AXOLOTL.key(), Axolotl::new),
@@ -203,15 +203,15 @@ public final class MobFactories {
         return registry.isMob(type.key());
     }
 
-    public static boolean isBuiltIn(final Key key) {
+    public static boolean isBuiltIn(final TypedKey<EntityType> key) {
         return FACTORIES.containsKey(key);
     }
 
-    public static Set<Key> builtInKeys() {
+    public static Set<TypedKey<EntityType>> builtInKeys() {
         return FACTORIES.keySet();
     }
 
-    public static Set<Key> keys() {
+    public static Set<TypedKey<EntityType>> keys() {
         final FidorialMobRegistry registry = registry();
         return registry.types();
     }

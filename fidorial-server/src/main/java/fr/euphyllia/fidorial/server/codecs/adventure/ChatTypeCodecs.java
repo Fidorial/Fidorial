@@ -7,8 +7,8 @@ import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.fidorial.chat.ChatTypeDecoration;
 import fr.fidorial.chat.ChatTypeDefinition;
+import fr.fidorial.registry.TypedKey;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
@@ -26,7 +26,7 @@ public final class ChatTypeCodecs {
         throw new UnsupportedOperationException("ChatTypeCodecs cannot be instantiated.");
     }
 
-    public static Codec<ChatTypeDefinition> codec(final Key key) {
+    public static Codec<ChatTypeDefinition> codec(final TypedKey<ChatTypeDefinition> key) {
         return RecordCodec.builder(ChatTypeDefinition.class)
                 .given(key)
                 .required("chat", ChatTypeDefinition::chat, DECORATION_CODEC)
@@ -35,7 +35,7 @@ public final class ChatTypeCodecs {
     }
 
     public static CompoundBinaryTag encodeNbt(final ChatTypeDefinition chatType) {
-        final BinaryTag tag = codec(chatType.key())
+        final BinaryTag tag = codec(chatType.typedKey())
                 .encodeStart(BinaryTagOps.binaryTagOps(), chatType)
                 .getOrThrow(message -> new IllegalStateException(
                         "Failed to encode chat type " + chatType.key().asString() + ": " + message));
@@ -48,17 +48,17 @@ public final class ChatTypeCodecs {
         return compound;
     }
 
-    public static ChatTypeDefinition fromJson(final Key key, final String json) {
+    public static ChatTypeDefinition fromJson(final TypedKey<ChatTypeDefinition> key, final String json) {
         final JsonElement element;
         try {
             element = JsonParser.parseString(json);
         } catch (final RuntimeException exception) {
-            throw new IllegalArgumentException("Chat type " + key.asString() + " is not valid JSON", exception);
+            throw new IllegalArgumentException("Chat type " + key + " is not valid JSON", exception);
         }
 
         return codec(key)
                 .parse(JsonOps.INSTANCE, element)
                 .getOrThrow(message -> new IllegalArgumentException(
-                        "Failed to read chat type " + key.asString() + ": " + message));
+                        "Failed to read chat type " + key + ": " + message));
     }
 }

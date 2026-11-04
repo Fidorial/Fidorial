@@ -9,11 +9,12 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -29,7 +30,7 @@ public final class ChunkNetworkSerializer {
     private final ServerRegistry<BiomeDefinition> biomes;
     private static final int MAX_INDIRECT_BIOME_BITS = 8;
 
-    private static final Key FALLBACK_BIOME = Key.key("plains");
+    private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
 
     private static final int HEIGHTMAP_WORLD_SURFACE = 1;
     private static final int HEIGHTMAP_MOTION_BLOCKING = 4;
@@ -39,7 +40,7 @@ public final class ChunkNetworkSerializer {
         this.biomes = biomes;
     }
 
-    private int biomeId(final Key biome) {
+    private int biomeId(final TypedKey<BiomeDefinition> biome) {
         final int id = biomes.networkId(biome);
         if (id >= 0) {
             return id;
@@ -147,9 +148,9 @@ public final class ChunkNetworkSerializer {
         writeBiomes(sp, section.biomes());
     }
 
-    private void writeBiomes(final PacketBuffer sp, final PalettedContainer<Key> container) {
-        final PalettedContainer.PackedSnapshot<Key> snap = container.packedSnapshot();
-        final List<Key> palette = snap.palette();
+    private void writeBiomes(final PacketBuffer sp, final PalettedContainer<TypedKey<BiomeDefinition>> container) {
+        final PalettedContainer.PackedSnapshot<TypedKey<BiomeDefinition>> snap = container.packedSnapshot();
+        final List<TypedKey<BiomeDefinition>> palette = snap.palette();
 
         if (palette.size() == 1) {
             sp.writeByte(0);
@@ -160,14 +161,14 @@ public final class ChunkNetworkSerializer {
         if (snap.bits() <= MAX_INDIRECT_BIOME_BITS) {
             sp.writeByte(snap.bits());
             sp.writeVarInt(palette.size());
-            for (final Key biome : palette) {
+            for (final TypedKey<BiomeDefinition> biome : palette) {
                 sp.writeVarInt(biomeId(biome));
             }
             writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BIOME_COUNT);
             return;
         }
 
-        final PalettedContainer.PalettedContainerSnapshot<Key> full = container.snapshot();
+        final PalettedContainer.PalettedContainerSnapshot<TypedKey<BiomeDefinition>> full = container.snapshot();
         final int directBits = BitPacking.bitsFor(biomes.size(), 1);
         sp.writeByte(directBits);
         final int[] global = new int[ChunkSection.BIOME_COUNT];

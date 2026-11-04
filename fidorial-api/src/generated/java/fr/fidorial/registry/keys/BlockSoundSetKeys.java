@@ -841,7 +841,7 @@ public final class BlockSoundSetKeys {
     }
 
     private static TypedKey<BlockSoundSet> create(@KeyPattern final String value) {
-        return TypedKey.create(RegistryKey.BLOCK_SOUND_SET, value);
+        return TypedKey.withRegistry(RegistryKey.BLOCK_SOUND_SET, value);
     }
 
     /**

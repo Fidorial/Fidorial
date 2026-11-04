@@ -1,6 +1,7 @@
 package fr.fidorial.dialog;
 
 import fr.fidorial.annotation.SinceMinecraft;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.key.Key;
@@ -27,7 +28,7 @@ public sealed interface Dialog extends DialogLike permits DialogDefinition, Dial
      */
     @Contract("_ -> new")
     static DialogReference reference(final Key key) {
-        return new DialogReference(key);
+        return new DialogReference(TypedKey.withRegistry(RegistryKey.DIALOG, key));
     }
 
     /**
@@ -39,7 +40,7 @@ public sealed interface Dialog extends DialogLike permits DialogDefinition, Dial
      */
     @Contract("_ -> new")
     static DialogReference reference(final TypedKey<DialogDefinition> key) {
-        return new DialogReference(key.key());
+        return new DialogReference(key);
     }
 
     /**

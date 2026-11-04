@@ -7,6 +7,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.biome.BiomeEffects;
 import fr.fidorial.world.biome.GrassColorModifier;
@@ -42,7 +43,7 @@ public class BiomeCodecs {
         throw new UnsupportedOperationException("BiomeCodecs cannot be instantiated.");
     }
 
-    public static Codec<BiomeDefinition> codec(final Key key) {
+    public static Codec<BiomeDefinition> codec(final TypedKey<BiomeDefinition> key) {
         return RecordCodec.builder(BiomeDefinition.class)
                 .given(key)
                 .required("has_precipitation", BiomeDefinition::hasPrecipitation, Codec.BOOL)
@@ -58,27 +59,27 @@ public class BiomeCodecs {
         final BinaryTag tag = codec(biome.key())
                 .encodeStart(BinaryTagOps.binaryTagOps(), biome)
                 .getOrThrow(message -> new IllegalStateException(
-                        "Failed to encode biome " + biome.key().asString() + ": " + message));
+                        "Failed to encode biome " + biome.key() + ": " + message));
 
         if (!(tag instanceof final CompoundBinaryTag compound)) {
-            throw new IllegalStateException("Biome " + biome.key().asString() + " did not encode to a compound tag");
+            throw new IllegalStateException("Biome " + biome.key() + " did not encode to a compound tag");
         }
 
         return compound;
     }
 
-    public static BiomeDefinition fromJson(final Key key, final String json) {
+    public static BiomeDefinition fromJson(final TypedKey<BiomeDefinition> key, final String json) {
         final JsonElement element;
         try {
             element = JsonParser.parseString(json);
         } catch (final RuntimeException exception) {
-            throw new IllegalArgumentException("Biome " + key.asString() + " is not valid JSON", exception);
+            throw new IllegalArgumentException("Biome " + key + " is not valid JSON", exception);
         }
 
         return codec(key)
                 .parse(JsonOps.INSTANCE, element)
                 .getOrThrow(message -> new IllegalArgumentException(
-                        "Failed to read biome " + key.asString() + ": " + message));
+                        "Failed to read biome " + key + ": " + message));
     }
 
     private static <E extends Enum<E>> Codec<E> byId(

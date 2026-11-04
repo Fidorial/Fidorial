@@ -13,6 +13,7 @@ import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Locale;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
@@ -98,6 +99,6 @@ public final class SpawnPointCommand {
     }
 
     private static Component describe(final Location location) {
-        return Component.text("%.2f, %.2f, %.2f".formatted(location.x(), location.y(), location.z()));
+        return Component.text(String.format(Locale.ROOT, "%.2f, %.2f, %.2f", location.x(), location.y(), location.z()));
     }
 }
