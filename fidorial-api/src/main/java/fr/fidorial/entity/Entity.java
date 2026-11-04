@@ -97,7 +97,8 @@ public interface Entity extends HoverEventSource<HoverEvent.ShowEntity>, Sound.E
     void remove();
 
     /**
-     * Teleports this entity to the given location within its current {@linkplain #world() world}.
+     * Teleports this entity to the given location, moving it to the {@linkplain Location#world() world of the
+     * location} when that is not its current {@linkplain #world() world}.
      *
      * @param location the destination position and orientation
      * @return a future completing with {@code true} if the teleport happened, {@code false} if it was
