@@ -15,7 +15,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 public final class ChunkColumn {
@@ -207,14 +206,9 @@ public final class ChunkColumn {
 
         removeBlockEntity(localX, worldY, localZ);
 
-        final Optional<TypedKey<BlockEntityType>> type = BlockEntityTypes.typeIdentifier(state.name());
-        // ifPresent would allocate a capturing lambda on every block change, resulting in unholy allocations
-        // Over a minute-long profile of a radius-100 pregen, per chunk worker (4):
-        // with .ifPresent -> ~8.8GB allocated by the lambda
-        // with the if expression -> ~24MB (only palette growth)
-        //noinspection OptionalIsPresent
-        if (type.isPresent()) {
-            putBlockEntity(new BlockEntity(localX, worldY, localZ, type.get(), data));
+        final TypedKey<BlockEntityType> type = BlockEntityTypes.typeIdentifier(state.name());
+        if (type != null) {
+            putBlockEntity(new BlockEntity(localX, worldY, localZ, type, data));
         }
     }
 

@@ -87,7 +87,10 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
         this.bossBars = new BossBarRegistry(manager.levelData(), online::players);
-        this.chunkSerializer = new ChunkNetworkSerializer(registries.blockStates(), registries.registry(RegistryKey.BIOME));
+        this.chunkSerializer = new ChunkNetworkSerializer(
+                registries.blockStates(), registries.registry(RegistryKey.BIOME),
+                registries.registry(RegistryKey.BLOCK_ENTITY_TYPE)
+        );
         this.light = new LightUpdateDispatcher(
                 config.threading().lightWorkers(), chunkSerializer, manager::world);
         this.blockEdits = new BlockEditService(

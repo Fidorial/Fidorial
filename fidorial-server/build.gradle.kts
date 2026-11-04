@@ -1,5 +1,6 @@
 import fr.euphyllia.fidorial.gradle.libraries.GenerateApiPackageIndexTask
 import fr.euphyllia.fidorial.gradle.libraries.PrepareBootstrapPayloadTask
+import fr.fidorial.registrygen.task.GenerateBlockEntityTypeBlocksTask
 import fr.fidorial.registrygen.task.GenerateBlockStatesTask
 import fr.fidorial.registrygen.task.GenerateItemPropertiesTask
 
@@ -244,6 +245,11 @@ tasks.withType<GenerateItemPropertiesTask>().configureEach {
     itemKeysPackage.set("fr.fidorial.registry.keys")
 }
 
+tasks.withType<GenerateBlockEntityTypeBlocksTask>().configureEach {
+    blockTypeKeysPackage.set("fr.fidorial.registry.keys")
+    blockEntityTypeKeysPackage.set("fr.fidorial.registry.keys")
+}
+
 fidorialRegistryGenerator {
     minecraftVersion.set(providers.gradleProperty("minecraftVersion"))
     prismarineMinecraftData.set("26.4-snapshot-7")
@@ -295,7 +301,6 @@ fidorialRegistryGenerator {
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",
-            "minecraft:block_entity_type" to "BlockEntityType",
             "minecraft:entity_type" to "EntityType",
         ),
     )
@@ -303,7 +308,6 @@ fidorialRegistryGenerator {
     protocolIdRegistries.set(
         listOf(
             "minecraft:command_argument_type",
-            "minecraft:block_entity_type",
             "minecraft:entity_type",
         ),
     )

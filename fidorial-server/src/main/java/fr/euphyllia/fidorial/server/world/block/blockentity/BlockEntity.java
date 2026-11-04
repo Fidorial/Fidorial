@@ -1,6 +1,5 @@
 package fr.euphyllia.fidorial.server.world.block.blockentity;
 
-import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeIds;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -17,8 +16,8 @@ import java.util.Objects;
  *
  * <p>The type is stored as its namespaced identifier rather than as a protocol
  * ID, because the identifier is what the Anvil format persists and what stays
- * stable across Minecraft versions. The protocol ID is resolved on demand from
- * the generated {@link BlockEntityTypeIds} lookup table.</p>
+ * stable across Minecraft versions. The protocol ID is resolved through the
+ * {@code minecraft:block_entity_type} registry when the block entity is sent.</p>
  *
  * @param localX chunk-relative X coordinate, 0-15
  * @param y      absolute world height
@@ -49,26 +48,6 @@ public record BlockEntity(int localX, int y, int localZ, TypedKey<BlockEntityTyp
 
     public static BlockEntity of(final int localX, final int y, final int localZ, final TypedKey<BlockEntityType> type) {
         return new BlockEntity(localX, y, localZ, type, null);
-    }
-
-    /**
-     * Resolves the protocol ID written by {@code level_chunk_with_light} and
-     * {@code block_entity_data}.
-     *
-     * @return the protocol ID, or {@link BlockEntityTypeIds#UNKNOWN} when the
-     *         type is absent from the current registry
-     */
-    public int protocolId() {
-        return BlockEntityTypeIds.id(type.key());
-    }
-
-    /**
-     * Returns whether this block entity can be encoded for the current protocol.
-     *
-     * @return {@code true} when {@link #protocolId()} resolved to a real ID
-     */
-    public boolean isKnown() {
-        return protocolId() != BlockEntityTypeIds.UNKNOWN;
     }
 
     /**
