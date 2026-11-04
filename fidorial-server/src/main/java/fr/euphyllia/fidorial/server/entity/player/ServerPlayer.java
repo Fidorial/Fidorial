@@ -312,7 +312,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.containerMenu = menu;
         connection.send(new ClientboundOpenScreenPacket(
                 menu.windowId(),
-                connection.server().registries().registry(RegistryKey.MENU).networkId(menu.menuType().key()),
+                connection.server().registries().registry(RegistryKey.MENU).networkId(menu.menuType()),
                 menu.title()));
         menu.sendAllDataToRemote();
         menu.onOpened();
@@ -558,7 +558,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     private int effectNetworkId(final MobEffectInstance effect) {
-        return connection.server().registries().effects().clientNetworkId(this, effect.type().key());
+        return connection.server().registries().effects().clientNetworkId(this, effect.type());
     }
 
     @Override
@@ -965,7 +965,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             }
             final int id = attributeNetworkId(attribute);
             if (id < 0) {
-                LOGGER.debug("Not sending the unknown attribute {} to {}", attribute.asString(), name());
+                LOGGER.debug("Not sending the unknown attribute {} to {}", attribute, name());
                 continue;
             }
             values.add(attributeSnapshot(attribute, id));
@@ -978,7 +978,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private int attributeId(final TypedKey<Attribute> attribute) {
         final int id = attributeNetworkId(attribute);
         if (id < 0) {
-            throw new IllegalArgumentException("Unknown attribute: " + attribute.asString());
+            throw new IllegalArgumentException("Unknown attribute: " + attribute);
         }
         return id;
     }

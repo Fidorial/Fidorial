@@ -12,11 +12,11 @@ import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MobEffect;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.registry.keys.MobEffectKeys;
-import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class AbstractLivingEntity extends AbstractEntity implements LivingEntity {
 
-    private static final Map<Key, Key> EFFECT_IMMUNITY_TAGS = Map.of(
+    private static final Map<TypedKey<MobEffect>, TagKey<EntityType>> EFFECT_IMMUNITY_TAGS = Map.of(
             MobEffectKeys.INFESTED, EntityTypeTagKeys.IMMUNE_TO_INFESTED,
             MobEffectKeys.FREEZING, EntityTypeTagKeys.IMMUNE_TO_FREEZING,
             MobEffectKeys.OOZING, EntityTypeTagKeys.IMMUNE_TO_OOZING,
@@ -54,7 +54,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     private volatile boolean sentBurning;
     private final AtomicInteger invulnerableTicks = new AtomicInteger();
     private final AtomicInteger deathTicks = new AtomicInteger(-1);
-    private final Map<Key, MobEffectInstanceImpl> effects = new ConcurrentHashMap<>();
+    private final Map<TypedKey<MobEffect>, MobEffectInstanceImpl> effects = new ConcurrentHashMap<>();
 
     protected AbstractLivingEntity(
             final int entityId,
@@ -261,13 +261,13 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     @Override
     public final boolean addEffect(final MobEffectInstance effect) {
         if (!server().registries().effects().isEffect(effect.type())) {
-            throw new IllegalArgumentException("Unknown effect " + effect.type().key().asString());
+            throw new IllegalArgumentException("Unknown effect " + effect.type());
         }
         if (isRemoved() || isDead() || !canBeAffected(effect)) {
             return false;
         }
         final MobEffectInstanceImpl incoming = MobEffectInstanceImpl.of(effect);
-        final MobEffectInstanceImpl previous = effects.get(incoming.type().key());
+        final MobEffectInstanceImpl previous = effects.get(incoming.type());
         final MobEffectInstanceImpl merged = previous == null ? incoming : previous.merge(incoming);
         if (merged.equals(previous)) {
             return false;
@@ -279,7 +279,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             return false;
         }
         final MobEffectInstanceImpl applied = MobEffectInstanceImpl.of(event.effect());
-        effects.put(applied.type().key(), applied);
+        effects.put(applied.type(), applied);
         onEffectUpdated(applied);
         dispatch(applied, MobEffectBehaviour::onApplied, "onApplied");
         return true;
@@ -287,12 +287,12 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
 
     @Override
     public final Optional<MobEffectInstance> effect(final TypedKey<MobEffect> type) {
-        return Optional.ofNullable(effects.get(type.key()));
+        return Optional.ofNullable(effects.get(type));
     }
 
     @Override
     public final boolean hasEffect(final TypedKey<MobEffect> type) {
-        return effects.containsKey(type.key());
+        return effects.containsKey(type);
     }
 
     @Override
@@ -304,17 +304,17 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     public final boolean clearEffects() {
         boolean removed = false;
         for (final MobEffectInstanceImpl effect : effects.values()) {
-            removed |= removeEffect(effect.type().key(), EntityEffectEvent.Action.REMOVED);
+            removed |= removeEffect(effect.type(), EntityEffectEvent.Action.REMOVED);
         }
         return removed;
     }
 
     @Override
     public final boolean removeEffect(final TypedKey<MobEffect> type) {
-        return removeEffect(type.key(), EntityEffectEvent.Action.REMOVED);
+        return removeEffect(type, EntityEffectEvent.Action.REMOVED);
     }
 
-    private boolean removeEffect(final Key type, final EntityEffectEvent.Action action) {
+    private boolean removeEffect(final TypedKey<MobEffect> type, final EntityEffectEvent.Action action) {
         final MobEffectInstanceImpl current = effects.get(type);
         if (current == null) {
             return false;
@@ -336,7 +336,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     }
 
     protected boolean canBeAffected(final MobEffectInstance effect) {
-        final Key immunityTag = EFFECT_IMMUNITY_TAGS.get(effect.type().key());
+        final TagKey<EntityType> immunityTag = EFFECT_IMMUNITY_TAGS.get(effect.type());
         return immunityTag == null
                 || !server().registries().registry(RegistryKey.ENTITY_TYPE).isTagged(type().key(), immunityTag);
     }
@@ -348,12 +348,12 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     }
 
     private void dispatch(final MobEffectInstance effect, final BehaviourHook hook, final String name) {
-        for (final MobEffectBehaviour behaviour : server().registries().effects().behaviours(effect.type().key())) {
+        for (final MobEffectBehaviour behaviour : server().registries().effects().behaviours(effect.type())) {
             try {
                 hook.call(behaviour, this, effect);
             } catch (final Throwable throwable) {
                 LOGGER.error("Error in the {} of {} for {} on {}",
-                        name, behaviour.getClass().getName(), effect.type().key(), this, throwable);
+                        name, behaviour.getClass().getName(), effect.type(), this, throwable);
             }
         }
     }
@@ -369,8 +369,8 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         }
         final FidorialMobEffectRegistry registry = server().registries().effects();
         for (final MobEffectInstanceImpl effect : effects.values()) {
-            if (!registry.isKnown(effect.type().key())) {
-                removeEffect(effect.type().key(), EntityEffectEvent.Action.REMOVED);
+            if (!registry.isEffect(effect.type())) {
+                removeEffect(effect.type(), EntityEffectEvent.Action.REMOVED);
                 continue;
             }
             dispatch(effect, MobEffectBehaviour::onTick, "onTick");
@@ -379,9 +379,9 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             }
             final MobEffectInstanceImpl next = effect.tickDown();
             if (next.hasExpired()) {
-                removeEffect(effect.type().key(), EntityEffectEvent.Action.EXPIRED);
+                removeEffect(effect.type(), EntityEffectEvent.Action.EXPIRED);
             } else if (next != effect) {
-                effects.replace(effect.type().key(), effect, next);
+                effects.replace(effect.type(), effect, next);
             }
         }
     }

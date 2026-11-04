@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockType;
@@ -15,7 +16,7 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 public class ServiceBackedChunkGenerator implements ChunkGenerator {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServiceBackedChunkGenerator.class);
-    private static final Key DEFAULT_BIOME = Key.key("plains");
+    private static final TypedKey<BiomeDefinition> DEFAULT_BIOME = BiomeKeys.PLAINS;
 
     private final ServiceRegistry services;
     private final ChunkGenerator fallback;

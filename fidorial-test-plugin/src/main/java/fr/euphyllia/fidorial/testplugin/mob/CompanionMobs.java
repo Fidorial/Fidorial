@@ -39,6 +39,6 @@ public final class CompanionMobs {
                 .build();
 
         mobs.register(companion, owner);
-        logger.info("[TestPlugin] Mob {} enregistre, invoquable avec /summon {}", COMPANION, COMPANION.asString());
+        logger.info("[TestPlugin] Mob {} enregistre, invoquable avec /summon {}", COMPANION, COMPANION.key().asString());
     }
 }

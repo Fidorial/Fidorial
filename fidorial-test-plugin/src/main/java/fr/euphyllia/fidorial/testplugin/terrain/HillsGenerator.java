@@ -132,6 +132,6 @@ public final class HillsGenerator implements WorldGenerator {
 
     @Override
     public GenerationDescriptor describeForSave() {
-        return GenerationDescriptor.noise(dimensionType.key(), Key.key("fidorial", "hills"));
+        return GenerationDescriptor.noise(dimensionType.key().key(), Key.key("fidorial", "hills"));
     }
 }

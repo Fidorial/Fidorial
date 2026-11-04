@@ -93,7 +93,7 @@ public final class ComponentArgument implements ArgumentType<Component> {
         if (entity instanceof final Player player) {
             return Component.text(player.name());
         }
-        return Component.text(entity.type().key().value());
+        return Component.text(entity.type().key().key().value());
     }
 
     public static final class Info implements ArgumentTypeRegistrar<ComponentArgument, Info.Spec> {

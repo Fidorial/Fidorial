@@ -1,7 +1,9 @@
 import fr.euphyllia.fidorial.gradle.FidorialBuildExtension
+import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
     `java-library`
+    id("net.ltgt.errorprone")
 }
 
 val fidorialBuild = extensions.create<FidorialBuildExtension>("fidorialBuild")
@@ -16,7 +18,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-snapshots")
 }
 
-java {
+extensions.configure<JavaPluginExtension> {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
@@ -35,6 +37,19 @@ tasks.withType<JavaCompile>().configureEach {
             )
         )
     }
+
+    options.errorprone {
+        option("NullAway:OnlyNullMarked", "true")
+        disable("MissingSummary")
+        error("EqualsIncompatibleType", "CollectionIncompatibleType")
+    }
+
+    options.compilerArgs.addAll(
+        listOf(
+            "-Xmaxwarns", "10000",
+            "-Xmaxerrs", "10000"
+        )
+    )
 }
 
 tasks.withType<ProcessResources>().configureEach {
@@ -63,4 +78,9 @@ tasks.withType<Javadoc>().configureEach {
             "$it=ALL-UNNAMED"
         )
     }
+}
+
+dependencies {
+    errorprone("com.google.errorprone:error_prone_core:2.52.0")
+    errorprone("com.uber.nullaway:nullaway:0.14.3")
 }

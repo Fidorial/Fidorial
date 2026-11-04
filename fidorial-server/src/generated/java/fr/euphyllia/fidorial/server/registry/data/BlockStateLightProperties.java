@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.registry.data;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockType;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.kyori.adventure.key.Key;
 
 /**
  * Per-block light emission/opacity, sourced from PrismarineJS's {@code minecraft-data}.
@@ -10,9 +11,9 @@ import net.kyori.adventure.key.Key;
  * <p>Generated from Prismarine's blocks report; do not edit.</p>
  */
 public final class BlockStateLightProperties {
-    private static final Object2IntOpenHashMap<Key> EMISSION = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<BlockType>> EMISSION = new Object2IntOpenHashMap<>();
 
-    private static final Object2IntOpenHashMap<Key> OPACITY = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<BlockType>> OPACITY = new Object2IntOpenHashMap<>();
 
     static {
         OPACITY.defaultReturnValue(15);
@@ -23,22 +24,23 @@ public final class BlockStateLightProperties {
     }
 
     /**
-     * @param key namespaced block identifier
+     * @param key the block
      * @return {@code 0} if the block has no recorded data
      */
-    public static int emission(final Key key) {
+    public static int emission(final TypedKey<BlockType> key) {
         return EMISSION.getInt(key);
     }
 
     /**
-     * @param key namespaced block identifier
+     * @param key the block
      * @return {@code 15} if the block has no recorded data
      */
-    public static int opacity(final Key key) {
+    public static int opacity(final TypedKey<BlockType> key) {
         return OPACITY.getInt(key);
     }
 
-    private static void register(final Key key, final int emission, final int opacity) {
+    private static void register(final TypedKey<BlockType> key, final int emission,
+            final int opacity) {
         EMISSION.put(key, emission);
         OPACITY.put(key, opacity);
     }

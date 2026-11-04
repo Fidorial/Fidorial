@@ -5,8 +5,9 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.structure.place.BlockTarget;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -89,7 +90,7 @@ public final class ColumnTarget implements BlockTarget {
         final CompoundBinaryTag data = nbt == null ? null : clean(nbt);
         column.setBlock(localX, y, localZ, state, data);
         if (data != null) {
-            final Optional<Key> type = BlockEntityTypes.typeIdentifier(state.name());
+            final Optional<TypedKey<BlockEntityType>> type = BlockEntityTypes.typeIdentifier(state.name());
             type.ifPresent(key -> column.putBlockEntity(new BlockEntity(localX, y, localZ, key, data)));
         }
         placed.set(index(x, y, z));

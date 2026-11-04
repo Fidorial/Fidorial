@@ -5,7 +5,6 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -17,9 +16,9 @@ import org.jspecify.annotations.Nullable;
  * regenerate.</p>
  */
 public final class EntityTypes {
-    private static final Map<Key, EntityType> BY_KEY = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<EntityType>, EntityType> BY_KEY = new ConcurrentHashMap<>();
 
-    private static final Map<Key, Integer> NETWORK_IDS = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<EntityType>, Integer> NETWORK_IDS = new ConcurrentHashMap<>();
 
     /**
      * {@code minecraft:acacia_boat}, network ID {@code 0}.
@@ -876,12 +875,12 @@ public final class EntityTypes {
         return type;
     }
 
-    public static boolean unregister(final Key key) {
+    public static boolean unregister(final TypedKey<EntityType> key) {
         NETWORK_IDS.remove(key);
         return BY_KEY.remove(key) != null;
     }
 
-    public static @Nullable EntityType get(final Key key) {
+    public static @Nullable EntityType get(final TypedKey<EntityType> key) {
         return BY_KEY.get(key);
     }
 

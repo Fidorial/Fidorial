@@ -14,7 +14,6 @@ import fr.fidorial.registrygen.model.BlockPropertyDefinition;
 import fr.fidorial.registrygen.model.BlockReportDefinition;
 import fr.fidorial.registrygen.model.PrismarineBlockLightPropertiesDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
-import net.kyori.adventure.key.Key;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -89,18 +88,19 @@ public final class BlockStateGenerator {
      * Bundles every {@link ClassName}/{@link ParameterizedTypeName} the private generation
      * helpers need, resolved once per {@link #generate} call from the configured packages.
      */
-    private record Packages(ClassName key, ClassName blockType, ClassName blockProperty, ClassName blockRegistry,
+    private record Packages(ParameterizedTypeName key, ClassName blockType, ClassName blockProperty, ClassName blockRegistry,
                             ClassName blockTypeKeys, String dataPackage, ParameterizedTypeName lightMapType) {
 
         Packages(final String blockPackage, final String registryDataPackage, final String blockTypeKeysPackage) {
             this(
-                    ClassName.get(Key.class),
+                    ParameterizedTypeName.get(ClassName.get("fr.fidorial.registry", "TypedKey"), ClassName.get(blockPackage, "BlockType")),
                     ClassName.get(blockPackage, "BlockType"),
                     ClassName.get(blockPackage, "BlockProperty"),
                     ClassName.get(blockPackage, "BlockRegistry"),
                     ClassName.get(SupportedRegistries.BLOCK.keysPackage(blockTypeKeysPackage), SupportedRegistries.BLOCK.keysClassName()),
                     registryDataPackage,
-                    ParameterizedTypeName.get(OBJECT_2_INT_OPEN_HASH_MAP, ClassName.get(Key.class))
+                    ParameterizedTypeName.get(OBJECT_2_INT_OPEN_HASH_MAP,
+                            ParameterizedTypeName.get(ClassName.get("fr.fidorial.registry", "TypedKey"), ClassName.get(blockPackage, "BlockType")))
             );
         }
     }
@@ -271,7 +271,7 @@ public final class BlockStateGenerator {
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                 .returns(TypeName.INT)
                 .addParameter(keyParameter)
-                .addJavadoc("@param key namespaced block identifier\n")
+                .addJavadoc("@param key the block\n")
                 .addJavadoc("@return {@code " + defaultValue + "} if the block has no recorded data\n")
                 .addStatement("return $N.getInt($N)", mapFieldName, "key")
                 .build();

@@ -181,8 +181,8 @@ public final class TestBiomes {
     public static void registerAll(final WritableRegistry<BiomeDefinition> biomes, final Plugin owner,
                                    final ComponentLogger logger) {
         for (final BiomeDefinition biome : ALL) {
-            biomes.overwrite(biome.typedKey(), biome, owner);
-            logger.info("[TestPlugin] biome {} registered", biome.key().asString());
+            biomes.overwrite(biome.key(), biome, owner);
+            logger.info("[TestPlugin] biome {} registered", biome.key().key().asString());
         }
 
         logger.info("[TestPlugin] {} biomes registered", biomes.size());
@@ -190,7 +190,7 @@ public final class TestBiomes {
 
     public static void unregisterAll(final WritableRegistry<BiomeDefinition> biomes) {
         for (final BiomeDefinition biome : ALL) {
-            biomes.unregister(biome.typedKey());
+            biomes.unregister(biome.key());
         }
     }
 }

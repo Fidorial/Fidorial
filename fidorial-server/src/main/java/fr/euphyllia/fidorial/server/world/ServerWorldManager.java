@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.entity.EntitySpawnBridge;
@@ -114,7 +115,7 @@ public final class ServerWorldManager implements AutoCloseable {
                 dimension -> configurations.resolve(dimension).storage().regionCompression();
 
         final AnvilChunkSerializer serializer = new AnvilChunkSerializer();
-        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.withoutProperties(BlockTypeKeys.AIR), Key.key("plains"), compression);
+        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.withoutProperties(BlockTypeKeys.AIR), BiomeKeys.PLAINS, compression);
 
         final EntityRegionStorage entityStorage = new EntityRegionStorage(paths, compression);
         final AnvilEntitySerializer entitySerializer = new AnvilEntitySerializer();

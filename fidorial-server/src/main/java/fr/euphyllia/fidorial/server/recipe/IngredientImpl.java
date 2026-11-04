@@ -71,7 +71,7 @@ public record IngredientImpl(Choice choice, int count) implements Ingredient {
     public String toString() {
         final String accepted = switch (choice) {
             case AnyOf(final Set<TypedKey<Item>> items) -> items.toString();
-            case Tag(final TagKey<Item> tag) -> "#" + tag.asString();
+            case Tag(final TagKey<Item> tag) -> "#" + tag.key().asString();
             case Exact(final ItemStack stack) -> stack.toString();
             case Matching _ -> "<predicate>";
         };

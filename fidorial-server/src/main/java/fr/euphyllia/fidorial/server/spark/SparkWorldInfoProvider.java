@@ -125,7 +125,7 @@ public final class SparkWorldInfoProvider implements WorldInfoProvider {
 
         @Override
         public String entityTypeName(final EntityType type) {
-            return type.key().asString();
+            return type.key().key().asString();
         }
     }
 }

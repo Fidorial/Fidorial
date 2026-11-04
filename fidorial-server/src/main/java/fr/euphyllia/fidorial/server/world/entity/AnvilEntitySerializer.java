@@ -13,8 +13,9 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.DoubleBinaryTag;
@@ -178,7 +179,7 @@ public class AnvilEntitySerializer {
 
     public CompoundBinaryTag toNbt(final AbstractEntity entity) {
         final CompoundBinaryTag.Builder c = CompoundBinaryTag.builder();
-        c.putString("id", entity.type().key().asString());
+        c.putString("id", entity.type().key().key().asString());
         c.putIntArray("UUID", uuidToInts(entity.uuid()));
 
         final Location loc = entity.location();
@@ -232,7 +233,7 @@ public class AnvilEntitySerializer {
             return null;
         }
 
-        final EntityType type = EntityTypes.get(Key.key(id));
+        final EntityType type = EntityTypes.get(TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, id));
         if (type == null || (type != EntityTypes.ITEM && !MobFactories.isMob(type))) {
             return null;
         }

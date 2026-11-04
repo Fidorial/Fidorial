@@ -696,7 +696,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                 if (id < 0) {
                     LOGGER.warn(
                             "{} cannot be shown dialog {}: nothing is registered under that key.",
-                            username, reference.key().asString());
+                            username, reference.key());
                     return;
                 }
                 send(ClientboundShowDialogPacket.reference(packetKey, reference, id));

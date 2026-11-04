@@ -48,13 +48,13 @@ public final class VanillaRecipeLoader {
     private static final String TRANSMUTE = "minecraft:crafting_transmute";
     private static final String TAG_PREFIX = "#";
 
-    private final Predicate<Key> knownItem;
+    private final Predicate<TypedKey<Item>> knownItem;
     private final Map<String, Integer> skipped = new TreeMap<>();
 
     /**
      * @param knownItem tells whether an item exists, so that recipes making unknown items are skipped
      */
-    public VanillaRecipeLoader(final Predicate<Key> knownItem) {
+    public VanillaRecipeLoader(final Predicate<TypedKey<Item>> knownItem) {
         this.knownItem = knownItem;
     }
 
@@ -197,7 +197,7 @@ public final class VanillaRecipeLoader {
         final JsonObject json = recipe.getAsJsonObject("result");
         final TypedKey<Item> id = TypedKey.withRegistry(RegistryKey.ITEM, json.get("id").getAsString());
         if (!knownItem.test(id)) {
-            throw new IllegalArgumentException("unknown result item " + id.asString());
+            throw new IllegalArgumentException("unknown result item " + id);
         }
         final int count = json.has("count") ? json.get("count").getAsInt() : 1;
         DataComponentMap components = DataComponentMap.EMPTY;
@@ -207,7 +207,7 @@ public final class VanillaRecipeLoader {
                 final String stripped = name.startsWith(ItemStackCodecs.REMOVED_PREFIX)
                         ? name.substring(ItemStackCodecs.REMOVED_PREFIX.length())
                         : name;
-                if (!DataComponentTypes.isModelled(Key.key(stripped))) {
+                if (!DataComponentTypes.isModelled(TypedKey.withRegistry(RegistryKey.DATA_COMPONENT_TYPE, stripped))) {
                     // Making the item without it would hand out something else than vanilla does.
                     return null;
                 }

@@ -10,9 +10,12 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeBounds
 import fr.euphyllia.fidorial.server.command.brigadier.argument.selector.EntitySelectorParser;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.KeyReader;
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.EntityTypeKeys;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -27,7 +30,7 @@ public final class EntitySelectorOptions {
     public static final DynamicCommandExceptionType ERROR_SORT_UNKNOWN = ExceptionFactory.dynamic("argument.entity.options.sort.irreversible");
     public static final DynamicCommandExceptionType ERROR_GAME_MODE_INVALID = ExceptionFactory.dynamic("argument.entity.options.mode.invalid");
 
-    private static final Key PLAYER = Key.key("player");
+    private static final TypedKey<EntityType> PLAYER = EntityTypeKeys.PLAYER;
 
     private static final Map<String, Option> OPTIONS = options();
 
@@ -111,7 +114,7 @@ public final class EntitySelectorOptions {
             if (!parser.typeOption().canAdd(inverted)) {
                 throw parser.rollback(start, EntitySelectorParser.ERROR_INAPPLICABLE_OPTION, "type");
             }
-            final Key type = KeyReader.readKey(parser.getReader());
+            final TypedKey<EntityType> type = TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, KeyReader.readKey(parser.getReader()));
             if (!inverted && type.equals(PLAYER)) {
                 parser.setIncludesEntities(false);
             }

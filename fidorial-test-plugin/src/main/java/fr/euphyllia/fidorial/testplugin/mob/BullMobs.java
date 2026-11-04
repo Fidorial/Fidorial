@@ -54,7 +54,7 @@ public final class BullMobs {
                 .build();
 
         mobs.register(bull, owner);
-        logger.info("[TestPlugin] Mob {} enregistre, invoquable avec /summon {}", BULL, BULL.asString());
+        logger.info("[TestPlugin] Mob {} enregistre, invoquable avec /summon {}", BULL, BULL.key().asString());
     }
 
     public static void unregisterAll(final MobRegistry mobs, final Object owner) {

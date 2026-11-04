@@ -19,6 +19,7 @@ import fr.fidorial.item.enchantment.Enchantments;
 import fr.fidorial.item.enchantment.KeySet;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
@@ -47,10 +48,10 @@ public final class FidorialEnchantments implements Enchantments {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FidorialEnchantments.class);
 
     private final WritableServerRegistry<EnchantmentDefinition> registry;
-    private final ServerRegistry<?> items;
-    private final Map<Key, List<Attachment>> attachments = new ConcurrentHashMap<>();
+    private final ServerRegistry<Item> items;
+    private final Map<TypedKey<EnchantmentDefinition>, List<Attachment>> attachments = new ConcurrentHashMap<>();
 
-    private volatile Map<Key, List<EnchantmentBehaviour>> behaviours = Map.of();
+    private volatile Map<TypedKey<EnchantmentDefinition>, List<EnchantmentBehaviour>> behaviours = Map.of();
 
     public FidorialEnchantments(final ServerRegistries registries) {
         this.registry = registries.writable(RegistryKey.ENCHANTMENT);
@@ -67,19 +68,16 @@ public final class FidorialEnchantments implements Enchantments {
     private void logVanilla() {
         int loaded = 0;
         int skippedEffects = 0;
-        for (final Key key : registry.keyList()) {
+        for (final TypedKey<EnchantmentDefinition> key : registry.keys()) {
             final EnchantmentDefinitionImpl definition;
             try {
-                definition = (EnchantmentDefinitionImpl) registry.value(key);
+                definition = (EnchantmentDefinitionImpl) registry.get(key);
             } catch (final IllegalStateException exception) {
-                LOGGER.error("Could not read the vanilla enchantment {}, it has no effect.", key.asString(), exception);
-                continue;
-            }
-            if (definition == null) {
+                LOGGER.error("Could not read the vanilla enchantment {}, it has no effect.", key, exception);
                 continue;
             }
             for (final String skipped : definition.effects().skipped()) {
-                LOGGER.debug("Enchantment {}: {} is not run by the server", key.asString(), skipped);
+                LOGGER.debug("Enchantment {}: {} is not run by the server", key, skipped);
             }
             skippedEffects += definition.effects().skipped().size();
             loaded++;
@@ -100,20 +98,20 @@ public final class FidorialEnchantments implements Enchantments {
     @Override
     public void attach(final TypedKey<EnchantmentDefinition> key, final EnchantmentBehaviour behaviour, final Plugin owner) {
         Preconditions.checkArgument(key != null, "The key of an enchantment must not be null");
-        Preconditions.checkArgument(behaviour != null, "The behaviour attached to %s must not be null", key.key());
-        Preconditions.checkArgument(owner != null, "The owner of the behaviour attached to %s must not be null", key.key());
+        Preconditions.checkArgument(behaviour != null, "The behaviour attached to %s must not be null", key);
+        Preconditions.checkArgument(owner != null, "The owner of the behaviour attached to %s must not be null", key);
         synchronized (this) {
-            Preconditions.checkArgument(registry.contains(key.key()), "Unknown enchantment %s", key.key().asString());
-            attachments.computeIfAbsent(key.key(), _ -> new CopyOnWriteArrayList<>()).add(new Attachment(behaviour, owner));
+            Preconditions.checkArgument(registry.contains(key), "Unknown enchantment %s", key);
+            attachments.computeIfAbsent(key, _ -> new CopyOnWriteArrayList<>()).add(new Attachment(behaviour, owner));
             rebuildBehaviours();
         }
-        LOGGER.debug("Behaviour attached to the enchantment {} by {}", key.key().asString(), owner.getClass().getSimpleName());
+        LOGGER.debug("Behaviour attached to the enchantment {} by {}", key, owner.getClass().getSimpleName());
     }
 
     @Override
     public boolean detach(final TypedKey<EnchantmentDefinition> key, final Plugin owner) {
         synchronized (this) {
-            final List<Attachment> list = attachments.get(key.key());
+            final List<Attachment> list = attachments.get(key);
             final boolean removed = list != null && list.removeIf(attachment -> attachment.owner() == owner);
             if (removed) {
                 rebuildBehaviours();
@@ -141,7 +139,7 @@ public final class FidorialEnchantments implements Enchantments {
      * {@return the behaviours of an enchantment, in the order they run: its vanilla effects, the behaviour
      * of its definition, then the attached ones; empty for an unknown enchantment}
      */
-    public List<EnchantmentBehaviour> behaviours(final Key enchantment) {
+    public List<EnchantmentBehaviour> behaviours(final TypedKey<EnchantmentDefinition> enchantment) {
         return behaviours.getOrDefault(enchantment, List.of());
     }
 
@@ -154,8 +152,8 @@ public final class FidorialEnchantments implements Enchantments {
     }
 
     private synchronized void rebuildBehaviours() {
-        final Map<Key, List<EnchantmentBehaviour>> next = new HashMap<>();
-        for (final Key key : registry.keyList()) {
+        final Map<TypedKey<EnchantmentDefinition>, List<EnchantmentBehaviour>> next = new HashMap<>();
+        for (final TypedKey<EnchantmentDefinition> key : registry.keys()) {
             final EnchantmentDefinitionImpl definition = definition(key);
             if (definition == null) {
                 continue;
@@ -178,17 +176,13 @@ public final class FidorialEnchantments implements Enchantments {
     /**
      * {@return the definition registered under {@code key}, {@code null} for an unknown or unreadable enchantment}
      */
-    public @Nullable EnchantmentDefinitionImpl definition(final Key key) {
+    public @Nullable EnchantmentDefinitionImpl definition(final TypedKey<EnchantmentDefinition> key) {
         try {
-            return registry.value(key) instanceof final EnchantmentDefinitionImpl impl ? impl : null;
+            return registry.find(key).orElse(null) instanceof final EnchantmentDefinitionImpl impl ? impl : null;
         } catch (final IllegalStateException unreadable) {
-            LOGGER.debug("The enchantment {} cannot be read", key.asString(), unreadable);
+            LOGGER.debug("The enchantment {} cannot be read", key, unreadable);
             return null;
         }
-    }
-
-    public boolean isTagged(final Key enchantment, final Key tag) {
-        return registry.isTagged(enchantment, tag);
     }
 
     @Override
@@ -198,15 +192,15 @@ public final class FidorialEnchantments implements Enchantments {
 
     @Override
     public boolean isSupportedItem(final TypedKey<EnchantmentDefinition> enchantment, final TypedKey<Item> item) {
-        final EnchantmentDefinitionImpl definition = definition(enchantment.key());
+        final EnchantmentDefinitionImpl definition = definition(enchantment);
         return definition != null && matchesItem(definition.supportedItems(), item);
     }
 
     /**
      * {@return {@code true} if {@code item}, or the vanilla item a plugin item is rendered as, belongs to {@code set}}
      */
-    public boolean matchesItem(final KeySet set, final TypedKey<Item> item) {
-        if (containsItem(set, item)) {
+    public boolean matchesItem(final KeySet<Item> set, final TypedKey<Item> item) {
+        if (contains(items, set, item)) {
             return true;
         }
         final FidorialItemRegistry itemRegistry = FidorialServer.getInstance().registries().items();
@@ -214,34 +208,23 @@ public final class FidorialEnchantments implements Enchantments {
             return false;
         }
         final TypedKey<Item> rendered = itemRegistry.networkType(item);
-        return !rendered.equals(item) && containsItem(set, rendered);
+        return !rendered.equals(item) && contains(items, set, rendered);
     }
 
-    private boolean containsItem(final KeySet set, final Key item) {
-        final Optional<Key> tag = set.tag();
-        if (tag.isPresent()) {
-            return items.isTagged(item, tag.get());
-        }
-        return set.keys().contains(item);
+    private static <T> boolean contains(final ServerRegistry<T> registry, final KeySet<T> set, final TypedKey<T> key) {
+        final Optional<TagKey<T>> tag = set.tag();
+        return tag.isPresent() ? registry.isTagged(key, tag.get()) : set.keys().contains(key);
     }
 
     @Override
     public boolean areCompatible(final TypedKey<EnchantmentDefinition> first, final TypedKey<EnchantmentDefinition> second) {
-        return areCompatible(first.key(), second.key());
-    }
-
-    public boolean areCompatible(final Key first, final Key second) {
         if (first.equals(second)) {
             return false;
         }
         final EnchantmentDefinitionImpl a = definition(first);
         final EnchantmentDefinitionImpl b = definition(second);
-        return (a == null || !inSet(a.exclusiveSet(), second)) && (b == null || !inSet(b.exclusiveSet(), first));
-    }
-
-    private boolean inSet(final KeySet set, final Key enchantment) {
-        final Optional<Key> tag = set.tag();
-        return tag.isPresent() ? isTagged(enchantment, tag.get()) : set.keys().contains(enchantment);
+        return (a == null || !contains(registry, a.exclusiveSet(), second))
+                && (b == null || !contains(registry, b.exclusiveSet(), first));
     }
 
     @Override
@@ -249,8 +232,8 @@ public final class FidorialEnchantments implements Enchantments {
         if (stack.isEmpty() || !isSupportedItem(enchantment, stack.id())) {
             return false;
         }
-        for (final Key existing : enchantments(stack).levels().keySet()) {
-            if (!areCompatible(existing, enchantment.key())) {
+        for (final TypedKey<EnchantmentDefinition> existing : enchantments(stack).levels().keySet()) {
+            if (!areCompatible(existing, enchantment)) {
                 return false;
             }
         }
@@ -278,7 +261,7 @@ public final class FidorialEnchantments implements Enchantments {
 
     @Override
     public int level(final LivingEntity entity, final TypedKey<EnchantmentDefinition> enchantment) {
-        final EnchantmentDefinitionImpl definition = definition(enchantment.key());
+        final EnchantmentDefinitionImpl definition = definition(enchantment);
         if (definition == null) {
             return 0;
         }
@@ -294,9 +277,9 @@ public final class FidorialEnchantments implements Enchantments {
     @Override
     public ItemStack enchant(final ItemStack stack, final TypedKey<EnchantmentDefinition> enchantment, final int level) {
         Preconditions.checkArgument(stack != null, "The stack to enchant must not be null");
-        Preconditions.checkArgument(enchantment != null && registry.contains(enchantment.key()), "Unknown enchantment %s", enchantment);
+        Preconditions.checkArgument(enchantment != null && registry.contains(enchantment), "Unknown enchantment %s", enchantment);
         Preconditions.checkArgument(level >= 1 && level <= EnchantmentDefinition.MAX_LEVEL,
-                "The level of %s must be between 1 and %s, got %s", enchantment.key(), EnchantmentDefinition.MAX_LEVEL, level);
+                "The level of %s must be between 1 and %s, got %s", enchantment, EnchantmentDefinition.MAX_LEVEL, level);
         if (stack.isEmpty()) {
             return stack;
         }
@@ -323,11 +306,11 @@ public final class FidorialEnchantments implements Enchantments {
 
     @Override
     public Component displayName(final TypedKey<EnchantmentDefinition> enchantment, final int level) {
-        final EnchantmentDefinitionImpl definition = definition(enchantment.key());
+        final EnchantmentDefinitionImpl definition = definition(enchantment);
         final Component description = definition == null
-                ? Component.translatable(EnchantmentDefinitionImpl.descriptionId(enchantment.key()))
+                ? Component.translatable(EnchantmentDefinitionImpl.descriptionId(enchantment))
                 : definition.description();
-        final NamedTextColor color = isTagged(enchantment.key(), EnchantmentTagKeys.CURSE) ? NamedTextColor.RED : NamedTextColor.GRAY;
+        final NamedTextColor color = registry.isTagged(enchantment, EnchantmentTagKeys.CURSE) ? NamedTextColor.RED : NamedTextColor.GRAY;
         Component name = Component.empty().color(color).append(description);
         if (level != 1 || definition == null || definition.maxLevel() != 1) {
             name = name.append(Component.space()).append(Component.translatable("enchantment.level." + level));

@@ -11,7 +11,6 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.enchantment.EnchantedItem;
 import fr.fidorial.item.enchantment.EnchantmentBehaviour;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
-import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -87,14 +86,14 @@ public final class EnchantmentEngine {
                     continue;
                 }
             }
-            final EnchantedItem item = new EnchantedItemImpl(TypedKey.withRegistry(RegistryKey.ENCHANTMENT, enchantment.getKey()),
+            final EnchantedItem item = new EnchantedItemImpl(enchantment.getKey(),
                     enchantment.getValue(), stack, slot, owner);
             for (final EnchantmentBehaviour behaviour : behaviours) {
                 try {
                     visitor.visit(behaviour, item);
                 } catch (final Throwable throwable) {
                     LOGGER.error("Error in the {} of {} for the enchantment {} on {}", hook, behaviour.getClass().getName(),
-                            enchantment.getKey().asString(), owner, throwable);
+                            enchantment.getKey(), owner, throwable);
                 }
             }
         }

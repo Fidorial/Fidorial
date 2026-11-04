@@ -8,7 +8,6 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.generation.GeneratedChunk;
-import net.kyori.adventure.key.Key;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +20,7 @@ public class PluginGeneratedChunk implements GeneratedChunk {
     private final int minY;
     private final int height;
 
-    public PluginGeneratedChunk(final int chunkX, final int chunkZ, final int minY, final int height, final Key defaultBiome) {
+    public PluginGeneratedChunk(final int chunkX, final int chunkZ, final int minY, final int height, final TypedKey<BiomeDefinition> defaultBiome) {
         this.column = new ChunkColumn(chunkX, chunkZ, minY, height, BlockState.withoutProperties(BlockTypeKeys.AIR), defaultBiome);
         this.minY = minY;
         this.height = height;

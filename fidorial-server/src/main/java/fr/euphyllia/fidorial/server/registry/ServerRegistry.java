@@ -8,6 +8,8 @@ import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -109,7 +111,7 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         checkRegistry(key.registry());
         final Entry<T> entry = snapshot.byKey.get(key.key());
         if (entry == null) {
-            throw new NoSuchElementException("No entry " + key.key().asString() + " in registry " + name().asString());
+            throw new NoSuchElementException("No entry " + key + " in registry " + name().asString());
         }
         return value(entry);
     }
@@ -222,8 +224,16 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     /**
      * {@return the network identifier of {@code key}, or {@code -1} if it is not registered}
      */
-    public final int networkId(final Key key) {
+    int networkId(final Key key) {
         return snapshot.ids.getInt(key);
+    }
+
+    /**
+     * {@return the network identifier of {@code key}, or {@code -1} if it is not registered}
+     */
+    public final int networkId(final TypedKey<T> key) {
+        checkRegistry(key.registry());
+        return networkId(key.key());
     }
 
     /**
@@ -238,19 +248,19 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         return entry == null ? null : typed(entry.key);
     }
 
-    public final boolean contains(final Key key) {
+    boolean contains(final Key key) {
         return snapshot.byKey.containsKey(key);
     }
 
     /**
      * {@return the value registered under {@code key}, {@code null} if there is none}
      */
-    public final @Nullable T value(final Key key) {
+    @Nullable T value(final Key key) {
         final Entry<T> entry = snapshot.byKey.get(key);
         return entry == null ? null : value(entry);
     }
 
-    public final boolean isCustom(final Key key) {
+    boolean isCustom(final Key key) {
         final Entry<T> entry = snapshot.byKey.get(key);
         return entry != null && entry.custom;
     }
@@ -258,11 +268,11 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     /**
      * {@return every registered key, in network order}
      */
-    public final List<Key> keyList() {
+    final List<Key> keyList() {
         return snapshot.keys;
     }
 
-    public final boolean isTagged(final Key key, final Key tag) {
+    boolean isTagged(final Key key, final Key tag) {
         final Set<Key> members = snapshot.tagSets.get(tag);
         return members != null && members.contains(key);
     }
@@ -270,15 +280,34 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     /**
      * {@return the members of {@code tag}, empty if the tag does not exist}
      */
-    public final List<Key> tag(final Key tag) {
+    List<Key> tag(final Key tag) {
         return snapshot.tags.getOrDefault(tag, List.of());
     }
 
     /**
      * {@return every tag and its members}
      */
-    public final Map<Key, List<Key>> tagMap() {
+    final Map<Key, List<Key>> tagMap() {
         return snapshot.tags;
+    }
+
+    /**
+     * {@return every tag and the network identifiers of its members, as sent to clients}
+     */
+    public final Map<Key, IntList> networkTags() {
+        final Map<Key, List<Key>> tags = snapshot.tags;
+        final Map<Key, IntList> network = new LinkedHashMap<>(tags.size());
+        for (final Map.Entry<Key, List<Key>> tag : tags.entrySet()) {
+            final IntList ids = new IntArrayList(tag.getValue().size());
+            for (final Key member : tag.getValue()) {
+                final int id = networkId(member);
+                if (id >= 0) {
+                    ids.add(id);
+                }
+            }
+            network.put(tag.getKey(), ids);
+        }
+        return network;
     }
 
     /**
@@ -389,9 +418,9 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
                     if (json == null) {
                         throw new IllegalStateException("it has no data");
                     }
-                    yield data.codec().decode(entry.key, json);
+                    yield data.codec().decode(typed(entry.key), json);
                 }
-                case final RegistryBinding.Fixed<T> fixed -> fixed.factory().apply(entry.key);
+                case final RegistryBinding.Fixed<T> fixed -> fixed.factory().apply(typed(entry.key));
             };
         } catch (final RuntimeException exception) {
             throw new IllegalStateException("Could not read " + entry.key.asString() + " in " + name().asString()
@@ -407,7 +436,7 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         if (!(binding instanceof final RegistryBinding.Data<T> data)) {
             throw new IllegalStateException(entry.key.asString() + " in " + name().asString() + " cannot be sent to clients");
         }
-        return data.codec().encode(entry.key, value(entry));
+        return data.codec().encode(typed(entry.key), value(entry));
     }
 
     private boolean matches(final Entry<T> entry, final T value) {

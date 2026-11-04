@@ -10,8 +10,8 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.Chunk;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockType;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
@@ -62,7 +62,7 @@ public class BlockView {
         return state != null && !isPassable(state);
     }
 
-    public static @Nullable Key biomeAt(final ServerWorld world, final int x, final int y, final int z) {
+    public static @Nullable TypedKey<BiomeDefinition> biomeAt(final ServerWorld world, final int x, final int y, final int z) {
         final Optional<Chunk> optionalChunk = world.chunkIfLoaded(x >> 4, z >> 4);
         if (optionalChunk.isEmpty()) return null;
         final Chunk chunk = optionalChunk.get();

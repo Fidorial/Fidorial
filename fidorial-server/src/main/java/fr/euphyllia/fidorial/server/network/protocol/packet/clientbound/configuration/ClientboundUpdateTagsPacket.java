@@ -4,12 +4,10 @@ import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,17 +24,11 @@ public record ClientboundUpdateTagsPacket(Collection<ServerRegistry<?>> registri
     public void write(final PacketBuffer buf) {
         buf.writeVarInt(registries.size());
         for (final ServerRegistry<?> registry : registries) {
-            final Map<Key, List<Key>> tags = registry.tagMap();
+            final Map<Key, IntList> tags = registry.networkTags();
             buf.writeKey(registry.name());
             buf.writeVarInt(tags.size());
-            for (final Map.Entry<Key, List<Key>> tag : tags.entrySet()) {
-                final IntList ids = new IntArrayList(tag.getValue().size());
-                for (final Key member : tag.getValue()) {
-                    final int id = registry.networkId(member);
-                    if (id >= 0) {
-                        ids.add(id);
-                    }
-                }
+            for (final Map.Entry<Key, IntList> tag : tags.entrySet()) {
+                final IntList ids = tag.getValue();
                 buf.writeKey(tag.getKey());
                 buf.writeVarInt(ids.size());
                 for (int i = 0; i < ids.size(); i++) {

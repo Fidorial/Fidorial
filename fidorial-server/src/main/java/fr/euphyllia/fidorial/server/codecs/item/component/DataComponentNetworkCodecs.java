@@ -176,7 +176,7 @@ public class DataComponentNetworkCodecs {
                 for (final Map.Entry<TypedKey<EnchantmentDefinition>, Integer> level : value.levels().entrySet()) {
                     final int id = registry.networkId(level.getKey());
                     if (id < 0) {
-                        LOGGER.debug("Dropping the enchantment {}: absent from the registry", level.getKey().asString());
+                        LOGGER.debug("Dropping the enchantment {}: absent from the registry", level.getKey());
                         continue;
                     }
                     known.put(id, level.getValue());
@@ -200,7 +200,7 @@ public class DataComponentNetworkCodecs {
                         throw new DecoderException("Unknown enchantment network id");
                     }
                     if (level < 1 || level > ItemEnchantments.MAX_LEVEL) {
-                        throw new DecoderException("Implausible level " + level + " for " + enchantment.asString());
+                        throw new DecoderException("Implausible level " + level + " for " + enchantment);
                     }
                     levels.put(enchantment, level);
                 }

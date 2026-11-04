@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.testplugin.worldgen;
 
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BiomeKeys;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.biome.BiomeDefinition;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,7 +73,7 @@ public enum BiomeType {
     SULFUR_CAVES(SurfaceKind.STONE, false),
     DEEP_DARK(SurfaceKind.STONE, false);
 
-    private static final Map<Key, BiomeType> BY_KEY = new HashMap<>();
+    private static final Map<TypedKey<BiomeDefinition>, BiomeType> BY_KEY = new HashMap<>();
 
     static {
         register(BiomeKeys.OCEAN, OCEAN);
@@ -140,11 +141,11 @@ public enum BiomeType {
         this.cold = cold;
     }
 
-    private static void register(final Key key, final BiomeType type) {
+    private static void register(final TypedKey<BiomeDefinition> key, final BiomeType type) {
         BY_KEY.put(key, type);
     }
 
-    public static BiomeType of(final Key key) {
+    public static BiomeType of(final TypedKey<BiomeDefinition> key) {
         return BY_KEY.getOrDefault(key, PLAINS);
     }
 

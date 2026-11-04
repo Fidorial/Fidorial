@@ -9,7 +9,8 @@ import fr.fidorial.item.ItemDefinition;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.data.DataComponentType;
 import fr.fidorial.registry.RegistryKey;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -40,7 +41,7 @@ public final class ItemStackWriter {
 
         final int itemId = registries.registry(RegistryKey.ITEM).networkId(wire.id());
         if (itemId < 0) {
-            LOGGER.warn("Item {} is not in the item registry; sending an empty slot instead", stack.id().asString());
+            LOGGER.warn("Item {} is not in the item registry; sending an empty slot instead", stack.id());
             buf.writeVarInt(0);
             return;
         }
@@ -66,7 +67,7 @@ public final class ItemStackWriter {
 
     public static int networkId(final ItemStack stack, final ServerRegistries registries) {
         final ItemDefinition definition = definition(stack);
-        final Key item = definition == null ? stack.id() : definition.networkType();
+        final TypedKey<Item> item = definition == null ? stack.id() : definition.networkType();
         return registries.registry(RegistryKey.ITEM).networkId(item);
     }
 
@@ -83,11 +84,11 @@ public final class ItemStackWriter {
             final DataComponentType<?> type = entry.getKey();
 
             if (!DataComponentNetworkCodecs.hasCodec(type)) {
-                LOGGER.debug("Dropping component {} on {}: no wire codec", type, stack.id().asString());
+                LOGGER.debug("Dropping component {} on {}: no wire codec", type, stack.id());
                 continue;
             }
             if (registries.registry(RegistryKey.DATA_COMPONENT_TYPE).networkId(type.key()) < 0) {
-                LOGGER.debug("Dropping component {} on {}: absent from the registry", type, stack.id().asString());
+                LOGGER.debug("Dropping component {} on {}: absent from the registry", type, stack.id());
                 continue;
             }
             encodable.add(entry);

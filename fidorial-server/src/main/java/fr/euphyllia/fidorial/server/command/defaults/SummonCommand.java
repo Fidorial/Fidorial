@@ -57,7 +57,7 @@ public final class SummonCommand {
         if (!MobFactories.isMob(entity)) {
             context.getSource()
                     .sendMessage(Component.translatable(
-                            "command.summon.notmob", Component.text(entity.key().asString())));
+                            "command.summon.notmob", Component.text(entity.key().key().asString())));
             return 0;
         }
 
@@ -72,7 +72,7 @@ public final class SummonCommand {
             server.entities().spawn(mob);
 
             source.sendMessage(Component.translatable(
-                    "command.summon.done", Component.text(entity.key().value()), Component.text(mob.entityId())));
+                    "command.summon.done", Component.text(entity.key().key().value()), Component.text(mob.entityId())));
         });
 
         return Command.SINGLE_SUCCESS;

@@ -2,12 +2,15 @@ package fr.euphyllia.fidorial.server.codecs;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.registry.Reference;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import net.kyori.adventure.key.Key;
 
 /**
  * Codecs for {@link TypedKey} and {@link Reference}.
@@ -23,6 +26,17 @@ public final class ReferenceCodecs {
      */
     public static <T> Codec<TypedKey<T>> key(final RegistryKey<T> registry) {
         return CommonCodecs.KEY_CODEC.xmap(key -> TypedKey.withRegistry(registry, key), TypedKey::key);
+    }
+
+    /**
+     * {@return a tag of {@code registry}, as a {@code #namespace:value} string}
+     */
+    public static <T> Codec<TagKey<T>> tag(final RegistryKey<T> registry) {
+        return Codec.STRING.comapFlatMap(
+                s -> s.startsWith("#") && Key.parseable(s.substring(1))
+                        ? DataResult.success(TagKey.withRegistry(registry, Key.key(s.substring(1))))
+                        : DataResult.error(() -> "Expected a #tag, got: " + s),
+                tag -> "#" + tag.key().asString());
     }
 
     /**
@@ -74,7 +88,7 @@ public final class ReferenceCodecs {
     private static <T> int networkId(final ServerRegistry<T> registry, final TypedKey<T> key) {
         final int id = registry.networkId(key);
         if (id < 0) {
-            throw new IllegalArgumentException("Nothing is registered under " + key.asString() + " in " + registry.name().asString());
+            throw new IllegalArgumentException("Nothing is registered under " + key + " in " + registry.name().asString());
         }
         return id;
     }

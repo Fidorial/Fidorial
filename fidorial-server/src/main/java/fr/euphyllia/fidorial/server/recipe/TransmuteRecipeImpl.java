@@ -157,7 +157,7 @@ public final class TransmuteRecipeImpl implements TransmuteRecipe {
     @Override
     public String toString() {
         return "TransmuteRecipe{" + key.asString() + ", " + input + " + " + material + " -> "
-                + (resultItem == null ? "<input>" : resultItem.asString()) + "}";
+                + (resultItem == null ? "<input>" : resultItem.key().asString()) + "}";
     }
 
     /**

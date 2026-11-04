@@ -49,7 +49,6 @@ import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.World;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -179,7 +178,7 @@ public final class CombatEngine implements CombatService {
             return applyScaledDamage(victim, source, amount, knockback);
         }
         final ServerRegistry<EntityType> entityTypes = server.registries().registry(RegistryKey.ENTITY_TYPE);
-        final Key victimType = victim.type().key();
+        final TypedKey<EntityType> victimType = victim.type().key();
         if (entityTypes.isTagged(victimType, EntityTypeTagKeys.IMMUNE_TO_FREEZING)) {
             return false;
         }
@@ -307,7 +306,7 @@ public final class CombatEngine implements CombatService {
     }
 
     private boolean hasDamageTag(final DamageSource source, final TagKey<DamageType> tag) {
-        return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type().key(), tag);
+        return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type(), tag);
     }
 
     private float soakWithAbsorption(final AbstractLivingEntity victim, final float damage) {
@@ -461,7 +460,7 @@ public final class CombatEngine implements CombatService {
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
         final int damageTypeId =
-                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type().key());
+                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type());
         if (damageTypeId >= 0) {
             sendToViewersAndSelf(victim, new ClientboundDamageEventPacket(
                     victim.entityId(),

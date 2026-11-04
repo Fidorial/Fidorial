@@ -152,12 +152,12 @@ public final class EquipmentEnchantments {
 
     private void run(final FidorialEnchantments registry, final EnchantedItemImpl item, final String hook,
                      final Consumer<EnchantmentBehaviour> action) {
-        for (final EnchantmentBehaviour behaviour : registry.behaviours(item.enchantment().key())) {
+        for (final EnchantmentBehaviour behaviour : registry.behaviours(item.enchantment())) {
             try {
                 action.accept(behaviour);
             } catch (final Throwable throwable) {
                 LOGGER.error("Error in the {} of {} for the enchantment {} on {}", hook, behaviour.getClass().getName(),
-                        item.enchantment().key().asString(), owner.name(), throwable);
+                        item.enchantment(), owner.name(), throwable);
             }
         }
     }

@@ -88,9 +88,9 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
         try {
             element = JsonParser.parseString(json);
         } catch (final JsonParseException exception) {
-            throw new IllegalArgumentException(key.key().asString() + " is not valid JSON", exception);
+            throw new IllegalArgumentException(key + " is not valid JSON", exception);
         }
-        return register(key, data.codec().decode(key.key(), element), owner);
+        return register(key, data.codec().decode(key, element), owner);
     }
 
     @Override
@@ -177,7 +177,7 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
         synchronized (this) {
             final Snapshot<T> current = snapshot;
             if (!current.byKey.containsKey(key.key())) {
-                throw new IllegalArgumentException("Nothing is registered under " + key.key().asString() + " in " + name().asString());
+                throw new IllegalArgumentException("Nothing is registered under " + key + " in " + name().asString());
             }
             added = !isTagged(key.key(), tag.key());
             // Recorded even if the entry already belongs to the tag: another plugin's rollback must not strip it.
@@ -249,8 +249,8 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
      * Tags the value refers to are created empty if missing, so that clients find them. Rolled back with the plugin.
      */
     private void recordReferencedTags(final T value, final Plugin owner) {
-        for (final Key tag : data.validator().referencedTags(value)) {
-            record(new TagChange(tag, null, true, owner));
+        for (final TagKey<T> tag : data.validator().referencedTags(value)) {
+            record(new TagChange(tag.key(), null, true, owner));
         }
     }
 
@@ -288,11 +288,11 @@ public final class WritableServerRegistry<T> extends ServerRegistry<T> implement
         checkRegistry(key.registry());
         if (value instanceof final Keyed keyed && !keyed.key().equals(key.key())) {
             throw new IllegalArgumentException("The value carries the key " + keyed.key().asString()
-                    + " but is registered under " + key.key().asString());
+                    + " but is registered under " + key);
         }
-        data.validator().validate(registries, key.key(), value);
+        data.validator().validate(registries, key, value);
         // Fails now rather than when a player joins.
-        data.codec().encode(key.key(), value);
+        data.codec().encode(key, value);
         return key.key();
     }
 

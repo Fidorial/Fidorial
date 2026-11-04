@@ -380,6 +380,6 @@ public final class SwamplandGenerator implements WorldGenerator {
 
     @Override
     public GenerationDescriptor describeForSave() {
-        return GenerationDescriptor.noise(dimensionType.key(), Key.key("fidorial", "wasteland"));
+        return GenerationDescriptor.noise(dimensionType.key().key(), Key.key("fidorial", "wasteland"));
     }
 }

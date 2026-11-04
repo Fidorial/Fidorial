@@ -166,8 +166,8 @@ public final class TestDimensionTypes {
     public static void registerAll(final WritableRegistry<DimensionTypeDefinition> dimensions, final Plugin owner,
                                    final ComponentLogger logger) {
         for (final DimensionTypeDefinition dimensionType : ALL) {
-            dimensions.overwrite(dimensionType.typedKey(), dimensionType, owner);
-            logger.info("[TestPlugin] dimension type {} registered", dimensionType.key().asString());
+            dimensions.overwrite(dimensionType.key(), dimensionType, owner);
+            logger.info("[TestPlugin] dimension type {} registered", dimensionType.key().key().asString());
         }
 
         logger.info("[TestPlugin] {} dimension types registered", dimensions.size());
@@ -175,7 +175,7 @@ public final class TestDimensionTypes {
 
     public static void unregisterAll(final WritableRegistry<DimensionTypeDefinition> dimensions) {
         for (final DimensionTypeDefinition dimensionType : ALL) {
-            dimensions.unregister(dimensionType.typedKey());
+            dimensions.unregister(dimensionType.key());
         }
     }
 }

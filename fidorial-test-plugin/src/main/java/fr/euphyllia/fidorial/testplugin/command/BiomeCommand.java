@@ -192,7 +192,7 @@ public final class BiomeCommand {
         try {
             final BiomeDefinition biome = biomes.registerFromJson(typed(key), SAMPLE_JSON, plugin);
             plugin.msg(source, "<green>JSON read: %s, temperature %s, sky %s"
-                    .formatted(biome.key().asString(), biome.temperature(),
+                    .formatted(biome.key().key().asString(), biome.temperature(),
                             attribute(biome.attributes().skyColor())));
         } catch (final IllegalArgumentException invalid) {
             plugin.msg(source, "<red>JSON rejected: " + invalid.getMessage());

@@ -21,6 +21,9 @@ import fr.euphyllia.fidorial.server.world.structure.worldgen.PoolAliasBinding;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.StructurePlacement;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.StructureSet;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -199,7 +202,7 @@ public final class StructureRegistry implements TemplateSource {
     }
 
     private JigsawStructure parseStructure(final Key id, final JsonObject object) {
-        final Set<Key> biomes = biomeSet(object.get("biomes"));
+        final Set<TypedKey<BiomeDefinition>> biomes = biomeSet(object.get("biomes"));
         final Key startPool = Keys.parse(string(object, "start_pool", ""));
         if (startPool == null) {
             throw new IllegalArgumentException("missing start_pool");
@@ -334,12 +337,12 @@ public final class StructureRegistry implements TemplateSource {
         return new StructureSet(id, entries, parsed);
     }
 
-    private Set<Key> biomeSet(final @Nullable JsonElement element) {
+    private Set<TypedKey<BiomeDefinition>> biomeSet(final @Nullable JsonElement element) {
         if (element == null || element.isJsonNull()) {
             return Set.of();
         }
         if (element.isJsonArray()) {
-            final Set<Key> result = new HashSet<>();
+            final Set<TypedKey<BiomeDefinition>> result = new HashSet<>();
             for (final JsonElement child : element.getAsJsonArray()) {
                 result.addAll(biomeSet(child));
             }
@@ -348,10 +351,17 @@ public final class StructureRegistry implements TemplateSource {
         final String raw = element.getAsString();
         if (raw.startsWith("#")) {
             final Key tag = Keys.parse(raw.substring(1));
-            return tag == null ? Set.of() : biomeTag(tag);
+            if (tag == null) {
+                return Set.of();
+            }
+            final Set<TypedKey<BiomeDefinition>> members = new HashSet<>();
+            for (final Key member : biomeTag(tag)) {
+                members.add(TypedKey.withRegistry(RegistryKey.BIOME, member));
+            }
+            return members;
         }
         final Key key = Keys.parse(raw);
-        return key == null ? Set.of() : Set.of(key);
+        return key == null ? Set.of() : Set.of(TypedKey.withRegistry(RegistryKey.BIOME, key));
     }
 
     public Set<Key> biomeTag(final Key tag) {

@@ -7,9 +7,11 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.data.DamageType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -34,10 +36,6 @@ public interface Condition {
      * A condition that always holds, for effects without requirements.
      */
     Condition ALWAYS = context -> true;
-
-    Key ENTITY_TYPE = RegistryKey.ENTITY_TYPE.key();
-
-    Key DAMAGE_TYPE = RegistryKey.DAMAGE_TYPE.key();
 
     boolean test(EffectContext context);
 
@@ -144,7 +142,7 @@ public interface Condition {
             }
             switch (part.value()) {
                 case "entity_type" -> {
-                    final KeyMatcher types = KeyMatcher.parse(ENTITY_TYPE, entry.getValue());
+                    final KeyMatcher<EntityType> types = KeyMatcher.parse(RegistryKey.ENTITY_TYPE, entry.getValue());
                     parts.add(entity -> types.test(entity.type().key()));
                 }
                 case "flags" -> parts.add(flags(EffectJson.object(entry.getValue(), "'flags'")));
@@ -207,9 +205,9 @@ public interface Condition {
                 case "tags" -> {
                     for (final JsonElement tag : EffectJson.list(entry.getValue(), "'tags'")) {
                         final JsonObject tagObject = EffectJson.object(tag, "A damage type tag");
-                        final KeyMatcher types = KeyMatcher.parse(DAMAGE_TYPE, tagObject.get("id"));
+                        final KeyMatcher<DamageType> types = KeyMatcher.parse(RegistryKey.DAMAGE_TYPE, tagObject.get("id"));
                         final boolean expected = EffectJson.bool(tagObject, "expected");
-                        parts.add(source -> types.test(source.type().key()) == expected);
+                        parts.add(source -> types.test(source.type()) == expected);
                     }
                 }
                 case "is_direct" -> {

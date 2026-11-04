@@ -8,10 +8,10 @@ import fr.fidorial.inventory.Container;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
+import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.MenuTypeKeys;
 import fr.fidorial.registry.keys.SoundEventKeys;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 
@@ -79,9 +79,9 @@ public final class EnderChestMenu extends ContainerMenu {
         server().players().broadcast(ClientboundBlockEventPacket.chestViewers(position, viewers));
     }
 
-    private void sound(final Key sound) {
+    private void sound(final TypedKey<SoundEvent> sound) {
         server().players().broadcast(new ClientboundSoundPacket(
-                Sound.sound(sound, Sound.Source.BLOCK, 0.5f, 1.0f),
+                Sound.sound(sound.key(), Sound.Source.BLOCK, 0.5f, 1.0f),
                 position.x() + 0.5, position.y() + 0.5, position.z() + 0.5));
     }
 }

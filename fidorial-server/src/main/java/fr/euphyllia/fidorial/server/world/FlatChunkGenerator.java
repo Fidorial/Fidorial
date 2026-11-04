@@ -2,18 +2,20 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
-import net.kyori.adventure.key.Key;
 
 public final class FlatChunkGenerator implements ChunkGenerator {
 
     private final BlockState floor;
-    private final Key biome;
+    private final TypedKey<BiomeDefinition> biome;
     private final int floorThickness;
     private final DimensionTypeDefinition dimensionType;
 
-    public FlatChunkGenerator(final DimensionTypeDefinition dimensionType, final BlockState floor, final Key biome, final int floorThickness) {
+    public FlatChunkGenerator(final DimensionTypeDefinition dimensionType, final BlockState floor, final TypedKey<BiomeDefinition> biome, final int floorThickness) {
         this.dimensionType = dimensionType;
         this.floor = floor;
         this.biome = biome;
@@ -21,7 +23,7 @@ public final class FlatChunkGenerator implements ChunkGenerator {
     }
 
     public static FlatChunkGenerator cobblestone(final DimensionTypeDefinition dimensionType) {
-        return new FlatChunkGenerator(dimensionType, BlockState.withoutProperties(BlockTypeKeys.COBBLESTONE), Key.key("plains"), 16);
+        return new FlatChunkGenerator(dimensionType, BlockState.withoutProperties(BlockTypeKeys.COBBLESTONE), BiomeKeys.PLAINS, 16);
     }
 
     @Override

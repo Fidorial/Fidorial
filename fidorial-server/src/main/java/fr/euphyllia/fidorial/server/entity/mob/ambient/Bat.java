@@ -13,8 +13,10 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.sound.SoundEvents;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -28,18 +30,18 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
 
     public static final int MAX_SPAWN_LIGHT = 3;
 
-    private static final Set<Key> SPAWNABLE_ON = Set.of(
-            Key.key("stone"),
-            Key.key("granite"),
-            Key.key("diorite"),
-            Key.key("andesite"),
-            Key.key("tuff"),
-            Key.key("deepslate")
+    private static final Set<TypedKey<BlockType>> SPAWNABLE_ON = Set.of(
+            BlockTypeKeys.STONE,
+            BlockTypeKeys.GRANITE,
+            BlockTypeKeys.DIORITE,
+            BlockTypeKeys.ANDESITE,
+            BlockTypeKeys.TUFF,
+            BlockTypeKeys.DEEPSLATE
     );
 
-    private static final Key LAVA = Key.key("lava");
-    private static final Key MAGMA_BLOCK = Key.key("magma_block");
-    private static final Key COBWEB = Key.key("cobweb");
+    private static final TypedKey<BlockType> LAVA = BlockTypeKeys.LAVA;
+    private static final TypedKey<BlockType> MAGMA_BLOCK = BlockTypeKeys.MAGMA_BLOCK;
+    private static final TypedKey<BlockType> COBWEB = BlockTypeKeys.COBWEB;
 
     private static final double HITBOX_HEIGHT = 0.9;
     private static final double HITBOX_HALF_WIDTH = 0.25;

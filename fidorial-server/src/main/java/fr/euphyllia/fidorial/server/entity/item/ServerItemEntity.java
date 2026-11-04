@@ -473,7 +473,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
             return false;
         }
         // Netherite and ancient debris shrug off fire and lava, as in vanilla.
-        final String path = item.id().value();
+        final String path = item.id().key().value();
         return !path.startsWith("netherite_") && !path.equals("ancient_debris");
     }
 

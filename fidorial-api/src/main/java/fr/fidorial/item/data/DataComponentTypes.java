@@ -7,6 +7,7 @@ import fr.fidorial.item.component.MapItemDecorations;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.map.MapManager;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.DataComponentTypeKeys;
 import net.kyori.adventure.key.Key;
@@ -25,7 +26,7 @@ import java.util.Map;
  */
 public class DataComponentTypes {
 
-    private static final Map<Key, DataComponentType<?>> BY_KEY = new LinkedHashMap<>();
+    private static final Map<TypedKey<DataComponentType<?>>, DataComponentType<?>> BY_KEY = new LinkedHashMap<>();
 
     /**
      * How many of this item fit in one slot, {@code 1}-{@code 99}.
@@ -127,7 +128,7 @@ public class DataComponentTypes {
 
     private static <T> DataComponentType<T> register(final TypedKey<DataComponentType<?>> key, final Class<T> valueType) {
         final DataComponentType<T> type = DataComponentType.of(key, valueType);
-        BY_KEY.put(key.key(), type);
+        BY_KEY.put(key, type);
         return type;
     }
 
@@ -137,16 +138,27 @@ public class DataComponentTypes {
      * @param key the registry key, e.g. {@code minecraft:lore}
      * @return the component type, or {@code null} when Fidorial does not model it
      */
-    public static @Nullable DataComponentType<?> byKey(final Key key) {
+    public static @Nullable DataComponentType<?> byKey(final TypedKey<DataComponentType<?>> key) {
         Preconditions.checkArgument(key != null, "The key passed to DataComponentTypes.byKey() must not be null");
         return BY_KEY.get(key);
+    }
+
+    /**
+     * Looks up a modelled component by its plain key, as Adventure's hover events carry it.
+     *
+     * @param key the plain key, e.g. {@code minecraft:lore}
+     * @return the component type, or {@code null} when Fidorial does not model it
+     */
+    public static @Nullable DataComponentType<?> byKey(final Key key) {
+        Preconditions.checkArgument(key != null, "The key passed to DataComponentTypes.byKey() must not be null");
+        return byKey(TypedKey.withRegistry(RegistryKey.DATA_COMPONENT_TYPE, key));
     }
 
     /**
      * @param key the registry key
      * @return {@code true} when Fidorial has a typed handle for that component
      */
-    public static boolean isModelled(final Key key) {
+    public static boolean isModelled(final TypedKey<DataComponentType<?>> key) {
         Preconditions.checkArgument(key != null, "The key passed to DataComponentTypes.isModelled() must not be null");
         return BY_KEY.containsKey(key);
     }

@@ -61,7 +61,7 @@ public final class GameRuleOverrides {
     }
 
     public int get(final GameRuleDefinition definition) {
-        return get(GameRuleValues.requireIndex(definition.key().key()));
+        return get(GameRuleValues.requireIndex(definition.key()));
     }
 
     private int get(final int index) {
@@ -75,7 +75,7 @@ public final class GameRuleOverrides {
     }
 
     public @Nullable Integer override(final GameRuleDefinition definition) {
-        return overrides.get(GameRuleValues.requireIndex(definition.key().key()));
+        return overrides.get(GameRuleValues.requireIndex(definition.key()));
     }
 
     public List<GameRuleDefinition> overridden() {
@@ -89,7 +89,7 @@ public final class GameRuleOverrides {
     }
 
     @Nullable Integer exchange(final GameRuleDefinition definition, final @Nullable Integer value) {
-        final Integer previous = overrides.getAndSet(GameRuleValues.requireIndex(definition.key().key()), value);
+        final Integer previous = overrides.getAndSet(GameRuleValues.requireIndex(definition.key()), value);
         if (previous == null && value != null) {
             count.incrementAndGet();
         } else if (previous != null && value == null) {

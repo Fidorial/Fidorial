@@ -8,6 +8,8 @@ import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
@@ -414,22 +416,22 @@ public final class LevelData {
 
     private CompoundBinaryTag buildDimension(final DimensionGenerator generator) {
         return CompoundBinaryTag.builder()
-                .putString("type", generator.dimension().dimensionType().asString())
+                .putString("type", generator.dimension().dimensionType().key().asString())
                 .put("generator", buildGeneratorSettings(generator.config()))
                 .build();
     }
 
     private CompoundBinaryTag buildGeneratorSettings(final ChunkGeneratorConfig config) {
         return switch (config) {
-            case ChunkGeneratorConfig.Flat(final BlockState floor, final int floorThickness, final Key biome) -> {
+            case ChunkGeneratorConfig.Flat(final BlockState floor, final int floorThickness, final TypedKey<BiomeDefinition> biome) -> {
                 final CompoundBinaryTag layer = CompoundBinaryTag.builder()
                         .putInt("height", floorThickness)
-                        .putString("block", floor.name().asString())
+                        .putString("block", floor.name().key().asString())
                         .build();
                 final CompoundBinaryTag settings = CompoundBinaryTag.builder()
                         .putBoolean("features", false)
                         .putBoolean("lakes", false)
-                        .putString("biome", biome.asString())
+                        .putString("biome", biome.key().asString())
                         .put("layers", ListBinaryTag.builder().add(layer).build())
                         .put("structure_overrides", ListBinaryTag.empty())
                         .build();

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.registry;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -37,7 +38,7 @@ public sealed interface RegistryBinding<T> {
      *
      * @param factory the value of a key, {@code null} when there is none
      */
-    record Fixed<T>(Function<Key, @Nullable T> factory) implements RegistryBinding<T> {
+    record Fixed<T>(Function<TypedKey<T>, @Nullable T> factory) implements RegistryBinding<T> {
 
         public Fixed {
             Objects.requireNonNull(factory, "factory");
@@ -52,12 +53,12 @@ public sealed interface RegistryBinding<T> {
         /**
          * @throws IllegalArgumentException if the value is invalid
          */
-        void validate(ServerRegistries registries, Key key, T value);
+        void validate(ServerRegistries registries, TypedKey<T> key, T value);
 
         /**
          * {@return the tags the value refers to, created empty if missing so that clients find them}
          */
-        default Set<Key> referencedTags(final T value) {
+        default Set<TagKey<T>> referencedTags(final T value) {
             return Set.of();
         }
 

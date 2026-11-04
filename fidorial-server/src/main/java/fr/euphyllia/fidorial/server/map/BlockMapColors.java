@@ -152,10 +152,10 @@ public final class BlockMapColors {
      * @param properties the properties of the state
      */
     public MapColor vanilla(final TypedKey<BlockType> name, final Map<String, String> properties) {
-        final Entry entry = Key.MINECRAFT_NAMESPACE.equals(name.namespace()) ? vanilla.get(name.value()) : null;
+        final Entry entry = Key.MINECRAFT_NAMESPACE.equals(name.key().namespace()) ? vanilla.get(name.key().value()) : null;
         if (entry == null) {
             if (warned.add(name)) {
-                LOGGER.debug("No map color for block {}, drawing it as stone", name.asString());
+                LOGGER.debug("No map color for block {}, drawing it as stone", name);
             }
             return MapColor.STONE;
         }

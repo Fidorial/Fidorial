@@ -1,7 +1,12 @@
 package fr.euphyllia.fidorial.server.world.block.blockentity;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeIds;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
+import fr.fidorial.registry.keys.BlockEntityTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockType;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -31,25 +36,25 @@ public final class BlockEntityTypes {
      * Suffix rules, evaluated in insertion order. The first match wins, so the
      * more specific suffixes must be declared first.
      */
-    private static final Map<String, Key> SUFFIX_RULES = suffixRules();
+    private static final Map<String, TypedKey<BlockEntityType>> SUFFIX_RULES = suffixRules();
 
-    private static final Map<Key, Key> EXACT_BLOCKS = exactBlocks();
+    private static final Map<TypedKey<BlockType>, TypedKey<BlockEntityType>> EXACT_BLOCKS = exactBlocks();
 
     /**
      * Blocks whose name matches a suffix rule but which carry no block entity.
      */
-    private static final Set<Key> SUFFIX_EXCLUSIONS = Set.of(Key.key("piston_head"));
+    private static final Set<TypedKey<BlockType>> SUFFIX_EXCLUSIONS = Set.of(BlockTypeKeys.PISTON_HEAD);
 
     /**
      * Sentinel stored in {@link #CACHE} for blocks resolved to carry no block
      * entity.
      */
-    private static final Key NONE = Key.key("fidorial", "none");
+    private static final TypedKey<BlockEntityType> NONE = TypedKey.withRegistry(RegistryKey.BLOCK_ENTITY_TYPE, "fidorial:none");
 
     /**
-     * Memorizes {@link #computeResolution(Key)} per block identifier.
+     * Memorizes {@link #computeResolution(TypedKey)} per block.
      */
-    private static final Map<Key, Key> CACHE = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<BlockType>, TypedKey<BlockEntityType>> CACHE = new ConcurrentHashMap<>();
 
     private BlockEntityTypes() {
         throw new UnsupportedOperationException();
@@ -58,38 +63,38 @@ public final class BlockEntityTypes {
     /**
      * Returns the block entity type identifier carried by a block.
      *
-     * @param blockIdentifier namespaced block identifier, e.g. {@code minecraft:chest}
+     * @param blockIdentifier the block, e.g. {@code minecraft:chest}
      *
      * @return the block entity type identifier, or {@link Optional#empty()} when
      *         the block has no block entity
      */
-    public static Optional<Key> typeIdentifier(final Key blockIdentifier) {
-        final Key resolved = resolve(blockIdentifier);
+    public static Optional<TypedKey<BlockEntityType>> typeIdentifier(final TypedKey<BlockType> blockIdentifier) {
+        final TypedKey<BlockEntityType> resolved = resolve(blockIdentifier);
         return resolved == NONE ? Optional.empty() : Optional.of(resolved);
     }
 
     /**
      * Returns the protocol ID of the block entity carried by a block.
      *
-     * @param blockIdentifier namespaced block identifier
+     * @param blockIdentifier the block
      *
      * @return the protocol ID, or {@link BlockEntityTypeIds#UNKNOWN} when the
      *         block carries no block entity, or when the resolved type is absent
      *         from the current registry
      */
-    public static int protocolId(final Key blockIdentifier) {
-        final Key resolved = resolve(blockIdentifier);
-        return resolved == NONE ? BlockEntityTypeIds.UNKNOWN : BlockEntityTypeIds.id(resolved);
+    public static int protocolId(final TypedKey<BlockType> blockIdentifier) {
+        final TypedKey<BlockEntityType> resolved = resolve(blockIdentifier);
+        return resolved == NONE ? BlockEntityTypeIds.UNKNOWN : BlockEntityTypeIds.id(resolved.key());
     }
 
     /**
      * Returns whether a block carries a block entity known to the current registry.
      *
-     * @param blockIdentifier namespaced block identifier
+     * @param blockIdentifier the block
      *
      * @return {@code true} when a protocol ID could be resolved
      */
-    public static boolean hasBlockEntity(final Key blockIdentifier) {
+    public static boolean hasBlockEntity(final TypedKey<BlockType> blockIdentifier) {
         return protocolId(blockIdentifier) != BlockEntityTypeIds.UNKNOWN;
     }
 
@@ -97,12 +102,12 @@ public final class BlockEntityTypes {
      * Resolves and caches the block entity type identifier for a block, or
      * {@link #NONE} when it carries none.
      */
-    private static Key resolve(final Key blockIdentifier) {
-        final Key cached = CACHE.get(blockIdentifier);
+    private static TypedKey<BlockEntityType> resolve(final TypedKey<BlockType> blockIdentifier) {
+        final TypedKey<BlockEntityType> cached = CACHE.get(blockIdentifier);
         if (cached != null) {
             return cached;
         }
-        final Key computed = computeResolution(blockIdentifier);
+        final TypedKey<BlockEntityType> computed = computeResolution(blockIdentifier);
         CACHE.put(blockIdentifier, computed);
         return computed;
     }
@@ -110,8 +115,8 @@ public final class BlockEntityTypes {
     /**
      * Performs the actual resolution uncached.
      */
-    private static Key computeResolution(final Key blockIdentifier) {
-        final Key exact = EXACT_BLOCKS.get(blockIdentifier);
+    private static TypedKey<BlockEntityType> computeResolution(final TypedKey<BlockType> blockIdentifier) {
+        final TypedKey<BlockEntityType> exact = EXACT_BLOCKS.get(blockIdentifier);
         if (exact != null) {
             return exact;
         }
@@ -120,8 +125,8 @@ public final class BlockEntityTypes {
             return NONE;
         }
 
-        final String value = blockIdentifier.value();
-        for (final Map.Entry<String, Key> rule : SUFFIX_RULES.entrySet()) {
+        final String value = blockIdentifier.key().value();
+        for (final Map.Entry<String, TypedKey<BlockEntityType>> rule : SUFFIX_RULES.entrySet()) {
             if (value.endsWith(rule.getKey())) {
                 return rule.getValue();
             }
@@ -130,21 +135,21 @@ public final class BlockEntityTypes {
         return NONE;
     }
 
-    private static Map<String, Key> suffixRules() {
+    private static Map<String, TypedKey<BlockEntityType>> suffixRules() {
 
-        final Map<String, Key> rules = new LinkedHashMap<>();
+        final Map<String, TypedKey<BlockEntityType>> rules = new LinkedHashMap<>();
 
-        rules.put("_hanging_sign", Key.key("hanging_sign"));
-        rules.put("_wall_sign", Key.key("sign"));
-        rules.put("_sign", Key.key("sign"));
-        rules.put("_bed", Key.key("bed"));
-        rules.put("_banner", Key.key("banner"));
-        rules.put("_shulker_box", Key.key("shulker_box"));
-        rules.put("_skull", Key.key("skull"));
-        rules.put("_head", Key.key("skull"));
-        rules.put("_campfire", Key.key("campfire"));
-        rules.put("_beehive", Key.key("beehive"));
-        rules.put("_command_block", Key.key("command_block"));
+        rules.put("_hanging_sign", BlockEntityTypeKeys.HANGING_SIGN);
+        rules.put("_wall_sign", BlockEntityTypeKeys.SIGN);
+        rules.put("_sign", BlockEntityTypeKeys.SIGN);
+        rules.put("_bed", TypedKey.withRegistry(RegistryKey.BLOCK_ENTITY_TYPE, "bed"));
+        rules.put("_banner", BlockEntityTypeKeys.BANNER);
+        rules.put("_shulker_box", BlockEntityTypeKeys.SHULKER_BOX);
+        rules.put("_skull", BlockEntityTypeKeys.SKULL);
+        rules.put("_head", BlockEntityTypeKeys.SKULL);
+        rules.put("_campfire", BlockEntityTypeKeys.CAMPFIRE);
+        rules.put("_beehive", BlockEntityTypeKeys.BEEHIVE);
+        rules.put("_command_block", BlockEntityTypeKeys.COMMAND_BLOCK);
 
         /*
          * Iteration order is significant, so the map cannot be copied into an
@@ -153,9 +158,9 @@ public final class BlockEntityTypes {
         return Collections.unmodifiableMap(rules);
     }
 
-    private static Map<Key, Key> exactBlocks() {
+    private static Map<TypedKey<BlockType>, TypedKey<BlockEntityType>> exactBlocks() {
 
-        final Map<Key, Key> blocks = new LinkedHashMap<>();
+        final Map<TypedKey<BlockType>, TypedKey<BlockEntityType>> blocks = new LinkedHashMap<>();
 
         put(blocks, "barrel", "barrel");
         put(blocks, "beacon", "beacon");
@@ -207,7 +212,7 @@ public final class BlockEntityTypes {
         return Map.copyOf(blocks);
     }
 
-    private static void put(final Map<Key, Key> blocks, final String block, final String blockEntityType) {
-        blocks.put(Key.key(block), Key.key(blockEntityType));
+    private static void put(final Map<TypedKey<BlockType>, TypedKey<BlockEntityType>> blocks, final String block, final String blockEntityType) {
+        blocks.put(TypedKey.withRegistry(RegistryKey.BLOCK, block), TypedKey.withRegistry(RegistryKey.BLOCK_ENTITY_TYPE, blockEntityType));
     }
 }

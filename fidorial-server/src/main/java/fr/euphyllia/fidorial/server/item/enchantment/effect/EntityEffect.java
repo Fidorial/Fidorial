@@ -34,8 +34,6 @@ import java.util.List;
 @FunctionalInterface
 public interface EntityEffect {
 
-    Key MOB_EFFECT = RegistryKey.MOB_EFFECT.key();
-
     /**
      * Runs the effect.
      *
@@ -56,7 +54,7 @@ public interface EntityEffect {
                     LevelValue.parse(object.get("max_damage")),
                     TypedKey.withRegistry(RegistryKey.DAMAGE_TYPE, EffectJson.key(object, "damage_type")));
             case "apply_mob_effect" -> applyMobEffect(
-                    KeyMatcher.parse(MOB_EFFECT, object.get("to_apply")),
+                    KeyMatcher.parse(RegistryKey.MOB_EFFECT, object.get("to_apply")),
                     LevelValue.parse(object.get("min_duration")),
                     LevelValue.parse(object.get("max_duration")),
                     LevelValue.parse(object.get("min_amplifier")),
@@ -109,20 +107,19 @@ public interface EntityEffect {
         };
     }
 
-    private static EntityEffect applyMobEffect(final KeyMatcher effects, final LevelValue minDuration,
+    private static EntityEffect applyMobEffect(final KeyMatcher<MobEffect> effects, final LevelValue minDuration,
                                                final LevelValue maxDuration, final LevelValue minAmplifier,
                                                final LevelValue maxAmplifier) {
         return (context, item, affected) -> {
             if (!(affected instanceof final LivingEntity living)) {
                 return;
             }
-            final List<Key> candidates = effects.resolve();
+            final List<TypedKey<MobEffect>> candidates = effects.resolve();
             if (candidates.isEmpty()) {
                 return;
             }
             final MobEffectRegistry registry = FidorialServer.getInstance().registries().effects();
-            final TypedKey<MobEffect> chosen = TypedKey.withRegistry(RegistryKey.MOB_EFFECT,
-                    candidates.get(context.random().nextInt(candidates.size())));
+            final TypedKey<MobEffect> chosen = candidates.get(context.random().nextInt(candidates.size()));
             if (!registry.isEffect(chosen)) {
                 return;
             }

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.worldgen;
 
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.biome.BiomeDefinition;
 
 public interface TerrainView {
 
@@ -14,7 +15,7 @@ public interface TerrainView {
 
     int oceanFloor(int x, int z);
 
-    Key biome(int x, int y, int z);
+    TypedKey<BiomeDefinition> biome(int x, int y, int z);
 
     default int height(final Heightmap heightmap, final int x, final int z) {
         return heightmap.ignoresFluids() ? oceanFloor(x, z) : worldSurface(x, z);

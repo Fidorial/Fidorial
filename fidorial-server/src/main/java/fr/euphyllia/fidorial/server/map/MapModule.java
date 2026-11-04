@@ -40,6 +40,8 @@ import fr.fidorial.map.MapView;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.BlockFace;
@@ -129,8 +131,8 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     private final Map<Integer, ServerMapFrame> frames = new ConcurrentHashMap<>();
     private final Deque<Integer> freeTemporaryIds = new ArrayDeque<>();
     private final AtomicLong tick = new AtomicLong();
-    private final Map<Key, Integer> decorationIds = new ConcurrentHashMap<>();
-    private final Set<Key> unknownDecorations = ConcurrentHashMap.newKeySet();
+    private final Map<TypedKey<MapDecorationType>, Integer> decorationIds = new ConcurrentHashMap<>();
+    private final Set<TypedKey<MapDecorationType>> unknownDecorations = ConcurrentHashMap.newKeySet();
     private final ScheduledExecutorService ticker;
     private final ExecutorService renderers;
     private int lastId = -1;
@@ -618,11 +620,11 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     }
 
     @Override
-    public int decorationNetworkId(final Key type) {
+    public int decorationNetworkId(final TypedKey<MapDecorationType> type) {
         return decorationIds.computeIfAbsent(type, key -> {
             final int id = server.registries().registry(RegistryKey.MAP_DECORATION_TYPE).networkId(key);
             if (id < 0 && unknownDecorations.add(key)) {
-                LOGGER.warn("Unknown map decoration type {}, not sending it", key.asString());
+                LOGGER.warn("Unknown map decoration type {}, not sending it", key);
             }
             return id;
         });
@@ -685,7 +687,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     }
 
     private static boolean isBanner(final BlockState state) {
-        return state.name().value().endsWith("_banner");
+        return state.name().key().value().endsWith("_banner");
     }
 
     /**
@@ -765,7 +767,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         if (x < 0 || y < 0 || x > 128 || y > 128) {
             return true;
         }
-        final String name = state.name().value();
+        final String name = state.name().key().value();
         final String color = name.replace("_wall_banner", "").replace("_banner", "");
         final BlockEntity entity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
         final Component label = entity == null ? null : customName(entity.dataOrEmpty());

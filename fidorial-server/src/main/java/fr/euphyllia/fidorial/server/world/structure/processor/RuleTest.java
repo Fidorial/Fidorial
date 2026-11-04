@@ -2,7 +2,8 @@ package fr.euphyllia.fidorial.server.world.structure.processor;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockType;
 
 import java.util.Set;
 
@@ -12,7 +13,7 @@ public interface RuleTest {
 
     boolean test(BlockState state, LegacyRandom random);
 
-    static RuleTest block(final Key block) {
+    static RuleTest block(final TypedKey<BlockType> block) {
         return (state, random) -> state.name().equals(block);
     }
 
@@ -20,11 +21,11 @@ public interface RuleTest {
         return (state, random) -> state.equals(expected);
     }
 
-    static RuleTest tag(final Set<Key> blocks) {
+    static RuleTest tag(final Set<TypedKey<BlockType>> blocks) {
         return (state, random) -> blocks.contains(state.name());
     }
 
-    static RuleTest randomBlock(final Key block, final float probability) {
+    static RuleTest randomBlock(final TypedKey<BlockType> block, final float probability) {
         return (state, random) -> state.name().equals(block) && random.nextFloat() < probability;
     }
 

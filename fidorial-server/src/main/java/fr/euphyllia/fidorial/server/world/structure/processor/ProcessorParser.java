@@ -11,6 +11,9 @@ import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StateParser;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.IntProvider;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -110,9 +113,9 @@ public final class ProcessorParser {
         final String type = string(object, "predicate_type", "minecraft:always_true").replace("minecraft:", "");
         return switch (type) {
             case "always_true" -> RuleTest.ALWAYS_TRUE;
-            case "block_match" -> RuleTest.block(Keys.parseOr(string(object, "block", "air"), Keys.AIR));
+            case "block_match" -> RuleTest.block(block(string(object, "block", "air")));
             case "random_block_match" -> RuleTest.randomBlock(
-                    Keys.parseOr(string(object, "block", "air"), Keys.AIR), object.get("probability").getAsFloat());
+                    block(string(object, "block", "air")), object.get("probability").getAsFloat());
             case "blockstate_match", "random_blockstate_match" -> {
                 final BlockState state = StateParser.resolve(StateParser.parseJson(object.get("block_state")), validator);
                 if (state == null) {
@@ -160,8 +163,8 @@ public final class ProcessorParser {
         };
     }
 
-    private Set<Key> blockNames(final @Nullable JsonArray array) {
-        final Set<Key> names = new HashSet<>();
+    private Set<TypedKey<BlockType>> blockNames(final @Nullable JsonArray array) {
+        final Set<TypedKey<BlockType>> names = new HashSet<>();
         if (array == null) {
             return names;
         }
@@ -174,9 +177,9 @@ public final class ProcessorParser {
         return names;
     }
 
-    private Set<Key> holderSet(final JsonElement element) {
+    private Set<TypedKey<BlockType>> holderSet(final JsonElement element) {
         if (element.isJsonArray()) {
-            final Set<Key> names = new HashSet<>();
+            final Set<TypedKey<BlockType>> names = new HashSet<>();
             for (final JsonElement child : element.getAsJsonArray()) {
                 names.addAll(holderSet(child));
             }
@@ -187,12 +190,24 @@ public final class ProcessorParser {
             return tag(raw.substring(1));
         }
         final Key key = Keys.parse(raw);
-        return key == null ? Set.of() : Set.of(key);
+        return key == null ? Set.of() : Set.of(TypedKey.withRegistry(RegistryKey.BLOCK, key));
     }
 
-    private Set<Key> tag(final String raw) {
+    private Set<TypedKey<BlockType>> tag(final String raw) {
         final Key key = Keys.parse(raw.startsWith("#") ? raw.substring(1) : raw);
-        return key == null ? Set.of() : blockTags.apply(key);
+        if (key == null) {
+            return Set.of();
+        }
+        final Set<TypedKey<BlockType>> members = new HashSet<>();
+        for (final Key member : blockTags.apply(key)) {
+            members.add(TypedKey.withRegistry(RegistryKey.BLOCK, member));
+        }
+        return members;
+    }
+
+    private static TypedKey<BlockType> block(final String raw) {
+        final Key key = Keys.parse(raw);
+        return key == null ? Keys.AIR : TypedKey.withRegistry(RegistryKey.BLOCK, key);
     }
 
     private static String string(final JsonObject object, final String member, final String fallback) {

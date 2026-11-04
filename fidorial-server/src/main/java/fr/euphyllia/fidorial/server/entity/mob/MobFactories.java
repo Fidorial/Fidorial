@@ -96,7 +96,6 @@ import fr.euphyllia.fidorial.server.entity.mob.water_creature.TropicalFish;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
-import net.kyori.adventure.key.Key;
 
 import java.util.Map;
 import java.util.Set;
@@ -204,7 +203,7 @@ public final class MobFactories {
         return registry.isMob(type.key());
     }
 
-    public static boolean isBuiltIn(final Key key) {
+    public static boolean isBuiltIn(final TypedKey<EntityType> key) {
         return FACTORIES.containsKey(key);
     }
 

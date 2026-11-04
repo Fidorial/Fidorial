@@ -11,7 +11,6 @@ import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -171,7 +170,7 @@ public final class FidorialMobRegistry implements MobRegistry {
     }
 
     private static void create(final MobBehaviour.Factory factory, final Mob handle,
-                               final AbstractMob mob, final Key key) {
+                               final AbstractMob mob, final TypedKey<EntityType> key) {
         try {
             final MobBehaviour behaviour = factory.create(handle);
             mob.addBehaviour(behaviour);

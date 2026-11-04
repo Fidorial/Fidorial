@@ -126,7 +126,7 @@ public final class BlockStateRegistry {
             return BlockState.withProperties(BlockTypeKeys.LAVA, Map.of("level", "0"));
         }
 
-        final BlockState defaultState = BlockStates.defaultStateOf(TypedKey.withRegistry(RegistryKey.BLOCK, itemId));
+        final BlockState defaultState = BlockStates.defaultStateOf(TypedKey.withRegistry(RegistryKey.BLOCK, itemId.key()));
         return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE);
     }
 }

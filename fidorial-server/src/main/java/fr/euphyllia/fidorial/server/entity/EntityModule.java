@@ -163,11 +163,13 @@ public final class EntityModule implements ServerModule {
         final double speed = 0.3;
         final double spread = random.nextDouble() * Math.PI * 2.0;
         final double wobble = 0.02 * random.nextDouble();
+        final double first = random.nextDouble();
+        final double second = random.nextDouble();
         return dropItem((ServerWorld) player.world(),
                 at.x(), at.y() + eyeHeight(player) - 0.3, at.z(),
                 stack,
                 -Math.sin(yaw) * Math.cos(pitch) * speed + Math.cos(spread) * wobble,
-                -Math.sin(pitch) * speed + 0.1 + (random.nextDouble() - random.nextDouble()) * 0.1,
+                -Math.sin(pitch) * speed + 0.1 + (first - second) * 0.1,
                 Math.cos(yaw) * Math.cos(pitch) * speed + Math.sin(spread) * wobble,
                 ItemEntity.THROWN_PICKUP_DELAY,
                 player);

@@ -14,6 +14,8 @@ import fr.fidorial.map.MapPalette;
 import fr.fidorial.map.MapScale;
 import fr.fidorial.map.MapView;
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.MapDecorationTypeKeys;
 import fr.fidorial.world.BlockFace;
@@ -692,7 +694,7 @@ public final class ServerMapView implements MapView {
             final double z = (player.z() - cz) / size;
             final boolean inside = x >= -63 && z >= -63 && x <= 63 && z <= 63;
             int rotation = 0;
-            final Key type;
+            final TypedKey<MapDecorationType> type;
             if (inside) {
                 type = MapDecorationTypeKeys.PLAYER;
                 rotation = player.inCeilingWorld()
@@ -712,7 +714,7 @@ public final class ServerMapView implements MapView {
             final double z = (entry.z() - cz) / size;
             final float degrees = entry.rotation();
             final int rotation = (int) ((degrees < 0 ? degrees - 8.0 : degrees + 8.0) * 16.0 / 360.0) & 15;
-            addWireIcon(icons, entry.type().key(), halfPixels(x), halfPixels(z), rotation, null);
+            addWireIcon(icons, entry.type(), halfPixels(x), halfPixels(z), rotation, null);
         }
     }
 
@@ -739,11 +741,11 @@ public final class ServerMapView implements MapView {
 
     private void addIcon(final List<MapIcon> icons, final MapDecoration decoration) {
         // the client draws icons upside down at 0: upright is 8 on the wire
-        addWireIcon(icons, decoration.type().key(), halfPixels(decoration.x() - SIZE / 2.0),
+        addWireIcon(icons, decoration.type(), halfPixels(decoration.x() - SIZE / 2.0),
                 halfPixels(decoration.y() - SIZE / 2.0), (decoration.direction() + 8) & 15, decoration.label());
     }
 
-    private void addWireIcon(final List<MapIcon> icons, final Key type, final int x,
+    private void addWireIcon(final List<MapIcon> icons, final TypedKey<MapDecorationType> type, final int x,
                              final int y, final int rotation, final @Nullable Component label) {
         final int network = module.decorationNetworkId(type);
         if (network >= 0) {

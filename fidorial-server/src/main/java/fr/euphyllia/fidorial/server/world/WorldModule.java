@@ -24,6 +24,8 @@ import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -203,7 +205,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     }
 
     private void syncGameRule(final @Nullable ServerWorld world, final GameRuleDefinition rule) {
-        final Key key = rule.key().key();
+        final TypedKey<GameRule> key = rule.key();
         if (key.equals(GameRuleKeys.ADVANCE_TIME)) {
             if (world == null) {
                 dayNight.resyncAll();
@@ -220,7 +222,7 @@ public final class WorldModule implements ServerModule, WorldManager {
                 gameRules.syncTo(playerWorld, player.entityId(), player.connection()::send);
             }
         }
-        LOGGER.debug("Game rule {} changed in {}", key.asString(), world == null ? "every world" : world.key());
+        LOGGER.debug("Game rule {} changed in {}", key, world == null ? "every world" : world.key());
     }
 
     public ServerWorldManager manager() {

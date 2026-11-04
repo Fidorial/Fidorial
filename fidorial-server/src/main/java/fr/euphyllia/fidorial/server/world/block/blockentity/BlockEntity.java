@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.server.world.block.blockentity;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeIds;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -27,15 +28,11 @@ import java.util.Objects;
  *
  * @since 0.1.0
  */
-public record BlockEntity(int localX, int y, int localZ, Key type, @Nullable CompoundBinaryTag data) {
+public record BlockEntity(int localX, int y, int localZ, TypedKey<BlockEntityType> type, @Nullable CompoundBinaryTag data) {
 
     public BlockEntity {
 
         Objects.requireNonNull(type, "type");
-
-        if (type.value().isBlank()) {
-            throw new IllegalArgumentException("Block entity type cannot be blank.");
-        }
 
         if (localX < 0 || localX > 15) {
             throw new IllegalArgumentException("Block entity localX must be within 0-15, got " + localX + ".");
@@ -50,7 +47,7 @@ public record BlockEntity(int localX, int y, int localZ, Key type, @Nullable Com
         }
     }
 
-    public static BlockEntity of(final int localX, final int y, final int localZ, final Key type) {
+    public static BlockEntity of(final int localX, final int y, final int localZ, final TypedKey<BlockEntityType> type) {
         return new BlockEntity(localX, y, localZ, type, null);
     }
 
@@ -62,7 +59,7 @@ public record BlockEntity(int localX, int y, int localZ, Key type, @Nullable Com
      *         type is absent from the current registry
      */
     public int protocolId() {
-        return BlockEntityTypeIds.id(type);
+        return BlockEntityTypeIds.id(type.key());
     }
 
     /**

@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.registry.data;
 
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.ItemKeys;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import java.util.List;
-import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -19,13 +20,13 @@ import org.jspecify.annotations.Nullable;
  * a stack in hand.</p>
  */
 public final class ItemProperties {
-    private static final Object2IntOpenHashMap<Key> STACK_SIZE = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<Item>> STACK_SIZE = new Object2IntOpenHashMap<>();
 
-    private static final Object2IntOpenHashMap<Key> MAX_DAMAGE = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<Item>> MAX_DAMAGE = new Object2IntOpenHashMap<>();
 
-    private static final Object2ObjectOpenHashMap<Key, List<Key>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<TypedKey<Item>, List<TypedKey<Item>>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
 
-    private static final Object2ObjectOpenHashMap<Key, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<TypedKey<Item>, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>();
 
     static {
         STACK_SIZE.defaultReturnValue(64);
@@ -37,49 +38,49 @@ public final class ItemProperties {
     }
 
     /**
-     * @param item namespaced item identifier
+     * @param item the item
      * @return how many of this item fit in one slot; {@code 64} when the item has no recorded data
      */
-    public static int maxStackSize(final Key item) {
+    public static int maxStackSize(final TypedKey<Item> item) {
         return STACK_SIZE.getInt(item);
     }
 
     /**
-     * @param item namespaced item identifier
+     * @param item the item
      * @return total durability, or {@code 0} when the item cannot break; {@code 0} when the item has no recorded data
      */
-    public static int maxDamage(final Key item) {
+    public static int maxDamage(final TypedKey<Item> item) {
         return MAX_DAMAGE.getInt(item);
     }
 
     /**
-     * @param item namespaced item identifier
+     * @param item the item
      * @return {@code true} when the item has durability to lose
      */
-    public static boolean isDamageable(final Key item) {
+    public static boolean isDamageable(final TypedKey<Item> item) {
         return MAX_DAMAGE.getInt(item) > 0;
     }
 
     /**
-     * @param item namespaced item identifier
+     * @param item the item
      * @return the materials that repair this item on an anvil, empty when it cannot be repaired that way
      */
-    public static List<Key> repairMaterials(final Key item) {
+    public static List<TypedKey<Item>> repairMaterials(final TypedKey<Item> item) {
         return REPAIR_MATERIALS.getOrDefault(item, List.of());
     }
 
     /**
-     * @param item namespaced item identifier
+     * @param item the item
      * @return the slot the item is worn in, as Mojang names it ({@code head}, {@code chest},
      * {@code legs}, {@code feet}, {@code offhand}, {@code body}, {@code saddle}),
      * {@code null} when it cannot be worn
      */
-    public static @Nullable String equipmentSlot(final Key item) {
+    public static @Nullable String equipmentSlot(final TypedKey<Item> item) {
         return EQUIPMENT_SLOT.get(item);
     }
 
-    private static void register(final Key item, final int stackSize, final int maxDamage,
-            final List<Key> repairMaterials) {
+    private static void register(final TypedKey<Item> item, final int stackSize,
+            final int maxDamage, final List<TypedKey<Item>> repairMaterials) {
         STACK_SIZE.put(item, stackSize);
         if (maxDamage > 0) {
             MAX_DAMAGE.put(item, maxDamage);

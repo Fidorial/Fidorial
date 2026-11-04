@@ -27,7 +27,7 @@ public final class FidorialBlockRegistry implements BlockRegistry {
     public void register(final BlockType type) {
         final BlockType previous = types.put(type.key(), type);
         if (previous != null) {
-            throw new IllegalStateException("Block '" + type.key().asString() + "' is already registered");
+            throw new IllegalStateException("Block '" + type.key() + "' is already registered");
         }
         for (int ordinal = 0; ordinal < type.stateCount(); ordinal++) {
             final BlockData data = type.stateAt(ordinal);
@@ -42,7 +42,7 @@ public final class FidorialBlockRegistry implements BlockRegistry {
             register(behaviour.type());
         }
         if (behaviours.putIfAbsent(key, behaviour) != null) {
-            throw new IllegalStateException("Block '" + key.asString() + "' already has a behaviour");
+            throw new IllegalStateException("Block '" + key + "' already has a behaviour");
         }
         fallbackBehaviours.remove(key);
     }

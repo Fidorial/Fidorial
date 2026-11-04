@@ -8,7 +8,7 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.spotless.lib)
     implementation(libs.spotless.lib.extra)
     implementation(libs.javaparser.core)
+    implementation(libs.errorprone)
 }
 
 gradlePlugin {

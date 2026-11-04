@@ -13,7 +13,6 @@ import fr.fidorial.registrygen.GenerationUtils;
 import fr.fidorial.registrygen.model.EntityCategories;
 import fr.fidorial.registrygen.model.PrismarineEntityDefinition;
 import fr.fidorial.registrygen.model.RegistryEntryDefinition;
-import net.kyori.adventure.key.Key;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -67,11 +66,13 @@ public final class EntityTypesGenerator {
         Objects.requireNonNull(entityPackage, "entityPackage");
         Objects.requireNonNull(outputDirectory, "outputDirectory");
 
+        final ParameterizedTypeName typedKey = ParameterizedTypeName.get(TYPED_KEY, ENTITY_TYPE);
+
         final ParameterizedTypeName typeMap = ParameterizedTypeName.get(
-                ClassName.get(Map.class), ClassName.get(Key.class), ENTITY_TYPE);
+                ClassName.get(Map.class), typedKey, ENTITY_TYPE);
 
         final ParameterizedTypeName idMap = ParameterizedTypeName.get(
-                ClassName.get(Map.class), ClassName.get(Key.class), ClassName.get(Integer.class));
+                ClassName.get(Map.class), typedKey, ClassName.get(Integer.class));
 
         final TypeSpec.Builder type = TypeSpec.classBuilder(CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -135,7 +136,7 @@ public final class EntityTypesGenerator {
 
     private static void addFacade(final TypeSpec.Builder type) {
 
-        final ParameterSpec key = ParameterSpec.builder(ClassName.get(Key.class), "key", Modifier.FINAL).build();
+        final ParameterSpec key = ParameterSpec.builder(ParameterizedTypeName.get(TYPED_KEY, ENTITY_TYPE), "key", Modifier.FINAL).build();
         final ParameterSpec entityType = ParameterSpec.builder(ENTITY_TYPE, "type", Modifier.FINAL).build();
 
         type.addMethod(MethodSpec.constructorBuilder()

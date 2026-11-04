@@ -127,7 +127,7 @@ public final class EnchantmentTests {
     public static void enchantedBooksShowTheirEnchantmentsOnHover(final ScenarioTestHelper helper) {
         final ItemStack book = enchantments().enchantedBook(EnchantmentKeys.SHARPNESS, 5);
         final HoverEvent.ShowItem hover = book.asHoverEvent().value();
-        helper.assertTrue(hover.dataComponents().get(DataComponentTypes.STORED_ENCHANTMENTS.key())
+        helper.assertTrue(hover.dataComponents().get(DataComponentTypes.STORED_ENCHANTMENTS.key().key())
                         instanceof TypedDataComponentValue<?>,
                 "The hover event should hold the stored enchantments: " + hover.dataComponents());
 

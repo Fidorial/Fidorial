@@ -53,7 +53,7 @@ public abstract class AbstractEntity implements Entity {
 
     @Override
     public Component displayName() {
-        return Component.translatable("entity." + type.key().asString().replace(':', '.'));
+        return Component.translatable("entity." + type.key().key().asString().replace(':', '.'));
     }
 
     public final void restoreUuid(final UUID uuid) {
@@ -205,7 +205,7 @@ public abstract class AbstractEntity implements Entity {
 
     @Override
     public HoverEvent<HoverEvent.ShowEntity> asHoverEvent(final UnaryOperator<HoverEvent.ShowEntity> op) {
-        return HoverEvent.showEntity(op.apply(HoverEvent.ShowEntity.showEntity(type().key(), uuid(), displayName())));
+        return HoverEvent.showEntity(op.apply(HoverEvent.ShowEntity.showEntity(type().key().key(), uuid(), displayName())));
     }
 
     @Override

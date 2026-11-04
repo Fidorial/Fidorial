@@ -4,8 +4,9 @@ import fr.euphyllia.fidorial.server.world.ChunkGenerator;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.structure.FutureCache;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;
+import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.ChunkPos;
-import net.kyori.adventure.key.Key;
+import fr.fidorial.world.biome.BiomeDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -90,7 +91,7 @@ public final class TerrainProbe implements TerrainView {
     }
 
     @Override
-    public Key biome(final int x, final int y, final int z) {
+    public TypedKey<BiomeDefinition> biome(final int x, final int y, final int z) {
         return summary(x >> 4, z >> 4).biome(x & 15, y, z & 15);
     }
 }

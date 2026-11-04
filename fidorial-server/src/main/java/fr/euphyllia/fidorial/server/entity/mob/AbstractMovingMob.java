@@ -337,7 +337,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             memories.add("walk_target: " + waypoint.x() + ", " + waypoint.y() + ", " + waypoint.z());
         }
         return DebugValues.BrainInfo.forMob(
-                type().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
+                type().key().key().value() + "#" + entityId(), health(), maxHealth(), behaviors, memories);
     }
 
     public final void forEachIntersectedBlock(final BiConsumer<BlockPosition, DebugValues.BlockIntersection> action) {

@@ -11,7 +11,6 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
 import io.netty.handler.codec.DecoderException;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 
@@ -48,7 +47,7 @@ public class ItemStackReader {
         }
 
         for (int i = 0; i < removedCount; i++) {
-            final Key key = registries.registry(RegistryKey.DATA_COMPONENT_TYPE).byNetworkId(buf.readVarInt());
+            final TypedKey<DataComponentType<?>> key = registries.registry(RegistryKey.DATA_COMPONENT_TYPE).byNetworkId(buf.readVarInt());
             if (key != null) {
                 final DataComponentType<?> type = DataComponentTypes.byKey(key);
                 if (type != null) {
@@ -74,7 +73,7 @@ public class ItemStackReader {
         }
 
         final PacketBuffer payload = new PacketBuffer(buf.nettyBuf().readSlice(length));
-        final Key key = registries.registry(RegistryKey.DATA_COMPONENT_TYPE).byNetworkId(typeId);
+        final TypedKey<DataComponentType<?>> key = registries.registry(RegistryKey.DATA_COMPONENT_TYPE).byNetworkId(typeId);
 
         if (key == null) {
             LOGGER.debug("Skipping unknown data component network id {} ({} bytes)", typeId, length);
@@ -83,20 +82,20 @@ public class ItemStackReader {
 
         final DataComponentType<?> type = DataComponentTypes.byKey(key);
         if (type == null || !DataComponentNetworkCodecs.hasCodec(type)) {
-            LOGGER.debug("Skipping component {}: not modelled here ({} bytes)", key.asString(), length);
+            LOGGER.debug("Skipping component {}: not modelled here ({} bytes)", key, length);
             return;
         }
 
         try {
             readInto(payload, registries, components, type);
         } catch (final RuntimeException e) {
-            LOGGER.warn("Dropping component {}: {}", key.asString(), e.getMessage());
+            LOGGER.warn("Dropping component {}: {}", key, e.getMessage());
             return;
         }
 
         if (payload.readableBytes() != 0) {
             LOGGER.warn("Component {} left {} of its {} bytes unread; the wire format here is wrong",
-                    key.asString(), payload.readableBytes(), length);
+                    key, payload.readableBytes(), length);
         }
     }
 

@@ -75,7 +75,7 @@ public final class StateTransforms {
         }
 
         final String shape = source.get("shape");
-        if (shape != null && state.name().value().endsWith("rail")) {
+        if (shape != null && state.name().key().value().endsWith("rail")) {
             final String rotated = rotateRailShape(shape, rotation);
             if (rotated != null) {
                 props.put("shape", rotated);

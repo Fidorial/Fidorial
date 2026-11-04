@@ -48,6 +48,7 @@ import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldPaths;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
@@ -618,7 +619,7 @@ public final class ServerWorld implements World {
         return column.getBlock(x & 15, y, z & 15);
     }
 
-    public boolean setBiome(final int x, final int y, final int z, final Key biome) throws IOException {
+    public boolean setBiome(final int x, final int y, final int z, final TypedKey<BiomeDefinition> biome) throws IOException {
         ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBiome");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
@@ -631,7 +632,7 @@ public final class ServerWorld implements World {
         return true;
     }
 
-    public @Nullable Key getBiome(final int x, final int y, final int z) throws IOException {
+    public @Nullable TypedKey<BiomeDefinition> getBiome(final int x, final int y, final int z) throws IOException {
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return null;

@@ -70,7 +70,7 @@ public interface EnchantmentDefinition extends Keyed {
      *
      * @since 0.1.0
      */
-    KeySet supportedItems();
+    KeySet<Item> supportedItems();
 
     /**
      * {@return the items the enchanting table offers the enchantment for, or empty to use
@@ -78,14 +78,14 @@ public interface EnchantmentDefinition extends Keyed {
      *
      * @since 0.1.0
      */
-    Optional<KeySet> primaryItems();
+    Optional<KeySet<Item>> primaryItems();
 
     /**
      * {@return the enchantments incompatible with this one, possibly empty}
      *
      * @since 0.1.0
      */
-    KeySet exclusiveSet();
+    KeySet<EnchantmentDefinition> exclusiveSet();
 
     /**
      * {@return the maximum level, between {@code 1} and {@value #MAX_LEVEL}}
