@@ -72,7 +72,7 @@ Requires **Java 25** or newer.
 ```bash
 git clone https://github.com/Euphillya/Fidorial.git
 cd Fidorial
-./gradlew :fidorial-server:shadowJar
+./gradlew build
 java -jar fidorial-server/build/libs/Fidorial-*.jar
 ```
 
