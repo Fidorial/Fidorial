@@ -45,7 +45,7 @@ import java.util.UUID;
 public final class ProfileDump {
 
     private static final DateTimeFormatter TIMESTAMPS =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", Locale.ROOT).withZone(ZoneId.systemDefault());
 
     private ProfileDump() {
     }
@@ -100,8 +100,8 @@ public final class ProfileDump {
 
         if (verifyOnly) {
             out.printf("file      %s%n", file);
-            out.printf("size      %d bytes%n", scan.fileBytes());
-            out.printf("records   %d%n", scan.records());
+            out.printf(Locale.ROOT, "size      %d bytes%n", scan.fileBytes());
+            out.printf(Locale.ROOT, "records   %d%n", scan.records());
             out.printf("state     %s%n", scan.intact()
                     ? "intact"
                     : "damaged, " + scan.danglingBytes() + " unreadable trailing bytes");
@@ -190,9 +190,9 @@ public final class ProfileDump {
 
         out.println();
         if (history) {
-            out.printf("%d records in file order, %d bytes%n", rows.size(), scan.fileBytes());
+            out.printf(Locale.ROOT, "%d records in file order, %d bytes%n", rows.size(), scan.fileBytes());
         } else {
-            out.printf("%d entries from %d records, %d bytes (%.0f%% superseded)%n",
+            out.printf(Locale.ROOT, "%d entries from %d records, %d bytes (%.0f%% superseded)%n",
                     rows.size(), totalRecords, scan.fileBytes(),
                     totalRecords == 0 ? 0.0 : 100.0 * (totalRecords - rows.size()) / totalRecords);
         }
@@ -244,7 +244,7 @@ public final class ProfileDump {
                 case '\\' -> sb.append("\\\\");
                 default -> {
                     if (c < 0x20) {
-                        sb.append(String.format("\\u%04x", (int) c));
+                        sb.append(String.format(Locale.ROOT, "\\u%04x", (int) c));
                     } else {
                         sb.append(c);
                     }

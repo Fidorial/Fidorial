@@ -39,9 +39,25 @@ tasks.withType<JavaCompile>().configureEach {
     }
 
     options.errorprone {
+        disable(
+            "MissingSummary", "ReferenceEquality", "AvoidCommonTypeNames", "SameNameButDifferent",
+            "IdentityHashMapUsage", "ThreadLocalUsage", "UnnecessaryLambda", "UnnecessaryMethodReference",
+            "NonApiType", "InlineFormatString", "StringConcatToTextBlock", "RefactorSwitch",
+            "UnusedTypeParameter", "ExposedPrivateType", "LoopOverCharArray"
+        )
+
         option("NullAway:OnlyNullMarked", "true")
-        disable("MissingSummary")
-        error("EqualsIncompatibleType", "CollectionIncompatibleType")
+        option("NullAway:JSpecifyMode", "true")
+        option("NullAway:JSpecifyExperimental", "true")
+
+        error(
+            "EqualsIncompatibleType",
+            "CollectionIncompatibleType",
+            "StringCaseLocaleUsage",
+            "DefaultLocale",
+            "DefaultCharset",
+            "UnsafeLocaleUsage"
+        )
     }
 
     options.compilerArgs.addAll(
