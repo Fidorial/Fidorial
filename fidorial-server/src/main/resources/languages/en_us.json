@@ -280,5 +280,16 @@
   "commands.enchant.failed.entity" : "<red><arg:0> cannot hold an enchanted item",
   "commands.enchant.failed.itemless" : "<red><arg:0> holds no item",
   "commands.enchant.failed.incompatible" : "<red><arg:0> does not take this enchantment",
-  "commands.enchant.failed.level" : "<red>Level <arg:0> is above the maximum level of this enchantment, <arg:1>"
+  "commands.enchant.failed.level" : "<red>Level <arg:0> is above the maximum level of this enchantment, <arg:1>",
+
+  "commands.tick.query.percentiles" : "Percentiles: P50: <arg:0>ms P95: <arg:1>ms P99: <arg:2>ms. Sample: <arg:3>",
+  "commands.tick.query.rate.running" : "Target tick rate: <arg:0> per second.\nAverage time per tick: <arg:1>ms (Target: <arg:2>ms)",
+  "commands.tick.rate.success" : "Set the target tick rate to <arg:0> per second",
+  "commands.tick.status.frozen" : "The game is frozen",
+  "commands.tick.status.lagging" : "The game is running, but can't keep up with the target tick rate",
+  "commands.tick.status.running" : "The game is running normally",
+  "commands.tick.step.fail" : "Unable to step the game - the game must be frozen first",
+  "commands.tick.step.stop.fail" : "No tick step in progress",
+  "commands.tick.step.stop.success" : "Interrupted the current tick step",
+  "commands.tick.step.success" : "Stepping <arg:0> tick(s)"
 }

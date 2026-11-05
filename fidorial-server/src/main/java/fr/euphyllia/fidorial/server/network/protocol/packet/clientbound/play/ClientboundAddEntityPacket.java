@@ -1,12 +1,14 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.math.Location;
 import net.kyori.adventure.key.Key;
@@ -24,7 +26,18 @@ public record ClientboundAddEntityPacket(
         float yaw,
         float headYaw,
         int data)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundAddEntityPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundAddEntityPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundAddEntityPacket::entityId)
+            .then(PrimitiveCodecs.UUID, ClientboundAddEntityPacket::uuid)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundAddEntityPacket::typeNetworkId)
+            .then(PositionData.Vec3D.CODEC, ClientboundAddEntityPacket::position)
+            .then(PositionData.VelocityVec3D.CODEC, ClientboundAddEntityPacket::velocity)
+            .then(PrimitiveCodecs.ANGLE, ClientboundAddEntityPacket::pitch)
+            .then(PrimitiveCodecs.ANGLE, ClientboundAddEntityPacket::yaw)
+            .then(PrimitiveCodecs.ANGLE, ClientboundAddEntityPacket::headYaw)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundAddEntityPacket::data);
 
     public static ClientboundAddEntityPacket of(final AbstractEntity entity) {
         final Location location = entity.location();
@@ -46,15 +59,7 @@ public record ClientboundAddEntityPacket(
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        buf.writeUuid(uuid);
-        buf.writeVarInt(typeNetworkId);
-        position.writeTo(buf);
-        velocity.writeTo(buf);
-        buf.writeAngle(pitch);
-        buf.writeAngle(yaw);
-        buf.writeAngle(headYaw);
-        buf.writeVarInt(data);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundAddEntityPacket> codec() {
+        return CODEC;
     }
 }

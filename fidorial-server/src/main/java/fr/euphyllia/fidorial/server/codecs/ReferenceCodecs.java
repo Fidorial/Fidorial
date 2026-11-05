@@ -4,7 +4,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.registry.Reference;
 import fr.fidorial.registry.RegistryKey;

@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.math.Position;
 import net.kyori.adventure.key.Key;
 
@@ -28,7 +30,12 @@ import net.kyori.adventure.key.Key;
  * </table>
  */
 public record ClientboundBlockDestructionPacket(int entityId, Position location,
-                                                int destroyStage) implements ClientboundPacket {
+                                                int destroyStage) implements ClientboundPacket<ClientboundBlockDestructionPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockDestructionPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundBlockDestructionPacket::entityId)
+            .then(PrimitiveCodecs.BLOCK_POS, ClientboundBlockDestructionPacket::location)
+            .then(PrimitiveCodecs.UNSIGNED_BYTE, ClientboundBlockDestructionPacket::destroyStage);
 
     @Override
     public Key name() {
@@ -36,9 +43,7 @@ public record ClientboundBlockDestructionPacket(int entityId, Position location,
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        buf.writePosition(location.blockX(), location.blockY(), location.blockZ());
-        buf.writeByte(destroyStage);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockDestructionPacket> codec() {
+        return CODEC;
     }
 }

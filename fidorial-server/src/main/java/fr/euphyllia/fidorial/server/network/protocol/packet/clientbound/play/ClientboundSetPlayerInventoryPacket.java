@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
-import fr.euphyllia.fidorial.server.registry.ServerRegistries;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.ItemStackWriter;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.item.ItemStack;
 import net.kyori.adventure.key.Key;
 
@@ -16,10 +17,13 @@ import net.kyori.adventure.key.Key;
  * @param slot   the inventory slot: {@code 0}-{@code 8} for the hotbar, {@code 9}-{@code 35} for the
  *               main inventory, then armor and off hand
  * @param stack  the stack to show in it
- * @param registries the registries the item and its components are numbered from
  */
-public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack, ServerRegistries registries)
-        implements ClientboundPacket {
+public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack)
+        implements ClientboundPacket<ClientboundSetPlayerInventoryPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetPlayerInventoryPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundSetPlayerInventoryPacket::slot)
+            .then(ItemStackWriter.SLOT, ClientboundSetPlayerInventoryPacket::stack);
 
     @Override
     public Key name() {
@@ -27,8 +31,7 @@ public record ClientboundSetPlayerInventoryPacket(int slot, ItemStack stack, Ser
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(slot);
-        ItemStackWriter.writeSlot(buf, stack, registries);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetPlayerInventoryPacket> codec() {
+        return CODEC;
     }
 }

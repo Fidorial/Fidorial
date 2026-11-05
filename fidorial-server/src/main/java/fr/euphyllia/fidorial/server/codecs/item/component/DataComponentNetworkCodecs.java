@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.codecs.item.component;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.component.ItemEnchantments;

@@ -1,11 +1,16 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
-public record ClientboundRemoveEntitiesPacket(int... entityIds) implements ClientboundPacket {
+public record ClientboundRemoveEntitiesPacket(int... entityIds) implements ClientboundPacket<ClientboundRemoveEntitiesPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundRemoveEntitiesPacket> CODEC =
+            NetworkEncoder.field(PrimitiveCodecs.VAR_INT_ARRAY, ClientboundRemoveEntitiesPacket::entityIds);
 
     @Override
     public Key name() {
@@ -13,10 +18,7 @@ public record ClientboundRemoveEntitiesPacket(int... entityIds) implements Clien
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityIds.length);
-        for (final int entityId : entityIds) {
-            buf.writeVarInt(entityId);
-        }
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundRemoveEntitiesPacket> codec() {
+        return CODEC;
     }
 }

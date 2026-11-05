@@ -2,12 +2,12 @@ package fr.euphyllia.fidorial.server.entity;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
@@ -102,7 +102,7 @@ public abstract class AbstractEntity implements Entity {
     public void tick(final long currentTick) {
     }
 
-    public final void sendToTrackers(final ClientboundPacket packet) {
+    public final void sendToTrackers(final ClientboundPacket<?> packet) {
         server().entities().tracker().sendToViewers(this, packet);
     }
 

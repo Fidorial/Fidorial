@@ -2,8 +2,8 @@ package fr.euphyllia.fidorial.server.debug;
 
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDebugEventPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.LocationPositionData;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;

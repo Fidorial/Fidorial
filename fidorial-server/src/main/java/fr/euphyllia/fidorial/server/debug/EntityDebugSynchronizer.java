@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.debug;
 import fr.euphyllia.fidorial.server.entity.EntityTracker;
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDebugValuePacket;
 import org.jspecify.annotations.Nullable;
 

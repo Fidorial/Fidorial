@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.server.codecs.networking;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -12,13 +14,9 @@ import java.util.function.ToIntFunction;
 /**
  * Reads and writes values of type {@code T} from and to a buffer of type {@code B}.
  */
-public interface NetworkCodec<B, T> {
+public interface NetworkCodec<B, T extends @Nullable Object> extends NetworkEncoder<B, T>, NetworkDecoder<B, T> {
 
-    T read(B buf);
-
-    void write(B buf, T value);
-
-    static <B, T> NetworkCodec<B, T> of(final Function<B, T> reader, final BiConsumer<B, T> writer) {
+    static <B, T extends @Nullable Object> NetworkCodec<B, T> of(final Function<B, T> reader, final BiConsumer<B, T> writer) {
         return new NetworkCodec<>() {
             @Override
             public T read(final B buf) {
@@ -32,7 +30,15 @@ public interface NetworkCodec<B, T> {
         };
     }
 
-    default <U> NetworkCodec<B, U> xmap(final Function<? super T, ? extends U> to, final Function<? super U, ? extends T> from) {
+    /**
+     * This codec on a more specific buffer, e.g. a {@code PacketBuffer} codec inside a
+     * {@code RegistryPacketBuffer} one.
+     */
+    default <S extends B> NetworkCodec<S, T> narrow() {
+        return of(this::read, this::write);
+    }
+
+    default <U extends @Nullable Object> NetworkCodec<B, U> xmap(final Function<? super T, ? extends U> to, final Function<? super U, ? extends T> from) {
         return of(buf -> to.apply(read(buf)), (buf, value) -> write(buf, from.apply(value)));
     }
 

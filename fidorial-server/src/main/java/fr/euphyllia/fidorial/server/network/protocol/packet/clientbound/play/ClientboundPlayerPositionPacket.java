@@ -1,13 +1,20 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 public record ClientboundPlayerPositionPacket(int teleportId, PositionData.PositionMoveRotationData moveData)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundPlayerPositionPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerPositionPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundPlayerPositionPacket::teleportId)
+            .then(PositionData.PositionMoveRotationData.CODEC, ClientboundPlayerPositionPacket::moveData)
+            .thenConstant(PrimitiveCodecs.INT, 0); // flags (tout absolu)
 
     @Override
     public Key name() {
@@ -15,9 +22,7 @@ public record ClientboundPlayerPositionPacket(int teleportId, PositionData.Posit
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(teleportId);
-        moveData.writeTo(buf);
-        buf.writeInt(0);                                    // flags (tout absolu)
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerPositionPacket> codec() {
+        return CODEC;
     }
 }

@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.entity;
 
 import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
 import fr.euphyllia.fidorial.server.entity.effect.MobEffectInstanceImpl;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;

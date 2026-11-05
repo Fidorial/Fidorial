@@ -7,8 +7,7 @@ import fr.euphyllia.fidorial.server.events.player.PlayerOpenInventoryEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.EquipmentEnchantments;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
-import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundClearTitlesPacket;
@@ -38,7 +37,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundTabListPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateAttributesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
-import fr.euphyllia.fidorial.server.registry.ServerRegistries;
+import fr.euphyllia.fidorial.server.network.serialization.util.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.attribute.AttributeModifier;
@@ -310,10 +309,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             closeContainer();
         }
         this.containerMenu = menu;
-        connection.send(new ClientboundOpenScreenPacket(
-                menu.windowId(),
-                connection.server().registries().registry(RegistryKey.MENU).networkId(menu.menuType()),
-                menu.title()));
+        connection.send(new ClientboundOpenScreenPacket(menu.windowId(), menu.menuType(), menu.title()));
         menu.sendAllDataToRemote();
         menu.onOpened();
         emitContainerEvent(GameEventKeys.CONTAINER_OPEN, menu);
@@ -713,10 +709,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         final int slot = selectedSlot;
         final ItemStack written = ItemStack.of(ItemKeys.WRITTEN_BOOK)
                 .with(DataComponentTypes.WRITTEN_BOOK_CONTENT, WrittenBookContent.of(book));
-        final ServerRegistries registries = connection.server().registries().serverRegistries();
-        connection.send(new ClientboundSetPlayerInventoryPacket(slot, written, registries));
+        connection.send(new ClientboundSetPlayerInventoryPacket(slot, written));
         connection.send(new ClientboundOpenBookPacket(false));
-        connection.send(new ClientboundSetPlayerInventoryPacket(slot, inventory.get(slot), registries));
+        connection.send(new ClientboundSetPlayerInventoryPacket(slot, inventory.get(slot)));
     }
 
     @Override

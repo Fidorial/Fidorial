@@ -1,9 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.map.MapPatch;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -23,7 +24,9 @@ import java.util.List;
  */
 public record ClientboundMapItemDataPacket(int mapId, int scale, boolean locked,
                                            @Nullable List<Decoration> decorations, @Nullable MapPatch patch)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundMapItemDataPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundMapItemDataPacket> CODEC = NetworkEncoder.member(ClientboundMapItemDataPacket::encode);
 
     /**
      * Paints pixels, keeping the icons.
@@ -44,7 +47,11 @@ public record ClientboundMapItemDataPacket(int mapId, int scale, boolean locked,
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundMapItemDataPacket> codec() {
+        return CODEC;
+    }
+
+    private void encode(final CodecAwarePacketBuffer buf) {
         buf.writeVarInt(mapId);
         buf.writeByte(scale);
         buf.writeBoolean(locked);

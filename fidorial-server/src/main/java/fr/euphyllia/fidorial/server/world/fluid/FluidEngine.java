@@ -125,18 +125,20 @@ public final class FluidEngine implements FluidManager {
         if (!set.add(key)) {
             return;
         }
-        regionizer.executeDelayed(
-                world,
-                ChunkPos.fromBlock(x, z),
-                () -> {
-                    set.remove(key);
-                    try {
-                        tick(world, x, y, z);
-                    } catch (final Throwable t) {
-                        LOGGER.error("Tick fluide impossible en {},{},{}", x, y, z, t);
-                    }
-                },
-                delayTicks);
+        regionizer.executeDelayed(world, ChunkPos.fromBlock(x, z), () -> runScheduled(world, x, y, z, set, key), delayTicks);
+    }
+
+    private void runScheduled(final Key world, final int x, final int y, final int z, final Set<Long> set, final long key) {
+        if (!ThreadedRegionRegionizer.isGameTick()) {
+            regionizer.executeDelayed(world, ChunkPos.fromBlock(x, z), () -> runScheduled(world, x, y, z, set, key), 1L);
+            return;
+        }
+        set.remove(key);
+        try {
+            tick(world, x, y, z);
+        } catch (final Throwable t) {
+            LOGGER.error("Tick fluide impossible en {},{},{}", x, y, z, t);
+        }
     }
 
     private void tick(final Key worldName, final int x, final int y, final int z) throws IOException {

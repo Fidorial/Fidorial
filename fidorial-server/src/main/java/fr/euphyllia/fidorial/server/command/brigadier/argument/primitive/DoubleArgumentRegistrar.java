@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NumberFlags;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 
 public final class DoubleArgumentRegistrar
         implements ArgumentTypeRegistrar<DoubleArgumentType, DoubleArgumentRegistrar.Spec> {

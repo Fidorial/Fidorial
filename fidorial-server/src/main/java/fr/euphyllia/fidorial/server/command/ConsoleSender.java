@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.command;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.network.nbt.ComponentResolver;
+import fr.euphyllia.fidorial.server.network.serialization.util.nbt.ComponentResolver;
 import fr.fidorial.command.CommandSender;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.permission.PermissionRegistry;

@@ -14,7 +14,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistry;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NetworkArgumentIds;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.util.PermissionlessCommandSender;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 import fr.fidorial.command.CommandSource;
 import net.kyori.adventure.key.Key;

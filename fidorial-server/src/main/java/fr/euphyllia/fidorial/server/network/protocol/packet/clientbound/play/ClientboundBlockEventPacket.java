@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 
@@ -23,9 +25,15 @@ import net.kyori.adventure.key.Key;
  * <p>https://minecraft.wiki/w/Java_Edition_protocol/Packets#Block_Action
  */
 public record ClientboundBlockEventPacket(BlockPosition pos, int actionId, int actionParam, int blockTypeId)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundBlockEventPacket> {
 
     public static final int CHEST_VIEWER_COUNT = 1;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockEventPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.BLOCK_POS, ClientboundBlockEventPacket::pos)
+            .then(PrimitiveCodecs.UNSIGNED_BYTE, ClientboundBlockEventPacket::actionId)
+            .then(PrimitiveCodecs.UNSIGNED_BYTE, ClientboundBlockEventPacket::actionParam)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundBlockEventPacket::blockTypeId);
 
     public static ClientboundBlockEventPacket chestViewers(final BlockPosition pos, final int viewers) {
         return new ClientboundBlockEventPacket(pos, CHEST_VIEWER_COUNT, viewers, 0);
@@ -37,10 +45,7 @@ public record ClientboundBlockEventPacket(BlockPosition pos, int actionId, int a
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writePosition(pos.blockX(), pos.blockY(), pos.blockZ());
-        buf.writeByte(actionId);
-        buf.writeByte(actionParam);
-        buf.writeVarInt(blockTypeId);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockEventPacket> codec() {
+        return CODEC;
     }
 }

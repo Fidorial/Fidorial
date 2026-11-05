@@ -1,14 +1,16 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.entity.GameMode;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Player_Abilities_(clientbound)
 public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, float fovModifier)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundPlayerAbilitiesPacket> {
 
     public static final byte INVULNERABLE = 0x01;
     public static final byte FLYING = 0x02;
@@ -17,6 +19,11 @@ public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, fl
 
     private static final float DEFAULT_FLY_SPEED = 0.05f;
     private static final float DEFAULT_FOV_MODIFIER = 0.1f;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerAbilitiesPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.BYTE, ClientboundPlayerAbilitiesPacket::flags)
+            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::flyingSpeed)
+            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::fovModifier);
 
     public static ClientboundPlayerAbilitiesPacket forGameMode(final GameMode mode) {
         final byte flags =
@@ -34,7 +41,7 @@ public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, fl
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeByte(flags).writeFloat(flyingSpeed).writeFloat(fovModifier);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerAbilitiesPacket> codec() {
+        return CODEC;
     }
 }

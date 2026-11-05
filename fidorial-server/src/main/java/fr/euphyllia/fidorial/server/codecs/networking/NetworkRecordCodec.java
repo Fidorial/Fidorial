@@ -65,17 +65,17 @@ public final class NetworkRecordCodec {
             return required(key, getter, NetworkCodec.of(reader, writer));
         }
 
-        public <A> Builder<B, R> required(final String key, final Function<R, A> getter, final NetworkCodec<B, A> network) {
+        public <A> Builder<B, R> required(final String key, final Function<R, A> getter, final NetworkCodec<? super B, A> network) {
             codecComplete = false;
             return add(new Networked<>(key, getter, network, value -> value));
         }
 
-        public <A> Builder<B, R> optional(final String key, final Function<R, Optional<A>> getter, final NetworkCodec<B, Optional<A>> network) {
+        public <A> Builder<B, R> optional(final String key, final Function<R, Optional<A>> getter, final NetworkCodec<? super B, Optional<A>> network) {
             codecComplete = false;
             return add(new Networked<>(key, getter, network, value -> value));
         }
 
-        public <A> Builder<B, R> nullable(final String key, final Function<R, @Nullable A> getter, final NetworkCodec<B, Optional<A>> network) {
+        public <A> Builder<B, R> nullable(final String key, final Function<R, @Nullable A> getter, final NetworkCodec<? super B, Optional<A>> network) {
             codecComplete = false;
             return add(nullableField(key, getter, network));
         }
@@ -84,17 +84,17 @@ public final class NetworkRecordCodec {
             return required(key, getter, codec, NetworkCodec.of(reader, writer));
         }
 
-        public <A> Builder<B, R> required(final String key, final Function<R, A> getter, final Codec<A> codec, final NetworkCodec<B, A> network) {
+        public <A> Builder<B, R> required(final String key, final Function<R, A> getter, final Codec<A> codec, final NetworkCodec<? super B, A> network) {
             this.codec.required(key, getter, codec);
             return add(new Networked<>(key, getter, network, value -> value));
         }
 
-        public <A> Builder<B, R> optional(final String key, final Function<R, Optional<A>> getter, final Codec<A> codec, final NetworkCodec<B, Optional<A>> network) {
+        public <A> Builder<B, R> optional(final String key, final Function<R, Optional<A>> getter, final Codec<A> codec, final NetworkCodec<? super B, Optional<A>> network) {
             this.codec.optional(key, getter, codec);
             return add(new Networked<>(key, getter, network, value -> value));
         }
 
-        public <A> Builder<B, R> nullable(final String key, final Function<R, @Nullable A> getter, final Codec<A> codec, final NetworkCodec<B, Optional<A>> network) {
+        public <A> Builder<B, R> nullable(final String key, final Function<R, @Nullable A> getter, final Codec<A> codec, final NetworkCodec<? super B, Optional<A>> network) {
             this.codec.nullable(key, getter, codec);
             return add(nullableField(key, getter, network));
         }
@@ -135,7 +135,7 @@ public final class NetworkRecordCodec {
         }
 
         private static <B, R, A> Networked<B, R, Optional<A>> nullableField(final String key, final Function<R, @Nullable A> getter,
-                                                                            final NetworkCodec<B, Optional<A>> network) {
+                                                                            final NetworkCodec<? super B, Optional<A>> network) {
             return new Networked<>(key, record -> Optional.ofNullable(getter.apply(record)), network,
                     value -> value.orElse(null));
         }
@@ -156,7 +156,7 @@ public final class NetworkRecordCodec {
     private record Networked<B, R, V>(
             String key,
             Function<R, V> value,
-            NetworkCodec<B, V> codec,
+            NetworkCodec<? super B, V> codec,
             Function<V, @Nullable Object> argument
     ) implements Field<B, R> {
     }

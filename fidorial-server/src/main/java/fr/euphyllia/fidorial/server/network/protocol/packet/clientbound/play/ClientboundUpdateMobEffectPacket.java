@@ -1,19 +1,28 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Entity_Effect
 public record ClientboundUpdateMobEffectPacket(int entityId, int effectId, int amplifier, int duration, int flags)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundUpdateMobEffectPacket> {
 
     public static final int FLAG_AMBIENT = 0x01;
     public static final int FLAG_VISIBLE = 0x02;
     public static final int FLAG_SHOW_ICON = 0x04;
     public static final int FLAG_BLEND = 0x08;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundUpdateMobEffectPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundUpdateMobEffectPacket::entityId)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundUpdateMobEffectPacket::effectId)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundUpdateMobEffectPacket::amplifier)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundUpdateMobEffectPacket::duration)
+            .then(PrimitiveCodecs.UNSIGNED_BYTE, ClientboundUpdateMobEffectPacket::flags);
 
     /**
      * @param entityId the entity the effect runs on
@@ -42,11 +51,7 @@ public record ClientboundUpdateMobEffectPacket(int entityId, int effectId, int a
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        buf.writeVarInt(effectId);
-        buf.writeVarInt(amplifier);
-        buf.writeVarInt(duration);
-        buf.writeByte(flags);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundUpdateMobEffectPacket> codec() {
+        return CODEC;
     }
 }

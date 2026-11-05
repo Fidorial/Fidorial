@@ -37,7 +37,7 @@ public final class WorldWeather implements WeatherManager {
     private final Key worldKey;
     private final WeatherState state;
     private final boolean hasCycle;
-    private volatile @Nullable Consumer<ClientboundPacket> broadcaster;
+    private volatile @Nullable Consumer<ClientboundPacket<?>> broadcaster;
 
     public WorldWeather(final Key worldKey, final WeatherState state, final boolean hasCycle) {
         this.worldKey = Preconditions.checkNotNull(worldKey, "The key of the world owning this weather must not be null");
@@ -65,7 +65,7 @@ public final class WorldWeather implements WeatherManager {
         return hasCycle;
     }
 
-    public synchronized boolean attach(final Consumer<ClientboundPacket> broadcaster) {
+    public synchronized boolean attach(final Consumer<ClientboundPacket<?>> broadcaster) {
         Preconditions.checkNotNull(broadcaster, "The broadcaster of the weather of %s must not be null", worldKey);
         if (this.broadcaster != null) {
             return false;
@@ -143,8 +143,8 @@ public final class WorldWeather implements WeatherManager {
         LOGGER.debug("Thunderstorm in {} : {}", worldKey, thundering);
     }
 
-    private void send(final ClientboundPacket packet) {
-        final Consumer<ClientboundPacket> target = broadcaster;
+    private void send(final ClientboundPacket<?> packet) {
+        final Consumer<ClientboundPacket<?>> target = broadcaster;
         if (target != null) {
             target.accept(packet);
         }
@@ -179,7 +179,7 @@ public final class WorldWeather implements WeatherManager {
         }
     }
 
-    public synchronized void syncTo(final Consumer<ClientboundPacket> target) {
+    public synchronized void syncTo(final Consumer<ClientboundPacket<?>> target) {
         if (!state.raining) {
             return;
         }

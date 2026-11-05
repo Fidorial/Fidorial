@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import io.netty.buffer.ByteBuf;
@@ -10,7 +12,9 @@ import io.netty.buffer.ByteBufAllocator;
 import net.kyori.adventure.key.Key;
 
 
-public final class ClientboundLightUpdatePacket implements ClientboundPacket {
+public final class ClientboundLightUpdatePacket implements ClientboundPacket<ClientboundLightUpdatePacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundLightUpdatePacket> CODEC = NetworkEncoder.member(ClientboundLightUpdatePacket::encode);
 
     private final byte[] payload;
 
@@ -43,7 +47,11 @@ public final class ClientboundLightUpdatePacket implements ClientboundPacket {
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundLightUpdatePacket> codec() {
+        return CODEC;
+    }
+
+    private void encode(final CodecAwarePacketBuffer buf) {
         buf.writeRawBytes(payload);
     }
 }

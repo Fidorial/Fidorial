@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -21,12 +23,11 @@ import fr.fidorial.protocol.ServerboundPacket;
 public record ServerboundContainerSlotStateChangedPacket(int slot, int windowId, boolean enabled)
         implements ServerboundPacket {
 
-    public static ServerboundContainerSlotStateChangedPacket read(final PacketBuffer buf) {
-        final int slot = buf.readVarInt();
-        final int windowId = buf.readVarInt();
-        final boolean enabled = buf.readBoolean();
-        return new ServerboundContainerSlotStateChangedPacket(slot, windowId, enabled);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundContainerSlotStateChangedPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.BOOL,
+            ServerboundContainerSlotStateChangedPacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

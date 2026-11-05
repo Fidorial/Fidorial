@@ -1,14 +1,17 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.debug.DebugChannel;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
-public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> channel, @Nullable T value) implements ClientboundPacket {
+public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> channel, @Nullable T value) implements ClientboundPacket<ClientboundDebugValuePacket<?>> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundDebugValuePacket<?>> CODEC = ClientboundDebugValuePacket::encode;
 
     public sealed interface Target {
 
@@ -55,8 +58,12 @@ public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> chan
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        switch (target) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundDebugValuePacket<?>> codec() {
+        return CODEC;
+    }
+
+    private static <T> void encode(final CodecAwarePacketBuffer buf, final ClientboundDebugValuePacket<T> packet) {
+        switch (packet.target()) {
             case final Target.Entity entity -> buf.writeVarInt(entity.id());
             case final Target.Chunk chunk -> {
                 buf.writeInt(chunk.z());
@@ -64,10 +71,11 @@ public record ClientboundDebugValuePacket<T>(Target target, DebugChannel<T> chan
             }
             case final Target.Block block -> buf.writePosition(block.pos().blockX(), block.pos().blockY(), block.pos().blockZ());
         }
-        buf.writeVarInt(channel.networkId());
+        final T value = packet.value();
+        buf.writeVarInt(packet.channel().networkId());
         buf.writeBoolean(value != null);
         if (value != null) {
-            channel.valueCodec().write(buf, value);
+            packet.channel().valueCodec().write(buf, value);
         }
     }
 }

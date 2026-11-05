@@ -319,8 +319,12 @@ public final class ServerWorldManager implements AutoCloseable {
 
     public ServerWorld overworld() {
         final ChunkGenerator chunkGenerator = defaultGenerator;
-        final ChunkGenerator generator =
-                chunkGenerator != null ? chunkGenerator : FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
+        final ChunkGenerator generator;
+        if ("minecraft:debug".equals(levelData.savedGeneratorType(Dimension.OVERWORLD.id()))) {
+            generator = new DebugChunkGenerator(VanillaDimensionTypes.OVERWORLD, blockStates);
+        } else {
+            generator = chunkGenerator != null ? chunkGenerator : FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
+        }
         return registerDimension(Dimension.OVERWORLD, generator);
     }
 

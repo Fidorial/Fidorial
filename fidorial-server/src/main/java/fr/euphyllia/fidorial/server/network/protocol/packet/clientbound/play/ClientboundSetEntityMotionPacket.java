@@ -1,16 +1,22 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 /**
  * https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Entity_Velocity
  */
 public record ClientboundSetEntityMotionPacket(int entityId, PositionData.VelocityVec3D velocity)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundSetEntityMotionPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetEntityMotionPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundSetEntityMotionPacket::entityId)
+            .then(PositionData.VelocityVec3D.CODEC, ClientboundSetEntityMotionPacket::velocity);
 
     @Override
     public Key name() {
@@ -18,8 +24,7 @@ public record ClientboundSetEntityMotionPacket(int entityId, PositionData.Veloci
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        velocity.writeTo(buf);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetEntityMotionPacket> codec() {
+        return CODEC;
     }
 }

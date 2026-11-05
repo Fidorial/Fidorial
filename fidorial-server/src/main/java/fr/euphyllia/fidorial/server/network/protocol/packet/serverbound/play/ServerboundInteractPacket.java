@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -23,13 +25,12 @@ public record ServerboundInteractPacket(
     public static final int HAND_MAIN = 0;
     public static final int HAND_OFF = 1;
 
-    public static ServerboundInteractPacket read(final PacketBuffer buf) {
-        final int entityId = buf.readVarInt();
-        final int hand = buf.readVarInt();
-        final PositionData.VelocityVec3D relativePosition = PositionData.VelocityVec3D.readFrom(buf);
-        final boolean sneaking = buf.readBoolean();
-        return new ServerboundInteractPacket(entityId, hand, relativePosition, sneaking);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundInteractPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.VAR_INT,
+            PositionData.VelocityVec3D.CODEC,
+            PrimitiveCodecs.BOOL,
+            ServerboundInteractPacket::new);
 
     public boolean isOffHand() {
         return hand == HAND_OFF;

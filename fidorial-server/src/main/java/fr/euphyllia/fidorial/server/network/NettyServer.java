@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.network;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.network.codec.FrameDecoder;
-import fr.euphyllia.fidorial.server.network.codec.FrameEncoder;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
+import fr.euphyllia.fidorial.server.network.serialization.util.FrameDecoder;
+import fr.euphyllia.fidorial.server.network.serialization.util.FrameEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

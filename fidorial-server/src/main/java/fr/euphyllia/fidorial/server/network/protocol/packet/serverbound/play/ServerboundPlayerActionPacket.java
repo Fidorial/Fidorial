@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
@@ -19,13 +21,14 @@ public record ServerboundPlayerActionPacket(int status, BlockPosition position, 
     public static final int SWAP_ITEM_WITH_OFFHAND = 7;
     public static final int STAB = 8;
 
-    public static ServerboundPlayerActionPacket read(final PacketBuffer buf) {
-        final int status = buf.readVarInt();
-        final BlockPosition position = buf.readPosition();
-        final int face = buf.readUByte();
-        final int sequence = buf.readVarInt();
-        return new ServerboundPlayerActionPacket(status, position, face, sequence);
-    }
+    private static final NetworkDecoder<PacketBuffer, BlockPosition> POSITION = PacketBuffer::readPosition;
+
+    public static final NetworkDecoder<PacketBuffer, ServerboundPlayerActionPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            POSITION,
+            PrimitiveCodecs.UNSIGNED_BYTE,
+            PrimitiveCodecs.VAR_INT,
+            ServerboundPlayerActionPacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

@@ -1,7 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.StringLikeCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import org.jspecify.annotations.Nullable;
@@ -20,16 +23,18 @@ public record ServerboundChatPacket(
 
     private static final int MAX_LENGTH = 256;
 
-    public static ServerboundChatPacket read(final PacketBuffer buf) {
-        final String message = buf.readString(MAX_LENGTH);
-        final long timestamp = buf.readLong();
-        final long salt = buf.readLong();
-        final byte[] sig = buf.readOptionalFixedByteArray(MAX_LENGTH);
-        final int count = buf.readVarInt();
-        final BitSet acknowledged = buf.readFixedBitSet(20);
-        final byte checksum = buf.readByte();
-        return new ServerboundChatPacket(message, timestamp, salt, sig, count, acknowledged, checksum);
-    }
+    private static final NetworkDecoder<PacketBuffer, byte @Nullable []> SIGNATURE = buf -> buf.readOptionalFixedByteArray(MAX_LENGTH);
+    private static final NetworkDecoder<PacketBuffer, BitSet> ACKNOWLEDGED = buf -> buf.readFixedBitSet(20);
+
+    public static final NetworkDecoder<PacketBuffer, ServerboundChatPacket> DECODER = NetworkDecoder.composite(
+            StringLikeCodecs.string(MAX_LENGTH),
+            PrimitiveCodecs.LONG,
+            PrimitiveCodecs.LONG,
+            SIGNATURE,
+            PrimitiveCodecs.VAR_INT,
+            ACKNOWLEDGED,
+            PrimitiveCodecs.BYTE,
+            ServerboundChatPacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

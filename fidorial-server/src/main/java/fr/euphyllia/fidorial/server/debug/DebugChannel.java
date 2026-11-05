@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.debug;
 
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DebugSubscription;
 import org.jspecify.annotations.Nullable;

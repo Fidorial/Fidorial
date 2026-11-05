@@ -6,7 +6,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetDataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerSetSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
-import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.inventory.PlayerInventory;
@@ -625,7 +624,7 @@ public abstract class ContainerMenu {
         }
         remoteSlots.clear();
         remoteSlots.addAll(contents);
-        send(new ClientboundContainerSetContentPacket(windowId, stateId, contents, carried, registries()));
+        send(new ClientboundContainerSetContentPacket(windowId, stateId, contents, carried));
 
         remoteData = new int[dataCount()];
         for (int property = 0; property < remoteData.length; property++) {
@@ -647,7 +646,7 @@ public abstract class ContainerMenu {
                 final ItemStack current = slot(index).get();
                 if (!current.equals(remoteSlots.get(index))) {
                     remoteSlots.set(index, current);
-                    send(new ClientboundContainerSetSlotPacket(windowId, ++stateId, index, current, registries()));
+                    send(new ClientboundContainerSetSlotPacket(windowId, ++stateId, index, current));
                 }
             }
         }
@@ -662,12 +661,8 @@ public abstract class ContainerMenu {
         }
     }
 
-    private void send(final ClientboundPacket packet) {
+    private void send(final ClientboundPacket<?> packet) {
         player.connection().send(packet);
-    }
-
-    private ServerRegistries registries() {
-        return player.connection().server().registries().serverRegistries();
     }
 
     /**

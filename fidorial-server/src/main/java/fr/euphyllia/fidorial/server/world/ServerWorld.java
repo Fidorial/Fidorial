@@ -822,7 +822,7 @@ public final class ServerWorld implements World {
         return false;
     }
 
-    public void sendToChunkViewers(final long chunkKey, final ClientboundPacket packet) {
+    public void sendToChunkViewers(final long chunkKey, final ClientboundPacket<?> packet) {
         for (final ChunkViewSource viewer : viewers.getArray()) {
             if (viewer.isViewing(chunkKey)) {
                 viewer.send(packet);
@@ -830,7 +830,7 @@ public final class ServerWorld implements World {
         }
     }
 
-    public void sendToChunkViewers(final int chunkX, final int chunkZ, final ClientboundPacket packet) {
+    public void sendToChunkViewers(final int chunkX, final int chunkZ, final ClientboundPacket<?> packet) {
         sendToChunkViewers(ChunkPos.chunkKey(chunkX, chunkZ), packet);
     }
 

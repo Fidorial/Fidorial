@@ -1,9 +1,11 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Teleport_Entity
@@ -12,7 +14,13 @@ public record ClientboundEntityPositionSyncPacket(
         PositionData.LinearPositionPath position,
         PositionData.FloatRotation rotation,
         boolean onGround)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundEntityPositionSyncPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundEntityPositionSyncPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundEntityPositionSyncPacket::entityId)
+            .then(PositionData.LinearPositionPath.CODEC, ClientboundEntityPositionSyncPacket::position)
+            .then(PositionData.FloatRotation.CODEC, ClientboundEntityPositionSyncPacket::rotation)
+            .then(PrimitiveCodecs.BOOL, ClientboundEntityPositionSyncPacket::onGround);
 
     @Override
     public Key name() {
@@ -20,10 +28,7 @@ public record ClientboundEntityPositionSyncPacket(
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        position.writeTo(buf);
-        rotation.writeTo(buf);
-        buf.writeBoolean(onGround);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundEntityPositionSyncPacket> codec() {
+        return CODEC;
     }
 }

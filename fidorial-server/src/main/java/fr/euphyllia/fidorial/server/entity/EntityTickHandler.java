@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.fidorial.scheduler.RegionTickHandler;
@@ -35,9 +36,13 @@ public final class EntityTickHandler implements RegionTickHandler {
         }
         final EntityTracker tracker = server.entities().tracker();
         final List<ServerPlayer> players = server.players().online();
+        final boolean gameTick = ThreadedRegionRegionizer.isGameTick();
 
         for (final AbstractEntity entity : world.entityManager().inSection(sectionX, sectionZ)) {
             if (entity.isRemoved()) {
+                continue;
+            }
+            if (!gameTick && !(entity instanceof ServerPlayer)) {
                 continue;
             }
             try {

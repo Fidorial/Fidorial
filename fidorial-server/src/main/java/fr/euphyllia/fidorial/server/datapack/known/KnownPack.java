@@ -4,7 +4,7 @@ import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkRecordCodec;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import net.kyori.adventure.key.Key;
 
 import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;

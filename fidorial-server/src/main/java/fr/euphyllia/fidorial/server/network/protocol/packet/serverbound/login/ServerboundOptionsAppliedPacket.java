@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.LoginPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -10,9 +11,7 @@ import fr.fidorial.protocol.ServerboundPacket;
  */
 public record ServerboundOptionsAppliedPacket() implements ServerboundPacket {
 
-    public static ServerboundOptionsAppliedPacket read(final PacketBuffer buf) {
-        return new ServerboundOptionsAppliedPacket();
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundOptionsAppliedPacket> DECODER = _ -> new ServerboundOptionsAppliedPacket();
 
     @Override
     public void handle(final PacketListener listener) {

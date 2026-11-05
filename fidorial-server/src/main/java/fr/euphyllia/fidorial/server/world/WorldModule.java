@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.euphyllia.fidorial.server.schedulers.DayNightThread;
 import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
+import fr.euphyllia.fidorial.server.schedulers.tick.ServerTickRates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
@@ -63,6 +64,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final FluidEngine fluids;
     private final FidorialGameRules gameRules;
     private final DayNightThread dayNight;
+    private final ServerTickRates tickRates;
     private final BossBarRegistry bossBars;
     private final ChunkNetworkSerializer chunkSerializer;
     private final LightUpdateDispatcher light;
@@ -86,6 +88,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates());
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
+        this.tickRates = new ServerTickRates(scheduler.regionizer(), dayNight, weather);
         this.bossBars = new BossBarRegistry(manager.levelData(), online::players);
         this.chunkSerializer = new ChunkNetworkSerializer(
                 registries.blockStates(), registries.registry(RegistryKey.BIOME),
@@ -128,7 +131,11 @@ public final class WorldModule implements ServerModule, WorldManager {
     @Override
     public void start() {
         structures.load(registries.datapacks());
-        manager.overworld();
+        final ServerWorld overworld = manager.overworld();
+        // vanilla freezes debug worlds on load
+        if (overworld.generator.describeForSave() instanceof ChunkGeneratorConfig.Debug) {
+            tickRates.setFrozen(true);
+        }
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();
@@ -248,6 +255,10 @@ public final class WorldModule implements ServerModule, WorldManager {
     @Override
     public FidorialGameRules gameRules() {
         return gameRules;
+    }
+
+    public ServerTickRates tickRates() {
+        return tickRates;
     }
 
     public DayNightThread dayNight() {
