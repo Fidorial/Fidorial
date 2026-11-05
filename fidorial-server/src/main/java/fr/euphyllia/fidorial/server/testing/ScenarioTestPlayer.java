@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.testing;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;

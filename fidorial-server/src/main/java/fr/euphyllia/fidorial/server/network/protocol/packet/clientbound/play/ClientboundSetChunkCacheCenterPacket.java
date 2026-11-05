@@ -1,11 +1,17 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
-public record ClientboundSetChunkCacheCenterPacket(int chunkX, int chunkZ) implements ClientboundPacket {
+public record ClientboundSetChunkCacheCenterPacket(int chunkX, int chunkZ) implements ClientboundPacket<ClientboundSetChunkCacheCenterPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetChunkCacheCenterPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundSetChunkCacheCenterPacket::chunkX)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundSetChunkCacheCenterPacket::chunkZ);
 
     @Override
     public Key name() {
@@ -13,7 +19,7 @@ public record ClientboundSetChunkCacheCenterPacket(int chunkX, int chunkZ) imple
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(chunkX).writeVarInt(chunkZ);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetChunkCacheCenterPacket> codec() {
+        return CODEC;
     }
 }

@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -15,7 +17,12 @@ import net.kyori.adventure.key.Key;
  * @param collectorId  the entity picking it up
  * @param count        how many items are picked up
  */
-public record ClientboundTakeItemEntityPacket(int itemEntityId, int collectorId, int count) implements ClientboundPacket {
+public record ClientboundTakeItemEntityPacket(int itemEntityId, int collectorId, int count) implements ClientboundPacket<ClientboundTakeItemEntityPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundTakeItemEntityPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundTakeItemEntityPacket::itemEntityId)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundTakeItemEntityPacket::collectorId)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundTakeItemEntityPacket::count);
 
     @Override
     public Key name() {
@@ -23,9 +30,7 @@ public record ClientboundTakeItemEntityPacket(int itemEntityId, int collectorId,
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(itemEntityId);
-        buf.writeVarInt(collectorId);
-        buf.writeVarInt(count);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundTakeItemEntityPacket> codec() {
+        return CODEC;
     }
 }

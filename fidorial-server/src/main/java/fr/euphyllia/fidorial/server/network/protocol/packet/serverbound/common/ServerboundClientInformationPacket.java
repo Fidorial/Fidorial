@@ -1,26 +1,28 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.StringLikeCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.ConfigurationPacketListener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
-
 public record ServerboundClientInformationPacket(String language, int viewDistance, int displayedSkinParts) implements ServerboundPacket {
 
-    public static ServerboundClientInformationPacket read(final PacketBuffer buf) {
-        final String language = buf.readString(16);
-        final int viewDistance = buf.readByte();
-        final int chatMode = buf.readVarInt();
-        final boolean chatColors = buf.readBoolean();
-        final int skinParts = buf.readUByte();
-        final int mainHand = buf.readVarInt();
-        final boolean enableTextFiltering = buf.readBoolean();
-        final boolean allowServerListings = buf.readBoolean();
-        final int particleStatus = buf.readVarInt();
-        return new ServerboundClientInformationPacket(language, viewDistance, skinParts);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundClientInformationPacket> DECODER = NetworkDecoder.composite(
+            StringLikeCodecs.string(16),
+            PrimitiveCodecs.BYTE,
+            PrimitiveCodecs.VAR_INT, // chat mode
+            PrimitiveCodecs.BOOL, // chat colors
+            PrimitiveCodecs.UNSIGNED_BYTE,
+            PrimitiveCodecs.VAR_INT, // main hand
+            PrimitiveCodecs.BOOL, // text filtering
+            PrimitiveCodecs.BOOL, // server listings
+            PrimitiveCodecs.VAR_INT, // particle status
+            (language, viewDistance, _, _, skinParts, _, _, _, _) ->
+                    new ServerboundClientInformationPacket(language, viewDistance, skinParts));
 
     @Override
     public void handle(final PacketListener listener) {

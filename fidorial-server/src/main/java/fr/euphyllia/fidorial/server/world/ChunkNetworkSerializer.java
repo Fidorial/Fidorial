@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.world;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.chunk.BitPacking;

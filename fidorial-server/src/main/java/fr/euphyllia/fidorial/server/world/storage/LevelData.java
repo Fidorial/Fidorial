@@ -396,6 +396,16 @@ public final class LevelData {
         return root.build();
     }
 
+    /**
+     * {@return the generator {@code type} saved for a dimension, e.g. {@code minecraft:debug}, or an empty string}
+     */
+    public String savedGeneratorType(final Key dimension) {
+        return worldGenSettings.getCompound(DIMENSIONS)
+                .getCompound(dimension.asString())
+                .getCompound("generator")
+                .getString("type");
+    }
+
     private CompoundBinaryTag buildWorldGenSettings() {
         final CompoundBinaryTag.Builder wgs = CompoundBinaryTag.builder().put(worldGenSettings);
         wgs.putLong("seed", seed);

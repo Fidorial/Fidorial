@@ -1,16 +1,24 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 import java.util.UUID;
 
 public record ClientboundPlayerInfoGameModePacket(UUID uuid, int gameMode)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundPlayerInfoGameModePacket> {
 
     private static final int ACTIONS = 0x04;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerInfoGameModePacket> CODEC = NetworkEncoder
+            .constant(PrimitiveCodecs.UNSIGNED_BYTE, ACTIONS)
+            .thenConstant(PrimitiveCodecs.VAR_INT, 1)
+            .then(PrimitiveCodecs.UUID, ClientboundPlayerInfoGameModePacket::uuid)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundPlayerInfoGameModePacket::gameMode);
 
     @Override
     public Key name() {
@@ -18,10 +26,7 @@ public record ClientboundPlayerInfoGameModePacket(UUID uuid, int gameMode)
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeByte(ACTIONS);
-        buf.writeVarInt(1);
-        buf.writeUuid(uuid);
-        buf.writeVarInt(gameMode);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerInfoGameModePacket> codec() {
+        return CODEC;
     }
 }

@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -17,13 +19,12 @@ import fr.fidorial.protocol.ServerboundPacket;
  */
 public record ServerboundUseItemPacket(int hand, int sequence, float yaw, float pitch) implements ServerboundPacket {
 
-    public static ServerboundUseItemPacket read(final PacketBuffer buf) {
-        final int hand = buf.readVarInt();
-        final int sequence = buf.readVarInt();
-        final float yaw = buf.readFloat();
-        final float pitch = buf.readFloat();
-        return new ServerboundUseItemPacket(hand, sequence, yaw, pitch);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundUseItemPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.FLOAT,
+            PrimitiveCodecs.FLOAT,
+            ServerboundUseItemPacket::new);
 
     public boolean isOffHand() {
         return hand == 1;

@@ -9,5 +9,5 @@ public interface ChunkViewSource {
 
     boolean isViewing(long chunkKey);
 
-    void send(ClientboundPacket packet);
+    void send(ClientboundPacket<?> packet);
 }

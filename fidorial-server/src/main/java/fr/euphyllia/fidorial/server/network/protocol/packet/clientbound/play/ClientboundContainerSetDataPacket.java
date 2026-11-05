@@ -1,8 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -19,7 +20,9 @@ import net.kyori.adventure.key.Key;
  *
  * <p><a href="https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Container_Property">Packets#Set_Container_Property</a>
  */
-public record ClientboundContainerSetDataPacket(int windowId, int property, int value) implements ClientboundPacket {
+public record ClientboundContainerSetDataPacket(int windowId, int property, int value) implements ClientboundPacket<ClientboundContainerSetDataPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerSetDataPacket> CODEC = NetworkEncoder.member(ClientboundContainerSetDataPacket::encode);
 
     @Override
     public Key name() {
@@ -27,7 +30,11 @@ public record ClientboundContainerSetDataPacket(int windowId, int property, int 
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerSetDataPacket> codec() {
+        return CODEC;
+    }
+
+    private void encode(final CodecAwarePacketBuffer buf) {
         buf.writeVarInt(windowId);
         buf.writeShort(property);
         buf.writeShort(value);

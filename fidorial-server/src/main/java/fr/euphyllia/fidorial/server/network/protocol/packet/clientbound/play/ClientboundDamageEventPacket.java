@@ -1,9 +1,16 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
+import fr.euphyllia.fidorial.server.codecs.networking.RegistryNetworkCodecs;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.DamageType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -16,7 +23,7 @@ import org.jspecify.annotations.Nullable;
  * <p><a href="https://minecraft.wiki/w/Java_Edition_protocol/Packets#Damage_Event">Damage Event</a></p>
  *
  * @param entityId       the entity taking the damage
- * @param damageTypeId   the network id of the entry in {@code minecraft:damage_type}
+ * @param damageType     the entry of {@code minecraft:damage_type}, sent as its network id
  * @param causingEntity  the entity credited with the damage, or {@code null}
  * @param directEntity   the entity that landed the hit, or {@code null}
  * @param sourcePosition the point damage radiated from, or {@code null} to derive it from the
@@ -24,10 +31,28 @@ import org.jspecify.annotations.Nullable;
  */
 public record ClientboundDamageEventPacket(
         int entityId,
-        int damageTypeId,
+        TypedKey<DamageType> damageType,
         @Nullable Integer causingEntity,
         @Nullable Integer directEntity,
-        @Nullable Location sourcePosition) implements ClientboundPacket {
+        @Nullable Location sourcePosition) implements ClientboundPacket<ClientboundDamageEventPacket> {
+
+    /**
+     * An entity id plus one, or zero for none.
+     */
+    private static final NetworkEncoder<PacketBuffer, @Nullable Integer> OPTIONAL_ENTITY_ID =
+            PrimitiveCodecs.VAR_INT.comap(id -> id == null ? 0 : id + 1);
+
+    private static final NetworkEncoder<PacketBuffer, Location> SOURCE_POSITION = NetworkEncoder
+            .field(PrimitiveCodecs.DOUBLE, Location::x)
+            .then(PrimitiveCodecs.DOUBLE, Location::y)
+            .then(PrimitiveCodecs.DOUBLE, Location::z);
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundDamageEventPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundDamageEventPacket::entityId)
+            .then(RegistryNetworkCodecs.id(RegistryKey.DAMAGE_TYPE), ClientboundDamageEventPacket::damageType)
+            .then(OPTIONAL_ENTITY_ID, ClientboundDamageEventPacket::causingEntity)
+            .then(OPTIONAL_ENTITY_ID, ClientboundDamageEventPacket::directEntity)
+            .then(PrimitiveCodecs.prefixedNullable(SOURCE_POSITION), ClientboundDamageEventPacket::sourcePosition);
 
     @Override
     public Key name() {
@@ -35,18 +60,7 @@ public record ClientboundDamageEventPacket(
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        buf.writeVarInt(damageTypeId);
-        buf.writeVarInt(causingEntity == null ? 0 : causingEntity + 1);
-        buf.writeVarInt(directEntity == null ? 0 : directEntity + 1);
-        if (sourcePosition == null) {
-            buf.writeBoolean(false);
-            return;
-        }
-        buf.writeBoolean(true);
-        buf.writeDouble(sourcePosition.x());
-        buf.writeDouble(sourcePosition.y());
-        buf.writeDouble(sourcePosition.z());
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundDamageEventPacket> codec() {
+        return CODEC;
     }
 }

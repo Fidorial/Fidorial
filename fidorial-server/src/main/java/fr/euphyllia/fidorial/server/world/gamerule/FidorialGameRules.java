@@ -133,7 +133,7 @@ public final class FidorialGameRules implements GameRules {
         return world.key().equals(Dimension.OVERWORLD.id());
     }
 
-    public void syncTo(final ServerWorld world, final int entityId, final Consumer<ClientboundPacket> target) {
+    public void syncTo(final ServerWorld world, final int entityId, final Consumer<ClientboundPacket<?>> target) {
         final GameRuleOverrides rules = world.gameRuleValues();
         target.accept(ClientboundEntityEventPacket.reducedDebugInfo(
                 entityId, rules.getBoolean(GameRuleKeys.REDUCED_DEBUG_INFO)));

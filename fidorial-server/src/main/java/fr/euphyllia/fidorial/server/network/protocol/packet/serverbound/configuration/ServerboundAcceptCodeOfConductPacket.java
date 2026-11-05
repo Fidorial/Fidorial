@@ -1,7 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.ConfigurationPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -10,9 +11,7 @@ import fr.fidorial.protocol.ServerboundPacket;
  */
 public record ServerboundAcceptCodeOfConductPacket() implements ServerboundPacket {
 
-    public static ServerboundAcceptCodeOfConductPacket read(final PacketBuffer buf) {
-        return new ServerboundAcceptCodeOfConductPacket();
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundAcceptCodeOfConductPacket> DECODER = _ -> new ServerboundAcceptCodeOfConductPacket();
 
     @Override
     public void handle(final PacketListener listener) {

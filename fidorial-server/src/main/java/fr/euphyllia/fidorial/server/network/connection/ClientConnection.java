@@ -1,0 +1,778 @@
+package fr.euphyllia.fidorial.server.network.connection;
+
+import com.google.common.net.InetAddresses;
+import fr.euphyllia.fidorial.auth.EncryptionUtils;
+import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.chat.FilterType;
+import fr.euphyllia.fidorial.server.chat.IdentifiedSignedMessage;
+import fr.euphyllia.fidorial.server.chat.LastSeenMessages;
+import fr.euphyllia.fidorial.server.chat.SignedChatSession;
+import fr.euphyllia.fidorial.server.chat.SignedMessageChain;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.network.connection.listener.ConfigurationPacketHandler;
+import fr.euphyllia.fidorial.server.network.connection.listener.HandshakePacketHandler;
+import fr.euphyllia.fidorial.server.network.connection.listener.LoginPacketHandler;
+import fr.euphyllia.fidorial.server.network.connection.listener.PlayPacketHandler;
+import fr.euphyllia.fidorial.server.network.connection.listener.StatusPacketHandler;
+import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
+import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
+import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
+import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundClearDialogPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundPostEffectsPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundShowDialogPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundResetChatPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginDisconnectPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDeleteMessagePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisconnectPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundKeepAlivePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerChatPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.util.CipherDecoder;
+import fr.euphyllia.fidorial.server.network.serialization.util.CipherEncoder;
+import fr.euphyllia.fidorial.server.network.serialization.util.CompressionDecoder;
+import fr.euphyllia.fidorial.server.network.serialization.util.CompressionEncoder;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.dialog.DialogDefinition;
+import fr.fidorial.dialog.DialogReference;
+import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.profile.PlayerProfile;
+import fr.fidorial.event.player.PlayerJoinEvent;
+import fr.fidorial.event.player.PlayerRespawnEvent;
+import fr.fidorial.math.Location;
+import fr.fidorial.protocol.PacketListener;
+import fr.fidorial.protocol.ServerboundPacket;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.storage.player.PlayerDataStorage;
+import fr.fidorial.translation.TranslationStore;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.embedded.EmbeddedChannel;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.chat.ChatType;
+import net.kyori.adventure.chat.SignedMessage;
+import net.kyori.adventure.dialog.DialogLike;
+import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.pointer.Pointers;
+import net.kyori.adventure.pointer.PointersSupplier;
+import net.kyori.adventure.resource.ResourcePackCallback;
+import net.kyori.adventure.resource.ResourcePackInfo;
+import net.kyori.adventure.resource.ResourcePackRequest;
+import net.kyori.adventure.resource.ResourcePackStatus;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.SequencedCollection;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf> implements Audience {
+
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(ClientConnection.class);
+
+    private static final Executor VIRTUAL_THREAD_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
+
+    private static final int KEEP_ALIVE_INTERVAL_SECONDS = 10;
+    private static final int LATENCY_SMOOTHING = 3;
+
+    private static final PointersSupplier<ClientConnection> pointers = PointersSupplier.<ClientConnection>builder()
+            .resolving(Identity.NAME, connection -> connection.profile() != null ? connection.profile().name() : "<unknown>")
+            .resolving(Identity.UUID, connection -> connection.profile() != null ? connection.profile().uuid() : new UUID(0L, 0L))
+            .resolving(Identity.LOCALE, ClientConnection::locale)
+            .build();
+
+    private final FidorialServer server;
+    private final ProtocolMap protocol;
+
+    private ChannelHandlerContext ctx;
+    private ConnectionState state;
+    private PacketListener listener;
+    private @Nullable ConnectionState rejectedState;
+    private @Nullable List<Class<? extends ServerboundPacket>> exemptPackets;
+
+    private int clientProtocol;
+    private @Nullable String username;
+    private @Nullable PlayerProfile profile;
+    private @Nullable ServerPlayer player;
+    private int displayedSkinParts = 0x7F; // toutes les couches activees par defaut
+    private int viewDistance = 2; // minimum
+    private @Nullable String forwardedAddress;
+    private Locale locale = TranslationStore.defaultLocale();
+    private @Nullable ScheduledFuture<?> keepAliveTask;
+    private volatile @Nullable SignedChatSession chatSession;
+    private volatile @Nullable SignedMessageChain chatChain;
+    private final LastSeenMessages lastSeenMessages = new LastSeenMessages();
+    private final AtomicInteger nextGlobalChatIndex = new AtomicInteger();
+    private volatile List<Key> postEffects = List.of();
+
+    private volatile long pendingKeepAliveId;
+    private volatile int latencyMillis;
+
+    public ClientConnection(final FidorialServer server) {
+        this.server = server;
+        this.protocol = server.network().protocolMap();
+        this.state = ConnectionState.HANDSHAKE;
+        this.listener = new HandshakePacketHandler(this);
+    }
+
+    @Override
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+        this.ctx = ctx;
+        super.channelActive(ctx);
+    }
+
+    @Override
+    protected void channelRead0(final ChannelHandlerContext ctx, final ByteBuf raw) {
+        final CodecAwarePacketBuffer buf = new CodecAwarePacketBuffer(raw, server.registries().serverRegistries());
+        final int packetId = buf.readVarInt();
+
+        final Key name = protocol.serverboundName(state, packetId);
+        if (name == null) {
+            LOGGER.trace("Unknown packet {} 0x{} (ignored)", state, Integer.toHexString(packetId));
+            return;
+        }
+        final ServerboundPacket packet = ServerboundPackets.decode(state, name, buf);
+        if (packet == null || isRejected(packet.getClass())) {
+            LOGGER.trace("{}: {} received (unmanaged, ignored)", state, name);
+            return;
+        }
+        packet.handle(listener);
+    }
+
+    public void setState(final ConnectionState newState) {
+        this.state = newState;
+        this.rejectedState = null;
+        this.exemptPackets = null;
+        this.listener = createListener(newState);
+        this.listener.onEnter();
+    }
+
+    private PacketListener createListener(final ConnectionState newState) {
+        return switch (newState) {
+            case HANDSHAKE -> new HandshakePacketHandler(this);
+            case STATUS -> new StatusPacketHandler(this);
+            case LOGIN -> new LoginPacketHandler(this);
+            case CONFIGURATION -> new ConfigurationPacketHandler(this);
+            case PLAY, MOCK_PLAY -> new PlayPacketHandler(this);
+        };
+    }
+
+    public void send(final ClientboundPacket<?> packet) {
+        this.send(packet, false);
+    }
+
+    public void send(final ClientboundPacket<?> packet, final boolean bypassRejection) {
+        if (ctx.channel().eventLoop().inEventLoop()) {
+            sendNow(packet, bypassRejection);
+        } else {
+            execute(() -> sendNow(packet, bypassRejection));
+        }
+    }
+
+    private void sendNow(final ClientboundPacket<?> packet, final boolean bypassRejection) {
+        final ChannelFuture future = write(packet, bypassRejection);
+        if (future != null) {
+            future.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+        }
+    }
+
+    public void sendAndClose(final ClientboundPacket<?> packet) {
+        this.sendAndClose(packet, false);
+    }
+
+    public void sendAndClose(final ClientboundPacket<?> packet, final boolean bypassRejection) {
+        final ChannelFuture future = write(packet, bypassRejection);
+        if (future != null) {
+            future.addListener(ChannelFutureListener.CLOSE);
+        } else {
+            close();
+        }
+    }
+
+    public void disconnect(final Component reason) {
+        if (state == ConnectionState.LOGIN) {
+            sendAndClose(ClientboundLoginDisconnectPacket.ofComponent(reason));
+        } else {
+            LOGGER.info(
+                    Component.text("Disconnection of ")
+                            .append(Component.text(username == null ? "<unknown>" : username)) // shouldn't ever be null but idea doesn't want to shut up
+                            .append(Component.text(": "))
+                            .append(reason)
+            );
+            sendAndClose(new ClientboundDisconnectPacket(reason));
+        }
+    }
+
+    private @Nullable ChannelFuture write(final ClientboundPacket<?> packet, final boolean bypassRejection) {
+        if (!isActive() || state == ConnectionState.MOCK_PLAY) {
+            return null;
+        }
+
+        if (this.rejectedState != null && this.rejectedState == this.state) {
+            if (!bypassRejection) {
+                return null;
+            }
+        }
+
+        final ByteBuf out = ctx.alloc().buffer();
+        try {
+            final CodecAwarePacketBuffer p = new CodecAwarePacketBuffer(out, server.registries().serverRegistries());
+            p.writeVarInt(protocol.clientboundId(state, packet.name()));
+            packet.write(p);
+        } catch (final Throwable t) {
+            out.release();
+            throw t;
+        }
+        return ctx.writeAndFlush(out);
+    }
+
+    public void close() {
+        ctx.close();
+    }
+
+    /**
+     * Checks whether this connection is still usable.
+     *
+     * @return {@code true} if the underlying channel is open and connected
+     */
+    public boolean isActive() {
+        return ctx != null && ctx.channel().isActive();
+    }
+
+    public boolean isRejected(final Class<? extends ServerboundPacket> packet) {
+        final boolean hasExemptions = this.exemptPackets != null;
+        if (hasExemptions) {
+            return this.state.equals(this.rejectedState) && !this.exemptPackets.contains(packet);
+        }
+        return this.state.equals(this.rejectedState);
+    }
+
+    public void execute(final Runnable task) {
+        ctx.channel().eventLoop().execute(task);
+    }
+
+    public void installEncryption(final SecretKey key) throws GeneralSecurityException {
+        ctx.pipeline()
+                .addBefore(
+                        "frame-decoder",
+                        "cipher-decoder",
+                        new CipherDecoder(EncryptionUtils.createStreamCipher(Cipher.DECRYPT_MODE, key)));
+        ctx.pipeline()
+                .addBefore(
+                        "frame-decoder",
+                        "cipher-encoder",
+                        new CipherEncoder(EncryptionUtils.createStreamCipher(Cipher.ENCRYPT_MODE, key)));
+    }
+
+    public void installCompression(final int threshold) {
+        ctx.pipeline().addBefore("handler", "decompress", new CompressionDecoder(threshold));
+        ctx.pipeline().addBefore("handler", "compress", new CompressionEncoder(threshold));
+    }
+
+    public void startKeepAlive() {
+        keepAliveTask = ctx.channel()
+                .eventLoop()
+                .scheduleAtFixedRate(
+                        this::sendKeepAlive,
+                        KEEP_ALIVE_INTERVAL_SECONDS,
+                        KEEP_ALIVE_INTERVAL_SECONDS,
+                        TimeUnit.SECONDS);
+    }
+
+    private void sendKeepAlive() {
+        final long id = System.currentTimeMillis();
+        pendingKeepAliveId = id;
+        send(new ClientboundKeepAlivePacket(id));
+    }
+
+    public void acknowledgeKeepAlive(final long id) {
+        if (id != pendingKeepAliveId || id == 0L) {
+            return;
+        }
+        pendingKeepAliveId = 0L;
+
+        final long sample = Math.clamp(System.currentTimeMillis() - id, 0L, Integer.MAX_VALUE);
+        final int previous = latencyMillis;
+        latencyMillis = previous == 0
+                ? (int) sample
+                : (int) ((previous * (long) LATENCY_SMOOTHING + sample) / (LATENCY_SMOOTHING + 1));
+    }
+
+    public void pauseKeepAlive() {
+        if (keepAliveTask != null) {
+            keepAliveTask.cancel(false);
+            keepAliveTask = null;
+        }
+    }
+
+    public int ping() {
+        return latencyMillis;
+    }
+
+    public @Nullable SignedChatSession chatSession() {
+        return chatSession;
+    }
+
+    public void setChatSession(final SignedChatSession session) {
+        this.chatSession = session;
+        final PlayerProfile p = this.profile;
+        this.chatChain = p != null ? new SignedMessageChain(p.uuid()) : null;
+    }
+
+    public void resetChatSession() {
+        this.chatSession = null;
+        this.chatChain = null;
+        this.lastSeenMessages.clear();
+        nextGlobalChatIndex.set(0);
+        send(new ClientboundResetChatPacket());
+    }
+
+    public @Nullable SignedMessageChain chatChain() {
+        return chatChain;
+    }
+
+    public LastSeenMessages lastSeen() {
+        return lastSeenMessages;
+    }
+
+    public void sendSignedMessage(final SignedMessage message, final ChatType.Bound chatType) {
+        final int globalIndex = nextGlobalChatIndex.getAndIncrement();
+        final SignedMessage.Signature ownSignature = message.signature();
+
+        final List<ClientboundPlayerChatPacket.PackedSignature> lastSeen;
+        final int index;
+        if (message instanceof final IdentifiedSignedMessage verified) {
+            lastSeen = packLastSeen(verified.lastSeen());
+            index = verified.index();
+        } else {
+            lastSeen = List.of();
+            index = globalIndex;
+        }
+
+        if (player() != null) {
+            send(new ClientboundPlayerChatPacket(
+                    globalIndex,
+                    message.identity().uuid(),
+                    index,
+                    ownSignature != null ? ownSignature.bytes() : null,
+                    message.message(),
+                    message.timestamp(),
+                    message.salt(),
+                    lastSeen,
+                    player().prepareMessageForSend(message.unsignedContent()),
+                    FilterType.PASS_THROUGH,
+                    chatType,
+                    player()));
+
+            if (ownSignature != null) {
+                lastSeenMessages.push(ownSignature);
+            }
+        }
+    }
+
+    private List<ClientboundPlayerChatPacket.PackedSignature> packLastSeen(final List<SignedMessage.Signature> lastSeen) {
+        final List<ClientboundPlayerChatPacket.PackedSignature> packed = new ArrayList<>(lastSeen.size());
+        for (final SignedMessage.Signature signature : lastSeen) {
+            packed.add(ClientboundPlayerChatPacket.PackedSignature.full(signature.bytes()));
+        }
+        return packed;
+    }
+
+    public void deleteSignedMessage(final SignedMessage.Signature signature) {
+        send(ClientboundDeleteMessagePacket.full(signature.bytes()));
+    }
+
+    @Override
+    public void handlerRemoved(final ChannelHandlerContext ctx) {
+        if (keepAliveTask != null) {
+            keepAliveTask.cancel(false);
+        }
+        try {
+            listener.onDisconnect();
+        } catch (final Throwable t) {
+            LOGGER.error("Error during onDisconnect", t);
+        }
+        server.players().disconnect(this);
+        saveInventoryOnDisconnect().exceptionally(throwable -> {
+            LOGGER.error("Unable to save inventory on disconnect", throwable);
+            return null;
+        });
+    }
+
+    public CompletableFuture<Boolean> enterConfiguration() {
+        return isActive()
+                ? CompletableFuture.supplyAsync(this::startConfiguration, this::execute).thenCompose(Function.identity())
+                : CompletableFuture.completedFuture(false);
+    }
+
+    private CompletableFuture<Boolean> startConfiguration() {
+        if (isActive() && rejectedState != ConnectionState.PLAY && listener instanceof final PlayPacketHandler play) {
+            return play.enterConfiguration();
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    public CompletableFuture<@Nullable Void> saveInventoryOnDisconnect() {
+        final ServerPlayer disconnecting = this.player;
+        if (disconnecting == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        this.player = null;
+        if (disconnecting.containerMenu() != disconnecting.inventoryMenu()) {
+            disconnecting.doCloseContainer();
+        }
+        disconnecting.inventoryMenu().removed();
+        return CompletableFuture.runAsync(() -> {
+            try {
+                server.players().inventoryStorage().save(disconnecting.uuid(), disconnecting.inventory());
+                server.players().enderChestStorage().save(disconnecting.uuid(), disconnecting.enderChest());
+                final RespawnPoint point = disconnecting.respawnPoint();
+                server.players().dataStorage().save(
+                        disconnecting.uuid(),
+                        new PlayerDataStorage.PlayerData(
+                                disconnecting.gameMode(),
+                                point == null ? null : point.position().toLocation(point.world()),
+                                disconnecting.location()));
+                LOGGER.debug("Inventory + Ender Chest and data for {} saved", disconnecting.name());
+            } catch (final Exception e) {
+                LOGGER.error("Unable to save inventory for {}", disconnecting.name(), e);
+            }
+        }, VIRTUAL_THREAD_EXECUTOR);
+    }
+
+    @Override
+    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
+        LOGGER.debug("Connexion closed", cause);
+        ctx.close();
+    }
+
+    public FidorialServer server() {
+        return server;
+    }
+
+    public ConnectionState state() {
+        return state;
+    }
+
+    public int clientProtocol() {
+        return clientProtocol;
+    }
+
+    public void setClientProtocol(final int clientProtocol) {
+        this.clientProtocol = clientProtocol;
+    }
+
+    public @Nullable String username() {
+        return username;
+    }
+
+    public void setUsername(final String username) {
+        this.username = username;
+    }
+
+    public @Nullable String forwardedAddress() {
+        return forwardedAddress;
+    }
+
+    /**
+     * Gets the address this client is connecting from.
+     *
+     * <p>When a proxy is in front of the server, the address it forwarded takes precedence over the
+     * socket's own, which would be the proxy.</p>
+     *
+     * @return the client address, or {@code "unknown"} if the channel has none
+     */
+    public String remoteAddress() {
+        if (forwardedAddress != null) {
+            return forwardedAddress;
+        }
+        final SocketAddress address = ctx.channel().remoteAddress();
+        if (address instanceof final InetSocketAddress inet) {
+            return inet.getHostString();
+        }
+        return address == null ? "unknown" : address.toString();
+    }
+
+    public InetAddress remoteInetAddress() {
+        if (forwardedAddress != null) {
+            return InetAddresses.forString(forwardedAddress);
+        }
+
+        final SocketAddress address = ctx.channel().remoteAddress();
+        if (address instanceof final InetSocketAddress inet && inet.getAddress() != null) {
+            return inet.getAddress();
+        }
+
+        throw new IllegalStateException("No IP address for this connection: " + address);
+    }
+
+    public void setForwardedAddress(final String forwardedAddress) {
+        this.forwardedAddress = forwardedAddress;
+    }
+
+    public @Nullable PlayerProfile profile() {
+        return profile;
+    }
+
+    public void setProfile(final PlayerProfile profile) {
+        this.profile = profile;
+    }
+
+    public int viewDistance() {
+        return viewDistance;
+    }
+
+    public void setViewDistance(final int viewDistance) {
+        this.viewDistance = viewDistance;
+    }
+
+    public int effectiveViewDistance() {
+        final int serverMax = server.config().general().sendDistance();
+        final int client = viewDistance;
+        return Math.clamp(client, 2, serverMax);
+    }
+
+    public int displayedSkinParts() {
+        return displayedSkinParts;
+    }
+
+    public void setDisplayedSkinParts(final int displayedSkinParts) {
+        this.displayedSkinParts = displayedSkinParts;
+    }
+
+    public Locale locale() {
+        return locale;
+    }
+
+    public void setLocale(final Locale locale) {
+        this.locale = locale;
+    }
+
+    public @Nullable ServerPlayer player() {
+        return player;
+    }
+
+    public void setPlayer(final ServerPlayer player) {
+        this.player = player;
+    }
+
+    public boolean isInPlayState() {
+        return state == ConnectionState.PLAY || state == ConnectionState.MOCK_PLAY;
+    }
+
+    /**
+     * Creates a mock connection; used by scenario tests
+     * @param server the server
+     * @return the mock connection
+     */
+    public static ClientConnection mock(final FidorialServer server) {
+        final ClientConnection connection = new ClientConnection(server);
+        final ConnectionState state = ConnectionState.MOCK_PLAY;
+        new EmbeddedChannel(connection);
+        connection.state = state;
+        connection.listener = connection.createListener(state);
+        return connection;
+    }
+
+    /**
+     * Attaches a built player to the mock connection; used by scenario tests
+     * @param player the player to attach
+     */
+    public void bindMockPlayer(final ServerPlayer player) {
+        if (listener instanceof final PlayPacketHandler play) {
+            setUsername(player.profile().name());
+            play.bindPlayer(player);
+            play.openChunkView((ServerWorld) player.world(), player.chunk());
+            server.events().post(new PlayerJoinEvent(player));
+        }
+    }
+
+    public void mockDisconnect() {
+        listener.onDisconnect();
+    }
+
+    public CompletableFuture<Boolean> teleport(final Location location) {
+        if (listener instanceof final PlayPacketHandler play) {
+            return play.teleport(location);
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    public CompletableFuture<Boolean> respawn(final PlayerRespawnEvent.Cause cause) {
+        if (listener instanceof final PlayPacketHandler play) {
+            return play.respawn(cause);
+        }
+        return CompletableFuture.completedFuture(false);
+    }
+
+    @Override
+    public Pointers pointers() {
+        return pointers.view(this);
+    }
+
+    private final Map<UUID, ResourcePackCallback> pendingResourcePacks = new ConcurrentHashMap<>();
+
+    @Override
+    public void sendResourcePacks(final ResourcePackRequest request) {
+        if (state != ConnectionState.CONFIGURATION && !isInPlayState()) {
+            return;
+        }
+        final Key pushName = isInPlayState()
+                ? PlayClientboundPackets.RESOURCE_PACK_PUSH
+                : ConfigurationClientboundPackets.RESOURCE_PACK_PUSH;
+
+        final ResourcePackCallback cb = request.callback();
+        request.packs().forEach(pack -> pendingResourcePacks.put(pack.id(), cb));
+
+        for (final ResourcePackInfo pack : request.packs()) {
+            send(new ClientboundResourcePackPushPacket(
+                    pushName,
+                    pack.id(),
+                    pack.uri().toString(),
+                    pack.hash(),
+                    request.required(),
+                    request.prompt()));
+        }
+    }
+
+    @Override
+    public void removeResourcePacks(final UUID id, final UUID... others) {
+        popPack(id);
+        for (final UUID other : others) {
+            popPack(other);
+        }
+    }
+
+    @Override
+    public void clearResourcePacks() {
+        popPack(null);
+    }
+
+    private void popPack(final @Nullable UUID id) {
+        final Key popName = isInPlayState()
+                ? PlayClientboundPackets.RESOURCE_PACK_POP
+                : ConfigurationClientboundPackets.RESOURCE_PACK_POP;
+        send(new ClientboundResourcePackPopPacket(popName, id));
+    }
+
+    public void notifyResourcePackResponse(final UUID id, final ResourcePackStatus status) {
+        final ResourcePackCallback callback = status.intermediate()
+                ? pendingResourcePacks.get(id)
+                : pendingResourcePacks.remove(id);
+        if (callback != null) {
+            callback.packEventReceived(id, status, this.player != null ? this.player : this);
+        }
+    }
+
+    @Override
+    public void showDialog(final DialogLike dialog) {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.SHOW_DIALOG : ConfigurationClientboundPackets.SHOW_DIALOG;
+        switch (dialog) {
+            case final DialogDefinition definition -> send(ClientboundShowDialogPacket.inline(packetKey, definition));
+            case final DialogReference reference -> {
+                if (!server.registries().registry(RegistryKey.DIALOG).contains(reference.key())) {
+                    LOGGER.warn(
+                            "{} cannot be shown dialog {}: nothing is registered under that key.",
+                            username, reference.key());
+                    return;
+                }
+                send(ClientboundShowDialogPacket.reference(packetKey, reference));
+            }
+            default -> LOGGER.warn(
+                    "{} cannot be shown a dialog of foreign type {}; build it with fr.fidorial.dialog.Dialog.",
+                    username, dialog.getClass().getName());
+        }
+    }
+
+    @Override
+    public void closeDialog() {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.CLEAR_DIALOG : ConfigurationClientboundPackets.CLEAR_DIALOG;
+        send(new ClientboundClearDialogPacket(packetKey));
+    }
+
+    private final List<Component> pendingMessages = new ArrayList<>();
+
+    @Override
+    public void sendMessage(final Component message) {
+        if (isInPlayState() && this.player != null) {
+            this.player.sendMessage(message);
+            return;
+        }
+        // we're too early to send a message so just collect it
+        pendingMessages.add(message);
+    }
+
+    public void flushPendingMessages() {
+        if (pendingMessages.isEmpty()) {
+            return;
+        }
+        final List<Component> queued = List.copyOf(pendingMessages);
+        pendingMessages.clear();
+        for (final Component message : queued) {
+            sendMessage(message);
+        }
+    }
+
+    /**
+     * Sets the {@link ConnectionState} for which packets shouldn't be read.
+     * This gets reset on each {@link setState} call.
+     *
+     * @param state the state to reject packets
+     */
+    public void setRejectedState(final ConnectionState state) {
+        this.rejectedState = state;
+    }
+
+    /**
+     * Adds a packet to the list of packets that should be exempt from rejection.
+     * @param packet the packet to add
+     */
+    public void addExemptPacket(final Class<? extends ServerboundPacket> packet) {
+        if (this.exemptPackets == null) {
+            this.exemptPackets = new ArrayList<>();
+        }
+        this.exemptPackets.add(packet);
+    }
+
+    public List<Key> postEffects() {
+        return postEffects;
+    }
+
+    public void updatePostEffects(final SequencedCollection<Key> effects) {
+        this.postEffects = List.copyOf(effects);
+        this.sendPostEffects(effects);
+    }
+
+    public void sendPostEffects(final SequencedCollection<Key> postEffects) {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.POST_EFFECTS : ConfigurationClientboundPackets.POST_EFFECTS;
+        send(new ClientboundPostEffectsPacket(packetKey, postEffects));
+    }
+}

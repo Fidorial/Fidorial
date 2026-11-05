@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -19,7 +21,10 @@ import net.kyori.adventure.key.Key;
  *
  * <p>https://minecraft.wiki/w/Java_Edition_protocol/Packets#Close_Container
  */
-public record ClientboundContainerClosePacket(int windowId) implements ClientboundPacket {
+public record ClientboundContainerClosePacket(int windowId) implements ClientboundPacket<ClientboundContainerClosePacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerClosePacket> CODEC =
+            NetworkEncoder.field(PrimitiveCodecs.VAR_INT, ClientboundContainerClosePacket::windowId);
 
     @Override
     public Key name() {
@@ -27,7 +32,7 @@ public record ClientboundContainerClosePacket(int windowId) implements Clientbou
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(windowId);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerClosePacket> codec() {
+        return CODEC;
     }
 }

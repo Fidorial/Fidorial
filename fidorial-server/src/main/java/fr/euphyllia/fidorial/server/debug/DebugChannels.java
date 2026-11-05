@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.debug;
 
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.debug.DebugChannel.Scope;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.FrozenRegistries;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;

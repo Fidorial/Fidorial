@@ -1,21 +1,24 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
 import fr.euphyllia.fidorial.server.chat.SignedChatSession;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 public record ClientboundPlayerInfoUpdatePacket(PlayerProfile profile, int gameMode, int ping, @Nullable SignedChatSession chatSession)
-        implements ClientboundPacket {
+        implements ClientboundPacket<ClientboundPlayerInfoUpdatePacket> {
 
     private static final int ADD_PLAYER = 0x01;
     private static final int INITIALIZE_CHAT = 0x02;
     private static final int UPDATE_GAME_MODE = 0x04;
     private static final int UPDATE_LISTED = 0x08;
     private static final int UPDATE_LATENCY = 0x10;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerInfoUpdatePacket> CODEC = NetworkEncoder.member(ClientboundPlayerInfoUpdatePacket::encode);
 
     public ClientboundPlayerInfoUpdatePacket(final PlayerProfile profile, final int gameMode, final int ping) {
         this(profile, gameMode, ping, null);
@@ -27,7 +30,11 @@ public record ClientboundPlayerInfoUpdatePacket(PlayerProfile profile, int gameM
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerInfoUpdatePacket> codec() {
+        return CODEC;
+    }
+
+    private void encode(final CodecAwarePacketBuffer buf) {
         int actions = ADD_PLAYER | UPDATE_GAME_MODE | UPDATE_LISTED | UPDATE_LATENCY;
         if (chatSession != null) {
             actions |= INITIALIZE_CHAT;

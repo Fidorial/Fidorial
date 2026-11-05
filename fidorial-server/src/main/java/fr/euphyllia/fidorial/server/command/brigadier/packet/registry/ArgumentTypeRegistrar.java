@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.command.brigadier.packet.registry;
 
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 
 public interface ArgumentTypeRegistrar<T extends ArgumentType<?>, I extends ArgumentTypeRegistrar.Spec<T>> {
 

@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;

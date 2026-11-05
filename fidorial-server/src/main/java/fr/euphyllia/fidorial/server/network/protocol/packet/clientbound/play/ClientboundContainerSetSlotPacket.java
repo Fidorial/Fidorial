@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.ItemStackWriter;
-import fr.euphyllia.fidorial.server.registry.ServerRegistries;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.ItemStackWriter;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.item.ItemStack;
 import net.kyori.adventure.key.Key;
 
@@ -23,8 +24,14 @@ import net.kyori.adventure.key.Key;
  * <p>https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Container_Slot
  */
 public record ClientboundContainerSetSlotPacket(
-        int windowId, int stateId, int slot, ItemStack stack, ServerRegistries registries)
-        implements ClientboundPacket {
+        int windowId, int stateId, int slot, ItemStack stack)
+        implements ClientboundPacket<ClientboundContainerSetSlotPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerSetSlotPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundContainerSetSlotPacket::windowId)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundContainerSetSlotPacket::stateId)
+            .then(PrimitiveCodecs.SHORT.comap(Integer::shortValue), ClientboundContainerSetSlotPacket::slot)
+            .then(ItemStackWriter.SLOT, ClientboundContainerSetSlotPacket::stack);
 
     @Override
     public Key name() {
@@ -32,10 +39,7 @@ public record ClientboundContainerSetSlotPacket(
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(windowId);
-        buf.writeVarInt(stateId);
-        buf.writeShort(slot);
-        ItemStackWriter.writeSlot(buf, stack, registries);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundContainerSetSlotPacket> codec() {
+        return CODEC;
     }
 }

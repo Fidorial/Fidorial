@@ -3,6 +3,9 @@ package fr.euphyllia.fidorial.server.world.weather;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickChange;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickSettings;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickState;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
@@ -25,6 +28,10 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
     private final ServerWorldManager worldManager;
     private final ScheduledExecutorService ticker;
 
+    private static final long TICK_NANOS = TimeUnit.MILLISECONDS.toNanos(50L);
+
+    private final TickState tickState = new TickState(TickSettings.DEFAULT);
+
     public WeatherEngine(final ServerWorldManager worldManager) {
         this.worldManager = Objects.requireNonNull(worldManager, "The world manager whose worlds get a weather cycle must not be null");
         this.ticker = Executors.newSingleThreadScheduledExecutor(
@@ -38,7 +45,9 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
         ticker.scheduleAtFixedRate(
                 () -> {
                     try {
-                        tick();
+                        for (int due = tickState.dueTicks(TICK_NANOS); due > 0; due--) {
+                            tick();
+                        }
                     } catch (final Throwable t) {
                         LOGGER.error("Error during weather tick", t);
                     }
@@ -49,6 +58,10 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
         for (final ServerWorld world : worldManager.worlds()) {
             LOGGER.debug("Initial weather of {}: {}", world.key(), world.weather().weather());
         }
+    }
+
+    public void changeTicking(final TickChange change) {
+        ticker.execute(() -> tickState.apply(change));
     }
 
     public void attach(final ServerWorld world) {
@@ -62,7 +75,7 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
         }
     }
 
-    private static void broadcast(final ServerWorld world, final ClientboundPacket packet) {
+    private static void broadcast(final ServerWorld world, final ClientboundPacket<?> packet) {
         final List<ServerPlayer> players = FidorialServer.getInstance().players().online();
         for (int i = 0, size = players.size(); i < size; i++) {
             final ServerPlayer player = players.get(i);
@@ -72,7 +85,7 @@ public final class WeatherEngine implements WeatherManager, AutoCloseable {
         }
     }
 
-    public void syncTo(final ServerWorld world, final Consumer<ClientboundPacket> target) {
+    public void syncTo(final ServerWorld world, final Consumer<ClientboundPacket<?>> target) {
         world.weather().syncTo(target);
     }
 

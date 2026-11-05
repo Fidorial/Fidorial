@@ -5,6 +5,9 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetTimePacket;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickChange;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickSettings;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickState;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
@@ -36,6 +39,10 @@ public class DayNightThread implements AutoCloseable {
     private final Set<TypedKey<WorldClock>> unknownClocks = ConcurrentHashMap.newKeySet();
     private final Set<Key> attached = ConcurrentHashMap.newKeySet();
 
+    private static final long TICK_NANOS = TimeUnit.MILLISECONDS.toNanos(50L);
+
+    private final TickState tickState = new TickState(TickSettings.DEFAULT);
+
     private int sinceLastSync;
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
@@ -55,7 +62,9 @@ public class DayNightThread implements AutoCloseable {
                 () -> {
                     try {
                         tickProfiler.heartbeat();
-                        tick();
+                        for (int due = tickState.dueTicks(TICK_NANOS); due > 0; due--) {
+                            tick();
+                        }
                     } catch (final Throwable t) {
                         LOGGER.error("Day/night cycle tick failed", t);
                     }
@@ -73,6 +82,10 @@ public class DayNightThread implements AutoCloseable {
                     cycle.timeOfDay(),
                     cycle.clock());
         }
+    }
+
+    public void changeTicking(final TickChange change) {
+        ticker.execute(() -> tickState.apply(change));
     }
 
     public void setTickProfiler(final @Nullable RegionTickProfiler profiler) {
@@ -129,7 +142,7 @@ public class DayNightThread implements AutoCloseable {
         }
     }
 
-    public void syncTo(final ServerWorld world, final Consumer<ClientboundPacket> target) {
+    public void syncTo(final ServerWorld world, final Consumer<ClientboundPacket<?>> target) {
         final ClientboundSetTimePacket packet = packetFor(world, world.dayNightCycle());
         if (packet != null) {
             target.accept(packet);

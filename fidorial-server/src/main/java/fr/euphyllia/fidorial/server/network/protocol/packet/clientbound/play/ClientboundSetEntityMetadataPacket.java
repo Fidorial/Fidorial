@@ -1,17 +1,21 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import net.kyori.adventure.key.Key;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Set_Entity_Metadata
-public record ClientboundSetEntityMetadataPacket(int entityId, List<Entry> metadata) implements ClientboundPacket {
+public record ClientboundSetEntityMetadataPacket(int entityId, List<Entry> metadata) implements ClientboundPacket<ClientboundSetEntityMetadataPacket> {
 
     private static final int METADATA_END = 0xFF;
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetEntityMetadataPacket> CODEC = NetworkEncoder.member(ClientboundSetEntityMetadataPacket::encode);
 
     public static ClientboundSetEntityMetadataPacket of(final int entityId, final Entry... entries) {
         return new ClientboundSetEntityMetadataPacket(entityId, List.of(entries));
@@ -23,7 +27,11 @@ public record ClientboundSetEntityMetadataPacket(int entityId, List<Entry> metad
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundSetEntityMetadataPacket> codec() {
+        return CODEC;
+    }
+
+    private void encode(final CodecAwarePacketBuffer buf) {
         buf.writeVarInt(entityId);
         for (final Entry entry : metadata) {
             entry.write(buf);

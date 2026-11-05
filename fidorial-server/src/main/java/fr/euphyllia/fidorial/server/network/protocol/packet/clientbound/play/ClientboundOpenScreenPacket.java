@@ -1,8 +1,15 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.TextCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
+import fr.euphyllia.fidorial.server.codecs.networking.RegistryNetworkCodecs;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MenuType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
@@ -21,8 +28,13 @@ import net.kyori.adventure.text.Component;
  *
  * <p>https://minecraft.wiki/w/Java_Edition_protocol/Packets#Open_Screen
  */
-public record ClientboundOpenScreenPacket(int windowId, int menuTypeId, Component title)
-        implements ClientboundPacket {
+public record ClientboundOpenScreenPacket(int windowId, TypedKey<MenuType> menuType, Component title)
+        implements ClientboundPacket<ClientboundOpenScreenPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundOpenScreenPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundOpenScreenPacket::windowId)
+            .then(RegistryNetworkCodecs.id(RegistryKey.MENU), ClientboundOpenScreenPacket::menuType)
+            .then(TextCodecs.COMPONENT, ClientboundOpenScreenPacket::title);
 
     @Override
     public Key name() {
@@ -30,9 +42,7 @@ public record ClientboundOpenScreenPacket(int windowId, int menuTypeId, Componen
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(windowId);
-        buf.writeVarInt(menuTypeId);
-        buf.writeComponent(title);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundOpenScreenPacket> codec() {
+        return CODEC;
     }
 }

@@ -1,20 +1,22 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.handshake;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.StringLikeCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.HandshakePacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
 public record ServerboundIntentionPacket(int protocolVersion, String hostname, int port, int nextState)
         implements ServerboundPacket {
 
-    public static ServerboundIntentionPacket read(final PacketBuffer buf) {
-        final int protocolVersion = buf.readVarInt();
-        final String hostname = buf.readString(1024);
-        final int port = buf.readUShort();
-        final int nextState = buf.readVarInt();
-        return new ServerboundIntentionPacket(protocolVersion, hostname, port, nextState);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundIntentionPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            StringLikeCodecs.string(1024),
+            PrimitiveCodecs.UNSIGNED_SHORT,
+            PrimitiveCodecs.VAR_INT,
+            ServerboundIntentionPacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

@@ -36,6 +36,7 @@ import fr.euphyllia.fidorial.server.command.defaults.SpawnPointCommand;
 import fr.euphyllia.fidorial.server.command.defaults.StopCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SummonCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TeleportCommand;
+import fr.euphyllia.fidorial.server.command.defaults.TickCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TimeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TpsCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WeatherCommand;
@@ -98,6 +99,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(GameModeCommand.create(), Set.of("gm"));
         registerInternal(TpsCommand.create());
         registerInternal(TimeCommand.create());
+        registerInternal(TickCommand.create());
         registerInternal(BossBarCommand.create());
         registerInternal(BanCommand.create());
         registerInternal(PardonCommand.create(), Set.of("unban"));

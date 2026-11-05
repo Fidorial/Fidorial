@@ -10,7 +10,7 @@ import fr.euphyllia.fidorial.server.entity.player.PlayerModule;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.world.ServerWorld;

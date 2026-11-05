@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.player;
 
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
@@ -78,7 +78,7 @@ public final class PlayerList {
      *
      * @param packet the packet
      */
-    public void broadcast(final ClientboundPacket packet) {
+    public void broadcast(final ClientboundPacket<?> packet) {
         for (final ClientConnection connection : connections) {
             connection.send(packet);
         }
@@ -96,7 +96,7 @@ public final class PlayerList {
      */
     public void broadcastNear(
             final World world, final double x, final double y, final double z, final double radius,
-            final ClientboundPacket packet) {
+            final ClientboundPacket<?> packet) {
         final double radiusSq = radius * radius;
         for (final ServerPlayer player : snapshot) {
             if (player.isRemoved() || !player.world().equals(world)) {

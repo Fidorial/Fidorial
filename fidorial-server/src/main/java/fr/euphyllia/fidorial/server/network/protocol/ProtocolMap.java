@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol;
 
-import fr.euphyllia.fidorial.server.network.ConnectionState;
+import fr.euphyllia.fidorial.server.network.connection.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPacketIds;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationServerboundPacketIds;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.HandshakeServerboundPacketIds;
@@ -10,12 +10,14 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPack
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayServerboundPacketIds;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusClientboundPacketIds;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusServerboundPacketIds;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID;
@@ -23,18 +25,19 @@ import static fr.euphyllia.fidorial.server.VersionConstants.MINECRAFT_VERSION_ID
 public final class ProtocolMap {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ProtocolMap.class);
-    private final Map<ConnectionState, Map<Boolean, Direction>> table = new EnumMap<>(ConnectionState.class);
+    private final Map<ConnectionState, Direction> clientbound = new EnumMap<>(ConnectionState.class);
+    private final Map<ConnectionState, Direction> serverbound = new EnumMap<>(ConnectionState.class);
 
     private ProtocolMap() {
-        put(ConnectionState.HANDSHAKE, false, HandshakeServerboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.STATUS, true, StatusClientboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.STATUS, false, StatusServerboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.LOGIN, true, LoginClientboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.LOGIN, false, LoginServerboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.CONFIGURATION, true, ConfigurationClientboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.CONFIGURATION, false, ConfigurationServerboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.PLAY, true, PlayClientboundPacketIds.BY_IDENTIFIER);
-        put(ConnectionState.PLAY, false, PlayServerboundPacketIds.BY_IDENTIFIER);
+        serverbound.put(ConnectionState.HANDSHAKE, Direction.of(HandshakeServerboundPacketIds.BY_IDENTIFIER));
+        clientbound.put(ConnectionState.STATUS, Direction.of(StatusClientboundPacketIds.BY_IDENTIFIER));
+        serverbound.put(ConnectionState.STATUS, Direction.of(StatusServerboundPacketIds.BY_IDENTIFIER));
+        clientbound.put(ConnectionState.LOGIN, Direction.of(LoginClientboundPacketIds.BY_IDENTIFIER));
+        serverbound.put(ConnectionState.LOGIN, Direction.of(LoginServerboundPacketIds.BY_IDENTIFIER));
+        clientbound.put(ConnectionState.CONFIGURATION, Direction.of(ConfigurationClientboundPacketIds.BY_IDENTIFIER));
+        serverbound.put(ConnectionState.CONFIGURATION, Direction.of(ConfigurationServerboundPacketIds.BY_IDENTIFIER));
+        clientbound.put(ConnectionState.PLAY, Direction.of(PlayClientboundPacketIds.BY_IDENTIFIER));
+        serverbound.put(ConnectionState.PLAY, Direction.of(PlayServerboundPacketIds.BY_IDENTIFIER));
     }
 
     public static ProtocolMap load() {
@@ -45,45 +48,51 @@ public final class ProtocolMap {
         return map;
     }
 
-    private void put(final ConnectionState state, final boolean clientbound, final Map<Key, Integer> byName) {
-        table.computeIfAbsent(state, _ -> new HashMap<>()).put(clientbound, Direction.of(byName));
-    }
-
     public boolean isAvailable() {
         return true;
     }
 
-    private Direction dir(final ConnectionState state, final boolean clientbound) {
-        return table.getOrDefault(state, Map.of()).getOrDefault(clientbound, Direction.empty());
-    }
-
     public int clientboundId(final ConnectionState state, final Key name) {
-        final Integer id = dir(state, true).byName().get(name);
-        if (id == null)
+        final int id = clientbound.getOrDefault(state, Direction.EMPTY).id(name);
+        if (id < 0)
             throw new IllegalStateException("Paquet clientbound inconnu dans la table : " + state + "/" + name);
         return id;
     }
 
     public @Nullable Key serverboundName(final ConnectionState state, final int id) {
-        return dir(state, false).byId().get(id);
+        return serverbound.getOrDefault(state, Direction.EMPTY).name(id);
     }
 
     public int serverboundId(final ConnectionState state, final Key name) {
-        final Integer id = dir(state, false).byName().get(name);
-        if (id == null)
+        final int id = serverbound.getOrDefault(state, Direction.EMPTY).id(name);
+        if (id < 0)
             throw new IllegalStateException("Paquet serverbound inconnu dans la table : " + state + "/" + name);
         return id;
     }
 
-    private record Direction(Map<Key, Integer> byName, Map<Integer, Key> byId) {
-        static Direction empty() {
-            return new Direction(Map.of(), Map.of());
-        }
+    /**
+     * @param byName packet ids, {@code -1} for an unknown name
+     * @param byId   packet names indexed by id; packet ids are dense, so an array beats a map
+     */
+    private record Direction(Object2IntMap<Key> byName, @Nullable Key[] byId) {
+
+        static final Direction EMPTY = of(Map.of());
 
         static Direction of(final Map<Key, Integer> byName) {
-            final Map<Integer, Key> byId = new HashMap<>();
-            byName.forEach((n, i) -> byId.put(i, n));
-            return new Direction(Map.copyOf(byName), Map.copyOf(byId));
+            final Object2IntOpenHashMap<Key> ids = new Object2IntOpenHashMap<>(byName);
+            ids.defaultReturnValue(-1);
+            ids.trim();
+            final @Nullable Key[] names = new Key[ids.values().intStream().max().orElse(-1) + 1];
+            byName.forEach((name, id) -> names[id] = name);
+            return new Direction(Object2IntMaps.unmodifiable(ids), names);
+        }
+
+        int id(final Key name) {
+            return byName.getInt(name);
+        }
+
+        @Nullable Key name(final int id) {
+            return id >= 0 && id < byId.length ? byId[id] : null;
         }
     }
 }

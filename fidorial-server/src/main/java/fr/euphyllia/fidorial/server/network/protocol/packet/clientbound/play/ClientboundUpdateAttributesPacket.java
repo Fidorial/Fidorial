@@ -1,8 +1,12 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.StringLikeCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.attribute.AttributeModifier;
 import net.kyori.adventure.key.Key;
 
@@ -18,7 +22,11 @@ import java.util.List;
  * @param values   the attributes, each with its base value and the modifiers it carries; the client
  *                 drops the modifiers it had on these attributes and keeps the ones sent
  */
-public record ClientboundUpdateAttributesPacket(int entityId, List<Value> values) implements ClientboundPacket {
+public record ClientboundUpdateAttributesPacket(int entityId, List<Value> values) implements ClientboundPacket<ClientboundUpdateAttributesPacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundUpdateAttributesPacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.VAR_INT, ClientboundUpdateAttributesPacket::entityId)
+            .then(Value.CODEC.listOf(PacketBuffer::writeVarInt), ClientboundUpdateAttributesPacket::values);
 
     /**
      * One attribute.
@@ -28,6 +36,16 @@ public record ClientboundUpdateAttributesPacket(int entityId, List<Value> values
      * @param modifiers   the modifiers applied on top of the base value
      */
     public record Value(int attributeId, double base, List<AttributeModifier> modifiers) {
+
+        private static final NetworkEncoder<PacketBuffer, AttributeModifier> MODIFIER = NetworkEncoder
+                .field(StringLikeCodecs.KEY, AttributeModifier::id)
+                .then(PrimitiveCodecs.DOUBLE, AttributeModifier::amount)
+                .then(PrimitiveCodecs.VAR_INT, modifier -> modifier.operation().networkId());
+
+        public static final NetworkEncoder<PacketBuffer, Value> CODEC = NetworkEncoder
+                .field(PrimitiveCodecs.VAR_INT, Value::attributeId)
+                .then(PrimitiveCodecs.DOUBLE, Value::base)
+                .then(MODIFIER.listOf(PacketBuffer::writeVarInt), Value::modifiers);
 
         public Value {
             modifiers = List.copyOf(modifiers);
@@ -54,18 +72,7 @@ public record ClientboundUpdateAttributesPacket(int entityId, List<Value> values
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writeVarInt(entityId);
-        buf.writeVarInt(values.size());
-        for (final Value value : values) {
-            buf.writeVarInt(value.attributeId());
-            buf.writeDouble(value.base());
-            buf.writeVarInt(value.modifiers().size());
-            for (final AttributeModifier modifier : value.modifiers()) {
-                buf.writeKey(modifier.id());
-                buf.writeDouble(modifier.amount());
-                buf.writeVarInt(modifier.operation().networkId());
-            }
-        }
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundUpdateAttributesPacket> codec() {
+        return CODEC;
     }
 }

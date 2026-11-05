@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.command.brigadier.argument.primitive;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 
 public final class BoolArgumentRegistrar
         implements ArgumentTypeRegistrar<BoolArgumentType, BoolArgumentRegistrar.Spec> {

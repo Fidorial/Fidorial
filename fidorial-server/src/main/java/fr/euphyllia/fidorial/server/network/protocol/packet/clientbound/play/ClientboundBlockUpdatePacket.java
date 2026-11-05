@@ -1,13 +1,19 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.math.BlockPosition;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Block_Update
-public record ClientboundBlockUpdatePacket(BlockPosition pos, int blockStateId) implements ClientboundPacket {
+public record ClientboundBlockUpdatePacket(BlockPosition pos, int blockStateId) implements ClientboundPacket<ClientboundBlockUpdatePacket> {
+
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockUpdatePacket> CODEC = NetworkEncoder
+            .field(PrimitiveCodecs.BLOCK_POS, ClientboundBlockUpdatePacket::pos)
+            .then(PrimitiveCodecs.VAR_INT, ClientboundBlockUpdatePacket::blockStateId);
 
     @Override
     public Key name() {
@@ -15,8 +21,7 @@ public record ClientboundBlockUpdatePacket(BlockPosition pos, int blockStateId) 
     }
 
     @Override
-    public void write(final PacketBuffer buf) {
-        buf.writePosition(pos.blockX(), pos.blockY(), pos.blockZ());
-        buf.writeVarInt(blockStateId);
+    public NetworkEncoder<CodecAwarePacketBuffer, ClientboundBlockUpdatePacket> codec() {
+        return CODEC;
     }
 }

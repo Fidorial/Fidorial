@@ -10,6 +10,9 @@ import ca.spottedleaf.concurrentutil.numa.OSNuma;
 import ca.spottedleaf.concurrentutil.scheduler.SchedulableTick;
 import ca.spottedleaf.concurrentutil.scheduler.StealingScheduledThreadPool;
 import ca.spottedleaf.concurrentutil.util.Priority;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickChange;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickSettings;
+import fr.euphyllia.fidorial.server.schedulers.tick.TickState;
 import fr.fidorial.scheduler.RegionTickHandler;
 import fr.fidorial.scheduler.RegionTps;
 import fr.fidorial.scheduler.RegionizedScheduler;
@@ -73,6 +76,9 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     private final COWArrayList<RegionTickHandler> tickHandlers = new COWArrayList<>(RegionTickHandler.class);
 
     private volatile boolean shutdown;
+
+    private volatile TickSettings tickDefaults = TickSettings.DEFAULT; // only read on the first tick of a region
+    private final Object tickChangeLock = new Object();
 
     private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
     private final COWArrayList<RegionTickProfiler> tickProfilers = new COWArrayList<>(RegionTickProfiler.class);
@@ -142,6 +148,37 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     @Override
     public boolean isOwnedByCurrentThread(final Key worldName, final ChunkPos pos) {
         return RegionTickThread.owns(worldName, pos);
+    }
+
+    /**
+     * {@return whether the current thread is ticking a region whose tick runs game logic}
+     * <p>
+     * {@code true} outside region threads.
+     */
+    public static boolean isGameTick() {
+        if (!(Thread.currentThread() instanceof final RegionTickThread self)) {
+            return true;
+        }
+        final Region region = self.currentRegion;
+        return region == null || region.gameTick;
+    }
+
+    public TickSettings tickDefaults() {
+        return tickDefaults;
+    }
+
+    /**
+     * Applies a tick change to every region, each on its own thread at its next tick, and to the
+     * regions started after it. Changes are serialised so every region sees them in the same order.
+     */
+    public void changeTicking(final TickChange change) {
+        synchronized (tickChangeLock) {
+            tickDefaults = change.applyTo(tickDefaults);
+            for (final Region region : regions.values()) {
+                region.submit(() -> region.tickState().apply(change), 0L);
+                scheduler.notifyTasks(region);
+            }
+        }
     }
 
     public void registerTickHandler(final RegionTickHandler handler) {
@@ -353,6 +390,13 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
         volatile @Nullable Thread tickingThread;
 
+        private @Nullable TickState tickState;
+
+        /**
+         * Whether the tick in progress runs game logic. Only read on this region's thread.
+         */
+        boolean gameTick = true;
+
         private long currentTick;
 
         private long previousTickStart = TimeUtil.DEADLINE_NOT_SET;
@@ -361,6 +405,20 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
         Region(final RegionKey key) {
             this.key = key;
+        }
+
+        /**
+         * {@return this region's tick state, taken from the defaults the first time}
+         * <p>
+         * Only called on this region's thread. Reading the defaults on first use rather than at
+         * construction guarantees a region either sees a change's defaults or is already in the map
+         * when {@link #changeTicking} iterates it.
+         */
+        TickState tickState() {
+            if (tickState == null) {
+                tickState = new TickState(tickDefaults);
+            }
+            return tickState;
         }
 
         boolean covers(final Key world, final ChunkPos pos) {
@@ -433,6 +491,7 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
             enter();
             try {
                 currentTick++;
+                gameTick = tickState().beginTick();
 
                 drainImmediate();
                 drainDelayed();
@@ -513,8 +572,9 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         }
 
         private void scheduleNextTick(final long scheduledStart) {
-            final long target = scheduledStart + TICK_INTERVAL_NS;
-            final long floor = System.nanoTime() - TICK_INTERVAL_NS;
+            final long interval = tickState().nanosPerTick();
+            final long target = scheduledStart + interval;
+            final long floor = System.nanoTime() - interval;
             setScheduledStart(TimeUtil.getGreatestTime(target, floor));
         }
 

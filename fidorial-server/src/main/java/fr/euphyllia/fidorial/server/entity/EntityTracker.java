@@ -4,8 +4,8 @@ import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.list.COWArrayList;
 import ca.spottedleaf.concurrentutil.map.concurrent.ints.ConcurrentChainedInt2ReferenceHashTable;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
-import fr.euphyllia.fidorial.server.network.ConnectionState;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRemoveEntitiesPacket;
 import fr.fidorial.entity.Entity;
@@ -78,7 +78,7 @@ public final class EntityTracker {
         }
     }
 
-    public void sendToViewers(final AbstractEntity entity, final ClientboundPacket packet) {
+    public void sendToViewers(final AbstractEntity entity, final ClientboundPacket<?> packet) {
         final COWArrayList<ClientConnection> current = viewers.get(entity.entityId());
         if (current == null) {
             return;
@@ -88,7 +88,7 @@ public final class EntityTracker {
         }
     }
 
-    public void sendToViewers(final AbstractEntity entity, final ClientboundPacket packet, final Predicate<ClientConnection> filter) {
+    public void sendToViewers(final AbstractEntity entity, final ClientboundPacket<?> packet, final Predicate<ClientConnection> filter) {
         final COWArrayList<ClientConnection> current = viewers.get(entity.entityId());
         if (current == null) {
             return;

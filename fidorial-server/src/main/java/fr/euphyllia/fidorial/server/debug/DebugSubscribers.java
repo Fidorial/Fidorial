@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.debug;
 
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.permission.DefaultPermissions;
 
 import java.util.Collection;

@@ -4,7 +4,7 @@ import dev.faststats.ErrorTracker;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.PlayerList;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 
 /**
  * Anonymous usage statistics and error reporting (FastStats).

@@ -48,6 +48,7 @@ public final class DefaultPermissions {
                 command("stop", "Stop the server."),
                 command("summon", "Summon an entity."),
                 command("teleport", "Teleport entities."),
+                command("tick", "Freeze, step or change the tick rate of the game."),
                 command("time", "Change the time of a world."),
                 command("tps", "View per-region TPS."),
                 command("weather", "Change the weather."),

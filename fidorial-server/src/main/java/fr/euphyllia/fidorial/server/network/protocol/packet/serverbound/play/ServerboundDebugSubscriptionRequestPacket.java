@@ -1,9 +1,10 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.debug.DebugChannel;
 import fr.euphyllia.fidorial.server.debug.DebugChannels;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import io.netty.handler.codec.DecoderException;
@@ -13,7 +14,9 @@ public record ServerboundDebugSubscriptionRequestPacket(int requested) implement
 
     private static final int MAX_SUBSCRIPTIONS = 32;
 
-    public static ServerboundDebugSubscriptionRequestPacket read(final PacketBuffer buf) {
+    public static final NetworkDecoder<PacketBuffer, ServerboundDebugSubscriptionRequestPacket> DECODER = ServerboundDebugSubscriptionRequestPacket::decode;
+
+    private static ServerboundDebugSubscriptionRequestPacket decode(final PacketBuffer buf) {
         final int count = buf.readVarInt();
         if (count < 0 || count > MAX_SUBSCRIPTIONS) {
             throw new DecoderException("Too many debug subscriptions: " + count);

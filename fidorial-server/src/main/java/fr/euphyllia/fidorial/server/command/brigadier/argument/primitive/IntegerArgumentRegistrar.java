@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NumberFlags;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 
 public final class IntegerArgumentRegistrar
         implements ArgumentTypeRegistrar<IntegerArgumentType, IntegerArgumentRegistrar.Spec> {

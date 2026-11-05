@@ -1,19 +1,20 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
 public record ServerboundAcceptTeleportationPacket(int teleportId, PositionData.Vec3D position, PositionData.FloatRotation rotation) implements ServerboundPacket {
 
-    public static ServerboundAcceptTeleportationPacket read(final PacketBuffer buf) {
-        final int teleportId = buf.readVarInt();
-        final PositionData.Vec3D position = PositionData.Vec3D.readFrom(buf);
-        final PositionData.FloatRotation rotation = PositionData.FloatRotation.readFrom(buf);
-        return new ServerboundAcceptTeleportationPacket(teleportId, position, rotation);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundAcceptTeleportationPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            PositionData.Vec3D.CODEC,
+            PositionData.FloatRotation.CODEC,
+            ServerboundAcceptTeleportationPacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

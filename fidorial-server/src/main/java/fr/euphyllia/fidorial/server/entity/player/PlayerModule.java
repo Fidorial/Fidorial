@@ -12,7 +12,7 @@ import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.moderation.FidorialBanManager;
 import fr.euphyllia.fidorial.server.moderation.FidorialWhitelist;
 import fr.euphyllia.fidorial.server.moderation.ModerationModule;
-import fr.euphyllia.fidorial.server.network.ClientConnection;
+import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.fidorial.entity.player.OfflinePlayerManager;
 import fr.fidorial.entity.player.PlayerManager;
@@ -150,7 +150,7 @@ public final class PlayerModule implements ServerModule, PlayerManager {
      *
      * @param packet the packet
      */
-    public void broadcast(final ClientboundPacket packet) {
+    public void broadcast(final ClientboundPacket<?> packet) {
         connections.broadcast(packet);
     }
 
@@ -158,7 +158,7 @@ public final class PlayerModule implements ServerModule, PlayerManager {
      * Sends a packet to the players of {@code world} that can see the given point.
      */
     public void broadcastNear(
-            final World world, final double x, final double y, final double z, final ClientboundPacket packet) {
+            final World world, final double x, final double y, final double z, final ClientboundPacket<?> packet) {
         connections.broadcastNear(world, x, y, z, config.general().sendDistance() * 16.0 + 16.0, packet);
     }
 

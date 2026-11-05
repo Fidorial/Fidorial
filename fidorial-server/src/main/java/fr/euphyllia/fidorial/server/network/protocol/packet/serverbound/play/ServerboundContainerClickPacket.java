@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -37,19 +39,15 @@ public record ServerboundContainerClickPacket(int windowId, int stateId, short s
     public static final int MODE_QUICK_CRAFT = 5;
     public static final int MODE_PICKUP_ALL = 6;
 
-    public static ServerboundContainerClickPacket read(final PacketBuffer buf) {
-        final int windowId = buf.readVarInt();
-        final int stateId = buf.readVarInt();
-        final short slot = buf.readShort();
-        final byte button = buf.readByte();
-        final int mode = buf.readVarInt();
-
-        // Changed slots + carried item: ignored, we fully resynchronize afterwards.
-        if (buf.readableBytes() > 0) {
-            buf.readRemainingBytes();
-        }
-        return new ServerboundContainerClickPacket(windowId, stateId, slot, button, mode);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundContainerClickPacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.SHORT,
+            PrimitiveCodecs.BYTE,
+            PrimitiveCodecs.VAR_INT,
+            PrimitiveCodecs.REMAINING_BYTES, // changed slots + carried item: ignored, we fully resynchronize afterwards
+            (windowId, stateId, slot, button, mode, _) ->
+                    new ServerboundContainerClickPacket(windowId, stateId, slot, button, mode));
 
     @Override
     public void handle(final PacketListener listener) {

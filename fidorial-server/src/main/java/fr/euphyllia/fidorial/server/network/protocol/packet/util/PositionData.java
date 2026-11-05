@@ -1,0 +1,134 @@
+package fr.euphyllia.fidorial.server.network.protocol.packet.util;
+
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
+import org.jspecify.annotations.Nullable;
+
+@SuppressWarnings("unused")
+public final class PositionData {
+
+    private PositionData() {
+    }
+
+    public record Vec3D(double x, double y, double z) {
+
+        public static final NetworkCodec<PacketBuffer, Vec3D> CODEC = NetworkCodec.of(Vec3D::readFrom, (buf, value) -> value.writeTo(buf));
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeDouble(x);
+            buf.writeDouble(y);
+            buf.writeDouble(z);
+        }
+        public static Vec3D readFrom(final PacketBuffer buf) {
+            final double x = buf.readDouble();
+            final double y = buf.readDouble();
+            final double z = buf.readDouble();
+            return new Vec3D(x, y, z);
+        }
+    }
+
+    public record DeltaVec3D(short x, short y, short z) {
+
+        public static final NetworkCodec<PacketBuffer, DeltaVec3D> CODEC = NetworkCodec.of(DeltaVec3D::readFrom, (buf, value) -> value.writeTo(buf));
+
+        private static final double SCALE = 4096.0;
+        private static final long MIN = -32768L;
+        private static final long MAX = 32767L;
+
+        public static @Nullable DeltaVec3D between(final Vec3D prev, final Vec3D current) {
+            final long dx = encode(current.x()) - encode(prev.x());
+            final long dy = encode(current.y()) - encode(prev.y());
+            final long dz = encode(current.z()) - encode(prev.z());
+            if (isTooBig(dx) || isTooBig(dy) || isTooBig(dz)) {
+                return null;
+            }
+            return new DeltaVec3D((short) dx, (short) dy, (short) dz);
+        }
+
+        private static long encode(final double v) {
+            return Math.round(v * SCALE);
+        }
+
+        private static boolean isTooBig(final long v) {
+            return v < MIN || v > MAX;
+        }
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeShort(x);
+            buf.writeShort(y);
+            buf.writeShort(z);
+        }
+        public static DeltaVec3D readFrom(final PacketBuffer buf) {
+            final short x = buf.readShort();
+            final short y = buf.readShort();
+            final short z = buf.readShort();
+            return new DeltaVec3D(x, y, z);
+        }
+    }
+
+    public record VelocityVec3D(double x, double y, double z) {
+
+        public static final NetworkCodec<PacketBuffer, VelocityVec3D> CODEC = NetworkCodec.of(VelocityVec3D::readFrom, (buf, value) -> value.writeTo(buf));
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeLpVec3(x, y, z);
+        }
+        public static VelocityVec3D readFrom(final PacketBuffer buf) {
+            final double[] velocity = buf.readLpVec3();
+            return new VelocityVec3D(velocity[0], velocity[1], velocity[2]);
+        }
+    }
+
+    public record FloatRotation(float yaw, float pitch) {
+
+        public static final NetworkCodec<PacketBuffer, FloatRotation> CODEC = NetworkCodec.of(FloatRotation::readFrom, (buf, value) -> value.writeTo(buf));
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeFloat(yaw);
+            buf.writeFloat(pitch);
+        }
+        public static FloatRotation readFrom(final PacketBuffer buf) {
+            final float yaw = buf.readFloat();
+            final float pitch = buf.readFloat();
+            return new FloatRotation(yaw, pitch);
+        }
+    }
+
+    public record AngleRotation(float yaw, float pitch) {
+
+        public static final NetworkEncoder<PacketBuffer, AngleRotation> CODEC = NetworkEncoder.member(AngleRotation::writeTo);
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeAngle(yaw);
+            buf.writeAngle(pitch);
+        }
+    }
+
+    public record PositionMoveRotationData(Vec3D position, Vec3D deltaMovement, FloatRotation rotation) {
+
+        public static final NetworkCodec<PacketBuffer, PositionMoveRotationData> CODEC = NetworkCodec.of(PositionMoveRotationData::readFrom, (buf, value) -> value.writeTo(buf));
+
+        public void writeTo(final PacketBuffer buf) {
+            position.writeTo(buf);
+            deltaMovement.writeTo(buf);
+            rotation.writeTo(buf);
+        }
+        public static PositionMoveRotationData readFrom(final PacketBuffer buf) {
+            final Vec3D position = Vec3D.readFrom(buf);
+            final Vec3D deltaMovement = Vec3D.readFrom(buf);
+            final FloatRotation rotation = FloatRotation.readFrom(buf);
+            return new PositionMoveRotationData(position, deltaMovement, rotation);
+        }
+    }
+
+    public record LinearPositionPath(Vec3D position) {
+
+        public static final NetworkEncoder<PacketBuffer, LinearPositionPath> CODEC = NetworkEncoder.member(LinearPositionPath::writeTo);
+
+        public void writeTo(final PacketBuffer buf) {
+            buf.writeVarInt(0); // position tag (0 = linear (absolute), 1 = stepped (interpolated multi-tick path))
+            position.writeTo(buf);
+        }
+    }
+}

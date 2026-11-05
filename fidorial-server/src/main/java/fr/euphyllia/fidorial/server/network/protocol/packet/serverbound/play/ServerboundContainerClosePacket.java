@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -21,9 +23,9 @@ import fr.fidorial.protocol.ServerboundPacket;
  */
 public record ServerboundContainerClosePacket(int windowId) implements ServerboundPacket {
 
-    public static ServerboundContainerClosePacket read(final PacketBuffer buf) {
-        return new ServerboundContainerClosePacket(buf.readVarInt());
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundContainerClosePacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.VAR_INT,
+            ServerboundContainerClosePacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

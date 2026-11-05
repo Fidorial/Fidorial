@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import net.kyori.adventure.sound.Sound;
 
 import java.util.concurrent.ThreadLocalRandom;

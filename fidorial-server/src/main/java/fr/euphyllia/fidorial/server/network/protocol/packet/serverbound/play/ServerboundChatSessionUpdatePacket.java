@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play;
 
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkDecoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketListener;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 
@@ -18,13 +20,12 @@ public record ServerboundChatSessionUpdatePacket(
     private static final int MAX_PUBLIC_KEY_LENGTH = 512;
     private static final int MAX_SIGNATURE_LENGTH = 4096;
 
-    public static ServerboundChatSessionUpdatePacket read(final PacketBuffer buf) {
-        final UUID sessionId = buf.readUuid();
-        final long expiresAt = buf.readLong();
-        final byte[] publicKey = buf.readByteArray(MAX_PUBLIC_KEY_LENGTH);
-        final byte[] signature = buf.readByteArray(MAX_SIGNATURE_LENGTH);
-        return new ServerboundChatSessionUpdatePacket(sessionId, expiresAt, publicKey, signature);
-    }
+    public static final NetworkDecoder<PacketBuffer, ServerboundChatSessionUpdatePacket> DECODER = NetworkDecoder.composite(
+            PrimitiveCodecs.UUID,
+            PrimitiveCodecs.LONG,
+            PrimitiveCodecs.byteArray(MAX_PUBLIC_KEY_LENGTH),
+            PrimitiveCodecs.byteArray(MAX_SIGNATURE_LENGTH),
+            ServerboundChatSessionUpdatePacket::new);
 
     @Override
     public void handle(final PacketListener listener) {

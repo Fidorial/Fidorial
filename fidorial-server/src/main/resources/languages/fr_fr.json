@@ -280,5 +280,16 @@
   "commands.enchant.failed.entity" : "<red><arg:0> ne peut pas tenir d'objet enchanté",
   "commands.enchant.failed.itemless" : "<red><arg:0> ne tient aucun objet",
   "commands.enchant.failed.incompatible" : "<red><arg:0> n'accepte pas cet enchantement",
-  "commands.enchant.failed.level" : "<red>Le niveau <arg:0> dépasse le niveau maximal de cet enchantement, <arg:1>"
+  "commands.enchant.failed.level" : "<red>Le niveau <arg:0> dépasse le niveau maximal de cet enchantement, <arg:1>",
+
+  "commands.tick.query.percentiles" : "Percentiles : P50 : <arg:0> ms, P95 : <arg:1> ms, P99 : <arg:2> ms. Échantillon : <arg:3>",
+  "commands.tick.query.rate.running" : "Vitesse des ticks cible : <arg:0> par seconde.\nTemps moyen par tick : <arg:1> ms (cible : <arg:2> ms)",
+  "commands.tick.rate.success" : "La vitesse des ticks cible a été définie à <arg:0> par seconde",
+  "commands.tick.status.frozen" : "Le jeu est figé",
+  "commands.tick.status.lagging" : "Le jeu fonctionne, mais n'arrive pas à suivre la vitesse des ticks cible",
+  "commands.tick.status.running" : "Le jeu fonctionne normalement",
+  "commands.tick.step.fail" : "Impossible de faire avancer le jeu, il doit d'abord être figé",
+  "commands.tick.step.stop.fail" : "Aucun avancement des ticks en cours",
+  "commands.tick.step.stop.success" : "Avancement des ticks interrompu",
+  "commands.tick.step.success" : "Avancement de <arg:0> tick(s)"
 }

@@ -2,8 +2,8 @@ package fr.euphyllia.fidorial.server.debug;
 
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkRecordCodec;
-import fr.euphyllia.fidorial.server.network.PacketBuffer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 

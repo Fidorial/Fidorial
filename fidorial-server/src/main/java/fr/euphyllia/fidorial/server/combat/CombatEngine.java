@@ -20,7 +20,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerCombatKillPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.utils.PositionData;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
@@ -459,12 +459,10 @@ public final class CombatEngine implements CombatService {
     }
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
-        final int damageTypeId =
-                server.registries().registry(RegistryKey.DAMAGE_TYPE).networkId(source.type());
-        if (damageTypeId >= 0) {
+        if (server.registries().registry(RegistryKey.DAMAGE_TYPE).contains(source.type())) {
             sendToViewersAndSelf(victim, new ClientboundDamageEventPacket(
                     victim.entityId(),
-                    damageTypeId,
+                    source.type(),
                     source.causingEntity() == null ? null : source.causingEntity().entityId(),
                     source.directEntity() == null ? null : source.directEntity().entityId(),
                     null));
@@ -491,7 +489,7 @@ public final class CombatEngine implements CombatService {
         return direct == null || direct == victim ? null : direct.location();
     }
 
-    private void sendToViewersAndSelf(final AbstractLivingEntity victim, final ClientboundPacket packet) {
+    private void sendToViewersAndSelf(final AbstractLivingEntity victim, final ClientboundPacket<?> packet) {
         victim.sendToTrackers(packet);
         if (victim instanceof final ServerPlayer player) {
             player.connection().send(packet);
