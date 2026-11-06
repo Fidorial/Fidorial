@@ -1,6 +1,7 @@
 package fr.fidorial.storage.player;
 
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.math.Location;
 import fr.fidorial.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Persistence backend for the game mode, respawn point and last position of players.
+ * Persistence backend for the game mode, abilities, respawn point and last position of players.
  *
  * <p>The server registers a default implementation as a {@linkplain ServiceRegistry
  * service}; plugins may replace it, for instance to store players in a database.</p>
@@ -21,8 +22,8 @@ public interface PlayerDataStorage {
     /**
      * Loads the data of a player.
      *
-     * @param uuid     the player identity
-     * @return the saved data, or {@code defaults}
+     * @param uuid the player identity
+     * @return the saved data, or default data if none was saved
      * @throws IOException if the data cannot be read
      * @since 0.1.0
      */
@@ -54,12 +55,14 @@ public interface PlayerDataStorage {
      * The persisted state of a player.
      *
      * @param gameMode        the mode the player left in
+     * @param abilities       the player's movement abilities
      * @param respawnLocation the position the player respawns at, or {@code null} for the world spawn
      * @param lastLocation    the position the player was last at, or {@code null} if never saved
      * @since 0.1.0
      */
     record PlayerData(
             GameMode gameMode,
+            PlayerAbilities abilities,
             @Nullable Location respawnLocation,
             @Nullable Location lastLocation
     ) {

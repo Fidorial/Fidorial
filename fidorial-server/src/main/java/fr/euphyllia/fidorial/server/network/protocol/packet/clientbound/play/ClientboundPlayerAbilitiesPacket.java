@@ -6,10 +6,11 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPack
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.player.PlayerAbilities;
 import net.kyori.adventure.key.Key;
 
 // https://minecraft.wiki/w/Java_Edition_protocol/Packets#Player_Abilities_(clientbound)
-public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, float fovModifier)
+public record ClientboundPlayerAbilitiesPacket(byte flags, float flySpeed, float walkSpeed)
         implements ClientboundPacket<ClientboundPlayerAbilitiesPacket> {
 
     public static final byte INVULNERABLE = 0x01;
@@ -17,22 +18,18 @@ public record ClientboundPlayerAbilitiesPacket(byte flags, float flyingSpeed, fl
     public static final byte ALLOW_FLYING = 0x04;
     public static final byte CREATIVE_MODE = 0x08;
 
-    private static final float DEFAULT_FLY_SPEED = 0.05f;
-    private static final float DEFAULT_FOV_MODIFIER = 0.1f;
-
     public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundPlayerAbilitiesPacket> CODEC = NetworkEncoder
             .field(PrimitiveCodecs.BYTE, ClientboundPlayerAbilitiesPacket::flags)
-            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::flyingSpeed)
-            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::fovModifier);
+            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::flySpeed)
+            .then(PrimitiveCodecs.FLOAT, ClientboundPlayerAbilitiesPacket::walkSpeed);
 
-    public static ClientboundPlayerAbilitiesPacket forGameMode(final GameMode mode) {
-        final byte flags =
-                switch (mode) {
-                    case SURVIVAL, ADVENTURE -> 0;
-                    case CREATIVE -> (byte) (INVULNERABLE | ALLOW_FLYING | CREATIVE_MODE);
-                    case SPECTATOR -> (byte) (INVULNERABLE | FLYING | ALLOW_FLYING);
-                };
-        return new ClientboundPlayerAbilitiesPacket(flags, DEFAULT_FLY_SPEED, DEFAULT_FOV_MODIFIER);
+    public static ClientboundPlayerAbilitiesPacket abilities(final GameMode mode, final PlayerAbilities abilities) {
+        final boolean invulnerable = mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR;
+        final byte flags = (byte) ((invulnerable ? INVULNERABLE : 0)
+                | (abilities.flying() ? FLYING : 0)
+                | (abilities.flightAllowed() ? ALLOW_FLYING : 0)
+                | (mode == GameMode.CREATIVE ? CREATIVE_MODE : 0));
+        return new ClientboundPlayerAbilitiesPacket(flags, abilities.flySpeed(), abilities.walkSpeed());
     }
 
     @Override

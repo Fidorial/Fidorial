@@ -25,6 +25,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerStatusOnlyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerCommandPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerInputPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerLoadedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPunchPacket;
@@ -91,6 +92,8 @@ public interface PlayPacketListener extends PacketListener {
     void handleResourcePackResponse(ServerboundResourcePackPacket packet);
 
     void handlePlayerInput(ServerboundPlayerInputPacket packet);
+
+    void handlePlayerCommand(ServerboundPlayerCommandPacket packet);
 
     void handleChatAck(ServerboundChatAckPacket packet);
 

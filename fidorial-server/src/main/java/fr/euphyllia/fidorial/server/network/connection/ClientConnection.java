@@ -456,6 +456,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                         disconnecting.uuid(),
                         new PlayerDataStorage.PlayerData(
                                 disconnecting.gameMode(),
+                                disconnecting.abilities(),
                                 point == null ? null : point.position().toLocation(point.world()),
                                 disconnecting.location()));
                 LOGGER.debug("Inventory + Ender Chest and data for {} saved", disconnecting.name());

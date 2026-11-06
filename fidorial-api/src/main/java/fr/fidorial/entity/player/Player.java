@@ -224,6 +224,22 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     void setGameMode(GameMode gameMode);
 
     /**
+     * {@return the abilities of this player}
+     *
+     * @since 0.1.0
+     */
+    PlayerAbilities abilities();
+
+    /**
+     * Changes the abilities of this player, on its own thread.
+     *
+     * @param abilities the new abilities
+     * @return a future completing with {@code true} once applied, or {@code false} if the player was removed
+     * @since 0.1.0
+     */
+    CompletableFuture<Boolean> setAbilities(PlayerAbilities abilities);
+
+    /**
      * @return {@code true} while this player is dead and still on the respawn screen
      * @since 0.1.0
      */

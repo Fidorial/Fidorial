@@ -1,4 +1,4 @@
-package fr.euphyllia.fidorial.server.codecs.world;
+package fr.euphyllia.fidorial.server.codecs.api.world;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -21,7 +21,7 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import java.util.Arrays;
 import java.util.function.Function;
 
-public class BiomeCodecs {
+public final class BiomeCodecs {
 
     public static final Codec<TemperatureModifier> TEMPERATURE_MODIFIER =
             byId(TemperatureModifier.values(), TemperatureModifier::id, "temperature modifier");

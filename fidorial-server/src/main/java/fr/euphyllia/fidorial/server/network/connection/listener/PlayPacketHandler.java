@@ -26,7 +26,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameRuleValuesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundInitializeChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLoginPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoRemovePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerInfoUpdatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerPositionPacket;
@@ -65,6 +64,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerStatusOnlyPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerCommandPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerInputPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerLoadedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPunchPacket;
@@ -84,6 +84,7 @@ import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.RespawnPoint;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.entity.player.PlayerInput;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.block.BlockBreakEvent;
@@ -273,7 +274,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 loadEnderChest(profile),
                 data.gameMode(),
                 connection,
-                spawn);
+                spawn,
+                data.abilities());
         if (data.respawnLocation() != null) {
             created.setRespawnPoint(data.respawnLocation());
         }
@@ -307,7 +309,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return server.players().dataStorage().load(profile.uuid());
         } catch (final Exception e) {
             LOGGER.error("Chargement des donnees de {} impossible, valeurs par defaut utilisees", profile.name(), e);
-            return new PlayerDataStorage.PlayerData(worldOrDisconnect().configuration().gameplay().defaultGameMode(), null, null);
+            final GameMode mode = worldOrDisconnect().configuration().gameplay().defaultGameMode();
+            return new PlayerDataStorage.PlayerData(mode, ServerPlayer.withGameModeDefaults(mode, PlayerAbilities.DEFAULT), null, null);
         }
     }
 
@@ -331,7 +334,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 serverWorld().gameRuleValues().getBoolean(GameRuleKeys.LIMITED_CRAFTING)));
         connection.send(new ClientboundPlayerInfoUpdatePacket(
                 player.profile(), player.gameMode().id(), player.ping()));
-        connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
+        connection.send(player.abilitiesPacket());
+        player.resendAttributeBases();
         connection.send(ClientboundSetEntityMetadataPacket.of(
                 player.entityId(),
                 Entry.ofByte(ServerPlayer.MD_DISPLAYED_SKIN_PARTS, connection.displayedSkinParts())));
@@ -677,6 +681,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 return;
             }
 
+            if (!acting.buildingAllowed()) {
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+
             final BlockFace clickedFace = BlockFace.byId(packet.face());
             final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(acting.selectedSlot());
@@ -893,6 +902,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
+        if (player == null) {
+            return;
+        }
+        player.setFlying(packet.flying());
     }
 
     private boolean instantMine(final BlockPosition position) {
@@ -1049,7 +1062,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                                 teleporting.gameMode().id(),
                                 ClientboundRespawnPacket.KEEP_ALL,
                                 describeGenerator(target) instanceof ChunkGeneratorConfig.Flat));
-                        connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(teleporting.gameMode()));
+                        connection.send(teleporting.abilitiesPacket());
                         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
                         openChunkView(target, destChunk);
                         connection.send(new ClientboundPlayerPositionPacket(
@@ -1137,7 +1150,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (player == null) {
             return;
         }
-        player.setSprinting(packet.sprinting());
         player.setSneaking(packet.sneaking());
         final PlayerInput input = new PlayerInput(packet.forward(), packet.backward(), packet.left(), packet.right(),
                 packet.jumping(), packet.sneaking(), packet.sprinting());
@@ -1145,6 +1157,19 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (!previous.equals(input)) {
             player.setInput(input);
             server.events().post(new PlayerInputEvent(player, previous, input));
+        }
+    }
+
+    @Override
+    public void handlePlayerCommand(final ServerboundPlayerCommandPacket packet) {
+        if (player == null) {
+            return;
+        }
+        switch (packet.action()) {
+            case START_SPRINTING -> player.setSprinting(true);
+            case STOP_SPRINTING -> player.setSprinting(false);
+            case LEAVE_BED, START_HORSE_JUMP, STOP_HORSE_JUMP, OPEN_VEHICLE_INVENTORY, START_FALL_FLYING -> {
+            }
         }
     }
 
@@ -1302,7 +1327,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 player.gameMode().id(),
                 ClientboundRespawnPacket.KEEP_NOTHING,
                 describeGenerator(world) instanceof ChunkGeneratorConfig.Flat));
-        connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(player.gameMode()));
+        connection.send(player.abilitiesPacket());
         connection.send(new ClientboundSetHealthPacket(player.health(), 20, 5.0f));
         player.resendAttributeBases();
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
@@ -1417,7 +1442,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     private void trackFall(final Location previous, final Location current, final boolean wasOnGround, final boolean isOnGround) {
         if (player == null || wasOnGround && isOnGround) return;
 
-        if (player.gameMode() == GameMode.CREATIVE || player.gameMode() == GameMode.SPECTATOR) {
+        if (player.isFlying()) {
             player.setFallDistance(0.0);
             player.setFalling(false);
             return;

@@ -1,8 +1,16 @@
 package fr.euphyllia.fidorial.server.codecs.networking;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.math.Position;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -188,6 +196,26 @@ public final class CommonNetworkCodecs {
                         part.write(buf, key.value());
                     });
         }
+
+        /**
+         * A value sent as a JSON string, at most {@code maxLength} characters, through {@code codec}.
+         */
+        public static <T> NetworkCodec<PacketBuffer, T> json(final int maxLength, final Codec<T> codec) {
+            return string(maxLength).xmap(
+                    raw -> {
+                        final JsonElement json;
+                        try {
+                            json = JsonParser.parseString(raw);
+                        } catch (final JsonParseException e) {
+                            throw new DecoderException("Malformed JSON: " + e.getMessage(), e);
+                        }
+                        return codec.parse(JsonOps.INSTANCE, json)
+                                .getOrThrow(msg -> new DecoderException("Failed to decode JSON: " + msg));
+                    },
+                    value -> codec.encodeStart(JsonOps.INSTANCE, value)
+                            .getOrThrow(msg -> new EncoderException("Failed to encode JSON: " + msg))
+                            .toString());
+        }
     }
 
     /**
@@ -201,10 +229,21 @@ public final class CommonNetworkCodecs {
         public static final int MAX_COMPONENT_BYTES = 2_097_152;
 
         /**
+         * The largest component JSON accepted, in characters.
+         */
+        public static final int MAX_COMPONENT_JSON_LENGTH = 262_144;
+
+        /**
          * A component sent as network NBT.
          */
         public static final NetworkCodec<PacketBuffer, Component> COMPONENT =
                 NetworkCodec.of(buf -> buf.readComponent(MAX_COMPONENT_BYTES), PacketBuffer::writeComponent);
+
+        /**
+         * A component sent as a JSON string.
+         */
+        public static final NetworkCodec<PacketBuffer, Component> COMPONENT_JSON =
+                StringLikeCodecs.json(MAX_COMPONENT_JSON_LENGTH, ComponentCodecs.COMPONENT_CODEC);
 
         private TextCodecs() {
             throw new UnsupportedOperationException("TextCodecs cannot be instantiated.");
