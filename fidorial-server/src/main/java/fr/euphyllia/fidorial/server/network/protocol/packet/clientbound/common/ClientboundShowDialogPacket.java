@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common;
 
-import fr.euphyllia.fidorial.server.codecs.dialog.DialogCodecs;
+import fr.euphyllia.fidorial.server.codecs.api.dialog.DialogCodecs;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;

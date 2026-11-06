@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
@@ -27,7 +28,8 @@ final class ScenarioTestPlayer {
                 new EnderChestInventory(),
                 gameMode,
                 connection,
-                location);
+                location,
+                ServerPlayer.withGameModeDefaults(gameMode, PlayerAbilities.DEFAULT));
 
         connection.setProfile(profile);
         connection.setPlayer(player);

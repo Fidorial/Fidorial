@@ -17,6 +17,7 @@ import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
 import fr.fidorial.command.argument.resolvers.PositionResolver;
 import fr.fidorial.command.serializers.MessageComponentSerializer;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -57,8 +58,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import static com.mojang.brigadier.arguments.BoolArgumentType.bool;
 import static com.mojang.brigadier.arguments.FloatArgumentType.floatArg;
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static fr.fidorial.command.Commands.argument;
@@ -212,6 +215,27 @@ public final class ApiTestCommand {
                         .then(literal("set")
                                 .then(argument("world", arguments().world())
                                         .executes(ApiTestCommand::setDefaultWorld))))
+                .then(literal("abilities")
+                        .executes(ApiTestCommand::abilitiesShow)
+                        .then(literal("may_fly")
+                                .then(argument("value", bool())
+                                        .executes(ctx -> updateAbilities(ctx, abilities ->
+                                                abilities.withFlightAllowed(ctx.getArgument("value", Boolean.class))))))
+                        .then(literal("flying")
+                                .then(argument("value", bool())
+                                        .executes(ctx -> updateAbilities(ctx, abilities ->
+                                                abilities.withFlying(ctx.getArgument("value", Boolean.class))))))
+                        .then(literal("fly_speed")
+                                .then(argument("speed", floatArg(0f, 1f))
+                                        .executes(ctx -> updateAbilities(ctx, abilities ->
+                                                abilities.withFlySpeed(ctx.getArgument("speed", Float.class))))))
+                        .then(literal("walk_speed")
+                                .then(argument("speed", floatArg(0f, 1f))
+                                        .executes(ctx -> updateAbilities(ctx, abilities ->
+                                                abilities.withWalkSpeed(ctx.getArgument("speed", Float.class))))))
+                        .then(literal("reset")
+                                .executes(ctx -> updateAbilities(ctx, _ -> PlayerAbilities.DEFAULT)))
+                )
                 .build();
     }
 
@@ -860,5 +884,42 @@ public final class ApiTestCommand {
 
         plugin.msg(source, "[TestPlugin] Default world set to " + world.key().asString());
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int abilitiesShow(final CommandContext<CommandSource> ctx) {
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
+            return Command.SINGLE_SUCCESS;
+        }
+        printAbilities(source, player.abilities());
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int updateAbilities(final CommandContext<CommandSource> ctx, final UnaryOperator<PlayerAbilities> change) {
+        final CommandSource source = ctx.getSource();
+        if (!(source.executor() instanceof final Player player)) {
+            plugin.msg(source, REQUIRES_PLAYER);
+            return Command.SINGLE_SUCCESS;
+        }
+
+        final PlayerAbilities requested = change.apply(player.abilities());
+        player.setAbilities(requested).whenComplete((applied, error) -> {
+            if (error != null) {
+                plugin.msg(source, "<red>[TestPlugin] Changing abilities failed: " + error.getMessage() + "</red>");
+            } else if (!applied) {
+                plugin.msg(source, "<red>[TestPlugin] Abilities not applied: the player left.</red>");
+            } else {
+                printAbilities(source, player.abilities());
+            }
+        });
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static void printAbilities(final CommandSource source, final PlayerAbilities abilities) {
+        plugin.msg(source, "[TestPlugin] may_fly=" + abilities.flightAllowed()
+                + " | flying=" + abilities.flying()
+                + " | fly_speed=" + abilities.flySpeed()
+                + " | walk_speed=" + abilities.walkSpeed());
     }
 }

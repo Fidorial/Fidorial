@@ -20,7 +20,7 @@ public record ServerboundPlayerInputPacket(int flags) implements ServerboundPack
     private static final int RIGHT = 0x08;
     private static final int JUMP = 0x10;
     private static final int SHIFT = 0x20;
-    private static final int SPRINT = 0x40;
+    private static final int SPRINT = 0x40; // actual sprint is controlled by `ServerboundPlayerCommandPacket` per the protocol
 
     public static final NetworkDecoder<PacketBuffer, ServerboundPlayerInputPacket> DECODER = NetworkDecoder.composite(
             PrimitiveCodecs.UNSIGNED_BYTE,

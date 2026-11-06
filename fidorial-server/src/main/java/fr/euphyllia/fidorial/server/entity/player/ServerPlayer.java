@@ -47,6 +47,7 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.entity.player.PlayerInput;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerOpenInventoryEvent;
@@ -126,7 +127,6 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public static final int MD_DISPLAYED_SKIN_PARTS =
             16; // The Displayed Skin Parts bit mask that is sent in Client Information
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
-    private static final Key MOB_EFFECT_REGISTRY = RegistryKey.MOB_EFFECT.key();
     private static final double EYE_HEIGHT = 1.62;
     private static final double SNEAKING_EYE_HEIGHT = 1.27;
     private static final int[] ARMOR_SLOTS = {
@@ -169,6 +169,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile int airSupply = MAX_AIR_SUPPLY;
     private volatile int lastTeleportId;
     private volatile boolean onGround;
+    private final AtomicReference<PlayerAbilities> abilities;
     private final InventoryMenu inventoryMenu;
     private volatile ContainerMenu containerMenu;
     private volatile @Nullable RespawnPoint respawnPoint;
@@ -183,7 +184,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             final EnderChestInventory enderChest,
             final GameMode gameMode,
             final ClientConnection connection,
-            final Location location
+            final Location location,
+            final PlayerAbilities abilities
     ) {
         super(entityId, profile.uuid(), EntityTypes.PLAYER, location, MAX_HEALTH);
         this.profile = profile;
@@ -203,6 +205,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
         this.inventoryMenu = new InventoryMenu(this);
         this.containerMenu = inventoryMenu;
+        this.abilities = new AtomicReference<>(abilities);
+        if (abilities.walkSpeed() != PlayerAbilities.DEFAULT.walkSpeed()) {
+            attributeBases.put(AttributeKeys.MOVEMENT_SPEED, (double) abilities.walkSpeed());
+        }
     }
 
     private static int encodeFlags(final Set<BossBar.Flag> flags) {
@@ -394,6 +400,65 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         this.onGround = onGround;
     }
 
+    public static PlayerAbilities withGameModeDefaults(final GameMode mode, final PlayerAbilities abilities) {
+        return switch (mode) {
+            case CREATIVE -> abilities.withFlightAllowed(true);
+            case SPECTATOR -> abilities.withFlightAllowed(true).withFlying(true);
+            case SURVIVAL, ADVENTURE -> abilities.withFlightAllowed(false);
+        };
+    }
+
+    @Override
+    public PlayerAbilities abilities() {
+        return abilities.get();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setAbilities(final PlayerAbilities abilities) {
+        final CompletableFuture<Boolean> result = new CompletableFuture<>();
+        final boolean scheduled = execute(() -> {
+            try {
+                if (isRemoved()) {
+                    result.complete(false);
+                    return;
+                }
+                final PlayerAbilities previous = this.abilities.getAndSet(abilities);
+                if (previous.walkSpeed() != abilities.walkSpeed()) {
+                    if (abilities.walkSpeed() == PlayerAbilities.DEFAULT.walkSpeed()) {
+                        resetAttributeBase(AttributeKeys.MOVEMENT_SPEED);
+                    } else {
+                        setAttributeBase(AttributeKeys.MOVEMENT_SPEED, abilities.walkSpeed());
+                    }
+                }
+                connection.send(abilitiesPacket());
+                result.complete(true);
+            } catch (final Throwable t) {
+                result.completeExceptionally(t);
+            }
+        });
+        if (!scheduled) {
+            result.complete(false);
+        }
+        return result;
+    }
+
+    public boolean isFlying() {
+        return abilities.get().flying();
+    }
+
+    // ignored unless flight is allowed.
+    public void setFlying(final boolean flying) {
+        abilities.updateAndGet(current -> current.withFlying(flying));
+    }
+
+    public ClientboundPlayerAbilitiesPacket abilitiesPacket() {
+        return ClientboundPlayerAbilitiesPacket.abilities(gameMode, abilities.get());
+    }
+
+    public boolean buildingAllowed() {
+        return gameMode != GameMode.ADVENTURE && gameMode != GameMode.SPECTATOR;
+    }
+
     public void setLocale(final String language) {
         this.locale = Locale.forLanguageTag(language.replace('_', '-'));
     }
@@ -525,6 +590,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setInvulnerableTicks(0);
         setAirSupply(MAX_AIR_SUPPLY);
         setFallDistance(0.0);
+        setFlying(this.gameMode == GameMode.SPECTATOR);
         setAwaitingRespawn(false);
         clearEffectsSilently();
         this.ticksSinceLastAttack.set(MAX_TRACKED_ATTACK_TICKS);
@@ -584,7 +650,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (distance > 0.0) {
             connection.server().debug().gameEvents().emit(world(), GameEventKeys.HIT_GROUND, location());
         }
-        if (distance <= SAFE_FALL_DISTANCE || isInvulnerableToDamage()) {
+        if (distance <= SAFE_FALL_DISTANCE || isInvulnerableToDamage() || abilities.get().flightAllowed()) {
             return 0f;
         }
         final float damage = (float) Math.floor(distance - SAFE_FALL_DISTANCE);
@@ -816,8 +882,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             return;
         }
         this.gameMode = gameMode;
+        abilities.updateAndGet(current -> withGameModeDefaults(gameMode, current));
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.CHANGE_GAME_MODE, gameMode.id()));
-        connection.send(ClientboundPlayerAbilitiesPacket.forGameMode(gameMode));
+        connection.send(abilitiesPacket());
         connection.server().players().broadcast(new ClientboundPlayerInfoGameModePacket(uuid(), gameMode.id()));
     }
 

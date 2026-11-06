@@ -1,4 +1,4 @@
-package fr.euphyllia.fidorial.server.codecs.dialog;
+package fr.euphyllia.fidorial.server.codecs.api.dialog;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 import static fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs.COMPONENT_CODEC;
 
-public class DialogItemCodecs {
+public final class DialogItemCodecs {
 
     private static final MapCodec<ItemComponents> COMPONENTS_CODEC = RecordCodec.builder(ItemComponents.class)
             .optional("custom_name", ItemComponents::customName, COMPONENT_CODEC)

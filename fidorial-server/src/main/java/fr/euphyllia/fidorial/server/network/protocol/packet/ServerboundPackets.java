@@ -39,7 +39,9 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerPosRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundMovePlayerStatusOnlyPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerAbilitiesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerCommandPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerInputPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPlayerLoadedPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundPunchPacket;
@@ -118,6 +120,8 @@ public class ServerboundPackets {
                 .register(PlayServerboundPackets.PUNCH, ServerboundPunchPacket.DECODER)
                 .register(PlayServerboundPackets.CLIENT_COMMAND, ServerboundClientCommandPacket.DECODER)
                 .register(PlayServerboundPackets.PLAYER_INPUT, ServerboundPlayerInputPacket.DECODER)
+                .register(PlayServerboundPackets.PLAYER_COMMAND, ServerboundPlayerCommandPacket.DECODER)
+                .register(PlayServerboundPackets.PLAYER_ABILITIES, ServerboundPlayerAbilitiesPacket.DECODER)
                 .register(PlayServerboundPackets.SET_GAME_RULE, ServerboundSetGameRulePacket.DECODER)
                 .register(PlayServerboundPackets.CONFIGURATION_ACKNOWLEDGED, ServerboundAcknowledgeConfigurationPacket.DECODER)
                 .register(PlayServerboundPackets.DEBUG_SUBSCRIPTION_REQUEST, ServerboundDebugSubscriptionRequestPacket.DECODER);

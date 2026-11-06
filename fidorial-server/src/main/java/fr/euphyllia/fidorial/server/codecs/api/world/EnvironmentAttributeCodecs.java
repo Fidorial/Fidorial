@@ -1,4 +1,4 @@
-package fr.euphyllia.fidorial.server.codecs.world;
+package fr.euphyllia.fidorial.server.codecs.api.world;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
@@ -21,7 +21,7 @@ import fr.fidorial.world.environment.MusicTrack;
 import java.util.Arrays;
 import java.util.List;
 
-public class EnvironmentAttributeCodecs {
+public final class EnvironmentAttributeCodecs {
 
     public static final Codec<Modifier> MODIFIER = Codec.STRING.comapFlatMap(
             name -> Arrays.stream(Modifier.values())

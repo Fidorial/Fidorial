@@ -1,4 +1,4 @@
-package fr.euphyllia.fidorial.server.codecs.dialog;
+package fr.euphyllia.fidorial.server.codecs.api.dialog;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -40,7 +40,6 @@ import java.util.Objects;
 import static fr.euphyllia.fidorial.server.codecs.CommonCodecs.KEY_CODEC;
 import static fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs.COMPONENT_CODEC;
 import static fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs.COMPOUND_BINARY_TAG_CODEC;
-
 
 public final class DialogCodecs {
 

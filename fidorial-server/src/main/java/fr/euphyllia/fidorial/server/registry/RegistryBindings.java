@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.server.registry;
 
 import fr.euphyllia.fidorial.server.codecs.adventure.ChatTypeCodecs;
-import fr.euphyllia.fidorial.server.codecs.dialog.DialogCodecs;
-import fr.euphyllia.fidorial.server.codecs.world.BiomeCodecs;
-import fr.euphyllia.fidorial.server.codecs.world.DimensionTypeCodecs;
+import fr.euphyllia.fidorial.server.codecs.api.dialog.DialogCodecs;
+import fr.euphyllia.fidorial.server.codecs.api.world.BiomeCodecs;
+import fr.euphyllia.fidorial.server.codecs.api.world.DimensionTypeCodecs;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentBinding;
 import fr.euphyllia.fidorial.server.registry.data.RegistryValues;

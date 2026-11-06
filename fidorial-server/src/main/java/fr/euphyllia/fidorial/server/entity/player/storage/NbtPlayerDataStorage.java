@@ -2,9 +2,11 @@ package fr.euphyllia.fidorial.server.entity.player.storage;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.math.Location;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.World;
@@ -44,6 +46,12 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
     private static final String GAMEMODE_TYPE = "playerGameType";
 
+    private static final String ABILITIES = "abilities";
+    private static final String ABILITIES_FLIGHT_ALLOWED = "mayfly";
+    private static final String ABILITIES_FLYING = "flying";
+    private static final String ABILITIES_FLY_SPEED = "flySpeed";
+    private static final String ABILITIES_WALK_SPEED = "walkSpeed";
+
     private final Path dataDir;
     private final boolean gzip;
 
@@ -77,7 +85,7 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
         final Path file = fileFor(uuid);
         if (!Files.isRegularFile(file)) {
-            return new PlayerData(defaultGameMode, null, null);
+            return new PlayerData(defaultGameMode, ServerPlayer.withGameModeDefaults(defaultGameMode, PlayerAbilities.DEFAULT), null, null);
         }
 
         final CompoundBinaryTag root = DataFixersRegistry.update(DataFixerType.PLAYER, tryReadNamed(file), false);
@@ -124,7 +132,16 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
             }
         }
 
-        return new PlayerData(gameMode != null ? gameMode : defaultGameMode, respawnLocation, location);
+        final GameMode resolvedMode = gameMode != null ? gameMode : defaultGameMode;
+        final PlayerAbilities modeDefaults = ServerPlayer.withGameModeDefaults(resolvedMode, PlayerAbilities.DEFAULT);
+        final CompoundBinaryTag abilitiesTag = root.getCompound(ABILITIES);
+        final PlayerAbilities abilities = PlayerAbilities.abilities(
+                abilitiesTag.getBoolean(ABILITIES_FLIGHT_ALLOWED, modeDefaults.flightAllowed()),
+                abilitiesTag.getBoolean(ABILITIES_FLYING, modeDefaults.flying()),
+                abilitiesTag.getFloat(ABILITIES_FLY_SPEED, modeDefaults.flySpeed()),
+                abilitiesTag.getFloat(ABILITIES_WALK_SPEED, modeDefaults.walkSpeed()));
+
+        return new PlayerData(resolvedMode, abilities, respawnLocation, location);
     }
 
     private CompoundBinaryTag tryReadNamed(final Path file) throws IOException {
@@ -167,9 +184,15 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
         final CompoundBinaryTag existing = Files.isRegularFile(file)
                 ? DataFixersRegistry.update(DataFixerType.PLAYER, tryReadNamed(file), false)
                 : CompoundBinaryTag.empty();
+        final PlayerAbilities abilities = data.abilities();
         final CompoundBinaryTag merged = existing
                 .remove(RESPAWN).remove(DIMENSION).remove(POS).remove(ROTATION)
-                .put(root.build());
+                .put(root.build())
+                .put(ABILITIES, existing.getCompound(ABILITIES)
+                        .putBoolean(ABILITIES_FLIGHT_ALLOWED, abilities.flightAllowed())
+                        .putBoolean(ABILITIES_FLYING, abilities.flying())
+                        .putFloat(ABILITIES_FLY_SPEED, abilities.flySpeed())
+                        .putFloat(ABILITIES_WALK_SPEED, abilities.walkSpeed()));
 
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BinaryTagIO.writer().writeNamed(Map.entry(ROOT_NAME, merged), baos);

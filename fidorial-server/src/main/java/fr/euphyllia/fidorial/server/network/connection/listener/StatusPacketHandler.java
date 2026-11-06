@@ -8,7 +8,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.status.C
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.StatusPacketListener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.status.ServerboundPingRequestPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.status.ServerboundStatusRequestPacket;
-import fr.euphyllia.fidorial.server.status.StatusResponseBuilder;
 import fr.fidorial.event.server.ServerStatusRequestEvent;
 import fr.fidorial.status.ServerStatus;
 
@@ -22,7 +21,7 @@ public final class StatusPacketHandler implements StatusPacketListener {
 
     @Override
     public void handleStatusRequest(final ServerboundStatusRequestPacket packet) {
-        final FidorialServer server = FidorialServer.getInstance();
+        final FidorialServer server = connection.server();
         final ServerStatus status = ServerStatus.builder()
                 .favicon(server.listing().favicon().orElse(null))
                 .description(server.listing().description())
@@ -36,8 +35,7 @@ public final class StatusPacketHandler implements StatusPacketListener {
                 .build();
         final ServerStatusRequestEvent event = new ServerStatusRequestEventImpl(status);
         server.events().post(event);
-        final String json = StatusResponseBuilder.build(event.status());
-        connection.send(new ClientboundStatusResponsePacket(json));
+        connection.send(new ClientboundStatusResponsePacket(event.status()));
     }
 
     @Override
