@@ -79,6 +79,7 @@ public final class TestPlugin implements Plugin {
     private volatile @Nullable PregenTask task;
     private @Nullable OverworldGenerator generator;
     private @Nullable ResourcePackRequest resourcePackRequest;
+    private boolean forceDisablePlugin = false;
 
     private static long resolveSeed(final ComponentLogger logger) {
         final String property = System.getProperty(SEED_PROPERTY);
@@ -166,6 +167,9 @@ public final class TestPlugin implements Plugin {
 
     @Override
     public void onEnable() {
+        if (forceDisablePlugin) {
+            throw new IllegalStateException("[TestPlugin] Plugin has been disabled.");
+        }
         logger.info("[TestPlugin] onEnable - Starting API tests");
 
         registerServices();

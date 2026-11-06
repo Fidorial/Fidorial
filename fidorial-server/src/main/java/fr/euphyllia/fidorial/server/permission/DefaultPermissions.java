@@ -43,6 +43,7 @@ public final class DefaultPermissions {
                 command("pardon", "Lift the ban on a player."),
                 command("pardonip", "Lift the ban on an IP."),
                 command("place", "Place a structure template, a jigsaw structure or a jigsaw pool."),
+                command("plugins", "List the plugins and see why one failed to start."),
                 command("respawn", "Respawns players stuck on the death screen, without waiting for them to click the button."),
                 command("spawnpoint", "Sets where players respawn, in the world they are currently in."),
                 command("stop", "Stop the server."),

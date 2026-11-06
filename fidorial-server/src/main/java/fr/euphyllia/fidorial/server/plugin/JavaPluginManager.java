@@ -27,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -52,6 +54,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
     private final Path pluginsFolder;
 
     private final Map<String, Loaded> plugins = new LinkedHashMap<>();
+    private final List<PluginFailure.Status> failed = new CopyOnWriteArrayList<>();
 
     private final RegistryModule registries;
     private final PermissionRegistry permissions;
@@ -107,6 +110,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 LOGGER.info("Plugin enabled: {} v{}", loaded.meta.name(), loaded.meta.version());
             } catch (final Throwable t) {
                 LOGGER.error("Could not enable {}, rolling it back", loaded.meta.id(), t);
+                recordFailure(loaded.meta, PluginFailure.of(PluginFailure.Phase.ENABLE, t));
 
                 teardown(loaded.plugin, loaded.meta.id(), loaded.context);
                 it.remove();
@@ -156,6 +160,30 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
     public boolean isEnabled(final String id) {
         final Loaded loaded = plugins.get(id);
         return loaded != null && loaded.enabled;
+    }
+
+    /**
+     * {@return every plugin found at startup, enabled or not, with the reason of each failure, sorted by name}
+     */
+    public List<PluginFailure.Status> statuses() {
+        final List<PluginFailure.Status> statuses = new ArrayList<>();
+        for (final Loaded loaded : new ArrayList<>(plugins.values())) {
+            final PluginMeta meta = loaded.meta;
+            statuses.add(new PluginFailure.Status(
+                    meta.id(), meta.name(), meta.version(), meta.authors(), loaded.enabled, null));
+        }
+        statuses.addAll(failed);
+        statuses.sort(Comparator.comparing(PluginFailure.Status::name, String.CASE_INSENSITIVE_ORDER));
+        return statuses;
+    }
+
+    private void recordFailure(final PluginMeta meta, final PluginFailure failure) {
+        failed.add(new PluginFailure.Status(meta.id(), meta.name(), meta.version(), meta.authors(), false, failure));
+    }
+
+    private void recordFailure(final Path jar, final PluginFailure failure) {
+        final String file = jar.getFileName().toString();
+        failed.add(new PluginFailure.Status(file, file, null, List.of(), false, failure));
     }
 
     @Override
@@ -243,10 +271,13 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             return Optional.of(new Candidate(meta, jar, classLoader));
         } catch (final JsonSyntaxException | NullPointerException | IllegalArgumentException e) {
             LOGGER.error("{} ignored: invalid {}", jar.getFileName(), DESCRIPTOR, e);
+            recordFailure(jar, PluginFailure.of(PluginFailure.Phase.DESCRIPTOR, e));
         } catch (final BootstrapException e) {
             LOGGER.error("{} ignored: {}", jar.getFileName(), e.getMessage());
+            recordFailure(jar, PluginFailure.of(PluginFailure.Phase.LIBRARIES, e));
         } catch (final IOException e) {
             LOGGER.error("{} is unreadable", jar.getFileName(), e);
+            recordFailure(jar, PluginFailure.of(PluginFailure.Phase.DESCRIPTOR, e));
         }
         closeQuietly(classLoader);
         return Optional.empty();
@@ -260,6 +291,8 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             final Class<?> mainClass = Class.forName(meta.main(), true, candidate.classLoader);
             if (!Plugin.class.isAssignableFrom(mainClass)) {
                 LOGGER.error("{} ignored: {} does not implement Plugin", meta.id(), meta.main());
+                recordFailure(meta, PluginFailure.of(PluginFailure.Phase.LOAD,
+                        meta.main() + " does not implement " + Plugin.class.getName()));
                 candidate.classLoader.close();
                 return;
             }
@@ -277,6 +310,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             return;
         } catch (final Throwable t) {
             LOGGER.error("Unable to load {}", meta.id(), t);
+            recordFailure(meta, PluginFailure.of(PluginFailure.Phase.LOAD, t));
         }
 
         if (plugin != null) {
@@ -314,6 +348,9 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         for (final Candidate candidate : candidates) {
             if (byId.putIfAbsent(candidate.meta.id(), candidate) != null) {
                 LOGGER.error("Two plugins declare the ID '{}'; the second one is ignored.", candidate.meta.id());
+                recordFailure(candidate.jarPath(), PluginFailure.of(PluginFailure.Phase.DEPENDENCY,
+                        "The ID '" + candidate.meta.id() + "' is already used by "
+                                + byId.get(candidate.meta.id()).jarPath().getFileName()));
                 closeQuietly(candidate.classLoader);
             }
         }
@@ -321,8 +358,9 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         final List<Candidate> ordered = new ArrayList<>();
         final Set<String> done = new HashSet<>();
         final Set<String> visiting = new HashSet<>();
+        final Set<String> rejected = new HashSet<>();
         for (final Candidate candidate : byId.values()) {
-            visit(candidate, byId, done, visiting, ordered);
+            visit(candidate, byId, done, visiting, rejected, ordered);
         }
 
         final Set<String> kept = new HashSet<>();
@@ -338,34 +376,54 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         return ordered;
     }
 
-    private void visit(
+    /**
+     * Orders a plugin after its dependencies.
+     *
+     * @return {@code true} if the plugin was kept, {@code false} if it was rejected
+     */
+    private boolean visit(
             final Candidate candidate,
             final Map<String, Candidate> byId,
             final Set<String> done,
             final Set<String> visiting,
+            final Set<String> rejected,
             final List<Candidate> ordered
     ) {
         final String id = candidate.meta.id();
         if (done.contains(id)) {
-            return;
+            return true;
+        }
+        if (rejected.contains(id)) {
+            return false;
         }
         if (!visiting.add(id)) {
             LOGGER.error("Cyclic dependency detected around '{}', plugin ignored", id);
-            return;
+            return false;
         }
         for (final String dependency : candidate.meta.depends()) {
             final Candidate resolved = byId.get(dependency);
+            final String reason;
             if (resolved == null) {
                 LOGGER.error("{} ignored: dependency '{}' not found", id, dependency);
-                visiting.remove(id);
-                return;
+                reason = "Dependency '" + dependency + "' not found";
+            } else if (!visit(resolved, byId, done, visiting, rejected, ordered)) {
+                LOGGER.error("{} ignored: dependency '{}' could not be loaded", id, dependency);
+                reason = visiting.contains(dependency)
+                        ? "Cyclic dependency with '" + dependency + "'"
+                        : "Dependency '" + dependency + "' could not be loaded";
+            } else {
+                continue;
             }
-            visit(resolved, byId, done, visiting, ordered);
+            visiting.remove(id);
+            rejected.add(id);
+            recordFailure(candidate.meta, PluginFailure.of(PluginFailure.Phase.DEPENDENCY, reason));
+            return false;
         }
         visiting.remove(id);
         if (done.add(id)) {
             ordered.add(candidate);
         }
+        return true;
     }
 
     private record Candidate(PluginMeta meta, Path jarPath, URLClassLoader classLoader) {
