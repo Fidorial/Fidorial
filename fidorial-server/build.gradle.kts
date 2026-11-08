@@ -89,7 +89,6 @@ spotbugs {
     showStackTraces = true
     effort = Effort.MAX
     reportLevel = Confidence.HIGH
-    excludeFilter = file(".spotbugs/config/exclude.xml")
 }
 
 tasks.spotbugsMain {
