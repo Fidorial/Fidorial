@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.anvil.RegionConstants;
 import fr.euphyllia.fidorial.server.world.anvil.RegionFile;
@@ -76,7 +77,7 @@ public final class RegionRecompressor {
                                         final EntityRegionStorage entities, final RegionCompression target, final boolean convertExisting) {
         target.checkAvailable();
         final Path compressionFile = paths.configFile(dim).resolveSibling(COMPRESSION_FILE);
-        final @Nullable RegionCompression current = readCompression(compressionFile);
+        final RegionCompression current = readCompression(compressionFile);
         if (current == target) {
             return;
         }
@@ -120,18 +121,21 @@ public final class RegionRecompressor {
         }
         final List<Path> files = new ArrayList<>();
         try (final Stream<Path> list = Files.list(directory)) {
-            list.filter(file -> REGION_FILE.matcher(file.getFileName().toString()).matches()).sorted().forEach(files::add);
+            list.filter(file -> REGION_FILE.matcher(String.valueOf(file.getFileName())).matches()).sorted().forEach(files::add);
         }
 
         Result total = Result.EMPTY;
         long lastProgress = System.nanoTime();
         for (int n = 0; n < files.size(); n++) {
             final Path file = files.get(n);
-            final Matcher matcher = REGION_FILE.matcher(file.getFileName().toString());
+            final Matcher matcher = REGION_FILE.matcher(String.valueOf(file.getFileName()));
             if (!matcher.matches() || Files.size(file) == 0) {
                 continue;
             }
-            final RegionFile cached = open.cached(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+            final String regionX = matcher.group(1);
+            final String regionZ = matcher.group(2);
+            Preconditions.checkState(regionX != null && regionZ != null, "Both groups of the region file pattern always match");
+            final RegionFile cached = open.cached(Integer.parseInt(regionX), Integer.parseInt(regionZ));
             if (cached != null) {
                 total = total.plus(convertFile(cached, file, target));
             } else {
@@ -191,7 +195,9 @@ public final class RegionRecompressor {
     }
 
     private static void writeCompression(final Path file, final String content) throws IOException {
-        Files.createDirectories(file.getParent());
+        final Path parent = file.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", file);
+        Files.createDirectories(parent);
         final Path temp = file.resolveSibling(COMPRESSION_FILE + ".tmp");
         Files.writeString(temp, content + "\n", StandardCharsets.UTF_8);
         try {

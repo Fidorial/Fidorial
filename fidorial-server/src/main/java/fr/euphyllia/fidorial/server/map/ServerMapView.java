@@ -454,6 +454,7 @@ public final class ServerMapView implements MapView {
             return next;
         });
         lastViewedNanos = System.nanoTime();
+        Preconditions.checkState(carrier != null, "The carrier %s was just computed", player.uuid());
         return carrier.steps++;
     }
 
@@ -467,7 +468,7 @@ public final class ServerMapView implements MapView {
     }
 
     @Override
-    public CompletableFuture<Void> renderTerrain() {
+    public CompletableFuture<@Nullable Void> renderTerrain() {
         return module.renderTerrain(this);
     }
 
@@ -540,7 +541,7 @@ public final class ServerMapView implements MapView {
             final boolean requested = slot.requested;
             slot.requested = false;
             final int interval = slot.layer.repaintInterval();
-            final boolean due = requested || !slot.painted || interval > 0 && tick >= slot.nextTick;
+            final boolean due = requested || !slot.painted || (interval > 0 && tick >= slot.nextTick);
             if (slot.layer.scope() == MapLayer.Scope.SHARED) {
                 if (due) {
                     slot.shared.paint(this, slot.layer, null, tick);

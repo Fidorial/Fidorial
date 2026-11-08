@@ -253,6 +253,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
     }
 
     @Override
+    @SuppressWarnings("NonAtomicVolatileUpdate") // only written by the owning region thread
     public void tick(final long currentTick) {
         if (isRemoved() || !(world() instanceof final ServerWorld world)) {
             return;

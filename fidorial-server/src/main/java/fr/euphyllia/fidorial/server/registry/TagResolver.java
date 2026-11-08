@@ -82,7 +82,7 @@ final class TagResolver {
         final Key key = Keys.parse(nested ? entry.reference().substring(1) : entry.reference());
         final boolean exists = key != null
                 && (nested ? files.containsKey(key) || vanilla.containsKey(key) : registry.contains(key));
-        if (!exists) {
+        if (key == null || !exists) {
             if (entry.required()) {
                 LOGGER.warn("[datapacks] The tag #{} of {} references the unknown {} {}, it is skipped",
                         tag.asString(), registry.name().asString(), nested ? "tag" : "entry", entry.reference());

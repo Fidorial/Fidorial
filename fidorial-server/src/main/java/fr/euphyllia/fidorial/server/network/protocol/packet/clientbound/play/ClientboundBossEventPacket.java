@@ -21,6 +21,7 @@ public sealed interface ClientboundBossEventPacket extends ClientboundPacket<Cli
     /**
      * The id, then the operation's own encoder, which starts with the operation id.
      */
+    @SuppressWarnings("ClassInitializationDeadlock") // the subtypes' codecs are only read when writing, not on init
     NetworkEncoder<CodecAwarePacketBuffer, ClientboundBossEventPacket> CODEC = (buf, packet) -> {
         PrimitiveCodecs.UUID.write(buf, packet.id());
         switch (packet) {

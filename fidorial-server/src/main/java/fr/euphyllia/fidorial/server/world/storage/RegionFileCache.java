@@ -55,7 +55,7 @@ final class RegionFileCache implements AutoCloseable {
      *
      * @param path where the file is, used when it has to be opened
      */
-    <R> R with(final Key dimension, final int regionX, final int regionZ, final Path path, final RegionAction<R> action)
+    <R extends @Nullable Object> R with(final Key dimension, final int regionX, final int regionZ, final Path path, final RegionAction<R> action)
             throws IOException {
         final RegionKey key = new RegionKey(dimension, regionX, regionZ);
         final Entry entry = acquire(key, path);
@@ -155,6 +155,7 @@ final class RegionFileCache implements AutoCloseable {
     }
 
     @Override
+    @SuppressWarnings("ModifyCollectionInEnhancedForLoop") // concurrent map
     public void close() {
         closed = true;
         for (final Entry entry : entries.values()) {
@@ -170,7 +171,7 @@ final class RegionFileCache implements AutoCloseable {
     }
 
     @FunctionalInterface
-    interface RegionAction<R> {
+    interface RegionAction<R extends @Nullable Object> {
         R apply(RegionFile file) throws IOException;
     }
 
@@ -187,7 +188,7 @@ final class RegionFileCache implements AutoCloseable {
         /**
          * Completed once the entry is closed and out of the map.
          */
-        final CompletableFuture<Void> gone = new CompletableFuture<>();
+        final CompletableFuture<@Nullable Void> gone = new CompletableFuture<>();
         volatile @Nullable RegionFile opened;
         volatile long lastUse;
 

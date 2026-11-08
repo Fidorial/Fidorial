@@ -17,6 +17,7 @@ public class GoalSelector implements Goals {
 
     private @Nullable Goal active;
 
+    @Override
     public void add(final Goal goal) {
         goals.add(goal);
         goals.sort(Comparator.comparingInt(Goal::priority));
@@ -83,6 +84,7 @@ public class GoalSelector implements Goals {
         }
     }
 
+    @Override
     public @Nullable Goal active() {
         return active;
     }
@@ -103,6 +105,7 @@ public class GoalSelector implements Goals {
         return simple.isEmpty() ? goal.getClass().getName() : simple;
     }
 
+    @Override
     public void stopAll() {
         if (active != null) {
             active.stop();

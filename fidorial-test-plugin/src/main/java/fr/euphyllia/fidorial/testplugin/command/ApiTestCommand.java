@@ -48,6 +48,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.translation.GlobalTranslator;
 
 import java.net.URI;
 import java.util.Collection;
@@ -234,7 +235,20 @@ public final class ApiTestCommand {
                                         .executes(ctx -> updateAbilities(ctx, abilities ->
                                                 abilities.withWalkSpeed(ctx.getArgument("speed", Float.class))))))
                         .then(literal("reset")
-                                .executes(ctx -> updateAbilities(ctx, _ -> PlayerAbilities.DEFAULT)))
+                                .executes(ctx -> updateAbilities(ctx, _ -> PlayerAbilities.DEFAULT))))
+                .then(literal("translations")
+                        .then(literal("unregister")
+                                .executes(ctx -> {
+                                    GlobalTranslator.translator().removeSource(plugin.server().translationSource());
+                                    plugin.msg(ctx.getSource(), "<red>All built-in translations have been unregistered!");
+                                    return Command.SINGLE_SUCCESS;
+                                }))
+                        .then(literal("register")
+                                .executes(ctx -> {
+                                    GlobalTranslator.translator().addSource(plugin.server().translationSource());
+                                    plugin.msg(ctx.getSource(), "<green>All built-in translations have been re-registered!");
+                                    return Command.SINGLE_SUCCESS;
+                                }))
                 )
                 .build();
     }

@@ -48,7 +48,7 @@ public class AStarPathfinder {
         int visited = 0;
 
         while (!open.isEmpty() && visited < maxNodes) {
-            final Node current = open.poll();
+            final Node current = open.remove();
             if (current.closed) {
                 continue;
             }

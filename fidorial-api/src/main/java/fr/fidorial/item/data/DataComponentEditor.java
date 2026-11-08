@@ -107,7 +107,7 @@ public final class DataComponentEditor implements DataComponentHolder {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         return this == o || (o instanceof final DataComponentEditor other && components.equals(other.components));
     }
 

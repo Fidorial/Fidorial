@@ -435,9 +435,10 @@ public final class ServerWorld implements World {
     }
 
     private void loadForcedChunk(final int chunkX, final int chunkZ) {
-        chunkAsync(chunkX, chunkZ).exceptionally(failure -> {
-            LOGGER.warn("Unable to load the force-loaded chunk {},{} in {}", chunkX, chunkZ, key(), failure);
-            return null;
+        chunkAsync(chunkX, chunkZ).whenComplete((_, failure) -> {
+            if (failure != null) {
+                LOGGER.warn("Unable to load the force-loaded chunk {},{} in {}", chunkX, chunkZ, key(), failure);
+            }
         });
     }
 
@@ -668,9 +669,12 @@ public final class ServerWorld implements World {
         }
         lightFlushFuture(keys).whenComplete((_, _) -> {
             try {
-                final BaseObjectIterator<ChunkColumn> columns = loaded.valueIterator();
+                final BaseObjectIterator<@Nullable ChunkColumn> columns = loaded.valueIterator();
                 while (columns.hasNext()) {
-                    storage.save(dimension, columns.next());
+                    final ChunkColumn column = columns.next();
+                    if (column != null) {
+                        storage.save(dimension, column);
+                    }
                 }
                 dirty.clear();
                 saveLoadedEntities();
@@ -763,8 +767,8 @@ public final class ServerWorld implements World {
         });
     }
 
-    public CompletableFuture<Void> unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) {
-        final CompletableFuture<Void> flush = flushLight
+    public CompletableFuture<@Nullable Void> unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) {
+        final CompletableFuture<@Nullable Void> flush = flushLight
                 ? lightFlushFuture(ChunkPos.chunkKey(chunkX, chunkZ))
                 : CompletableFuture.completedFuture(null);
         return flush.whenComplete((_, _) -> {
@@ -843,9 +847,12 @@ public final class ServerWorld implements World {
     }
 
     public void forEachLoadedChunk(final Consumer<ChunkColumn> action) {
-        final BaseObjectIterator<ChunkColumn> columns = loaded.valueIterator();
+        final BaseObjectIterator<@Nullable ChunkColumn> columns = loaded.valueIterator();
         while (columns.hasNext()) {
-            action.accept(columns.next());
+            final ChunkColumn column = columns.next();
+            if (column != null) {
+                action.accept(column);
+            }
         }
     }
 
@@ -857,14 +864,14 @@ public final class ServerWorld implements World {
         this.lightDispatcher = dispatcher;
     }
 
-    private CompletableFuture<Void> lightFlushFuture(final LongIterable chunkKeys) {
+    private CompletableFuture<@Nullable Void> lightFlushFuture(final LongIterable chunkKeys) {
         final LightUpdateDispatcher dispatcher = lightDispatcher;
         return dispatcher == null
                 ? CompletableFuture.completedFuture(null)
                 : dispatcher.flush(dimension.id(), chunkKeys);
     }
 
-    private CompletableFuture<Void> lightFlushFuture(final long chunkKey) {
+    private CompletableFuture<@Nullable Void> lightFlushFuture(final long chunkKey) {
         final LightUpdateDispatcher dispatcher = lightDispatcher;
         return dispatcher == null
                 ? CompletableFuture.completedFuture(null)
@@ -935,9 +942,9 @@ public final class ServerWorld implements World {
     }
 
     @Override
-    public boolean equals(final Object o) {
-        return o == this || o instanceof final ServerWorld world
-                && world.dimension.id().equals(this.dimension.id());
+    public boolean equals(final @Nullable Object o) {
+        return o == this || (o instanceof final ServerWorld world
+                && world.dimension.id().equals(this.dimension.id()));
     }
 
     private final class WorldLightAccess implements LightAccess {

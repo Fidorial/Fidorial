@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.command.brigadier.argument.generic;
 
+import com.google.common.base.Preconditions;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -66,7 +67,10 @@ public final class DurationArgument {
         int read = 0;
 
         while (matcher.find() && matcher.start() == read) {
-            total = total.plus(unit(matcher.group(2)).multipliedBy(Long.parseLong(matcher.group(1))));
+            final String amount = matcher.group(1);
+            final String suffix = matcher.group(2);
+            Preconditions.checkState(amount != null && suffix != null, "Both groups of the duration pattern always match");
+            total = total.plus(unit(suffix).multipliedBy(Long.parseLong(amount)));
             read = matcher.end();
         }
 

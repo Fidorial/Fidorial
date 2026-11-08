@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.connection.listener;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
 import fr.euphyllia.fidorial.server.chat.ChatSigning;
@@ -184,7 +185,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return;
         }
 
-        bindPlayer(createPlayer());
+        final ServerPlayer player = createPlayer();
+        bindPlayer(player);
         final ServerWorld world = (ServerWorld) player.world();
         final Location spawn = player.location();
 
@@ -315,6 +317,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void sendLoginSequence() {
+        final ServerPlayer player = playerOrThrow();
         final TypedKey<DimensionTypeDefinition> dimensionType = serverWorld().generator.dimensionType().key();
         final Key[] dimensions = worldManager().worlds().stream().map(ServerWorld::key).toArray(Key[]::new);
         connection.send(new ClientboundLoginPacket(
@@ -368,10 +371,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void spawnPlayer(final Location spawn) {
+        final ServerPlayer player = playerOrThrow();
         connection.send(new ClientboundPlayerPositionPacket(
                 player.nextTeleportId(),
                 new PositionData.PositionMoveRotationData(
-                        LocationPositionData.vec3((spawn)),
+                        LocationPositionData.vec3(spawn),
                         new PositionData.Vec3D(0.0, 0.0, 0.0),
                         LocationPositionData.floatRotation(spawn))));
         player.inventoryMenu().sendAllDataToRemote();
@@ -379,7 +383,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerLoaded(final ServerboundPlayerLoadedPacket packet) {
-        LOGGER.debug("{} a fini de charger le terrain", player.name());
+        LOGGER.debug("{} a fini de charger le terrain", playerOrThrow().name());
     }
 
     @Override
@@ -388,9 +392,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     public CompletableFuture<Boolean> enterConfiguration() {
-        if (player == null) {
-            return CompletableFuture.completedFuture(false);
-        }
+        final ServerPlayer player = playerOrThrow();
         LOGGER.debug("Switching player {}, uuid {} from PLAY -> CONFIGURATION phase", player.name(), player.uuid());
         connection.addExemptPacket(ServerboundAcknowledgeConfigurationPacket.class);
         connection.setRejectedState(ConnectionState.PLAY);
@@ -432,7 +434,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleSetCarriedItem(final ServerboundSetCarriedItemPacket packet) {
-        if (player == null) return;
+        final ServerPlayer player = playerOrThrow();
         final int slot = packet.slot();
         if (slot < 0 || slot > 8) {
             LOGGER.debug("{} announces an invalid hotbar slot: {}", player.name(), slot);
@@ -452,9 +454,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleSetCreativeModeSlot(final ServerboundSetCreativeModeSlotPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         if (player.gameMode() != GameMode.CREATIVE) {
             LOGGER.debug("{} sends a creative packet out of creative mode (ignore)", player.name());
             return;
@@ -494,14 +494,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleChatCommand(final ServerboundChatCommandPacket packet) {
-        server.commands().manager().dispatchAsync(player.commandSource(), packet.command());
+        server.commands().manager().dispatchAsync(playerOrThrow().commandSource(), packet.command());
     }
 
     @Override
     public void handleChat(final ServerboundChatPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
 
         final String content = packet.message();
         if (content.isEmpty()) {
@@ -522,19 +520,19 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 final SignedMessageChain.Outcome outcome = chain.verify(
                         session, packet.salt(), Instant.ofEpochMilli(packet.timestamp()), content, lastSeen, packet.signature());
 
-                if (outcome.verified()) {
+                if (outcome instanceof final SignedMessageChain.Outcome.Success success) {
                     verified = new IdentifiedSignedMessage(
                             player.identity(),
                             content,
                             Instant.ofEpochMilli(packet.timestamp()),
                             packet.salt(),
-                            outcome.signature(),
+                            success.signature(),
                             null,
                             session.sessionId(),
-                            outcome.index(),
+                            success.index(),
                             lastSeen);
-                } else if (config.network().enforceSecureChat()) {
-                    disconnectForChat(outcome.reason());
+                } else if (outcome instanceof final SignedMessageChain.Outcome.Failure failure && config.network().enforceSecureChat()) {
+                    disconnectForChat(failure.reason());
                     return;
                 }
             }
@@ -569,6 +567,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void broadcastSigned(final SignedMessage message) {
+        final ServerPlayer player = playerOrThrow();
         final ChatType.Bound chatType = ChatType.CHAT.bind(player.displayName());
         for (final ServerPlayer viewer : server.players().online()) {
             viewer.sendMessage(message, chatType);
@@ -581,15 +580,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void broadcastUnsigned(final Component message) {
+        final ServerPlayer player = playerOrThrow();
         final Component formatted = Component.text("<" + player.name() + "> ").append(message);
         server.players().broadcast(new ClientboundSystemChatPacket(formatted, false));
     }
 
     @Override
     public void handleChatSessionUpdate(final ServerboundChatSessionUpdatePacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         final UUID playerUuid = player.uuid();
 
         server.network().chatSigningKeys().keys().thenAccept(keys -> connection.execute(() -> {
@@ -622,12 +620,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 return;
             }
 
-            connection.setChatSession(new SignedChatSession(
+            final SignedChatSession established = new SignedChatSession(
                     packet.sessionId(), sessionKey, packet.publicKey(), packet.keySignature(),
-                    Instant.ofEpochMilli(packet.publicKeyExpiresAt())));
+                    Instant.ofEpochMilli(packet.publicKeyExpiresAt()));
+            connection.setChatSession(established);
             LOGGER.debug("{} established chat session {}", player.name(), packet.sessionId());
 
-            final SignedChatSession established = connection.chatSession();
             for (final ServerPlayer viewer : server.players().online()) {
                 viewer.connection().send(new ClientboundInitializeChatPacket(playerUuid, established));
             }
@@ -636,10 +634,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleUseItem(final ServerboundUseItemPacket packet) {
-        if (player == null) {
-            return;
-        }
-        final ServerPlayer acting = player;
+        final ServerPlayer acting = playerOrThrow();
         final boolean offHand = packet.isOffHand();
 
         acting.execute(() -> {
@@ -657,9 +652,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleUseItemOn(final ServerboundUseItemOnPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         if (player.gameMode() == GameMode.SPECTATOR) {
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
             return;
@@ -707,6 +700,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     private @Nullable BlockState blockToPlace(
             final ItemStack held, final BlockPosition target, final BlockFace clickedFace, final float cursorY) {
+        final ServerPlayer player = playerOrThrow();
         final BlockState state = server.registries().blockStates().blockForItem(held.id());
         if (state == null) {
             return null;
@@ -718,6 +712,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private boolean interactWithBlock(final BlockPosition pos) {
+        final ServerPlayer player = playerOrThrow();
         if (player.isSneaking() && (!player.inventory().get(player.selectedSlot()).isEmpty()
                 || !player.inventory().get(PlayerInventory.OFF_HAND).isEmpty())) {
             // Like vanilla: sneaking with something in hand uses the item rather than the block.
@@ -737,7 +732,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleContainerClick(final ServerboundContainerClickPacket packet) {
-        final ServerPlayer acting = player;
+        final ServerPlayer acting = playerOrThrow();
         // On the player's thread, like vanilla, where the window is also ticked.
         acting.execute(() -> {
             final ContainerMenu menu = acting.containerMenu();
@@ -761,7 +756,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleContainerSlotStateChanged(final ServerboundContainerSlotStateChangedPacket packet) {
-        final ServerPlayer acting = player;
+        final ServerPlayer acting = playerOrThrow();
         acting.execute(() -> {
             if (acting.gameMode() != GameMode.SPECTATOR && acting.containerMenu() instanceof final CrafterMenu crafter
                     && crafter.windowId() == packet.windowId()) {
@@ -772,16 +767,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleContainerClose(final ServerboundContainerClosePacket packet) {
-        final ServerPlayer acting = player;
+        final ServerPlayer acting = playerOrThrow();
         // Like vanilla, whatever window the packet names: the client only ever has one open.
         acting.execute(acting::doCloseContainer);
     }
 
     @Override
     public void handleCustomClickAction(final ServerboundCustomClickActionPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
 
         if (!ClickCallbackManager.KEY.equals(packet.id())) {
             final DialogResponse response = packet.payload() instanceof final CompoundBinaryTag values
@@ -809,10 +802,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerAction(final ServerboundPlayerActionPacket packet) {
-        if (player == null) {
-            return;
-        }
-        final ServerPlayer acting = player;
+        final ServerPlayer acting = playerOrThrow();
         final int status = packet.status();
         if (status == ServerboundPlayerActionPacket.SWAP_ITEM_WITH_OFFHAND) {
             acting.execute(() -> swapHands(acting));
@@ -826,7 +816,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 switch (acting.gameMode()) {
                     case CREATIVE -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK;
                     case SURVIVAL ->
-                            status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK && instantMine(packet.position())
+                            (status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK && instantMine(packet.position()))
                                     || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
                     case ADVENTURE, SPECTATOR -> false;
                 };
@@ -886,7 +876,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         final int offset = slash ? 1 : 0;
 
-        server.commands().manager().offerSuggestions(player.commandSource(), input).thenAccept(suggestions -> {
+        server.commands().manager().offerSuggestions(playerOrThrow().commandSource(), input).thenAccept(suggestions -> {
             final var entries = suggestions.getList().stream()
                     .map(suggestion -> new ClientboundCommandSuggestionsPacket.Entry(
                             suggestion.getText(), suggestion.getTooltip()))
@@ -902,9 +892,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         player.setFlying(packet.flying());
     }
 
@@ -914,6 +902,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleMovePlayerPos(final ServerboundMovePlayerPosPacket packet) {
+        final ServerPlayer player = playerOrThrow();
         final Location old = player.location();
         onMoved(packet.position().x(), packet.position().y(), packet.position().z(), old.yaw(), old.pitch(), packet.flags());
     }
@@ -924,11 +913,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void onMoved(final double x, final double y, final double z, final float yaw, final float pitch, final int flags) {
-        if (player == null) {
-            return;
-        }
-
-        final ServerPlayer moving = player;
+        final ServerPlayer moving = playerOrThrow();
         final ServerWorld world = serverWorld();
         final Location previous = moving.location();
         final ChunkPos fromChunk = previous.chunk();
@@ -960,7 +945,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
             server.entities().tracker().update(moving, server.players().online());
 
             final ChunkPos chunk = current.chunk();
-            if (chunkView == null || !chunkView.moveTo(chunk.x(), chunk.z())) {
+            if (chunkView == null || !chunkView.moveTo(chunk.x(), chunk.z()) || ticket == null) {
                 return;
             }
             server.workers().regionizer().moveTicket(worldId(), ticket, chunk);
@@ -969,10 +954,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     public CompletableFuture<Boolean> teleport(final Location location) {
-        if (player == null) {
-            return CompletableFuture.completedFuture(false);
-        }
-        final ServerPlayer teleporting = player;
+        final ServerPlayer teleporting = playerOrThrow();
         final ServerWorld from = ((ServerWorld) teleporting.world());
         final ChunkPos destChunk = location.chunk();
 
@@ -1018,21 +1000,16 @@ public final class PlayPacketHandler implements PlayPacketListener {
             return result;
         }
 
-        final CompletableFuture<Boolean> arrival = teleportCrossWorld(from, target, location, destChunk);
-        arrival.thenAccept(succeeded -> {
+        return teleportCrossWorld(from, target, location, destChunk).thenApply(succeeded -> {
             if (!succeeded) {
                 LOGGER.warn("{} did not fully complete a cross-world teleport into {}", teleporting.name(), target.key());
             }
+            return succeeded;
         });
-        return arrival;
     }
 
     private CompletableFuture<Boolean> teleportCrossWorld(final ServerWorld from, final ServerWorld target, final Location location, final ChunkPos destChunk) {
-        if (player == null) {
-            throw new RuntimeException("Attempt to teleport a player who does not exist!");
-        }
-
-        final ServerPlayer teleporting = player;
+        final ServerPlayer teleporting = playerOrThrow();
         final ChunkPos fromChunk = teleporting.chunk();
         final CompletableFuture<Boolean> arrival = new CompletableFuture<>();
 
@@ -1106,7 +1083,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleAttack(final ServerboundAttackPacket packet) {
-        if (player == null || player.isDead()) {
+        final ServerPlayer player = playerOrThrow();
+        if (player.isDead()) {
             return;
         }
         final AbstractEntity target = serverWorld().entityManager().byId(packet.entityId());
@@ -1119,7 +1097,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleInteract(final ServerboundInteractPacket packet) {
-        if (player == null || player.isDead()) {
+        final ServerPlayer player = playerOrThrow();
+        if (player.isDead()) {
             return;
         }
         final AbstractEntity target = serverWorld().entityManager().byId(packet.entityId());
@@ -1134,9 +1113,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePunch(final ServerboundPunchPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         player.resetAttackCooldown();
         if (server.events().post(new PlayerSwingEvent(player)).isCancelled()) {
             return;
@@ -1147,9 +1124,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerInput(final ServerboundPlayerInputPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         player.setSneaking(packet.sneaking());
         final PlayerInput input = new PlayerInput(packet.forward(), packet.backward(), packet.left(), packet.right(),
                 packet.jumping(), packet.sneaking(), packet.sprinting());
@@ -1162,9 +1137,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handlePlayerCommand(final ServerboundPlayerCommandPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         switch (packet.action()) {
             case START_SPRINTING -> player.setSprinting(true);
             case STOP_SPRINTING -> player.setSprinting(false);
@@ -1176,7 +1149,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
     @Override
     public void handleChatAck(final ServerboundChatAckPacket packet) {
         if (packet.messageCount() < 0 || packet.messageCount() > LastSeenMessages.SIZE) {
-            LOGGER.warn("{} sent an implausible chat ack count: {}", player.name(), packet.messageCount());
+            LOGGER.warn("{} sent an implausible chat ack count: {}", playerOrThrow().name(), packet.messageCount());
             connection.disconnect(Component.translatable("multiplayer.disconnect.chat_validation_failed"));
         }
     }
@@ -1188,21 +1161,21 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleMovePlayerRot(final ServerboundMovePlayerRotPacket packet) {
+        final ServerPlayer player = playerOrThrow();
         final Location old = player.location();
         onMoved(old.x(), old.y(), old.z(), packet.rotation().yaw(), packet.rotation().pitch(), packet.flags());
     }
 
     @Override
     public void handleMovePlayerStatusOnly(final ServerboundMovePlayerStatusOnlyPacket packet) {
+        final ServerPlayer player = playerOrThrow();
         final Location old = player.location();
         onMoved(old.x(), old.y(), old.z(), old.yaw(), old.pitch(), packet.flags());
     }
 
     @Override
     public void handleDebugSubscriptionRequest(final ServerboundDebugSubscriptionRequestPacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         final int gained = server.debug().subscribers().update(player, packet.requested());
         final ChunkViewTracker view = chunkView;
         if ((gained & DebugChannels.STRUCTURES.bit()) != 0 && view != null) {
@@ -1214,7 +1187,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleClientCommand(final ServerboundClientCommandPacket packet) {
-        LOGGER.debug("{} sent client_command action={}", player == null ? "?" : player.name(), packet.action());
+        LOGGER.debug("{} sent client_command action={}", playerOrThrow().name(), packet.action());
         if (packet.action() == ServerboundClientCommandPacket.PERFORM_RESPAWN) {
             respawn(PlayerRespawnEvent.Cause.DEATH_SCREEN);
         } else if (packet.action() == ServerboundClientCommandPacket.REQUEST_GAMERULE_VALUES) {
@@ -1223,12 +1196,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private boolean canEditGameRules() {
-        return player != null && player.hasPermission(GAMERULE_PERMISSION);
+        return playerOrThrow().hasPermission(GAMERULE_PERMISSION);
     }
 
     private void sendGameRuleValues() {
         if (!canEditGameRules()) {
-            LOGGER.debug("{} requested the game rule values without permission", player == null ? "?" : player.name());
+            LOGGER.debug("{} requested the game rule values without permission", playerOrThrow().name());
             return;
         }
         connection.send(new ClientboundGameRuleValuesPacket(server.worlds().gameRules().snapshot()));
@@ -1236,9 +1209,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     @Override
     public void handleSetGameRule(final ServerboundSetGameRulePacket packet) {
-        if (player == null) {
-            return;
-        }
+        final ServerPlayer player = playerOrThrow();
         if (!canEditGameRules()) {
             LOGGER.warn("{} tried to change game rules without permission", player.name());
             return;
@@ -1281,26 +1252,20 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     public CompletableFuture<Boolean> respawn(final PlayerRespawnEvent.Cause cause) {
-        if (player == null) {
-            LOGGER.debug("Respawn requested without a player");
-            return CompletableFuture.completedFuture(false);
-        }
+        final ServerPlayer player = playerOrThrow();
         if (player.isRemoved() || (!player.isDead() && !player.isAwaitingRespawn())) {
             LOGGER.debug("{} requested a respawn while alive (health={})", player.name(), player.health());
             return CompletableFuture.completedFuture(false);
         }
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld);
 
-        ServerWorld requestedWorld = defaultWorld;
-        Location requestedSpawn = defaultSpawn;
+        Location requestedSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld); // default spawn
         boolean usedRespawnPoint = false;
 
         final RespawnPoint point = player.respawnPoint();
         if (point != null) {
             final ServerWorld target = server.worlds().manager().world(point.world().key());
             if (target != null) {
-                requestedWorld = target;
                 requestedSpawn = point.position().toLocation(point.world());
                 usedRespawnPoint = true;
             } else {
@@ -1348,22 +1313,21 @@ public final class PlayPacketHandler implements PlayPacketListener {
         server.worlds().gameRules().syncTo(world, player.entityId(), connection::send);
         server.entities().tracker().update(player, server.players().online());
 
-        return moved.handle((succeeded, throwable) -> {
-            if (throwable != null) {
-                LOGGER.error("An error occurred while respawning {}", player.name(), throwable);
-                return false;
-            }
+        return moved.thenApply(succeeded -> {
             if (succeeded) {
                 LOGGER.debug("{} respawned at {}", player.name(), spawn);
             } else {
                 LOGGER.warn("{} could not be moved to their respawn point at {}", player.name(), spawn);
             }
             return succeeded;
+        }).exceptionally(throwable -> {
+            LOGGER.error("An error occurred while respawning {}", player.name(), throwable);
+            return false;
         });
     }
 
     private CompletableFuture<Boolean> moveToRespawnPoint(final ServerWorld world, final Location spawn) {
-        final ServerPlayer respawning = player;
+        final ServerPlayer respawning = playerOrThrow();
         final ServerWorld from = (ServerWorld) respawning.world();
         final ChunkPos destination = spawn.chunk();
         final CompletableFuture<Boolean> result = new CompletableFuture<>();
@@ -1440,7 +1404,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
     }
 
     private void trackFall(final Location previous, final Location current, final boolean wasOnGround, final boolean isOnGround) {
-        if (player == null || wasOnGround && isOnGround) return;
+        final ServerPlayer player = playerOrThrow();
+        if (wasOnGround && isOnGround) return;
 
         if (player.isFlying()) {
             player.setFallDistance(0.0);
@@ -1465,6 +1430,12 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     public void bindPlayer(final ServerPlayer player) {
         this.player = player;
+    }
+
+    private ServerPlayer playerOrThrow() {
+        final ServerPlayer player = this.player;
+        Preconditions.checkState(player != null, "No player is bound to the connection of %s yet", connection.username());
+        return player;
     }
 
     private ServerWorld worldOrDisconnect() {

@@ -14,10 +14,14 @@ import net.kyori.adventure.nbt.LongBinaryTag;
 import net.kyori.adventure.nbt.ShortBinaryTag;
 import net.kyori.adventure.nbt.StringBinaryTag;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.regex.Pattern;
 
@@ -66,14 +70,18 @@ public final class NbtTextDecorator {
         }
 
         nesting++;
-        Component joined = null;
+        final List<Component> elements = new ArrayList<>(list.size());
         for (final BinaryTag element : list) {
-            final Component rendered = write(element);
-            joined = joined == null ? rendered : joined.append(punctuation(",")).append(plain(" ")).append(rendered);
+            elements.add(write(element));
         }
+        final Component joined = Component.join(separator(), elements);
         nesting--;
 
         return punctuation("[").append(joined).append(punctuation("]"));
+    }
+
+    private JoinConfiguration separator() {
+        return JoinConfiguration.separator(punctuation(",").append(plain(" ")));
     }
 
     private Component compound(final CompoundBinaryTag compound) {
@@ -85,11 +93,11 @@ public final class NbtTextDecorator {
         }
 
         nesting++;
-        Component joined = null;
-        for (final String key : compound.keySet()) {
-            final Component entry = fieldName(key).append(punctuation(":")).append(plain(" ")).append(write(compound.get(key)));
-            joined = joined == null ? entry : joined.append(punctuation(",")).append(plain(" ")).append(entry);
+        final List<Component> entries = new ArrayList<>();
+        for (final Map.Entry<String, ? extends BinaryTag> entry : compound) {
+            entries.add(fieldName(entry.getKey()).append(punctuation(":")).append(plain(" ")).append(write(entry.getValue())));
         }
+        final Component joined = Component.join(separator(), entries);
         nesting--;
 
         return punctuation("{").append(joined).append(punctuation("}"));

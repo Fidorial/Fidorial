@@ -48,7 +48,7 @@ public final class SparkClassFinder implements ClassFinder {
         for (final ClassLoader loader : this.pluginClassLoaders) {
             try {
                 return Class.forName(className, false, loader);
-            } catch (final Throwable ignored) {
+            } catch (final Throwable _) {
             }
         }
         return null;

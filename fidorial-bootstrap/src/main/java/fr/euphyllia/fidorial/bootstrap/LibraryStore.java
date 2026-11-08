@@ -170,10 +170,11 @@ public final class LibraryStore {
                     Thread.currentThread().interrupt();
                     throw new BootstrapException("interrupted while downloading libraries", e);
                 } catch (final ExecutionException e) {
-                    final Throwable cause = e.getCause();
-                    final String reason = cause instanceof final UncheckedIOException unchecked
-                            ? String.valueOf(unchecked.getCause())
-                            : String.valueOf(cause.getMessage());
+                    final String reason = switch (e.getCause()) {
+                        case final UncheckedIOException unchecked -> String.valueOf(unchecked.getCause());
+                        case null -> String.valueOf(e.getMessage());
+                        case final Throwable cause -> String.valueOf(cause.getMessage());
+                    };
                     failures.add(task.getKey().id() + System.lineSeparator() + "      " + reason);
                 }
             }
@@ -192,7 +193,11 @@ public final class LibraryStore {
     }
 
     private void download(final Artifact artifact, final Path target, final List<String> sources, final AtomicInteger completed, final int total) throws IOException {
-        Files.createDirectories(target.getParent());
+        final Path directory = target.getParent();
+        if (directory == null) {
+            throw new BootstrapException(artifact.fileName() + " has no parent directory");
+        }
+        Files.createDirectories(directory);
         final List<String> failures = new ArrayList<>();
 
         for (final String repository : sources) {
@@ -200,7 +205,7 @@ public final class LibraryStore {
             for (int attempt = 1; attempt <= ATTEMPTS_PER_REPOSITORY; attempt++) {
                 Path temporary = null;
                 try {
-                    temporary = Files.createTempFile(target.getParent(), artifact.fileName(), ".part");
+                    temporary = Files.createTempFile(directory, artifact.fileName(), ".part");
                     final HttpRequest request = HttpRequest.newBuilder(uri)
                             .header("User-Agent", USER_AGENT)
                             .timeout(REQUEST_TIMEOUT)

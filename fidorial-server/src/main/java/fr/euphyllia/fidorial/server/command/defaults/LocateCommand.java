@@ -63,6 +63,10 @@ public final class LocateCommand {
             return 0;
         }
         final Position origin = context.getSource().location();
+        if (origin == null) {
+            context.getSource().sendMessage(Component.translatable("command.locate.no_world"));
+            return 0;
+        }
         context.getSource().sendMessage(Component.translatable("command.locate.structure.searching", Component.text(id.asString())));
         service.locate(world, origin, id, radiusCells).whenComplete((found, failure) -> {
             if (failure != null || found == null || found.isEmpty()) {
@@ -70,8 +74,8 @@ public final class LocateCommand {
                 return;
             }
             final BlockPosition pos = found.get();
-            final long dx = pos.blockX() - origin.blockX();
-            final long dz = pos.blockZ() - origin.blockZ();
+            final double dx = pos.blockX() - origin.blockX();
+            final double dz = pos.blockZ() - origin.blockZ();
             final int distance = (int) Math.round(Math.sqrt(dx * dx + dz * dz));
             final Component coordinates = Component.text("[" + pos.x() + ", ~, " + pos.z() + "]", NamedTextColor.GREEN)
                     .clickEvent(ClickEvent.suggestCommand("/tp @s " + pos.x() + " ~ " + pos.z()))
@@ -79,7 +83,8 @@ public final class LocateCommand {
             context.getSource().sendMessage(Component.translatable("command.locate.structure.success",
                     Component.text(id.asString()), coordinates, Component.text(distance)));
         }).exceptionally(failure -> {
-            context.getSource().sendMessage(Component.translatable("command.locate.structure.error", Component.text(id.asString()), Component.text(failure.getMessage())));
+            final String message = failure.getMessage();
+            context.getSource().sendMessage(Component.translatable("command.locate.structure.error", Component.text(id.asString()), Component.text(message != null ? message : failure.toString())));
             return Optional.empty();
         });
         return Command.SINGLE_SUCCESS;

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.debug;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkCodec;
 import fr.euphyllia.fidorial.server.debug.DebugChannel.Scope;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
@@ -50,7 +51,9 @@ public final class DebugChannels {
     }
 
     private static List<Key> networkOrder() {
-        return FrozenRegistries.entries().get(RegistryKey.DEBUG_SUBSCRIPTION.key());
+        final List<Key> order = FrozenRegistries.entries().get(RegistryKey.DEBUG_SUBSCRIPTION.key());
+        Preconditions.checkState(order != null, "The frozen registries have no debug subscriptions");
+        return order;
     }
 
     private static <T> DebugChannel<T> register(final TypedKey<DebugSubscription> key, final Scope scope, final @Nullable NetworkCodec<PacketBuffer, T> codec) {

@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Bisected;
@@ -43,7 +44,9 @@ public interface Door extends Directional, Bisected, Openable, Powerable {
      * @since 0.1.0
      */
     default Hinge getHinge() {
-        return Hinge.valueOf(get("hinge").toUpperCase(Locale.ROOT));
+        final String hinge = get("hinge");
+        Preconditions.checkState(hinge != null, "%s has no hinge property", key());
+        return Hinge.valueOf(hinge.toUpperCase(Locale.ROOT));
     }
 
     /**

@@ -200,9 +200,9 @@ public final class BreakDoorGoal implements Goal {
 
     private void clearDestroyStage() {
         final BlockPosition pos = this.door;
-        final boolean needsClear = pos != null && sentStage != NO_DESTROY_STAGE;
+        final boolean needsClear = sentStage != NO_DESTROY_STAGE;
         sentStage = NO_DESTROY_STAGE;
-        if (needsClear) {
+        if (pos != null && needsClear) {
             mob.sendToTrackers(new ClientboundBlockDestructionPacket(mob.entityId(), pos, NO_DESTROY_STAGE));
         }
     }

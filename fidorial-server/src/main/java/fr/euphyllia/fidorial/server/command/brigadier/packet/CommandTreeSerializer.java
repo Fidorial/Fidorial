@@ -17,6 +17,8 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.util.Permissionless
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 import fr.fidorial.command.CommandSource;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -48,7 +50,7 @@ public final class CommandTreeSerializer {
     public static void write(final PacketBuffer buf, final RootCommandNode<CommandSource> root) {
         final List<CommandNode<CommandSource>> nodes = enumerate(root);
 
-        final Map<CommandNode<CommandSource>, Integer> ids = new IdentityHashMap<>();
+        final Reference2IntMap<CommandNode<CommandSource>> ids = new Reference2IntOpenHashMap<>();
 
         for (int i = 0; i < nodes.size(); i++) {
             ids.put(nodes.get(i), i);
@@ -60,7 +62,7 @@ public final class CommandTreeSerializer {
             writeNode(buf, node, ids);
         }
 
-        buf.writeVarInt(ids.get(root));
+        buf.writeVarInt(ids.getInt(root));
     }
 
     private static List<CommandNode<CommandSource>> enumerate(final RootCommandNode<CommandSource> root) {
@@ -73,7 +75,7 @@ public final class CommandTreeSerializer {
         queue.add(root);
 
         while (!queue.isEmpty()) {
-            final CommandNode<CommandSource> node = queue.poll();
+            final CommandNode<CommandSource> node = queue.remove();
 
             if (ids.containsKey(node)) {
                 continue;
@@ -95,10 +97,10 @@ public final class CommandTreeSerializer {
     private static void writeNode(
             final PacketBuffer buf,
             final CommandNode<CommandSource> node,
-            final Map<CommandNode<CommandSource>, Integer> ids
+            final Reference2IntMap<CommandNode<CommandSource>> ids
     ) {
 
-        int flags = 0;
+        int flags = TYPE_ROOT;
 
         if (node instanceof LiteralCommandNode<?>) {
             flags |= TYPE_LITERAL;
@@ -130,13 +132,13 @@ public final class CommandTreeSerializer {
 
         final int[] children = node.getChildren().stream()
                 .filter(ids::containsKey)
-                .mapToInt(ids::get)
+                .mapToInt(ids::getInt)
                 .toArray();
 
         buf.writeVarIntArray(children);
 
         if ((flags & FLAG_REDIRECT) != 0) {
-            buf.writeVarInt(ids.get(node.getRedirect()));
+            buf.writeVarInt(ids.getInt(node.getRedirect()));
         }
 
         switch (node) {

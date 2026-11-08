@@ -38,7 +38,10 @@ public final class WorldFileFixer {
         if (!root.contains("WorldClocks") && !root.getCompound("data").contains("WorldClocks")) {
             return; // vanilla's own file
         }
-        Files.createDirectories(target.getParent());
+        final Path parent = target.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
         Files.move(legacy, target);
         LOGGER.info("Moved Fidorial world clocks to {}", target);
     }
@@ -59,7 +62,7 @@ public final class WorldFileFixer {
         }
         final List<Path> unsuffixed;
         try (final Stream<Path> files = Files.list(data)) {
-            unsuffixed = files.filter(Files::isRegularFile).filter(file -> isUuid(file.getFileName().toString())).toList();
+            unsuffixed = files.filter(Files::isRegularFile).filter(file -> isUuid(String.valueOf(file.getFileName()))).toList();
         }
         for (final Path file : unsuffixed) {
             final Path target = file.resolveSibling(file.getFileName() + ".dat");
@@ -89,7 +92,10 @@ public final class WorldFileFixer {
             children = stream.toList();
         }
         for (final Path child : children) {
-            merge(child, target.resolve(child.getFileName().toString()));
+            final Path name = child.getFileName();
+            if (name != null) {
+                merge(child, target.resolve(name.toString()));
+            }
         }
         try (final Stream<Path> rest = Files.list(source)) {
             if (rest.findAny().isEmpty()) {

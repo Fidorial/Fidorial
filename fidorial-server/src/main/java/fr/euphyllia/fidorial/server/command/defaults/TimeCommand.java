@@ -9,6 +9,7 @@ import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 import fr.fidorial.world.time.DayNightCycle;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -90,9 +91,8 @@ public final class TimeCommand {
                 return context.getArgument("world", World.class);
             }
         }
-        final CommandSource source = context.getSource();
-        return source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld world ? world : null;
+        final Location location = context.getSource().location();
+        return location != null && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     private static int set(final CommandContext<CommandSource> context, final int timeOfDay) {
@@ -158,6 +158,7 @@ public final class TimeCommand {
         return Command.SINGLE_SUCCESS;
     }
 
+    @Contract("_, null -> true")
     private static boolean handleMissingWorld(final CommandSource source, final @Nullable World world) {
         if (world == null) {
             source.sendMessage(Component.translatable("command.time.no_world"));

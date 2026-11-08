@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class BossBarRegistry {
@@ -34,16 +35,42 @@ public final class BossBarRegistry {
         volatile int max;
         volatile boolean visible;
         volatile Set<UUID> players;
-        BossBar.Listener listener;
+        final BossBar.Listener listener;
 
         Entry(final Key id, final BossBar bar, final int value, final int max,
-              final boolean visible, final Set<UUID> players) {
+              final boolean visible, final Set<UUID> players, final Consumer<Entry> onChange) {
             this.id = id;
             this.bar = bar;
             this.value = value;
             this.max = max;
             this.visible = visible;
             this.players = players;
+            this.listener = new BossBar.Listener() {
+                @Override
+                public void bossBarProgressChanged(final BossBar b, final float old, final float now) {
+                    onChange.accept(Entry.this);
+                }
+
+                @Override
+                public void bossBarNameChanged(final BossBar b, final Component old, final Component now) {
+                    onChange.accept(Entry.this);
+                }
+
+                @Override
+                public void bossBarColorChanged(final BossBar b, final BossBar.Color old, final BossBar.Color now) {
+                    onChange.accept(Entry.this);
+                }
+
+                @Override
+                public void bossBarOverlayChanged(final BossBar b, final BossBar.Overlay old, final BossBar.Overlay now) {
+                    onChange.accept(Entry.this);
+                }
+
+                @Override
+                public void bossBarFlagsChanged(final BossBar b, final Set<BossBar.Flag> added, final Set<BossBar.Flag> removed) {
+                    onChange.accept(Entry.this);
+                }
+            };
         }
 
         float progress() {
@@ -86,36 +113,9 @@ public final class BossBarRegistry {
             unregister(id);
         }
 
-        final Entry entry = new Entry(id, bar, value, max, visible, Set.copyOf(players));
-        final BossBar.Listener listener = new BossBar.Listener() {
-            @Override
-            public void bossBarProgressChanged(final BossBar b, final float old, final float now) {
-                persist(entry);
-            }
+        final Entry entry = new Entry(id, bar, value, max, visible, Set.copyOf(players), this::persist);
 
-            @Override
-            public void bossBarNameChanged(final BossBar b, final Component old, final Component now) {
-                persist(entry);
-            }
-
-            @Override
-            public void bossBarColorChanged(final BossBar b, final BossBar.Color old, final BossBar.Color now) {
-                persist(entry);
-            }
-
-            @Override
-            public void bossBarOverlayChanged(final BossBar b, final BossBar.Overlay old, final BossBar.Overlay now) {
-                persist(entry);
-            }
-
-            @Override
-            public void bossBarFlagsChanged(final BossBar b, final Set<BossBar.Flag> added, final Set<BossBar.Flag> removed) {
-                persist(entry);
-            }
-        };
-        entry.listener = listener;
-
-        bar.addListener(listener);
+        bar.addListener(entry.listener);
         registered.put(id, entry);
         persist(entry);
 

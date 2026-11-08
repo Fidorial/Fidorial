@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.plugin;
 import fr.euphyllia.fidorial.bootstrap.Artifact;
 import fr.euphyllia.fidorial.bootstrap.LibraryStore;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +23,7 @@ final class PluginLibraries {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(PluginLibraries.class);
     static final String LOCK_ENTRY = "META-INF/fidorial/libraries.list";
 
-    private static LibraryStore store;
+    private static @Nullable LibraryStore store;
 
     private PluginLibraries() {
     }
@@ -32,7 +33,11 @@ final class PluginLibraries {
         if (entry == null) {
             return List.of();
         }
-        try (final InputStream in = jar.getInputStream(entry)) {
+        final InputStream in = jar.getInputStream(entry);
+        if (in == null) {
+            throw new IOException("Cannot read " + LOCK_ENTRY + " in " + jar.getName());
+        }
+        try (in) {
             return Artifact.read(in, true);
         }
     }
@@ -86,8 +91,8 @@ final class PluginLibraries {
             final Path root = Paths.get(System.getProperty("fidorial.libraries.dir", "libraries"))
                     .toAbsolutePath()
                     .normalize();
-            final String configured = System.getProperty("fidorial.libraries.repositories", "");
-            final List<String> repositories = configured.isBlank()
+            final String configured = System.getProperty("fidorial.libraries.repositories");
+            final List<String> repositories = configured == null || configured.isBlank()
                     ? List.of("https://repo.euphyllia.moe/repository/maven-public/")
                     : new ArrayList<>(Arrays.asList(configured.split(",")));
             store = new LibraryStore(root, repositories);

@@ -363,6 +363,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         void call(MobEffectBehaviour behaviour, LivingEntity entity, MobEffectInstance effect);
     }
 
+    @SuppressWarnings("ModifyCollectionInEnhancedForLoop") // concurrent map
     private void tickEffects() {
         if (effects.isEmpty()) {
             return;

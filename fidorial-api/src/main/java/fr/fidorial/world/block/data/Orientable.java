@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockTrait;
 
@@ -20,7 +21,9 @@ public interface Orientable extends BlockData {
      * @since 0.1.0
      */
     default Axis getAxis() {
-        return Axis.valueOf(get("axis").toUpperCase(java.util.Locale.ROOT));
+        final String axis = get("axis");
+        Preconditions.checkState(axis != null, "%s has no axis property", key());
+        return Axis.valueOf(axis.toUpperCase(java.util.Locale.ROOT));
     }
 
     /**

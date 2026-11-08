@@ -142,6 +142,6 @@ public final class SparkCommand implements SuggestionProvider<CommandSource> {
             return null;
         }
 
-        return Arrays.copyOfRange(split, 1, split.length);
+        return Arrays.stream(split, 1, split.length).toArray(String[]::new);
     }
 }

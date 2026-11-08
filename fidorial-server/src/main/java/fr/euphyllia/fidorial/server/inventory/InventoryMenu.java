@@ -10,6 +10,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
 import net.kyori.adventure.text.Component;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +115,7 @@ public final class InventoryMenu extends AbstractCraftingMenu {
                 : moveItemStackTo(stack, inventoryFrom(), hotbarFrom(), false));
     }
 
-    private static int armorWindowSlot(final EquipmentSlot equipment) {
+    private static int armorWindowSlot(final @Nullable EquipmentSlot equipment) {
         for (int i = 0; i < ARMOR.length; i++) {
             if (ARMOR[i] == equipment) {
                 return ARMOR_FROM + i;

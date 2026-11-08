@@ -36,6 +36,7 @@ public final class GameBootstrap {
     /**
      * Initialises the static game data if it has not been done yet.
      */
+    @SuppressWarnings("StaticAssignmentOfThrowable") // kept as the cause of later bootstrap attempts
     public static void bootstrap() {
         if (blockRegistry != null) {
             return;

@@ -85,7 +85,7 @@ public final class TemplateParser {
         final int[] ys = new int[count];
         final int[] zs = new int[count];
         final int[] states = new int[count];
-        final CompoundBinaryTag[] nbt = new CompoundBinaryTag[count];
+        final @Nullable CompoundBinaryTag[] nbt = new CompoundBinaryTag[count];
         final List<JigsawInfo> jigsaws = new ArrayList<>();
         final BlockState[] primary = palettes[0];
 

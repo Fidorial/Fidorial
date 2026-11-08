@@ -11,6 +11,7 @@ import fr.fidorial.math.ColumnPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
@@ -188,11 +189,11 @@ public final class ForceLoadCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
-        final CommandSource source = context.getSource();
-        return source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld world ? world : null;
+        final Location location = context.getSource().location();
+        return location != null && location.world() instanceof final ServerWorld world ? world : null;
     }
 
+    @Contract("_, null -> true")
     private static boolean handleMissingWorld(final CommandSource source, final @Nullable ServerWorld world) {
         if (world == null) {
             source.sendMessage(Component.translatable("commands.forceload.no_world"));

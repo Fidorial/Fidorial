@@ -9,9 +9,6 @@ import com.mojang.serialization.RecordBuilder;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.RecordComponent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -198,17 +195,6 @@ public final class RecordCodec {
         private void beforeFields(final String option) {
             if (!fields.isEmpty()) {
                 throw new IllegalStateException(option + "(...) must be called before the fields of " + type.getName());
-            }
-        }
-
-        private MethodHandle canonicalConstructor(final RecordComponent[] components) {
-            final Class<?>[] parameters = Arrays.stream(components).map(RecordComponent::getType).toArray(Class<?>[]::new);
-            try {
-                final Constructor<R> constructor = type.getDeclaredConstructor(parameters);
-                constructor.trySetAccessible();
-                return MethodHandles.lookup().unreflectConstructor(constructor);
-            } catch (final ReflectiveOperationException e) {
-                throw new IllegalStateException("Cannot access the canonical constructor of " + type.getName(), e);
             }
         }
 

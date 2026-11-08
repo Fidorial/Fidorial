@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockTrait;
@@ -18,7 +19,9 @@ public interface Farmland extends BlockData {
      * @since 0.1.0
      */
     default int getMoisture() {
-        return Integer.parseInt(get("moisture"));
+        final String moisture = get("moisture");
+        Preconditions.checkState(moisture != null, "%s has no moisture property", key());
+        return Integer.parseInt(moisture);
     }
 
     /**

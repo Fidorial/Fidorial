@@ -6,7 +6,6 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 
-import java.util.Collection;
 import java.util.function.LongConsumer;
 
 /**
@@ -27,10 +26,12 @@ public final class ConcurrentLongSet {
     }
 
     public boolean add(final long value) {
+        // noinspection ConstantValue
         return table.putIfAbsent(value, PRESENT) == null;
     }
 
     public boolean remove(final long value) {
+        // noinspection ConstantValue
         return table.remove(value) != null;
     }
 
@@ -48,12 +49,6 @@ public final class ConcurrentLongSet {
 
     public void clear() {
         table.clear();
-    }
-
-    public void addAll(final Collection<Long> values) {
-        for (final long value : values) {
-            add(value);
-        }
     }
 
     public void addAll(final LongSet values) {

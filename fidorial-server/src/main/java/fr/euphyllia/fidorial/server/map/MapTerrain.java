@@ -256,7 +256,7 @@ final class MapTerrain {
         }
         final Map<String, String> properties = state.properties();
         final boolean solidTop = "top".equals(properties.get("type")) || "double".equals(properties.get("type"))
-                || "top".equals(properties.get("half")) && name.endsWith("_stairs")
+                || ("top".equals(properties.get("half")) && name.endsWith("_stairs"))
                 || name.endsWith("_grate");
         return solidTop ? own : MapColor.WATER;
     }

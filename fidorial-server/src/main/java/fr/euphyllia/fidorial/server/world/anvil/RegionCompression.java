@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.anvil;
 import com.github.luben.zstd.ZstdInputStreamNoFinalizer;
 import com.github.luben.zstd.ZstdOutputStreamNoFinalizer;
 import com.github.luben.zstd.util.Native;
+import com.google.common.collect.ImmutableList;
 import net.jpountz.lz4.LZ4BlockInputStream;
 import net.jpountz.lz4.LZ4BlockOutputStream;
 import net.jpountz.lz4.LZ4Factory;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.zip.Deflater;
@@ -178,13 +178,13 @@ public enum RegionCompression {
     private final byte id;
     private final @Nullable String customName;
     private final String configName;
-    private final List<String> aliases;
+    private final ImmutableList<String> aliases;
 
     RegionCompression(final byte id, final @Nullable String customName, final String configName, final String... aliases) {
         this.id = id;
         this.customName = customName;
         this.configName = configName;
-        this.aliases = List.of(aliases);
+        this.aliases = ImmutableList.copyOf(aliases);
     }
 
     /**

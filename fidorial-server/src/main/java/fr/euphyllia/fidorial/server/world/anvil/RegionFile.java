@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.anvil;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
@@ -50,7 +51,9 @@ public final class RegionFile implements Closeable {
     private boolean[] usedSectors = new boolean[0];
 
     public RegionFile(final Path path) throws IOException {
-        Files.createDirectories(path.getParent());
+        final Path parent = path.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", path);
+        Files.createDirectories(parent);
         this.channel = FileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
 
         final long sectors = Math.max(RegionConstants.HEADER_SECTORS,

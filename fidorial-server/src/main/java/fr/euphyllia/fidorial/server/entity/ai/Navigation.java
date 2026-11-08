@@ -44,13 +44,6 @@ public class Navigation implements Navigator {
         this.world = world;
     }
 
-    private static double distanceSq(final BlockPosition a, final BlockPosition b) {
-        final double dx = a.x() - b.x();
-        final double dy = a.y() - b.y();
-        final double dz = a.z() - b.z();
-        return dx * dx + dy * dy + dz * dz;
-    }
-
     public void setPathPenalty(@Nullable final PathPenalty pathPenalty) {
         this.pathPenalty = pathPenalty;
     }

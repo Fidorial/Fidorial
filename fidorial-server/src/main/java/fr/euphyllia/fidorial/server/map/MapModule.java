@@ -471,6 +471,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
         }
     }
 
+    @SuppressWarnings("ModifyCollectionInEnhancedForLoop") // concurrent map
     private void unloadIdle() {
         final long now = System.nanoTime();
         for (final ServerMapView view : views.values()) {
@@ -511,8 +512,10 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
      * {@return the viewer of a player, the same object as long as the player stays connected}
      */
     private MapViewer viewerOf(final ServerPlayer player) {
-        return playerViewers.compute(player.uuid(), (uuid, previous) ->
+        final MapViewer viewer = playerViewers.compute(player.uuid(), (uuid, previous) ->
                 previous != null && previous.player() == player ? previous : new PlayerViewer(player));
+        Preconditions.checkState(viewer != null, "The viewer of %s was just computed", player.name());
+        return viewer;
     }
 
     private void tick(final ServerMapView view, final long now, final Map<UUID, MapViewer> online) {
@@ -792,7 +795,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
      * Draws the whole terrain of a map, loading chunks one row at a time.
      */
     @Override
-    public CompletableFuture<Void> renderTerrain(final ServerMapView view) {
+    public CompletableFuture<@Nullable Void> renderTerrain(final ServerMapView view) {
         final Optional<Key> worldKey = view.world();
         if (worldKey.isEmpty()) {
             return CompletableFuture.completedFuture(null);

@@ -1,14 +1,14 @@
 package fr.euphyllia.fidorial.server.translation;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.Main;
-import fr.fidorial.translation.TranslationStore;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationStore;
 import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.Translator;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -30,17 +30,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public final class BuiltInTranslationStore implements TranslationStore {
+/**
+ * The server's own translations, read from the {@code languages} resources.
+ */
+public final class BuiltInTranslationStore {
+
+    /**
+     * The locale used when a translation is missing in the requested one.
+     */
+    public static final Locale DEFAULT_LOCALE = Locale.US;
 
     private static final Gson GSON = new Gson();
     private static final Type LANGUAGE_TYPE = new TypeToken<Map<String, String>>() {
     }.getType();
-    private static final Locale DEFAULT_LOCALE = Locale.US;
     private static final String LANGUAGE_FOLDER = "languages";
     private static final String EXTENSION = ".json";
 
     private final MiniMessageTranslationStore miniMessageStore =
-            MiniMessageTranslationStore.create(Key.key("translations"));
+            MiniMessageTranslationStore.create(Key.key("fidorial", "translations"));
 
     private final Set<Locale> supportedLocales = ConcurrentHashMap.newKeySet();
 
@@ -61,25 +68,10 @@ public final class BuiltInTranslationStore implements TranslationStore {
         return locale.getLanguage().isEmpty() ? null : locale;
     }
 
-    private Locale resolveLocale(@Nullable final Locale locale) {
-        if (locale == null || supportedLocales.isEmpty()) {
-            return DEFAULT_LOCALE;
-        }
-
-        if (supportedLocales.contains(locale)) {
-            return locale;
-        }
-
-        for (final Locale supported : supportedLocales) {
-            if (supported.getLanguage().equals(locale.getLanguage())) {
-                return supported;
-            }
-        }
-        return DEFAULT_LOCALE;
-    }
-
     private void loadBuiltin() {
-        final URL url = Main.class.getClassLoader().getResource(LANGUAGE_FOLDER);
+        final ClassLoader loader = Main.class.getClassLoader();
+        Preconditions.checkState(loader != null, "The server must not be loaded by the bootstrap class loader");
+        final URL url = loader.getResource(LANGUAGE_FOLDER);
         if (url == null) {
             FidorialServer.LOGGER.warn("Missing builtin language folder: {}", LANGUAGE_FOLDER);
             return;
@@ -108,7 +100,7 @@ public final class BuiltInTranslationStore implements TranslationStore {
 
         try (final Stream<Path> files = Files.list(directory)) {
             files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(EXTENSION))
+                    .filter(path -> String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT).endsWith(EXTENSION))
                     .sorted()
                     .forEach(this::loadFile);
         }
@@ -120,7 +112,7 @@ public final class BuiltInTranslationStore implements TranslationStore {
     }
 
     private void loadFile(final Path path) {
-        final String fileName = path.getFileName().toString();
+        final String fileName = String.valueOf(path.getFileName());
         final Locale locale = parseLocale(fileName);
         if (locale == null) {
             FidorialServer.LOGGER.warn("Ignoring language file with invalid name: {}", fileName);
@@ -145,30 +137,19 @@ public final class BuiltInTranslationStore implements TranslationStore {
         FidorialServer.LOGGER.debug("Loaded {} translations for {}", entries.size(), locale);
     }
 
-    @Override
+    /**
+     * Reads the translations and registers them to the {@link GlobalTranslator}; called once.
+     */
     public void load() {
-        unload();
-
+        miniMessageStore.defaultLocale(DEFAULT_LOCALE);
         loadBuiltin();
         GlobalTranslator.translator().addSource(miniMessageStore);
     }
 
-    @Override
-    public void unload() {
-        GlobalTranslator.translator().removeSource(miniMessageStore);
-    }
-
-    @Override
-    public Component renderComponent(final Component component, final Locale locale) {
-        return GlobalTranslator.render(component, resolveLocale(locale));
-    }
-
-    @Override
-    public Locale getDefaultLocale() {
-        return DEFAULT_LOCALE;
-    }
-
-    public Set<Locale> getSupportedLocales() {
-        return Set.copyOf(supportedLocales);
+    /**
+     * {@return the source holding these translations}
+     */
+    public Translator translator() {
+        return miniMessageStore;
     }
 }

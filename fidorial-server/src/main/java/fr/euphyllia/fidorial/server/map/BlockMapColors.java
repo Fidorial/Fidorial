@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.map;
 
+import com.google.common.base.Splitter;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.registry.TypedKey;
@@ -68,15 +69,15 @@ public final class BlockMapColors {
             if (line.isEmpty() || line.startsWith("#")) {
                 continue;
             }
-            final String[] parts = line.split(" ");
-            final List<Rule> rules = new ArrayList<>(parts.length - 2);
-            for (int i = 2; i < parts.length; i++) {
-                final int equals = parts[i].indexOf('=');
-                final int colon = parts[i].lastIndexOf(':');
-                rules.add(new Rule(parts[i].substring(0, equals), parts[i].substring(equals + 1, colon),
-                        color(Integer.parseInt(parts[i].substring(colon + 1)))));
+            final List<String> parts = Splitter.on(' ').splitToList(line);
+            final List<Rule> rules = new ArrayList<>(parts.size() - 2);
+            for (final String part : parts.subList(2, parts.size())) {
+                final int equals = part.indexOf('=');
+                final int colon = part.lastIndexOf(':');
+                rules.add(new Rule(part.substring(0, equals), part.substring(equals + 1, colon),
+                        color(Integer.parseInt(part.substring(colon + 1)))));
             }
-            entries.put(parts[0], new Entry(color(Integer.parseInt(parts[1])), List.copyOf(rules)));
+            entries.put(parts.get(0), new Entry(color(Integer.parseInt(parts.get(1))), List.copyOf(rules)));
         }
         return Map.copyOf(entries);
     }

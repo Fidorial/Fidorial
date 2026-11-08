@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.map.MapCanvas;
 import fr.fidorial.map.MapImage;
 import fr.fidorial.map.MapPalette;
+import org.jspecify.annotations.Nullable;
 
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -257,7 +258,7 @@ final class ServerMapImage implements MapImage {
     }
 
     @Override
-    public boolean equals(final Object other) {
+    public boolean equals(final @Nullable Object other) {
         return other instanceof final ServerMapImage image && width == image.width && height == image.height
                 && Arrays.equals(pixels, image.pixels);
     }

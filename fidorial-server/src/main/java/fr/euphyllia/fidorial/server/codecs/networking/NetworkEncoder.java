@@ -18,6 +18,8 @@ import java.util.function.ObjIntConsumer;
  * }
  * </pre>
  */
+// NullAway loses the nullness of type arguments through wildcards and lambdas
+@SuppressWarnings("NullAway")
 @FunctionalInterface
 public interface NetworkEncoder<B, T extends @Nullable Object> {
 

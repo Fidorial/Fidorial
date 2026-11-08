@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.data.Waterlogged;
 
@@ -26,7 +27,9 @@ public interface Speleothem extends Waterlogged {
      * @since 0.1.0
      */
     default BlockFace getVerticalDirection() {
-        return BlockFace.valueOf(get("vertical_direction").toUpperCase(Locale.ROOT));
+        final String direction = get("vertical_direction");
+        Preconditions.checkState(direction != null, "%s has no vertical_direction property", key());
+        return BlockFace.valueOf(direction.toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -49,7 +52,9 @@ public interface Speleothem extends Waterlogged {
      * @since 0.1.0
      */
     default Thickness getThickness() {
-        return Thickness.fromValue(get("thickness"));
+        final String thickness = get("thickness");
+        Preconditions.checkState(thickness != null, "%s has no thickness property", key());
+        return Thickness.fromValue(thickness);
     }
 
     /**

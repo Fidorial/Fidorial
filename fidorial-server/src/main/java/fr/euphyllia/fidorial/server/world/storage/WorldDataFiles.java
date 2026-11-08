@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
@@ -30,7 +31,9 @@ public final class WorldDataFiles {
     }
 
     public static void write(final Path path, final CompoundBinaryTag payload) throws IOException {
-        Files.createDirectories(path.getParent());
+        final Path parent = path.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", path);
+        Files.createDirectories(parent);
         final CompoundBinaryTag root = CompoundBinaryTag.builder()
                 .put(DATA, payload)
                 .putInt(DATA_VERSION, VersionConstants.DATA_VERSION)

@@ -58,7 +58,7 @@ public class CodeOfConductManager {
         final Map<String, String> loaded = new HashMap<>();
         try (final Stream<Path> files = Files.list(folder)) {
             files.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(EXTENSION))
+                    .filter(path -> String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT).endsWith(EXTENSION))
                     .forEach(path -> read(path, loaded));
         } catch (final IOException | UncheckedIOException e) {
             LOGGER.error("Unable to list the Code of Conduct folder {}", folder.toAbsolutePath(), e);
@@ -106,7 +106,7 @@ public class CodeOfConductManager {
     }
 
     private void read(final Path path, final Map<String, String> target) {
-        final String fileName = path.getFileName().toString();
+        final String fileName = String.valueOf(path.getFileName());
         final String language = fileName.substring(0, fileName.length() - EXTENSION.length())
                 .toLowerCase(Locale.ROOT);
         if (language.isBlank()) {

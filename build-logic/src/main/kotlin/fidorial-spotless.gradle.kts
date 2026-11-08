@@ -5,27 +5,6 @@ plugins {
 }
 
 spotless {
-    format("misc") {
-        target(
-            "*.md",
-            "*.properties",
-            "*.json",
-            "*.toml",
-            "*.xml",
-            "*.yml",
-            "*.yaml",
-        )
-        targetExclude(
-            ".gradle/**",
-            ".idea/**",
-            "**/build/**",
-            "**/run/**",
-            "**/patches/**",
-        )
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-
     kotlin {
         ktlint("1.8.0")
     }
@@ -35,12 +14,8 @@ spotless {
     }
 
     java {
-        target("**/*.java")
-        targetExclude(
-            "**/build/**",
-            "**/generated/**",
-            "**/patches-workspace/**",
-        )
+        target("src/**/*.java")
+        targetExclude("src/generated/**",)
 
         //palantirJavaFormat("2.96.0")
         forbidWildcardImports()

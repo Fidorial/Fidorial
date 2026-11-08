@@ -54,5 +54,6 @@ tasks.compileJava {
             "DefaultCharset",
             "UnsafeLocaleUsage",
         )
+        disableAllWarnings = true
     }
 }

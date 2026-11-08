@@ -186,7 +186,7 @@ public final class EffectCommand {
     private static int succeeded(final List<CompletableFuture<Boolean>> results) {
         int count = 0;
         for (final CompletableFuture<Boolean> result : results) {
-            if (result.getNow(false).equals(Boolean.TRUE)) {
+            if (Boolean.TRUE.equals(result.getNow(false))) {
                 count++;
             }
         }
@@ -194,8 +194,9 @@ public final class EffectCommand {
     }
 
     private static Entity self(final CommandContext<CommandSource> context) throws CommandSyntaxException {
-        if (context.getSource().executor() instanceof final Entity entity) {
-            return entity;
+        final Entity executor = context.getSource().executor();
+        if (executor != null) {
+            return executor;
         }
         throw NOT_AN_ENTITY.create();
     }

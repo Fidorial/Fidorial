@@ -7,6 +7,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 
 public final class ChatTypeCodec {
 
@@ -16,9 +17,10 @@ public final class ChatTypeCodec {
         final int networkId = buf.registries().registry(RegistryKey.CHAT_TYPE).networkId(TypedKey.withRegistry(RegistryKey.CHAT_TYPE, chatTypeKey));
         buf.writeVarInt(networkId + 1);
         buf.writeComponent(player.prepareMessageForSend(chatType.name()));
-        buf.writeBoolean(chatType.target() != null);
-        if (chatType.target() != null) {
-            buf.writeComponent(player.prepareMessageForSend(chatType.target()));
+        final Component target = chatType.target();
+        buf.writeBoolean(target != null);
+        if (target != null) {
+            buf.writeComponent(player.prepareMessageForSend(target));
         }
     }
 }

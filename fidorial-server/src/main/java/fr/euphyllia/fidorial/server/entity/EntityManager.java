@@ -102,6 +102,7 @@ public final class EntityManager {
         return bySection.getOrDefault(sectionKey(sectionX, sectionZ), Set.of());
     }
 
+    @SuppressWarnings("NullAway") // the table never holds null values
     public @UnmodifiableView Collection<AbstractEntity> all() {
         //noinspection NullableProblems
         return Collections.unmodifiableCollection(byId.values());

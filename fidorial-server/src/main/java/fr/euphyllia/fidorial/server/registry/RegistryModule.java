@@ -20,7 +20,6 @@ import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.translation.TranslationStore;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -68,7 +67,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
 
     @Override
     public void load() {
-        TranslationStore.setStore(translations);
+        translations.load();
 
         try {
             reloadDatapacks();

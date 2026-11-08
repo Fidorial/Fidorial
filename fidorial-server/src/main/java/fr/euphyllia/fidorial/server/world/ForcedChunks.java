@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.ConcurrentLongSet;
@@ -171,7 +172,9 @@ public final class ForcedChunks {
                 .putInt(TAG_DATA_VERSION, VersionConstants.DATA_VERSION)
                 .build();
 
-        Files.createDirectories(file.getParent());
+        final Path parent = file.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", file);
+        Files.createDirectories(parent);
         final Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
         BinaryTagIO.writer().writeNamed(Map.entry("", root), tmp, BinaryTagIO.Compression.GZIP);
         try {

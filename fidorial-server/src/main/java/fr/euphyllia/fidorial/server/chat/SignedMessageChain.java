@@ -85,14 +85,20 @@ public final class SignedMessageChain {
         CHAIN_BROKEN
     }
 
-    public record Outcome(boolean verified, int index, SignedMessage.@Nullable Signature signature, @Nullable Reason reason) {
+    public sealed interface Outcome {
 
         static Outcome success(final int index, final SignedMessage.Signature signature) {
-            return new Outcome(true, index, signature, null);
+            return new Success(index, signature);
         }
 
         static Outcome failure(final Reason reason) {
-            return new Outcome(false, -1, null, reason);
+            return new Failure(reason);
+        }
+
+        record Success(int index, SignedMessage.Signature signature) implements Outcome {
+        }
+
+        record Failure(Reason reason) implements Outcome {
         }
     }
 }

@@ -29,7 +29,7 @@ public class FluidBlockCodec {
         if (raw != null) {
             try {
                 level = Integer.parseInt(raw);
-            } catch (final NumberFormatException ignored) {
+            } catch (final NumberFormatException _) {
             }
         }
         if (level >= FALLING_OFFSET) {

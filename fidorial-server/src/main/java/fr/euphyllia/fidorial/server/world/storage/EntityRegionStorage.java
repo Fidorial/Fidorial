@@ -26,7 +26,7 @@ public final class EntityRegionStorage implements AutoCloseable {
         this.compression = compression;
     }
 
-    private <R> R withRegion(final Dimension dim, final int chunkX, final int chunkZ,
+    private <R extends @Nullable Object> R withRegion(final Dimension dim, final int chunkX, final int chunkZ,
                              final RegionFileCache.RegionAction<R> action) throws IOException {
         final int rx = RegionConstants.chunkToRegion(chunkX);
         final int rz = RegionConstants.chunkToRegion(chunkZ);

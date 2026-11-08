@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockTrait;
@@ -21,7 +22,9 @@ public interface Ageable extends BlockData {
      * @since 0.1.0
      */
     default int getAge() {
-        return Integer.parseInt(get("age"));
+        final String age = get("age");
+        Preconditions.checkState(age != null, "%s has no age property", key());
+        return Integer.parseInt(age);
     }
 
     /**

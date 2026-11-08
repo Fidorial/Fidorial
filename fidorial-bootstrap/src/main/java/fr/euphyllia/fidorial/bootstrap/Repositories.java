@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.bootstrap;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +26,7 @@ final class Repositories {
     private Repositories() {
     }
 
-    static List<String> resolve(final Path librariesDir, final InputStream embedded) throws IOException {
+    static List<String> resolve(final Path librariesDir, final @Nullable InputStream embedded) throws IOException {
         List<String> repositories = split(System.getProperty("fidorial.libraries.repositories"));
         if (repositories.isEmpty()) {
             repositories = split(System.getenv("FIDORIAL_LIBRARY_REPOSITORIES"));
@@ -44,7 +46,7 @@ final class Repositories {
         return repositories;
     }
 
-    private static List<String> split(final String raw) {
+    private static List<String> split(final @Nullable String raw) {
         if (raw == null || raw.isBlank()) {
             return List.of();
         }

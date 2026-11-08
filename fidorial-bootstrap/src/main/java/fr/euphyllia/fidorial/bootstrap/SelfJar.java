@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.bootstrap;
 
+import org.jspecify.annotations.Nullable;
+
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -12,7 +14,7 @@ final class SelfJar {
     private SelfJar() {
     }
 
-    static Path locate() {
+    static @Nullable Path locate() {
         final CodeSource source = SelfJar.class.getProtectionDomain().getCodeSource();
         if (source == null) {
             return null;

@@ -41,7 +41,7 @@ public final class WorldWeather implements WeatherManager {
 
     public WorldWeather(final Key worldKey, final WeatherState state, final boolean hasCycle) {
         this.worldKey = Preconditions.checkNotNull(worldKey, "The key of the world owning this weather must not be null");
-        this.state = Preconditions.checkNotNull(state, "The weather state of " + worldKey + " must not be null");
+        this.state = Preconditions.checkNotNull(state, "The weather state of %s must not be null", worldKey);
         this.hasCycle = hasCycle;
     }
 
@@ -211,7 +211,9 @@ public final class WorldWeather implements WeatherManager {
                 .putInt(TAG_DATA_VERSION, VersionConstants.DATA_VERSION)
                 .build();
 
-        Files.createDirectories(file.getParent());
+        final Path parent = file.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", file);
+        Files.createDirectories(parent);
         final Path tmp = file.resolveSibling(file.getFileName() + ".tmp");
         BinaryTagIO.writer().writeNamed(Map.entry("", root), tmp, BinaryTagIO.Compression.GZIP);
         try {

@@ -1,5 +1,6 @@
 package fr.fidorial.world.block;
 
+import com.google.common.base.Splitter;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.KeyPattern;
@@ -110,7 +111,7 @@ public interface BlockRegistry {
             values = new LinkedHashMap<>();
             final String body = input.substring(bracket + 1, input.length() - 1);
             if (!body.isEmpty()) {
-                for (final String pair : body.split(",")) {
+                for (final String pair : Splitter.on(',').split(body)) {
                     final int eq = pair.indexOf('=');
                     if (eq < 0) {
                         throw new IllegalArgumentException("Invalid property '" + pair + "' in '" + input + "'");

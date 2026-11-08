@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.connection;
 
+import com.google.common.base.Preconditions;
 import com.google.common.net.InetAddresses;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.server.FidorialServer;
@@ -35,6 +36,7 @@ import fr.euphyllia.fidorial.server.network.serialization.util.CipherDecoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CipherEncoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CompressionDecoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CompressionEncoder;
+import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogReference;
@@ -47,7 +49,6 @@ import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.storage.player.PlayerDataStorage;
-import fr.fidorial.translation.TranslationStore;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -109,7 +110,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private final FidorialServer server;
     private final ProtocolMap protocol;
 
-    private ChannelHandlerContext ctx;
+    private @Nullable ChannelHandlerContext ctx;
     private ConnectionState state;
     private PacketListener listener;
     private @Nullable ConnectionState rejectedState;
@@ -122,7 +123,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private int displayedSkinParts = 0x7F; // toutes les couches activees par defaut
     private int viewDistance = 2; // minimum
     private @Nullable String forwardedAddress;
-    private Locale locale = TranslationStore.defaultLocale();
+    private Locale locale = BuiltInTranslationStore.DEFAULT_LOCALE;
     private @Nullable ScheduledFuture<?> keepAliveTask;
     private volatile @Nullable SignedChatSession chatSession;
     private volatile @Nullable SignedMessageChain chatChain;
@@ -187,7 +188,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public void send(final ClientboundPacket<?> packet, final boolean bypassRejection) {
-        if (ctx.channel().eventLoop().inEventLoop()) {
+        if (context().channel().eventLoop().inEventLoop()) {
             sendNow(packet, bypassRejection);
         } else {
             execute(() -> sendNow(packet, bypassRejection));
@@ -239,7 +240,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             }
         }
 
-        final ByteBuf out = ctx.alloc().buffer();
+        final ByteBuf out = context().alloc().buffer();
         try {
             final CodecAwarePacketBuffer p = new CodecAwarePacketBuffer(out, server.registries().serverRegistries());
             p.writeVarInt(protocol.clientboundId(state, packet.name()));
@@ -248,11 +249,11 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             out.release();
             throw t;
         }
-        return ctx.writeAndFlush(out);
+        return context().writeAndFlush(out);
     }
 
     public void close() {
-        ctx.close();
+        context().close();
     }
 
     /**
@@ -264,25 +265,31 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         return ctx != null && ctx.channel().isActive();
     }
 
+    private ChannelHandlerContext context() {
+        final ChannelHandlerContext context = this.ctx;
+        Preconditions.checkState(context != null, "The channel of this connection is not active yet");
+        return context;
+    }
+
     public boolean isRejected(final Class<? extends ServerboundPacket> packet) {
-        final boolean hasExemptions = this.exemptPackets != null;
-        if (hasExemptions) {
-            return this.state.equals(this.rejectedState) && !this.exemptPackets.contains(packet);
+        final List<Class<? extends ServerboundPacket>> exempt = this.exemptPackets;
+        if (exempt != null) {
+            return this.state.equals(this.rejectedState) && !exempt.contains(packet);
         }
         return this.state.equals(this.rejectedState);
     }
 
     public void execute(final Runnable task) {
-        ctx.channel().eventLoop().execute(task);
+        context().channel().eventLoop().execute(task);
     }
 
     public void installEncryption(final SecretKey key) throws GeneralSecurityException {
-        ctx.pipeline()
+        context().pipeline()
                 .addBefore(
                         "frame-decoder",
                         "cipher-decoder",
                         new CipherDecoder(EncryptionUtils.createStreamCipher(Cipher.DECRYPT_MODE, key)));
-        ctx.pipeline()
+        context().pipeline()
                 .addBefore(
                         "frame-decoder",
                         "cipher-encoder",
@@ -290,12 +297,12 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public void installCompression(final int threshold) {
-        ctx.pipeline().addBefore("handler", "decompress", new CompressionDecoder(threshold));
-        ctx.pipeline().addBefore("handler", "compress", new CompressionEncoder(threshold));
+        context().pipeline().addBefore("handler", "decompress", new CompressionDecoder(threshold));
+        context().pipeline().addBefore("handler", "compress", new CompressionEncoder(threshold));
     }
 
     public void startKeepAlive() {
-        keepAliveTask = ctx.channel()
+        keepAliveTask = context().channel()
                 .eventLoop()
                 .scheduleAtFixedRate(
                         this::sendKeepAlive,
@@ -512,7 +519,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         if (forwardedAddress != null) {
             return forwardedAddress;
         }
-        final SocketAddress address = ctx.channel().remoteAddress();
+        final SocketAddress address = context().channel().remoteAddress();
         if (address instanceof final InetSocketAddress inet) {
             return inet.getHostString();
         }
@@ -524,7 +531,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             return InetAddresses.forString(forwardedAddress);
         }
 
-        final SocketAddress address = ctx.channel().remoteAddress();
+        final SocketAddress address = context().channel().remoteAddress();
         if (address instanceof final InetSocketAddress inet && inet.getAddress() != null) {
             return inet.getAddress();
         }

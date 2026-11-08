@@ -100,7 +100,7 @@ final class FallDistanceModifiers {
                         continue;
                     }
                     final TypedKey<BlockType> name = state.name();
-                    if (ALWAYS_PORTALS.contains(name) || netherPortalResets && name.equals(NETHER_PORTAL)) {
+                    if (ALWAYS_PORTALS.contains(name) || (netherPortalResets && name.equals(NETHER_PORTAL))) {
                         resets = true;
                     } else if (BlockView.isTagged(BlockTypeTagKeys.FALL_DAMAGE_RESETTING, state)
                             && centerCrosses(from, to, x, y, z)) {
@@ -132,7 +132,7 @@ final class FallDistanceModifiers {
                 for (int z = minZ; z <= maxZ; z++) {
                     final BlockState state = BlockView.blockAt(world, x, y, z);
                     final FluidType fluid = state == null ? null : fluidOf(state);
-                    if (fluid == null || y + fluidHeight(world, state, fluid, x, y, z) <= at.y()) {
+                    if (state == null || fluid == null || y + fluidHeight(world, state, fluid, x, y, z) <= at.y()) {
                         continue;
                     }
                     if (fluid == FluidType.WATER) {

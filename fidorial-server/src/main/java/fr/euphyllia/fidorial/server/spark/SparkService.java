@@ -94,7 +94,8 @@ public final class SparkService implements SparkPlugin {
             }
             final Properties properties = new Properties();
             properties.load(in);
-            return properties.getProperty("spark-version", UNKNOWN_VERSION);
+            final String version = properties.getProperty("spark-version");
+            return version != null ? version : UNKNOWN_VERSION;
         } catch (final IOException e) {
             return UNKNOWN_VERSION;
         }

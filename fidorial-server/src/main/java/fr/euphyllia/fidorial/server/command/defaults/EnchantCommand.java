@@ -156,7 +156,7 @@ public final class EnchantCommand {
             return FAILED.create();
         }
         final Entity target = targets.getFirst();
-        return switch (outcomes.getFirst().getNow(Outcome.NOT_LIVING)) {
+        return switch (outcomes.getFirst().join()) {
             case NOT_LIVING -> NOT_LIVING.create(target.displayName());
             case NO_ITEM -> NO_ITEM.create(target.displayName());
             case INCOMPATIBLE -> INCOMPATIBLE.create(target instanceof final LivingEntity living

@@ -26,7 +26,7 @@ final class CachedLightAccess implements LightAccess {
     }
 
     private int slotFor(final int chunkX, final int chunkZ, final long key) {
-        final int slot = (int) ((key * 0x9E3779B97F4A7C15L >>> 40)) & MASK;
+        final int slot = (int) ((key * 0x9E3779B97F4A7C15L) >>> 40) & MASK;
         if (!filled[slot] || keys[slot] != key) {
             keys[slot] = key;
             final LightAccess.ColumnSnapshot snap = delegate.snapshotAt(chunkX, chunkZ);

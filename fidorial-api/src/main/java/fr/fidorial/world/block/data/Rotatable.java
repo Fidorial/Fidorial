@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockTrait;
 
@@ -20,7 +21,9 @@ public interface Rotatable extends BlockData {
      * @since 0.1.0
      */
     default int getRotation() {
-        return Integer.parseInt(get("rotation"));
+        final String rotation = get("rotation");
+        Preconditions.checkState(rotation != null, "%s has no rotation property", key());
+        return Integer.parseInt(rotation);
     }
 
     /**

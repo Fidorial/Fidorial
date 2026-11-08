@@ -75,12 +75,12 @@ public final class GameRuleCommand {
 
     private static int query(final CommandContext<CommandSource> context, final GameRuleDefinition rule) {
         final CommandSource source = context.getSource();
-        final ServerWorld world = source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld sourceWorld ? sourceWorld : null;
+        final Location location = source.location();
+        final ServerWorld world = location != null && location.world() instanceof final ServerWorld sourceWorld ? sourceWorld : null;
         final Integer override = world == null ? null : world.gameRuleValues().override(rule);
         final int base = server().worlds().gameRules().get(rule);
 
-        if (override == null) {
+        if (world == null || override == null) {
             source.sendMessage(Component.translatable(
                     "commands.gamerule.query",
                     Component.text(rule.id()),
@@ -104,7 +104,7 @@ public final class GameRuleCommand {
         final CommandSource source = context.getSource();
         final CommandSender sender = source.sender();
         final FidorialGameRules rules = server().worlds().gameRules();
-        final boolean override = world != null && !FidorialGameRules.holdsBaseValues(world);
+        final ServerWorld overridden = world != null && !FidorialGameRules.holdsBaseValues(world) ? world : null;
 
         final FidorialGameRules.Result outcome = rules.apply(world, rule, value, GameRuleChangeEvent.Cause.COMMAND, sender);
         if (outcome == FidorialGameRules.Result.CANCELLED) {
@@ -112,13 +112,13 @@ public final class GameRuleCommand {
             return 0;
         }
 
-        final int applied = override ? world.gameRuleValues().get(rule) : rules.get(rule);
-        if (override) {
+        final int applied = overridden != null ? overridden.gameRuleValues().get(rule) : rules.get(rule);
+        if (overridden != null) {
             source.sendMessage(Component.translatable(
                     "commands.gamerule.set.world",
                     Component.text(rule.id()),
                     Component.text(rule.format(applied)),
-                    Component.text(world.key().asString())));
+                    Component.text(overridden.key().asString())));
         } else {
             source.sendMessage(Component.translatable(
                     "commands.gamerule.set",
@@ -127,7 +127,7 @@ public final class GameRuleCommand {
         }
         if (outcome == FidorialGameRules.Result.CHANGED && !(sender instanceof ConsoleSender)) {
             FidorialServer.LOGGER.info("{} set game rule {} to {} in {}", sender.name(), rule.id(), rule.format(applied),
-                    override ? world.key().asString() : "every world without an override");
+                    overridden != null ? overridden.key().asString() : "every world without an override");
         }
         return result(rule, applied);
     }

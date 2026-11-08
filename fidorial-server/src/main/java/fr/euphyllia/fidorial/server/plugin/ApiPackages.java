@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.plugin;
 
+import com.google.common.base.Preconditions;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.io.BufferedReader;
@@ -27,7 +28,9 @@ final class ApiPackages {
 
     private static Set<String> load() {
         final Set<String> packages = new TreeSet<>();
-        try (final InputStream in = ApiPackages.class.getClassLoader().getResourceAsStream(RESOURCE)) {
+        final ClassLoader loader = ApiPackages.class.getClassLoader();
+        Preconditions.checkState(loader != null, "The server must not be loaded by the bootstrap class loader");
+        try (final InputStream in = loader.getResourceAsStream(RESOURCE)) {
             if (in == null) {
                 throw new IllegalStateException(RESOURCE + " is missing from the server jar. "
                         + "Run :fidorial-server:generateApiPackageIndex.");

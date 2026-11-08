@@ -9,13 +9,13 @@ import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
 import fr.fidorial.service.ServiceRegistry;
-import fr.fidorial.translation.TranslationStore;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.permission.PermissionChecker;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.pointer.PointersSupplier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import net.kyori.adventure.translation.GlobalTranslator;
 
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +70,7 @@ public final class ConsoleSender implements CommandSender, PermissionStateHolder
     @Override
     public void sendMessage(final Component message) {
         final Component resolved = ComponentResolver.resolve(message, this.commandSource());
-        LOGGER.info(TranslationStore.render(resolved, locale()));
+        LOGGER.info(GlobalTranslator.render(resolved, locale()));
     }
 
     @Override

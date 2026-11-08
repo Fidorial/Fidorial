@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Waterlogged;
 
@@ -22,7 +23,9 @@ public interface Slab extends Waterlogged {
      * @since 0.1.0
      */
     default Type getType() {
-        return Type.fromValue(get("type"));
+        final String type = get("type");
+        Preconditions.checkState(type != null, "%s has no type property", key());
+        return Type.fromValue(type);
     }
 
     /**

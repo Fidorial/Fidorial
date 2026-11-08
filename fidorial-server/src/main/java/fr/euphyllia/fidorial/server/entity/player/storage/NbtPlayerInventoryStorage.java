@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.codecs.container.PlayerInventoryCodec;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.storage.player.PlayerInventoryStorage;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,7 +46,7 @@ public class NbtPlayerInventoryStorage implements PlayerInventoryStorage {
         return inventoriesDir.resolve(uuid + ".dat");
     }
 
-    private static byte[] readFile(final Path file) throws IOException {
+    private static byte @Nullable [] readFile(final Path file) throws IOException {
         if (!Files.isRegularFile(file)) {
             return null;
         }

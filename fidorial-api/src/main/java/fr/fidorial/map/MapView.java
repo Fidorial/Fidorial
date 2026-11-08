@@ -270,7 +270,7 @@ public interface MapView {
      * @return completed once the canvas holds the whole area
      * @since 0.1.0
      */
-    CompletableFuture<Void> renderTerrain();
+    CompletableFuture<@Nullable Void> renderTerrain();
 
     /**
      * Creates an item showing this map.

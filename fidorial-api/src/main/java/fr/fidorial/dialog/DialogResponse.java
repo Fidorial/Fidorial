@@ -51,8 +51,8 @@ public record DialogResponse(CompoundBinaryTag values) {
         return switch (tag) {
             case final StringBinaryTag string -> Optional.of(string.value());
             case final NumberBinaryTag number -> Optional.of(
-                    tag.type() == BinaryTagTypes.BYTE || tag.type() == BinaryTagTypes.SHORT
-                            || tag.type() == BinaryTagTypes.INT || tag.type() == BinaryTagTypes.LONG
+                    number.type() == BinaryTagTypes.BYTE || number.type() == BinaryTagTypes.SHORT
+                            || number.type() == BinaryTagTypes.INT || number.type() == BinaryTagTypes.LONG
                             ? Long.toString(number.longValue())
                             : Double.toString(number.doubleValue()));
             case null, default -> Optional.empty();

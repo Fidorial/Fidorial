@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.datapack;
 
+import com.google.common.collect.ImmutableList;
 import org.jspecify.annotations.Nullable;
 
 public enum ResourceKind {
@@ -14,11 +15,11 @@ public enum ResourceKind {
     TAG(".json", "tags/");
 
     private final String extension;
-    private final String[] prefixes;
+    private final ImmutableList<String> prefixes;
 
     ResourceKind(final String extension, final String... prefixes) {
         this.extension = extension;
-        this.prefixes = prefixes;
+        this.prefixes = ImmutableList.copyOf(prefixes);
     }
 
     public @Nullable String match(final String namespaced) {

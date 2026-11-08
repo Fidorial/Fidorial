@@ -38,9 +38,8 @@ public final class UuidArgument implements ArgumentType<UUID> {
         final String remaining = reader.getRemaining();
         final Matcher matcher = ALLOWED_CHARACTERS.matcher(remaining);
 
-        if (matcher.find()) {
-            final String value = matcher.group(1);
-
+        final String value = matcher.find() ? matcher.group(1) : null;
+        if (value != null) {
             try {
                 final UUID uuid = UUID.fromString(value);
                 reader.setCursor(reader.getCursor() + value.length());

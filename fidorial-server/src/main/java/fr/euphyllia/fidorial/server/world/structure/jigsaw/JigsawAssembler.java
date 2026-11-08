@@ -212,6 +212,9 @@ public final class JigsawAssembler {
             tryPlacingChildren(start, free, 0);
             while (!queue.isEmpty() && pieces.size() < MAX_PIECES) {
                 final Map.Entry<Integer, ArrayDeque<PieceState>> first = queue.firstEntry();
+                if (first == null) {
+                    break;
+                }
                 final PieceState state = first.getValue().pollFirst();
                 if (first.getValue().isEmpty()) {
                     queue.remove(first.getKey());

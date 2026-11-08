@@ -4,6 +4,7 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -79,5 +80,5 @@ public interface StructureManager {
      *
      * @return completed once the new content is live
      */
-    CompletableFuture<Void> reload();
+    CompletableFuture<@Nullable Void> reload();
 }

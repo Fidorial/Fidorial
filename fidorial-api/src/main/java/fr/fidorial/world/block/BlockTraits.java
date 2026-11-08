@@ -77,7 +77,7 @@ final class BlockTraits {
             for (final BlockTrait.Values restriction : restrictions) {
                 final List<String> values = declared.get(restriction.property());
                 final Set<String> allowed = Set.of(restriction.allowed());
-                if (!allowed.containsAll(values)
+                if (values == null || !allowed.containsAll(values)
                         || (restriction.exactly() && !Set.copyOf(values).equals(allowed))) {
                     return false;
                 }

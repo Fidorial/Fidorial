@@ -86,10 +86,10 @@ public final class NbtIo {
             }
             case final ListBinaryTag list -> writeList(out, list);
             case final CompoundBinaryTag compound -> {
-                for (final String key : compound.keySet()) {
-                    final BinaryTag value = compound.get(key);
+                for (final Map.Entry<String, ? extends BinaryTag> entry : compound) {
+                    final BinaryTag value = entry.getValue();
                     out.writeByte(value.type().id());
-                    out.writeUTF(key);
+                    out.writeUTF(entry.getKey());
                     writePayload(out, value);
                 }
                 out.writeByte(BinaryTagTypes.END.id());
