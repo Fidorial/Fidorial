@@ -1,5 +1,8 @@
 package fr.fidorial.map;
 
+import net.kyori.adventure.util.RGBLike;
+import org.jetbrains.annotations.Range;
+
 /**
  * The base colors of a map, as the client knows them.
  *
@@ -10,7 +13,7 @@ package fr.fidorial.map;
  *
  * @since 0.1.0
  */
-public enum MapColor {
+public enum MapColor implements RGBLike {
 
     NONE(0x000000),
     GRASS(0x7FB238),
@@ -92,12 +95,31 @@ public enum MapColor {
 
     /**
      * {@return the color at full brightness, as {@code 0xRRGGBB}}
-     *
-     * <p>Meaningless for {@link #NONE}, which is drawn transparent.</p>
+     * <p>
+     * Meaningless for {@link #NONE}, as are its components, since it is drawn transparent.
      *
      * @since 0.1.0
      */
+    @Range(from = 0L, to = 0xFFFFFFL)
     public int rgb() {
         return rgb;
+    }
+
+    @Override
+    @Range(from = 0L, to = 255L)
+    public int red() {
+        return rgb >> 16 & 0xFF;
+    }
+
+    @Override
+    @Range(from = 0L, to = 255L)
+    public int green() {
+        return rgb >> 8 & 0xFF;
+    }
+
+    @Override
+    @Range(from = 0L, to = 255L)
+    public int blue() {
+        return rgb & 0xFF;
     }
 }

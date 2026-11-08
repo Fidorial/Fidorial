@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.map.MapPalette;
 import fr.fidorial.map.MapShade;
+import net.kyori.adventure.util.RGBLike;
 
 /**
  * The colors of map pixels, and how to find the closest one to any color.
@@ -137,6 +138,12 @@ public final class ServerMapPalette implements MapPalette {
     @Override
     public byte closest(final int rgb) {
         return nearest(rgb);
+    }
+
+    @Override
+    public byte closest(final RGBLike color) {
+        Preconditions.checkArgument(color != null, "The color to match must not be null");
+        return nearest(color.red() << 16 | color.green() << 8 | color.blue());
     }
 
     static byte nearest(final int rgb) {
