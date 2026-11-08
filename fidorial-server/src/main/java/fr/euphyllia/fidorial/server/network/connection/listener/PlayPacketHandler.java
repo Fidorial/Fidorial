@@ -689,7 +689,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 final BlockPlaceEvent event = server.events()
                         .post(new BlockPlaceEvent(acting, target, server.registries().blockStates().networkId(state)));
                 if (!event.isCancelled()) {
-                    server.worlds().blockEdits().set(world, target, state);
+                    server.worlds().blockEdits().set(world, target, state, true);
                     server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                 }
@@ -831,7 +831,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
-                server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR));
+                server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR), true);
                 server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));

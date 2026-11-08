@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
 import fr.euphyllia.fidorial.server.world.block.BlockItems;
+import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.block.ClusterBlock;
 import fr.euphyllia.fidorial.server.world.block.CrafterBlock;
 import fr.euphyllia.fidorial.server.world.block.CraftingTableBlock;
@@ -13,6 +14,7 @@ import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
 import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
+import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.inventory.EquipmentSlot;
@@ -114,6 +116,7 @@ public final class GameBootstrap {
         BlockStateLightProperties.bootstrap();
         BlockEntityTypeBlocks.bootstrap();
         Blocks.bootstrap(registry);
+        BlockSupport.bootstrap(registry);
         BlockItems.bootstrap();
         registerBlockBehaviours(registry);
         LOGGER.debug("{} blocks defined in code", registry.definedCount());
@@ -132,5 +135,6 @@ public final class GameBootstrap {
         registry.register(SpeleothemBlock.POINTED_DRIPSTONE);
         registry.register(SpeleothemBlock.SULFUR_SPIKE);
         registry.register(IcicleBlock.INSTANCE);
+        VanillaRedstone.blockBehaviours().forEach(registry::register);
     }
 }

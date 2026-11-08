@@ -14,16 +14,21 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.euphyllia.fidorial.server.schedulers.DayNightThread;
 import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
+import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.schedulers.tick.ServerTickRates;
+import fr.euphyllia.fidorial.server.world.block.redstone.TrappedChestBlock;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
+import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
@@ -32,8 +37,11 @@ import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldManager;
 import fr.fidorial.world.WorldSpec;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.fluid.FluidManager;
+import fr.fidorial.world.redstone.RedstoneEngine;
+import fr.fidorial.world.redstone.RedstoneWorld;
 import fr.fidorial.world.structure.StructureManager;
 import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.key.Key;
@@ -46,8 +54,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * The worlds and everything that runs on them: weather, day/night cycle, light, fluids, block
- * edits, structures, game rules and boss bars.
+ * The worlds and everything that runs on them: weather, day/night cycle, light, fluids, redstone,
+ * block edits, structures, game rules and boss bars.
  *
  * <p>This is the server's implementation of the {@link WorldManager} API.</p>
  */
@@ -69,6 +77,8 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final ChunkNetworkSerializer chunkSerializer;
     private final LightUpdateDispatcher light;
     private final BlockEditService blockEdits;
+    private final ThreadedRegionRegionizer regionizer;
+    private final FidorialRedstoneEngine redstone;
     private final AtomicBoolean unloadingChunks = new AtomicBoolean(false);
 
     public WorldModule(
@@ -102,6 +112,9 @@ public final class WorldModule implements ServerModule, WorldManager {
                         pos.chunk().key(), new ClientboundBlockUpdatePacket(pos, stateId)),
                 fluids::notifyBlockChanged,
                 light::queueBlockChange);
+        this.regionizer = scheduler.regionizer();
+        this.redstone = new FidorialRedstoneEngine(
+                manager, regionizer, registries.blockStates(), registries.redstone(), blockEdits);
 
         // Wiring that cannot go through constructors (circular references). Done before plugins
         // load, so that a world created by a plugin is complete.
@@ -115,6 +128,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         fluids.setLightHook(light::queueBlockChange);
         fluids.setDebugEvents(debug.gameEvents());
         blockEdits.setDebugEvents(debug.gameEvents());
+        blockEdits.setRedstoneNotifier(this::redstoneBlockChanged);
+        fluids.setRedstoneHook(this::redstoneBlockChanged);
+        players.blockViewers().setListener(this::viewersChanged);
         gameRules.addListener(this::syncGameRule);
     }
 
@@ -126,6 +142,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         services.provide(BlockEditService.class, blockEdits); // Todo : Currently, plugins cannot implement their own system.
         services.provide(BossBarRegistry.class, bossBars); // Todo : Currently, plugins cannot implement their own system.
         services.provide(StructureManager.class, structures);
+        services.provide(RedstoneEngine.class, redstone);
     }
 
     @Override
@@ -139,6 +156,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();
+        regionizer.registerTickHandler(redstone.tickHandler());
     }
 
     @Override
@@ -279,5 +297,35 @@ public final class WorldModule implements ServerModule, WorldManager {
 
     public BlockEditService blockEdits() {
         return blockEdits;
+    }
+
+    /**
+     * {@return the redstone engine in effect: the one a plugin provides, the server's otherwise}
+     */
+    public RedstoneEngine redstone() {
+        return services.find(RedstoneEngine.class).orElse(redstone);
+    }
+
+    private void redstoneBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
+                                      final BlockState current) {
+        final BlockData before = registries.blockStates().resolve(previous);
+        final BlockData after = registries.blockStates().resolve(current);
+        if (before != null && after != null) {
+            redstone().world(world).blockChanged(pos, before, after);
+        }
+    }
+
+    private void viewersChanged(final Key worldKey, final BlockPosition pos, final int previous, final int current) {
+        final ServerWorld world = manager.world(worldKey);
+        if (world == null) {
+            return;
+        }
+        regionizer.execute(worldKey, pos.chunk(), () -> {
+            final RedstoneWorld redstoneWorld = redstone().world(world);
+            final BlockData state = redstoneWorld.blockAt(pos);
+            if (state != null && registries.redstone().behaviourOrNull(state.key()) instanceof final TrappedChestBlock chest) {
+                chest.viewersChanged(redstoneWorld, pos, previous, current);
+            }
+        });
     }
 }

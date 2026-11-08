@@ -92,7 +92,7 @@ public final class Explosion {
                         Sound.sound(SoundEvents.GENERIC_EXPLODE, Sound.Source.BLOCK, 4.0f, pitch),
                         center.x(),
                         center.y(),
-                        center.z()));
+                        center.z()), null);
     }
 
     private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final Location center, final float power) {
@@ -100,7 +100,7 @@ public final class Explosion {
         final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
 
         for (final BlockPosition pos : toDestroy) {
-            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
                 destroyed.add(pos);
             }
             if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
@@ -112,7 +112,7 @@ public final class Explosion {
             final BlockPosition broken = destroyed.get(i);
             server.players().broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
                     new ClientboundLevelEventPacket(
-                            ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false));
+                            ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false), null);
         }
     }
 
@@ -243,7 +243,7 @@ public final class Explosion {
                     player.connection()
                             .send(new ClientboundSetEntityMotionPacket(player.entityId(), new PositionData.VelocityVec3D(knockX, knockY, knockZ)));
                     server.players().broadcastNear(world, pos.x(), pos.y(), pos.z(),
-                            new ClientboundHurtAnimationPacket(player.entityId(), pos.yaw()));
+                            new ClientboundHurtAnimationPacket(player.entityId(), pos.yaw()), null);
                 }
                 case final AbstractMob mob -> {
                     mob.setHealth(mob.health() - damage);
@@ -344,7 +344,7 @@ public final class Explosion {
         }
         final Location loc = entity.location();
         final double half = width / 2.0;
-        return new double[] {loc.x() - half, loc.y(), loc.z() - half, loc.x() + half, loc.y() + height, loc.z() + half};
+        return new double[]{loc.x() - half, loc.y(), loc.z() - half, loc.x() + half, loc.y() + height, loc.z() + half};
     }
 
     private static double lerp(final double t, final double a, final double b) {

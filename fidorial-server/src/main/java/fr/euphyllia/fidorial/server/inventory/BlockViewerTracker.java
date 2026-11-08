@@ -19,6 +19,19 @@ import java.util.function.Supplier;
 public final class BlockViewerTracker {
 
     private final Map<At, Viewed> viewed = new ConcurrentHashMap<>();
+    private volatile Listener listener = (_, _, _, _) -> {
+    };
+
+    /**
+     * Sets who to tell when the number of players with a block's window open changes, like
+     * vanilla's {@code ContainerOpenersCounter.openerCountChanged}: a trapped chest powers redstone
+     * with it.
+     *
+     * @param listener told of every change, on the thread opening or closing the window
+     */
+    public void setListener(final Listener listener) {
+        this.listener = listener;
+    }
 
     /**
      * Records a player opening the block's window.
@@ -26,7 +39,9 @@ public final class BlockViewerTracker {
      * @return how many players now have it open
      */
     public int open(final Key world, final BlockPosition position) {
-        return viewed.computeIfAbsent(new At(world, position), _ -> new Viewed()).open();
+        final int viewers = viewed.computeIfAbsent(new At(world, position), _ -> new Viewed()).open();
+        listener.viewersChanged(world, position, viewers - 1, viewers);
+        return viewers;
     }
 
     /**
@@ -35,12 +50,16 @@ public final class BlockViewerTracker {
      * @return how many players still have it open
      */
     public int close(final Key world, final BlockPosition position) {
-        final int[] remaining = {0};
+        final int[] viewers = {0, 0};
         viewed.computeIfPresent(new At(world, position), (_, entry) -> {
-            remaining[0] = entry.close();
-            return remaining[0] == 0 ? null : entry;
+            viewers[0] = entry.viewers();
+            viewers[1] = entry.close();
+            return viewers[1] == 0 ? null : entry;
         });
-        return remaining[0];
+        if (viewers[0] != viewers[1]) {
+            listener.viewersChanged(world, position, viewers[0], viewers[1]);
+        }
+        return viewers[1];
     }
 
     /**
@@ -62,6 +81,14 @@ public final class BlockViewerTracker {
     public int count(final Key world, final BlockPosition position) {
         final Viewed entry = viewed.get(new At(world, position));
         return entry == null ? 0 : entry.viewers();
+    }
+
+    /**
+     * Told when the number of players with a block's window open changes.
+     */
+    @FunctionalInterface
+    public interface Listener {
+        void viewersChanged(Key world, BlockPosition position, int previous, int current);
     }
 
     private record At(Key world, BlockPosition position) {

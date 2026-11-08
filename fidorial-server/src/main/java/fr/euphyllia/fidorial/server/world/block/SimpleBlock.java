@@ -53,7 +53,21 @@ public final class SimpleBlock implements BlockBehaviour {
 
     @Override
     public @Nullable BlockData placementState(final BlockPlaceContext context) {
-        final BlockType type = type();
+        return placementState(type(), context);
+    }
+
+    /**
+     * Places a block the generic way: its facing, axis, rail shape, half and waterlogging follow the
+     * placing player, every other property keeps its default value.
+     *
+     * <p>Behaviours that only add to the generic placement, such as the redstone ones powering a door
+     * placed next to a signal, start from it.</p>
+     *
+     * @param type    the block to place
+     * @param context where and how the player places it
+     * @return the state to place, {@code null} for a block type without states
+     */
+    public static @Nullable BlockData placementState(final BlockType type, final BlockPlaceContext context) {
         BlockData data = type.defaultData();
         if (data == null) {
             return null;

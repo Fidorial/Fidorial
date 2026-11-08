@@ -2,8 +2,10 @@ package fr.euphyllia.fidorial.server.entity.player;
 
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +87,9 @@ public final class PlayerList {
     }
 
     /**
-     * Sends a packet to the players of {@code world} within {@code radius} blocks of a point.
+     * Sends a packet to the players of {@code world} within {@code radius} blocks of a point, but
+     * one: like vanilla, a player is left out of the sound of a block they used when their client
+     * already played it.
      *
      * @param world  the world
      * @param x      the x coordinate of the point
@@ -93,13 +97,14 @@ public final class PlayerList {
      * @param z      the z coordinate of the point
      * @param radius the radius, in blocks
      * @param packet the packet
+     * @param except the player not to send the packet to, {@code null} to send it to every player
      */
     public void broadcastNear(
             final World world, final double x, final double y, final double z, final double radius,
-            final ClientboundPacket<?> packet) {
+            final ClientboundPacket<?> packet, final @Nullable Player except) {
         final double radiusSq = radius * radius;
         for (final ServerPlayer player : snapshot) {
-            if (player.isRemoved() || !player.world().equals(world)) {
+            if (player.isRemoved() || player == except || !player.world().equals(world)) {
                 continue;
             }
             final Location loc = player.location();

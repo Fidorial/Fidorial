@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.recipe.VanillaRecipeLoader;
 import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.permission.PermissionRegistry;
@@ -59,6 +60,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
      */
     public RegistryModule(final Path datapacksFolder) {
         this.datapacksFolder = datapacksFolder;
+        VanillaRedstone.attach(redstone);
     }
 
     @Override

@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.moderation.ModerationModule;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.fidorial.entity.player.OfflinePlayerManager;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.player.PlayerManager;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.storage.player.PlayerDataStorage;
@@ -22,6 +23,7 @@ import fr.fidorial.storage.player.PlayerEnderChestStorage;
 import fr.fidorial.storage.player.PlayerInventoryStorage;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -155,11 +157,20 @@ public final class PlayerModule implements ServerModule, PlayerManager {
     }
 
     /**
-     * Sends a packet to the players of {@code world} that can see the given point.
+     * Sends a packet to the players within the send distance of a point, but one, as
+     * {@link PlayerList#broadcastNear(World, double, double, double, double, ClientboundPacket, Player)} does.
+     *
+     * @param world  the world
+     * @param x      the x coordinate of the point
+     * @param y      the y coordinate of the point
+     * @param z      the z coordinate of the point
+     * @param packet the packet
+     * @param except the player not to send the packet to, {@code null} to send it to every player
      */
     public void broadcastNear(
-            final World world, final double x, final double y, final double z, final ClientboundPacket<?> packet) {
-        connections.broadcastNear(world, x, y, z, config.general().sendDistance() * 16.0 + 16.0, packet);
+            final World world, final double x, final double y, final double z, final ClientboundPacket<?> packet,
+            final @Nullable Player except) {
+        connections.broadcastNear(world, x, y, z, config.general().sendDistance() * 16.0 + 16.0, packet, except);
     }
 
     public PlayerInventoryStorage inventoryStorage() {

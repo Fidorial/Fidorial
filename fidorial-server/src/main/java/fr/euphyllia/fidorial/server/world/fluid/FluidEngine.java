@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.fluid;
 import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
+import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
@@ -42,6 +43,7 @@ public final class FluidEngine implements FluidManager {
 
     private final Map<Key, Set<Long>> pending = new ConcurrentHashMap<>();
     private volatile LightHook lightHook = (_, _, _, _) -> {};
+    private volatile BlockEditService.RedstoneNotifier redstoneHook = (_, _, _, _) -> {};
     private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
@@ -342,7 +344,9 @@ public final class FluidEngine implements FluidManager {
     }
 
     private boolean setAndBroadcast(final ServerWorld world, final int x, final int y, final int z, final BlockState state) {
+        final BlockState previous;
         try {
+            previous = world.getBlock(x, y, z);
             if (!world.setBlock(x, y, z, state)) {
                 return false;
             }
@@ -353,6 +357,9 @@ public final class FluidEngine implements FluidManager {
         world.sendToChunkViewers(x >> 4, z >> 4,
                 new ClientboundBlockUpdatePacket(Position.block(x, y, z), blockRegistry.networkId(state)));
         lightHook.onBlockChanged(world.dimension().id(), x, y, z);
+        if (!previous.equals(state)) {
+            redstoneHook.blockChanged(world, Position.block(x, y, z), previous, state);
+        }
         return true;
     }
 
@@ -362,6 +369,16 @@ public final class FluidEngine implements FluidManager {
 
     public void setLightHook(final LightHook hook) {
         this.lightHook = hook;
+    }
+
+    /**
+     * Sets who follows up on the blocks fluids change for redstone, as for the blocks changed
+     * through the {@link BlockEditService}: water reaching an observer's face triggers it.
+     *
+     * @param hook told of every block a fluid changes
+     */
+    public void setRedstoneHook(final BlockEditService.RedstoneNotifier hook) {
+        this.redstoneHook = hook;
     }
 
     public void setDebugEvents(final DebugGameEvents debugEvents) {

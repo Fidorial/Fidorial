@@ -99,6 +99,20 @@ public final class ScenarioTestHelper {
     }
 
     /**
+     * Fails the test unless a condition does not hold.
+     *
+     * @param condition     the condition expected to be false
+     * @param messageIfTrue the failure message
+     * @since 0.1.0
+     */
+    @Contract("true, _ -> fail")
+    public void assertFalse(final boolean condition, final String messageIfTrue) {
+        if (condition) {
+            fail(messageIfTrue);
+        }
+    }
+
+    /**
      * Fails the test unless a block of the expected type sits at a position.
      *
      * @param position the block position
