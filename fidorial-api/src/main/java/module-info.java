@@ -18,6 +18,8 @@ import org.jspecify.annotations.NullMarked;
  *   <li>{@link fr.fidorial.dialog} — show modal windows and read what players fill in</li>
  *   <li>{@link fr.fidorial.recipe} — crafting recipes, several items per slot included</li>
  *   <li>{@link fr.fidorial.registry.keys} — generated keys for blocks, items and more</li>
+ *   <li>{@link fr.fidorial.world.redstone} — redstone signals, the blocks taking part in them, and the
+ *   engine driving them</li>
  * </ul>
  *
  * <h2>Threading</h2>
@@ -70,6 +72,7 @@ module fr.fidorial {
     exports fr.fidorial.world.block;
     exports fr.fidorial.world.fluid;
     exports fr.fidorial.world.generation;
+    exports fr.fidorial.world.redstone;
     exports fr.fidorial.world.structure;
     exports fr.fidorial.world.time;
     exports fr.fidorial.world.weather;

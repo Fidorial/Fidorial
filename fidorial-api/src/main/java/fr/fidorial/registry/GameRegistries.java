@@ -10,12 +10,14 @@ import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.recipe.RecipeRegistry;
 import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.WorldGenerator;
+import fr.fidorial.world.redstone.RedstoneBehaviour;
+import fr.fidorial.world.redstone.RedstoneRegistry;
 import org.jetbrains.annotations.Contract;
 
 /**
  * The server-wide registries: every {@linkplain #registry(RegistryKey) data registry}, with the
  * vanilla entries and those plugins add, and the content defined in code (mobs, effects, items,
- * recipes, permissions).
+ * recipes, permissions, redstone behaviours).
  *
  * @see Server#registries()
  * @since 0.1.0
@@ -117,6 +119,19 @@ public interface GameRegistries {
      */
     @Contract(pure = true)
     RecipeRegistry recipes();
+
+    /**
+     * Gets the server-wide redstone registry.
+     *
+     * <p>Where each block type taking part in redstone gets its
+     * {@linkplain RedstoneBehaviour behaviour}, and where plugins
+     * {@linkplain RedstoneRegistry#attach attach} one to the blocks they add, or to vanilla ones.</p>
+     *
+     * @return the redstone registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    RedstoneRegistry redstone();
 
     /**
      * Gets the server-wide permission registry.
