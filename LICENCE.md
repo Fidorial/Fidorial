@@ -33,6 +33,16 @@ requirements applicable to `fidorial-server`.
 
 Third-party code and dependencies remain subject to their respective licenses.
 
+### Third-party code
+
+`fidorial-server` includes code derived from the following projects, which
+remains subject to its license:
+
+- [Alternate Current](https://github.com/SpaceWalkerRS/alternate-current) by
+  Space Walker, the redstone dust implementation in
+  `alternate.current.wire`, the package of the original:
+  [MIT License](licenses/ALTERNATE-CURRENT.md)
+
 Adding a name to the list means that the contributor chooses to release their
 original contributions to `fidorial-server` under the MIT License. This does
 not change the license of existing GPL-licensed code or of code contributed by

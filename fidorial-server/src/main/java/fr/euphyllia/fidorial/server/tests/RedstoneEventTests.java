@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.tests;
 
+import fr.euphyllia.fidorial.server.world.redstone.DustImplementation;
 import fr.fidorial.event.Subscription;
 import fr.fidorial.event.redstone.RedstoneDustPowerEvent;
 import fr.fidorial.event.redstone.RedstoneEvent;
@@ -66,23 +67,35 @@ public final class RedstoneEventTests {
         }
     }
 
+    @ScenarioTest(timeoutTicks = 20)
+    public static void vanillaDustFiresAPowerEventPerChange(final ScenarioTestHelper helper) {
+        dustFiresAPowerEventPerChange(helper, DustImplementation.VANILLA);
+    }
+
+    @ScenarioTest(timeoutTicks = 20)
+    public static void alternateCurrentDustFiresAPowerEventPerChange(final ScenarioTestHelper helper) {
+        dustFiresAPowerEventPerChange(helper, DustImplementation.ALTERNATE_CURRENT);
+    }
+
     /**
      * Every dust reached by the signal fires the event, the last one for each dust telling the
-     * power it settles on.
+     * power it settles on; Alternate Current settles each dust at once.
      */
-    @ScenarioTest(timeoutTicks = 20)
-    public static void dustFiresAPowerEventPerChange(final ScenarioTestHelper helper) {
+    private static void dustFiresAPowerEventPerChange(final ScenarioTestHelper helper, final DustImplementation implementation) {
         final World world = helper.world();
         final Map<BlockPosition, Integer> lastPower = new ConcurrentHashMap<>();
+        final Map<BlockPosition, AtomicInteger> count = new ConcurrentHashMap<>();
         final Set<String> notDust = ConcurrentHashMap.newKeySet();
         helper.sequence()
                 .execute(() -> {
+                    AlternateCurrentTests.use(world, implementation);
                     lineOfDust(world, 2);
                     final Subscription subscription = listen(world, RedstoneDustPowerEvent.class, event -> {
                         if (!event.block().key().equals(BlockTypeKeys.REDSTONE_WIRE)) {
                             notDust.add(event.block().key().toString());
                         }
                         lastPower.put(event.position(), event.newPower());
+                        count.computeIfAbsent(event.position(), _ -> new AtomicInteger()).incrementAndGet();
                     });
                     pull(world, Position.block(2, Y, 2));
                     subscription.unsubscribe();
@@ -90,23 +103,38 @@ public final class RedstoneEventTests {
                     for (int x = 3; x < 3 + LINE_LENGTH; x++) {
                         final BlockPosition dust = Position.block(x, Y, 2);
                         final int expected = 15 - (x - 3);
-                        helper.assertTrue(lastPower.getOrDefault(dust, -1) == expected,
-                                "The last event of the dust at x=" + x + " should give " + expected + ", gave " + lastPower.get(dust));
+                        helper.assertTrue(lastPower.getOrDefault(dust, -1) == expected, implementation.configName()
+                                + ": the last event of the dust at x=" + x + " should give " + expected + ", gave " + lastPower.get(dust));
                         helper.assertTrue(power(world, dust) == expected, "The dust should carry what the event said, x=" + x);
+                        final AtomicInteger events = count.get(dust);
+                        if (implementation == DustImplementation.ALTERNATE_CURRENT) {
+                            helper.assertTrue(events != null && events.get() == 1, "Alternate Current should set each dust once, x=" + x
+                                    + " fired " + events + " events");
+                        }
                     }
                 })
                 .build();
     }
 
+    @ScenarioTest(timeoutTicks = 20)
+    public static void vanillaCancelledDustPowerEventStopsTheSignal(final ScenarioTestHelper helper) {
+        cancelledDustPowerEventStopsTheSignal(helper, DustImplementation.VANILLA);
+    }
+
+    @ScenarioTest(timeoutTicks = 20)
+    public static void alternateCurrentCancelledDustPowerEventStopsTheSignal(final ScenarioTestHelper helper) {
+        cancelledDustPowerEventStopsTheSignal(helper, DustImplementation.ALTERNATE_CURRENT);
+    }
+
     /**
      * Dust whose event is cancelled keeps its power, so the signal goes no further along the line.
      */
-    @ScenarioTest(timeoutTicks = 20)
-    public static void cancelledDustPowerEventStopsTheSignal(final ScenarioTestHelper helper) {
+    private static void cancelledDustPowerEventStopsTheSignal(final ScenarioTestHelper helper, final DustImplementation implementation) {
         final World world = helper.world();
         final BlockPosition blocked = Position.block(7, Y, 2);
         helper.sequence()
                 .execute(() -> {
+                    AlternateCurrentTests.use(world, implementation);
                     lineOfDust(world, 2);
                     final Subscription subscription = listen(world, RedstoneDustPowerEvent.class, event -> {
                         if (event.position().equals(blocked)) {
@@ -118,22 +146,32 @@ public final class RedstoneEventTests {
                     for (int x = 3; x < 3 + LINE_LENGTH; x++) {
                         final int expected = x < blocked.blockX() ? 15 - (x - 3) : 0;
                         final int actual = power(world, Position.block(x, Y, 2));
-                        helper.assertTrue(actual == expected, "The dust at x=" + x
+                        helper.assertTrue(actual == expected, implementation.configName() + ": the dust at x=" + x
                                 + " should carry " + expected + ", carries " + actual);
                     }
                 })
                 .build();
     }
 
+    @ScenarioTest(timeoutTicks = 20)
+    public static void vanillaNewPowerIsPassedOn(final ScenarioTestHelper helper) {
+        newPowerIsPassedOn(helper, DustImplementation.VANILLA);
+    }
+
+    @ScenarioTest(timeoutTicks = 20)
+    public static void alternateCurrentNewPowerIsPassedOn(final ScenarioTestHelper helper) {
+        newPowerIsPassedOn(helper, DustImplementation.ALTERNATE_CURRENT);
+    }
+
     /**
      * Dust given another power by a listener passes that power on, one less per block.
      */
-    @ScenarioTest(timeoutTicks = 20)
-    public static void newPowerIsPassedOn(final ScenarioTestHelper helper) {
+    private static void newPowerIsPassedOn(final ScenarioTestHelper helper, final DustImplementation implementation) {
         final World world = helper.world();
         final BlockPosition first = Position.block(3, Y, 2);
         helper.sequence()
                 .execute(() -> {
+                    AlternateCurrentTests.use(world, implementation);
                     lineOfDust(world, 2);
                     final Subscription subscription = listen(world, RedstoneDustPowerEvent.class, event -> {
                         if (event.position().equals(first) && event.newPower() == 15) {
@@ -145,7 +183,7 @@ public final class RedstoneEventTests {
                     for (int x = 3; x < 3 + LINE_LENGTH; x++) {
                         final int expected = Math.max(0, 6 - (x - 3));
                         final int actual = power(world, Position.block(x, Y, 2));
-                        helper.assertTrue(actual == expected, "The dust at x=" + x
+                        helper.assertTrue(actual == expected, implementation.configName() + ": the dust at x=" + x
                                 + " should carry " + expected + ", carries " + actual);
                     }
                 })

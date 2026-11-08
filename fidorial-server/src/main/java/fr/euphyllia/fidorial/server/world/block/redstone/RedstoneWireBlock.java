@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import alternate.current.wire.WireHandler;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
@@ -35,6 +36,10 @@ import java.util.List;
  *
  * <p>The update order is vanilla's, down to the order of the hash set the evaluator walks, so that
  * the circuits that depend on it behave the same.</p>
+ *
+ * <p>In a world whose configuration picks {@linkplain WireHandler Alternate Current}, the power of
+ * the dust is worked out by its handler instead, network by network, where vanilla calls
+ * {@code updatePowerStrength}; everything else, connections and shapes, stays vanilla's.</p>
  */
 public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviour {
 
@@ -76,6 +81,23 @@ public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviou
             }
         }
         return true;
+    }
+
+    /**
+     * {@return {@code true} if dust can lie at a position: on a full face, or on a hopper}
+     *
+     * @param world    the world of the dust
+     * @param position where the dust is
+     */
+    public static boolean canSurvive(final SignalGetter world, final BlockPosition position) {
+        return canSurviveOn(world.blockAt(position.relative(BlockFace.DOWN)));
+    }
+
+    /**
+     * {@return the Alternate Current handler driving the dust of a world, {@code null} for vanilla dust}
+     */
+    private static @Nullable WireHandler alternateCurrent(final RedstoneWorld world) {
+        return world instanceof final ServerRedstoneWorld server ? server.wireHandler() : null;
     }
 
     /**
@@ -286,7 +308,12 @@ public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviou
         if (previous.key().equals(KEY) || !(state instanceof final RedstoneWire wire)) {
             return;
         }
-        updatePowerStrength(world, position, wire);
+        final WireHandler handler = alternateCurrent(world);
+        if (handler != null) {
+            handler.onWireAdded(position, wire);
+        } else {
+            updatePowerStrength(world, position, wire);
+        }
         for (final BlockFace face : Faces.VERTICAL) {
             world.updateNeighbors(position.relative(face), KEY);
         }
@@ -301,7 +328,12 @@ public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviou
         for (final BlockFace face : Faces.ALL) {
             world.updateNeighbors(position.relative(face), KEY);
         }
-        updatePowerStrength(world, position, wire);
+        final WireHandler handler = alternateCurrent(world);
+        if (handler != null) {
+            handler.onWireRemoved(position, wire);
+        } else {
+            updatePowerStrength(world, position, wire);
+        }
         updateNeighborsOfNeighboringWires(world, position);
     }
 
@@ -310,6 +342,10 @@ public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviou
                                 final TypedKey<BlockType> source) {
         if (!(state instanceof final RedstoneWire wire)) {
             return;
+        }
+        final WireHandler handler = alternateCurrent(world);
+        if (handler != null && handler.onWireUpdated(position, wire)) {
+            return; // the handler also breaks the dust that can no longer stand
         }
         if (canSurviveOn(world.blockAt(position.relative(BlockFace.DOWN)))) {
             updatePowerStrength(world, position, wire);

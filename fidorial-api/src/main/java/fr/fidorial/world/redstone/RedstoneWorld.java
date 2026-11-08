@@ -13,7 +13,9 @@ import fr.fidorial.world.block.BlockType;
  *
  * <p>Neighbour updates run in the order vanilla runs them, one chain at a time: an update caused
  * while another one is running is queued and runs right after it, rather than nested inside it.
- * Updates reaching a block of another region are handed over to the thread of that region.</p>
+ * Updates reaching a block of another region are handed over to the thread of that region. A world
+ * may be configured to drive its redstone dust another way, such as with Alternate Current, which
+ * updates the blocks around a whole network of dust in the order power flows through it.</p>
  *
  * @see RedstoneEngine#world(World)
  * @since 0.1.0

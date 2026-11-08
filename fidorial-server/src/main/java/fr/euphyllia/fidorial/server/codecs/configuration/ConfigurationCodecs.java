@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.codecs.configuration;
 
+import alternate.current.wire.UpdateOrder;
 import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
@@ -11,6 +12,7 @@ import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
+import fr.euphyllia.fidorial.server.world.redstone.DustImplementation;
 import fr.fidorial.entity.GameMode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -65,6 +67,35 @@ public final class ConfigurationCodecs {
             },
             RegionCompression::configName);
 
+    public static final Codec<DustImplementation> DUST_IMPLEMENTATION = Codec.STRING.comapFlatMap(
+            raw -> {
+                final DustImplementation implementation = DustImplementation.byName(raw);
+                return implementation != null
+                        ? DataResult.success(implementation)
+                        : DataResult.error(() -> "Unknown redstone dust implementation '" + raw + "', expected one of: " + DustImplementation.names());
+            },
+            DustImplementation::configName);
+
+    /**
+     * The names of the Alternate Current update orders, as written in the configuration: their
+     * identifiers in kebab case.
+     */
+    public static final String UPDATE_ORDERS = Arrays.stream(UpdateOrder.values())
+            .map(ConfigurationCodecs::updateOrderName)
+            .collect(Collectors.joining(", "));
+
+    public static final Codec<UpdateOrder> UPDATE_ORDER = Codec.STRING.comapFlatMap(
+            raw -> {
+                final String name = raw.strip().toLowerCase(Locale.ROOT).replace('_', '-');
+                for (final UpdateOrder order : UpdateOrder.values()) {
+                    if (updateOrderName(order).equals(name)) {
+                        return DataResult.success(order);
+                    }
+                }
+                return DataResult.error(() -> "Unknown update order '" + raw + "', expected one of: " + UPDATE_ORDERS);
+            },
+            ConfigurationCodecs::updateOrderName);
+
 
     public static final Codec<Optional<Long>> SEED = Codec.either(Codec.LONG, Codec.STRING).xmap(
             either -> either.map(Optional::of, ConfigurationCodecs::seedFromText),
@@ -87,6 +118,10 @@ public final class ConfigurationCodecs {
     public static final Codec<String> SHA1_HEX = Codec.STRING.validate(CommonCodecs.check(
             hash -> hash.isEmpty() || SHA1.matcher(hash).matches(),
             hash -> "Not a 40-character lowercase SHA-1 hex string: '" + hash + "'"));
+
+    private static String updateOrderName(final UpdateOrder order) {
+        return order.id().replace('_', '-');
+    }
 
     private ConfigurationCodecs() {
         throw new UnsupportedOperationException("ConfigurationCodecs cannot be instantiated.");

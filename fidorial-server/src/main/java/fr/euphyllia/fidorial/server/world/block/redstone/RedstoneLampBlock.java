@@ -63,6 +63,9 @@ public final class RedstoneLampBlock implements BlockBehaviour, RedstoneBehaviou
         if (lamp.isLit()) {
             world.scheduleTick(position, KEY, TURN_OFF_DELAY);
         } else {
+            if (!RedstoneEvents.input(world.world(), position, state, true)) {
+                return;
+            }
             world.setBlock(position, lamp.withLit(true), RedstoneWorld.Update.SHAPES);
         }
     }

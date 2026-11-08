@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.redstone;
 
+import alternate.current.wire.WireHandler;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
@@ -16,6 +17,7 @@ import fr.fidorial.world.redstone.RedstoneEngine;
 import fr.fidorial.world.redstone.RedstoneWorld;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>It drives the behaviours of the {@link FidorialRedstoneRegistry}, and writes blocks through the
  * {@link BlockEditService}, so that players, light and fluids follow every change it makes. What
  * crosses into another region is handed over to the thread of that region.</p>
+ *
+ * <p>Redstone dust is vanilla's, or {@linkplain WireHandler Alternate Current} in the worlds whose
+ * configuration picks it, see {@link DustImplementation}.</p>
  */
 public final class FidorialRedstoneEngine implements RedstoneEngine {
 
@@ -49,6 +54,12 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
     private final RedstoneBlockTicks ticks;
     private final ThreadLocal<NeighborUpdater> updaters =
             ThreadLocal.withInitial(() -> new NeighborUpdater(MAX_CHAINED_NEIGHBOR_UPDATES));
+    /**
+     * The Alternate Current handler each thread used last, kept for the next network of the same
+     * world. Only one per thread, so that a thread holds on to no world but the last one it updated
+     * dust in.
+     */
+    private final ThreadLocal<@Nullable WireHandler> wireHandlers = new ThreadLocal<>();
     private final Map<Key, ServerRedstoneWorld> views = new ConcurrentHashMap<>();
 
     public FidorialRedstoneEngine(
@@ -80,7 +91,7 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
      */
     public ServerRedstoneWorld view(final ServerWorld world) {
         final ServerRedstoneWorld cached = views.get(world.key());
-        if (cached != null && cached.serverWorld() == world) {
+        if (cached != null && cached.world() == world) {
             return cached;
         }
         // first use, or a world unloaded then loaded again under the same key
@@ -115,6 +126,24 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
 
     NeighborUpdater updater() {
         return updaters.get();
+    }
+
+    /**
+     * {@return the Alternate Current handler of the current thread for a world}
+     *
+     * @param serverRedstoneWorld the redstone of the world
+     */
+    WireHandler wireHandler(final ServerRedstoneWorld serverRedstoneWorld) {
+        final WireHandler last = wireHandlers.get();
+        if (last != null && last.world() == serverRedstoneWorld) {
+            return last;
+        }
+        final WireHandler created = new WireHandler(serverRedstoneWorld,
+                () -> ((ServerWorld) serverRedstoneWorld.world()).configuration().redstone().alternateCurrent().updateOrder());
+        if (last == null || !last.busy()) {
+            wireHandlers.set(created);
+        }
+        return created;
     }
 
     RedstoneBlockTicks ticks() {

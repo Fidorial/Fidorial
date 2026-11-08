@@ -43,6 +43,10 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 - Block placement and breaking, block entities, containers and ender chests, explosions
 - Water and lava simulation: sources, downward-first flow, per-fluid drop-off, obsidian and cobblestone interaction
 - Block and sky light engine
+- Redstone: dust, torches, repeaters, comparators, observers, levers, buttons, lamps, doors and more, in vanilla
+  update order; [Alternate Current](https://github.com/SpaceWalkerRS/alternate-current) can drive the dust instead,
+  per world (`redstone.dust-implementation` in the world configuration), and plugins observe or cancel what redstone
+  does through events
 - Day/night cycle and vanilla-style weather, both persisted in `level.dat`
 
 **Entities & gameplay**

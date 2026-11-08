@@ -60,18 +60,18 @@ public final class RedstoneTests {
         return FidorialServer.getInstance();
     }
 
-    private static RedstoneWorld redstone(final World world) {
+    static RedstoneWorld redstone(final World world) {
         return server().worlds().redstone().world(world);
     }
 
-    private static BlockData defaults(final TypedKey<BlockType> block) {
+    static BlockData defaults(final TypedKey<BlockType> block) {
         return Objects.requireNonNull(Objects.requireNonNull(Blocks.type(block), "unknown block").defaultData());
     }
 
     /**
      * Sets a block the way the server does for a player or a command, redstone following up.
      */
-    private static void set(final World world, final BlockPosition position, final BlockData state) {
+    static void set(final World world, final BlockPosition position, final BlockData state) {
         final BlockStateRegistry states = server().registries().blockStates();
         server().worlds().blockEdits().set((ServerWorld) world, position, states.toBlockState(state), true);
     }
@@ -98,7 +98,7 @@ public final class RedstoneTests {
         return place(world, position, block, BlockFace.UP, 0f, 90f);
     }
 
-    private static BlockData at(final World world, final BlockPosition position) {
+    static BlockData at(final World world, final BlockPosition position) {
         return Objects.requireNonNull(redstone(world).blockAt(position), () -> position + " is not loaded");
     }
 
@@ -128,7 +128,7 @@ public final class RedstoneTests {
     /**
      * A wait counting the game ticks it took: its first try runs in the game tick of the step before.
      */
-    private static Runnable waitFor(final ScenarioTestHelper helper, final int[] tries, final BooleanSupplier condition,
+    static Runnable waitFor(final ScenarioTestHelper helper, final int[] tries, final BooleanSupplier condition,
                                     final String message) {
         return () -> {
             tries[0]++;
@@ -136,7 +136,7 @@ public final class RedstoneTests {
         };
     }
 
-    private static Runnable tookTicks(final ScenarioTestHelper helper, final int[] tries, final int expected, final String what) {
+    static Runnable tookTicks(final ScenarioTestHelper helper, final int[] tries, final int expected, final String what) {
         return () -> {
             final int ticks = tries[0] - 1;
             tries[0] = 0;

@@ -18,7 +18,9 @@ import fr.fidorial.world.redstone.RedstoneWorld;
  *
  * <p>Cancelling the event makes the block ignore the update: a lamp does not light up, a repeater
  * does not schedule its switch, dust does not take the new signal into account. That is how a
- * plugin freezes the redstone of an area.</p>
+ * plugin freezes the redstone of an area. Dust using Alternate Current may still change power along
+ * with the network it belongs to, without being updated itself: {@link RedstoneDustPowerEvent}
+ * covers that.</p>
  *
  * @see RedstoneWorld#neighborChanged(BlockPosition, TypedKey)
  * @since 0.1.0

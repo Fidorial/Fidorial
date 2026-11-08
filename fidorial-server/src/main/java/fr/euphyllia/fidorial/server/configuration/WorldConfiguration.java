@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.configuration;
 
+import alternate.current.wire.UpdateOrder;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
+import fr.euphyllia.fidorial.server.world.redstone.DustImplementation;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
@@ -10,9 +12,9 @@ import fr.fidorial.world.World;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.commented;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.configRecord;
 
-public record WorldConfiguration(Gameplay gameplay, Storage storage) {
+public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone redstone) {
 
-    public static final WorldConfiguration DEFAULTS = new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS);
+    public static final WorldConfiguration DEFAULTS = new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS, Redstone.DEFAULTS);
 
     public static final Codec<WorldConfiguration> CODEC = codec(DEFAULTS, true);
 
@@ -30,6 +32,8 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage) {
                         "Gameplay settings"))
                 .field("storage", WorldConfiguration::storage, commented(Storage.codec(defaults.storage(), writeDefaults),
                         "World storage settings"))
+                .field("redstone", WorldConfiguration::redstone, commented(Redstone.codec(defaults.redstone(), writeDefaults),
+                        "Redstone settings"))
                 .build();
     }
 
@@ -91,6 +95,41 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage) {
                             "Whether to rewrite every saved chunk of the world in the new format the next time it loads, after region-compression changes.\n"
                                     + "This happens once per change and may take a while on a large world.\n"
                                     + "When false, chunks are only converted as they load"))
+                    .build();
+        }
+    }
+
+    public record Redstone(DustImplementation dustImplementation, AlternateCurrent alternateCurrent) {
+
+        public static final Redstone DEFAULTS = new Redstone(DustImplementation.VANILLA, AlternateCurrent.DEFAULTS);
+
+        static Codec<Redstone> codec(final Redstone defaults, final boolean writeDefaults) {
+            return configRecord(Redstone.class, defaults, writeDefaults)
+                    .field("dust-implementation", Redstone::dustImplementation, commented(ConfigurationCodecs.DUST_IMPLEMENTATION,
+                            "How redstone dust works out the power it carries. Available options are: " + DustImplementation.names() + ".\n"
+                                    + "vanilla is Vanilla's: each dust updates on its own, in an order that depends on where it is.\n"
+                                    + "alternate-current is Space Walker's Alternate Current (https://github.com/SpaceWalkerRS/alternate-current):\n"
+                                    + "a whole network of dust is updated at once, which lags far less, and the blocks around it are\n"
+                                    + "updated in an order that follows the flow of power rather than the position of the dust.\n"
+                                    + "Circuits relying on Vanilla's location-dependent update order may behave differently with it"))
+                    .field("alternate-current", Redstone::alternateCurrent, commented(AlternateCurrent.codec(defaults.alternateCurrent(), writeDefaults),
+                            "Settings of Alternate Current, used when dust-implementation is alternate-current"))
+                    .build();
+        }
+    }
+
+    public record AlternateCurrent(UpdateOrder updateOrder) {
+
+        public static final AlternateCurrent DEFAULTS = new AlternateCurrent(UpdateOrder.HORIZONTAL_FIRST_OUTWARD);
+
+        static Codec<AlternateCurrent> codec(final AlternateCurrent defaults, final boolean writeDefaults) {
+            return configRecord(AlternateCurrent.class, defaults, writeDefaults)
+                    .field("update-order", AlternateCurrent::updateOrder, commented(ConfigurationCodecs.UPDATE_ORDER,
+                            "The order the blocks around a dust are updated in, relative to the direction power flows through it.\n"
+                                    + "Available options are: " + ConfigurationCodecs.UPDATE_ORDERS + ".\n"
+                                    + "horizontal-first-outward, the default, updates the direct neighbours first, then the diagonal ones,\n"
+                                    + "then those two blocks away, horizontal before vertical in each group. inward is the reverse,\n"
+                                    + "vertical-first puts vertical neighbours before horizontal ones"))
                     .build();
         }
     }

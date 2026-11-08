@@ -43,7 +43,7 @@ public final class BlockEditService {
     /**
      * Sets who follows up on block changes for redstone: the redstone engine in effect.
      *
-     * @param redstoneNotifier told of every block that changes through {@link #set(ServerWorld, BlockPosition, BlockState)}
+     * @param redstoneNotifier told of every block that changes through {@link #set(ServerWorld, BlockPosition, BlockState, boolean)}
      */
     public void setRedstoneNotifier(final RedstoneNotifier redstoneNotifier) {
         this.redstoneNotifier = redstoneNotifier;
@@ -81,6 +81,37 @@ public final class BlockEditService {
         }
         if (notifyRedstone && previous != null && !previous.equals(state)) {
             redstoneNotifier.blockChanged(world, pos, previous, state);
+        }
+        return true;
+    }
+
+    /**
+     * Writes a block that only changes properties neither light nor fluids depend on, such as the
+     * power of redstone dust: players see it, but light is not checked again, fluids are not woken
+     * up and redstone is not told. Thousands of dust may change power in one game tick, and each of
+     * those checks would cost more than the change itself.
+     *
+     * @param world the world
+     * @param pos   where the block is
+     * @param state the new state, giving and blocking the same light as the old one, and holding the
+     *              same fluid
+     * @return {@code false} if the block could not be written, such as when its chunk is not loaded
+     */
+    public boolean setQuietly(final ServerWorld world, final BlockPosition pos, final BlockState state) {
+        final BlockState previous;
+        try {
+            previous = world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ());
+            if (!world.setBlock(pos.blockX(), pos.blockY(), pos.blockZ(), state)) {
+                return false;
+            }
+        } catch (final IOException e) {
+            LOGGER.error("Block change impossible at {},{},{}", pos.x(), pos.y(), pos.z(), e);
+            return false;
+        }
+        broadcaster.broadcast(world, pos, blockRegistry.networkId(state));
+        final DebugGameEvents events = debugEvents;
+        if (events != null && previous != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
+            events.emit(world, GameEventKeys.BLOCK_CHANGE, pos);
         }
         return true;
     }

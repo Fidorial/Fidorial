@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.redstone;
 
+import alternate.current.wire.WireHandler;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -40,6 +41,7 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     private final ServerWorld world;
     private final BlockData air;
     private final BlockData water;
+    private volatile @Nullable DustImplementation dustOverride;
 
     ServerRedstoneWorld(final FidorialRedstoneEngine engine, final ServerWorld world) {
         this.engine = engine;
@@ -68,16 +70,63 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
         return state instanceof final AnaloguePowerable dust && state.key().equals(BlockTypeKeys.REDSTONE_WIRE) ? dust.getPower() : 0;
     }
 
-    /**
-     * {@return the server world behind this view}
-     */
-    public ServerWorld serverWorld() {
-        return world;
-    }
-
     @Override
     public World world() {
         return world;
+    }
+
+    /**
+     * {@return how the dust of this world works out its power}: as the configuration of the world
+     * says, unless {@linkplain #overrideDustImplementation overridden}
+     */
+    public DustImplementation dustImplementation() {
+        final DustImplementation override = dustOverride;
+        return override != null ? override : world.configuration().redstone().dustImplementation();
+    }
+
+    /**
+     * Makes the dust of this world work out its power one way, whatever its configuration says, for
+     * as long as the world stays loaded: what tests and tools comparing implementations need.
+     *
+     * @param implementation the implementation, {@code null} to follow the configuration again
+     */
+    public void overrideDustImplementation(final @Nullable DustImplementation implementation) {
+        this.dustOverride = implementation;
+    }
+
+    /**
+     * {@return the Alternate Current handler of the current thread for this world, {@code null} when
+     * its dust is vanilla}
+     */
+    public @Nullable WireHandler wireHandler() {
+        return dustImplementation() == DustImplementation.ALTERNATE_CURRENT ? engine.wireHandler(this) : null;
+    }
+
+
+    /**
+     * {@return the state of air, what a block that can no longer stand turns into}
+     */
+    public BlockData air() {
+        return air;
+    }
+
+    /**
+     * {@return {@code true} if the current thread owns a block, and may change it}
+     *
+     * @param position the block
+     */
+    public boolean ownsBlock(final BlockPosition position) {
+        return owns(position);
+    }
+
+    /**
+     * {@return the redstone behaviour in effect for a state, {@code null} for a block taking no part
+     * in redstone or that is not loaded}
+     *
+     * @param state the state, {@code null} for a block that is not loaded
+     */
+    public @Nullable RedstoneBehaviour behaviourOf(final @Nullable BlockData state) {
+        return behaviour(state);
     }
 
     @Override
@@ -236,6 +285,57 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
         return true;
     }
 
+    /**
+     * Changes the power of redstone dust, Alternate Current's {@code LevelHelper.setWireState}: the
+     * block is written and players see it, but nothing else follows, the handler updating the blocks
+     * around the dust itself. Light and fluids are left alone, the power of dust changing neither.
+     *
+     * @param position     where the dust is
+     * @param state        the dust with its new power
+     * @param updateShapes {@code true} for a dust just placed: the blocks around it follow its shape,
+     *                     as a placement makes them
+     * @return {@code false} if the dust already held that state, or its chunk is not loaded
+     * @throws IllegalStateException if the calling thread does not own {@code position}
+     */
+    public boolean setWireState(final BlockPosition position, final BlockData state, final boolean updateShapes) {
+        ThreadContexts.checkOwnedByCurrentThread(world, position, "redstone setWireState");
+        final BlockData previous = blockAt(position);
+        if (previous == null || previous.equals(state)) {
+            return false;
+        }
+        if (!engine.blockEdits().setQuietly(world, position, engine.blockStates().toBlockState(state))) {
+            return false;
+        }
+        if (updateShapes) {
+            updateShapesAround(position, previous, state, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT);
+        }
+        return true;
+    }
+
+    /**
+     * Runs one neighbour update right away, rather than queuing it behind the chain under way:
+     * Alternate Current's {@code InstantNeighborUpdater}, its handler ordering the updates itself.
+     * Handed over to the region owning {@code position} when another one does.
+     *
+     * @param position the block to tell
+     * @param source   the block type that caused the update
+     */
+    public void updateNeighborNow(final BlockPosition position, final TypedKey<BlockType> source) {
+        runNeighborChanged(position, source);
+    }
+
+    /**
+     * Runs one shape update right away, rather than queuing it behind the chain under way. Handed
+     * over to the region owning {@code position} when another one does.
+     *
+     * @param position  the block to tell
+     * @param direction the side of {@code position} the changed block is on
+     * @param neighbor  the new state of the changed block
+     */
+    public void updateShapeNow(final BlockPosition position, final BlockFace direction, final BlockData neighbor) {
+        runShapeUpdate(position, direction, neighbor, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT);
+    }
+
     @Override
     public void blockChanged(final BlockPosition position, final BlockData previous, final BlockData current) {
         if (previous.equals(current)) {
@@ -283,25 +383,39 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
                 analogOutputChanged(position);
             }
         }
-        if (update != Update.QUIET && limit > 0) {
-            final NeighborUpdater updater = engine.updater();
-            final int previousLimit = updater.indirectLimit(limit - 1);
-            try {
-                if (previousBehaviour != null) {
-                    previousBehaviour.updateIndirectNeighborShapes(this, position, previous);
-                }
-                for (final BlockFace face : Faces.SHAPE_ORDER) {
-                    // the neighbour on that side sees this block on its opposite side
-                    updater.shapeUpdate(this, position.relative(face), face.opposite(), current, limit - 1);
-                }
-                if (currentBehaviour != null) {
-                    currentBehaviour.updateIndirectNeighborShapes(this, position, current);
-                }
-            } catch (final RuntimeException exception) {
-                fail(current, "updated the shapes around it", position, exception);
-            } finally {
-                updater.indirectLimit(previousLimit);
+        if (update != Update.QUIET) {
+            updateShapesAround(position, previous, current, limit);
+        }
+    }
+
+    /**
+     * What vanilla's {@code Level.setBlock} does for the shapes around a block that changed: those of
+     * the blocks the previous state reached beyond its neighbours, those of its neighbours, then those
+     * the new state reaches.
+     */
+    private void updateShapesAround(final BlockPosition position, final BlockData previous, final BlockData current, final int limit) {
+        if (limit <= 0) {
+            return;
+        }
+        final RedstoneBehaviour previousBehaviour = behaviour(previous);
+        final RedstoneBehaviour currentBehaviour = behaviour(current);
+        final NeighborUpdater updater = engine.updater();
+        final int previousLimit = updater.indirectLimit(limit - 1);
+        try {
+            if (previousBehaviour != null) {
+                previousBehaviour.updateIndirectNeighborShapes(this, position, previous);
             }
+            for (final BlockFace face : Faces.SHAPE_ORDER) {
+                // the neighbour on that side sees this block on its opposite side
+                updater.shapeUpdate(this, position.relative(face), face.opposite(), current, limit - 1);
+            }
+            if (currentBehaviour != null) {
+                currentBehaviour.updateIndirectNeighborShapes(this, position, current);
+            }
+        } catch (final RuntimeException exception) {
+            fail(current, "updated the shapes around it", position, exception);
+        } finally {
+            updater.indirectLimit(previousLimit);
         }
     }
 
