@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeBlocks;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
+import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.block.ClusterBlock;
 import fr.euphyllia.fidorial.server.world.block.CrafterBlock;
 import fr.euphyllia.fidorial.server.world.block.CraftingTableBlock;
@@ -113,6 +114,7 @@ public final class GameBootstrap {
         BlockStateLightProperties.bootstrap();
         BlockEntityTypeBlocks.bootstrap();
         Blocks.bootstrap(registry);
+        BlockItems.bootstrap();
         registerBlockBehaviours(registry);
         LOGGER.debug("{} blocks defined in code", registry.definedCount());
         return registry;

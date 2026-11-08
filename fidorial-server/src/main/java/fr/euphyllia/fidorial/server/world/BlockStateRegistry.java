@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
+import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
-import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -126,7 +126,7 @@ public final class BlockStateRegistry {
             return BlockState.withProperties(BlockTypeKeys.LAVA, Map.of("level", "0"));
         }
 
-        final BlockState defaultState = BlockStates.defaultStateOf(TypedKey.withRegistry(RegistryKey.BLOCK, itemId.key()));
+        final BlockState defaultState = BlockStates.defaultStateOf(BlockItems.block(itemId));
         return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE);
     }
 }
