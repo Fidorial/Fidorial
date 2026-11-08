@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
@@ -65,6 +66,9 @@ public final class ButtonBlock extends SwitchBlock {
      */
     public void press(final RedstoneWorld world, final BlockPosition position, final Switch button,
                       final @Nullable Player presser) {
+        if (!RedstoneEvents.output(world.world(), position, button, true)) {
+            return;
+        }
         world.setBlock(position, button.withPowered(true), RedstoneWorld.Update.NEIGHBORS);
         updateNeighbours(world, position, button);
         world.scheduleTick(position, key, ticksToStayPressed);
@@ -75,6 +79,10 @@ public final class ButtonBlock extends SwitchBlock {
     @Override
     public void tick(final RedstoneWorld world, final BlockPosition position, final BlockData state) {
         if (!(state instanceof final Switch button) || !button.isPowered()) {
+            return;
+        }
+        if (!RedstoneEvents.output(world.world(), position, button, false)) {
+            world.scheduleTick(position, key, ticksToStayPressed);
             return;
         }
         // nothing keeps the button pressed: no arrow can stick in it

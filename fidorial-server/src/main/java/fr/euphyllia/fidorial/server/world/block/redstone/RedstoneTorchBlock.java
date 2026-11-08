@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.block.redstone;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -235,7 +236,7 @@ public final class RedstoneTorchBlock implements BlockBehaviour, RedstoneBehavio
         final long now = world.world().dayNightCycle().worldAge();
         final long[] recent = recentToggles(at, now);
         if (lightable.isLit()) {
-            if (powered) {
+            if (powered && RedstoneEvents.output(world.world(), position, state, false)) {
                 world.setBlock(position, lightable.withLit(false), RedstoneWorld.Update.NEIGHBORS);
                 if (addToggle(at, recent, now) >= MAX_RECENT_TOGGLES) {
                     Redstone.levelEvent(world.world(), BURNOUT_EVENT, position, 0);
@@ -245,7 +246,7 @@ public final class RedstoneTorchBlock implements BlockBehaviour, RedstoneBehavio
                     }
                 }
             }
-        } else if (!powered && recent.length < MAX_RECENT_TOGGLES) {
+        } else if (!powered && recent.length < MAX_RECENT_TOGGLES && RedstoneEvents.output(world.world(), position, state, true)) {
             world.setBlock(position, lightable.withLit(true), RedstoneWorld.Update.NEIGHBORS);
         }
     }

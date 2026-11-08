@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -57,7 +58,7 @@ public final class CopperBulbBlock implements BlockBehaviour, RedstoneBehaviour 
             return;
         }
         final boolean signal = world.hasNeighborSignal(position);
-        if (signal == bulb.isPowered()) {
+        if (signal == bulb.isPowered() || !RedstoneEvents.input(world.world(), position, state, signal)) {
             return;
         }
         BlockData updated = state;

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -77,7 +78,7 @@ public final class PoweredTrapdoor extends PoweredOpenable {
             return;
         }
         final boolean signal = world.hasNeighborSignal(position);
-        if (signal == powerable.isPowered()) {
+        if (signal == powerable.isPowered() || !RedstoneEvents.input(world.world(), position, state, signal)) {
             return;
         }
         BlockData updated = state;

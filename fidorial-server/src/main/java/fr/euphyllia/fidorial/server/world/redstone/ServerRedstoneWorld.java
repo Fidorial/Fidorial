@@ -361,7 +361,7 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
         }
         final BlockData state = blockAt(position);
         final RedstoneBehaviour behaviour = behaviour(state);
-        if (state == null || behaviour == null) {
+        if (state == null || behaviour == null || !RedstoneEvents.update(world, position, state, source)) {
             return;
         }
         try {

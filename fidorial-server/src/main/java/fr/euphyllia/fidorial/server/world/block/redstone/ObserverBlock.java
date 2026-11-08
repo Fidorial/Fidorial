@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -115,6 +116,13 @@ public final class ObserverBlock implements BlockBehaviour, RedstoneBehaviour {
     @Override
     public void tick(final RedstoneWorld world, final BlockPosition position, final BlockData state) {
         if (!(state instanceof final Powerable observer)) {
+            return;
+        }
+        if (!RedstoneEvents.output(world.world(), position, state, !observer.isPowered())) {
+            if (observer.isPowered()) {
+                // a plugin holds it on: it tries to end its pulse again later
+                world.scheduleTick(position, KEY, PULSE_TICKS);
+            }
             return;
         }
         if (observer.isPowered()) {

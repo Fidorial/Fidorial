@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -68,7 +69,8 @@ public final class RedstoneLampBlock implements BlockBehaviour, RedstoneBehaviou
 
     @Override
     public void tick(final RedstoneWorld world, final BlockPosition position, final BlockData state) {
-        if (state instanceof final Lightable lamp && lamp.isLit() && !world.hasNeighborSignal(position)) {
+        if (state instanceof final Lightable lamp && lamp.isLit() && !world.hasNeighborSignal(position)
+                && RedstoneEvents.input(world.world(), position, state, false)) {
             world.setBlock(position, lamp.withLit(false), RedstoneWorld.Update.SHAPES);
         }
     }

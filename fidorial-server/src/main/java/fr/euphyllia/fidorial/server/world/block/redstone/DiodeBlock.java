@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.block.redstone;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.euphyllia.fidorial.server.world.redstone.ServerRedstoneWorld;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
@@ -149,9 +150,12 @@ abstract class DiodeBlock implements BlockBehaviour, RedstoneBehaviour {
         }
         final boolean on = isPowered(state);
         final boolean shouldTurnOn = shouldTurnOn(world, position, state);
-        if (on && !shouldTurnOn) {
+        if ((on && shouldTurnOn) || !RedstoneEvents.output(world.world(), position, state, !on)) {
+            return;
+        }
+        if (on) {
             world.setBlock(position, ((Powerable) state).withPowered(false), RedstoneWorld.Update.SHAPES);
-        } else if (!on) {
+        } else {
             world.setBlock(position, ((Powerable) state).withPowered(true), RedstoneWorld.Update.SHAPES);
             if (!shouldTurnOn) {
                 world.scheduleTick(position, key, delay(state), TickPriority.VERY_HIGH);

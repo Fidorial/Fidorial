@@ -52,6 +52,15 @@ public final class SimpleEventBus implements EventBus {
         return event;
     }
 
+    /**
+     * {@return {@code true} if at least one listener would receive an event of that type}.
+     *
+     * @param eventType the exact type of the event that would be posted
+     */
+    public boolean hasListeners(final Class<? extends Event> eventType) {
+        return !resolve(eventType).isEmpty();
+    }
+
     @Override
     public void unsubscribeAll(final Object owner) {
         for (final List<Registration<?>> registrations : byType.values()) {

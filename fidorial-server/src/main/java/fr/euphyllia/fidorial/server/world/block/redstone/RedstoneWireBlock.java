@@ -3,9 +3,11 @@ package fr.euphyllia.fidorial.server.world.block.redstone;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.euphyllia.fidorial.server.world.redstone.ServerRedstoneWorld;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.event.redstone.RedstoneDustPowerEvent;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -398,14 +400,21 @@ public final class RedstoneWireBlock implements BlockBehaviour, RedstoneBehaviou
     }
 
     /**
-     * Vanilla's {@code DefaultRedstoneWireEvaluator.updatePowerStrength}.
+     * Vanilla's {@code DefaultRedstoneWireEvaluator.updatePowerStrength}, firing a
+     * {@link RedstoneDustPowerEvent} before the power changes.
      */
     private void updatePowerStrength(final RedstoneWorld world, final BlockPosition position, final RedstoneWire state) {
-        final int target = targetStrength(world, position);
-        if (state.getPower() == target) {
+        final int signal = targetStrength(world, position);
+        if (state.getPower() == signal) {
             return;
         }
-        if (state.equals(world.blockAt(position))) {
+        // false for dust just removed, whose neighbours still learn it no longer powers them
+        final boolean inPlace = state.equals(world.blockAt(position));
+        final int target = inPlace ? RedstoneEvents.dustPower(world.world(), position, state, state.getPower(), signal) : signal;
+        if (state.getPower() == target) {
+            return; // a listener kept the power of the dust
+        }
+        if (inPlace) {
             world.setBlock(position, state.withPower(target), RedstoneWorld.Update.SHAPES);
         }
         final List<BlockPosition> toUpdate = new ArrayList<>(7);

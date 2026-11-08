@@ -51,12 +51,12 @@ public final class RedstoneTests {
     /**
      * The first layer of air above the floor of the test worlds.
      */
-    private static final int Y = -48;
+    static final int Y = -48;
 
     private RedstoneTests() {
     }
 
-    private static FidorialServer server() {
+    static FidorialServer server() {
         return FidorialServer.getInstance();
     }
 
@@ -79,7 +79,7 @@ public final class RedstoneTests {
     /**
      * Places a block the way a player clicking {@code clickedFace} of its neighbour does.
      */
-    private static BlockData place(final World world, final BlockPosition position, final TypedKey<BlockType> block,
+    static BlockData place(final World world, final BlockPosition position, final TypedKey<BlockType> block,
                                    final BlockFace clickedFace, final float yaw, final float pitch) {
         final BlockStateRegistry states = server().registries().blockStates();
         final BlockPlaceContext context = new BlockPlaceContext(position, clickedFace,
@@ -94,7 +94,7 @@ public final class RedstoneTests {
     /**
      * Places a block on the floor, the player looking down at it.
      */
-    private static BlockData placeOnFloor(final World world, final BlockPosition position, final TypedKey<BlockType> block) {
+    static BlockData placeOnFloor(final World world, final BlockPosition position, final TypedKey<BlockType> block) {
         return place(world, position, block, BlockFace.UP, 0f, 90f);
     }
 
@@ -102,26 +102,26 @@ public final class RedstoneTests {
         return Objects.requireNonNull(redstone(world).blockAt(position), () -> position + " is not loaded");
     }
 
-    private static int power(final World world, final BlockPosition position) {
+    static int power(final World world, final BlockPosition position) {
         return at(world, position) instanceof final AnaloguePowerable dust ? dust.getPower() : -1;
     }
 
-    private static boolean isLit(final World world, final BlockPosition position) {
+    static boolean isLit(final World world, final BlockPosition position) {
         return at(world, position) instanceof final Lightable lightable && lightable.isLit();
     }
 
-    private static boolean isPowered(final World world, final BlockPosition position) {
+    static boolean isPowered(final World world, final BlockPosition position) {
         return at(world, position) instanceof final Powerable powerable && powerable.isPowered();
     }
 
-    private static void pull(final World world, final BlockPosition lever) {
+    static void pull(final World world, final BlockPosition lever) {
         LeverBlock.INSTANCE.pull(redstone(world), lever, (Switch) at(world, lever));
     }
 
     /**
      * Loads the chunk of a position: the engine only works on loaded chunks.
      */
-    private static void load(final World world, final BlockPosition position) {
+    static void load(final World world, final BlockPosition position) {
         world.blockStateId(position);
     }
 

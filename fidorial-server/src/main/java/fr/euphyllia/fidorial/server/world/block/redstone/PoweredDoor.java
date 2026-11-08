@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -78,7 +79,7 @@ public final class PoweredDoor extends PoweredOpenable {
             return;
         }
         final boolean signal = world.hasNeighborSignal(position) || world.hasNeighborSignal(position.relative(otherHalf(door)));
-        if (signal == door.isPowered()) {
+        if (signal == door.isPowered() || !RedstoneEvents.input(world.world(), position, state, signal)) {
             return;
         }
         if (signal != door.isOpen()) {

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.SoundEvent;
@@ -53,7 +54,7 @@ public final class PoweredFenceGate extends PoweredOpenable {
             return;
         }
         final boolean signal = world.hasNeighborSignal(position);
-        if (signal == powerable.isPowered()) {
+        if (signal == powerable.isPowered() || !RedstoneEvents.input(world.world(), position, state, signal)) {
             return;
         }
         world.setBlock(position, ((Powerable) gate.withOpen(signal)).withPowered(signal), RedstoneWorld.Update.SHAPES);

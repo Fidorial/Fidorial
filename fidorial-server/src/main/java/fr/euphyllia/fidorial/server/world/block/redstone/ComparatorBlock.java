@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
@@ -126,12 +127,17 @@ public final class ComparatorBlock extends DiodeBlock {
     private void refreshOutputState(final RedstoneWorld world, final BlockPosition position, final BlockData state) {
         final int output = calculateOutputSignal(world, position, state);
         final int previous = storedOutput(world, position);
-        storeOutput(world, position, output);
         if (previous == output && mode(state) != Comparator.Mode.COMPARE) {
             return;
         }
         final boolean sourceOn = shouldTurnOn(world, position, state);
         final boolean on = isPowered(state);
+        final int oldSignal = on ? previous : 0;
+        final int newSignal = sourceOn ? output : 0;
+        if (oldSignal != newSignal && !RedstoneEvents.output(world.world(), position, state, oldSignal, newSignal)) {
+            return;
+        }
+        storeOutput(world, position, output);
         if (on && !sourceOn) {
             world.setBlock(position, ((Powerable) state).withPowered(false), RedstoneWorld.Update.SHAPES);
         } else if (!on && sourceOn) {

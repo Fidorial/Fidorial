@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -35,6 +36,9 @@ public final class LeverBlock extends SwitchBlock {
      * @param lever    its current state
      */
     public void pull(final RedstoneWorld world, final BlockPosition position, final Switch lever) {
+        if (!RedstoneEvents.output(world.world(), position, lever, !lever.isPowered())) {
+            return;
+        }
         final Switch pulled = lever.withPowered(!lever.isPowered());
         world.setBlock(position, pulled, RedstoneWorld.Update.NEIGHBORS);
         updateNeighbours(world, position, pulled);

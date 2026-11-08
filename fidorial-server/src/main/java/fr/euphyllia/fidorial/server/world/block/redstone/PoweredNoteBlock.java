@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
@@ -74,7 +75,7 @@ public final class PoweredNoteBlock implements RedstoneBehaviour {
             return;
         }
         final boolean signal = world.hasNeighborSignal(position);
-        if (signal == note.isPowered()) {
+        if (signal == note.isPowered() || !RedstoneEvents.input(world.world(), position, state, signal)) {
             return;
         }
         if (signal) {
