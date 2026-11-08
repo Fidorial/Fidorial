@@ -14,6 +14,8 @@ import java.util.function.ToIntFunction;
 /**
  * Reads and writes values of type {@code T} from and to a buffer of type {@code B}.
  */
+// NullAway loses the nullness of type arguments through wildcards and lambdas
+@SuppressWarnings("NullAway")
 public interface NetworkCodec<B, T extends @Nullable Object> extends NetworkEncoder<B, T>, NetworkDecoder<B, T> {
 
     static <B, T extends @Nullable Object> NetworkCodec<B, T> of(final Function<B, T> reader, final BiConsumer<B, T> writer) {

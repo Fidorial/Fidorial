@@ -71,7 +71,7 @@ public final class DataComponentType<T> {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         return this == o || (o instanceof final DataComponentType<?> other && key.equals(other.key));
     }
 

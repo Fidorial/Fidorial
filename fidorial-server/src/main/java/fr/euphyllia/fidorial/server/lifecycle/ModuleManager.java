@@ -120,7 +120,7 @@ public final class ModuleManager {
      */
     public void shutdown() {
         final List<ServerModule> reversed;
-        final @Nullable ScheduledExecutorService saver;
+        final ScheduledExecutorService saver;
         synchronized (this) {
             if (shutDown) {
                 return;

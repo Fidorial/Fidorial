@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.structure;
 
+import com.google.common.base.Splitter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -41,7 +42,7 @@ public final class StateParser {
             name = text.substring(0, open);
             final int close = text.lastIndexOf(']');
             final String body = text.substring(open + 1, close > open ? close : text.length());
-            for (final String pair : body.split(",")) {
+            for (final String pair : Splitter.on(',').split(body)) {
                 final int eq = pair.indexOf('=');
                 if (eq > 0) {
                     properties.put(pair.substring(0, eq).strip(), pair.substring(eq + 1).strip());

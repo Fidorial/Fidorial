@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -260,7 +261,9 @@ public final class LevelData {
     }
 
     private void writeLevelDat(final Path levelDat) throws IOException {
-        Files.createDirectories(levelDat.getParent());
+        final Path parent = levelDat.getParent();
+        Preconditions.checkArgument(parent != null, "%s has no parent directory", levelDat);
+        Files.createDirectories(parent);
 
         final CompoundBinaryTag.Builder data = CompoundBinaryTag.builder();
         data.putInt("DataVersion", VersionConstants.DATA_VERSION);

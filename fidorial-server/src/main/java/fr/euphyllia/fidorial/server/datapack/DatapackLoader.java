@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.datapack;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -45,8 +46,8 @@ public final class DatapackLoader {
         final List<Path> candidates;
         try (final Stream<Path> stream = Files.list(folder)) {
             candidates = stream
-                    .filter(path -> Files.isDirectory(path) || path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
-                    .sorted(Comparator.comparing(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)))
+                    .filter(path -> Files.isDirectory(path) || String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT).endsWith(".zip"))
+                    .sorted(Comparator.comparing(path -> String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT)))
                     .toList();
         }
 
@@ -132,12 +133,14 @@ public final class DatapackLoader {
                 final String relative = entry.getName().substring(prefix.length());
                 if (isRelevant(relative)) {
                     try (final InputStream in = file.getInputStream(entry)) {
+                        Preconditions.checkState(in != null, "%s lists %s but cannot read it", zip, entry.getName());
                         files.put(relative, in.readAllBytes());
                     }
                 }
             }
             final String meta;
             try (final InputStream in = file.getInputStream(mcmeta)) {
+                Preconditions.checkState(in != null, "%s lists %s but cannot read it", zip, mcmeta.getName());
                 meta = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             }
             return rawPack("file/" + zip.getFileName(), zip, meta, files);
@@ -237,7 +240,7 @@ public final class DatapackLoader {
                             final String pack, final String path) {
             final String registry = registryOf(tagPath);
             final Key key = registry == null ? null : Keys.parse(namespace + ":" + tagPath.substring(registry.length() + 1));
-            if (key == null) {
+            if (registry == null || key == null) {
                 LOGGER.warn("[datapacks] {}: '{}' is not a valid tag location, file skipped", pack, path);
                 return;
             }

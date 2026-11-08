@@ -9,6 +9,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockType;
+import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,7 @@ public final class ScenarioTestHelper {
      * @param messageIfFalse the failure message
      * @since 0.1.0
      */
+    @Contract("false, _ -> fail")
     public void assertTrue(final boolean condition, final String messageIfFalse) {
         if (!condition) {
             fail(messageIfFalse);

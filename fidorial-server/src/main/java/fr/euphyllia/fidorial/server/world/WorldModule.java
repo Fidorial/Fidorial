@@ -152,7 +152,7 @@ public final class WorldModule implements ServerModule, WorldManager {
             manager.unloadUnusedChunks().whenComplete((count, failure) -> {
                 if (failure != null) {
                     LOGGER.error("An error occurred while unloading chunks during the automatic save:", failure);
-                } else if (count > 0) {
+                } else if (count != null && count > 0) {
                     LOGGER.debug("{} unloaded chunks", count);
                 }
                 unloadingChunks.set(false);

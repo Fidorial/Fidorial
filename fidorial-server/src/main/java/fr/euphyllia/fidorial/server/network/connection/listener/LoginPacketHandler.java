@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.connection.listener;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.auth.GameProfile;
 import fr.euphyllia.fidorial.server.FidorialServer;
@@ -141,6 +142,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
         this.encryptionRequested = true;
         this.verifyToken = EncryptionUtils.generateVerifyToken();
         final byte[] publicKey = server.network().keyPair().getPublic().getEncoded();
+        Preconditions.checkState(publicKey != null, "The server public key has no encoded form");
         connection.send(new ClientboundKeyPacket("", publicKey, verifyToken, shouldAuthenticate));
     }
 
@@ -164,6 +166,10 @@ public final class LoginPacketHandler implements LoginPacketListener {
             final String serverHash = EncryptionUtils.computeServerHash(
                     "", sharedSecret, server.network().keyPair().getPublic());
             final String username = pendingUsername;
+            if (username == null) {
+                disconnect(Component.translatable("disconnect.packetError"));
+                return;
+            }
             Thread.startVirtualThread(() -> authenticate(username, serverHash));
         } catch (final Exception e) {
             LOGGER.warn("Encryption failed for {}", pendingUsername, e);

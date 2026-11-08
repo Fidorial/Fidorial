@@ -74,8 +74,8 @@ public final class ProfileDump {
         Format format = Format.TABLE;
         boolean history = false;
         boolean verifyOnly = false;
-        @Nullable String nameFilter = null;
-        @Nullable String uuidFilter = null;
+        String nameFilter = null;
+        String uuidFilter = null;
 
         for (int i = 1; i < args.length; i++) {
             switch (args[i]) {

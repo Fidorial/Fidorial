@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.plugin;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fr.euphyllia.fidorial.bootstrap.Artifact;
@@ -182,7 +183,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
     }
 
     private void recordFailure(final Path jar, final PluginFailure failure) {
-        final String file = jar.getFileName().toString();
+        final String file = String.valueOf(jar.getFileName());
         failed.add(new PluginFailure.Status(file, file, null, List.of(), false, failure));
     }
 
@@ -248,6 +249,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
 
             final PluginMeta meta;
             try (final InputStream in = archive.getInputStream(descriptor)) {
+                Preconditions.checkState(in != null, "%s lists %s but cannot read it", jar, DESCRIPTOR);
                 meta = GSON.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), PluginMeta.class);
             }
             if (meta == null) {
@@ -263,10 +265,12 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 urls.add(library.toUri().toURL());
             }
 
+            final ClassLoader parent = getClass().getClassLoader();
+            Preconditions.checkState(parent != null, "The server must not be loaded by the bootstrap class loader");
             classLoader = new PluginClassLoader(
                     meta.id(),
                     urls.toArray(new URL[0]),
-                    getClass().getClassLoader(),
+                    parent,
                     ApiPackages.get());
             return Optional.of(new Candidate(meta, jar, classLoader));
         } catch (final JsonSyntaxException | NullPointerException | IllegalArgumentException e) {

@@ -12,6 +12,7 @@ import fr.fidorial.world.block.BlockPlaceContext;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.type.Speleothem;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 @SinceMinecraft("26.4")
@@ -42,6 +43,7 @@ public class SpeleothemBlock implements BlockBehaviour {
         return type;
     }
 
+    @Contract("null -> false")
     public final boolean is(final @Nullable BlockData data) {
         return data != null && data.key().equals(key);
     }

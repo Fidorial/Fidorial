@@ -48,9 +48,9 @@ final class MapTextLayout implements FlattenerListener {
     @Override
     public void pushStyle(final Style style) {
         final TextColor color = style.color();
-        colors.push(color == null ? colors.peek() : ServerMapPalette.nearest(color.value()));
+        colors.push(color == null ? colors.getFirst() : ServerMapPalette.nearest(color.value()));
         final TextDecoration.State bold = style.decoration(TextDecoration.BOLD);
-        bolds.push(bold == TextDecoration.State.NOT_SET ? bolds.peek() : bold == TextDecoration.State.TRUE);
+        bolds.push(bold == TextDecoration.State.NOT_SET ? bolds.getFirst() : bold == TextDecoration.State.TRUE);
     }
 
     @Override
@@ -63,8 +63,8 @@ final class MapTextLayout implements FlattenerListener {
 
     @Override
     public void component(final String text) {
-        final byte pixel = colors.peek();
-        final boolean bold = bolds.peek();
+        final byte pixel = colors.getFirst();
+        final boolean bold = bolds.getFirst();
         final byte shade = ServerMapPalette.nearest(ServerMapPalette.rgbOf(pixel) >> 2 & 0x3F3F3F);
         for (int i = 0; i < text.length(); ) {
             final int codePoint = text.codePointAt(i);

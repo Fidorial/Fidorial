@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.command.defaults;
 
+import com.google.common.base.Preconditions;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -79,9 +80,12 @@ public final class PlaceCommand {
 
     private static Position position(final CommandContext<CommandSource> context, final boolean explicit)
             throws CommandSyntaxException {
-        return explicit
-                ? BlockPositionResolver.blockPosition(context, "pos")
-                : context.getSource().location();
+        if (explicit) {
+            return BlockPositionResolver.blockPosition(context, "pos");
+        }
+        final Position location = context.getSource().location();
+        Preconditions.checkState(location != null, "A source in a world always has a location");
+        return location;
     }
 
     private static int template(final CommandContext<CommandSource> context, final boolean explicitPos,

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.codecs;
 
+import com.google.common.base.Preconditions;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
@@ -22,6 +23,7 @@ public final class RecordShapes {
      */
     public static void checkKeys(final Class<? extends Record> type, final List<@Nullable String> keys, final RecordCodec.KeyStyle style) {
         final RecordComponent[] components = type.getRecordComponents();
+        Preconditions.checkArgument(components != null, "%s is not a record", type);
         if (components.length != keys.size()) {
             throw new IllegalStateException(type.getName() + " has " + components.length + " components but " + keys.size() + " fields were declared");
         }
@@ -44,7 +46,9 @@ public final class RecordShapes {
     }
 
     public static MethodHandle canonicalConstructor(final Class<? extends Record> type) {
-        final Class<?>[] parameters = Arrays.stream(type.getRecordComponents())
+        final RecordComponent[] components = type.getRecordComponents();
+        Preconditions.checkArgument(components != null, "%s is not a record", type);
+        final Class<?>[] parameters = Arrays.stream(components)
                 .map(RecordComponent::getType)
                 .toArray(Class<?>[]::new);
         try {

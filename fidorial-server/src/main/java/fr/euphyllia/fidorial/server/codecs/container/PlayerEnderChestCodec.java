@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.fidorial.inventory.EnderChestInventory;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -17,7 +18,7 @@ public final class PlayerEnderChestCodec {
     private PlayerEnderChestCodec() {
     }
 
-    public static byte[] encode(final byte[] existing, final EnderChestInventory enderChest) throws IOException {
+    public static byte[] encode(final byte @Nullable [] existing, final EnderChestInventory enderChest) throws IOException {
         final CompoundBinaryTag root = ContainerCodecs.readRoot(existing, DataFixerType.PLAYER);
         return ContainerCodecs.writeRoot(ROOT_NAME, ContainerCodecs.writeList(root, LIST_NAME, CODEC, enderChest),
                 VersionConstants.DATA_VERSION);

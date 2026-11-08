@@ -133,7 +133,8 @@ public record EntitySelector(
     }
 
     private static Collection<? extends Entity> worldEntities(final CommandSource source) {
-        return source.location() instanceof final Location location && location.world() instanceof final ServerWorld world
+        final Location location = source.location();
+        return location != null && location.world() instanceof final ServerWorld world
                 ? world.entityManager().all()
                 : List.of();
     }

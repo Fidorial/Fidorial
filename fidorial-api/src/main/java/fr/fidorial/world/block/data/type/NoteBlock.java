@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Powerable;
 
@@ -22,7 +23,9 @@ public interface NoteBlock extends Powerable {
      * @since 0.1.0
      */
     default String getInstrument() {
-        return get("instrument");
+        final String instrument = get("instrument");
+        Preconditions.checkState(instrument != null, "%s has no instrument property", key());
+        return instrument;
     }
 
     /**
@@ -41,7 +44,9 @@ public interface NoteBlock extends Powerable {
      * @since 0.1.0
      */
     default int getNote() {
-        return Integer.parseInt(get("note"));
+        final String note = get("note");
+        Preconditions.checkState(note != null, "%s has no note property", key());
+        return Integer.parseInt(note);
     }
 
     /**

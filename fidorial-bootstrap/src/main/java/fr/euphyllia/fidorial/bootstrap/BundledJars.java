@@ -26,22 +26,34 @@ final class BundledJars {
         }
 
         final List<Artifact> artifacts;
-        try (final InputStream in = self.getInputStream(listEntry)) {
-            artifacts = Artifact.read(in, false);
+        final InputStream list = self.getInputStream(listEntry);
+        if (list == null) {
+            throw new BootstrapException("cannot read " + LIST);
+        }
+        try (list) {
+            artifacts = Artifact.read(list, false);
         }
 
         final List<Path> paths = new ArrayList<>(artifacts.size());
         for (final Artifact artifact : artifacts) {
             final Path target = librariesDir.resolve(artifact.path());
-            Files.createDirectories(target.getParent());
+            final Path directory = target.getParent();
+            if (directory == null) {
+                throw new BootstrapException("bundled jar " + artifact.fileName() + " has no parent directory");
+            }
+            Files.createDirectories(directory);
 
             if (!upToDate(target, artifact)) {
                 final ZipEntry entry = self.getEntry(DIRECTORY + artifact.fileName());
                 if (entry == null) {
                     throw new BootstrapException("bundled jar " + artifact.fileName() + " is listed but missing from the launcher");
                 }
-                final Path temporary = Files.createTempFile(target.getParent(), artifact.fileName(), ".part");
-                try (final InputStream in = self.getInputStream(entry)) {
+                final Path temporary = Files.createTempFile(directory, artifact.fileName(), ".part");
+                final InputStream in = self.getInputStream(entry);
+                if (in == null) {
+                    throw new BootstrapException("cannot read bundled jar " + artifact.fileName());
+                }
+                try (in) {
                     Files.copy(in, temporary, StandardCopyOption.REPLACE_EXISTING);
                     final String actual = Sha256.of(temporary);
                     if (!actual.equalsIgnoreCase(artifact.sha256())) {

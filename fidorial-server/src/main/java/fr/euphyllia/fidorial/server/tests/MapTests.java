@@ -21,9 +21,11 @@ import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,7 +80,7 @@ public final class MapTests {
     public static void terrainIsRendered(final ScenarioTestHelper helper) {
         final World world = helper.world();
         final MapView view = maps().create(world, 8, 8, MapScale.ONE_TO_ONE);
-        final AtomicReference<CompletableFuture<Void>> render = new AtomicReference<>();
+        final AtomicReference<CompletableFuture<@Nullable Void>> render = new AtomicReference<>();
         helper.sequence()
                 .execute(() -> render.set(view.renderTerrain()))
                 .waitUntil(() -> helper.assertTrue(render.get().isDone(), "The terrain is still rendering"))
@@ -107,7 +109,7 @@ public final class MapTests {
                     helper.assertTrue(view.centerX() == 128 && view.centerZ() == 0,
                             "The new map is not aligned on the grid: " + view.centerX() + ", " + view.centerZ());
                     helper.assertTrue(view.tracksPlayers(), "A new map does not track players");
-                    helper.assertTrue(held.get(DataComponentTypes.MAP_ID) == view.id(), "Wrong map id on the item");
+                    helper.assertTrue(Objects.equals(held.get(DataComponentTypes.MAP_ID), view.id()), "Wrong map id on the item");
                 })
                 .build();
     }

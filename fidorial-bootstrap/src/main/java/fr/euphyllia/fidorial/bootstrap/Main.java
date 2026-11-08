@@ -29,7 +29,7 @@ public final class Main {
         try {
             run(args);
         } catch (final BootstrapException e) {
-            Log.warn(e.getMessage());
+            Log.warn(String.valueOf(e.getMessage()));
             if (e.getCause() != null) {
                 e.getCause().printStackTrace(System.err);
             }
@@ -64,14 +64,18 @@ public final class Main {
             if (entry == null) {
                 throw new BootstrapException("this jar has no " + LIBRARIES_LIST);
             }
-            try (final InputStream in = jar.getInputStream(entry)) {
+            final InputStream in = jar.getInputStream(entry);
+            if (in == null) {
+                throw new BootstrapException("cannot read " + LIBRARIES_LIST);
+            }
+            try (in) {
                 external = Artifact.read(in, true);
             }
 
             final List<String> repositories;
             final ZipEntry repositoriesEntry = jar.getEntry(REPOSITORIES_LIST);
-            try (final InputStream in = repositoriesEntry == null ? null : jar.getInputStream(repositoriesEntry)) {
-                repositories = Repositories.resolve(librariesDir, in);
+            try (final InputStream repositoriesIn = repositoriesEntry == null ? null : jar.getInputStream(repositoriesEntry)) {
+                repositories = Repositories.resolve(librariesDir, repositoriesIn);
             }
 
             final LibraryStore store = new LibraryStore(librariesDir, repositories);

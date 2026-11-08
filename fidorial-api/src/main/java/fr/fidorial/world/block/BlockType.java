@@ -238,10 +238,13 @@ public final class BlockType {
         throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.key().asString() + "'");
     }
 
-    private Map<String, @Nullable String> valuesOf(final int ordinal) {
-        final Map<String, @Nullable String> map = new LinkedHashMap<>();
+    private Map<String, String> valuesOf(final int ordinal) {
+        final Map<String, String> map = new LinkedHashMap<>();
         for (final BlockProperty property : properties) {
-            map.put(property.name(), value(ordinal, property.name()));
+            final String value = value(ordinal, property.name());
+            if (value != null) {
+                map.put(property.name(), value);
+            }
         }
         return map;
     }
@@ -261,7 +264,7 @@ public final class BlockType {
      * @param ordinal the ordinal of the state
      * @since 0.1.0
      */
-    public Map<String, @Nullable String> propertyValuesAt(final int ordinal) {
+    public Map<String, String> propertyValuesAt(final int ordinal) {
         return valuesOf(ordinal);
     }
 
@@ -282,21 +285,28 @@ public final class BlockType {
 
     private record DataHandler(BlockType type, int ordinal) implements InvocationHandler {
         @Override
-        public @Nullable Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        public @Nullable Object invoke(final Object proxy, final Method method, final @Nullable Object @Nullable [] args) throws Throwable {
             if (method.isDefault()) {
                 return InvocationHandler.invokeDefault(proxy, method, args);
             }
             return switch (method.getName()) {
                 case "type" -> type;
                 case "networkId" -> type.stateIds[ordinal];
-                case "get" -> type.value(ordinal, (String) args[0]);
-                case "with" -> type.stateAt(type.withValue(ordinal, (String) args[0], (String) args[1]));
+                case "get" -> type.value(ordinal, stringArgument(args, 0));
+                case "with" -> type.stateAt(type.withValue(ordinal, stringArgument(args, 0), stringArgument(args, 1)));
                 case "propertyMap" -> type.valuesOf(ordinal);
-                case "equals" -> equalsData(args[0]);
+                case "equals" -> args != null && equalsData(args[0]);
                 case "hashCode" -> type.hashCode() * 31 + ordinal;
                 case "toString" -> ((BlockData) proxy).asString();
                 default -> throw new UnsupportedOperationException(method.getName());
             };
+        }
+
+        private static String stringArgument(final @Nullable Object @Nullable [] args, final int index) {
+            if (args != null && index < args.length && args[index] instanceof final String value) {
+                return value;
+            }
+            throw new IllegalArgumentException("Argument " + index + " of a block data call must be a string");
         }
 
         private boolean equalsData(@Nullable final Object other) {

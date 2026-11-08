@@ -5,6 +5,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -52,11 +53,15 @@ public final class EncryptionUtils {
     }
 
     public static String computeServerHash(final String serverId, final byte[] sharedSecret, final PublicKey publicKey) {
+        final byte[] encodedKey = publicKey.getEncoded();
+        if (encodedKey == null) {
+            throw new IllegalArgumentException("The public key has no encoded form");
+        }
         try {
             final MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            digest.update(serverId.getBytes("ISO_8859_1"));
+            digest.update(serverId.getBytes(StandardCharsets.ISO_8859_1));
             digest.update(sharedSecret);
-            digest.update(publicKey.getEncoded());
+            digest.update(encodedKey);
             return new BigInteger(digest.digest()).toString(16);
         } catch (final Exception e) {
             throw new IllegalStateException(e);

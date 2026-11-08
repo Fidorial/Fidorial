@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.codecs.configuration;
 
+import com.google.common.base.Preconditions;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -214,7 +215,9 @@ public final class ConfigurationCodecs {
             schemas.upgrade(path, root);
             if (!existed || version != schemas.latestVersion()) {
                 schemas.stamp(root);
-                Files.createDirectories(path.toAbsolutePath().getParent());
+                final Path parent = path.toAbsolutePath().getParent();
+                Preconditions.checkState(parent != null, "%s has no parent directory", path);
+                Files.createDirectories(parent);
                 loader.save(root);
             }
             return decode(root);

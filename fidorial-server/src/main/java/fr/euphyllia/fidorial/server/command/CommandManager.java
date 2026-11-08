@@ -81,11 +81,14 @@ public final class CommandManager implements CommandRegistry {
 
     private static final ThreadLocal<Boolean> IN_COMMAND_WORKER = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
+    static {
+        CommandSyntaxException.BUILT_IN_EXCEPTIONS = new TranslatableExceptions();
+    }
+
     public CommandManager() {
         this.lock = new ReentrantReadWriteLock();
         this.dispatcher = new CommandDispatcher<>();
 
-        CommandSyntaxException.BUILT_IN_EXCEPTIONS = new TranslatableExceptions();
         ArgumentTypes.bootstrap();
 
         registerDefaults();
@@ -204,8 +207,7 @@ public final class CommandManager implements CommandRegistry {
         candidates.add(registered);
 
         final RegisteredCommand current = plainCommands.get(aliasKey);
-        final boolean shouldClaim = current == null || (current.builtin() && !registered.builtin());
-        if (!shouldClaim) {
+        if (current != null && (!current.builtin() || registered.builtin())) {
             if (current != registered) {
                 FidorialServer.LOGGER.warn(
                         "Plain command '/{}' is already claimed by namespace '{}'; '{}:{}' will only be reachable as '/{}:{}'",

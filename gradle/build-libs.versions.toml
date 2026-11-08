@@ -1,6 +1,6 @@
 [versions]
-spotless = "8.10.2"
-spotless-lib = "4.8.0"
+spotless = "8.11.0"
+spotless-lib = "4.11.0"
 javaparser = "3.28.2"
 errorprone = "5.2.0"
 

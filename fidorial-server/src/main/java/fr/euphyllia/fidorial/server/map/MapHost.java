@@ -7,6 +7,7 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.world.BlockFace;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +25,7 @@ interface MapHost {
     /**
      * Draws the whole terrain of a map.
      */
-    CompletableFuture<Void> renderTerrain(ServerMapView view);
+    CompletableFuture<@Nullable Void> renderTerrain(ServerMapView view);
 
     /**
      * {@return the network id of a decoration type, or {@code -1} if the client does not know it}

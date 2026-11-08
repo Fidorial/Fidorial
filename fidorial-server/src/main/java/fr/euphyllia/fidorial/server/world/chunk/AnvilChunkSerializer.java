@@ -86,9 +86,9 @@ public class AnvilChunkSerializer {
 
             final CompoundBinaryTag data = blockEntity.data();
             if (data != null) {
-                for (final String key : data.keySet()) {
-                    if (!BLOCK_ENTITY_CONTAINER_KEYS.contains(key)) {
-                        compound.put(key, data.get(key));
+                for (final Map.Entry<String, ? extends BinaryTag> entry : data) {
+                    if (!BLOCK_ENTITY_CONTAINER_KEYS.contains(entry.getKey())) {
+                        compound.put(entry.getKey(), entry.getValue());
                     }
                 }
             }
@@ -116,9 +116,9 @@ public class AnvilChunkSerializer {
             final int y = compound.getInt("y");
 
             final CompoundBinaryTag.Builder data = CompoundBinaryTag.builder();
-            for (final String key : compound.keySet()) {
-                if (!BLOCK_ENTITY_CONTAINER_KEYS.contains(key)) {
-                    data.put(key, compound.get(key));
+            for (final Map.Entry<String, ? extends BinaryTag> entry : compound) {
+                if (!BLOCK_ENTITY_CONTAINER_KEYS.contains(entry.getKey())) {
+                    data.put(entry.getKey(), entry.getValue());
                 }
             }
             final CompoundBinaryTag built = data.build();

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.testing;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.plugin.PluginMeta;
 import fr.fidorial.testing.ScenarioTestInfo;
@@ -53,7 +54,9 @@ final class ScenarioTestMain {
 
     private static List<ClassLoader> collectClassLoaders(final FidorialServer server) {
         final List<ClassLoader> loaders = new ArrayList<>();
-        loaders.add(ScenarioTestMain.class.getClassLoader());
+        final ClassLoader serverLoader = ScenarioTestMain.class.getClassLoader();
+        Preconditions.checkState(serverLoader != null, "The server must not be loaded by the bootstrap class loader");
+        loaders.add(serverLoader);
         for (final PluginMeta meta : server.plugins().loaded()) {
             server.plugins().plugin(meta.id())
                     .map(p -> p.getClass().getClassLoader())

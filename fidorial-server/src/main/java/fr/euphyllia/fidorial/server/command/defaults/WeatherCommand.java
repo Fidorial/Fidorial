@@ -81,8 +81,8 @@ public final class WeatherCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandSource source) {
-        return source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld world ? world : null;
+        final Location location = source.location();
+        return location != null && location.world() instanceof final ServerWorld world ? world : null;
     }
 
     private static int get(final CommandSource source, final @Nullable ServerWorld requested) {

@@ -10,10 +10,11 @@ import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.status.ServerListing;
-import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.version.BuildSpecification;
 import fr.fidorial.world.WorldManager;
 import net.kyori.adventure.audience.ForwardingAudience;
+import net.kyori.adventure.translation.GlobalTranslator;
+import net.kyori.adventure.translation.Translator;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -160,10 +161,13 @@ public interface Server extends ForwardingAudience {
     CommandRegistry commands();
 
     /**
-     * Gets the store rendering translatable components for a given locale.
+     * Gets the source of the server's own translations, registered to the {@link GlobalTranslator}.
+     * <p>
+     * In order to remove the server's translations, remove this source from the aforementioned global translator.
      *
-     * @return the active translation store
+     * @return the server's translation source
      * @since 0.1.0
      */
-    TranslationStore translationStore();
+    @Contract(pure = true)
+    Translator translationSource();
 }

@@ -90,7 +90,7 @@ public final class PostEffectCommand {
             final List<Player> changed = new ArrayList<>(players.size());
             for (int i = 0; i < players.size(); i++) {
                 final CompletableFuture<Boolean> result = results.get(i);
-                if (!result.isCompletedExceptionally() && result.getNow(false)) {
+                if (!result.isCompletedExceptionally() && Boolean.TRUE.equals(result.getNow(false))) {
                     changed.add(players.get(i));
                 }
             }

@@ -71,6 +71,6 @@ public abstract class SimpleContainer implements Container {
 
     @Override
     public ItemStack[] contents() {
-        return Arrays.copyOf(slots, slots.length);
+        return slots.clone();
     }
 }

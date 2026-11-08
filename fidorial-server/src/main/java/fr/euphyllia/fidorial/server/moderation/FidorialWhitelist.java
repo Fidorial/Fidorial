@@ -35,6 +35,7 @@ public final class FidorialWhitelist implements WhitelistManager {
         this.file = Objects.requireNonNull(file, "file");
     }
 
+    @Override
     public void load() {
         if (!Files.exists(file)) {
             return;

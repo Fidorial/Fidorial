@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTy
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.world.World;
 import net.kyori.adventure.key.Key;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -23,17 +24,17 @@ public final class DimensionArgument<T> implements ArgumentType<T> {
 
     public static final DynamicCommandExceptionType ERROR_INVALID_VALUE = ExceptionFactory.dynamic("argument.dimension.invalid");
 
-    private final Function<Key, T> converter;
+    private final Function<Key, @Nullable T> converter;
 
-    private DimensionArgument(final Function<Key, T> converter) {
+    private DimensionArgument(final Function<Key, @Nullable T> converter) {
         this.converter = converter;
     }
 
     public static DimensionArgument<Key> dimension() {
-        return dimension(Function.identity());
+        return dimension(key -> key);
     }
 
-    public static <T> DimensionArgument<T> dimension(final Function<Key, T> converter) {
+    public static <T> DimensionArgument<T> dimension(final Function<Key, @Nullable T> converter) {
         return new DimensionArgument<>(converter);
     }
 

@@ -35,6 +35,8 @@ import java.util.function.ToIntFunction;
  * }
  * </pre>
  */
+// NullAway loses the nullness of type arguments through wildcards and lambdas
+@SuppressWarnings("NullAway")
 @FunctionalInterface
 public interface NetworkDecoder<B, T extends @Nullable Object> {
 

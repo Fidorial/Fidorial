@@ -83,17 +83,18 @@ public final class StructureGenerator {
                         continue;
                     }
                     final StructureStart start = startAt(setIndex, set, candidate[0], candidate[1]);
-                    if (start.isEmpty() || start.bounds() == null
+                    final JigsawStructure structure = start.structure();
+                    if (structure == null || start.isEmpty() || start.bounds() == null
                             || !start.bounds().intersectsXZ(minX, minZ, minX + 15, minZ + 15)) {
                         continue;
                     }
                     for (final PlacedPiece piece : start.pieces()) {
                         if (piece.box().intersectsXZ(minX, minZ, minX + 15, minZ + 15)) {
                             try {
-                                placer.place(piece, start.structure(), target);
+                                placer.place(piece, structure, target);
                                 placed++;
                             } catch (final RuntimeException failure) {
-                                registry.problems().warn("A piece of " + start.structure().id().asString()
+                                registry.problems().warn("A piece of " + structure.id().asString()
                                         + " could not be placed: " + failure);
                             }
                         }
@@ -219,8 +220,8 @@ public final class StructureGenerator {
                         if (stub == null || !stub.structure().id().equals(structureId)) {
                             continue;
                         }
-                        final long distX = stub.centerX() - originX;
-                        final long distZ = stub.centerZ() - originZ;
+                        final long distX = (long) stub.centerX() - originX;
+                        final long distZ = (long) stub.centerZ() - originZ;
                         final long distance = distX * distX + distZ * distZ;
                         if (distance < bestDistance) {
                             bestDistance = distance;

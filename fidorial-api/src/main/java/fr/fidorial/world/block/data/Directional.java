@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockTrait;
@@ -23,7 +24,9 @@ public interface Directional extends BlockData {
      * @since 0.1.0
      */
     default BlockFace getFacing() {
-        return BlockFace.valueOf(get("facing").toUpperCase(Locale.ROOT));
+        final String facing = get("facing");
+        Preconditions.checkState(facing != null, "%s has no facing property", key());
+        return BlockFace.valueOf(facing.toUpperCase(Locale.ROOT));
     }
 
     /**

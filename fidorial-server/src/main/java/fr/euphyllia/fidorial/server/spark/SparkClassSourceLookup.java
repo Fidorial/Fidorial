@@ -42,8 +42,12 @@ public final class SparkClassSourceLookup extends ClassSourceLookup.ByClassLoade
         for (final PluginMeta meta : pluginManager.loaded()) {
             pluginManager
                     .plugin(meta.id())
-                    .ifPresent((final Plugin plugin) ->
-                            this.classLoaderToPlugin.put(plugin.getClass().getClassLoader(), meta.name()));
+                    .ifPresent((final Plugin plugin) -> {
+                        final ClassLoader loader = plugin.getClass().getClassLoader();
+                        if (loader != null) {
+                            this.classLoaderToPlugin.put(loader, meta.name());
+                        }
+                    });
         }
     }
 

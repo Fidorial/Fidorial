@@ -1,5 +1,6 @@
 package fr.fidorial.world.block.data;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockTrait;
 
@@ -20,7 +21,9 @@ public interface Bisected extends BlockData {
      * @since 0.1.0
      */
     default Half getHalf() {
-        return Half.fromValue(get("half"));
+        final String half = get("half");
+        Preconditions.checkState(half != null, "%s has no half property", key());
+        return Half.fromValue(half);
     }
 
     /**

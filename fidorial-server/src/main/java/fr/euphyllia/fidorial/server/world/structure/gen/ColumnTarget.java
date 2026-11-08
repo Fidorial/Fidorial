@@ -8,10 +8,12 @@ import fr.euphyllia.fidorial.server.world.structure.place.BlockTarget;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
+import java.util.Map;
 import java.util.Set;
 
 public final class ColumnTarget implements BlockTarget {
@@ -110,9 +112,9 @@ public final class ColumnTarget implements BlockTarget {
             return nbt;
         }
         final CompoundBinaryTag.Builder builder = CompoundBinaryTag.builder();
-        for (final String key : nbt.keySet()) {
-            if (!POSITION_KEYS.contains(key)) {
-                builder.put(key, nbt.get(key));
+        for (final Map.Entry<String, ? extends BinaryTag> entry : nbt) {
+            if (!POSITION_KEYS.contains(entry.getKey())) {
+                builder.put(entry.getKey(), entry.getValue());
             }
         }
         return builder.build();

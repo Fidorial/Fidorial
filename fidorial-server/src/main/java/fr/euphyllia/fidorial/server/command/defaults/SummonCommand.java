@@ -79,8 +79,7 @@ public final class SummonCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
-        final CommandSource source = context.getSource();
-        return source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld world ? world : null;
+        final Location location = context.getSource().location();
+        return location != null && location.world() instanceof final ServerWorld world ? world : null;
     }
 }

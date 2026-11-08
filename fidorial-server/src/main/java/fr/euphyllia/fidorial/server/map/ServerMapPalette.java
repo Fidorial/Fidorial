@@ -181,10 +181,10 @@ public final class ServerMapPalette implements MapPalette {
         final int r2 = rgb >> 16 & 0xFF;
         final int g2 = rgb >> 8 & 0xFF;
         final int b2 = rgb & 0xFF;
-        final long mean = (r + r2) / 2;
-        final long dr = r - r2;
-        final long dg = g - g2;
-        final long db = b - b2;
-        return ((512 + mean) * dr * dr >> 8) + 4 * dg * dg + ((767 - mean) * db * db >> 8);
+        final long mean = ((long) (r + r2) / 2);
+        final long dr = (long) r - r2;
+        final long dg = (long) g - g2;
+        final long db = (long) b - b2;
+        return (((512 + mean) * dr * dr) >> 8) + 4 * dg * dg + (((767 - mean) * db * db) >> 8);
     }
 }

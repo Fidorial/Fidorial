@@ -117,7 +117,7 @@ public final class NbtMapType extends MapType {
     }
 
     @Override
-    public boolean renameKeys(final Function<String, @Nullable String> renamer) {
+    public boolean renameKeys(final Function<String, String> renamer) {
         boolean changed = false;
         final LinkedHashMap<String, BinaryTag> renamed = new LinkedHashMap<>();
         for (final Map.Entry<String, BinaryTag> entry : map.entrySet()) {

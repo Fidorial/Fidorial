@@ -30,11 +30,11 @@ import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.service.ServiceRegistry;
-import fr.fidorial.translation.TranslationStore;
 import fr.fidorial.version.BuildSpecification;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import net.kyori.adventure.translation.Translator;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -270,8 +270,8 @@ public final class FidorialServer implements Server {
     }
 
     @Override
-    public TranslationStore translationStore() {
-        return TranslationStore.current();
+    public Translator translationSource() {
+        return registries.translations().translator();
     }
 
     public WorkerModule workers() {

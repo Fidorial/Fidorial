@@ -25,7 +25,7 @@ public final class ChunkColumn {
     private final int height;
     private final int minSectionY;
     private final int sectionCount;
-    private final @Nullable ChunkSection[] sections;
+    private final ChunkSection[] sections;
     private final ConcurrentInt2ObjectMap<BlockEntity> blockEntities = new ConcurrentInt2ObjectMap<>();
 
     private long inhabitedTime;
@@ -72,7 +72,7 @@ public final class ChunkColumn {
         return sectionCount;
     }
 
-    public @Nullable ChunkSection[] sections() {
+    public ChunkSection[] sections() {
         return sections;
     }
 

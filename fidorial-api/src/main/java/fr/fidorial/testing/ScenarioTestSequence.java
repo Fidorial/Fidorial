@@ -24,7 +24,7 @@ public final class ScenarioTestSequence {
 
     boolean tick() {
         while (!steps.isEmpty()) {
-            final Step step = steps.peekFirst();
+            final Step step = steps.getFirst();
             try {
                 step.action().run();
             } catch (final ScenarioAssertionException e) {

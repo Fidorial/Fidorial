@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockRegistry;
@@ -47,7 +48,9 @@ public final class BlockStates {
     }
 
     public static BlockState stateAt(final TypedKey<BlockType> key, final int ordinal) {
-        return BY_KEY.get(key)[ordinal];
+        final BlockState[] states = BY_KEY.get(key);
+        Preconditions.checkArgument(states != null, "%s is not a registered block type", key);
+        return states[ordinal];
     }
 
     public static @Nullable BlockState defaultStateOf(final TypedKey<BlockType> key) {

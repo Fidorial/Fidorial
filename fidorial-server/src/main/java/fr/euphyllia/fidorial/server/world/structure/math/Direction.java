@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.world.structure.math;
 import fr.fidorial.world.structure.StructureRotation;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 public enum Direction {
     DOWN("down", 0, -1, 0),
     UP("up", 0, 1, 0),
@@ -11,7 +13,7 @@ public enum Direction {
     WEST("west", -1, 0, 0),
     EAST("east", 1, 0, 0);
 
-    public static final Direction[] HORIZONTAL = {NORTH, EAST, SOUTH, WEST};
+    public static final List<Direction> HORIZONTAL = List.of(NORTH, EAST, SOUTH, WEST);
 
     private final String serializedName;
     private final int stepX;

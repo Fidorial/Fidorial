@@ -128,7 +128,7 @@ public final class StructureService implements StructureManager {
     }
 
     @Override
-    public CompletableFuture<Void> reload() {
+    public CompletableFuture<@Nullable Void> reload() {
         return CompletableFuture.runAsync(() -> load(FidorialServer.getInstance().registries().datapacks()), worker);
     }
 
@@ -219,12 +219,12 @@ public final class StructureService implements StructureManager {
 
     private CompletableFuture<Integer> forEachChunk(final ServerWorld world, final Box box, final ChunkWork work) {
         final AtomicInteger total = new AtomicInteger();
-        final List<CompletableFuture<Void>> pending = new ArrayList<>();
+        final List<CompletableFuture<@Nullable Void>> pending = new ArrayList<>();
         for (int chunkX = box.minX() >> 4; chunkX <= box.maxX() >> 4; chunkX++) {
             for (int chunkZ = box.minZ() >> 4; chunkZ <= box.maxZ() >> 4; chunkZ++) {
                 final int cx = chunkX;
                 final int cz = chunkZ;
-                final CompletableFuture<Void> future = new CompletableFuture<>();
+                final CompletableFuture<@Nullable Void> future = new CompletableFuture<>();
                 pending.add(future);
                 world.scheduler().execute(world.key(), new ChunkPos(cx, cz), () -> {
                     try {

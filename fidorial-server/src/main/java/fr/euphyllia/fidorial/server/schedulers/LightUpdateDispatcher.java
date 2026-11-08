@@ -16,6 +16,7 @@ import fr.fidorial.math.Position;
 import fr.fidorial.world.ChunkPos;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -83,7 +84,7 @@ public class LightUpdateDispatcher {
         return enginePools.computeIfAbsent(bounds, b -> new LightEnginePool(lightWorkers, b.minY(), b.height()));
     }
 
-    private static @Nullable CompletableFuture<Void> decrementLocked(final Stripe stripe, final long key) {
+    private static @Nullable CompletableFuture<@Nullable Void> decrementLocked(final Stripe stripe, final long key) {
         final int count = stripe.refCounts.get(key);
 
         if (count == 0) return null;
@@ -183,7 +184,7 @@ public class LightUpdateDispatcher {
                 byCluster.computeIfAbsent(clusterKey, _ -> new ArrayList<>()).add(pos);
             }
 
-            for (final Long2ObjectOpenHashMap.Entry<List<BlockPosition>> entry : byCluster.long2ObjectEntrySet()) {
+            for (final Long2ObjectMap.Entry<List<BlockPosition>> entry : byCluster.long2ObjectEntrySet()) {
                 final List<BlockPosition> positions = entry.getValue();
                 final LongOpenHashSet chunkKeys = new LongOpenHashSet();
                 for (final BlockPosition p : positions) {
@@ -351,7 +352,7 @@ public class LightUpdateDispatcher {
         }
     }
 
-    public CompletableFuture<Void> flush(final Key world, final long chunkKey) {
+    public CompletableFuture<@Nullable Void> flush(final Key world, final long chunkKey) {
         final WorldLightState state = states.get(world);
         if (state == null) {
             return CompletableFuture.completedFuture(null);
@@ -365,12 +366,12 @@ public class LightUpdateDispatcher {
         return CompletableFuture.completedFuture(null);
     }
 
-    public CompletableFuture<Void> flush(final Key world, final LongIterable chunkKeys) {
+    public CompletableFuture<@Nullable Void> flush(final Key world, final LongIterable chunkKeys) {
         final WorldLightState state = states.get(world);
         if (state == null) {
             return CompletableFuture.completedFuture(null);
         }
-        final List<CompletableFuture<Void>> futures = new ArrayList<>();
+        final List<CompletableFuture<@Nullable Void>> futures = new ArrayList<>();
         final LongIterator it = chunkKeys.iterator();
         while (it.hasNext()) {
             final long key = it.nextLong();
@@ -411,7 +412,7 @@ public class LightUpdateDispatcher {
 
     private static final class Stripe {
         private final Long2IntOpenHashMap refCounts = new Long2IntOpenHashMap(512);
-        private final Long2ObjectOpenHashMap<@Nullable CompletableFuture<Void>> waiters = new Long2ObjectOpenHashMap<>();
+        private final Long2ObjectOpenHashMap<@Nullable CompletableFuture<@Nullable Void>> waiters = new Long2ObjectOpenHashMap<>();
     }
 
     private record Bounds(int minY, int height) {

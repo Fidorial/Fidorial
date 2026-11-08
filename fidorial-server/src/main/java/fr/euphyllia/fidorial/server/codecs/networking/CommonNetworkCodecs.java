@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.codecs.networking;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -112,6 +113,7 @@ public final class CommonNetworkCodecs {
          */
         public static <E extends Enum<E>> NetworkCodec<PacketBuffer, E> enumByOrdinal(final Class<E> type) {
             final E[] values = type.getEnumConstants();
+            Preconditions.checkArgument(values != null, "%s is not an enum", type);
             return VAR_INT.xmap(
                     ordinal -> {
                         if (ordinal < 0 || ordinal >= values.length) {

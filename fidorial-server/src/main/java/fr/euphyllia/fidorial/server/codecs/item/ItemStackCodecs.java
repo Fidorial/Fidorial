@@ -316,7 +316,8 @@ public final class ItemStackCodecs {
                     DataComponentValueConverterRegistry.convert(TypedDataComponentValue.class, key, value);
             return encodeTyped(ops, converted);
         } catch (final RuntimeException exception) {
-            return DataResult.error(exception::getMessage);
+            final String message = exception.getMessage();
+            return DataResult.error(() -> message != null ? message : exception.toString());
         }
     }
 

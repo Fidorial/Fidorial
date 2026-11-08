@@ -73,7 +73,6 @@ import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.translation.TranslationStore;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
@@ -91,6 +90,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.UnmodifiableView;
 import org.jspecify.annotations.Nullable;
@@ -263,6 +263,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return profile;
     }
 
+    @Override
     public PlayerInventory inventory() {
         return inventory;
     }
@@ -471,6 +472,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return this.locale;
     }
 
+    @Override
     public ItemStack heldItem() {
         return inventory.get(selectedSlot);
     }
@@ -893,10 +895,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return Collections.unmodifiableSet(activeBossBars.keySet());
     }
 
+    @Override
     public int selectedSlot() {
         return selectedSlot;
     }
 
+    @Override
     public void setSelectedSlot(final int selectedSlot) {
         acceptSelectedSlot(selectedSlot);
         connection.send(new ClientboundSetHeldSlotPacket(selectedSlot));
@@ -1244,13 +1248,13 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return this.profile().asObjectContents();
     }
 
-    @Contract("null -> null; !null -> new")
+    @Contract("null -> null; !null -> !null")
     public @Nullable Component prepareMessageForSend(final @Nullable Component message) {
         if (message == null) {
             return null;
         }
         final Component resolved = ComponentResolver.resolve(message, this.commandSource());
-        return TranslationStore.render(resolved, locale());
+        return GlobalTranslator.render(resolved, locale());
     }
 
     private record BossBarEntry(UUID id, BossBar.Listener listener) {

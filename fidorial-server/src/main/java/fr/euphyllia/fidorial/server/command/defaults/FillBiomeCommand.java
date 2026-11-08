@@ -119,12 +119,12 @@ public final class FillBiomeCommand {
 
         final AtomicInteger changed = new AtomicInteger();
         final Set<ChunkPos> touched = ConcurrentHashMap.newKeySet();
-        final List<CompletableFuture<Void>> pending = new ArrayList<>(byChunk.size());
+        final List<CompletableFuture<@Nullable Void>> pending = new ArrayList<>(byChunk.size());
 
         for (final Map.Entry<ChunkPos, List<int[]>> entry : byChunk.entrySet()) {
             final ChunkPos chunkPos = entry.getKey();
             final List<int[]> points = entry.getValue();
-            final CompletableFuture<Void> future = new CompletableFuture<>();
+            final CompletableFuture<@Nullable Void> future = new CompletableFuture<>();
             pending.add(future);
 
             world.scheduler().execute(world.key(), chunkPos, () -> {
@@ -175,7 +175,8 @@ public final class FillBiomeCommand {
         while (cause.getCause() != null) {
             cause = cause.getCause();
         }
-        return cause.getMessage();
+        final String message = cause.getMessage();
+        return message != null ? message : cause.toString();
     }
 
     private static void resend(final FidorialServer server, final ServerWorld world, final Set<ChunkPos> chunks) {
@@ -206,8 +207,7 @@ public final class FillBiomeCommand {
     }
 
     private static @Nullable ServerWorld worldOf(final CommandContext<CommandSource> context) {
-        final CommandSource source = context.getSource();
-        return source.location() instanceof final Location location
-                && location.world() instanceof final ServerWorld world ? world : null;
+        final Location location = context.getSource().location();
+        return location != null && location.world() instanceof final ServerWorld world ? world : null;
     }
 }

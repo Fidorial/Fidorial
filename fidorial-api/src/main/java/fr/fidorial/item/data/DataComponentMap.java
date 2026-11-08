@@ -186,7 +186,7 @@ public final class DataComponentMap {
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(final @Nullable Object o) {
         return this == o
                 || (o instanceof final DataComponentMap other
                 && values.equals(other.values)

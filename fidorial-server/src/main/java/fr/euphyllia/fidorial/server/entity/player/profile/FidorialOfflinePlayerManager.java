@@ -181,7 +181,7 @@ public final class FidorialOfflinePlayerManager implements OfflinePlayerManager,
                         .map(found -> toHandle(cache.remember(found.uuid(), found.name()))))
                 .whenComplete((result, error) -> {
                     inFlight.remove(k);
-                    if (error == null && result.isEmpty()) {
+                    if (error == null && result != null && result.isEmpty()) {
                         negative.put(k, System.currentTimeMillis() + NEGATIVE_TTL_MILLIS);
                     }
                 }));

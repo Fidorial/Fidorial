@@ -48,10 +48,10 @@ public record ClientboundPlayerInfoUpdatePacket(PlayerProfile profile, int gameM
         for (final PlayerProfile.Property property : profile.properties()) {
             buf.writeString(property.name());
             buf.writeString(property.value());
-            final boolean signed = property.signature() != null;
-            buf.writeBoolean(signed);
-            if (signed) {
-                buf.writeString(property.signature());
+            final String signature = property.signature();
+            buf.writeBoolean(signature != null);
+            if (signature != null) {
+                buf.writeString(signature);
             }
         }
 

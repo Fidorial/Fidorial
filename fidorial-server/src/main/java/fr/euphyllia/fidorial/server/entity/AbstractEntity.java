@@ -18,6 +18,7 @@ import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -111,7 +112,7 @@ public abstract class AbstractEntity implements Entity {
     }
 
     @Override
-    public final boolean equals(final Object o) {
+    public final boolean equals(final @Nullable Object o) {
         return o instanceof final AbstractEntity other && other.entityId == entityId;
     }
 

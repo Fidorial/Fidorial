@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntitySelector;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.nbt.NbtDataArgument;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.CoordMath;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
@@ -27,15 +28,14 @@ import net.kyori.adventure.text.NBTComponent;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.StorageNBTComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class ComponentResolver {
 
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(ComponentResolver.class);
     private static final int MAX_COMPONENT_DEPTH = 64;
     private static final AnvilEntitySerializer ENTITY_SERIALIZER = new AnvilEntitySerializer();
 
@@ -210,15 +210,13 @@ public final class ComponentResolver {
         root.putInt("y", pos.blockY());
         root.putInt("z", pos.blockZ());
 
-        root.put("components",
-                (extra != null && extra.keySet().contains("components"))
-                        ? extra.get("components")
-                        : CompoundBinaryTag.empty());
+        final BinaryTag components = extra == null ? null : extra.get("components");
+        root.put("components", components != null ? components : CompoundBinaryTag.empty());
 
         if (extra != null) {
-            for (final String key : extra.keySet()) {
-                if (!key.equals("components")) {
-                    root.put(key, extra.get(key));
+            for (final Map.Entry<String, ? extends BinaryTag> entry : extra) {
+                if (!entry.getKey().equals("components")) {
+                    root.put(entry.getKey(), entry.getValue());
                 }
             }
         }
@@ -248,6 +246,7 @@ public final class ComponentResolver {
     }
 
     // TODO
+    @NeedsToBeRevisited("Not implemented yet; needs NBT storage first")
     private static @Nullable CompoundBinaryTag resolveStorageRoot(final StorageNBTComponent nbt) {
         return null;
     }

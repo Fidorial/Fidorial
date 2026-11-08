@@ -80,9 +80,9 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
     private volatile TickSettings tickDefaults = TickSettings.DEFAULT; // only read on the first tick of a region
     private final Object tickChangeLock = new Object();
 
-    private volatile RegionTickProfiler tickProfiler = RegionTickProfiler.NO_OP;
     private final COWArrayList<RegionTickProfiler> tickProfilers = new COWArrayList<>(RegionTickProfiler.class);
 
+    @SuppressWarnings("StaticAssignmentInConstructor") // set once from the config, before any region exists
     public ThreadedRegionRegionizer(final int workerThreads, final int sectionShift) {
         if (sectionShift < 0 || sectionShift > MAX_SECTION_SHIFT) {
             throw new IllegalArgumentException("Region section shift must be between 0 and " + MAX_SECTION_SHIFT
@@ -295,6 +295,7 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         return region == null ? null : region.snapshot();
     }
 
+    @Override
     public List<RegionTpsSnapshot> tpsSnapshots() {
         final List<RegionTpsSnapshot> out = new ArrayList<>(regions.size());
         for (final Region region : regions.values()) {
@@ -345,10 +346,12 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
             int tickets)
             implements RegionTps {
 
+        @Override
         public int originChunkX() {
             return sectionX << sectionShift;
         }
 
+        @Override
         public int originChunkZ() {
             return sectionZ << sectionShift;
         }

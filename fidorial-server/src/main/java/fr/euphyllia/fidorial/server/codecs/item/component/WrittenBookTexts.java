@@ -3,16 +3,12 @@ package fr.euphyllia.fidorial.server.codecs.item.component;
 import fr.fidorial.item.component.WrittenBookContent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Flattens the title and author of a {@link WrittenBookContent} to the plain strings the client
  * expects, both on the network and in saved items.
  */
 public final class WrittenBookTexts {
-
-    private static final Logger log = LoggerFactory.getLogger(WrittenBookTexts.class);
 
     private WrittenBookTexts() {
         throw new UnsupportedOperationException("WrittenBookTexts cannot be instantiated.");

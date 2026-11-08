@@ -84,7 +84,8 @@ public final class PalettedContainer<T> {
     private int append(final T value) {
         final Object[] pal = paletteArray;
         final int next = pal.length;
-        final Object[] grown = Arrays.copyOf(pal, next + 1);
+        final Object[] grown = new Object[next + 1];
+        System.arraycopy(pal, 0, grown, 0, next);
         grown[next] = value;
         if (lookup != null) {
             lookup.putIfAbsent(value, next);

@@ -138,7 +138,9 @@ public final class EnchantmentTests {
         helper.assertTrue(stored.getInt("minecraft:sharpness") == 5, "Clients should be sent Sharpness V, got " + encoded);
 
         final Component decoded = ComponentCodecs.COMPONENT_CODEC.parse(BinaryTagOps.binaryTagOps(), encoded).getOrThrow();
-        final ItemStack shown = ItemStack.of((HoverEvent.ShowItem) decoded.hoverEvent().value());
+        final HoverEvent<?> decodedHover = decoded.hoverEvent();
+        helper.assertTrue(decodedHover != null, "The decoded text lost its hover event");
+        final ItemStack shown = ItemStack.of((HoverEvent.ShowItem) decodedHover.value());
         helper.assertTrue(shown.equals(book), "The book should come back from the network unchanged: " + shown);
     }
 
@@ -149,11 +151,15 @@ public final class EnchantmentTests {
         final Component text = Component.text("Book").hoverEvent(book);
 
         final Component fromMiniMessage = MiniMessage.miniMessage().deserialize(MiniMessage.miniMessage().serialize(text));
-        final ItemStack miniMessageBook = ItemStack.of((HoverEvent.ShowItem) fromMiniMessage.hoverEvent().value());
+        final HoverEvent<?> miniMessageHover = fromMiniMessage.hoverEvent();
+        helper.assertTrue(miniMessageHover != null, "MiniMessage dropped the hover event");
+        final ItemStack miniMessageBook = ItemStack.of((HoverEvent.ShowItem) miniMessageHover.value());
         helper.assertTrue(miniMessageBook.equals(book), "MiniMessage changed the book: " + miniMessageBook);
 
         final Component fromGson = GsonComponentSerializer.gson().deserialize(GsonComponentSerializer.gson().serialize(text));
-        final ItemStack gsonBook = ItemStack.of((HoverEvent.ShowItem) fromGson.hoverEvent().value());
+        final HoverEvent<?> gsonHover = fromGson.hoverEvent();
+        helper.assertTrue(gsonHover != null, "The Gson serializer dropped the hover event");
+        final ItemStack gsonBook = ItemStack.of((HoverEvent.ShowItem) gsonHover.value());
         helper.assertTrue(gsonBook.equals(book), "The Gson serializer changed the book: " + gsonBook);
     }
 

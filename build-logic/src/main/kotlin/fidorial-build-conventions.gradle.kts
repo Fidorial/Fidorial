@@ -18,7 +18,7 @@ repositories {
     maven("https://repo.opencollab.dev/maven-snapshots")
 }
 
-extensions.configure<JavaPluginExtension> {
+java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(25))
     }
@@ -45,6 +45,8 @@ tasks.withType<JavaCompile>().configureEach {
             "IdentityHashMapUsage", "ThreadLocalUsage", "UnnecessaryLambda", "UnnecessaryMethodReference",
             "NonApiType", "InlineFormatString", "StringConcatToTextBlock", "RefactorSwitch",
             "UnusedTypeParameter", "ExposedPrivateType", "LoopOverCharArray",
+            "ArrayRecordComponent", "EnumOrdinal", "EmptyCatch",
+            "FutureReturnValueIgnored",
         )
 
         option("NullAway:OnlyNullMarked", "true")

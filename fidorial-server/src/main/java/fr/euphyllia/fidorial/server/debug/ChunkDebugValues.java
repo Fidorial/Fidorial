@@ -47,7 +47,10 @@ public final class ChunkDebugValues {
             for (int i = 0; i < pieces.size(); i++) {
                 debugPieces.add(new DebugValues.StructuresInfo.Piece(bounds(pieces.get(i).box()), i == 0));
             }
-            structures.add(new DebugValues.StructuresInfo.Structure(bounds(start.bounds()), debugPieces));
+            final Box box = start.bounds();
+            if (box != null) {
+                structures.add(new DebugValues.StructuresInfo.Structure(bounds(box), debugPieces));
+            }
         }
         return new DebugValues.StructuresInfo(structures);
     }

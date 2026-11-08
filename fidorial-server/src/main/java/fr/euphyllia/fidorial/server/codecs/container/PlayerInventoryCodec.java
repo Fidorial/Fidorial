@@ -7,6 +7,7 @@ import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.PlayerInventory;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -36,7 +37,7 @@ public final class PlayerInventoryCodec {
         return Map.copyOf(slots);
     }
 
-    public static byte[] encode(final byte[] existing, final PlayerInventory inventory) throws IOException {
+    public static byte[] encode(final byte @Nullable [] existing, final PlayerInventory inventory) throws IOException {
         final CompoundBinaryTag root = ContainerCodecs.readRoot(existing, DataFixerType.PLAYER);
         CompoundBinaryTag equipment = root.getCompound(EQUIPMENT);
         for (final Map.Entry<Integer, String> entry : EQUIPMENT_SLOTS.entrySet()) {

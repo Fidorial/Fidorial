@@ -36,7 +36,7 @@ public record Artifact(String id, String path, String sha256, long size) {
                 if (trimmed.isEmpty() || trimmed.charAt(0) == '#') {
                     continue;
                 }
-                final String[] fields = trimmed.split("\\s+");
+                final String[] fields = trimmed.split("\\s+", -1);
                 if (fields.length != 3) {
                     throw new BootstrapException("malformed library list at line " + number + ": " + trimmed);
                 }
@@ -62,7 +62,7 @@ public record Artifact(String id, String path, String sha256, long size) {
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("^(.*)-\\d{8}\\.\\d{6}-\\d+$");
 
     public static Artifact external(final String coordinates, final String sha256, final long size) {
-        final String[] parts = coordinates.split(":");
+        final String[] parts = coordinates.split(":", -1);
         if (parts.length < 3 || parts.length > 4) {
             throw new BootstrapException("invalid coordinates: " + coordinates);
         }

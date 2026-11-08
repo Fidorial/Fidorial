@@ -20,6 +20,7 @@ public enum FluidType {
      */
     LAVA(BlockTypeKeys.LAVA, 30, 2, 6, false);
 
+    @SuppressWarnings("ImmutableEnumChecker") // typed keys are immutable records
     private final TypedKey<BlockType> blockKey;
     private final int tickDelay;
     private final int dropOff;

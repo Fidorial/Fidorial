@@ -12,3 +12,7 @@ tasks.jar {
         )
     }
 }
+
+dependencies {
+    compileOnly(libs.jspecify)
+}

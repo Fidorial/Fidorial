@@ -161,7 +161,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
                 .whenComplete((column, error) -> onLoaded(cx, cz, column, error));
     }
 
-    private void onLoaded(final int cx, final int cz, final ChunkColumn column, @Nullable final Throwable error) {
+    private void onLoaded(final int cx, final int cz, final @Nullable ChunkColumn column, @Nullable final Throwable error) {
         final long key = ChunkPos.chunkKey(cx, cz);
         synchronized (lock) {
             pending.remove(key);
@@ -170,7 +170,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
                 return;
             }
 
-            if (error != null) {
+            if (error != null || column == null) {
                 LOGGER.error("Unable to load chunk {},{} for {}", cx, cz, connection.username(), error);
                 return;
             }
