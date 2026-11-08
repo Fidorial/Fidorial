@@ -1,5 +1,7 @@
 package fr.fidorial.map;
 
+import net.kyori.adventure.util.RGBLike;
+
 /**
  * Map pixels and their colors.
  *
@@ -77,4 +79,13 @@ public interface MapPalette {
      * @since 0.1.0
      */
     byte closest(int rgb);
+
+    /**
+     * Finds the pixel whose color is the closest to a color, as the eye perceives it.
+     *
+     * @param color the color; an alpha channel is ignored
+     * @return the closest opaque pixel
+     * @since 0.1.0
+     */
+    byte closest(RGBLike color);
 }
