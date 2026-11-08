@@ -95,6 +95,15 @@ jobs:
       - name: Build and test
         run: ./gradlew build
 
+      - name: Upload SpotBugs reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: spotbugs-reports
+          path: |
+            **/build/reports/spotbugs*
+          if-no-files-found: ignore
+          retention-days: ${{ inputs.retention-days }}
+
       - name: Publish the API
         if: inputs.publish-api
         env:

@@ -45,6 +45,7 @@ module fr.fidorial.server {
     requires org.lz4.java;
     requires com.github.luben.zstd_jni;
     requires fr.fidorial.bootstrap;
+    requires com.github.spotbugs.annotations;
 
     opens fr.euphyllia.fidorial.server.tests to fr.fidorial;
 

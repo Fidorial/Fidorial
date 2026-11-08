@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 
@@ -82,6 +83,10 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         return 0.0;
     }
 
+    @SuppressFBWarnings(
+            value = "FE_FLOATING_POINT_EQUALITY",
+            justification = "Exact floating-point comparison is intentional."
+    )
     private void applyFlightPhysics() {
         if (!isFlightEnabled()) {
             setVelocity(0.0, 0.0, 0.0);

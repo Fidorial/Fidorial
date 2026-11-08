@@ -161,8 +161,8 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
                 .or(() -> readQuietly(legacyDirectory().resolve("idcounts.dat")));
         synchronized (this) {
             lastId = stored.map(tag -> tag.getInt("map", -1)).orElse(-1);
+            LOGGER.debug("Last map id: {}", lastId);
         }
-        LOGGER.debug("Last map id: {}", lastId);
     }
 
     @Override
