@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob.ambient;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
@@ -38,10 +39,6 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
             BlockTypeKeys.TUFF,
             BlockTypeKeys.DEEPSLATE
     );
-
-    private static final TypedKey<BlockType> LAVA = BlockTypeKeys.LAVA;
-    private static final TypedKey<BlockType> MAGMA_BLOCK = BlockTypeKeys.MAGMA_BLOCK;
-    private static final TypedKey<BlockType> COBWEB = BlockTypeKeys.COBWEB;
 
     private static final double HITBOX_HEIGHT = 0.9;
     private static final double HITBOX_HALF_WIDTH = 0.25;
@@ -180,6 +177,10 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
         }
     }
 
+    @SuppressFBWarnings(
+            value = "FE_FLOATING_POINT_EQUALITY",
+            justification = "Exact floating-point comparison is intentional."
+    )
     private void tickResting() {
         final Location self = location();
         final int blockX = (int) Math.floor(self.x());
@@ -280,7 +281,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
 
     private void applyCobwebSlowdown() {
         final BlockState state = blockAtFeet();
-        if (state != null && state.name().equals(COBWEB)) {
+        if (state != null && state.name().equals(BlockTypeKeys.COBWEB)) {
             setVelocity(velocityX() * COBWEB_HORIZONTAL_DRAG,
                     velocityY() * COBWEB_VERTICAL_DRAG,
                     velocityZ() * COBWEB_HORIZONTAL_DRAG);
@@ -320,7 +321,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private void tickEnvironment(final long currentTick) {
         final BlockState state = blockAtFeet();
 
-        if (state != null && state.name().equals(LAVA)) {
+        if (state != null && state.name().equals(BlockTypeKeys.LAVA)) {
             setResting(false);
             setFireTicks(Math.max(fireTicks(), LAVA_FIRE_TICKS));
             if (currentTick % LAVA_DAMAGE_INTERVAL == 0) {
@@ -332,7 +333,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
             final Location self = location();
             final BlockState below = BlockView.blockAt(serverWorld(),
                     (int) Math.floor(self.x()), (int) Math.floor(self.y() - 0.1), (int) Math.floor(self.z()));
-            if (below != null && below.name().equals(MAGMA_BLOCK)) {
+            if (below != null && below.name().equals(BlockTypeKeys.MAGMA_BLOCK)) {
                 hurt(MAGMA_DAMAGE);
             }
         }

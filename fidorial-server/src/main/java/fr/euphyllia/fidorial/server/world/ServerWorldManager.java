@@ -52,6 +52,8 @@ public final class ServerWorldManager implements AutoCloseable {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerWorldManager.class);
 
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
     private final WorldPathsImpl paths;
     private final LevelData levelData;
     private final ChunkStorage storage;
@@ -105,7 +107,7 @@ public final class ServerWorldManager implements AutoCloseable {
             LOGGER.info("World loaded: {} (DataVersion {})", levelData.levelName, levelData.dataVersion);
         } else {
             levelData = new LevelData();
-            levelData.seed = newWorldSeed != null ? newWorldSeed : new SecureRandom().nextLong();
+            levelData.seed = newWorldSeed != null ? newWorldSeed : SECURE_RANDOM.nextLong();
             levelData.applyInitialPacks(initialPacks);
             levelData.write(paths.dataDir(), paths.levelDat());
             LOGGER.info("New world created in {}", worldRoot);

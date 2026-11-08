@@ -186,8 +186,8 @@ public final class TeleportCommand {
         final double dy = point.y() - from.y();
         final double dz = point.z() - from.z();
         final double horizontal = Math.sqrt(dx * dx + dz * dz);
-        final float pitch = AngleArgument.wrapDegrees((float) -(Math.atan2(dy, horizontal) * 180.0F / (float) Math.PI));
-        final float yaw = AngleArgument.wrapDegrees((float) (Math.atan2(dz, dx) * 180.0F / (float) Math.PI) - 90.0F);
+        final float pitch = AngleArgument.wrapDegrees((float) -Math.toDegrees(Math.atan2(dy, horizontal)));
+        final float yaw = AngleArgument.wrapDegrees((float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0F);
         return from.with(from.x(), from.y(), from.z(), yaw, pitch);
     }
 

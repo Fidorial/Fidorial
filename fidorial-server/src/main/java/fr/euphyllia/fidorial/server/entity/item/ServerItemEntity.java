@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.item;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
@@ -302,6 +303,10 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         }
     }
 
+    @SuppressFBWarnings(
+            value = "FE_FLOATING_POINT_EQUALITY",
+            justification = "Exact floating-point comparison is intentional."
+    )
     private void move(final ServerWorld world, final Location from, final boolean inFluid) {
         double vx = velocityX;
         double vy = velocityY;

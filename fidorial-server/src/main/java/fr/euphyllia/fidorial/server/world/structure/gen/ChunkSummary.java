@@ -16,6 +16,7 @@ public final class ChunkSummary {
 
     private static final Map<TypedKey<BiomeDefinition>, Short> BIOME_IDS = new ConcurrentHashMap<>();
     private static final List<TypedKey<BiomeDefinition>> BIOMES = new CopyOnWriteArrayList<>();
+    private static final Object BIOMES_LOCK = new Object();
     private static final TypedKey<BiomeDefinition> PLAINS = BiomeKeys.PLAINS;
 
     private final int minY;
@@ -82,7 +83,7 @@ public final class ChunkSummary {
         if (existing != null) {
             return existing;
         }
-        synchronized (BIOMES) {
+        synchronized (BIOMES_LOCK) {
             return BIOME_IDS.computeIfAbsent(biome, key -> {
                 BIOMES.add(key);
                 return (short) (BIOMES.size() - 1);

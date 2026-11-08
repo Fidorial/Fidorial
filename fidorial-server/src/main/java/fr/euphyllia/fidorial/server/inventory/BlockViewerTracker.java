@@ -52,7 +52,7 @@ public final class BlockViewerTracker {
     public <T> T shared(final Key world, final BlockPosition position, final Supplier<T> loader) {
         final Viewed entry = viewed.computeIfAbsent(new At(world, position), _ -> new Viewed());
         synchronized (entry) {
-            if (entry.shared == null || entry.viewers == 0) {
+            if (entry.shared == null || entry.viewers() == 0) {
                 entry.shared = loader.get();
             }
             return (T) entry.shared;
@@ -61,7 +61,7 @@ public final class BlockViewerTracker {
 
     public int count(final Key world, final BlockPosition position) {
         final Viewed entry = viewed.get(new At(world, position));
-        return entry == null ? 0 : entry.viewers;
+        return entry == null ? 0 : entry.viewers();
     }
 
     private record At(Key world, BlockPosition position) {
@@ -78,6 +78,10 @@ public final class BlockViewerTracker {
 
         synchronized int close() {
             viewers = Math.max(0, viewers - 1);
+            return viewers;
+        }
+
+        synchronized int viewers() {
             return viewers;
         }
     }

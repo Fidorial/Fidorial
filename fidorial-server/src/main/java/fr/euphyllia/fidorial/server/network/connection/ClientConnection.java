@@ -102,8 +102,14 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private static final int LATENCY_SMOOTHING = 3;
 
     private static final PointersSupplier<ClientConnection> pointers = PointersSupplier.<ClientConnection>builder()
-            .resolving(Identity.NAME, connection -> connection.profile() != null ? connection.profile().name() : "<unknown>")
-            .resolving(Identity.UUID, connection -> connection.profile() != null ? connection.profile().uuid() : new UUID(0L, 0L))
+            .resolving(Identity.NAME, connection -> {
+                final PlayerProfile profile = connection.profile();
+                return profile != null ? profile.name() : "<unknown>";
+            })
+            .resolving(Identity.UUID, connection -> {
+                final PlayerProfile profile = connection.profile();
+                return profile != null ? profile.uuid() : new UUID(0L, 0L);
+            })
             .resolving(Identity.LOCALE, ClientConnection::locale)
             .build();
 
@@ -207,6 +213,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public void sendAndClose(final ClientboundPacket<?> packet, final boolean bypassRejection) {
+        if (!context().channel().eventLoop().inEventLoop()) {
+            execute(() -> sendAndClose(packet, bypassRejection));
+            return;
+        }
         final ChannelFuture future = write(packet, bypassRejection);
         if (future != null) {
             future.addListener(ChannelFutureListener.CLOSE);
@@ -368,20 +378,19 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public void sendSignedMessage(final SignedMessage message, final ChatType.Bound chatType) {
-        final int globalIndex = nextGlobalChatIndex.getAndIncrement();
-        final SignedMessage.Signature ownSignature = message.signature();
-
-        final List<ClientboundPlayerChatPacket.PackedSignature> lastSeen;
-        final int index;
-        if (message instanceof final IdentifiedSignedMessage verified) {
-            lastSeen = packLastSeen(verified.lastSeen());
-            index = verified.index();
-        } else {
-            lastSeen = List.of();
-            index = globalIndex;
+        final ServerPlayer recipient = player();
+        if (recipient == null) {
+            return;
         }
 
-        if (player() != null) {
+        final Component unsigned = recipient.prepareMessageForSend(message.unsignedContent());
+        final List<ClientboundPlayerChatPacket.PackedSignature> lastSeen =
+                message instanceof final IdentifiedSignedMessage verified ? packLastSeen(verified.lastSeen()) : List.of();
+
+        final Runnable write = () -> {
+            final int globalIndex = nextGlobalChatIndex.getAndIncrement();
+            final int index = message instanceof final IdentifiedSignedMessage verified ? verified.index() : globalIndex;
+            final SignedMessage.Signature ownSignature = message.signature();
             send(new ClientboundPlayerChatPacket(
                     globalIndex,
                     message.identity().uuid(),
@@ -391,14 +400,18 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                     message.timestamp(),
                     message.salt(),
                     lastSeen,
-                    player().prepareMessageForSend(message.unsignedContent()),
+                    unsigned,
                     FilterType.PASS_THROUGH,
                     chatType,
-                    player()));
-
+                    recipient));
             if (ownSignature != null) {
                 lastSeenMessages.push(ownSignature);
             }
+        };
+        if (context().channel().eventLoop().inEventLoop()) {
+            write.run();
+        } else {
+            execute(write);
         }
     }
 
@@ -729,23 +742,27 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     @Override
     public void sendMessage(final Component message) {
-        if (isInPlayState() && this.player != null) {
-            this.player.sendMessage(message);
-            return;
+        final ServerPlayer recipient;
+        synchronized (pendingMessages) {
+            if (!isInPlayState() || (recipient = this.player) == null) {
+                // we're too early to send a message so just collect it
+                pendingMessages.add(message);
+                return;
+            }
         }
-        // we're too early to send a message so just collect it
-        pendingMessages.add(message);
+        recipient.sendMessage(message);
     }
 
     public void flushPendingMessages() {
-        if (pendingMessages.isEmpty()) {
-            return;
+        final List<Component> queued;
+        synchronized (pendingMessages) {
+            if (pendingMessages.isEmpty()) {
+                return;
+            }
+            queued = List.copyOf(pendingMessages);
+            pendingMessages.clear();
         }
-        final List<Component> queued = List.copyOf(pendingMessages);
-        pendingMessages.clear();
-        for (final Component message : queued) {
-            sendMessage(message);
-        }
+        queued.forEach(this::sendMessage);
     }
 
     /**

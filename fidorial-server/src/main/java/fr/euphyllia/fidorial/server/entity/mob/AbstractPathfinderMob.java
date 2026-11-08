@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
@@ -146,6 +147,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         return navigation;
     }
 
+    @SuppressFBWarnings(
+            value = "FE_FLOATING_POINT_EQUALITY",
+            justification = "Exact floating-point comparison is intentional."
+    )
     private void applyPhysics() {
         final Location current = location();
         final double x = current.x();

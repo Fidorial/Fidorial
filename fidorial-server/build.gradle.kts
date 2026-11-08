@@ -1,8 +1,12 @@
+import com.github.spotbugs.snom.Confidence
+import com.github.spotbugs.snom.Effort
+import com.github.spotbugs.snom.SpotBugsTask
 import fr.euphyllia.fidorial.gradle.libraries.GenerateApiPackageIndexTask
 import fr.euphyllia.fidorial.gradle.libraries.PrepareBootstrapPayloadTask
 import fr.fidorial.registrygen.task.GenerateBlockEntityTypeBlocksTask
 import fr.fidorial.registrygen.task.GenerateBlockStatesTask
 import fr.fidorial.registrygen.task.GenerateItemPropertiesTask
+import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
     alias(libs.plugins.blossom)
@@ -10,6 +14,7 @@ plugins {
     id("fidorial-build-conventions")
     id("fr.fidorial.dependency-patcher") version "1.3.0"
     id("fr.fidorial.registry-generator")
+    id("com.github.spotbugs") version "6.5.13"
 }
 
 val apiSurface =
@@ -60,6 +65,8 @@ dependencies {
     implementation(libs.spark.api)
     implementation(libs.bundles.leafpile)
 
+    compileOnly(libs.spotbugs.annotations)
+
     for (platform in listOf("linux-x86_64", "linux-aarch_64")) {
         runtimeOnly(variantOf(libs.netty.epoll) { classifier(platform) })
         runtimeOnly(variantOf(libs.netty.iouring) { classifier(platform) })
@@ -75,6 +82,23 @@ dependencies {
 
 fidorialBuild {
     readUnnamedModules = setOf("fr.fidorial", "fr.fidorial.server")
+}
+
+spotbugs {
+    showProgress = true
+    showStackTraces = true
+    effort = Effort.MAX
+    reportLevel = Confidence.HIGH
+    excludeFilter = file(".spotbugs/config/exclude.xml")
+}
+
+tasks.spotbugsMain {
+    auxClassPaths.from(configurations.runtimeClasspath)
+    reports.register("html") {
+        required = true
+        outputLocation = layout.buildDirectory.file("reports/spotbugs.html")
+        setStylesheet("fancy-hist.xsl")
+    }
 }
 
 tasks.jar {
@@ -335,6 +359,7 @@ dependencyPatcher {
         dependencies {
             compileOnly(libs.dfu)
             compileOnly(libs.configurate.yaml)
+            compileOnly(libs.slf4j.api)
         }
     }
 
@@ -347,5 +372,18 @@ dependencyPatcher {
             compileOnly(libs.jspecify)
             compileOnly(libs.jetbrains.annotations)
         }
+    }
+}
+
+// dependency patcher creates additional source sets
+tasks.withType<JavaCompile>().configureEach {
+    if (name.contains("Workspace") || name.contains("Patch")) {
+        options.errorprone.enabled = false
+    }
+}
+
+tasks.withType<SpotBugsTask>().configureEach {
+    if (name.contains("Workspace") || name.contains("Patch")) {
+        enabled = false
     }
 }
