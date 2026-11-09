@@ -32,6 +32,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
     private final ChunkNetworkSerializer serializer;
     private volatile int radius;
     private volatile int forgetRadius;
+    private final int simulationDistance;
     private volatile boolean closed;
 
     private final Object lock = new Object();
@@ -40,13 +41,18 @@ public final class ChunkViewTracker implements ChunkViewSource {
 
     private int centerX;
     private int centerZ;
+    /**
+     * Whether the player makes the chunks around {@link #centerX}, {@link #centerZ} tick. Guarded by lock.
+     */
+    private boolean ticking;
 
     public ChunkViewTracker(
             final ClientConnection connection,
             final ThreadedChunkWorker chunkWorker,
             final ServerWorld world,
             final ChunkNetworkSerializer serializer,
-            final int radius
+            final int radius,
+            final int simulationDistance
     ) {
         this.connection = connection;
         this.chunkWorker = chunkWorker;
@@ -54,6 +60,19 @@ public final class ChunkViewTracker implements ChunkViewSource {
         this.serializer = serializer;
         this.radius = radius;
         this.forgetRadius = radius;
+        this.simulationDistance = simulationDistance;
+    }
+
+    /**
+     * Makes the chunks around the player tick from a new center, as vanilla's player tickets do. Under lock.
+     */
+    private void tickAround(final int chunkX, final int chunkZ) {
+        if (!ticking) {
+            world.tickingChunks().add(chunkX, chunkZ, simulationDistance);
+            ticking = true;
+        } else {
+            world.tickingChunks().move(centerX, centerZ, chunkX, chunkZ, simulationDistance);
+        }
     }
 
     public void init(final ChunkPos center) {
@@ -61,6 +80,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
             if (closed) {
                 return;
             }
+            tickAround(center.x(), center.z());
             centerX = center.x();
             centerZ = center.z();
         }
@@ -74,6 +94,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
                 return;
             }
             sent.clear();
+            tickAround(center.x(), center.z());
             centerX = center.x();
             centerZ = center.z();
         }
@@ -89,6 +110,7 @@ public final class ChunkViewTracker implements ChunkViewSource {
             if (chunkX == centerX && chunkZ == centerZ) {
                 return false;
             }
+            tickAround(chunkX, chunkZ);
             centerX = chunkX;
             centerZ = chunkZ;
         }
@@ -267,6 +289,10 @@ public final class ChunkViewTracker implements ChunkViewSource {
             closed = true;
             pending.clear();
             sent.clear();
+            if (ticking) {
+                world.tickingChunks().remove(centerX, centerZ, simulationDistance);
+                ticking = false;
+            }
         }
     }
 }

@@ -66,8 +66,8 @@ public class AnvilChunkSerializer {
         root.put("Heightmaps", heightmaps.build());
 
         root.put("block_entities", blockEntitiesToNbt(chunk));
-        root.put("block_ticks", ListBinaryTag.empty());
-        root.put("fluid_ticks", ListBinaryTag.empty());
+        root.put("block_ticks", chunk.savedBlockTicks());
+        root.put("fluid_ticks", chunk.savedFluidTicks());
         return root.build();
     }
 
@@ -213,6 +213,7 @@ public class AnvilChunkSerializer {
         }
 
         blockEntitiesFromNbt(root, chunk);
+        chunk.setSavedTicks(root.getList("block_ticks"), root.getList("fluid_ticks"));
 
         if (root.contains("LightHeightmap") && root.getBoolean("isLightOn")) {
             light.restoreHeightmap(root.getIntArray("LightHeightmap"));

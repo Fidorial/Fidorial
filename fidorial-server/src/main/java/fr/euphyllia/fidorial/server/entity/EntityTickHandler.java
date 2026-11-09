@@ -7,6 +7,8 @@ import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.fidorial.scheduler.RegionTickHandler;
+import fr.fidorial.world.ChunkPos;
+import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -38,20 +40,26 @@ public final class EntityTickHandler implements RegionTickHandler {
         final List<ServerPlayer> players = server.players().online();
         final boolean gameTick = ThreadedRegionRegionizer.isGameTick();
 
+        final Long2BooleanOpenHashMap ticking = new Long2BooleanOpenHashMap();
         for (final AbstractEntity entity : world.entityManager().inSection(sectionX, sectionZ)) {
             if (entity.isRemoved()) {
                 continue;
             }
-            if (!gameTick && !(entity instanceof ServerPlayer)) {
+            final boolean player = entity instanceof ServerPlayer;
+            if (!gameTick && !player) {
                 continue;
             }
-            try {
-                entity.tick(currentTick);
-                if (entity instanceof final AbstractMovingMob mob) {
-                    server.debug().entities().tick(mob);
+
+            final ChunkPos chunk = entity.chunk();
+            if (player || ticking.computeIfAbsent(chunk.key(), _ -> world.isEntityTicking(chunk.x(), chunk.z()))) {
+                try {
+                    entity.tick(currentTick);
+                    if (entity instanceof final AbstractMovingMob mob) {
+                        server.debug().entities().tick(mob);
+                    }
+                } catch (final Throwable t) {
+                    LOGGER.error("Error during tick of {}", entity, t);
                 }
-            } catch (final Throwable t) {
-                LOGGER.error("Error during tick of {}", entity, t);
             }
             if (!players.isEmpty() && EntityTracker.shouldUpdate(entity, currentTick)) {
                 try {

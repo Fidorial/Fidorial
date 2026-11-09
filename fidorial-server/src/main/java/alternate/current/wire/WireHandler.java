@@ -50,9 +50,9 @@ import org.jspecify.annotations.Nullable;
  * <p>What changes from the original, which drives a single-threaded server:</p>
  * <ul>
  *     <li>One handler per world and per thread, since Fidorial ticks regions in parallel.</li>
- *     <li>A wire of a region the current thread does not own is {@linkplain WireNode#foreign foreign}:
- *     it gives power to the network but is never changed; it receives a block update, handed over to
- *     its region, which works its own part of the network out.</li>
+ *     <li>A block of a region the current thread does not own is seen as not loaded. Regions
+ *     merging when their margins meet, a network only crosses into another region where they never
+ *     merge ({@code threading.region-buffer-radius: 0}): it stops at the border.</li>
  *     <li>Block updates only go to the blocks taking part in redstone, the only ones reacting to them.</li>
  *     <li>A {@link RedstoneDustPowerEvent} is fired for each wire before it
  *     transmits its power.</li>
@@ -266,7 +266,7 @@ public final class WireHandler {
         final boolean outermost = enter();
         try {
             final Node node = nodes.remove(key(pos));
-            final WireNode wire = node == null || !node.isWire() ? new WireNode(pos, state, false) : node.asWire();
+            final WireNode wire = node == null || !node.isWire() ? new WireNode(pos, state) : node.asWire();
             wire.invalid = true;
             wire.removed = true;
             // removed as part of the power changes under way, which already account for it
@@ -348,7 +348,7 @@ public final class WireHandler {
         final long key = key(pos);
         final Node node = nodes.get(key);
         if (node == null) {
-            final Node created = getNextNode(pos, knownState != null ? knownState : world.blockAt(pos));
+            final Node created = getNextNode(pos, knownState != null ? knownState : readBlock(pos));
             nodes.put(key, created);
             return created;
         }
@@ -367,7 +367,7 @@ public final class WireHandler {
      */
     private Node getNextNode(final BlockPosition pos, final @Nullable BlockData state) {
         if (state != null && isWire(state)) {
-            return new WireNode(pos, state, !world.ownsBlock(pos));
+            return new WireNode(pos, state);
         }
         if (nodeCount == nodeCache.length) {
             final Node[] grown = new Node[nodeCache.length << 1];
@@ -376,6 +376,14 @@ public final class WireHandler {
             fillNodeCache(nodeCount, grown.length);
         }
         return nodeCache[nodeCount++].set(pos, state, world.behaviourOf(state), true);
+    }
+
+    /**
+     * {@return the block at a position, {@code null} as for a chunk not loaded when another region
+     * owns it}
+     */
+    private @Nullable BlockData readBlock(final BlockPosition pos) {
+        return world.ownsBlock(pos) ? world.blockAt(pos) : null;
     }
 
     private void fillNodeCache(final int start, final int end) {
@@ -393,7 +401,7 @@ public final class WireHandler {
             return node;
         }
         final BlockPosition pos = node.pos;
-        final BlockData state = world.blockAt(pos);
+        final BlockData state = readBlock(pos);
         final boolean wasWire = node.isWire();
         final boolean nowWire = isWire(state);
         if (wasWire != nowWire) {
@@ -466,7 +474,7 @@ public final class WireHandler {
         }
         for (final int iSide : updateOrder.cardinalNeighbors(wire.iFlowDir)) {
             final Node neighbor = getNeighbor(node, iSide);
-            if (neighbor.isWire() && !neighbor.asWire().foreign) {
+            if (neighbor.isWire()) {
                 findRoot(neighbor.asWire(), iSide);
             }
         }
@@ -669,7 +677,7 @@ public final class WireHandler {
                         continue;
                     }
                     final WireNode neighbor = connection.wire;
-                    if (neighbor.searched || neighbor.foreign) {
+                    if (neighbor.searched) {
                         continue;
                     }
                     discover(neighbor);
@@ -716,7 +724,7 @@ public final class WireHandler {
         updating = true;
         Node node = updates.poll();
         while (node != null) {
-            if (node.isWire() && !node.asWire().foreign) {
+            if (node.isWire()) {
                 final WireNode wire = node.asWire();
                 if (needsUpdate(wire)) {
                     findPowerFlow(wire);

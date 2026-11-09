@@ -95,7 +95,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.structures = new StructureService(
                 config.worlds().path().resolve("datapacks"), new RegistryBlockValidator(registries.blocks()));
         this.weather = new WeatherEngine(manager);
-        this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates());
+        this.fluids = new FluidEngine(manager, registries.blockStates());
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
         this.tickRates = new ServerTickRates(scheduler.regionizer(), dayNight, weather);
@@ -156,7 +156,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();
-        regionizer.registerTickHandler(redstone.tickHandler());
+        // vanilla's order: the ticks of blocks, then those of fluids
+        regionizer.registerRegionWideTickHandler(redstone.tickHandler());
+        regionizer.registerRegionWideTickHandler(fluids.tickHandler());
     }
 
     @Override

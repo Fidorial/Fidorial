@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.metrics;
 
 import fr.euphyllia.fidorial.server.schedulers.RegionTickProfiler;
-import net.kyori.adventure.key.Key;
+import fr.euphyllia.fidorial.server.schedulers.TickRegion;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
@@ -26,7 +26,7 @@ final class TickTimeRecorder implements RegionTickProfiler {
     }
 
     @Override
-    public void reportRegionTick(final Key world, final int sectionX, final int sectionZ, final long tickNanos, final long taskNanos) {
+    public void reportRegionTick(final TickRegion region, final long tickNanos, final long taskNanos) {
         record(tickNanos);
     }
 

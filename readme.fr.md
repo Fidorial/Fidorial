@@ -62,8 +62,10 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Plateforme**
 
-- Scheduler régionalisé inspiré de Folia : le monde est découpé en régions indépendantes (32×32 chunks par défaut,
-  configurable avec `threading.region-section-shift`), chacune tickée à 20 TPS sur son propre thread
+- Scheduler régionalisé inspiré de Folia : le monde est découpé en sections (32×32 chunks par défaut, configurable
+  avec `threading.region-section-shift`), regroupées en régions tickées chacune à 20 TPS sur son propre thread. Une
+  région garde une marge de sections autour de ses chunks chargés (`threading.region-buffer-radius`), fusionne avec
+  ses voisines quand leurs marges se touchent et se re-sépare quand elles s'éloignent
 - Commandes Brigadier, en jeu et dans une console interactive avec complétion et coloration : `/gamemode` (`/gm`),
   `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
 - Système de permissions avec liste d'opérateurs et nœuds déclarés par les plugins

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.schedulers;
 
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.events.SimpleEventBus;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 
@@ -16,10 +17,11 @@ public final class WorkerModule implements ServerModule {
     private final ThreadedRegionRegionizer regionizer;
     private final AiWorker aiWorker;
 
-    public WorkerModule(final ServerConfiguration config) {
+    public WorkerModule(final ServerConfiguration config, final SimpleEventBus events) {
         final ServerConfiguration.Threading threading = config.threading();
         this.chunkWorker = new ThreadedChunkWorker(threading.chunkWorkers());
-        this.regionizer = new ThreadedRegionRegionizer(threading.regionWorkers(), threading.regionSectionShift());
+        this.regionizer = new ThreadedRegionRegionizer(
+                threading.regionWorkers(), threading.regionSectionShift(), threading.regionBufferRadius(), events);
         this.aiWorker = new AiWorker(threading.aiWorkers());
     }
 

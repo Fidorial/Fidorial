@@ -16,8 +16,9 @@
  *
  * <h2>Threading</h2>
  * <p>Reading signals is allowed from any thread. Changing blocks, and everything a behaviour is
- * asked to do, happens on the thread of the region owning the block; updates reaching a block of
- * another region are handed over to its thread.</p>
+ * asked to do, happens on the thread of the region owning the block. Regions own a margin around
+ * their loaded chunks, so updates never reach another region; where regions never merge
+ * ({@code threading.region-buffer-radius: 0}), they stop at the border.</p>
  *
  * @since 0.1.0
  */

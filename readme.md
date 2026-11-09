@@ -60,8 +60,10 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 **Platform**
 
-- Folia-inspired regionized scheduler: the world is split into independent regions (32×32 chunks by default,
-  configurable with `threading.region-section-shift`), each ticking at 20 TPS on its own thread
+- Folia-inspired regionized scheduler: the world is cut into sections (32×32 chunks by default, configurable with
+  `threading.region-section-shift`), grouped into regions each ticking at 20 TPS on its own thread. A region keeps a
+  margin of sections around its loaded chunks (`threading.region-buffer-radius`), merges with its neighbours when
+  their margins touch and splits again once they drift apart
 - Brigadier commands, in game and in an interactive console with completion and highlighting: `/gamemode` (`/gm`),
   `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
 - Permission system with operator list and plugin-declared nodes

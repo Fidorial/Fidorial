@@ -10,6 +10,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.Nullable;
 
@@ -33,6 +34,13 @@ public final class ChunkColumn {
     private Key status = Key.key("full");
 
     private volatile boolean lightPopulated;
+
+    /**
+     * The ticks pending in the chunk, as saved: read from disk until the world schedules them again,
+     * and set by the world right before writing the chunk.
+     */
+    private volatile ListBinaryTag savedBlockTicks = ListBinaryTag.empty();
+    private volatile ListBinaryTag savedFluidTicks = ListBinaryTag.empty();
     private @Nullable ChunkLightData lightData;
 
     public ChunkColumn(final int chunkX, final int chunkZ, final int minY, final int height, final BlockState fillBlock, final @UnknownNullability TypedKey<BiomeDefinition> fillBiome) {
@@ -102,6 +110,19 @@ public final class ChunkColumn {
     public @Nullable TypedKey<BiomeDefinition> getBiome(final int localX, final int worldY, final int localZ) {
         final ChunkSection chunkSection = sectionForY(worldY);
         return chunkSection == null ? null : chunkSection.getBiome(localX, worldY & 15, localZ);
+    }
+
+    public ListBinaryTag savedBlockTicks() {
+        return savedBlockTicks;
+    }
+
+    public ListBinaryTag savedFluidTicks() {
+        return savedFluidTicks;
+    }
+
+    public void setSavedTicks(final ListBinaryTag blockTicks, final ListBinaryTag fluidTicks) {
+        this.savedBlockTicks = blockTicks;
+        this.savedFluidTicks = fluidTicks;
     }
 
     public long inhabitedTime() {

@@ -2,12 +2,13 @@ package fr.euphyllia.fidorial.server.world.fluid;
 
 import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
-import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
+import fr.euphyllia.fidorial.server.schedulers.RegionWideTickHandler;
 import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
@@ -19,18 +20,21 @@ import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.fluid.FluidManager;
 import fr.fidorial.world.fluid.FluidState;
 import fr.fidorial.world.fluid.FluidType;
+import fr.fidorial.world.redstone.TickPriority;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class FluidEngine implements FluidManager {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(FluidEngine.class);
+
+    /**
+     * What a fluid sees where the chunk is not loaded: a wall.
+     */
+    private static final BlockState UNLOADED = BlockState.withoutProperties(BlockTypeKeys.BARRIER);
 
     private static final BlockFace[] HORIZONTAL = {
             BlockFace.NORTH, BlockFace.SOUTH,
@@ -38,26 +42,18 @@ public final class FluidEngine implements FluidManager {
     };
 
     private final ServerWorldManager worlds;
-    private final ThreadedRegionRegionizer regionizer;
     private final BlockStateRegistry blockRegistry;
 
-    private final Map<Key, Set<Long>> pending = new ConcurrentHashMap<>();
     private volatile LightHook lightHook = (_, _, _, _) -> {};
     private volatile BlockEditService.RedstoneNotifier redstoneHook = (_, _, _, _) -> {};
     private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
             final ServerWorldManager worlds,
-            final ThreadedRegionRegionizer regionizer,
             final BlockStateRegistry blockRegistry
     ) {
         this.worlds = worlds;
-        this.regionizer = regionizer;
         this.blockRegistry = blockRegistry;
-    }
-
-    private static long pack(final int x, final int y, final int z) {
-        return ((x & 0x3FFFFFFL) << 38) | ((z & 0x3FFFFFFL) << 12) | (y & 0xFFFL);
     }
 
     @Override
@@ -67,7 +63,7 @@ public final class FluidEngine implements FluidManager {
             return FluidState.empty();
         }
         try {
-            return FluidBlockCodec.fromBlock(w.getBlock(x, y, z));
+            return FluidBlockCodec.fromBlock(read(w, x, y, z));
         } catch (final IOException e) {
             LOGGER.error("Fluid reading impossible at {},{},{}", x, y, z, e);
             return FluidState.empty();
@@ -82,7 +78,7 @@ public final class FluidEngine implements FluidManager {
         }
         final boolean applied = setAndBroadcast(w, x, y, z, FluidBlockCodec.toBlock(FluidState.source(type)));
         if (applied) {
-            schedule(world, x, y, z, type.tickDelay());
+            schedule(world, x, y, z, type);
             emitEvent(w, GameEventKeys.FLUID_PLACE, x, y, z);
         }
         return applied;
@@ -109,7 +105,7 @@ public final class FluidEngine implements FluidManager {
     public void scheduleUpdate(final Key world, final int x, final int y, final int z) {
         final FluidState state = fluidAt(world, x, y, z);
         if (state.type() != null) {
-            schedule(world, x, y, z, state.type().tickDelay());
+            schedule(world, x, y, z, state.type());
         }
     }
 
@@ -121,26 +117,40 @@ public final class FluidEngine implements FluidManager {
         }
     }
 
-    private void schedule(final Key world, final int x, final int y, final int z, final int delayTicks) {
-        final Set<Long> set = pending.computeIfAbsent(world, k -> ConcurrentHashMap.newKeySet());
-        final long key = pack(x, y, z);
-        if (!set.add(key)) {
-            return;
+    private void schedule(final Key world, final int x, final int y, final int z, final FluidType type) {
+        final ServerWorld w = worldByKey(world);
+        if (w != null) {
+            w.fluidTicks().schedule(Position.block(x, y, z), type, type.tickDelay(), TickPriority.NORMAL);
         }
-        regionizer.executeDelayed(world, ChunkPos.fromBlock(x, z), () -> runScheduled(world, x, y, z, set, key), delayTicks);
     }
 
-    private void runScheduled(final Key world, final int x, final int y, final int z, final Set<Long> set, final long key) {
-        if (!ThreadedRegionRegionizer.isGameTick()) {
-            regionizer.executeDelayed(world, ChunkPos.fromBlock(x, z), () -> runScheduled(world, x, y, z, set, key), 1L);
-            return;
-        }
-        set.remove(key);
+    /**
+     * {@return the handler running the fluid ticks, to register on the regionizer after the block ticks}:
+     * fluid ticks are saved with their chunk and only run in the chunks whose blocks tick
+     */
+    public RegionWideTickHandler tickHandler() {
+        return (worldName, sectionKeys) -> {
+            final ServerWorld world = worlds.world(worldName);
+            if (world != null) {
+                world.fluidTicks().tickRegion(sectionKeys, (position, _) -> runTick(worldName, position));
+            }
+        };
+    }
+
+    private void runTick(final Key world, final BlockPosition position) {
         try {
-            tick(world, x, y, z);
-        } catch (final Throwable t) {
-            LOGGER.error("Tick fluide impossible en {},{},{}", x, y, z, t);
+            tick(world, position.blockX(), position.blockY(), position.blockZ());
+        } catch (final IOException e) {
+            LOGGER.error("Fluid tick impossible at {}", position, e);
         }
+    }
+
+    /**
+     * {@return the block at a position, or a barrier where its chunk is not loaded}: fluids never load
+     * a chunk, and flow against one that is not loaded as against a wall
+     */
+    private static BlockState read(final ServerWorld world, final int x, final int y, final int z) throws IOException {
+        return world.loadedColumn(x >> 4, z >> 4) == null ? UNLOADED : world.getBlock(x, y, z);
     }
 
     private void tick(final Key worldName, final int x, final int y, final int z) throws IOException {
@@ -149,7 +159,7 @@ public final class FluidEngine implements FluidManager {
             return;
         }
 
-        FluidState self = FluidBlockCodec.fromBlock(world.getBlock(x, y, z));
+        FluidState self = FluidBlockCodec.fromBlock(read(world, x, y, z));
         if (self.isEmpty()) {
             return;
         }
@@ -191,13 +201,13 @@ public final class FluidEngine implements FluidManager {
         if (type == null) {
             return null;
         }
-        final FluidState above = FluidBlockCodec.fromBlock(world.getBlock(x, y + 1, z));
+        final FluidState above = FluidBlockCodec.fromBlock(read(world, x, y + 1, z));
         final boolean fedFromAbove = above.type() == type;
 
         int best = Integer.MAX_VALUE;
         int adjacentSources = 0;
         for (final BlockFace dir : HORIZONTAL) {
-            final FluidState n = FluidBlockCodec.fromBlock(world.getBlock(x + dir.dx(), y, z + dir.dz()));
+            final FluidState n = FluidBlockCodec.fromBlock(read(world, x + dir.dx(), y, z + dir.dz()));
             if (n.type() == type) {
                 best = Math.min(best, n.effectiveLevel() + type.dropOff());
                 if (n.isSource()) {
@@ -208,7 +218,7 @@ public final class FluidEngine implements FluidManager {
 
         // Source infinie : deux sources voisines + support en dessous.
         if (canFormSources(world, type) && adjacentSources >= 2) {
-            final BlockState belowBlock = world.getBlock(x, y - 1, z);
+            final BlockState belowBlock = read(world, x, y - 1, z);
             final FluidState belowFluid = FluidBlockCodec.fromBlock(belowBlock);
             final boolean supported = (!belowBlock.isAir() && belowFluid.isEmpty()) || belowFluid.isSource();
             if (supported) {
@@ -251,7 +261,7 @@ public final class FluidEngine implements FluidManager {
 
     private boolean flowDown(final ServerWorld world, final Key worldName, final int x, final int y, final int z, final FluidType type)
             throws IOException {
-        final BlockState belowBlock = world.getBlock(x, y - 1, z);
+        final BlockState belowBlock = read(world, x, y - 1, z);
         final FluidState below = FluidBlockCodec.fromBlock(belowBlock);
 
         // La lave qui tombe dans l'eau se fige en pierre taillée.
@@ -268,19 +278,19 @@ public final class FluidEngine implements FluidManager {
             }
             // Un écoulement horizontal en dessous est remplacé par une chute.
             if (setAndBroadcast(world, x, y - 1, z, FluidBlockCodec.toBlock(FluidState.fallingFluid(type)))) {
-                schedule(worldName, x, y - 1, z, type.tickDelay());
+                schedule(worldName, x, y - 1, z, type);
             }
             return true;
         }
 
         if (belowBlock.isAir()) {
             if (setAndBroadcast(world, x, y - 1, z, FluidBlockCodec.toBlock(FluidState.fallingFluid(type)))) {
-                schedule(worldName, x, y - 1, z, type.tickDelay());
+                schedule(worldName, x, y - 1, z, type);
             }
             return true;
         }
         if (below.type() != null) {
-            schedule(worldName, x, y - 1, z, below.type().tickDelay());
+            schedule(worldName, x, y - 1, z, below.type());
         }
         return false; // bloqué : étalement horizontal
     }
@@ -300,29 +310,26 @@ public final class FluidEngine implements FluidManager {
     }
 
     private void spreadTo(final ServerWorld world, final Key worldName, final int tx, final int y, final int tz, final FluidType type, final int spreadLevel) {
-        final ChunkPos targetChunk = ChunkPos.fromBlock(tx, tz);
-        if (world.scheduler().isOwnedByCurrentThread(worldName, targetChunk)) {
+        // regions own a margin around their loaded chunks: another region only owns the neighbour
+        // where regions never merge, and the fluid stops at the border, as at an unloaded chunk
+        if (world.scheduler().isOwnedByCurrentThread(worldName, ChunkPos.fromBlock(tx, tz))) {
             spreadToOwned(world, worldName, tx, y, tz, type, spreadLevel);
-            return;
         }
-        // the neighbor crosses into a region we don't currently own
-        regionizer.execute(worldName, targetChunk,
-                () -> spreadToOwned(world, worldName, tx, y, tz, type, spreadLevel));
     }
 
     private void spreadToOwned(final ServerWorld world, final Key worldName, final int tx, final int y, final int tz, final FluidType type, final int spreadLevel) {
         try {
-            final BlockState targetBlock = world.getBlock(tx, y, tz);
+            final BlockState targetBlock = read(world, tx, y, tz);
             final FluidState target = FluidBlockCodec.fromBlock(targetBlock);
 
             final boolean canFlow = targetBlock.isAir()
                     || (target.type() == type && !target.isSource() && target.effectiveLevel() > spreadLevel);
             if (canFlow) {
                 if (setAndBroadcast(world, tx, y, tz, FluidBlockCodec.toBlock(FluidState.flowing(type, spreadLevel)))) {
-                    schedule(worldName, tx, y, tz, type.tickDelay());
+                    schedule(worldName, tx, y, tz, type);
                 }
             } else if (target.type() != null && target.type() != type) {
-                schedule(worldName, tx, y, tz, target.type().tickDelay());
+                schedule(worldName, tx, y, tz, target.type());
             }
         } catch (final IOException e) {
             LOGGER.error("Fluid spread impossible at {},{},{}", tx, y, tz, e);
@@ -330,11 +337,11 @@ public final class FluidEngine implements FluidManager {
     }
 
     private boolean touches(final ServerWorld world, final int x, final int y, final int z, final FluidType other) throws IOException {
-        if (FluidBlockCodec.fromBlock(world.getBlock(x, y + 1, z)).type() == other) {
+        if (FluidBlockCodec.fromBlock(read(world, x, y + 1, z)).type() == other) {
             return true;
         }
         for (final BlockFace dir : HORIZONTAL) {
-            if (FluidBlockCodec.fromBlock(world.getBlock(x + dir.dx(), y, z + dir.dz()))
+            if (FluidBlockCodec.fromBlock(read(world, x + dir.dx(), y, z + dir.dz()))
                     .type()
                     == other) {
                 return true;
@@ -344,6 +351,9 @@ public final class FluidEngine implements FluidManager {
     }
 
     private boolean setAndBroadcast(final ServerWorld world, final int x, final int y, final int z, final BlockState state) {
+        if (world.loadedColumn(x >> 4, z >> 4) == null) {
+            return false; // fluids never load a chunk
+        }
         final BlockState previous;
         try {
             previous = world.getBlock(x, y, z);

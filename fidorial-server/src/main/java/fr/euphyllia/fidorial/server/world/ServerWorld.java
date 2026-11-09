@@ -30,6 +30,7 @@ import fr.euphyllia.fidorial.server.world.light.WorldLightManager;
 import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
+import fr.euphyllia.fidorial.server.world.tick.ScheduledTicks;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
@@ -41,6 +42,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
@@ -52,9 +54,12 @@ import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
+import fr.fidorial.world.fluid.FluidType;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
@@ -63,6 +68,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
+import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -98,6 +104,9 @@ public final class ServerWorld implements World {
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
     private final ForcedChunks forcedChunks;
+    private final TickingChunks tickingChunks;
+    private final ScheduledTicks<TypedKey<BlockType>> blockTicks;
+    private final ScheduledTicks<FluidType> fluidTicks;
     private final GameRuleOverrides gameRuleValues;
     private final WorldWeather weather;
     private final WorldConfiguration configuration;
@@ -148,6 +157,9 @@ public final class ServerWorld implements World {
         this.fallbackEngine = new FloodFillLightEngine(minY, height);
         this.scheduler = scheduler;
         this.forcedChunks = new ForcedChunks(dimension.id(), scheduler);
+        this.tickingChunks = new TickingChunks(this);
+        this.blockTicks = new ScheduledTicks<>(this, block -> block.key().asString(), ServerWorld::blockTypeOf);
+        this.fluidTicks = new ScheduledTicks<>(this, fluid -> fluid.blockKey().key().asString(), ServerWorld::fluidTypeOf);
         this.gameRuleValues = new GameRuleOverrides(dimension.id(), baseGameRules);
         this.weather = new WorldWeather(dimension.id(), weatherState, dimensionType.hasSkylight());
     }
@@ -313,7 +325,8 @@ public final class ServerWorld implements World {
     }
 
     public void addEntity(final AbstractEntity entity) {
-        ThreadContexts.checkOwnedByCurrentThread(entity, "addEntity");
+        ThreadContexts.checkOwnedByCurrentThread(entity,
+                "an entity can only be added to the world on the thread of the region owning its chunk");
         entities.add(entity);
         markEntitiesDirty(entity.chunk().x(), entity.chunk().z());
         if (entity instanceof ServerPlayer) {
@@ -322,7 +335,8 @@ public final class ServerWorld implements World {
     }
 
     public void removeEntity(final AbstractEntity entity) {
-        ThreadContexts.checkOwnedByCurrentThread(entity, "removeEntity");
+        ThreadContexts.checkOwnedByCurrentThread(entity,
+                "an entity can only be removed from the world on the thread of the region owning its chunk");
         entities.remove(entity);
         markEntitiesDirty(entity.chunk().x(), entity.chunk().z());
         if (entity instanceof ServerPlayer) {
@@ -331,7 +345,8 @@ public final class ServerWorld implements World {
     }
 
     public void entityMoved(final AbstractEntity entity, final ChunkPos from, final ChunkPos to) {
-        ThreadContexts.checkOwnedByCurrentThread(this, from, "entityMoved");
+        ThreadContexts.checkOwnedByCurrentThread(this, from,
+                "an entity can only change chunk on the thread of the region owning the chunk it leaves");
         entities.moved(entity, from, to);
         if (!from.equals(to)) {
             markEntitiesDirty(from.x(), from.z());
@@ -377,7 +392,13 @@ public final class ServerWorld implements World {
             column = generator.generate(chunkX, chunkZ);
             dirty.add(key);
         }
-        loaded.put(key, column);
+        if (loaded.put(key, column) == null) {
+            scheduler.addTicket(key(), new ChunkPos(chunkX, chunkZ)); // a loaded chunk occupies its region
+        }
+        // the ticks saved with the chunk resume, with the delay they had left
+        blockTicks.load(chunkX, chunkZ, column.savedBlockTicks());
+        fluidTicks.load(chunkX, chunkZ, column.savedFluidTicks());
+        column.setSavedTicks(ListBinaryTag.empty(), ListBinaryTag.empty());
         ensureEntitiesLoaded(chunkX, chunkZ);
         ensureLight(column, chunkX, chunkZ);
         return column;
@@ -421,16 +442,23 @@ public final class ServerWorld implements World {
     @Override
     public boolean setChunkForceLoaded(final int chunkX, final int chunkZ, final boolean forced) {
         if (!forced) {
-            return forcedChunks.remove(chunkX, chunkZ);
+            if (!forcedChunks.remove(chunkX, chunkZ)) {
+                return false;
+            }
+            tickingChunks.remove(chunkX, chunkZ, 0);
+            return true;
         }
         if (!forcedChunks.add(chunkX, chunkZ)) {
             return false;
         }
+        // like vanilla's forced tickets: its entities tick, so the two rings around are loaded too
+        tickingChunks.add(chunkX, chunkZ, 0);
         loadForcedChunk(chunkX, chunkZ);
         return true;
     }
 
     public void loadForcedChunks() {
+        forcedChunks.forEach(key -> tickingChunks.add((int) (key >> 32), (int) key, 0));
         forcedChunks.forEach(key -> loadForcedChunk((int) (key >> 32), (int) key));
     }
 
@@ -553,7 +581,8 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBlock(final int x, final int y, final int z, final BlockState state) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBlock");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z),
+                "a block can only be changed on the thread of the region owning it");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
@@ -621,7 +650,8 @@ public final class ServerWorld implements World {
     }
 
     public boolean setBiome(final int x, final int y, final int z, final TypedKey<BiomeDefinition> biome) throws IOException {
-        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z), "setBiome");
+        ThreadContexts.checkOwnedByCurrentThread(this, Position.block(x, y, z),
+                "a biome can only be changed on the thread of the region owning its block");
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
             return false;
@@ -650,7 +680,7 @@ public final class ServerWorld implements World {
                     final long k = it.nextLong();
                     final ChunkColumn chunk = loaded.get(k);
                     if (chunk != null) {
-                        storage.save(dimension, chunk);
+                        save(chunk);
                     }
                     dirty.remove(k);
                 }
@@ -673,7 +703,7 @@ public final class ServerWorld implements World {
                 while (columns.hasNext()) {
                     final ChunkColumn column = columns.next();
                     if (column != null) {
-                        storage.save(dimension, column);
+                        save(column);
                     }
                 }
                 dirty.clear();
@@ -734,7 +764,7 @@ public final class ServerWorld implements World {
         final BaseLongIterator loadedKeys = loaded.keyIterator();
         while (loadedKeys.hasNext()) {
             final long k = loadedKeys.nextLong();
-            if (!wanted.contains(k) && !dirty.contains(k) && !forcedChunks.contains(k)) {
+            if (!wanted.contains(k) && !dirty.contains(k) && !forcedChunks.contains(k) && !tickingChunks.keepsLoaded(k)) {
                 toUnload.add(k);
             }
         }
@@ -747,13 +777,14 @@ public final class ServerWorld implements World {
             final LongIterator it = toUnload.iterator();
             while (it.hasNext()) {
                 final long k = it.nextLong();
-                if (forcedChunks.contains(k)) {
-                    continue; // forced while the light was being flushed
+                if (forcedChunks.contains(k) || tickingChunks.keepsLoaded(k)) {
+                    continue; // forced or kept while the light was being flushed
                 }
                 if (loaded.remove(k) != null) {
                     unloaded++;
                     final int cx = (int) (k >> 32);
                     final int cz = (int) k;
+                    forgetUnloaded(cx, cz);
                     lightManager.forgetChunk(cx, cz);
                     try {
                         unloadChunkEntities(cx, cz);
@@ -767,6 +798,24 @@ public final class ServerWorld implements World {
         });
     }
 
+    /**
+     * Drops every loaded chunk without saving it, and frees the regions they occupied. For a world
+     * that is no longer in use.
+     */
+    public void releaseLoadedChunks() {
+        final LongArrayList keys = new LongArrayList(loaded.size());
+        final BaseLongIterator it = loaded.keyIterator();
+        while (it.hasNext()) {
+            keys.add(it.nextLong());
+        }
+        for (int i = 0; i < keys.size(); i++) {
+            final long k = keys.getLong(i);
+            if (loaded.remove(k) != null) {
+                forgetUnloaded((int) (k >> 32), (int) k);
+            }
+        }
+    }
+
     public CompletableFuture<@Nullable Void> unloadChunk(final int chunkX, final int chunkZ, final boolean flushLight) {
         final CompletableFuture<@Nullable Void> flush = flushLight
                 ? lightFlushFuture(ChunkPos.chunkKey(chunkX, chunkZ))
@@ -777,11 +826,13 @@ public final class ServerWorld implements World {
                 if (dirty.remove(k)) {
                     final ChunkColumn chunk = loaded.get(k);
                     if (chunk != null) {
-                        storage.save(dimension, chunk);
+                        save(chunk);
                     }
                 }
                 unloadChunkEntities(chunkX, chunkZ);
-                loaded.remove(k);
+                if (loaded.remove(k) != null) {
+                    forgetUnloaded(chunkX, chunkZ);
+                }
                 lightManager.forgetChunk(chunkX, chunkZ);
             } catch (final IOException e) {
                 LOGGER.error("Failed to unload chunk {},{} in {}", chunkX, chunkZ, key(), e);
@@ -809,7 +860,7 @@ public final class ServerWorld implements World {
     @Override
     public CompletableFuture<Boolean> unloadChunkAsync(final int chunkX, final int chunkZ) {
         final long k = ChunkPos.chunkKey(chunkX, chunkZ);
-        if (!loaded.containsKey(k) || forcedChunks.contains(k) || isViewed(k)) {
+        if (!loaded.containsKey(k) || forcedChunks.contains(k) || tickingChunks.keepsLoaded(k) || isViewed(k)) {
             return CompletableFuture.completedFuture(false);
         }
         return lightFlushFuture(k)
@@ -862,6 +913,99 @@ public final class ServerWorld implements World {
 
     public void setLightDispatcher(final LightUpdateDispatcher dispatcher) {
         this.lightDispatcher = dispatcher;
+    }
+
+    /**
+     * {@return the sources making the chunks of this world tick}
+     */
+    public TickingChunks tickingChunks() {
+        return tickingChunks;
+    }
+
+    /**
+     * {@return the ticks scheduled on the blocks of this world}
+     */
+    public ScheduledTicks<TypedKey<BlockType>> blockTicks() {
+        return blockTicks;
+    }
+
+    /**
+     * {@return the ticks scheduled on the fluids of this world}
+     */
+    public ScheduledTicks<FluidType> fluidTicks() {
+        return fluidTicks;
+    }
+
+    /**
+     * {@return whether the ticks scheduled on the blocks of a chunk run}: a source wants it, and the
+     * chunk is loaded with its 8 neighbours, vanilla's block ticking level
+     */
+    public boolean isBlockTicking(final int chunkX, final int chunkZ) {
+        return tickingChunks.wantsBlockTicking(ChunkPos.chunkKey(chunkX, chunkZ)) && isLoadedAround(chunkX, chunkZ, 1);
+    }
+
+    /**
+     * {@return whether the entities of a chunk tick}: a source wants it, and the chunks up to 2 away
+     * are loaded, vanilla's entity ticking level
+     */
+    public boolean isEntityTicking(final int chunkX, final int chunkZ) {
+        return tickingChunks.wantsEntityTicking(ChunkPos.chunkKey(chunkX, chunkZ)) && isLoadedAround(chunkX, chunkZ, 2);
+    }
+
+    private boolean isLoadedAround(final int chunkX, final int chunkZ, final int radius) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (!loaded.containsKey(ChunkPos.chunkKey(chunkX + dx, chunkZ + dz))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Writes a chunk to disk, along with the ticks pending in it.
+     */
+    private void save(final ChunkColumn chunk) throws IOException {
+        chunk.setSavedTicks(blockTicks.save(chunk.chunkX(), chunk.chunkZ()), fluidTicks.save(chunk.chunkX(), chunk.chunkZ()));
+        try {
+            storage.save(dimension, chunk);
+        } finally {
+            chunk.setSavedTicks(ListBinaryTag.empty(), ListBinaryTag.empty());
+        }
+    }
+
+    /**
+     * Forgets what a chunk being unloaded kept in memory besides its blocks: its pending ticks, saved with it.
+     */
+    private void forgetUnloaded(final int chunkX, final int chunkZ) {
+        scheduler.removeTicket(key(), new ChunkPos(chunkX, chunkZ));
+        blockTicks.forget(chunkX, chunkZ);
+        fluidTicks.forget(chunkX, chunkZ);
+    }
+
+    private static @Nullable TypedKey<BlockType> blockTypeOf(final String id) {
+        if (!Key.parseable(id)) {
+            return null;
+        }
+        final TypedKey<BlockType> block = TypedKey.withRegistry(RegistryKey.BLOCK, Key.key(id));
+        return Blocks.type(block) == null ? null : block;
+    }
+
+    private static @Nullable FluidType fluidTypeOf(final String id) {
+        // vanilla saves the flowing fluids under their own ids
+        return switch (id) {
+            case "minecraft:water", "minecraft:flowing_water" -> FluidType.WATER;
+            case "minecraft:lava", "minecraft:flowing_lava" -> FluidType.LAVA;
+            default -> null;
+        };
+    }
+
+    /**
+     * {@return a future completing once the light of loaded chunks is worked out}
+     */
+    public CompletableFuture<@Nullable Void> flushLight(final LongIterable chunkKeys) {
+        return lightFlushFuture(chunkKeys);
     }
 
     private CompletableFuture<@Nullable Void> lightFlushFuture(final LongIterable chunkKeys) {

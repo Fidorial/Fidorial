@@ -13,7 +13,9 @@ import fr.fidorial.world.block.BlockType;
  *
  * <p>Neighbour updates run in the order vanilla runs them, one chain at a time: an update caused
  * while another one is running is queued and runs right after it, rather than nested inside it.
- * Updates reaching a block of another region are handed over to the thread of that region. A world
+ * Regions own a margin around their loaded chunks, so updates never reach another region; where
+ * regions never merge ({@code threading.region-buffer-radius: 0}), they stop at the border, as at
+ * a chunk that is not loaded. A world
  * may be configured to drive its redstone dust another way, such as with Alternate Current, which
  * updates the blocks around a whole network of dust in the order power flows through it.</p>
  *
@@ -107,12 +109,14 @@ public interface RedstoneWorld extends SignalGetter {
      * {@code block} by then.
      *
      * <p>A block holds at most one pending tick per block type: scheduling another one before the
-     * first ran does nothing.</p>
+     * first ran does nothing. Like any block write, it must be called on the thread of the region
+     * owning {@code position}.</p>
      *
      * @param position the block to tick
      * @param block    the block type the tick is for
      * @param delay    the number of game ticks to wait, {@code 1} for the next tick
      * @param priority the order among the ticks due on the same game tick
+     * @throws IllegalStateException if the calling thread does not own {@code position}
      * @since 0.1.0
      */
     void scheduleTick(BlockPosition position, TypedKey<BlockType> block, int delay, TickPriority priority);

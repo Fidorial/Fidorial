@@ -6,13 +6,13 @@ import org.jspecify.annotations.Nullable;
 
 public final class RegionTickThread extends Thread {
 
-    volatile ThreadedRegionRegionizer.@Nullable Region currentRegion;
+    volatile @Nullable TickRegion currentRegion;
 
     RegionTickThread(final Runnable target, final String name) {
         super(target, name);
     }
 
-    public ThreadedRegionRegionizer.@Nullable Region currentRegion() {
+    public @Nullable TickRegion currentRegion() {
         return currentRegion;
     }
 
@@ -20,8 +20,8 @@ public final class RegionTickThread extends Thread {
         if (!(Thread.currentThread() instanceof final RegionTickThread self)) {
             return false;
         }
-        final ThreadedRegionRegionizer.Region region = self.currentRegion;
-        return region != null && region.covers(world, pos);
+        final TickRegion region = self.currentRegion;
+        return region != null && region.world().equals(world) && region.owns(pos);
     }
 
     public static void ensureOwned(final Key world, final ChunkPos pos) {

@@ -327,7 +327,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 worldId(),
                 dimensionType,
                 config.general().viewDistance(),
-                config.general().viewDistance(),
+                config.general().simulationDistance(),
                 player.gameMode().id(),
                 describeGenerator(serverWorld()) instanceof ChunkGeneratorConfig.Flat,
                 config.network().onlineMode(),
@@ -362,7 +362,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         server.registries().blockStates(), server.registries().registry(RegistryKey.BIOME),
                         server.registries().registry(RegistryKey.BLOCK_ENTITY_TYPE)
                 ),
-                connection.effectiveViewDistance()
+                connection.effectiveViewDistance(),
+                config.general().simulationDistance()
         );
         this.ticket = spawnChunk;
         world.addViewer(chunkView);

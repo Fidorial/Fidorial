@@ -19,6 +19,16 @@ public final class TickState {
         this.frozen = settings.frozen();
     }
 
+    /**
+     * {@return a copy of this state, step in progress included, for a ticker taking over part of this one}
+     */
+    public TickState copy() {
+        final TickState copy = new TickState(new TickSettings(rate, frozen));
+        copy.stepTicks = stepTicks;
+        copy.accumulatedNanos = accumulatedNanos;
+        return copy;
+    }
+
     public long nanosPerTick() {
         return (long) (NANOS_PER_SECOND / rate);
     }

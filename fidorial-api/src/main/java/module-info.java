@@ -1,3 +1,4 @@
+import fr.fidorial.scheduler.Region;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -23,13 +24,14 @@ import org.jspecify.annotations.NullMarked;
  * </ul>
  *
  * <h2>Threading</h2>
- * <p>The world is split into independent 32×32-chunk regions, each ticking at
- * 20 TPS on its own thread. Event listeners run on the thread of the region
- * owning the block or entity — never block inside one, hand long work to the
- * {@linkplain fr.fidorial.scheduler scheduler}.
+ * <p>The world is split into independent regions, each ticking at 20 TPS on
+ * its own thread; nearby regions merge and drift apart again as players move
+ * (see {@link Region}). Event listeners run on the thread
+ * of the region owning the block or entity — never block inside one, hand long
+ * work to the {@linkplain fr.fidorial.scheduler scheduler}.
  *
  * <h2>Nullability</h2>
- * <p>This module is {@link org.jspecify.annotations.NullMarked}: every type is
+ * <p>This module is {@link NullMarked}: every type is
  * non-null unless explicitly annotated {@code @Nullable}.
  *
  * @see <a href="https://fidorial.euphyllia.moe">Documentation</a>
@@ -50,6 +52,7 @@ module fr.fidorial {
     exports fr.fidorial.event.entity;
     exports fr.fidorial.event.player;
     exports fr.fidorial.event.redstone;
+    exports fr.fidorial.event.region;
     exports fr.fidorial.event.server;
     exports fr.fidorial.event;
     exports fr.fidorial.gamerule;

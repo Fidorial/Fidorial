@@ -18,8 +18,8 @@ import java.util.List;
  * right after it, depth first, instead of nesting inside it. The order is the one recursive calls
  * would give, without the stack overflow a long redstone line would cause.
  *
- * <p>One instance per thread; updates reaching a block another thread owns are handed over to it by
- * {@link ServerRedstoneWorld}.</p>
+ * <p>One instance per thread; {@link ServerRedstoneWorld} drops the updates reaching a block another
+ * thread owns.</p>
  */
 final class NeighborUpdater {
 

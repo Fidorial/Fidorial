@@ -470,10 +470,12 @@ public final class ApiTestCommand {
                     source,
                     String.format(
                             Locale.ROOT,
-                            "[TestPlugin] %s section(%d,%d) tps=%.1f mspt=%.2f queued=%d",
+                            "[TestPlugin] %s region #%d (%d sections, chunk %d,%d) tps=%.1f mspt=%.2f queued=%d",
                             tps.world(),
-                            tps.sectionX(),
-                            tps.sectionZ(),
+                            tps.id(),
+                            tps.sectionCount(),
+                            tps.centerChunk().x(),
+                            tps.centerChunk().z(),
                             tps.tps(),
                             tps.msptAvg(),
                             tps.queuedTasks()));

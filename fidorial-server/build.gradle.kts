@@ -252,6 +252,9 @@ val testScenarios =
             workingDir.deleteRecursively()
             workingDir.mkdirs()
             pluginsDir.resolve("TestPlugin.jar").copyTo(workingDir.resolve("plugins/TestPlugin.jar"))
+
+            workingDir.resolve("config").mkdirs()
+            workingDir.resolve("config/fidorial.yaml").writeText("config-version: 1\ngeneral:\n  simulation-distance: 1\n")
         }
     }
 

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.redstone;
 
 import alternate.current.wire.WireHandler;
+import fr.euphyllia.fidorial.server.schedulers.RegionWideTickHandler;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.BlockEditService;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
@@ -8,7 +9,6 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.scheduler.RegionTickHandler;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
@@ -27,8 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * block updates run one chain at a time in vanilla order, and scheduled ticks with priorities.
  *
  * <p>It drives the behaviours of the {@link FidorialRedstoneRegistry}, and writes blocks through the
- * {@link BlockEditService}, so that players, light and fluids follow every change it makes. What
- * crosses into another region is handed over to the thread of that region.</p>
+ * {@link BlockEditService}, so that players, light and fluids follow every change it makes. Regions
+ * owning a margin around their loaded chunks, it never reaches into another region; where they never
+ * merge, it stops at the border.</p>
  *
  * <p>Redstone dust is vanilla's, or {@linkplain WireHandler Alternate Current} in the worlds whose
  * configuration picks it, see {@link DustImplementation}.</p>
@@ -73,7 +74,7 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
         this.blockStates = blockStates;
         this.registry = registry;
         this.blockEdits = blockEdits;
-        this.ticks = new RedstoneBlockTicks(this, worlds, regionizer);
+        this.ticks = new RedstoneBlockTicks(this, worlds);
     }
 
     @Override
@@ -103,7 +104,7 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
     /**
      * {@return the handler running the scheduled ticks, to register on the regionizer}
      */
-    public RegionTickHandler tickHandler() {
+    public RegionWideTickHandler tickHandler() {
         return ticks;
     }
 

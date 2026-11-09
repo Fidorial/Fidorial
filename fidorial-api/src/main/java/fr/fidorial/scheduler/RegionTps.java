@@ -1,58 +1,17 @@
 package fr.fidorial.scheduler;
 
-import net.kyori.adventure.key.Key;
-
 /**
- * Represents performance and state information for a scheduler region.
+ * Performance and state information for a scheduler region.
  *
- * <p>A region corresponds to a group of chunks processed by a dedicated
- * scheduler thread. This interface exposes metrics such as TPS, MSPT,
- * CPU usage, queued tasks and ticket count.</p>
+ * <p>A region is a group of sections processed by a dedicated scheduler thread. This interface
+ * exposes metrics such as TPS, MSPT, CPU usage, queued tasks and ticket count, measured over the
+ * last few seconds of the region. A region born from a merge keeps the measures of the region it
+ * was merged into; the regions born from a split start measuring from scratch.</p>
  *
  * @see RegionizedScheduler#tpsSnapshots()
  * @since 0.1.0
  */
-public interface RegionTps {
-
-    /**
-     * Returns the Key of the world containing this region.
-     *
-     * @return the world key
-     * @since 0.1.0
-     */
-    Key world();
-
-    /**
-     * Returns the X coordinate of the region section.
-     *
-     * @return the region section X coordinate
-     * @since 0.1.0
-     */
-    int sectionX();
-
-    /**
-     * Returns the Z coordinate of the region section.
-     *
-     * @return the region section Z coordinate
-     * @since 0.1.0
-     */
-    int sectionZ();
-
-    /**
-     * Returns the X coordinate of the origin chunk of this region.
-     *
-     * @return the origin chunk X coordinate
-     * @since 0.1.0
-     */
-    int originChunkX();
-
-    /**
-     * Returns the Z coordinate of the origin chunk of this region.
-     *
-     * @return the origin chunk Z coordinate
-     * @since 0.1.0
-     */
-    int originChunkZ();
+public interface RegionTps extends Region {
 
     /**
      * Returns the current ticks per second (TPS) of this region.
@@ -99,11 +58,9 @@ public interface RegionTps {
     int queuedTasks();
 
     /**
-     * Returns the number of active tickets associated with this region.
+     * Returns the number of loaded chunks and tickets keeping the sections of this region occupied.
      *
-     * <p>Tickets are used internally to keep chunks loaded and scheduled.</p>
-     *
-     * @return the active ticket count
+     * @return the loaded chunks and tickets of the region
      * @since 0.1.0
      */
     int tickets();

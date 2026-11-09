@@ -414,6 +414,7 @@ public final class ServerWorldManager implements AutoCloseable {
             saveWeather(world);
         }
         world.forcedChunks().releaseTickets();
+        world.releaseLoadedChunks();
         worlds.remove(key);
         configurations.unloadWorld(key);
         reassignDefaultWorld();

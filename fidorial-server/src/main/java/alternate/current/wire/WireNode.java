@@ -14,21 +14,14 @@ import org.jspecify.annotations.Nullable;
  * A {@link Node} holding redstone dust: everything {@link WireHandler} needs to work out the power of
  * the dust, along with the network it belongs to.
  *
- * <p>Alternate Current's {@code WireNode}. Unlike the original, a node may be
- * {@linkplain #foreign foreign}: dust of a region another thread owns, which this thread reads but
- * never changes. Setting its power is {@code WireHandler}'s job, which reaches the world.</p>
+ * <p>Alternate Current's {@code WireNode}. Setting its power is {@code WireHandler}'s job, which
+ * reaches the world.</p>
  *
  * @author Space Walker
  */
 final class WireNode extends Node {
 
     final WireConnectionManager connections;
-
-    /**
-     * {@code true} for dust of a region the current thread does not own: it gives power to the
-     * network, but is neither searched nor changed, only told when the dust next to it changes.
-     */
-    final boolean foreign;
 
     /**
      * The power the dust holds in the world.
@@ -63,10 +56,9 @@ final class WireNode extends Node {
      */
     @Nullable WireNode nextWire;
 
-    WireNode(final BlockPosition pos, final BlockData state, final boolean foreign) {
+    WireNode(final BlockPosition pos, final BlockData state) {
         super(pos);
         this.state = state;
-        this.foreign = foreign;
         this.connections = new WireConnectionManager(this);
         this.currentPower = powerOf(state);
         this.virtualPower = currentPower;
@@ -86,21 +78,13 @@ final class WireNode extends Node {
     void refresh(final BlockData state) {
         this.state = state;
         this.currentPower = powerOf(state);
-        if (foreign) {
-            // never searched, so never reset by WireHandler.discover: what it gives is what it holds
-            this.virtualPower = currentPower;
-        }
     }
 
     /**
-     * {@return the priority to queue this dust with: the power it should hold}, or, for foreign
-     * dust only queued for a block update, that of the dust updating it
+     * {@return the priority to queue this dust with: the power it should hold}
      */
     @Override
     int priority() {
-        if (foreign) {
-            return super.priority();
-        }
         return Math.clamp(virtualPower, WireHandler.POWER_MIN, WireHandler.POWER_MAX);
     }
 
@@ -110,12 +94,11 @@ final class WireNode extends Node {
     }
 
     /**
-     * Foreign dust is told of the changes next to it, the other region working its power out;
-     * dust of this network learns of them as the power spreads.
+     * Dust learns of the changes next to it as the power spreads, never through a block update.
      */
     @Override
     boolean reactsToUpdates() {
-        return foreign;
+        return false;
     }
 
     @Override
@@ -131,7 +114,7 @@ final class WireNode extends Node {
      * @return {@code true} if the dust takes it, being more than it had
      */
     boolean offerPower(final int power, final int iDir) {
-        if (removed || shouldBreak || foreign) {
+        if (removed || shouldBreak) {
             return false;
         }
         if (power == virtualPower) {

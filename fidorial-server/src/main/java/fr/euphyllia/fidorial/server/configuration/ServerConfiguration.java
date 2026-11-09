@@ -135,14 +135,18 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record General(int viewDistance, int sendDistance, int autoSaveSeconds, Path pluginsPath) {
-        static final General DEFAULTS = new General(10, 10, 5, Path.of("plugins"));
+    public record General(int viewDistance, int sendDistance, int simulationDistance, int autoSaveSeconds, Path pluginsPath) {
+        static final General DEFAULTS = new General(10, 10, 10, 5, Path.of("plugins"));
 
         static final Codec<General> CODEC = configRecord(General.class, DEFAULTS)
                 .field("view-distance", General::viewDistance, commented(CommonCodecs.POSITIVE_INT,
                         "The distance advertised to the client, in chunks"))
                 .field("send-distance", General::sendDistance, commented(CommonCodecs.POSITIVE_INT,
                         "The actual streaming radius. Must not exceed view-distance"))
+                .field("simulation-distance", General::simulationDistance, commented(CommonCodecs.POSITIVE_INT, """
+                        How far from a player entities tick, in chunks, like vanilla's simulation-distance
+                        Blocks and fluids tick one chunk further, and one more ring of chunks is loaded without
+                        ticking, where what redstone and fluids schedule waits"""))
                 .field("auto-save-seconds", General::autoSaveSeconds, commented(CommonCodecs.POSITIVE_INT,
                         "How often should auto-save happen. Declared in seconds"))
                 .field("plugins-path", General::pluginsPath, commented(ConfigurationCodecs.PATH,
@@ -170,11 +174,12 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record Threading(int regionWorkers, int chunkWorkers, int lightWorkers, int aiWorkers, int regionSectionShift) {
+    public record Threading(int regionWorkers, int chunkWorkers, int lightWorkers, int aiWorkers, int regionSectionShift,
+                            int regionBufferRadius) {
         private static final int CPUS = Runtime.getRuntime().availableProcessors();
 
         static final Threading DEFAULTS = new Threading(
-                Math.max(2, CPUS / 2), Math.max(2, CPUS / 8), Math.max(2, CPUS / 8), Math.max(2, CPUS / 8), 5);
+                Math.max(2, CPUS / 2), Math.max(2, CPUS / 8), Math.max(2, CPUS / 8), Math.max(2, CPUS / 8), 5, 1);
 
         static final Codec<Threading> CODEC = configRecord(Threading.class, DEFAULTS)
                 .field("region-workers", Threading::regionWorkers, commented(CommonCodecs.POSITIVE_INT,
@@ -186,10 +191,17 @@ public record ServerConfiguration(
                 .field("ai-workers", Threading::aiWorkers, commented(CommonCodecs.POSITIVE_INT,
                         "The amount of threads to be used by entities' pathfinding"))
                 .field("region-section-shift", Threading::regionSectionShift, commented(Codec.intRange(0, 10), """
-                        Size of the regions ticked independently, as a power of two: a region is
+                        Size of the sections the world is cut into, as a power of two: a section is
                         2^value x 2^value chunks. 4 = 16x16, 5 = 32x32 (default), 6 = 64x64
-                        Smaller regions spread the world over more threads, larger ones cross fewer borders
+                        A region is a group of sections ticked by one thread. Smaller sections make regions
+                        fit the loaded chunks more closely, larger ones are cheaper to manage
                         Between 0 and 10. Takes effect on restart"""))
+                .field("region-buffer-radius", Threading::regionBufferRadius, commented(Codec.intRange(0, 8), """
+                        Margin of empty sections, counted in sections, each region owns around the sections
+                        holding loaded chunks, so pistons, fluids and redstone can reach across a section border
+                        Regions whose margins meet are merged into one, and split again once they drift apart
+                        0 never merges regions: each section is ticked on its own, and redstone, fluids and
+                        pistons stop at section borders. 1 by default. Between 0 and 8. Takes effect on restart"""))
                 .build();
     }
 

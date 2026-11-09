@@ -30,8 +30,9 @@ import java.util.Objects;
  * The redstone of one world, as {@link FidorialRedstoneEngine} drives it.
  *
  * <p>Reads only look at loaded chunks. Writes and behaviour calls happen on the thread owning the
- * block: an update reaching a block of another region is handed over to that region, and dropped
- * when its chunk is not loaded.</p>
+ * block. Regions own a margin around their loaded chunks, so an update never reaches another region;
+ * where regions never merge ({@code threading.region-buffer-radius: 0}), one reaching another region
+ * is dropped, as one reaching a chunk that is not loaded.</p>
  */
 public final class ServerRedstoneWorld implements RedstoneWorld {
 
@@ -254,7 +255,8 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     }
 
     boolean setBlock(final BlockPosition position, final BlockData data, final Update update, final int limit) {
-        ThreadContexts.checkOwnedByCurrentThread(world, position, "redstone setBlock");
+        ThreadContexts.checkOwnedByCurrentThread(world, position,
+                "redstone can only change a block on the thread of the region owning it");
         final BlockData previous = blockAt(position);
         if (previous == null || previous.equals(data)) {
             return false;
@@ -298,7 +300,8 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
      * @throws IllegalStateException if the calling thread does not own {@code position}
      */
     public boolean setWireState(final BlockPosition position, final BlockData state, final boolean updateShapes) {
-        ThreadContexts.checkOwnedByCurrentThread(world, position, "redstone setWireState");
+        ThreadContexts.checkOwnedByCurrentThread(world, position,
+                "the power of redstone dust can only be changed on the thread of the region owning it");
         final BlockData previous = blockAt(position);
         if (previous == null || previous.equals(state)) {
             return false;
@@ -315,7 +318,7 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     /**
      * Runs one neighbour update right away, rather than queuing it behind the chain under way:
      * Alternate Current's {@code InstantNeighborUpdater}, its handler ordering the updates itself.
-     * Handed over to the region owning {@code position} when another one does.
+     * Dropped when another region owns {@code position}.
      *
      * @param position the block to tell
      * @param source   the block type that caused the update
@@ -325,8 +328,8 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     }
 
     /**
-     * Runs one shape update right away, rather than queuing it behind the chain under way. Handed
-     * over to the region owning {@code position} when another one does.
+     * Runs one shape update right away, rather than queuing it behind the chain under way. Dropped
+     * when another region owns {@code position}.
      *
      * @param position  the block to tell
      * @param direction the side of {@code position} the changed block is on
@@ -342,7 +345,6 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
             return;
         }
         if (!owns(position)) {
-            handOver(position, () -> blockChanged(position, previous, current));
             return;
         }
         afterChange(position, previous, current, Update.NEIGHBORS, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT);
@@ -470,7 +472,6 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
      */
     void runNeighborChanged(final BlockPosition position, final TypedKey<BlockType> source) {
         if (!owns(position)) {
-            handOver(position, () -> engine.updater().neighborChanged(this, position, source));
             return;
         }
         final BlockData state = blockAt(position);
@@ -491,7 +492,6 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
      */
     void runShapeUpdate(final BlockPosition position, final BlockFace direction, final BlockData neighbor, final int limit) {
         if (!owns(position)) {
-            handOver(position, () -> engine.updater().shapeUpdate(this, position, direction, neighbor, limit));
             return;
         }
         final BlockData state = blockAt(position);
@@ -533,16 +533,6 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
 
     private boolean owns(final BlockPosition position) {
         return engine.regionizer().isOwnedByCurrentThread(world.key(), position.chunk());
-    }
-
-    /**
-     * Hands a task over to the region owning {@code position}, unless its chunk is not loaded:
-     * there is nothing to update there.
-     */
-    private void handOver(final BlockPosition position, final Runnable task) {
-        if (world.loadedColumn(position.chunkX(), position.chunkZ()) != null) {
-            engine.regionizer().execute(world.key(), position.chunk(), task);
-        }
     }
 
     private void fail(final BlockData state, final String what, final BlockPosition position, final RuntimeException exception) {

@@ -33,7 +33,7 @@
 
   "command.tps.noregion" : "No active region (or not enough ticks measured yet).",
   "command.tps.summary" : "Active regions: <arg:0> | Min TPS: '<arg:1>' | Average TPS: <arg:2>",
-  "command.tps.line" : " - <arg:0> ['<arg:1>',<arg:2>] (chunks <arg:3>,<arg:4>): <arg:5> TPS, <arg:6> ms/tick, <arg:7>% CPU, <arg:8> task(s), <arg:9> ticket(s)",
+  "command.tps.line" : " - <arg:0> #<arg:1> (<arg:2> section(s), around chunk <arg:3>,<arg:4>): <arg:5> TPS, <arg:6> ms/tick, <arg:7>% CPU, <arg:8> task(s), <arg:9> ticket(s)",
   "command.tps.more" : "   ... and <arg:0> other region(s)",
 
   "command.plugins.none" : "No plugin installed.",
