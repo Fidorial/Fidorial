@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -52,15 +54,26 @@ public interface LoginClientboundPacketIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("apply_options"), APPLY_OPTIONS_ID),
-        Map.entry(Key.key("cookie_request"), COOKIE_REQUEST_ID),
-        Map.entry(Key.key("custom_query"), CUSTOM_QUERY_ID),
-        Map.entry(Key.key("key"), KEY_ID),
-        Map.entry(Key.key("login_disconnect"), LOGIN_DISCONNECT_ID),
-        Map.entry(Key.key("login_finished"), LOGIN_FINISHED_ID),
-        Map.entry(Key.key("setup_compression"), SETUP_COMPRESSION_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("apply_options"),
+            Key.key("cookie_request"),
+            Key.key("custom_query"),
+            Key.key("key"),
+            Key.key("login_disconnect"),
+            Key.key("login_finished"),
+            Key.key("setup_compression")
+        },
+        new int[] {
+            APPLY_OPTIONS_ID,
+            COOKIE_REQUEST_ID,
+            CUSTOM_QUERY_ID,
+            KEY_ID,
+            LOGIN_DISCONNECT_ID,
+            LOGIN_FINISHED_ID,
+            SETUP_COMPRESSION_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

@@ -76,14 +76,16 @@ public final class ProtocolMap {
      */
     private record Direction(Object2IntMap<Key> byName, @Nullable Key[] byId) {
 
-        static final Direction EMPTY = of(Map.of());
+        static final Direction EMPTY = of(Object2IntMaps.emptyMap());
 
-        static Direction of(final Map<Key, Integer> byName) {
+        static Direction of(final Object2IntMap<Key> byName) {
             final Object2IntOpenHashMap<Key> ids = new Object2IntOpenHashMap<>(byName);
             ids.defaultReturnValue(-1);
             ids.trim();
             final @Nullable Key[] names = new Key[ids.values().intStream().max().orElse(-1) + 1];
-            byName.forEach((name, id) -> names[id] = name);
+            for (final Object2IntMap.Entry<Key> entry : Object2IntMaps.fastIterable(byName)) {
+                names[entry.getIntValue()] = entry.getKey();
+            }
             return new Direction(Object2IntMaps.unmodifiable(ids), names);
         }
 

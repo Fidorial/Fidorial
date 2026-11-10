@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -22,9 +24,14 @@ public interface HandshakeServerboundPacketIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("intention"), INTENTION_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("intention")
+        },
+        new int[] {
+            INTENTION_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

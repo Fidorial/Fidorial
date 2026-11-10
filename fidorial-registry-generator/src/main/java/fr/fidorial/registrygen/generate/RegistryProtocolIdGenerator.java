@@ -45,6 +45,11 @@ public final class RegistryProtocolIdGenerator {
     private static final String LOOKUP_FIELD = "BY_IDENTIFIER";
     private static final String UNKNOWN_FIELD = "UNKNOWN";
 
+    private static final String FASTUTIL_OBJECTS = "it.unimi.dsi.fastutil.objects";
+    private static final ClassName OBJECT_2_INT_MAP = ClassName.get(FASTUTIL_OBJECTS, "Object2IntMap");
+    private static final ClassName OBJECT_2_INT_MAPS = ClassName.get(FASTUTIL_OBJECTS, "Object2IntMaps");
+    private static final ClassName OBJECT_2_INT_OPEN_HASH_MAP = ClassName.get(FASTUTIL_OBJECTS, "Object2IntOpenHashMap");
+
     /**
      * Generates the protocol ID holder for a registry.
      *
@@ -123,37 +128,35 @@ public final class RegistryProtocolIdGenerator {
 
     private static FieldSpec createLookupField(final Map<String, String> constantsByIdentifier) {
 
-        final ClassName map = ClassName.get(Map.class);
-        final ParameterizedTypeName mapType = ParameterizedTypeName.get(map,
-                ClassName.get(Key.class),
-                ClassName.get(Integer.class));
+        final ParameterizedTypeName mapType = ParameterizedTypeName.get(OBJECT_2_INT_MAP, ClassName.get(Key.class));
 
-        final CodeBlock.Builder initializer = CodeBlock.builder().add("$T.ofEntries(", map);
+        final CodeBlock.Builder keys = CodeBlock.builder();
+        final CodeBlock.Builder ids = CodeBlock.builder();
 
-        if (!constantsByIdentifier.isEmpty()) {
+        int index = 0;
+        final int last = constantsByIdentifier.size() - 1;
 
-            initializer.add("\n");
+        for (final Map.Entry<String, String> entry : constantsByIdentifier.entrySet()) {
 
-            int index = 0;
-            final int last = constantsByIdentifier.size() - 1;
-
-            for (final Map.Entry<String, String> entry : constantsByIdentifier.entrySet()) {
-
-                initializer.add("    $T.entry($L, $N)", map, createKeyInitializer(entry.getKey()), entry.getValue());
-
-                if (index < last) {
-                    initializer.add(",");
-                }
-
-                initializer.add("\n");
-                index++;
-            }
+            final String separator = index < last ? "," : "";
+            keys.add("        $L$L\n", createKeyInitializer(entry.getKey()), separator);
+            ids.add("        $N$L\n", entry.getValue(), separator);
+            index++;
         }
 
-        initializer.add(")");
+        final CodeBlock initializer = CodeBlock.builder()
+                .add("$T.unmodifiable(new $T<>(\n", OBJECT_2_INT_MAPS, OBJECT_2_INT_OPEN_HASH_MAP)
+                .add("    new $T[] {\n", Key.class)
+                .add(keys.build())
+                .add("    },\n")
+                .add("    new int[] {\n")
+                .add(ids.build())
+                .add("    }\n")
+                .add("))")
+                .build();
 
         return FieldSpec.builder(mapType, LOOKUP_FIELD, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer(initializer.build())
+                .initializer(initializer)
                 .addJavadoc("Immutable identifier to protocol ID lookup table.\n")
                 .build();
     }

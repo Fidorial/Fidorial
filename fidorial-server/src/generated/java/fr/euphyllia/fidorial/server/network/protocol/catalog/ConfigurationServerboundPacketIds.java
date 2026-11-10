@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -67,18 +69,32 @@ public interface ConfigurationServerboundPacketIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("accept_code_of_conduct"), ACCEPT_CODE_OF_CONDUCT_ID),
-        Map.entry(Key.key("client_information"), CLIENT_INFORMATION_ID),
-        Map.entry(Key.key("cookie_response"), COOKIE_RESPONSE_ID),
-        Map.entry(Key.key("custom_click_action"), CUSTOM_CLICK_ACTION_ID),
-        Map.entry(Key.key("custom_payload"), CUSTOM_PAYLOAD_ID),
-        Map.entry(Key.key("finish_configuration"), FINISH_CONFIGURATION_ID),
-        Map.entry(Key.key("keep_alive"), KEEP_ALIVE_ID),
-        Map.entry(Key.key("pong"), PONG_ID),
-        Map.entry(Key.key("resource_pack"), RESOURCE_PACK_ID),
-        Map.entry(Key.key("select_known_packs"), SELECT_KNOWN_PACKS_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("accept_code_of_conduct"),
+            Key.key("client_information"),
+            Key.key("cookie_response"),
+            Key.key("custom_click_action"),
+            Key.key("custom_payload"),
+            Key.key("finish_configuration"),
+            Key.key("keep_alive"),
+            Key.key("pong"),
+            Key.key("resource_pack"),
+            Key.key("select_known_packs")
+        },
+        new int[] {
+            ACCEPT_CODE_OF_CONDUCT_ID,
+            CLIENT_INFORMATION_ID,
+            COOKIE_RESPONSE_ID,
+            CUSTOM_CLICK_ACTION_ID,
+            CUSTOM_PAYLOAD_ID,
+            FINISH_CONFIGURATION_ID,
+            KEEP_ALIVE_ID,
+            PONG_ID,
+            RESOURCE_PACK_ID,
+            SELECT_KNOWN_PACKS_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

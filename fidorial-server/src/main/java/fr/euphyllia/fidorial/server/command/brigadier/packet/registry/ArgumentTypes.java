@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSugg
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityAnchorArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.UuidArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.PatternArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.TimeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.item.ItemArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.item.ItemPredicateArgument;
@@ -32,7 +33,6 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.primitive.StringA
 import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.KeyArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceArgument;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceKeyArgument;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 
 public final class ArgumentTypes {
@@ -69,9 +69,9 @@ public final class ArgumentTypes {
         register(new GameModeArgument.Info(), ArgumentTypeIds.GAMEMODE_ARGUMENT_ID);
         register(new TimeArgument.Info(), ArgumentTypeIds.TIME_ARGUMENT_ID);
         register(new ResourceArgument.Info<>(), ArgumentTypeIds.RESOURCE_ARGUMENT_ID);
-        register(new ResourceKeyArgument.Info<>(), ArgumentTypeIds.RESOURCE_KEY_ARGUMENT_ID);
         register(new SwingAnimationTypeArgument.Info(), ArgumentTypeIds.SWING_ANIMATION_ARGUMENT_ID);
         register(new UuidArgument.Info(), ArgumentTypeIds.UUID_ARGUMENT_ID);
+        register(new PatternArgument.Info(), ArgumentTypeIds.PATTERN_ARGUMENT_ID);
 
         // custom arguments
         ArgumentTypeRegistry.register(new ServerSuggestionsArgumentType.Info());

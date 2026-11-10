@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.registry.data;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -42,13 +44,22 @@ public interface SuggestionTypeIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("ask_server"), ASK_SERVER_SUGGESTION_ID),
-        Map.entry(Key.key("available_sounds"), AVAILABLE_SOUNDS_SUGGESTION_ID),
-        Map.entry(Key.key("literal"), LITERAL_SUGGESTION_ID),
-        Map.entry(Key.key("post_effects"), POST_EFFECTS_SUGGESTION_ID),
-        Map.entry(Key.key("summonable_entities"), SUMMONABLE_ENTITIES_SUGGESTION_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("ask_server"),
+            Key.key("available_sounds"),
+            Key.key("literal"),
+            Key.key("post_effects"),
+            Key.key("summonable_entities")
+        },
+        new int[] {
+            ASK_SERVER_SUGGESTION_ID,
+            AVAILABLE_SOUNDS_SUGGESTION_ID,
+            LITERAL_SUGGESTION_ID,
+            POST_EFFECTS_SUGGESTION_ID,
+            SUMMONABLE_ENTITIES_SUGGESTION_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

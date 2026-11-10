@@ -16,6 +16,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NetworkArg
 import fr.euphyllia.fidorial.server.command.brigadier.packet.util.PermissionlessCommandSender;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
+import fr.euphyllia.fidorial.server.registry.data.SuggestionTypeIds;
 import fr.fidorial.command.CommandSource;
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap;
@@ -40,7 +41,7 @@ public final class CommandTreeSerializer {
     private static final byte FLAG_CUSTOM_SUGGESTIONS = 16;
     private static final byte FLAG_RESTRICTED = 32;
 
-    private static final Key ASK_SERVER = Key.key("ask_server");
+    private static final SuggestionSource ASK_SERVER = new SuggestionSource(Key.key("ask_server"), List.of());
 
     private static final CommandSource NO_PERMISSION_SOURCE = PermissionlessCommandSender.INSTANCE.commandSource();
 
@@ -120,7 +121,7 @@ public final class CommandTreeSerializer {
             flags |= FLAG_RESTRICTED;
         }
 
-        final Key suggestionSource = node instanceof final ArgumentCommandNode<?, ?> argument
+        final SuggestionSource suggestionSource = node instanceof final ArgumentCommandNode<?, ?> argument
                 ? suggestionSource(argument)
                 : null;
 
@@ -149,7 +150,7 @@ public final class CommandTreeSerializer {
                 writeArgumentType(buf, argument.getType());
 
                 if (suggestionSource != null) {
-                    buf.writeKey(suggestionSource);
+                    writeSuggestionType(buf, suggestionSource);
                 }
             }
 
@@ -159,7 +160,18 @@ public final class CommandTreeSerializer {
         }
     }
 
-    private static @Nullable Key suggestionSource(final ArgumentCommandNode<?, ?> argument) {
+    private static void writeSuggestionType(final PacketBuffer buf, final SuggestionSource source) {
+        final int id = SuggestionTypeIds.id(source.key());
+        buf.writeVarInt(id != SuggestionTypeIds.UNKNOWN ? id : SuggestionTypeIds.ASK_SERVER_SUGGESTION_ID);
+        if (id == SuggestionTypeIds.LITERAL_SUGGESTION_ID) {
+            buf.writeVarInt(source.values().size());
+            for (final String value : source.values()) {
+                buf.writeString(value);
+            }
+        }
+    }
+
+    private static @Nullable SuggestionSource suggestionSource(final ArgumentCommandNode<?, ?> argument) {
         if (argument.getCustomSuggestions() != null || serverSuggestionProvider(argument.getType())) {
             return ASK_SERVER;
         }
@@ -171,9 +183,9 @@ public final class CommandTreeSerializer {
                 && server.suggestionProvider() != null;
     }
 
-    private static @Nullable Key clientSuggestionSource(final ArgumentType<?> type) {
+    private static @Nullable SuggestionSource clientSuggestionSource(final ArgumentType<?> type) {
         return switch (type) {
-            case final ClientSuggestions client -> client.suggestionSource();
+            case final ClientSuggestions client -> new SuggestionSource(client.suggestionSource(), client.suggestionValues());
             case final MappedArgumentType<?, ?> mapped -> clientSuggestionSource(mapped.nativeType());
             default -> null;
         };
@@ -248,5 +260,8 @@ public final class CommandTreeSerializer {
 
     private static boolean isRestricted(final CommandNode<CommandSource> node) {
         return !node.getRequirement().test(NO_PERMISSION_SOURCE);
+    }
+
+    private record SuggestionSource(Key key, List<String> values) {
     }
 }

@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -47,14 +49,24 @@ public interface LoginServerboundPacketIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("cookie_response"), COOKIE_RESPONSE_ID),
-        Map.entry(Key.key("custom_query_answer"), CUSTOM_QUERY_ANSWER_ID),
-        Map.entry(Key.key("hello"), HELLO_ID),
-        Map.entry(Key.key("key"), KEY_ID),
-        Map.entry(Key.key("login_acknowledged"), LOGIN_ACKNOWLEDGED_ID),
-        Map.entry(Key.key("options_applied"), OPTIONS_APPLIED_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("cookie_response"),
+            Key.key("custom_query_answer"),
+            Key.key("hello"),
+            Key.key("key"),
+            Key.key("login_acknowledged"),
+            Key.key("options_applied")
+        },
+        new int[] {
+            COOKIE_RESPONSE_ID,
+            CUSTOM_QUERY_ANSWER_ID,
+            HELLO_ID,
+            KEY_ID,
+            LOGIN_ACKNOWLEDGED_ID,
+            OPTIONS_APPLIED_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

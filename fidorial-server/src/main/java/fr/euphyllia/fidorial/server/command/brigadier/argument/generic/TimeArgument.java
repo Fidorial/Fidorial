@@ -11,6 +11,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
+import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.NumberFlags;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.fidorial.annotation.SinceMinecraft;
 
@@ -95,29 +96,37 @@ public record TimeArgument(int minimum, int maximum) implements ArgumentType<Int
 
         @Override
         public void serialize(final Spec spec, final PacketBuffer buf) {
-            buf.writeInt(spec.minimum());
+            final boolean hasMin = spec.minimum() != Integer.MIN_VALUE;
+            final boolean hasMax = spec.maximum() != Integer.MAX_VALUE;
+            buf.writeByte(NumberFlags.create(hasMin, hasMax));
+            if (hasMin) buf.writeInt(spec.minimum());
+            if (hasMax) buf.writeInt(spec.maximum());
         }
 
         @Override
         public Spec deserialize(final PacketBuffer buf) {
-            return new Spec(buf.readInt());
+            final byte flags = buf.readByte();
+            final int min = NumberFlags.hasMin(flags) ? buf.readInt() : Integer.MIN_VALUE;
+            final int max = NumberFlags.hasMax(flags) ? buf.readInt() : Integer.MAX_VALUE;
+            return new Spec(min, max);
         }
 
         @Override
         public void serializeJson(final Spec spec, final JsonObject json) {
-            json.addProperty("min", spec.minimum());
+            if (spec.minimum() != Integer.MIN_VALUE) json.addProperty("min", spec.minimum());
+            if (spec.maximum() != Integer.MAX_VALUE) json.addProperty("max", spec.maximum());
         }
 
         @Override
         public Spec access(final TimeArgument argument) {
-            return new Spec(argument.minimum());
+            return new Spec(argument.minimum(), argument.maximum());
         }
 
-        public record Spec(int minimum) implements ArgumentTypeRegistrar.Spec<TimeArgument> {
+        public record Spec(int minimum, int maximum) implements ArgumentTypeRegistrar.Spec<TimeArgument> {
 
             @Override
             public TimeArgument instantiate() {
-                return TimeArgument.time(minimum);
+                return TimeArgument.time(minimum, maximum);
             }
 
             @Override

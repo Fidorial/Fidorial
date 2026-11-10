@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -127,30 +129,56 @@ public interface ConfigurationClientboundPacketIds {
     /**
      * Immutable identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("clear_dialog"), CLEAR_DIALOG_ID),
-        Map.entry(Key.key("code_of_conduct"), CODE_OF_CONDUCT_ID),
-        Map.entry(Key.key("commands"), COMMANDS_ID),
-        Map.entry(Key.key("cookie_request"), COOKIE_REQUEST_ID),
-        Map.entry(Key.key("custom_payload"), CUSTOM_PAYLOAD_ID),
-        Map.entry(Key.key("custom_report_details"), CUSTOM_REPORT_DETAILS_ID),
-        Map.entry(Key.key("disconnect"), DISCONNECT_ID),
-        Map.entry(Key.key("finish_configuration"), FINISH_CONFIGURATION_ID),
-        Map.entry(Key.key("keep_alive"), KEEP_ALIVE_ID),
-        Map.entry(Key.key("ping"), PING_ID),
-        Map.entry(Key.key("post_effects"), POST_EFFECTS_ID),
-        Map.entry(Key.key("registry_data"), REGISTRY_DATA_ID),
-        Map.entry(Key.key("reset_chat"), RESET_CHAT_ID),
-        Map.entry(Key.key("resource_pack_pop"), RESOURCE_PACK_POP_ID),
-        Map.entry(Key.key("resource_pack_push"), RESOURCE_PACK_PUSH_ID),
-        Map.entry(Key.key("select_known_packs"), SELECT_KNOWN_PACKS_ID),
-        Map.entry(Key.key("server_links"), SERVER_LINKS_ID),
-        Map.entry(Key.key("show_dialog"), SHOW_DIALOG_ID),
-        Map.entry(Key.key("store_cookie"), STORE_COOKIE_ID),
-        Map.entry(Key.key("transfer"), TRANSFER_ID),
-        Map.entry(Key.key("update_enabled_features"), UPDATE_ENABLED_FEATURES_ID),
-        Map.entry(Key.key("update_tags"), UPDATE_TAGS_ID)
-    );
+    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("clear_dialog"),
+            Key.key("code_of_conduct"),
+            Key.key("commands"),
+            Key.key("cookie_request"),
+            Key.key("custom_payload"),
+            Key.key("custom_report_details"),
+            Key.key("disconnect"),
+            Key.key("finish_configuration"),
+            Key.key("keep_alive"),
+            Key.key("ping"),
+            Key.key("post_effects"),
+            Key.key("registry_data"),
+            Key.key("reset_chat"),
+            Key.key("resource_pack_pop"),
+            Key.key("resource_pack_push"),
+            Key.key("select_known_packs"),
+            Key.key("server_links"),
+            Key.key("show_dialog"),
+            Key.key("store_cookie"),
+            Key.key("transfer"),
+            Key.key("update_enabled_features"),
+            Key.key("update_tags")
+        },
+        new int[] {
+            CLEAR_DIALOG_ID,
+            CODE_OF_CONDUCT_ID,
+            COMMANDS_ID,
+            COOKIE_REQUEST_ID,
+            CUSTOM_PAYLOAD_ID,
+            CUSTOM_REPORT_DETAILS_ID,
+            DISCONNECT_ID,
+            FINISH_CONFIGURATION_ID,
+            KEEP_ALIVE_ID,
+            PING_ID,
+            POST_EFFECTS_ID,
+            REGISTRY_DATA_ID,
+            RESET_CHAT_ID,
+            RESOURCE_PACK_POP_ID,
+            RESOURCE_PACK_PUSH_ID,
+            SELECT_KNOWN_PACKS_ID,
+            SERVER_LINKS_ID,
+            SHOW_DIALOG_ID,
+            STORE_COOKIE_ID,
+            TRANSFER_ID,
+            UPDATE_ENABLED_FEATURES_ID,
+            UPDATE_TAGS_ID
+        }
+    ));
 
     /**
      * Resolves the protocol ID for a namespaced identifier.
