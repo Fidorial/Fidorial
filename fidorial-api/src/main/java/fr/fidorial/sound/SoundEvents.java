@@ -337,6 +337,14 @@ public final class SoundEvents {
     public static final Sound.Type FROSTBITE_STEP = of("entity.frostbite.step");
 
     /**
+     * The {@code minecraft:entity.frostbite.throw} sound event.
+     *
+     * @since 0.1.0
+     */
+    @SinceMinecraft("26.4")
+    public static final Sound.Type FROSTBITE_THROW = of("entity.frostbite.throw");
+
+    /**
      * The {@code minecraft:entity.frostbite.converted_to_zombie} sound event.
      *
      * @since 0.1.0

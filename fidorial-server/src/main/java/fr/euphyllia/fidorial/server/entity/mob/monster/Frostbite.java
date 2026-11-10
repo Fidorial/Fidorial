@@ -103,7 +103,7 @@ public final class Frostbite extends Zombie {
         final Location aim = target.location();
         final IceBall ball = IceBall.thrownAt(server().entities().ids().allocate(), from, this,
                 aim.x(), aim.y() + TARGET_AIM_HEIGHT, aim.z(), THROW_SPEED);
-        playSound(SoundEvents.ICE_BALL_THROW, 1.0f, 0.4f / (ThreadLocalRandom.current().nextFloat() * 0.4f + 0.8f));
+        playSound(SoundEvents.FROSTBITE_THROW,1.0f, 0.4f / (ThreadLocalRandom.current().nextFloat() * 0.4f + 0.8f));
         server().entities().spawn(ball);
     }
 }
