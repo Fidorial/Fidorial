@@ -47,7 +47,6 @@ public final class RegistryProtocolIdGenerator {
 
     private static final String FASTUTIL_OBJECTS = "it.unimi.dsi.fastutil.objects";
     private static final ClassName OBJECT_2_INT_MAP = ClassName.get(FASTUTIL_OBJECTS, "Object2IntMap");
-    private static final ClassName OBJECT_2_INT_MAPS = ClassName.get(FASTUTIL_OBJECTS, "Object2IntMaps");
     private static final ClassName OBJECT_2_INT_OPEN_HASH_MAP = ClassName.get(FASTUTIL_OBJECTS, "Object2IntOpenHashMap");
 
     /**
@@ -145,19 +144,19 @@ public final class RegistryProtocolIdGenerator {
         }
 
         final CodeBlock initializer = CodeBlock.builder()
-                .add("$T.unmodifiable(new $T<>(\n", OBJECT_2_INT_MAPS, OBJECT_2_INT_OPEN_HASH_MAP)
+                .add("new $T<>(\n", OBJECT_2_INT_OPEN_HASH_MAP)
                 .add("    new $T[] {\n", Key.class)
                 .add(keys.build())
                 .add("    },\n")
                 .add("    new int[] {\n")
                 .add(ids.build())
                 .add("    }\n")
-                .add("))")
+                .add(")")
                 .build();
 
         return FieldSpec.builder(mapType, LOOKUP_FIELD, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                 .initializer(initializer)
-                .addJavadoc("Immutable identifier to protocol ID lookup table.\n")
+                .addJavadoc("Identifier to protocol ID lookup table.\n")
                 .build();
     }
 

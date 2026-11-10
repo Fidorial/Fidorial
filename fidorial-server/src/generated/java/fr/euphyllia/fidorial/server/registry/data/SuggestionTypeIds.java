@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.registry.data;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
@@ -42,9 +41,9 @@ public interface SuggestionTypeIds {
     int SUMMONABLE_ENTITIES_SUGGESTION_ID = 2;
 
     /**
-     * Immutable identifier to protocol ID lookup table.
+     * Identifier to protocol ID lookup table.
      */
-    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+    Object2IntMap<Key> BY_IDENTIFIER = new Object2IntOpenHashMap<>(
         new Key[] {
             Key.key("ask_server"),
             Key.key("available_sounds"),
@@ -59,7 +58,7 @@ public interface SuggestionTypeIds {
             POST_EFFECTS_SUGGESTION_ID,
             SUMMONABLE_ENTITIES_SUGGESTION_ID
         }
-    ));
+    );
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

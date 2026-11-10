@@ -238,8 +238,8 @@ public final class BlockStateGenerator {
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addJavadoc("Per-block light emission/opacity, sourced from PrismarineJS's {@code minecraft-data}.\n\n")
                 .addJavadoc("<p>Generated from Prismarine's blocks report; do not edit.</p>\n")
-                .addField(createLightMapField("EMISSION", pkgs))
-                .addField(createLightMapField("OPACITY", pkgs))
+                .addField(createLightMapField("EMISSION", pkgs, blocks.size()))
+                .addField(createLightMapField("OPACITY", pkgs, blocks.size()))
                 .addStaticBlock(createLightDefaultsInitializer())
                 .addMethod(createPrivateConstructor(LIGHT_PROPERTIES_CLASS_NAME))
                 .addMethod(createLightAccessor("emission", "EMISSION", DEFAULT_EMISSION, pkgs))
@@ -251,9 +251,9 @@ public final class BlockStateGenerator {
         JavaFile.builder(pkgs.dataPackage(), lightProperties.build()).indent("    ").skipJavaLangImports(true).build().writeTo(outputDirectory);
     }
 
-    private static FieldSpec createLightMapField(final String name, final Packages pkgs) {
+    private static FieldSpec createLightMapField(final String name, final Packages pkgs, final int size) {
         return FieldSpec.builder(pkgs.lightMapType(), name, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer("new $T<>()", OBJECT_2_INT_OPEN_HASH_MAP)
+                .initializer("new $T<>($L)", OBJECT_2_INT_OPEN_HASH_MAP, size)
                 .build();
     }
 

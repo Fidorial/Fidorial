@@ -82,10 +82,10 @@ public final class EntityTypesGenerator {
                 .addJavadoc("category, edit {@code EntityCategories} in the registry generator and\n")
                 .addJavadoc("regenerate.</p>\n")
                 .addField(FieldSpec.builder(typeMap, "BY_KEY", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T<>()", ConcurrentHashMap.class)
+                        .initializer("new $T<>($L)", ConcurrentHashMap.class, entities.size())
                         .build())
                 .addField(FieldSpec.builder(idMap, "NETWORK_IDS", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T<>()", ConcurrentHashMap.class)
+                        .initializer("new $T<>($L)", ConcurrentHashMap.class, entities.size())
                         .build());
 
         addConstants(type, entities, prismarineEntities);

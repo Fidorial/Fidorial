@@ -14,9 +14,9 @@ import net.kyori.adventure.key.Key;
  * entity's own dimensions when you have one in hand.</p>
  */
 public final class EntityProperties {
-    private static final Object2FloatOpenHashMap<Key> WIDTH = new Object2FloatOpenHashMap<>();
+    private static final Object2FloatOpenHashMap<Key> WIDTH = new Object2FloatOpenHashMap<>(163);
 
-    private static final Object2FloatOpenHashMap<Key> HEIGHT = new Object2FloatOpenHashMap<>();
+    private static final Object2FloatOpenHashMap<Key> HEIGHT = new Object2FloatOpenHashMap<>(163);
 
     static {
         WIDTH.defaultReturnValue(0.6f);

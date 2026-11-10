@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
@@ -742,9 +741,9 @@ public interface PlayClientboundPacketIds {
     int WAYPOINT_ID = 142;
 
     /**
-     * Immutable identifier to protocol ID lookup table.
+     * Identifier to protocol ID lookup table.
      */
-    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+    Object2IntMap<Key> BY_IDENTIFIER = new Object2IntOpenHashMap<>(
         new Key[] {
             Key.key("add_entity"),
             Key.key("add_entity_motion"),
@@ -1039,7 +1038,7 @@ public interface PlayClientboundPacketIds {
             UPDATE_TAGS_ID,
             WAYPOINT_ID
         }
-    ));
+    );
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

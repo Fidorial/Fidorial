@@ -297,7 +297,7 @@ public final class FrozenRegistriesGenerator {
             type.addMethod(current.build());
         }
 
-        assembler.addStatement("final $T $N = new $T<>($L)", tagMapType, TAGS_PARAMETER,
+        assembler.addStatement("final $T $N = $T.newLinkedHashMap($L)", tagMapType, TAGS_PARAMETER,
                 ClassName.get(LinkedHashMap.class), tags.size());
 
         for (final String chunkName : chunkNames) {

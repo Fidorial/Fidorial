@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
@@ -27,9 +26,9 @@ public interface StatusServerboundPacketIds {
     int STATUS_REQUEST_ID = 0;
 
     /**
-     * Immutable identifier to protocol ID lookup table.
+     * Identifier to protocol ID lookup table.
      */
-    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+    Object2IntMap<Key> BY_IDENTIFIER = new Object2IntOpenHashMap<>(
         new Key[] {
             Key.key("ping_request"),
             Key.key("status_request")
@@ -38,7 +37,7 @@ public interface StatusServerboundPacketIds {
             PING_REQUEST_ID,
             STATUS_REQUEST_ID
         }
-    ));
+    );
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

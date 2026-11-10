@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.registry.data;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
@@ -832,9 +831,9 @@ public interface EntityTypeIds {
     int ZOMBIFIED_PIGLIN_ENTITY_ID = 160;
 
     /**
-     * Immutable identifier to protocol ID lookup table.
+     * Identifier to protocol ID lookup table.
      */
-    Object2IntMap<Key> BY_IDENTIFIER = Object2IntMaps.unmodifiable(new Object2IntOpenHashMap<>(
+    Object2IntMap<Key> BY_IDENTIFIER = new Object2IntOpenHashMap<>(
         new Key[] {
             Key.key("acacia_boat"),
             Key.key("acacia_chest_boat"),
@@ -1165,7 +1164,7 @@ public interface EntityTypeIds {
             ZOMBIE_VILLAGER_ENTITY_ID,
             ZOMBIFIED_PIGLIN_ENTITY_ID
         }
-    ));
+    );
 
     /**
      * Resolves the protocol ID for a namespaced identifier.

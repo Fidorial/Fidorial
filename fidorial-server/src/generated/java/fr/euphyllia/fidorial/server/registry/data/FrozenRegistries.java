@@ -8129,7 +8129,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:block}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> blockTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(317);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(317);
         blockTags0(tags);
         blockTags1(tags);
         blockTags2(tags);
@@ -8893,7 +8893,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:entity_type}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> entityTypeTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(53);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(53);
         entityTypeTags0(tags);
         entityTypeTags1(tags);
         entityTypeTags2(tags);
@@ -8933,7 +8933,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:fluid}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> fluidTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(11);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(11);
         fluidTags0(tags);
         return Map.copyOf(tags);
     }
@@ -9062,7 +9062,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:game_event}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> gameEventTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(5);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(5);
         gameEventTags0(tags);
         return Map.copyOf(tags);
     }
@@ -12311,7 +12311,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:item}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> itemTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(241);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(241);
         itemTags0(tags);
         itemTags1(tags);
         itemTags2(tags);
@@ -12730,7 +12730,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:potion}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> potionTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(5);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(5);
         potionTags0(tags);
         return Map.copyOf(tags);
     }

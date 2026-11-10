@@ -94,7 +94,7 @@ public final class BlockEntityTypeBlocksGenerator {
                 .addJavadoc("<p>Joined from Mojang's registry report and PrismarineJS's\n")
                 .addJavadoc("{@code minecraft-data} block entities report; do not edit.</p>\n")
                 .addField(FieldSpec.builder(mapType, "BLOCK_ENTITY_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T<>()", OBJECT_2_OBJECT_OPEN_HASH_MAP)
+                        .initializer("new $T<>($L)", OBJECT_2_OBJECT_OPEN_HASH_MAP, blocks.size())
                         .build())
                 .addMethod(MethodSpec.constructorBuilder()
                         .addModifiers(Modifier.PRIVATE)
