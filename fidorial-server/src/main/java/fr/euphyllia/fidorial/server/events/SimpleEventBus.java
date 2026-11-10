@@ -9,8 +9,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -92,24 +94,29 @@ public final class SimpleEventBus implements EventBus {
     private List<Registration<?>> resolve(final Class<?> eventType) {
         return resolved.computeIfAbsent(eventType, type -> {
             final List<Registration<?>> out = new ArrayList<>();
-            collect(type, out);
+            collect(type, out, new HashSet<>());
             out.sort(Comparator.comparing(r -> r.priority));
             return List.copyOf(out);
         });
     }
 
-    private void collect(@Nullable final Class<?> type, final List<Registration<?>> out) {
-        if (type == null || !Event.class.isAssignableFrom(type)) {
+    /**
+     * Collects the listeners of a type and of every type it extends or implements, each type once:
+     * an event often reaches the same interface by several paths, and its listeners are only to be
+     * called once.
+     */
+    private void collect(@Nullable final Class<?> type, final List<Registration<?>> out, final Set<Class<?>> visited) {
+        if (type == null || !Event.class.isAssignableFrom(type) || !visited.add(type)) {
             return;
         }
         final List<Registration<?>> direct = byType.get(type);
         if (direct != null) {
             out.addAll(direct);
         }
-        collect(type.getSuperclass(), out);
+        collect(type.getSuperclass(), out, visited);
 
         for (final Class<?> itf : type.getInterfaces()) {
-            collect(itf, out);
+            collect(itf, out, visited);
         }
     }
 
