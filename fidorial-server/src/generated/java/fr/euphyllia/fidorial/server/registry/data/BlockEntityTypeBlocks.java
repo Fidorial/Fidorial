@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
  * {@code minecraft-data} block entities report; do not edit.</p>
  */
 public final class BlockEntityTypeBlocks {
-    private static final Object2ObjectOpenHashMap<TypedKey<BlockType>, TypedKey<BlockEntityType>> BLOCK_ENTITY_TYPE = new Object2ObjectOpenHashMap<>(1311);
+    private static final Object2ObjectOpenHashMap<TypedKey<BlockType>, TypedKey<BlockEntityType>> BLOCK_ENTITY_TYPE = new Object2ObjectOpenHashMap<>(191);
 
     private BlockEntityTypeBlocks() {
         throw new UnsupportedOperationException("BlockEntityTypeBlocks cannot be instantiated.");

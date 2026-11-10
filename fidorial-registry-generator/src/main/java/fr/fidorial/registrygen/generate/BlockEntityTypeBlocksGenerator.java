@@ -90,17 +90,6 @@ public final class BlockEntityTypeBlocksGenerator {
 
         final TypeSpec.Builder type = TypeSpec.classBuilder(CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addJavadoc("The block entity type each block carries.\n\n")
-                .addJavadoc("<p>Joined from Mojang's registry report and PrismarineJS's\n")
-                .addJavadoc("{@code minecraft-data} block entities report; do not edit.</p>\n")
-                .addField(FieldSpec.builder(mapType, "BLOCK_ENTITY_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("new $T<>($L)", OBJECT_2_OBJECT_OPEN_HASH_MAP, blocks.size())
-                        .build())
-                .addMethod(MethodSpec.constructorBuilder()
-                        .addModifiers(Modifier.PRIVATE)
-                        .addStatement("throw new $T($S)", UnsupportedOperationException.class,
-                                CLASS_NAME + " cannot be instantiated.")
-                        .build())
                 .addMethod(MethodSpec.methodBuilder("blockEntityType")
                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .returns(BLOCK_ENTITY_TYPE_KEY.annotated(AnnotationSpec.builder(NULLABLE).build()))
@@ -108,9 +97,22 @@ public final class BlockEntityTypeBlocksGenerator {
                         .addJavadoc("@param block the block\n")
                         .addJavadoc("@return the block entity type it carries, {@code null} when it carries none\n")
                         .addStatement("return BLOCK_ENTITY_TYPE.get($N)", "block")
+                        .build())
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PRIVATE)
+                        .addStatement("throw new $T($S)", UnsupportedOperationException.class,
+                                CLASS_NAME + " cannot be instantiated.")
                         .build());
-
-        addRegistrationMethods(type, blocks, blockEntityTypes, prismarineBlockEntities, blockTypeKeys, blockEntityTypeKeys);
+        final int registrationCount = addRegistrationMethods(
+                type, blocks, blockEntityTypes, prismarineBlockEntities,
+                blockTypeKeys, blockEntityTypeKeys
+        );
+        type.addJavadoc("The block entity type each block carries.\n\n")
+                .addJavadoc("<p>Joined from Mojang's registry report and PrismarineJS's\n")
+                .addJavadoc("{@code minecraft-data} block entities report; do not edit.</p>\n")
+                .addField(FieldSpec.builder(mapType, "BLOCK_ENTITY_TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                        .initializer("new $T<>($L)", OBJECT_2_OBJECT_OPEN_HASH_MAP, registrationCount)
+                        .build());
 
         JavaFile.builder(registryDataPackage, type.build())
                 .indent("    ")
@@ -119,7 +121,7 @@ public final class BlockEntityTypeBlocksGenerator {
                 .writeTo(outputDirectory);
     }
 
-    private static void addRegistrationMethods(final TypeSpec.Builder type,
+    private static int addRegistrationMethods(final TypeSpec.Builder type,
                                                final List<RegistryEntryDefinition> blocks,
                                                final List<RegistryEntryDefinition> blockEntityTypes,
                                                final List<PrismarineBlockEntityDefinition> prismarineBlockEntities,
@@ -133,6 +135,7 @@ public final class BlockEntityTypeBlocksGenerator {
 
         MethodSpec.Builder current = null;
         int inCurrent = 0;
+        int registrationCount = 0;
 
         for (final PrismarineBlockEntityDefinition blockEntity : prismarineBlockEntities) {
 
@@ -160,6 +163,8 @@ public final class BlockEntityTypeBlocksGenerator {
                     current = null;
                     inCurrent = 0;
                 }
+
+                registrationCount++;
             }
         }
 
@@ -179,6 +184,7 @@ public final class BlockEntityTypeBlocksGenerator {
         }
 
         type.addMethod(bootstrap.build());
+        return registrationCount;
     }
 
     private static Set<String> paths(final List<RegistryEntryDefinition> entries) {
