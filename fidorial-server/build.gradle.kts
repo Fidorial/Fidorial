@@ -324,6 +324,7 @@ fidorialRegistryGenerator {
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",
+            "minecraft:command_suggestion_type" to "SuggestionType",
             "minecraft:entity_type" to "EntityType",
         ),
     )
@@ -331,6 +332,7 @@ fidorialRegistryGenerator {
     protocolIdRegistries.set(
         listOf(
             "minecraft:command_argument_type",
+            "minecraft:command_suggestion_type",
             "minecraft:entity_type",
         ),
     )

@@ -25,18 +25,17 @@ public final class ProtocolIdRegistries {
             "Generated from Mojang's registry report; do not edit.");
 
     /**
-     * {@code minecraft:block_entity_type} &rarr; {@code BlockEntityTypeIds}.
+     * {@code minecraft:command_suggestion_type} &rarr; {@code SuggestionTypeIds}.
      *
-     * <p>Used by the {@code level_chunk_with_light} and {@code block_entity_data}
-     * packets, which both encode the block entity type as a {@code VarInt}.</p>
+     * <p>Used by the {@code commands} packet for an argument node's custom suggestions.</p>
      */
-    public static final ProtocolIdTarget BLOCK_ENTITY_TYPE = new ProtocolIdTarget(
-            "minecraft:block_entity_type",
+    public static final ProtocolIdTarget SUGGESTION_TYPE = new ProtocolIdTarget(
+            "minecraft:command_suggestion_type",
             SERVER_DATA_PACKAGE,
-            "BlockEntityTypeIds",
-            "_BLOCK_ENTITY_ID",
+            "SuggestionTypeIds",
+            "_SUGGESTION_ID",
             ProtocolIdValueKind.PROTOCOL_ID,
-            "Network IDs for entries in the {@code minecraft:block_entity_type} registry.\n",
+            "Network IDs for entries in the {@code minecraft:command_suggestion_type} registry.\n",
             "Generated from Mojang's registry report; do not edit.");
 
     /**
@@ -51,7 +50,7 @@ public final class ProtocolIdRegistries {
             "Network IDs for entries in the {@code minecraft:entity_type} registry.\n",
             "Generated from Mojang's registry report; do not edit.");
 
-    public static final List<ProtocolIdTarget> ALL = List.of(ARGUMENT_TYPE, BLOCK_ENTITY_TYPE, ENTITY_TYPE);
+    public static final List<ProtocolIdTarget> ALL = List.of(ARGUMENT_TYPE, SUGGESTION_TYPE, ENTITY_TYPE);
 
     private ProtocolIdRegistries() {
         throw new UnsupportedOperationException();
