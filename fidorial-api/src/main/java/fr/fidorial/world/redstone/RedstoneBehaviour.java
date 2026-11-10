@@ -177,4 +177,22 @@ public interface RedstoneBehaviour {
      */
     default void tick(final RedstoneWorld world, final BlockPosition position, final BlockData state) {
     }
+
+    /**
+     * Called when a block event {@linkplain RedstoneWorld#blockEvent queued} for the block is due:
+     * a piston extends or retracts.
+     *
+     * @param world    the world of the block
+     * @param position where the block is
+     * @param state    the state of the block
+     * @param type     what the event is, as given when it was queued
+     * @param data     the value going with it, as given when it was queued
+     * @return {@code true} if the block acted on the event, which is then sent to the players seeing
+     *         the block; {@code false}, the default, if it ignored it
+     * @since 0.1.0
+     */
+    default boolean triggerEvent(final RedstoneWorld world, final BlockPosition position, final BlockData state,
+                                 final int type, final int data) {
+        return false;
+    }
 }

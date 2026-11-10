@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
+import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
@@ -79,6 +80,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final BlockEditService blockEdits;
     private final ThreadedRegionRegionizer regionizer;
     private final FidorialRedstoneEngine redstone;
+    private final MovingPistons movingPistons;
     private final AtomicBoolean unloadingChunks = new AtomicBoolean(false);
 
     public WorldModule(
@@ -115,12 +117,14 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.regionizer = scheduler.regionizer();
         this.redstone = new FidorialRedstoneEngine(
                 manager, regionizer, registries.blockStates(), registries.redstone(), blockEdits);
+        this.movingPistons = new MovingPistons(manager, regionizer, registries.redstone(), world -> redstone().world(world));
 
         // Wiring that cannot go through constructors (circular references). Done before plugins
         // load, so that a world created by a plugin is complete.
         manager.setStructureService(structures);
         manager.setChunkLoader(scheduler.chunkWorker());
         manager.setLightDispatcher(light);
+        manager.setChunkReadListener(movingPistons::resume);
         manager.setEntityBridge(entities.ids()::allocate, entities.spawnBridge());
         manager.setDefaultWorld(config.worlds().defaultWorld());
         manager.setDefaultGenerator(new ServiceBackedChunkGenerator(
@@ -157,6 +161,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         dayNight.start();
         bossBars.loadFromLevelData();
         regionizer.registerTickHandler(redstone.tickHandler());
+        // after the scheduled ticks and the block events, where vanilla ticks its block entities
+        regionizer.registerTickHandler(movingPistons);
     }
 
     @Override
@@ -297,6 +303,13 @@ public final class WorldModule implements ServerModule, WorldManager {
 
     public BlockEditService blockEdits() {
         return blockEdits;
+    }
+
+    /**
+     * {@return the blocks pistons are moving}
+     */
+    public MovingPistons movingPistons() {
+        return movingPistons;
     }
 
     /**

@@ -466,6 +466,10 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         if (state.isAir() || state.isFluid()) {
             return false;
         }
+        if (state.name().equals(BlockTypeKeys.MOVING_PISTON)) {
+            // what a piston is moving pushes the item out of its way itself, rather than trap it
+            return false;
+        }
         for (final TagKey<BlockType> tag : NO_COLLISION_TAGS) {
             if (BlockView.isTagged(tag, state)) {
                 return false;

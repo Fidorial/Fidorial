@@ -153,6 +153,29 @@ public interface RedstoneWorld extends SignalGetter {
     boolean willTickThisTick(BlockPosition position, TypedKey<BlockType> block);
 
     /**
+     * Queues a block event: a call to
+     * {@link RedstoneBehaviour#triggerEvent(RedstoneWorld, BlockPosition, BlockData, int, int)}, later
+     * in the same game tick. What a piston moves on, rather than on the update that powered it.
+     *
+     * <p>Block events run once the scheduled ticks due on that game tick have run, in the order they
+     * were queued. One queued while block events run still runs on that game tick, after those
+     * already queued. The event only runs if the block is still of type {@code block} by then, and
+     * queuing an event equal to one that is waiting does nothing.</p>
+     *
+     * <p>The players seeing the block are told of every event its behaviour accepts, before they are
+     * told of the blocks that event changed: their client plays the event out from the world as it
+     * was, the way a piston is drawn moving.</p>
+     *
+     * @param position the block the event is for
+     * @param block    the block type the event is for
+     * @param type     what the event is, from {@code 0} to {@code 255}, as the block type defines it
+     * @param data     a value going with it, from {@code 0} to {@code 255}
+     * @throws IllegalArgumentException if {@code type} or {@code data} is out of range
+     * @since 0.1.0
+     */
+    void blockEvent(BlockPosition position, TypedKey<BlockType> block, int type, int data);
+
+    /**
      * Tells the engine a block was replaced by something else than {@link #setBlock}, so that the
      * redstone around it reacts as if {@code setBlock} had been called with {@link Update#NEIGHBORS}.
      *

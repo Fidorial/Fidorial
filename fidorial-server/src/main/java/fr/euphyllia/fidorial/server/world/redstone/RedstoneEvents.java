@@ -2,21 +2,28 @@ package fr.euphyllia.fidorial.server.world.redstone;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.events.SimpleEventBus;
+import fr.euphyllia.fidorial.server.events.redstone.PistonExtendEventImpl;
+import fr.euphyllia.fidorial.server.events.redstone.PistonRetractEventImpl;
 import fr.euphyllia.fidorial.server.events.redstone.RedstoneDustPowerEventImpl;
 import fr.euphyllia.fidorial.server.events.redstone.RedstoneInputEventImpl;
 import fr.euphyllia.fidorial.server.events.redstone.RedstoneOutputEventImpl;
 import fr.euphyllia.fidorial.server.events.redstone.RedstoneUpdateEventImpl;
 import fr.fidorial.event.Event;
+import fr.fidorial.event.redstone.PistonExtendEvent;
+import fr.fidorial.event.redstone.PistonRetractEvent;
 import fr.fidorial.event.redstone.RedstoneDustPowerEvent;
 import fr.fidorial.event.redstone.RedstoneInputEvent;
 import fr.fidorial.event.redstone.RedstoneOutputEvent;
 import fr.fidorial.event.redstone.RedstoneUpdateEvent;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Posts the {@linkplain fr.fidorial.event.redstone redstone events} for the engine and the vanilla
@@ -117,5 +124,49 @@ public final class RedstoneEvents {
                                  final TypedKey<BlockType> source) {
         final SimpleEventBus bus = listened(RedstoneUpdateEventImpl.class);
         return bus == null || !bus.post(new RedstoneUpdateEventImpl(world, position, block, source)).isCancelled();
+    }
+
+    /**
+     * Fires a {@link PistonExtendEvent}.
+     *
+     * @param world     the world of the piston
+     * @param position  where the base of the piston is
+     * @param block     the state of the base, before it extends
+     * @param direction the side the piston faces
+     * @param sticky    {@code true} for a sticky piston
+     * @param moved     where the blocks it is about to push are
+     * @param broken    where the blocks it is about to break are
+     * @return {@code true} if the piston may extend, {@code false} if a listener cancelled it
+     */
+    public static boolean pistonExtend(final World world, final BlockPosition position, final BlockData block, final BlockFace direction,
+                                       final boolean sticky, final List<BlockPosition> moved, final List<BlockPosition> broken) {
+        final SimpleEventBus bus = listened(PistonExtendEventImpl.class);
+        return bus == null || !bus.post(new PistonExtendEventImpl(world, position, block, direction, sticky, moved, broken)).isCancelled();
+    }
+
+    /**
+     * {@return {@code true} if a {@link PistonRetractEvent} would reach a listener}: working out
+     * what a sticky piston is about to pull, ahead of pulling it, is only worth it then
+     */
+    public static boolean listensToPistonRetract() {
+        return listened(PistonRetractEventImpl.class) != null;
+    }
+
+    /**
+     * Fires a {@link PistonRetractEvent}.
+     *
+     * @param world     the world of the piston
+     * @param position  where the base of the piston is
+     * @param block     the state of the base, before it retracts
+     * @param direction the side the piston faces
+     * @param sticky    {@code true} for a sticky piston
+     * @param moved     where the blocks it is about to pull are
+     * @param broken    where the blocks it is about to break are
+     * @return {@code true} if the piston may retract, {@code false} if a listener cancelled it
+     */
+    public static boolean pistonRetract(final World world, final BlockPosition position, final BlockData block, final BlockFace direction,
+                                        final boolean sticky, final List<BlockPosition> moved, final List<BlockPosition> broken) {
+        final SimpleEventBus bus = listened(PistonRetractEventImpl.class);
+        return bus == null || !bus.post(new PistonRetractEventImpl(world, position, block, direction, sticky, moved, broken)).isCancelled();
     }
 }

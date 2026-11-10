@@ -5,6 +5,8 @@ import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
+import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
+import fr.euphyllia.fidorial.server.world.redstone.ServerRedstoneWorld;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
@@ -41,6 +43,42 @@ final class Redstone {
      */
     static RedstoneWorld world(final World world) {
         return FidorialServer.getInstance().worlds().redstone().world(world);
+    }
+
+    /**
+     * {@return the blocks pistons are moving}
+     */
+    static MovingPistons movingPistons() {
+        return FidorialServer.getInstance().worlds().movingPistons();
+    }
+
+    /**
+     * {@return {@code true} if the calling thread owns a block, and may therefore change it}
+     *
+     * @param world    the redstone of the world
+     * @param position where the block is
+     */
+    static boolean owns(final RedstoneWorld world, final BlockPosition position) {
+        return world.world().scheduler().isOwnedByCurrentThread(world.world().key(), position.chunk());
+    }
+
+    /**
+     * Replaces a block without telling the players that see it, when the engine in effect is the
+     * server's: what vanilla does for the blocks a piston is moving, which clients work out from the
+     * block event of the piston. Another engine has no such write, and players are then told.
+     *
+     * @param world    the redstone of the world
+     * @param position where the block is
+     * @param data     the new state
+     * @param update   how far the change spreads
+     */
+    static void setBlockUnseen(final RedstoneWorld world, final BlockPosition position, final BlockData data,
+                               final RedstoneWorld.Update update) {
+        if (world instanceof final ServerRedstoneWorld server) {
+            server.setBlockUnseen(position, data, update);
+        } else {
+            world.setBlock(position, data, update);
+        }
     }
 
     /**

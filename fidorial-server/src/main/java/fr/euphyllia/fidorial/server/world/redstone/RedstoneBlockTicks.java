@@ -91,12 +91,6 @@ public final class RedstoneBlockTicks implements RegionTickHandler {
         return regions.get(RegionKey.of(world.key(), chunk));
     }
 
-    private record RegionKey(Key dimension, int sectionX, int sectionZ) {
-        static RegionKey of(final Key dimension, final ChunkPos chunk) {
-            return new RegionKey(dimension, ThreadedRegionRegionizer.chunkToSection(chunk.x()),
-                    ThreadedRegionRegionizer.chunkToSection(chunk.z()));
-        }
-    }
     private record TickKey(BlockPosition position, TypedKey<BlockType> block) {
     }
 

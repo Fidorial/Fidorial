@@ -45,8 +45,9 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 - Simulation de l'eau et de la lave : sources, écoulement vertical prioritaire, perte de niveau propre à chaque fluide,
   interaction obsidienne/cobblestone
 - Moteur de lumière (blocs et ciel)
-- Redstone : poudre, torches, répéteurs, comparateurs, observateurs, leviers, boutons, lampes, portes et plus, dans
-  l'ordre de mise à jour vanilla ; [Alternate Current](https://github.com/SpaceWalkerRS/alternate-current) peut piloter
+- Redstone : poudre, torches, répéteurs, comparateurs, observateurs, leviers, boutons, lampes, portes, pistons et
+  pistons collants (blocs de slime et de miel, quasi-connectivité, lâcher de bloc) et plus, dans l'ordre de mise à
+  jour vanilla ; [Alternate Current](https://github.com/SpaceWalkerRS/alternate-current) peut piloter
   la poudre à la place, monde par monde (`redstone.dust-implementation` dans la configuration du monde), et les plugins
   observent ou annulent ce que fait la redstone via des événements
 - Cycle jour/nuit et météo façon vanilla, tous deux persistés dans le `level.dat`
@@ -88,11 +89,11 @@ L'API est publiée sur [repo.euphyllia.moe](https://repo.euphyllia.moe) et fourn
 
 ```kotlin
 repositories {
-    maven("https://repo.euphyllia.moe/repository/maven-public/")
+  maven("https://repo.euphyllia.moe/repository/maven-public/")
 }
 
 dependencies {
-    compileOnly("fr.fidorial:fidorial-api:26.4-snapshot-7-build.+")
+  compileOnly("fr.fidorial:fidorial-api:26.4-snapshot-7-build.+")
 }
 ```
 

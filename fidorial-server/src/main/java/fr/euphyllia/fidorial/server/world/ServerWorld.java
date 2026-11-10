@@ -95,6 +95,7 @@ public final class ServerWorld implements World {
     private final int height;
     private final WorldLightManager lightManager;
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
+    private volatile @Nullable ChunkReadListener chunkReadListener;
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
     private final ForcedChunks forcedChunks;
@@ -380,6 +381,10 @@ public final class ServerWorld implements World {
         loaded.put(key, column);
         ensureEntitiesLoaded(chunkX, chunkZ);
         ensureLight(column, chunkX, chunkZ);
+        final ChunkReadListener listener = chunkReadListener;
+        if (fromDisk != null && listener != null) {
+            listener.chunkRead(this, column);
+        }
         return column;
     }
 
@@ -862,6 +867,24 @@ public final class ServerWorld implements World {
 
     public void setLightDispatcher(final LightUpdateDispatcher dispatcher) {
         this.lightDispatcher = dispatcher;
+    }
+
+    /**
+     * Sets who is told of the chunks read from disk: what was saved mid-way, such as a block a
+     * piston was moving, moves on from there.
+     *
+     * @param listener told of every chunk of this world read from disk, on the thread that read it
+     */
+    public void setChunkReadListener(final ChunkReadListener listener) {
+        this.chunkReadListener = listener;
+    }
+
+    /**
+     * Told of a chunk that was just read from disk, rather than generated.
+     */
+    @FunctionalInterface
+    public interface ChunkReadListener {
+        void chunkRead(ServerWorld world, ChunkColumn column);
     }
 
     private CompletableFuture<@Nullable Void> lightFlushFuture(final LongIterable chunkKeys) {

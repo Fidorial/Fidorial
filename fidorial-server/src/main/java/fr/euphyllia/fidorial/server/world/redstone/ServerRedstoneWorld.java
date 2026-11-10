@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.redstone;
 
 import alternate.current.wire.WireHandler;
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -250,16 +251,36 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
 
     @Override
     public boolean setBlock(final BlockPosition position, final BlockData data, final Update update) {
-        return setBlock(position, data, update, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT);
+        return setBlock(position, data, update, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT, true);
+    }
+
+    /**
+     * Replaces a block as {@link #setBlock(BlockPosition, BlockData, Update)} does, without telling
+     * the players that see it: what vanilla does for the blocks a piston is moving, which clients
+     * work out themselves from the block event of the piston. Light and fluids still follow.
+     *
+     * @param position where the block is
+     * @param data     the new state
+     * @param update   how far the change spreads
+     * @return {@code false} if the block already held that state, or its chunk is not loaded
+     * @throws IllegalStateException if the calling thread does not own {@code position}
+     */
+    public boolean setBlockUnseen(final BlockPosition position, final BlockData data, final Update update) {
+        return setBlock(position, data, update, FidorialRedstoneEngine.SHAPE_UPDATE_LIMIT, false);
     }
 
     boolean setBlock(final BlockPosition position, final BlockData data, final Update update, final int limit) {
+        return setBlock(position, data, update, limit, true);
+    }
+
+    private boolean setBlock(final BlockPosition position, final BlockData data, final Update update, final int limit,
+                             final boolean visible) {
         ThreadContexts.checkOwnedByCurrentThread(world, position, "redstone setBlock");
         final BlockData previous = blockAt(position);
         if (previous == null || previous.equals(data)) {
             return false;
         }
-        if (!engine.blockEdits().set(world, position, engine.blockStates().toBlockState(data), false)) {
+        if (!engine.blockEdits().set(world, position, engine.blockStates().toBlockState(data), false, visible)) {
             return false;
         }
         afterChange(position, previous, data, update, limit);
@@ -529,6 +550,13 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     @Override
     public boolean willTickThisTick(final BlockPosition position, final TypedKey<BlockType> block) {
         return engine.ticks().willTickThisTick(world, position, block);
+    }
+
+    @Override
+    public void blockEvent(final BlockPosition position, final TypedKey<BlockType> block, final int type, final int data) {
+        Preconditions.checkArgument(type >= 0 && type <= 255, "The type of a block event is between 0 and 255, not %s", type);
+        Preconditions.checkArgument(data >= 0 && data <= 255, "The data of a block event is between 0 and 255, not %s", data);
+        engine.events().add(world, position, block, type, data);
     }
 
     private boolean owns(final BlockPosition position) {

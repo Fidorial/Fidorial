@@ -56,6 +56,10 @@ public final class VanillaRedstone {
         registry.attachVanilla(BlockTypeKeys.REDSTONE_BLOCK, RedstoneBlock.INSTANCE);
         registry.attachVanilla(TrappedChestBlock.KEY, TrappedChestBlock.INSTANCE);
         registry.attachVanilla(PoweredNoteBlock.KEY, PoweredNoteBlock.INSTANCE);
+        registry.attachVanilla(BlockTypeKeys.PISTON, PistonBaseBlock.NORMAL);
+        registry.attachVanilla(BlockTypeKeys.STICKY_PISTON, PistonBaseBlock.STICKY);
+        registry.attachVanilla(PistonHeadBlock.KEY, PistonHeadBlock.INSTANCE);
+        registry.attachVanilla(MovingPistonBlock.KEY, MovingPistonBlock.INSTANCE);
         AnalogOutputs.vanilla().forEach(registry::attachVanilla);
     }
 }

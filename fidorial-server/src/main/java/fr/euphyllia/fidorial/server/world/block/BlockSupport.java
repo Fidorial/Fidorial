@@ -36,6 +36,7 @@ public final class BlockSupport {
     private static final int FULL_SHIFT = 1;
     private static final int CENTER_SHIFT = 7;
     private static final int RIGID_SHIFT = 13;
+    private static final int FULL_COLLISION = 1 << 19;
 
     private static volatile int[] flags = new int[0];
 
@@ -113,6 +114,15 @@ public final class BlockSupport {
             case RIGID -> RIGID_SHIFT;
         };
         return (flagsOf(data) & (1 << (shift + faceIndex(face)))) != 0;
+    }
+
+    /**
+     * {@return {@code true} if entities collide with the state as with a full block}
+     *
+     * @param data the state, {@code null} for a block that is not loaded
+     */
+    public static boolean isCollisionShapeFullBlock(final @Nullable BlockData data) {
+        return (flagsOf(data) & FULL_COLLISION) != 0;
     }
 
     /**
