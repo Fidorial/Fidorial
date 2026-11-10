@@ -1415,6 +1415,16 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> TRIGGERS_AMBIENT_DRIED_GHAST_BLOCK_SOUNDS = create("triggers_ambient_dried_ghast_block_sounds");
 
     /**
+     * Tag {@code #minecraft:triggers_ambient_ice_block_sounds}.
+     */
+    public static final TagKey<BlockType> TRIGGERS_AMBIENT_ICE_BLOCK_SOUNDS = create("triggers_ambient_ice_block_sounds");
+
+    /**
+     * Tag {@code #minecraft:triggers_ambient_ice_crystal_sounds}.
+     */
+    public static final TagKey<BlockType> TRIGGERS_AMBIENT_ICE_CRYSTAL_SOUNDS = create("triggers_ambient_ice_crystal_sounds");
+
+    /**
      * Tag {@code #minecraft:turns_into_dirt_path}.
      */
     public static final TagKey<BlockType> TURNS_INTO_DIRT_PATH = create("turns_into_dirt_path");

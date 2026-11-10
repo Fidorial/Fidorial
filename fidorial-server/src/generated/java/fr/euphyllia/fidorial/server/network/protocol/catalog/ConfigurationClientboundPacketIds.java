@@ -25,6 +25,11 @@ public interface ConfigurationClientboundPacketIds {
     int CODE_OF_CONDUCT_ID = 20;
 
     /**
+     * {@code minecraft:commands}
+     */
+    int COMMANDS_ID = 21;
+
+    /**
      * {@code minecraft:cookie_request}
      */
     int COOKIE_REQUEST_ID = 0;
@@ -125,6 +130,7 @@ public interface ConfigurationClientboundPacketIds {
     Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
         Map.entry(Key.key("clear_dialog"), CLEAR_DIALOG_ID),
         Map.entry(Key.key("code_of_conduct"), CODE_OF_CONDUCT_ID),
+        Map.entry(Key.key("commands"), COMMANDS_ID),
         Map.entry(Key.key("cookie_request"), COOKIE_REQUEST_ID),
         Map.entry(Key.key("custom_payload"), CUSTOM_PAYLOAD_ID),
         Map.entry(Key.key("custom_report_details"), CUSTOM_REPORT_DETAILS_ID),

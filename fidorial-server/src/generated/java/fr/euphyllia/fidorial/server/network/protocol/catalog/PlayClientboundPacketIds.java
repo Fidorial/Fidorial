@@ -20,49 +20,54 @@ public interface PlayClientboundPacketIds {
     int ADD_ENTITY_ID = 1;
 
     /**
+     * {@code minecraft:add_entity_motion}
+     */
+    int ADD_ENTITY_MOTION_ID = 2;
+
+    /**
      * {@code minecraft:add_transient_block}
      */
-    int ADD_TRANSIENT_BLOCK_ID = 37;
+    int ADD_TRANSIENT_BLOCK_ID = 38;
 
     /**
      * {@code minecraft:animate}
      */
-    int ANIMATE_ID = 2;
+    int ANIMATE_ID = 3;
 
     /**
      * {@code minecraft:award_stats}
      */
-    int AWARD_STATS_ID = 3;
+    int AWARD_STATS_ID = 4;
 
     /**
      * {@code minecraft:block_changed_ack}
      */
-    int BLOCK_CHANGED_ACK_ID = 4;
+    int BLOCK_CHANGED_ACK_ID = 5;
 
     /**
      * {@code minecraft:block_destruction}
      */
-    int BLOCK_DESTRUCTION_ID = 5;
+    int BLOCK_DESTRUCTION_ID = 6;
 
     /**
      * {@code minecraft:block_entity_data}
      */
-    int BLOCK_ENTITY_DATA_ID = 6;
+    int BLOCK_ENTITY_DATA_ID = 7;
 
     /**
      * {@code minecraft:block_event}
      */
-    int BLOCK_EVENT_ID = 7;
+    int BLOCK_EVENT_ID = 8;
 
     /**
      * {@code minecraft:block_update}
      */
-    int BLOCK_UPDATE_ID = 8;
+    int BLOCK_UPDATE_ID = 9;
 
     /**
      * {@code minecraft:boss_event}
      */
-    int BOSS_EVENT_ID = 9;
+    int BOSS_EVENT_ID = 10;
 
     /**
      * {@code minecraft:bundle_delimiter}
@@ -72,673 +77,674 @@ public interface PlayClientboundPacketIds {
     /**
      * {@code minecraft:change_difficulty}
      */
-    int CHANGE_DIFFICULTY_ID = 10;
+    int CHANGE_DIFFICULTY_ID = 11;
 
     /**
      * {@code minecraft:chunk_batch_finished}
      */
-    int CHUNK_BATCH_FINISHED_ID = 11;
+    int CHUNK_BATCH_FINISHED_ID = 12;
 
     /**
      * {@code minecraft:chunk_batch_start}
      */
-    int CHUNK_BATCH_START_ID = 12;
+    int CHUNK_BATCH_START_ID = 13;
 
     /**
      * {@code minecraft:chunks_biomes}
      */
-    int CHUNKS_BIOMES_ID = 13;
+    int CHUNKS_BIOMES_ID = 14;
 
     /**
      * {@code minecraft:clear_dialog}
      */
-    int CLEAR_DIALOG_ID = 142;
+    int CLEAR_DIALOG_ID = 143;
 
     /**
      * {@code minecraft:clear_titles}
      */
-    int CLEAR_TITLES_ID = 14;
+    int CLEAR_TITLES_ID = 15;
 
     /**
      * {@code minecraft:command_suggestions}
      */
-    int COMMAND_SUGGESTIONS_ID = 15;
+    int COMMAND_SUGGESTIONS_ID = 16;
 
     /**
      * {@code minecraft:commands}
      */
-    int COMMANDS_ID = 16;
+    int COMMANDS_ID = 17;
 
     /**
      * {@code minecraft:container_close}
      */
-    int CONTAINER_CLOSE_ID = 17;
+    int CONTAINER_CLOSE_ID = 18;
 
     /**
      * {@code minecraft:container_set_content}
      */
-    int CONTAINER_SET_CONTENT_ID = 18;
+    int CONTAINER_SET_CONTENT_ID = 19;
 
     /**
      * {@code minecraft:container_set_data}
      */
-    int CONTAINER_SET_DATA_ID = 19;
+    int CONTAINER_SET_DATA_ID = 20;
 
     /**
      * {@code minecraft:container_set_slot}
      */
-    int CONTAINER_SET_SLOT_ID = 20;
+    int CONTAINER_SET_SLOT_ID = 21;
 
     /**
      * {@code minecraft:cookie_request}
      */
-    int COOKIE_REQUEST_ID = 21;
+    int COOKIE_REQUEST_ID = 22;
 
     /**
      * {@code minecraft:cooldown}
      */
-    int COOLDOWN_ID = 22;
+    int COOLDOWN_ID = 23;
 
     /**
      * {@code minecraft:custom_chat_completions}
      */
-    int CUSTOM_CHAT_COMPLETIONS_ID = 23;
+    int CUSTOM_CHAT_COMPLETIONS_ID = 24;
 
     /**
      * {@code minecraft:custom_payload}
      */
-    int CUSTOM_PAYLOAD_ID = 24;
+    int CUSTOM_PAYLOAD_ID = 25;
 
     /**
      * {@code minecraft:custom_report_details}
      */
-    int CUSTOM_REPORT_DETAILS_ID = 139;
+    int CUSTOM_REPORT_DETAILS_ID = 140;
 
     /**
      * {@code minecraft:damage_event}
      */
-    int DAMAGE_EVENT_ID = 25;
+    int DAMAGE_EVENT_ID = 26;
 
     /**
      * {@code minecraft:debug/block_value}
      */
-    int DEBUG_BLOCK_VALUE_ID = 26;
+    int DEBUG_BLOCK_VALUE_ID = 27;
 
     /**
      * {@code minecraft:debug/chunk_value}
      */
-    int DEBUG_CHUNK_VALUE_ID = 27;
+    int DEBUG_CHUNK_VALUE_ID = 28;
 
     /**
      * {@code minecraft:debug/entity_value}
      */
-    int DEBUG_ENTITY_VALUE_ID = 28;
+    int DEBUG_ENTITY_VALUE_ID = 29;
 
     /**
      * {@code minecraft:debug/event}
      */
-    int DEBUG_EVENT_ID = 29;
+    int DEBUG_EVENT_ID = 30;
 
     /**
      * {@code minecraft:debug_sample}
      */
-    int DEBUG_SAMPLE_ID = 30;
+    int DEBUG_SAMPLE_ID = 31;
 
     /**
      * {@code minecraft:delete_chat}
      */
-    int DELETE_CHAT_ID = 31;
+    int DELETE_CHAT_ID = 32;
 
     /**
      * {@code minecraft:disconnect}
      */
-    int DISCONNECT_ID = 32;
+    int DISCONNECT_ID = 33;
 
     /**
      * {@code minecraft:disguised_chat}
      */
-    int DISGUISED_CHAT_ID = 33;
+    int DISGUISED_CHAT_ID = 34;
 
     /**
      * {@code minecraft:entity_event}
      */
-    int ENTITY_EVENT_ID = 34;
+    int ENTITY_EVENT_ID = 35;
 
     /**
      * {@code minecraft:entity_position_sync}
      */
-    int ENTITY_POSITION_SYNC_ID = 35;
+    int ENTITY_POSITION_SYNC_ID = 36;
 
     /**
      * {@code minecraft:explode}
      */
-    int EXPLODE_ID = 36;
+    int EXPLODE_ID = 37;
 
     /**
      * {@code minecraft:forget_level_chunk}
      */
-    int FORGET_LEVEL_CHUNK_ID = 38;
+    int FORGET_LEVEL_CHUNK_ID = 39;
 
     /**
      * {@code minecraft:game_event}
      */
-    int GAME_EVENT_ID = 39;
+    int GAME_EVENT_ID = 40;
 
     /**
      * {@code minecraft:game_rule_values}
      */
-    int GAME_RULE_VALUES_ID = 40;
+    int GAME_RULE_VALUES_ID = 41;
 
     /**
      * {@code minecraft:game_test_highlight_pos}
      */
-    int GAME_TEST_HIGHLIGHT_POS_ID = 41;
+    int GAME_TEST_HIGHLIGHT_POS_ID = 42;
 
     /**
      * {@code minecraft:hurt_animation}
      */
-    int HURT_ANIMATION_ID = 43;
+    int HURT_ANIMATION_ID = 44;
 
     /**
      * {@code minecraft:initialize_border}
      */
-    int INITIALIZE_BORDER_ID = 44;
+    int INITIALIZE_BORDER_ID = 45;
 
     /**
      * {@code minecraft:keep_alive}
      */
-    int KEEP_ALIVE_ID = 45;
+    int KEEP_ALIVE_ID = 46;
 
     /**
      * {@code minecraft:level_chunk_with_light}
      */
-    int LEVEL_CHUNK_WITH_LIGHT_ID = 46;
+    int LEVEL_CHUNK_WITH_LIGHT_ID = 47;
 
     /**
      * {@code minecraft:level_event}
      */
-    int LEVEL_EVENT_ID = 47;
+    int LEVEL_EVENT_ID = 48;
 
     /**
      * {@code minecraft:level_particles}
      */
-    int LEVEL_PARTICLES_ID = 48;
+    int LEVEL_PARTICLES_ID = 49;
 
     /**
      * {@code minecraft:light_update}
      */
-    int LIGHT_UPDATE_ID = 49;
+    int LIGHT_UPDATE_ID = 50;
 
     /**
      * {@code minecraft:login}
      */
-    int LOGIN_ID = 50;
+    int LOGIN_ID = 51;
 
     /**
      * {@code minecraft:low_disk_space_warning}
      */
-    int LOW_DISK_SPACE_WARNING_ID = 51;
+    int LOW_DISK_SPACE_WARNING_ID = 52;
 
     /**
      * {@code minecraft:map_item_data}
      */
-    int MAP_ITEM_DATA_ID = 52;
+    int MAP_ITEM_DATA_ID = 53;
 
     /**
      * {@code minecraft:merchant_offers}
      */
-    int MERCHANT_OFFERS_ID = 53;
+    int MERCHANT_OFFERS_ID = 54;
 
     /**
      * {@code minecraft:mount_screen_open}
      */
-    int MOUNT_SCREEN_OPEN_ID = 42;
+    int MOUNT_SCREEN_OPEN_ID = 43;
 
     /**
      * {@code minecraft:move_entity_pos}
      */
-    int MOVE_ENTITY_POS_ID = 54;
+    int MOVE_ENTITY_POS_ID = 55;
 
     /**
      * {@code minecraft:move_entity_pos_rot}
      */
-    int MOVE_ENTITY_POS_ROT_ID = 55;
+    int MOVE_ENTITY_POS_ROT_ID = 56;
 
     /**
      * {@code minecraft:move_entity_rot}
      */
-    int MOVE_ENTITY_ROT_ID = 57;
+    int MOVE_ENTITY_ROT_ID = 58;
 
     /**
      * {@code minecraft:move_minecart_along_track}
      */
-    int MOVE_MINECART_ALONG_TRACK_ID = 56;
+    int MOVE_MINECART_ALONG_TRACK_ID = 57;
 
     /**
      * {@code minecraft:move_vehicle}
      */
-    int MOVE_VEHICLE_ID = 58;
+    int MOVE_VEHICLE_ID = 59;
 
     /**
      * {@code minecraft:open_book}
      */
-    int OPEN_BOOK_ID = 59;
+    int OPEN_BOOK_ID = 60;
 
     /**
      * {@code minecraft:open_screen}
      */
-    int OPEN_SCREEN_ID = 60;
+    int OPEN_SCREEN_ID = 61;
 
     /**
      * {@code minecraft:open_sign_editor}
      */
-    int OPEN_SIGN_EDITOR_ID = 61;
+    int OPEN_SIGN_EDITOR_ID = 62;
 
     /**
      * {@code minecraft:ping}
      */
-    int PING_ID = 62;
+    int PING_ID = 63;
 
     /**
      * {@code minecraft:place_ghost_recipe}
      */
-    int PLACE_GHOST_RECIPE_ID = 64;
+    int PLACE_GHOST_RECIPE_ID = 65;
 
     /**
      * {@code minecraft:player_abilities}
      */
-    int PLAYER_ABILITIES_ID = 65;
+    int PLAYER_ABILITIES_ID = 66;
 
     /**
      * {@code minecraft:player_chat}
      */
-    int PLAYER_CHAT_ID = 66;
+    int PLAYER_CHAT_ID = 67;
 
     /**
      * {@code minecraft:player_combat_end}
      */
-    int PLAYER_COMBAT_END_ID = 67;
+    int PLAYER_COMBAT_END_ID = 68;
 
     /**
      * {@code minecraft:player_combat_enter}
      */
-    int PLAYER_COMBAT_ENTER_ID = 68;
+    int PLAYER_COMBAT_ENTER_ID = 69;
 
     /**
      * {@code minecraft:player_combat_kill}
      */
-    int PLAYER_COMBAT_KILL_ID = 69;
+    int PLAYER_COMBAT_KILL_ID = 70;
 
     /**
      * {@code minecraft:player_info_remove}
      */
-    int PLAYER_INFO_REMOVE_ID = 70;
+    int PLAYER_INFO_REMOVE_ID = 71;
 
     /**
      * {@code minecraft:player_info_update}
      */
-    int PLAYER_INFO_UPDATE_ID = 71;
+    int PLAYER_INFO_UPDATE_ID = 72;
 
     /**
      * {@code minecraft:player_look_at}
      */
-    int PLAYER_LOOK_AT_ID = 72;
+    int PLAYER_LOOK_AT_ID = 73;
 
     /**
      * {@code minecraft:player_position}
      */
-    int PLAYER_POSITION_ID = 73;
+    int PLAYER_POSITION_ID = 74;
 
     /**
      * {@code minecraft:player_rotation}
      */
-    int PLAYER_ROTATION_ID = 74;
+    int PLAYER_ROTATION_ID = 75;
 
     /**
      * {@code minecraft:pong_response}
      */
-    int PONG_RESPONSE_ID = 63;
+    int PONG_RESPONSE_ID = 64;
 
     /**
      * {@code minecraft:post_effects}
      */
-    int POST_EFFECTS_ID = 83;
+    int POST_EFFECTS_ID = 84;
 
     /**
      * {@code minecraft:projectile_power}
      */
-    int PROJECTILE_POWER_ID = 138;
+    int PROJECTILE_POWER_ID = 139;
 
     /**
      * {@code minecraft:recipe_book_add}
      */
-    int RECIPE_BOOK_ADD_ID = 75;
+    int RECIPE_BOOK_ADD_ID = 76;
 
     /**
      * {@code minecraft:recipe_book_remove}
      */
-    int RECIPE_BOOK_REMOVE_ID = 76;
+    int RECIPE_BOOK_REMOVE_ID = 77;
 
     /**
      * {@code minecraft:recipe_book_settings}
      */
-    int RECIPE_BOOK_SETTINGS_ID = 77;
+    int RECIPE_BOOK_SETTINGS_ID = 78;
 
     /**
      * {@code minecraft:remove_entities}
      */
-    int REMOVE_ENTITIES_ID = 78;
+    int REMOVE_ENTITIES_ID = 79;
 
     /**
      * {@code minecraft:remove_mob_effect}
      */
-    int REMOVE_MOB_EFFECT_ID = 79;
+    int REMOVE_MOB_EFFECT_ID = 80;
 
     /**
      * {@code minecraft:reset_score}
      */
-    int RESET_SCORE_ID = 80;
+    int RESET_SCORE_ID = 81;
 
     /**
      * {@code minecraft:resource_pack_pop}
      */
-    int RESOURCE_PACK_POP_ID = 81;
+    int RESOURCE_PACK_POP_ID = 82;
 
     /**
      * {@code minecraft:resource_pack_push}
      */
-    int RESOURCE_PACK_PUSH_ID = 82;
+    int RESOURCE_PACK_PUSH_ID = 83;
 
     /**
      * {@code minecraft:respawn}
      */
-    int RESPAWN_ID = 84;
+    int RESPAWN_ID = 85;
 
     /**
      * {@code minecraft:rotate_head}
      */
-    int ROTATE_HEAD_ID = 85;
+    int ROTATE_HEAD_ID = 86;
 
     /**
      * {@code minecraft:section_blocks_update}
      */
-    int SECTION_BLOCKS_UPDATE_ID = 86;
+    int SECTION_BLOCKS_UPDATE_ID = 87;
 
     /**
      * {@code minecraft:select_advancements_tab}
      */
-    int SELECT_ADVANCEMENTS_TAB_ID = 87;
+    int SELECT_ADVANCEMENTS_TAB_ID = 88;
 
     /**
      * {@code minecraft:server_data}
      */
-    int SERVER_DATA_ID = 88;
+    int SERVER_DATA_ID = 89;
 
     /**
      * {@code minecraft:server_links}
      */
-    int SERVER_LINKS_ID = 140;
+    int SERVER_LINKS_ID = 141;
 
     /**
      * {@code minecraft:set_action_bar_text}
      */
-    int SET_ACTION_BAR_TEXT_ID = 89;
+    int SET_ACTION_BAR_TEXT_ID = 90;
 
     /**
      * {@code minecraft:set_border_center}
      */
-    int SET_BORDER_CENTER_ID = 90;
+    int SET_BORDER_CENTER_ID = 91;
 
     /**
      * {@code minecraft:set_border_lerp_size}
      */
-    int SET_BORDER_LERP_SIZE_ID = 91;
+    int SET_BORDER_LERP_SIZE_ID = 92;
 
     /**
      * {@code minecraft:set_border_size}
      */
-    int SET_BORDER_SIZE_ID = 92;
+    int SET_BORDER_SIZE_ID = 93;
 
     /**
      * {@code minecraft:set_border_warning_delay}
      */
-    int SET_BORDER_WARNING_DELAY_ID = 93;
+    int SET_BORDER_WARNING_DELAY_ID = 94;
 
     /**
      * {@code minecraft:set_border_warning_distance}
      */
-    int SET_BORDER_WARNING_DISTANCE_ID = 94;
+    int SET_BORDER_WARNING_DISTANCE_ID = 95;
 
     /**
      * {@code minecraft:set_camera}
      */
-    int SET_CAMERA_ID = 95;
+    int SET_CAMERA_ID = 96;
 
     /**
      * {@code minecraft:set_chunk_cache_center}
      */
-    int SET_CHUNK_CACHE_CENTER_ID = 96;
+    int SET_CHUNK_CACHE_CENTER_ID = 97;
 
     /**
      * {@code minecraft:set_chunk_cache_radius}
      */
-    int SET_CHUNK_CACHE_RADIUS_ID = 97;
+    int SET_CHUNK_CACHE_RADIUS_ID = 98;
 
     /**
      * {@code minecraft:set_cursor_item}
      */
-    int SET_CURSOR_ITEM_ID = 98;
+    int SET_CURSOR_ITEM_ID = 99;
 
     /**
      * {@code minecraft:set_default_spawn_position}
      */
-    int SET_DEFAULT_SPAWN_POSITION_ID = 99;
+    int SET_DEFAULT_SPAWN_POSITION_ID = 100;
 
     /**
      * {@code minecraft:set_display_objective}
      */
-    int SET_DISPLAY_OBJECTIVE_ID = 100;
+    int SET_DISPLAY_OBJECTIVE_ID = 101;
 
     /**
      * {@code minecraft:set_entity_data}
      */
-    int SET_ENTITY_DATA_ID = 101;
+    int SET_ENTITY_DATA_ID = 102;
 
     /**
      * {@code minecraft:set_entity_link}
      */
-    int SET_ENTITY_LINK_ID = 102;
+    int SET_ENTITY_LINK_ID = 103;
 
     /**
      * {@code minecraft:set_entity_motion}
      */
-    int SET_ENTITY_MOTION_ID = 103;
+    int SET_ENTITY_MOTION_ID = 104;
 
     /**
      * {@code minecraft:set_equipment}
      */
-    int SET_EQUIPMENT_ID = 104;
+    int SET_EQUIPMENT_ID = 105;
 
     /**
      * {@code minecraft:set_experience}
      */
-    int SET_EXPERIENCE_ID = 105;
+    int SET_EXPERIENCE_ID = 106;
 
     /**
      * {@code minecraft:set_health}
      */
-    int SET_HEALTH_ID = 106;
+    int SET_HEALTH_ID = 107;
 
     /**
      * {@code minecraft:set_held_slot}
      */
-    int SET_HELD_SLOT_ID = 107;
+    int SET_HELD_SLOT_ID = 108;
 
     /**
      * {@code minecraft:set_objective}
      */
-    int SET_OBJECTIVE_ID = 108;
+    int SET_OBJECTIVE_ID = 109;
 
     /**
      * {@code minecraft:set_passengers}
      */
-    int SET_PASSENGERS_ID = 109;
+    int SET_PASSENGERS_ID = 110;
 
     /**
      * {@code minecraft:set_player_inventory}
      */
-    int SET_PLAYER_INVENTORY_ID = 110;
+    int SET_PLAYER_INVENTORY_ID = 111;
 
     /**
      * {@code minecraft:set_player_team}
      */
-    int SET_PLAYER_TEAM_ID = 111;
+    int SET_PLAYER_TEAM_ID = 112;
 
     /**
      * {@code minecraft:set_score}
      */
-    int SET_SCORE_ID = 112;
+    int SET_SCORE_ID = 113;
 
     /**
      * {@code minecraft:set_simulation_distance}
      */
-    int SET_SIMULATION_DISTANCE_ID = 113;
+    int SET_SIMULATION_DISTANCE_ID = 114;
 
     /**
      * {@code minecraft:set_subtitle_text}
      */
-    int SET_SUBTITLE_TEXT_ID = 114;
+    int SET_SUBTITLE_TEXT_ID = 115;
 
     /**
      * {@code minecraft:set_time}
      */
-    int SET_TIME_ID = 115;
+    int SET_TIME_ID = 116;
 
     /**
      * {@code minecraft:set_title_text}
      */
-    int SET_TITLE_TEXT_ID = 116;
+    int SET_TITLE_TEXT_ID = 117;
 
     /**
      * {@code minecraft:set_titles_animation}
      */
-    int SET_TITLES_ANIMATION_ID = 117;
+    int SET_TITLES_ANIMATION_ID = 118;
 
     /**
      * {@code minecraft:show_dialog}
      */
-    int SHOW_DIALOG_ID = 143;
+    int SHOW_DIALOG_ID = 144;
 
     /**
      * {@code minecraft:sound}
      */
-    int SOUND_ID = 119;
+    int SOUND_ID = 120;
 
     /**
      * {@code minecraft:sound_entity}
      */
-    int SOUND_ENTITY_ID = 118;
+    int SOUND_ENTITY_ID = 119;
 
     /**
      * {@code minecraft:start_configuration}
      */
-    int START_CONFIGURATION_ID = 120;
+    int START_CONFIGURATION_ID = 121;
 
     /**
      * {@code minecraft:stop_sound}
      */
-    int STOP_SOUND_ID = 121;
+    int STOP_SOUND_ID = 122;
 
     /**
      * {@code minecraft:store_cookie}
      */
-    int STORE_COOKIE_ID = 122;
+    int STORE_COOKIE_ID = 123;
 
     /**
      * {@code minecraft:swing_animation}
      */
-    int SWING_ANIMATION_ID = 123;
+    int SWING_ANIMATION_ID = 124;
 
     /**
      * {@code minecraft:system_chat}
      */
-    int SYSTEM_CHAT_ID = 124;
+    int SYSTEM_CHAT_ID = 125;
 
     /**
      * {@code minecraft:tab_list}
      */
-    int TAB_LIST_ID = 125;
+    int TAB_LIST_ID = 126;
 
     /**
      * {@code minecraft:tag_query}
      */
-    int TAG_QUERY_ID = 126;
+    int TAG_QUERY_ID = 127;
 
     /**
      * {@code minecraft:take_item_entity}
      */
-    int TAKE_ITEM_ENTITY_ID = 127;
+    int TAKE_ITEM_ENTITY_ID = 128;
 
     /**
      * {@code minecraft:teleport_entity}
      */
-    int TELEPORT_ENTITY_ID = 128;
+    int TELEPORT_ENTITY_ID = 129;
 
     /**
      * {@code minecraft:test_instance_block_status}
      */
-    int TEST_INSTANCE_BLOCK_STATUS_ID = 129;
+    int TEST_INSTANCE_BLOCK_STATUS_ID = 130;
 
     /**
      * {@code minecraft:ticking_state}
      */
-    int TICKING_STATE_ID = 130;
+    int TICKING_STATE_ID = 131;
 
     /**
      * {@code minecraft:ticking_step}
      */
-    int TICKING_STEP_ID = 131;
+    int TICKING_STEP_ID = 132;
 
     /**
      * {@code minecraft:transfer}
      */
-    int TRANSFER_ID = 132;
+    int TRANSFER_ID = 133;
 
     /**
      * {@code minecraft:update_advancements}
      */
-    int UPDATE_ADVANCEMENTS_ID = 133;
+    int UPDATE_ADVANCEMENTS_ID = 134;
 
     /**
      * {@code minecraft:update_attributes}
      */
-    int UPDATE_ATTRIBUTES_ID = 134;
+    int UPDATE_ATTRIBUTES_ID = 135;
 
     /**
      * {@code minecraft:update_mob_effect}
      */
-    int UPDATE_MOB_EFFECT_ID = 135;
+    int UPDATE_MOB_EFFECT_ID = 136;
 
     /**
      * {@code minecraft:update_recipes}
      */
-    int UPDATE_RECIPES_ID = 136;
+    int UPDATE_RECIPES_ID = 137;
 
     /**
      * {@code minecraft:update_tags}
      */
-    int UPDATE_TAGS_ID = 137;
+    int UPDATE_TAGS_ID = 138;
 
     /**
      * {@code minecraft:waypoint}
      */
-    int WAYPOINT_ID = 141;
+    int WAYPOINT_ID = 142;
 
     /**
      * Immutable identifier to protocol ID lookup table.
      */
     Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
         Map.entry(Key.key("add_entity"), ADD_ENTITY_ID),
+        Map.entry(Key.key("add_entity_motion"), ADD_ENTITY_MOTION_ID),
         Map.entry(Key.key("add_transient_block"), ADD_TRANSIENT_BLOCK_ID),
         Map.entry(Key.key("animate"), ANIMATE_ID),
         Map.entry(Key.key("award_stats"), AWARD_STATS_ID),

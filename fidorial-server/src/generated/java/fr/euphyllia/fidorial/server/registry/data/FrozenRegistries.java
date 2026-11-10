@@ -7826,6 +7826,8 @@ public final class FrozenRegistries {
                 Key.key("sand")));
         tags.put(Key.key("triggers_ambient_dried_ghast_block_sounds"), List.of(Key.key("soul_sand"),
                 Key.key("soul_soil")));
+        tags.put(Key.key("triggers_ambient_ice_block_sounds"), List.of(Key.key("ice")));
+        tags.put(Key.key("triggers_ambient_ice_crystal_sounds"), List.of(Key.key("packed_ice")));
         tags.put(Key.key("turns_into_dirt_path"), List.of(Key.key("coarse_dirt"), Key.key("dirt"),
                 Key.key("grass_block"), Key.key("mycelium"), Key.key("podzol"),
                 Key.key("rooted_dirt")));
@@ -8127,7 +8129,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:block}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> blockTags() {
-        final Map<Key, List<Key>> tags = new LinkedHashMap<>(315);
+        final Map<Key, List<Key>> tags = new LinkedHashMap<>(317);
         blockTags0(tags);
         blockTags1(tags);
         blockTags2(tags);
@@ -8793,9 +8795,13 @@ public final class FrozenRegistries {
                 Key.key("pillager"), Key.key("vindicator")));
         tags.put(Key.key("illager_friends"), List.of(Key.key("evoker"), Key.key("illusioner"),
                 Key.key("pillager"), Key.key("vindicator")));
-        tags.put(Key.key("immune_to_freezing"), List.of(Key.key("drowned"), Key.key("frostbite"),
-                Key.key("husk"), Key.key("polar_bear"), Key.key("snow_golem"), Key.key("stray"),
-                Key.key("wither"), Key.key("zombie")));
+        tags.put(Key.key("immune_to_freezing"), List.of(Key.key("bogged"), Key.key("camel_husk"),
+                Key.key("drowned"), Key.key("frostbite"), Key.key("husk"), Key.key("parched"),
+                Key.key("phantom"), Key.key("polar_bear"), Key.key("skeleton"),
+                Key.key("skeleton_horse"), Key.key("snow_golem"), Key.key("stray"),
+                Key.key("wither"), Key.key("wither_skeleton"), Key.key("zoglin"), Key.key("zombie"),
+                Key.key("zombie_horse"), Key.key("zombie_nautilus"), Key.key("zombie_villager"),
+                Key.key("zombified_piglin")));
         tags.put(Key.key("immune_to_infested"), List.of(Key.key("silverfish")));
         tags.put(Key.key("immune_to_oozing"), List.of(Key.key("slime")));
         tags.put(Key.key("immune_to_poison"), List.of(Key.key("bogged"), Key.key("camel_husk"),
@@ -14245,6 +14251,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("entity.frostbite.death"));
         entries.add(Key.key("entity.frostbite.hurt"));
         entries.add(Key.key("entity.frostbite.step"));
+        entries.add(Key.key("entity.frostbite.throw"));
         entries.add(Key.key("block.ice_crystal.ambient"));
         entries.add(Key.key("block.icicle.land"));
         entries.add(Key.key("entity.ice_ball.break"));
@@ -14436,10 +14443,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("block.ancient_debris.break"));
         entries.add(Key.key("block.ancient_debris.step"));
         entries.add(Key.key("block.ancient_debris.place"));
-        entries.add(Key.key("block.ancient_debris.hit"));
     }
 
     private static void soundEvent8(final List<Key> entries) {
+        entries.add(Key.key("block.ancient_debris.hit"));
         entries.add(Key.key("block.ancient_debris.fall"));
         entries.add(Key.key("block.lodestone.break"));
         entries.add(Key.key("block.lodestone.step"));
@@ -14639,10 +14646,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("block.froglight.break"));
         entries.add(Key.key("block.froglight.step"));
         entries.add(Key.key("block.froglight.place"));
-        entries.add(Key.key("block.froglight.hit"));
     }
 
     private static void soundEvent9(final List<Key> entries) {
+        entries.add(Key.key("block.froglight.hit"));
         entries.add(Key.key("block.froglight.fall"));
         entries.add(Key.key("block.frogspawn.break"));
         entries.add(Key.key("block.frogspawn.step"));
@@ -14842,10 +14849,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("block.frosted_ice.break"));
         entries.add(Key.key("block.frosted_ice.step"));
         entries.add(Key.key("block.frosted_ice.place"));
-        entries.add(Key.key("block.frosted_ice.hit"));
     }
 
     private static void soundEvent10(final List<Key> entries) {
+        entries.add(Key.key("block.frosted_ice.hit"));
         entries.add(Key.key("block.frosted_ice.fall"));
         entries.add(Key.key("block.packed_ice.break"));
         entries.add(Key.key("block.packed_ice.step"));
@@ -14900,7 +14907,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:sound_event}, indexed by network ID
      */
     private static List<Key> soundEvent() {
-        final List<Key> entries = new ArrayList<>(2048);
+        final List<Key> entries = new ArrayList<>(2049);
         soundEvent0(entries);
         soundEvent1(entries);
         soundEvent2(entries);
