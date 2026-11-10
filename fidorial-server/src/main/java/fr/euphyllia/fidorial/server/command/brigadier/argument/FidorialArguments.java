@@ -272,10 +272,10 @@ public final class FidorialArguments implements Arguments {
     @Override
     public <T> ArgumentType<T> serverResource(final RegistryKey<T> registryKey) {
         // The registry is resolved on parse, so this can be called while the server is being built.
-        return map(KeyArgument.key(), (key, reader) ->
-                FidorialServer.getInstance().registries().registry(registryKey)
-                        .find(TypedKey.withRegistry(registryKey, key)).orElseThrow(() ->
-                                ResourceArgument.ERROR_UNKNOWN_RESOURCE.createWithContext(reader, key.asString(), registryKey.key().asString())), RegistryKeySuggestions.registryKey(registryKey));
+        return map(resourceKey(registryKey), (typedKey, reader) ->
+                FidorialServer.getInstance().registries().registry(registryKey).find(typedKey)
+                        .orElseThrow(() -> ResourceArgument.ERROR_UNKNOWN_RESOURCE
+                                .createWithContext(reader, typedKey.key().asString(), registryKey.key().asString())));
     }
 
     @Override
