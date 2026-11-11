@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
 import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
+import fr.euphyllia.fidorial.server.world.block.farming.BuiltinFarming;
 import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
@@ -138,5 +139,6 @@ public final class GameBootstrap {
         registry.register(SpeleothemBlock.SULFUR_SPIKE);
         registry.register(IcicleBlock.INSTANCE);
         VanillaRedstone.blockBehaviours().forEach(registry::register);
+        BuiltinFarming.blockBehaviours().forEach(registry::register);
     }
 }

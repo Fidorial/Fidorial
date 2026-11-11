@@ -116,6 +116,18 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
         return value(entry);
     }
 
+    /**
+     * {@return the data of an entry of a data registry, as its definition gives it; {@code null}
+     * for an unknown entry, or one defined in code}
+     *
+     * @param key the key of the entry
+     */
+    public final @Nullable JsonElement data(final TypedKey<T> key) {
+        checkRegistry(key.registry());
+        final Entry<T> entry = snapshot.byKey.get(key.key());
+        return entry == null ? null : entry.data;
+    }
+
     @Override
     public final Optional<T> find(final TypedKey<T> key) {
         checkRegistry(key.registry());

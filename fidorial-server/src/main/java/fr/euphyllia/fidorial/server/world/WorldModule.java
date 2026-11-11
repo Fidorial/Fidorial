@@ -19,6 +19,7 @@ import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.schedulers.tick.ServerTickRates;
 import fr.euphyllia.fidorial.server.world.block.redstone.TrappedChestBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingEngine;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
@@ -29,10 +30,12 @@ import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -40,7 +43,9 @@ import fr.fidorial.world.WorldManager;
 import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
+import fr.fidorial.world.farming.FarmingEngine;
 import fr.fidorial.world.fluid.FluidManager;
+import fr.fidorial.world.fluid.FluidType;
 import fr.fidorial.world.redstone.RedstoneEngine;
 import fr.fidorial.world.redstone.RedstoneWorld;
 import fr.fidorial.world.structure.StructureManager;
@@ -56,7 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The worlds and everything that runs on them: weather, day/night cycle, light, fluids, redstone,
- * block edits, structures, game rules and boss bars.
+ * farming, block edits, structures, game rules and boss bars.
  *
  * <p>This is the server's implementation of the {@link WorldManager} API.</p>
  */
@@ -80,6 +85,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final BlockEditService blockEdits;
     private final ThreadedRegionRegionizer regionizer;
     private final FidorialRedstoneEngine redstone;
+    private final FidorialFarmingEngine farming;
     private final MovingPistons movingPistons;
     private final AtomicBoolean unloadingChunks = new AtomicBoolean(false);
 
@@ -118,6 +124,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.redstone = new FidorialRedstoneEngine(
                 manager, regionizer, registries.blockStates(), registries.redstone(), blockEdits);
         this.movingPistons = new MovingPistons(manager, regionizer, registries.redstone(), world -> redstone().world(world));
+        this.farming = new FidorialFarmingEngine(
+                manager, regionizer, registries.blockStates(), registries.farming(), blockEdits,
+                registries.serverRegistries(), online::players);
 
         // Wiring that cannot go through constructors (circular references). Done before plugins
         // load, so that a world created by a plugin is complete.
@@ -133,7 +142,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         fluids.setDebugEvents(debug.gameEvents());
         blockEdits.setDebugEvents(debug.gameEvents());
         blockEdits.setRedstoneNotifier(this::redstoneBlockChanged);
-        fluids.setRedstoneHook(this::redstoneBlockChanged);
+        blockEdits.setChangeListener(this::farmingBlockChanged);
+        fluids.setRedstoneHook(this::fluidBlockChanged);
+        fluids.setWashHook(this::washedAway);
         players.blockViewers().setListener(this::viewersChanged);
         gameRules.addListener(this::syncGameRule);
     }
@@ -147,6 +158,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         services.provide(BossBarRegistry.class, bossBars); // Todo : Currently, plugins cannot implement their own system.
         services.provide(StructureManager.class, structures);
         services.provide(RedstoneEngine.class, redstone);
+        services.provide(FarmingEngine.class, farming);
     }
 
     @Override
@@ -163,6 +175,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         regionizer.registerTickHandler(redstone.tickHandler());
         // after the scheduled ticks and the block events, where vanilla ticks its block entities
         regionizer.registerTickHandler(movingPistons);
+        // once every block settled for this game tick: plants grow on a world at rest
+        regionizer.registerTickHandler(this::tickFarming);
     }
 
     @Override
@@ -317,6 +331,64 @@ public final class WorldModule implements ServerModule, WorldManager {
      */
     public RedstoneEngine redstone() {
         return services.find(RedstoneEngine.class).orElse(redstone);
+    }
+
+    /**
+     * {@return the farming engine in effect: the one a plugin provides, the server's otherwise}
+     */
+    public FarmingEngine farming() {
+        return services.find(FarmingEngine.class).orElse(farming);
+    }
+
+    /**
+     * {@return the farming engine of the server, whether or not a plugin provides another one}
+     */
+    public FidorialFarmingEngine builtinFarming() {
+        return farming;
+    }
+
+    private void tickFarming(final Key world, final int sectionX, final int sectionZ, final long currentTick) {
+        if (!ThreadedRegionRegionizer.isGameTick()) {
+            return; // frozen: plants wait
+        }
+        final FarmingEngine engine = farming();
+        if (engine != farming) {
+            farming.releaseRegion(world, sectionX, sectionZ);
+        }
+        engine.tick(world, sectionX, sectionZ, currentTick);
+    }
+
+    /**
+     * Fluids write their blocks themselves: both redstone and farming are told of what they changed.
+     */
+    private void fluidBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
+                                   final BlockState current) {
+        redstoneBlockChanged(world, pos, previous, current);
+        farmingBlockChanged(world, pos, previous, current);
+    }
+
+    /**
+     * Tells whether a fluid uproots a block: one taking part in farming and tagged as washed away
+     * by fluids. Water carries its harvest off, lava leaves nothing of it.
+     */
+    private boolean washedAway(final ServerWorld world, final BlockPosition pos, final BlockState block, final FluidType fluid) {
+        if (registries.farming().behaviourOrNull(block.name()) == null
+                || !registries.registry(RegistryKey.BLOCK).isTagged(block.name(), BlockTypeTagKeys.WASHED_AWAY_BY_FLUIDS)) {
+            return false;
+        }
+        if (fluid == FluidType.WATER) {
+            farming().world(world).harvest(pos, null, ItemStack.EMPTY);
+        }
+        return true;
+    }
+
+    private void farmingBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
+                                     final BlockState current) {
+        final BlockData before = registries.blockStates().resolve(previous);
+        final BlockData after = registries.blockStates().resolve(current);
+        if (before != null && after != null) {
+            farming().world(world).blockChanged(pos, before, after);
+        }
     }
 
     private void redstoneBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,

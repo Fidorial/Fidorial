@@ -15,14 +15,20 @@ import fr.euphyllia.fidorial.server.recipe.VanillaRecipeLoader;
 import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
+import fr.euphyllia.fidorial.server.world.block.farming.BuiltinFarming;
 import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingRegistry;
+import fr.euphyllia.fidorial.server.world.loot.BlockLootTables;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.registry.GameRegistries;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.data.Item;
+import fr.fidorial.registry.keys.BlockTransformerKeys;
+import fr.fidorial.registry.keys.ItemTagKeys;
+import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -73,6 +79,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
 
     @Override
     public void load() {
+        bootstrapFarming();
         translations.load();
 
         try {
@@ -85,6 +92,22 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         recipes.loadVanilla(loader.load());
         LOGGER.info("Loaded {} vanilla crafting recipes, {} other vanilla recipes are not supported yet",
                 recipes.recipes().size(), loader.skipped().values().stream().mapToInt(Integer::intValue).sum());
+    }
+
+    /**
+     * Farming reads tags and loot tables: both go through the registries, so that what a data pack
+     * adds to a tag counts from the next time the tag is read.
+     */
+    private void bootstrapFarming() {
+        final ServerRegistry<Item> itemRegistry = registries.registry(RegistryKey.ITEM);
+        final ServerRegistry<BlockType> blockRegistry = registries.registry(RegistryKey.BLOCK);
+        BlockLootTables.bootstrap(itemRegistry::contains, itemRegistry::isTagged, blockRegistry::isTagged);
+        farming.blockTags(blockRegistry::isTagged);
+        farming.hoeTag(itemRegistry::isTagged, ItemTagKeys.HOES);
+        BuiltinFarming.attach(farming);
+        final int tillages = BuiltinFarming.declareTillage(
+                farming, registries.registry(RegistryKey.BLOCK_TRANSFORMER).data(BlockTransformerKeys.HOE), blocks);
+        LOGGER.debug("{} blocks take part in farming, hoes follow {} rules", farming.blocks().size(), tillages);
     }
 
     /**
