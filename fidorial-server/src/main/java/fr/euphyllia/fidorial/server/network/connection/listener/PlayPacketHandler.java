@@ -81,6 +81,7 @@ import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
@@ -896,8 +897,16 @@ public final class PlayPacketHandler implements PlayPacketListener {
         player.setFlying(packet.flying());
     }
 
+    /**
+     * {@return {@code true} if the block at a position breaks as soon as a player starts mining it}
+     */
     private boolean instantMine(final BlockPosition position) {
-        return false;
+        final ChunkColumn column = serverWorld().loadedColumn(position.chunkX(), position.chunkZ());
+        if (column == null || position.blockY() < column.minY() || position.blockY() >= column.minY() + column.height()) {
+            return false;
+        }
+        final BlockState state = column.getBlock(position.blockX() & 15, position.blockY(), position.blockZ() & 15);
+        return !state.isAir() && BlockMining.breaksInstantly(state.name());
     }
 
     @Override
