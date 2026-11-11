@@ -6,7 +6,7 @@
     <em>Fidorial est un projet indépendant, non affilié, associé ou approuvé par Mojang Studios ou Microsoft. Minecraft est une marque de Mojang Studios, propriété de Microsoft.</em>
 </p>
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_7-purple.svg)](https://github.com/Euphillya/Fidorial)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_8-purple.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Licence](https://img.shields.io/badge/license-MIT%20%2F%20GPLv3-blue)](LICENCE.md)
 [![Serveurs](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Dservers&style=flat)](https://faststats.dev/project/fidorial)
@@ -30,7 +30,7 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 **Protocole & réseau**
 
-- Implémentation maison de Minecraft **26.4 Snapshot 7** (protocole **1073742169**) : handshake, status, login,
+- Implémentation maison de Minecraft **26.4 Snapshot 8** (protocole **1073742170**) : handshake, status, login,
   configuration, play
 - Authentification Mojang, chiffrement et compression des paquets ; mode hors-ligne pour les tests
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)

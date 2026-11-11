@@ -6,7 +6,7 @@
     <em>Fidorial is an independent project, not affiliated with, associated with, or endorsed by Mojang Studios or Microsoft. Minecraft is a trademark of Mojang Studios, owned by Microsoft.</em>
   </p>
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_7-purple.svg)](https://github.com/Euphillya/Fidorial)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.4_snapshot_8-purple.svg)](https://github.com/Euphillya/Fidorial)
 [![Java](https://img.shields.io/badge/Java-25+-orange.svg)](https://www.oracle.com/java/)
 [![Licence](https://img.shields.io/badge/license-MIT%20%2F%20GPLv3-blue)](LICENCE.md)
 [![Servers](https://img.shields.io/endpoint?url=https%3A%2F%2Ffaststats.dev%2Fapi%2Fshields%2Ffidorial%3Fmetric%3Dservers&style=flat)](https://faststats.dev/project/fidorial)
@@ -30,7 +30,7 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 **Protocol & network**
 
-- Hand-written implementation of Minecraft **26.4 Snapshot 7** (protocol **1073742169**): handshake, status, login,
+- Hand-written implementation of Minecraft **26.4 Snapshot 8** (protocol **1073742170**): handshake, status, login,
   configuration, play
 - Mojang authentication, packet encryption and compression; offline mode for testing
 - Velocity modern forwarding (`proxy-mode=VELOCITY`)
