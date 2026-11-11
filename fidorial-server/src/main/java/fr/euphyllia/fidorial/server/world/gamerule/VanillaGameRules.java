@@ -41,6 +41,7 @@ public final class VanillaGameRules {
                 ofBoolean(GameRuleKeys.ADVANCE_TIME, true, true),
                 ofBoolean(GameRuleKeys.ADVANCE_WEATHER, true, true),
                 ofBoolean(GameRuleKeys.DROWNING_DAMAGE, true, true),
+                ofBoolean(GameRuleKeys.BLOCK_DROPS, true, true), // partial
                 ofBoolean(GameRuleKeys.FALL_DAMAGE, true, true),
                 ofBoolean(GameRuleKeys.FIRE_DAMAGE, true, true),
                 ofBoolean(GameRuleKeys.FREEZE_DAMAGE, true, true),
@@ -51,13 +52,13 @@ public final class VanillaGameRules {
                 ofBoolean(GameRuleKeys.MOB_GRIEFING, true, true),
                 ofBoolean(GameRuleKeys.NATURAL_HEALTH_REGENERATION, true, true),
                 ofBoolean(GameRuleKeys.PVP, true, true),
+                ofInteger(GameRuleKeys.RANDOM_TICK_SPEED, 3, 0, MAX, true),
                 ofBoolean(GameRuleKeys.REDUCED_DEBUG_INFO, false, true),
                 ofBoolean(GameRuleKeys.SHOW_DEATH_MESSAGES, true, true),
                 ofBoolean(GameRuleKeys.WATER_SOURCE_CONVERSION, true, true),
 
 
                 ofBoolean(GameRuleKeys.ALLOW_ENTERING_NETHER_USING_PORTALS, true, false), // no portals
-                ofBoolean(GameRuleKeys.BLOCK_DROPS, true, false), // no block loot tables yet
                 ofBoolean(GameRuleKeys.BLOCK_EXPLOSION_DROP_DECAY, true, false), // no block loot tables yet
                 ofBoolean(GameRuleKeys.COMMAND_BLOCK_OUTPUT, true, false), // no command blocks
                 ofBoolean(GameRuleKeys.COMMAND_BLOCKS_WORK, true, false), // no command blocks
@@ -83,7 +84,6 @@ public final class VanillaGameRules {
                 ofInteger(GameRuleKeys.PLAYERS_SLEEPING_PERCENTAGE, 100, 0, MAX, false), // no beds
                 ofBoolean(GameRuleKeys.PROJECTILES_CAN_BREAK_BLOCKS, true, false), // no projectiles
                 ofBoolean(GameRuleKeys.RAIDS, true, false), // no raids
-                ofInteger(GameRuleKeys.RANDOM_TICK_SPEED, 3, 0, MAX, false), // no random ticks
                 ofInteger(GameRuleKeys.RESPAWN_RADIUS, 10, 0, MAX, false), // no safe spawn search
                 ofBoolean(GameRuleKeys.SEND_COMMAND_FEEDBACK, true, false), // commands reply directly
                 ofBoolean(GameRuleKeys.SHOW_ADVANCEMENT_MESSAGES, true, false), // no advancements

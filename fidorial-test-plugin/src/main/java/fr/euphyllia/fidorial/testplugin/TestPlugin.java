@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
 import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
 import fr.euphyllia.fidorial.testplugin.enchantment.TestEnchantments;
+import fr.euphyllia.fidorial.testplugin.farming.TestFarming;
 import fr.euphyllia.fidorial.testplugin.mob.BullMobs;
 import fr.euphyllia.fidorial.testplugin.mob.CompanionMobs;
 import fr.euphyllia.fidorial.testplugin.pregen.PregenTask;
@@ -176,6 +177,7 @@ public final class TestPlugin implements Plugin {
         registerEvents();
         registerCommands();
         TestRecipes.register(server.registries().recipes(), this, logger);
+        TestFarming.register(server.registries().farming(), context.events(), this, logger);
         TestPluginTranslations.register(context);
         createResourcePack();
 
@@ -198,6 +200,7 @@ public final class TestPlugin implements Plugin {
         TestEffects.unregisterAll(server.registries().effects(), this);
         TestEnchantments.unregisterAll(server.registries(), this);
         TestRecipes.unregisterAll(server.registries().recipes(), this);
+        TestFarming.unregisterAll(server.registries().farming(), this);
         TestPluginTranslations.unregister();
     }
 

@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.farming.Harvests;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -297,6 +298,7 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
         if (state == null || state.isAir()) {
             return false;
         }
+        Harvests.drop(world, position);
         final BlockData left = state instanceof final Waterlogged waterlogged && waterlogged.isWaterlogged() ? water : air;
         if (!setBlock(position, left, Update.NEIGHBORS, limit)) {
             return false;

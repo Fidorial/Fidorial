@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.farming.Harvests;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
 import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
 import fr.euphyllia.fidorial.server.world.redstone.RedstoneEvents;
@@ -329,10 +330,11 @@ public final class PistonBaseBlock implements RedstoneBehaviour {
         final List<BlockData> affected = new ArrayList<>(toPush.size() + toDestroy.size());
         final BlockData air = Redstone.air();
 
-        // the blocks in the way break, furthest first; the server has no block drops to give yet
+        // the blocks in the way break, furthest first; only those taking part in farming drop anything yet
         for (int index = toDestroy.size() - 1; index >= 0; index--) {
             final BlockPosition destroyed = toDestroy.get(index);
             final BlockData state = world.blockAt(destroyed);
+            Harvests.drop(serverWorld, destroyed);
             world.setBlock(destroyed, air, RedstoneWorld.Update.QUIET);
             Redstone.gameEvent(serverWorld, GameEventKeys.BLOCK_DESTROY, destroyed);
             affected.add(state == null ? air : state);

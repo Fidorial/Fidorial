@@ -76,12 +76,14 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.Ser
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundUseItemPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
@@ -116,9 +118,11 @@ import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
@@ -128,7 +132,10 @@ import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
+import fr.fidorial.world.farming.FarmingRegistry;
+import fr.fidorial.world.farming.FarmingWorld;
 import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.key.Key;
@@ -683,11 +690,26 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
             final BlockFace clickedFace = BlockFace.byId(packet.face());
             final int slot = packet.hand() == 0 ? acting.selectedSlot() : PlayerInventory.OFF_HAND;
+            final FarmingWorld farming = server.worlds().farming().world(world);
+            if (farming.useItem(acting, slot, clicked, clickedFace)) {
+                // a hoe tilled or a fertilizer took: the item is worn or used up
+                acting.updateInventory();
+                acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, SwingAnimation.DEFAULT));
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
             final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(slot);
-            final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
+            final FarmingRegistry farmingItems = server.registries().farming();
+            final TypedKey<BlockType> plant = held.isEmpty() ? null : farmingItems.plant(held.id()).orElse(null);
+            // a hoe or a fertilizer that found nothing to do is no block to place
+            final boolean farmingTool = !held.isEmpty() && plant == null
+                    && (farmingItems.isHoe(held.id()) || farmingItems.isFertilizer(held.id()));
+            final BlockState state = held.isEmpty() || farmingTool
+                    ? null : blockToPlace(held, plant, farming, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
 
+            boolean placed = false;
             if (state != null) {
                 final BlockPlaceEvent event = server.events()
                         .post(new BlockPlaceEvent(acting, target, server.registries().blockStates().networkId(state)));
@@ -695,23 +717,51 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     server.worlds().blockEdits().set(world, target, state, true);
                     server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
+                    placed = true;
                 }
+            }
+            if (plant != null) {
+                // a seed is used up by what it plants; a seed that could not be planted is given back
+                if (placed && acting.gameMode() != GameMode.CREATIVE) {
+                    acting.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
+                }
+                acting.updateInventory();
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
     }
 
+    /**
+     * Works out the block an item places, {@code null} for none.
+     *
+     * @param plant   the block the item plants when it is a seed, {@code null} for any other item
+     * @param farming the farming of the world, asked whether what is placed can stand there
+     */
     private @Nullable BlockState blockToPlace(
-            final ItemStack held, final BlockPosition target, final BlockFace clickedFace, final float cursorY) {
+            final ItemStack held, final @Nullable TypedKey<BlockType> plant, final FarmingWorld farming,
+            final BlockPosition target, final BlockFace clickedFace, final float cursorY) {
         final ServerPlayer player = playerOrThrow();
-        final BlockState state = server.registries().blockStates().blockForItem(held.id());
+        final BlockStateRegistry blockStates = server.registries().blockStates();
+        final BlockState state = plant != null ? BlockStates.defaultStateOf(plant) : blockStates.blockForItem(held.id());
         if (state == null) {
             return null;
         }
+        if (plant != null) {
+            // a seed only goes where nothing stands yet, so that it never overwrites another plant
+            final BlockData replaced = farming.blockAt(target);
+            if (replaced == null || !(replaced.isAir() || farming.isTagged(target, BlockTypeTagKeys.REPLACEABLE))) {
+                return null;
+            }
+        }
         final ServerWorld world = serverWorld();
         final BlockPlaceContext context = new BlockPlaceContext(
-                target, clickedFace, player.location(), server.registries().blockStates().view(world), cursorY);
-        return server.registries().blockStates().placementState(state, context);
+                target, clickedFace, player.location(), blockStates.view(world), cursorY);
+        final BlockState placed = blockStates.placementState(state, context);
+        if (placed == null) {
+            return null;
+        }
+        final BlockData data = blockStates.resolve(placed);
+        return data == null || farming.canSurvive(target, data) ? placed : null;
     }
 
     private boolean interactWithBlock(final BlockPosition pos) {
@@ -834,6 +884,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
+                if (acting.gameMode() != GameMode.CREATIVE) {
+                    // what farming gives is dropped while the block still stands
+                    server.worlds().farming().world(world).harvest(packet.position(), acting, acting.heldItem());
+                }
                 server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR), true);
                 server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
             }
@@ -1430,7 +1484,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
         if (isOnGround) {
             if (player.fallDistance() > 0.0) {
+                final double fallen = player.fallDistance();
                 player.landAfterFall();
+                landOn(player, current, fallen);
             }
             player.setFalling(false);
             return;
@@ -1443,6 +1499,19 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     public void bindPlayer(final ServerPlayer player) {
         this.player = player;
+    }
+
+    /**
+     * Tells farming what a player landed on, so that soil gets trampled.
+     */
+    private void landOn(final ServerPlayer player, final Location landing, final double fallen) {
+        if (!(landing.world() instanceof final ServerWorld world)) {
+            return;
+        }
+        // the block under the feet, even when it stands a little lower than a full block
+        final BlockPosition ground = Position.block(landing.blockX(), (int) Math.floor(landing.y() - 0.2), landing.blockZ());
+        world.scheduler().execute(world.key(), ground.chunk(),
+                () -> server.worlds().farming().world(world).entityLanded(player, ground, fallen));
     }
 
     private ServerPlayer playerOrThrow() {
