@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 
@@ -102,23 +103,13 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         double velocityY = velocityY() - gravity();
         double velocityZ = velocityZ();
 
-        double newX = x + velocityX;
-        if (velocityX != 0.0 && isBoxBlocked(newX, y, z)) {
-            newX = x;
-            velocityX = 0.0;
-        }
-
-        double newZ = z + velocityZ;
-        if (velocityZ != 0.0 && isBoxBlocked(newX, y, newZ)) {
-            newZ = z;
-            velocityZ = 0.0;
-        }
-
-        double newY = y + velocityY;
-        if (velocityY != 0.0 && isBoxBlocked(newX, newY, newZ)) {
-            newY = y;
-            velocityY = 0.0;
-        }
+        final BlockCollider.Movement moved = collide(x, y, z, velocityX, velocityY, velocityZ, 0.0, false);
+        if (moved.x() != velocityX) velocityX = 0.0;
+        if (moved.z() != velocityZ) velocityZ = 0.0;
+        if (moved.y() != velocityY) velocityY = 0.0;
+        final double newX = x + moved.x();
+        final double newY = y + moved.y();
+        final double newZ = z + moved.z();
 
         setOnGround(isBoxBlocked(newX, newY - 0.001, newZ));
 

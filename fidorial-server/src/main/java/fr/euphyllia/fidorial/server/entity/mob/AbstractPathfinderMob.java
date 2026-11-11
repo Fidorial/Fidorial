@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
+import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.fidorial.entity.EntityType;
@@ -19,6 +20,11 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double GROUND_FRICTION = 0.6;
     private static final double JUMP_VELOCITY = 0.42;
     private static final double MAX_FALL_SPEED = 3.0;
+
+    /**
+     * How high a block mobs walk onto without jumping, as in Vanilla.
+     */
+    private static final double STEP_HEIGHT = 0.6;
 
     private static final double STEP_INTERVAL = 1.5;
 
@@ -195,45 +201,29 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             velocityY *= fallDrag();
         }
 
-        double newX = x + velocityX;
-        final boolean blockedX = velocityX != 0.0 && isBoxBlocked(newX, y, z);
-        if (blockedX) {
-            newX = x;
-        }
-
-        double newZ = z + velocityZ;
-        final boolean blockedZ = velocityZ != 0.0 && isBoxBlocked(newX, y, newZ);
-        if (blockedZ) {
-            newZ = z;
-        }
-
+        BlockCollider.Movement moved = collide(x, y, z, velocityX, velocityY, velocityZ, stepHeight(), onGround);
+        boolean blockedX = moved.x() != velocityX;
+        boolean blockedZ = moved.z() != velocityZ;
+        // too high a block to step onto: jump onto it, if there is room above
         if ((blockedX || blockedZ) && onGround && velocityY <= 0.0 && !isBoxBlocked(x, y + 1.0, z)) {
             velocityY = JUMP_VELOCITY;
+            moved = collide(x, y, z, velocityX, velocityY, velocityZ, stepHeight(), onGround);
+            blockedX = moved.x() != velocityX;
+            blockedZ = moved.z() != velocityZ;
         }
         if (blockedX) velocityX = 0.0;
         if (blockedZ) velocityZ = 0.0;
 
-        double newY = y + velocityY;
-        if (velocityY < 0.0) {
-            if (isBoxBlocked(newX, newY, newZ)) {
-                newY = Math.floor(newY) + 1.0;
-                if (isBoxBlocked(newX, newY, newZ)) {
-                    newY = y; // coince : ne pas s'enfoncer
-                }
-                velocityY = 0.0;
-                onGround = true;
-            } else {
-                onGround = false;
-            }
-        } else if (velocityY > 0.0) {
-            onGround = false;
-            if (isBoxBlocked(newX, newY, newZ)) {
-                newY = y;
-                velocityY = 0.0;
-            }
+        if (moved.y() != velocityY) {
+            onGround = velocityY < 0.0;
+            velocityY = 0.0;
         } else {
-            onGround = isBoxBlocked(newX, newY - 0.001, newZ);
+            onGround = false;
         }
+
+        final double newX = x + moved.x();
+        final double newY = y + moved.y();
+        final double newZ = z + moved.z();
 
         if (onGround) {
             final double stepDx = newX - x;
@@ -259,6 +249,13 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     protected double fallDrag() {
         return 1.0;
+    }
+
+    /**
+     * {@return how high a block this mob walks onto without jumping, such as a slab or a path}
+     */
+    protected double stepHeight() {
+        return STEP_HEIGHT;
     }
 
     protected void onStep() {

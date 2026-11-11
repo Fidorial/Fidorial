@@ -317,6 +317,10 @@ fidorialRegistryGenerator {
         layout.projectDirectory.file("src/generated/resources/fidorial-data/block_support.json"),
     )
 
+    blockCollisionDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/block_collision.json"),
+    )
+
     blockItemsDataset.set(
         layout.projectDirectory.file("src/generated/resources/fidorial-data/block_items.json"),
     )

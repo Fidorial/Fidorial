@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity.ai;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.ServerChunk;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
@@ -15,13 +16,8 @@ import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.Set;
 
 public class BlockView {
-
-    private static final Set<TypedKey<BlockType>> PASSABLE = Set.of(
-            BlockTypeKeys.WATER
-    );
 
     private BlockView() {
     }
@@ -41,12 +37,22 @@ public class BlockView {
         return state != null && isPassable(state);
     }
 
+    /**
+     * {@return {@code true} if a mob can be in a block: one with nothing to bump into, such as air,
+     * water, grass, a flower or a rail}
+     *
+     * <p>Lava and powder snow are left out, though nothing stops a mob in them: a mob does not go
+     * there of its own accord.</p>
+     */
     public static boolean isPassable(final BlockState state) {
         if (state.isAir()) {
             return true;
         }
-        final TypedKey<BlockType> name = state.name();
-        return PASSABLE.contains(name);
+        if (state.name().equals(BlockTypeKeys.LAVA) || isPowderSnow(state)) {
+            return false;
+        }
+
+        return BlockCollision.shape(state).isEmpty();
     }
 
     public static boolean isPowderSnow(final BlockState state) {
@@ -57,9 +63,17 @@ public class BlockView {
         return FidorialServer.getInstance().registries().registry(RegistryKey.BLOCK).isTagged(state.name(), tag);
     }
 
+    /**
+     * {@return {@code true} if a mob can stand on a block: one with something to bump into, however
+     * low, or powder snow}
+     */
     public static boolean isSolidGround(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState state = blockAt(world, x, y, z);
-        return state != null && !isPassable(state);
+        return state != null && isSolidGround(state);
+    }
+
+    public static boolean isSolidGround(final BlockState state) {
+        return !state.isAir() && (!BlockCollision.shape(state).isEmpty() || isPowderSnow(state));
     }
 
     public static @Nullable TypedKey<BiomeDefinition> biomeAt(final ServerWorld world, final int x, final int y, final int z) {

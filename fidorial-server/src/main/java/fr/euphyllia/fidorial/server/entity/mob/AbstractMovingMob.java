@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.debug.DebugValues;
 import fr.euphyllia.fidorial.server.debug.EntityDebugState;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.GoalSelector;
+import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
@@ -162,31 +163,33 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         return DEFAULT_HALF_WIDTH;
     }
 
+    /**
+     * {@return {@code true} if this mob, standing at a point, would overlap the shape of a block}
+     */
     protected final boolean isBoxBlocked(final double x, final double y, final double z) {
-        final double half = halfWidth();
-        final int minBlockY = (int) Math.floor(y);
-        final int maxBlockY = (int) Math.floor(y + height() - 0.01);
-        final ServerWorld world = serverWorld();
-        for (int blockY = minBlockY; blockY <= maxBlockY; blockY++) {
-            if (isBlocking(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z - half))
-                    || isBlocking(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z - half))
-                    || isBlocking(world, (int) Math.floor(x - half), blockY, (int) Math.floor(z + half))
-                    || isBlocking(world, (int) Math.floor(x + half), blockY, (int) Math.floor(z + half))) {
-                return true;
-            }
-        }
-        return false;
+        return BlockCollider.collides(serverWorld(), collisionShapes(), BlockCollider.Box.at(x, y, z, halfWidth(), height()));
     }
 
-    private boolean isBlocking(final ServerWorld world, final int x, final int y, final int z) {
-        final BlockState state = BlockView.blockAt(world, x, y, z);
-        if (state == null) {
-            return true;
-        }
-        if (BlockView.isPassable(state)) {
-            return false;
-        }
-        return walksOnPowderSnow || !BlockView.isPowderSnow(state);
+    /**
+     * Moves this mob, standing at a point, as far as the blocks around let it towards where it heads.
+     *
+     * @param stepHeight how high a block it climbs without jumping, {@code 0} for none
+     * @param onGround   whether it stands on something before the move
+     * @return how far it got
+     */
+    protected final BlockCollider.Movement collide(final double x, final double y, final double z,
+                                                   final double dx, final double dy, final double dz,
+                                                   final double stepHeight, final boolean onGround) {
+        return BlockCollider.move(serverWorld(), collisionShapes(), BlockCollider.Box.at(x, y, z, halfWidth(), height()),
+                dx, dy, dz, stepHeight, onGround);
+    }
+
+    /**
+     * {@return the shapes this mob bumps into}: those of the blocks, powder snow being solid to the
+     * mobs that walk on it
+     */
+    protected final BlockCollider.Shapes collisionShapes() {
+        return walksOnPowderSnow ? BlockCollider.Shapes.POWDER_SNOW_WALKER : BlockCollider.Shapes.DEFAULT;
     }
 
     public final boolean walksOnPowderSnow() {

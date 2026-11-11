@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeBlocks;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
+import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
@@ -119,6 +120,7 @@ public final class GameBootstrap {
         BlockEntityTypeBlocks.bootstrap();
         Blocks.bootstrap(registry);
         BlockSupport.bootstrap(registry);
+        BlockCollision.bootstrap(registry);
         BlockItems.bootstrap();
         BlockMining.bootstrap();
         registerBlockBehaviours(registry);

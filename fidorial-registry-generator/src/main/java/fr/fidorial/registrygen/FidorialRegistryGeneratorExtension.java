@@ -97,6 +97,12 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract RegularFileProperty getRecipesDataset();
 
     /**
+     * Where the {@code generateBlockCollision} task writes the collision shape of every block
+     * state. The task only runs when this and {@link #getPrismarineMinecraftData()} are set.
+     */
+    public abstract RegularFileProperty getBlockCollisionDataset();
+
+    /**
      * Where the {@code generateLootTables} task writes the vanilla loot table dataset. The task
      * only runs when this is set, and needs {@code "--server"} among the data generator arguments.
      */

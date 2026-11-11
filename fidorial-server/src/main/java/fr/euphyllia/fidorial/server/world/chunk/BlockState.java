@@ -1,6 +1,8 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
+import fr.euphyllia.fidorial.server.world.block.BlockCollision;
+import fr.euphyllia.fidorial.server.world.block.CollisionShape;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockData;
@@ -22,6 +24,7 @@ public final class BlockState {
     private volatile @Nullable LightProperties lightProperties;
     private volatile @Nullable BlockData data;
     private volatile int mapColor = -1;
+    private volatile @Nullable CollisionShape collisionShape;
     private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
     private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties) {
@@ -95,6 +98,17 @@ public final class BlockState {
 
     public void setMapColor(final int mapColor) {
         this.mapColor = mapColor;
+    }
+
+    /**
+     * {@return the collision shape of this state, once {@link BlockCollision} worked it out}
+     */
+    public @Nullable CollisionShape collisionShape() {
+        return collisionShape;
+    }
+
+    public void setCollisionShape(final CollisionShape collisionShape) {
+        this.collisionShape = collisionShape;
     }
 
     public @Nullable BlockData data() {

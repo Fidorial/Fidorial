@@ -1,6 +1,9 @@
 package fr.euphyllia.fidorial.server.entity.ai;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.BlockCollision;
+import fr.euphyllia.fidorial.server.world.block.CollisionShape;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.ai.Path;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
@@ -15,6 +18,27 @@ public class AStarPathfinder {
 
     private static final int[][] CARDINALS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
     private static final int MAX_DROP = 3;
+
+    /**
+     * How much higher a mob gets from one node to the next, jumping, as in Vanilla.
+     */
+    private static final double MAX_CLIMB = 1.125;
+
+    /**
+     * How much higher a mob gets from one node to the next without jumping.
+     */
+    private static final double MAX_STEP = 0.6;
+
+    /**
+     * How high a block in the feet of a mob may be for the mob to stand on it, rather than in front
+     * of it.
+     */
+    private static final double MAX_FLOOR_IN_FEET = 0.5;
+
+    /**
+     * Above this floor in its feet, a mob reaches into the second block above its feet.
+     */
+    private static final double TALL_FLOOR = 0.05;
 
     private AStarPathfinder() {
     }
@@ -92,33 +116,81 @@ public class AStarPathfinder {
         return best == startNode ? null : buildPath(best, false);
     }
 
+    /**
+     * {@return the height of the node a mob reaches from one block to the next, along a cardinal
+     * direction: the same, one up or a few down; {@link Integer#MIN_VALUE} when it cannot go}
+     *
+     * <p>As in Vanilla, a mob climbs at most {@value #MAX_CLIMB} blocks from one node to the next:
+     * from a slab onto a full block, but not from the floor onto a fence or two blocks up. Above
+     * {@value #MAX_STEP} it has to jump, and needs room above its head for it.</p>
+     */
     private static int stepHeight(final ServerWorld world, final int x, final int y, final int z, final int nx, final int nz) {
-        if (isStandable(world, nx, y, nz)) {
-            return y;
-        }
-
-        if (BlockView.isPassable(world, x, y + 2, z) && isStandable(world, nx, y + 1, nz)) {
-            return y + 1;
+        final double current = floorLevel(world, x, y, z);
+        final double from = Double.isNaN(current) ? y : current;
+        for (int ny = y; ny <= y + 1; ny++) {
+            final double to = floorLevel(world, nx, ny, nz);
+            if (Double.isNaN(to) || to - from > MAX_CLIMB) {
+                continue;
+            }
+            if (to - from > MAX_STEP && !BlockView.isPassable(world, x, y + 2, z)) {
+                continue; // no room to jump
+            }
+            return ny;
         }
 
         if (BlockView.isPassable(world, nx, y, nz) && BlockView.isPassable(world, nx, y + 1, nz)) {
             for (int drop = 1; drop <= MAX_DROP; drop++) {
                 final int ny = y - drop;
+                if (!Double.isNaN(floorLevel(world, nx, ny, nz))) {
+                    return ny;
+                }
                 if (!BlockView.isPassable(world, nx, ny, nz)) {
                     return Integer.MIN_VALUE;
-                }
-                if (isStandable(world, nx, ny, nz)) {
-                    return ny;
                 }
             }
         }
         return Integer.MIN_VALUE;
     }
 
+    /**
+     * {@return the height a mob whose feet are in a block stands at, {@link Double#NaN} if it cannot
+     * stand there}
+     *
+     * <p>A mob stands on the block below its feet, if that block is at least half a block high and
+     * no higher than a full one; or on a low block in its feet, such as a carpet, a bottom slab or a
+     * few layers of snow. It needs room for its head above, two blocks of it when it stands that high.</p>
+     */
+    static double floorLevel(final ServerWorld world, final int x, final int y, final int z) {
+        final BlockState feet = BlockView.blockAt(world, x, y, z);
+        if (feet == null || !BlockView.isPassable(world, x, y + 1, z)) {
+            return Double.NaN;
+        }
+        if (BlockView.isPassable(feet)) {
+            final BlockState below = BlockView.blockAt(world, x, y - 1, z);
+            if (below == null || !BlockView.isSolidGround(below)) {
+                return Double.NaN;
+            }
+            final CollisionShape ground = BlockCollision.shape(below);
+            // powder snow carries those that walk on it, and lets the others sink in
+            final double top = ground.isEmpty() ? 1.0 : ground.top();
+            // lower, the mob stands in the block below; higher, on a fence it should not climb
+            return top < MAX_FLOOR_IN_FEET || top > 1.0 ? Double.NaN : y - 1 + top;
+        }
+        if (!BlockView.isSolidGround(feet)) {
+            return Double.NaN; // lava
+        }
+        final double top = BlockCollision.shape(feet).top();
+        if (top > MAX_FLOOR_IN_FEET) {
+            return Double.NaN;
+        }
+        if (top > TALL_FLOOR && !BlockView.isPassable(world, x, y + 2, z)) {
+            return Double.NaN;
+        }
+        return y + top;
+    }
+
     private static boolean isStandable(final ServerWorld world, final int x, final int y, final int z) {
-        return BlockView.isPassable(world, x, y, z)
-                && BlockView.isPassable(world, x, y + 1, z)
-                && BlockView.isSolidGround(world, x, y - 1, z);
+        return !Double.isNaN(floorLevel(world, x, y, z));
     }
 
     private static @Nullable Position snapToGround(final ServerWorld world, final Position pos) {
