@@ -275,9 +275,9 @@ tasks.withType<GenerateBlockEntityTypeBlocksTask>().configureEach {
 
 fidorialRegistryGenerator {
     minecraftVersion.set(providers.gradleProperty("minecraftVersion"))
-    prismarineMinecraftData.set("26.4-snapshot-7")
+    prismarineMinecraftData.set("26.4-snapshot-8")
     prismarineDataRepository.set("Fidorial/minecraft-data") // PrismarineJS/minecraft-data
-    prismarineDataRef.set("ver/26.4-snapshot-7") // master
+    prismarineDataRef.set("ver/26.4-snapshot-8") // master
 
     generatedPackage.set(
         "fr.euphyllia.fidorial.server",
@@ -324,6 +324,7 @@ fidorialRegistryGenerator {
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",
+            "minecraft:command_suggestion_type" to "SuggestionType",
             "minecraft:entity_type" to "EntityType",
         ),
     )
@@ -331,6 +332,7 @@ fidorialRegistryGenerator {
     protocolIdRegistries.set(
         listOf(
             "minecraft:command_argument_type",
+            "minecraft:command_suggestion_type",
             "minecraft:entity_type",
         ),
     )

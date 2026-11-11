@@ -17,20 +17,43 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 public final class ClientSuggestionsArgumentType<T> implements ArgumentType<T>, ClientSuggestions {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ClientSuggestionsArgumentType.class);
 
+    private static final Key LITERAL_SOURCE = Key.key("literal");
+
     private final ArgumentType<T> delegate;
     private final Key suggestionSource;
+    private final List<String> suggestionValues;
     private final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions;
 
     public ClientSuggestionsArgumentType(final ArgumentType<T> delegate, final Key suggestionSource, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
+        this(delegate, suggestionSource, List.of(), fallbackSuggestions);
+    }
+
+    private ClientSuggestionsArgumentType(final ArgumentType<T> delegate, final Key suggestionSource, final List<String> suggestionValues, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
         this.delegate = delegate;
         this.suggestionSource = suggestionSource;
+        this.suggestionValues = suggestionValues;
         this.fallbackSuggestions = fallbackSuggestions;
+    }
+
+    public static <T> ClientSuggestionsArgumentType<T> literal(final ArgumentType<T> delegate, final List<String> values) {
+        final List<String> copy = List.copyOf(values);
+        return new ClientSuggestionsArgumentType<>(delegate, LITERAL_SOURCE, copy, (_, builder) -> {
+            final String remaining = builder.getRemainingLowerCase();
+            for (final String value : copy) {
+                if (value.toLowerCase(Locale.ROOT).startsWith(remaining)) {
+                    builder.suggest(value);
+                }
+            }
+            return builder.buildFuture();
+        });
     }
 
     @Override
@@ -60,6 +83,11 @@ public final class ClientSuggestionsArgumentType<T> implements ArgumentType<T>, 
     @Override
     public Key suggestionSource() {
         return suggestionSource;
+    }
+
+    @Override
+    public List<String> suggestionValues() {
+        return suggestionValues;
     }
 
     public ArgumentType<T> delegate() {

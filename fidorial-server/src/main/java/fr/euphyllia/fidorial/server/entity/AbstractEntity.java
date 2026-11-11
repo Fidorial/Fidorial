@@ -200,6 +200,7 @@ public abstract class AbstractEntity implements Entity {
                 entityId(),
                 new PositionData.LinearPositionPath(LocationPositionData.vec3(location)),
                 LocationPositionData.floatRotation(location),
+                location.yaw(),
                 false));
         server().entities().tracker().update(this, server().players().online());
     }

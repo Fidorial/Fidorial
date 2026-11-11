@@ -38,6 +38,7 @@ import fr.euphyllia.fidorial.server.network.serialization.util.CompressionDecode
 import fr.euphyllia.fidorial.server.network.serialization.util.CompressionEncoder;
 import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.command.CommandSource;
 import fr.fidorial.dialog.DialogDefinition;
 import fr.fidorial.dialog.DialogReference;
 import fr.fidorial.entity.RespawnPoint;
@@ -799,5 +800,11 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
         final Key packetKey = isInPlayState() ? PlayClientboundPackets.POST_EFFECTS : ConfigurationClientboundPackets.POST_EFFECTS;
         send(new ClientboundPostEffectsPacket(packetKey, postEffects));
+    }
+
+    public void sendCommands(final CommandSource source) {
+        if (!isInPlayState() && !(this.state == ConnectionState.CONFIGURATION)) return;
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.COMMANDS : ConfigurationClientboundPackets.COMMANDS;
+        send(server.commands().manager().createCommandsPacket(packetKey, source));
     }
 }

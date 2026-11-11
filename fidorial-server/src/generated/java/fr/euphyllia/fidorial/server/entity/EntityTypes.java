@@ -16,9 +16,9 @@ import org.jspecify.annotations.Nullable;
  * regenerate.</p>
  */
 public final class EntityTypes {
-    private static final Map<TypedKey<EntityType>, EntityType> BY_KEY = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<EntityType>, EntityType> BY_KEY = new ConcurrentHashMap<>(163);
 
-    private static final Map<TypedKey<EntityType>, Integer> NETWORK_IDS = new ConcurrentHashMap<>();
+    private static final Map<TypedKey<EntityType>, Integer> NETWORK_IDS = new ConcurrentHashMap<>(163);
 
     /**
      * {@code minecraft:acacia_boat}, network ID {@code 0}.

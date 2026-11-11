@@ -12,7 +12,6 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusClientboundPa
 import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusServerboundPacketIds;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -71,24 +70,25 @@ public final class ProtocolMap {
     }
 
     /**
-     * @param byName packet ids, {@code -1} for an unknown name
+     * @param byName packet ids
      * @param byId   packet names indexed by id; packet ids are dense, so an array beats a map
      */
     private record Direction(Object2IntMap<Key> byName, @Nullable Key[] byId) {
 
-        static final Direction EMPTY = of(Map.of());
+        private static final int UNKNOWN = -1;
 
-        static Direction of(final Map<Key, Integer> byName) {
-            final Object2IntOpenHashMap<Key> ids = new Object2IntOpenHashMap<>(byName);
-            ids.defaultReturnValue(-1);
-            ids.trim();
-            final @Nullable Key[] names = new Key[ids.values().intStream().max().orElse(-1) + 1];
-            byName.forEach((name, id) -> names[id] = name);
-            return new Direction(Object2IntMaps.unmodifiable(ids), names);
+        static final Direction EMPTY = of(Object2IntMaps.emptyMap());
+
+        static Direction of(final Object2IntMap<Key> byName) {
+            final @Nullable Key[] names = new Key[byName.values().intStream().max().orElse(UNKNOWN) + 1];
+            for (final Object2IntMap.Entry<Key> entry : Object2IntMaps.fastIterable(byName)) {
+                names[entry.getIntValue()] = entry.getKey();
+            }
+            return new Direction(byName, names);
         }
 
         int id(final Key name) {
-            return byName.getInt(name);
+            return byName.getOrDefault(name, UNKNOWN);
         }
 
         @Nullable Key name(final int id) {

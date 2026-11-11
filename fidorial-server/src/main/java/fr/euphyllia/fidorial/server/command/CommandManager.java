@@ -43,7 +43,7 @@ import fr.euphyllia.fidorial.server.command.defaults.WeatherCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WhitelistCommand;
 import fr.euphyllia.fidorial.server.command.fidorial.PluginsCommand;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundCommandsPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundCommandsPacket;
 import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.command.CommandSource;
 import net.kyori.adventure.key.Key;
@@ -531,10 +531,10 @@ public final class CommandManager implements CommandRegistry {
         }
     }
 
-    public ClientboundCommandsPacket createCommandsPacket(final ServerPlayer player) {
+    public ClientboundCommandsPacket createCommandsPacket(final Key name, final CommandSource source) {
         lock.readLock().lock();
         try {
-            return new ClientboundCommandsPacket(dispatcher, player.commandSource());
+            return new ClientboundCommandsPacket(name, dispatcher, source);
         } finally {
             lock.readLock().unlock();
         }

@@ -11,9 +11,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  * <p>Generated from Prismarine's blocks report; do not edit.</p>
  */
 public final class BlockStateLightProperties {
-    private static final Object2IntOpenHashMap<TypedKey<BlockType>> EMISSION = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<BlockType>> EMISSION = new Object2IntOpenHashMap<>(1311);
 
-    private static final Object2IntOpenHashMap<TypedKey<BlockType>> OPACITY = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<BlockType>> OPACITY = new Object2IntOpenHashMap<>(1311);
 
     static {
         OPACITY.defaultReturnValue(15);

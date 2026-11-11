@@ -6162,6 +6162,11 @@ public final class SoundEventKeys {
     public static final TypedKey<SoundEvent> ENTITY_FROSTBITE_STEP = create("entity.frostbite.step");
 
     /**
+     * Key for {@code minecraft:entity.frostbite.throw}.
+     */
+    public static final TypedKey<SoundEvent> ENTITY_FROSTBITE_THROW = create("entity.frostbite.throw");
+
+    /**
      * Key for {@code minecraft:entity.generic.big_fall}.
      */
     public static final TypedKey<SoundEvent> ENTITY_GENERIC_BIG_FALL = create("entity.generic.big_fall");
@@ -11482,6 +11487,7 @@ public final class SoundEventKeys {
         ENTITY_FROSTBITE_DEATH,
         ENTITY_FROSTBITE_HURT,
         ENTITY_FROSTBITE_STEP,
+        ENTITY_FROSTBITE_THROW,
         ENTITY_GENERIC_BIG_FALL,
         ENTITY_GENERIC_BURN,
         ENTITY_GENERIC_DEATH,

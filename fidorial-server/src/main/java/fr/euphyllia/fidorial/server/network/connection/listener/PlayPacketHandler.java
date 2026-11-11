@@ -940,6 +940,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     moving.entityId(),
                     new PositionData.LinearPositionPath(LocationPositionData.vec3(current)),
                     LocationPositionData.floatRotation(current),
+                    yaw,
                     moving.onGround()));
             moving.sendToTrackers(new ClientboundRotateHeadPacket(moving.entityId(), yaw));
             server.entities().tracker().update(moving, server.players().online());
@@ -978,6 +979,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                             teleporting.entityId(),
                             new PositionData.LinearPositionPath(LocationPositionData.vec3(location)),
                             LocationPositionData.floatRotation(location),
+                            location.yaw(),
                             teleporting.onGround()));
 
                     teleporting.sendToTrackers(new ClientboundRotateHeadPacket(teleporting.entityId(), location.yaw()));

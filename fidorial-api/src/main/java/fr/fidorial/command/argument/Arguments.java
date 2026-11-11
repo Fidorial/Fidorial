@@ -36,9 +36,11 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 /**
  * The argument types the server knows how to parse, suggest and send to clients.
@@ -308,6 +310,18 @@ public interface Arguments {
     ArgumentType<Key> key();
 
     /**
+     * {@return the input matching {@code pattern} from the cursor}
+     * <p>
+     * The match may stop before the end of the input. Only the pattern's source is sent to clients,
+     * so it is necessary to use inline flags, such as {@code (?i)}, instead of {@link Pattern#flags()}.
+     *
+     * @param pattern the pattern, without flags
+     * @param errorMessage shown when the input doesn't match or {@code null}
+     * @since 0.1.0
+     */
+    ArgumentType<String> pattern(Pattern pattern, @Nullable Component errorMessage);
+
+    /**
      * {@return a typed key of {@code registryKey}, not checked against the registry}
      *
      * @param registryKey the registry
@@ -401,4 +415,16 @@ public interface Arguments {
      * @since 0.1.0
      */
     <T> ArgumentType<T> withClientSuggestions(ArgumentType<T> type, Key suggestionSource, @Nullable SuggestionProvider<CommandSource> fallbackSuggestions);
+
+    /**
+     * {@return {@code type}, suggested by the client from {@code values}}
+     * <p>
+     * When the server has to answer, it suggests the same values.
+     *
+     * @param type   the argument type
+     * @param values the suggested values
+     * @param <T>    the parsed value type
+     * @since 0.1.0
+     */
+    <T> ArgumentType<T> withClientSuggestions(ArgumentType<T> type, List<String> values);
 }

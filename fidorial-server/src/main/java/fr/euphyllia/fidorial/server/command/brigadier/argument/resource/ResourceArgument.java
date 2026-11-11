@@ -18,7 +18,6 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import net.kyori.adventure.key.Key;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -62,20 +61,7 @@ public final class ResourceArgument<T> implements ArgumentType<T> {
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        final String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-        final boolean remainingHasNamespace = remaining.indexOf(Key.DEFAULT_SEPARATOR) >= 0;
-        final String minecraftPrefix = Key.MINECRAFT_NAMESPACE + Key.DEFAULT_SEPARATOR;
-
-        for (final TypedKey<T> key : registryLookup().keys()) {
-            final String full = key.key().asString();
-            final String path = full.startsWith(minecraftPrefix) ? full.substring(minecraftPrefix.length()) : full;
-
-            if (remainingHasNamespace ? full.contains(remaining) : path.contains(remaining)) {
-                builder.suggest(full);
-            }
-        }
-
-        return builder.buildFuture();
+        return RegistryKeySuggestions.suggest(registryLookup(), builder);
     }
 
     public RegistryKey<T> registryKey() {

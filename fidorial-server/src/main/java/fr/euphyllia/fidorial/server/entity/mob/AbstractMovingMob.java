@@ -395,12 +395,14 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
                     entityId(),
                     new PositionData.LinearPositionPath(currentVec),
                     new PositionData.FloatRotation(yaw, pitch),
+                    yaw,
                     onGround));
             sentX = current.x();
             sentY = current.y();
             sentZ = current.z();
             sentYaw = yaw;
             sentPitch = pitch;
+            sentHeadYaw = yaw;
             ticksSinceSync = 0;
         } else if (moved) {
             final PositionData.DeltaVec3D delta = PositionData.DeltaVec3D.between(new PositionData.Vec3D(sentX, sentY, sentZ), currentVec);

@@ -62,27 +62,29 @@ public final class Vec3Argument implements ArgumentType<PositionResolver> {
 
         @Override
         public void serialize(final Spec spec, final PacketBuffer buf) {
+            buf.writeBoolean(spec.centerCorrect());
         }
 
         @Override
         public Spec deserialize(final PacketBuffer buf) {
-            return new Spec();
+            return new Spec(buf.readBoolean());
         }
 
         @Override
         public void serializeJson(final Spec spec, final JsonObject json) {
+            json.addProperty("center_correct", spec.centerCorrect());
         }
 
         @Override
         public Spec access(final Vec3Argument argument) {
-            return new Spec();
+            return new Spec(argument.centerCorrect());
         }
 
-        public record Spec() implements ArgumentTypeRegistrar.Spec<Vec3Argument> {
+        public record Spec(boolean centerCorrect) implements ArgumentTypeRegistrar.Spec<Vec3Argument> {
 
             @Override
             public Vec3Argument instantiate() {
-                return Vec3Argument.vec3();
+                return new Vec3Argument(centerCorrect);
             }
 
             @Override

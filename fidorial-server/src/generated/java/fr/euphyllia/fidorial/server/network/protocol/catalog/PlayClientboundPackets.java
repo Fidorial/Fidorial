@@ -14,6 +14,11 @@ public final class PlayClientboundPackets {
     public static final Key ADD_ENTITY = Key.key("add_entity");
 
     /**
+     * {@code minecraft:add_entity_motion}
+     */
+    public static final Key ADD_ENTITY_MOTION = Key.key("add_entity_motion");
+
+    /**
      * {@code minecraft:add_transient_block}
      */
     public static final Key ADD_TRANSIENT_BLOCK = Key.key("add_transient_block");

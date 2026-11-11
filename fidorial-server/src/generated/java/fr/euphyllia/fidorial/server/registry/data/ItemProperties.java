@@ -20,13 +20,13 @@ import org.jspecify.annotations.Nullable;
  * a stack in hand.</p>
  */
 public final class ItemProperties {
-    private static final Object2IntOpenHashMap<TypedKey<Item>> STACK_SIZE = new Object2IntOpenHashMap<>();
+    private static final Object2IntOpenHashMap<TypedKey<Item>> STACK_SIZE = new Object2IntOpenHashMap<>(1686);
 
     private static final Object2IntOpenHashMap<TypedKey<Item>> MAX_DAMAGE = new Object2IntOpenHashMap<>();
 
     private static final Object2ObjectOpenHashMap<TypedKey<Item>, List<TypedKey<Item>>> REPAIR_MATERIALS = new Object2ObjectOpenHashMap<>();
 
-    private static final Object2ObjectOpenHashMap<TypedKey<Item>, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>();
+    private static final Object2ObjectOpenHashMap<TypedKey<Item>, String> EQUIPMENT_SLOT = new Object2ObjectOpenHashMap<>(84);
 
     static {
         STACK_SIZE.defaultReturnValue(64);

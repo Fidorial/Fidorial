@@ -13,6 +13,7 @@ public record ClientboundEntityPositionSyncPacket(
         int entityId,
         PositionData.LinearPositionPath position,
         PositionData.FloatRotation rotation,
+        float headYaw,
         boolean onGround)
         implements ClientboundPacket<ClientboundEntityPositionSyncPacket> {
 
@@ -20,6 +21,7 @@ public record ClientboundEntityPositionSyncPacket(
             .field(PrimitiveCodecs.VAR_INT, ClientboundEntityPositionSyncPacket::entityId)
             .then(PositionData.LinearPositionPath.CODEC, ClientboundEntityPositionSyncPacket::position)
             .then(PositionData.FloatRotation.CODEC, ClientboundEntityPositionSyncPacket::rotation)
+            .then(PrimitiveCodecs.FLOAT, ClientboundEntityPositionSyncPacket::headYaw)
             .then(PrimitiveCodecs.BOOL, ClientboundEntityPositionSyncPacket::onGround);
 
     @Override

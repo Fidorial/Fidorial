@@ -21,7 +21,6 @@
 package fr.euphyllia.fidorial.server.command.spark;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
@@ -36,19 +35,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.regex.Pattern;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
+import static fr.fidorial.command.argument.Arguments.arguments;
 
 /**
  * Bridges spark's flat {@code String[]} command model onto Fidorial's Brigadier dispatcher.
  *
  * <p>spark parses its own arguments, so the whole tail of the command line is captured as a single
- * greedy string argument and split back into tokens before being handed to
+ * pattern argument matching the rest of the line and split back into tokens before being handed to
  * {@link SparkPlatform#executeCommand}. Suggestions are re-anchored onto the last token so the
  * client highlights the right span.</p>
  */
 public final class SparkCommand implements SuggestionProvider<CommandSource> {
+
+    private static final Pattern REST_OF_LINE = Pattern.compile(".*");
 
     private final SparkPlatform platform;
     private final Executor asyncExecutor;
@@ -75,7 +78,7 @@ public final class SparkCommand implements SuggestionProvider<CommandSource> {
                 // bare "/spark" -> spark prints its own usage
                 .executes(ctx -> command.execute(ctx, new String[0]))
                 // "/spark <anything else>"
-                .then(argument("args", StringArgumentType.greedyString())
+                .then(argument("args", arguments().pattern(REST_OF_LINE, null))
                         .suggests(command)
                         .executes(ctx -> command.execute(ctx, splitInput(ctx, false))))
                 .build();

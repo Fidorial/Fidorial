@@ -255,7 +255,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public void refreshCommands() {
-        connection.send(connection.server().commands().manager().createCommandsPacket(this));
+        connection.sendCommands(this.commandSource());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.network.protocol.catalog;
 
-import java.util.Map;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 
 /**
@@ -25,11 +26,17 @@ public interface StatusClientboundPacketIds {
     int STATUS_RESPONSE_ID = 0;
 
     /**
-     * Immutable identifier to protocol ID lookup table.
+     * Identifier to protocol ID lookup table.
      */
-    Map<Key, Integer> BY_IDENTIFIER = Map.ofEntries(
-        Map.entry(Key.key("pong_response"), PONG_RESPONSE_ID),
-        Map.entry(Key.key("status_response"), STATUS_RESPONSE_ID)
+    Object2IntMap<Key> BY_IDENTIFIER = new Object2IntOpenHashMap<>(
+        new Key[] {
+            Key.key("pong_response"),
+            Key.key("status_response")
+        },
+        new int[] {
+            PONG_RESPONSE_ID,
+            STATUS_RESPONSE_ID
+        }
     );
 
     /**

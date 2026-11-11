@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.network.connection.listener;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
+import fr.euphyllia.fidorial.server.command.brigadier.packet.util.PermissionlessCommandSender;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPack;
 import fr.euphyllia.fidorial.server.datapack.known.KnownPackNegotiation;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
@@ -65,11 +66,19 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
             return;
         }
         connection.send(new ClientboundBrandPacket(server.brandName()));
+        proceedToCommands();
         if (sendResourcePackIfConfigured()) {
             awaitingResourcePackResponse = true;
         } else {
             proceedToCodeOfConduct();
         }
+    }
+
+    /// not used by the vanilla server yet; seems to be a groundwork for `run_command` dialogs in the config phase,
+    /// but we send it anyway as it's harmless
+    private void proceedToCommands() {
+        // we only send the commands that require no permission as they aren't known yet
+        connection.sendCommands(PermissionlessCommandSender.INSTANCE.commandSource());
     }
 
     private void proceedToKnownPacks() {

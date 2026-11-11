@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.custom.ServerSugg
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.EntityArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.entity.UuidArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.DurationArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.PatternArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.generic.TimeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.item.ItemArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.item.ItemPredicateArgument;
@@ -33,8 +34,8 @@ import fr.euphyllia.fidorial.server.command.brigadier.argument.player.PostEffect
 import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.range.RangeBounds;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.KeyArgument;
+import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.RegistryKeySuggestions;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceArgument;
-import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceKeyArgument;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.Arguments;
 import fr.fidorial.command.argument.custom.ArgumentMapper;
@@ -66,9 +67,11 @@ import net.kyori.adventure.text.format.TextColor;
 import org.jspecify.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public final class FidorialArguments implements Arguments {
 
@@ -251,8 +254,14 @@ public final class FidorialArguments implements Arguments {
     }
 
     @Override
+    public ArgumentType<String> pattern(final Pattern pattern, final @Nullable Component errorMessage) {
+        return PatternArgument.pattern(pattern, errorMessage);
+    }
+
+    @Override
     public <T> ArgumentType<TypedKey<T>> resourceKey(final RegistryKey<T> registryKey) {
-        return ResourceKeyArgument.resourceKey(registryKey);
+        return map(KeyArgument.key(), (key, _) -> TypedKey.withRegistry(registryKey, key),
+                RegistryKeySuggestions.registryKey(registryKey));
     }
 
     @Override
@@ -262,13 +271,11 @@ public final class FidorialArguments implements Arguments {
 
     @Override
     public <T> ArgumentType<T> serverResource(final RegistryKey<T> registryKey) {
-        final ResourceKeyArgument<T> nativeType = ResourceKeyArgument.resourceKey(registryKey);
-
         // The registry is resolved on parse, so this can be called while the server is being built.
-        return withServerSuggestions(new MappedArgumentType<>(nativeType, (typedKey, reader) ->
+        return map(resourceKey(registryKey), (typedKey, reader) ->
                 FidorialServer.getInstance().registries().registry(registryKey).find(typedKey)
                         .orElseThrow(() -> ResourceArgument.ERROR_UNKNOWN_RESOURCE
-                                .createWithContext(reader, typedKey.key().asString(), registryKey.key().asString()))));
+                                .createWithContext(reader, typedKey.key().asString(), registryKey.key().asString())));
     }
 
     @Override
@@ -299,5 +306,10 @@ public final class FidorialArguments implements Arguments {
     @Override
     public <T> ArgumentType<T> withClientSuggestions(final ArgumentType<T> type, final Key suggestionSource, final @Nullable SuggestionProvider<CommandSource> fallbackSuggestions) {
         return new ClientSuggestionsArgumentType<>(type, suggestionSource, fallbackSuggestions);
+    }
+
+    @Override
+    public <T> ArgumentType<T> withClientSuggestions(final ArgumentType<T> type, final List<String> values) {
+        return ClientSuggestionsArgumentType.literal(type, values);
     }
 }

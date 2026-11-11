@@ -19,6 +19,11 @@ public final class ConfigurationClientboundPackets {
     public static final Key CODE_OF_CONDUCT = Key.key("code_of_conduct");
 
     /**
+     * {@code minecraft:commands}
+     */
+    public static final Key COMMANDS = Key.key("commands");
+
+    /**
      * {@code minecraft:cookie_request}
      */
     public static final Key COOKIE_REQUEST = Key.key("cookie_request");

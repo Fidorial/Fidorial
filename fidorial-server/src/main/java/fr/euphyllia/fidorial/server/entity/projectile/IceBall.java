@@ -25,14 +25,14 @@ import org.jspecify.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * The projectile thrown by a frostbite: it deals up to {@value #MAX_DAMAGE} damage, less as it slows down,
+ * The projectile thrown by a frostbite: it deals damage scaling with its speed,
  * and shatters on the first block or entity it meets.
  *
  * <p>It is never saved with the chunk: an ice ball only lives for a few seconds.</p>
  */
 public final class IceBall extends AbstractEntity {
 
-    public static final float MAX_DAMAGE = 4.0f;
+    private static final double DAMAGE_PER_SPEED = 1.3;
 
     // Flight of every thrown item (snowball, egg, ...).
     private static final double GRAVITY = 0.03;
@@ -51,7 +51,6 @@ public final class IceBall extends AbstractEntity {
     private static final byte ENTITY_EVENT_BREAK = 3;
 
     private final @Nullable AbstractLivingEntity owner;
-    private final double launchSpeed;
 
     private double velocityX;
     private double velocityY;
@@ -65,7 +64,6 @@ public final class IceBall extends AbstractEntity {
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.velocityZ = velocityZ;
-        this.launchSpeed = speed();
     }
 
     public static IceBall thrownAt(final int entityId, final Location from, final @Nullable AbstractLivingEntity owner,
@@ -159,13 +157,10 @@ public final class IceBall extends AbstractEntity {
     }
 
     /**
-     * {@return the damage of a hit right now: the full {@value #MAX_DAMAGE} at launch speed, less once slowed down}
+     * {@return the damage of a hit right now, rounded up from its speed}
      */
     public float damage() {
-        if (launchSpeed <= 0.0) {
-            return MAX_DAMAGE;
-        }
-        return (float) (MAX_DAMAGE * Math.clamp(speed() / launchSpeed, 0.0, 1.0));
+        return (float) Math.ceil(speed() * DAMAGE_PER_SPEED);
     }
 
     private double speed() {

@@ -691,6 +691,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
                         entityId(),
                         new PositionData.LinearPositionPath(currentVec),
                         new PositionData.FloatRotation(0.0f, 0.0f),
+                        0.0f,
                         onGround));
                 sentX = current.x();
                 sentY = current.y();
