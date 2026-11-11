@@ -16,6 +16,7 @@ import fr.euphyllia.fidorial.server.translation.BuiltInTranslationStore;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
+import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingRegistry;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
 import fr.fidorial.permission.PermissionRegistry;
@@ -32,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Game data: the registries, filled with the vanilla data as soon as the module is built so that
  * commands can use them, then with the data packs on load; and the content defined in code: blocks,
- * items, mobs, effects, permissions, recipes, redstone behaviours and translations.
+ * items, mobs, effects, permissions, recipes, redstone and farming behaviours and translations.
  *
  * <p>This is the server's implementation of the {@link GameRegistries} API.</p>
  */
@@ -53,6 +54,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     private final FidorialRecipeRegistry recipes =
             new FidorialRecipeRegistry((tag, item) -> registries.registry(RegistryKey.ITEM).isTagged(item, tag));
     private final FidorialRedstoneRegistry redstone = new FidorialRedstoneRegistry();
+    private final FidorialFarmingRegistry farming = new FidorialFarmingRegistry();
     private volatile DatapackContents datapacks = DatapackContents.empty();
 
     /**
@@ -114,6 +116,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         enchantments.detachAll(plugin);
         recipes.unregisterAll(plugin);
         redstone.detachAll(plugin);
+        farming.detachAll(plugin);
     }
 
     @Override
@@ -170,6 +173,11 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     @Override
     public FidorialRedstoneRegistry redstone() {
         return redstone;
+    }
+
+    @Override
+    public FidorialFarmingRegistry farming() {
+        return farming;
     }
 
     @Override

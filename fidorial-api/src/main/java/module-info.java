@@ -20,6 +20,8 @@ import org.jspecify.annotations.NullMarked;
  *   <li>{@link fr.fidorial.registry.keys} — generated keys for blocks, items and more</li>
  *   <li>{@link fr.fidorial.world.redstone} — redstone signals, the blocks taking part in them, and the
  *   engine driving them</li>
+ *   <li>{@link fr.fidorial.world.farming} — soil, the plants growing on it, and the engine making
+ *   them grow</li>
  * </ul>
  *
  * <h2>Threading</h2>
@@ -48,6 +50,7 @@ module fr.fidorial {
     exports fr.fidorial.entity.mob;
     exports fr.fidorial.entity;
     exports fr.fidorial.event.entity;
+    exports fr.fidorial.event.farming;
     exports fr.fidorial.event.player;
     exports fr.fidorial.event.redstone;
     exports fr.fidorial.event.server;
@@ -90,6 +93,7 @@ module fr.fidorial {
     exports fr.fidorial.command.argument.custom;
     exports fr.fidorial.world.biome;
     exports fr.fidorial.world.environment;
+    exports fr.fidorial.world.farming;
     exports fr.fidorial.world.dimension;
     exports fr.fidorial.world.dimension.types;
     exports fr.fidorial.item;

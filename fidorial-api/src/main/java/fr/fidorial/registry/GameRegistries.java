@@ -8,6 +8,8 @@ import fr.fidorial.item.ItemRegistry;
 import fr.fidorial.item.enchantment.Enchantments;
 import fr.fidorial.permission.PermissionRegistry;
 import fr.fidorial.recipe.RecipeRegistry;
+import fr.fidorial.world.farming.FarmingBehaviour;
+import fr.fidorial.world.farming.FarmingRegistry;
 import fr.fidorial.world.generation.GeneratedChunk;
 import fr.fidorial.world.generation.WorldGenerator;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
@@ -17,7 +19,7 @@ import org.jetbrains.annotations.Contract;
 /**
  * The server-wide registries: every {@linkplain #registry(RegistryKey) data registry}, with the
  * vanilla entries and those plugins add, and the content defined in code (mobs, effects, items,
- * recipes, permissions, redstone behaviours).
+ * recipes, permissions, redstone and farming behaviours).
  *
  * @see Server#registries()
  * @since 0.1.0
@@ -132,6 +134,20 @@ public interface GameRegistries {
      */
     @Contract(pure = true)
     RedstoneRegistry redstone();
+
+    /**
+     * Gets the server-wide farming registry.
+     *
+     * <p>Where each block type taking part in farming gets its
+     * {@linkplain FarmingBehaviour behaviour}, where plugins
+     * {@linkplain FarmingRegistry#attach attach} one to the plants they add, or to the built-in
+     * ones, and where they declare their seeds, fertilizers, hoes and tillable soils.</p>
+     *
+     * @return the farming registry
+     * @since 0.1.0
+     */
+    @Contract(pure = true)
+    FarmingRegistry farming();
 
     /**
      * Gets the server-wide permission registry.
