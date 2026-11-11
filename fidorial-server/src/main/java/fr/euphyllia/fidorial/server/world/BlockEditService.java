@@ -35,6 +35,10 @@ public final class BlockEditService {
 
     };
 
+    private volatile BlockChangeListener changeListener = (_, _, _, _) -> {
+
+    };
+
     public BlockEditService(
             final BlockStateRegistry blockRegistry,
             final BlockChangeBroadcaster broadcaster,
@@ -58,6 +62,18 @@ public final class BlockEditService {
      */
     public void setRedstoneNotifier(final RedstoneNotifier redstoneNotifier) {
         this.redstoneNotifier = redstoneNotifier;
+    }
+
+    /**
+     * Sets who is told of every block that changes through
+     * {@link #set(ServerWorld, BlockPosition, BlockState, boolean)}, whoever changed it and whether
+     * or not redstone follows up on its own: the farming engine, whose plants stand or fall with
+     * the blocks around them.
+     *
+     * @param changeListener told of every block that changes
+     */
+    public void setChangeListener(final BlockChangeListener changeListener) {
+        this.changeListener = changeListener;
     }
 
     /**
@@ -111,8 +127,11 @@ public final class BlockEditService {
         if (events != null && previous != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
             events.emit(world, GameEventKeys.BLOCK_CHANGE, pos);
         }
-        if (notifyRedstone && previous != null && !previous.equals(state)) {
-            redstoneNotifier.blockChanged(world, pos, previous, state);
+        if (previous != null && !previous.equals(state)) {
+            if (notifyRedstone) {
+                redstoneNotifier.blockChanged(world, pos, previous, state);
+            }
+            changeListener.blockChanged(world, pos, previous, state);
         }
         return true;
     }
@@ -235,6 +254,14 @@ public final class BlockEditService {
      */
     @FunctionalInterface
     public interface RedstoneNotifier {
+        void blockChanged(ServerWorld world, BlockPosition pos, BlockState previous, BlockState current);
+    }
+
+    /**
+     * Told of a block that changed, once everything else followed up on the change.
+     */
+    @FunctionalInterface
+    public interface BlockChangeListener {
         void blockChanged(ServerWorld world, BlockPosition pos, BlockState previous, BlockState current);
     }
 }

@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameEvent;
@@ -44,6 +45,7 @@ public final class FluidEngine implements FluidManager {
     private final Map<Key, Set<Long>> pending = new ConcurrentHashMap<>();
     private volatile LightHook lightHook = (_, _, _, _) -> {};
     private volatile BlockEditService.RedstoneNotifier redstoneHook = (_, _, _, _) -> {};
+    private volatile WashHook washHook = (_, _, _, _) -> false;
     private volatile @Nullable DebugGameEvents debugEvents;
 
     public FluidEngine(
@@ -273,7 +275,7 @@ public final class FluidEngine implements FluidManager {
             return true;
         }
 
-        if (belowBlock.isAir()) {
+        if (givesWay(world, x, y - 1, z, belowBlock, type)) {
             if (setAndBroadcast(world, x, y - 1, z, FluidBlockCodec.toBlock(FluidState.fallingFluid(type)))) {
                 schedule(worldName, x, y - 1, z, type.tickDelay());
             }
@@ -315,7 +317,7 @@ public final class FluidEngine implements FluidManager {
             final BlockState targetBlock = world.getBlock(tx, y, tz);
             final FluidState target = FluidBlockCodec.fromBlock(targetBlock);
 
-            final boolean canFlow = targetBlock.isAir()
+            final boolean canFlow = givesWay(world, tx, y, tz, targetBlock, type)
                     || (target.type() == type && !target.isSource() && target.effectiveLevel() > spreadLevel);
             if (canFlow) {
                 if (setAndBroadcast(world, tx, y, tz, FluidBlockCodec.toBlock(FluidState.flowing(type, spreadLevel)))) {
@@ -372,6 +374,28 @@ public final class FluidEngine implements FluidManager {
     }
 
     /**
+     * Sets who decides which blocks a fluid washes away, and gives what they drop: the plants a
+     * stream uproots.
+     *
+     * @param hook asked about every block that is neither air nor a fluid and stands in the way
+     */
+    public void setWashHook(final WashHook hook) {
+        this.washHook = hook;
+    }
+
+    /**
+     * {@return {@code true} if a fluid may take the place of a block}: air, or a block the fluid
+     * washes away
+     */
+    private boolean givesWay(final ServerWorld world, final int x, final int y, final int z, final BlockState block,
+                             final FluidType type) {
+        if (block.isAir()) {
+            return true;
+        }
+        return !block.isFluid() && washHook.washAway(world, Position.block(x, y, z), block, type);
+    }
+
+    /**
      * Sets who follows up on the blocks fluids change for redstone, as for the blocks changed
      * through the {@link BlockEditService}: water reaching an observer's face triggers it.
      *
@@ -395,5 +419,14 @@ public final class FluidEngine implements FluidManager {
     @FunctionalInterface
     public interface LightHook {
         void onBlockChanged(Key world, int x, int y, int z);
+    }
+
+    /**
+     * Asked whether a fluid washes a block away. The block is still in place: what it drops is to
+     * be dropped before answering.
+     */
+    @FunctionalInterface
+    public interface WashHook {
+        boolean washAway(ServerWorld world, BlockPosition position, BlockState block, FluidType fluid);
     }
 }
