@@ -682,8 +682,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
             }
 
             final BlockFace clickedFace = BlockFace.byId(packet.face());
+            final int slot = packet.hand() == 0 ? acting.selectedSlot() : PlayerInventory.OFF_HAND;
             final BlockPosition target = clicked.relative(clickedFace);
-            final ItemStack held = acting.inventory().get(acting.selectedSlot());
+            final ItemStack held = acting.inventory().get(slot);
             final BlockState state = held.isEmpty() ? null : blockToPlace(held, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
 
