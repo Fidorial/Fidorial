@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
+import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
@@ -59,10 +60,14 @@ public class AnvilChunkSerializer {
 
         root.putIntArray("LightHeightmap", light.heightmapSnapshot());
 
+        final boolean full = chunk.status().equals(ChunkColumn.FULL_STATUS);
         final CompoundBinaryTag.Builder heightmaps = CompoundBinaryTag.builder();
-        final long[] motionBlocking = chunk.computeMotionBlockingHeightmap();
-        heightmaps.putLongArray("MOTION_BLOCKING", motionBlocking);
-        heightmaps.putLongArray("WORLD_SURFACE", motionBlocking.clone());
+        for (final Heightmap type : Heightmap.values()) {
+            if (full && type.generationOnly()) {
+                continue;
+            }
+            heightmaps.putLongArray(type.name(), chunk.heightmap(type));
+        }
         root.put("Heightmaps", heightmaps.build());
 
         root.put("block_entities", blockEntitiesToNbt(chunk));
@@ -189,7 +194,7 @@ public class AnvilChunkSerializer {
         final int chunkZ = root.getInt("zPos");
 
         final ChunkColumn chunk = new ChunkColumn(chunkX, chunkZ, minY, height, defaultBlock, defaultBiome);
-        chunk.setStatus(root.contains("status") ? Key.key(root.getString("status")) : Key.key("full"));
+        chunk.setStatus(root.contains("status") ? Key.key(root.getString("status")) : ChunkColumn.FULL_STATUS);
         chunk.setInhabitedTime(root.getLong("InhabitedTime"));
         chunk.setLastUpdate(root.getLong("LastUpdate"));
 
@@ -209,6 +214,15 @@ public class AnvilChunkSerializer {
                         light.setSectionArray(LightType.SKY, lightIndex, sc.getByteArray("SkyLight"));
                     }
                 }
+            }
+        }
+
+        final boolean full = chunk.status().equals(ChunkColumn.FULL_STATUS);
+        final CompoundBinaryTag stored = root.getCompound("Heightmaps");
+        for (final Heightmap type : Heightmap.values()) {
+            if (full && type.generationOnly()) continue; // full chunks have no generation heightmaps
+            if (stored.contains(type.name())) {
+                chunk.restoreHeightmap(type, stored.getLongArray(type.name()));
             }
         }
 

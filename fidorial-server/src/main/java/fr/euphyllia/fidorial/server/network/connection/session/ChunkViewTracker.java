@@ -180,12 +180,22 @@ public final class ChunkViewTracker implements ChunkViewSource {
             }
         }
 
-        if (closed) {
-            return;
+        final boolean scheduled = world.scheduler().execute(world.key(), new ChunkPos(cx, cz), () -> {
+            // built on the owning thread, so it matches the block updates sent from there
+            final ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(serializer, column, world.generator.dimensionType().hasSkylight());
+            synchronized (lock) {
+                if (closed || !sent.contains(key)) {
+                    return; // forgotten while the packet was being built
+                }
+                connection.send(packet);
+            }
+            ChunkDebugValues.sendStructures(connection, world, cx, cz);
+        });
+        if (!scheduled) {
+            synchronized (lock) {
+                sent.remove(key);
+            }
         }
-
-        connection.send(new ClientboundLevelChunkWithLightPacket(serializer, column, world.generator.dimensionType().hasSkylight()));
-        ChunkDebugValues.sendStructures(connection, world, cx, cz);
     }
 
     private boolean inRange(final int cx, final int cz, final int centerX, final int centerZ, final int range) {

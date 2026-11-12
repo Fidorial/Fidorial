@@ -4,6 +4,9 @@ import fr.euphyllia.fidorial.server.world.light.BlockLightProperties;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 
+import java.util.BitSet;
+import java.util.function.Predicate;
+
 public final class ChunkSection {
 
     public static final int BLOCK_COUNT = 4096; // 16^3
@@ -31,8 +34,12 @@ public final class ChunkSection {
         recomputeCounts();
     }
 
-    private static int blockIndex(final int x, final int y, final int z) {
+    static int blockIndex(final int x, final int y, final int z) {
         return (y << 8) | (z << 4) | x;
+    }
+
+    public BitSet matchingBlocks(final Predicate<BlockState> test) {
+        return blocks.matching(test);
     }
 
     public int sectionY() {

@@ -55,7 +55,7 @@ public class PluginGeneratedChunk implements GeneratedChunk {
         checkLocal(x, z);
         checkY(y);
         final BlockState state = properties.isEmpty()
-                ? BLOCK_CACHE.computeIfAbsent(block, BlockState::withoutProperties)
+                ? cachedState(block)
                 : BlockState.withProperties(block, properties);
         column.setBlock(x, y, z, state);
     }
@@ -86,5 +86,10 @@ public class PluginGeneratedChunk implements GeneratedChunk {
             throw new IllegalArgumentException(
                     "y out of bounds: " + y + " (expected [" + minY + ", " + (minY + height) + "[)");
         }
+    }
+
+    private static BlockState cachedState(final TypedKey<BlockType> block) {
+        final BlockState cached = BLOCK_CACHE.get(block);
+        return cached != null ? cached : BLOCK_CACHE.computeIfAbsent(block, BlockState::withoutProperties);
     }
 }
