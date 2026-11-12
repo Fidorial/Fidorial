@@ -29,9 +29,10 @@ public final class BlockLightProperties {
 
     private static LightProperties propsOf(final BlockState state) {
         final LightProperties cached = state.lightProperties();
-        if (cached != null) {
-            return cached;
-        }
+        return cached != null ? cached : computeProps(state);
+    }
+
+    private static LightProperties computeProps(final BlockState state) {
         if (state.isAir()) {
             state.setLightProperties(AIR_PROPS);
             return AIR_PROPS;

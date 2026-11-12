@@ -304,6 +304,10 @@ public final class ChunkColumn {
         if (!heightmapsCached) {
             return; // any scan that starts later already sees this block
         }
+        updateCachedHeightmaps(localX, worldY, localZ, state);
+    }
+
+    private void updateCachedHeightmaps(final int localX, final int worldY, final int localZ, final BlockState state) {
         synchronized (heightmaps) {
             final int bits = heightmapBits();
             final int perLong = 64 / bits;
