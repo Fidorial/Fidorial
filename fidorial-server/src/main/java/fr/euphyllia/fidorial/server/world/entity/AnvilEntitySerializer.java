@@ -207,6 +207,9 @@ public class AnvilEntitySerializer {
         if (entity instanceof final ServerItemEntity item) {
             writeItemEntity(c, item);
         }
+        if (entity instanceof final AbstractMob mob) {
+            mob.saveAdditional(c);
+        }
         return c.build();
     }
 
@@ -274,6 +277,7 @@ public class AnvilEntitySerializer {
                 pathfinder.setOnGround(c.getBoolean("OnGround"));
             }
         }
+        mob.loadAdditional(c);
         return mob;
     }
 }

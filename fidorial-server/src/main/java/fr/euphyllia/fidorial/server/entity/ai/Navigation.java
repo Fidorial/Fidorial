@@ -39,6 +39,7 @@ public class Navigation implements Navigator {
 
     private double lastDistanceSq = Double.MAX_VALUE;
     private int stuckTicks;
+    private double speed;
 
     public Navigation(final ServerWorld world) {
         this.world = world;
@@ -48,17 +49,50 @@ public class Navigation implements Navigator {
         this.pathPenalty = pathPenalty;
     }
 
+    /**
+     * Asks for a path to a goal, to be followed at a speed, as vanilla's navigation: the mob keeps
+     * that speed until the path ends, whichever goal asked for it.
+     *
+     * @param speed the movement speed of the mob times the speed modifier of the goal
+     * @return {@code false} if the request was dropped, another one being on its way or too recent
+     */
+    public boolean moveTo(final Location from, final Position goal, final double speed) {
+        if (!request(from, goal)) {
+            return false;
+        }
+        this.speed = speed;
+        return true;
+    }
+
+    /**
+     * {@return the speed asked along the path being followed, {@code 0} if a goal sets the speed of
+     * the mob itself every tick}
+     */
+    public double speed() {
+        return speed;
+    }
+
     @Override
     public void moveTo(final Location from, final Position goal) {
+        if (request(from, goal)) {
+            this.speed = 0.0;
+        }
+    }
+
+    /**
+     * @return {@code true} if the mob is on its way to the goal: a path was asked for, or the one it
+     *         follows already leads there
+     */
+    private boolean request(final Location from, final Position goal) {
         if (requestInFlight) {
-            return;
+            return false;
         }
         final boolean sameGoal = requestedGoal != null && requestedGoal.distanceSquared(goal) < REPATH_TARGET_MOVED_SQ;
         if (sameGoal && path != null) {
-            return;
+            return true;
         }
         if (age - lastRequestTick < REPATH_COOLDOWN_TICKS) {
-            return;
+            return false;
         }
 
         requestedGoal = goal;
@@ -68,6 +102,11 @@ public class Navigation implements Navigator {
                 .workers().aiWorker()
                 .submit(() -> pendingResult.set(
                         new PathResult(AStarPathfinder.find(world, from, goal, MAX_NODES, penalty))));
+        return requestInFlight;
+    }
+
+    public @Nullable PathPenalty pathPenalty() {
+        return pathPenalty;
     }
 
     public void tick(final double x, final double z) {
@@ -148,6 +187,7 @@ public class Navigation implements Navigator {
         requestedGoal = null;
         stuckTicks = 0;
         lastDistanceSq = Double.MAX_VALUE;
+        speed = 0.0;
     }
 
     private record PathResult(@Nullable Path path) {

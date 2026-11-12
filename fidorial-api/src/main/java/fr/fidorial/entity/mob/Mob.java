@@ -75,7 +75,8 @@ public interface Mob extends LivingEntity {
     void setFollowRange(double range);
 
     /**
-     * @return the walking speed this mob uses when no goal overrides it
+     * @return the walking speed this mob uses when no goal overrides it, on the scale of vanilla's
+     *         {@code movement_speed} attribute: {@code 0.2} for a cow, {@code 0.23} for a zombie
      * @since 0.1.0
      */
     double movementSpeed();
@@ -86,7 +87,11 @@ public interface Mob extends LivingEntity {
      * <p>The value is cleared at the start of every tick, so a goal moving a mob sets it on each
      * one of its own ticks.</p>
      *
-     * @param speed the speed in blocks per tick
+     * <p>The speed is on the scale of vanilla's {@code movement_speed} attribute, times the speed
+     * modifier of the goal: a cow walks at {@code 0.2} and settles at about 1.7 blocks per second, a
+     * zombie at {@code 0.23} and about 2.3 blocks per second.</p>
+     *
+     * @param speed the speed, on the scale of vanilla's movement speed
      * @since 0.1.0
      */
     void setMoveSpeed(double speed);

@@ -1,36 +1,56 @@
 package fr.euphyllia.fidorial.server.entity.ai.goal;
 
+import fr.euphyllia.fidorial.server.entity.ai.BlockView;
+import fr.euphyllia.fidorial.server.entity.ai.RandomPositions;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
+import fr.fidorial.registry.data.DamageType;
 
-import java.util.concurrent.ThreadLocalRandom;
+import javax.annotation.Nullable;
+import java.util.Set;
 
+/**
+ * Makes a mob run away from what just hurt it, as vanilla's {@code PanicGoal}: it runs to a random
+ * spot nearby, or to water if it burns, and calms down once it got there. It starts again as long
+ * as the mob remembers the damage, a couple of seconds.
+ */
 public final class PanicGoal implements Goal {
 
-    private static final int DURATION_TICKS = 100;
-    private static final int FLEE_DISTANCE = 12;
-    private static final int RETRY_ATTEMPTS = 8;
+    private static final int FLEE_HORIZONTAL = 5;
+    private static final int FLEE_VERTICAL = 4;
+    private static final int WATER_HORIZONTAL = 5;
+    private static final int WATER_VERTICAL = 1;
+    private static final Set<Flag> FLAGS = Set.of(Flag.MOVE);
 
     private final AbstractPathfinderMob mob;
     private final int priority;
     private final double speed;
 
-    private int remainingTicks;
+    private final TagKey<DamageType> panicCauses;
+    private @Nullable Position destination;
+    private boolean running;
 
-    public PanicGoal(final AbstractPathfinderMob mob, final int priority, final double speed) {
+    /**
+     * @param speed       the movement speed of the mob times vanilla's speed modifier
+     * @param panicCauses the damage types the mob runs away from
+     */
+    public PanicGoal(final AbstractPathfinderMob mob, final int priority, final double speed,
+                     final TagKey<DamageType> panicCauses) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
-    }
-
-    public void panic() {
-        remainingTicks = DURATION_TICKS;
+        this.panicCauses = panicCauses;
     }
 
     public boolean isPanicking() {
-        return remainingTicks > 0;
+        return running;
     }
 
     @Override
@@ -39,71 +59,85 @@ public final class PanicGoal implements Goal {
     }
 
     @Override
+    public Set<Flag> flags() {
+        return FLAGS;
+    }
+
+    @Override
     public boolean canStart() {
-        return remainingTicks > 0;
+        if (!shouldPanic()) {
+            return false;
+        }
+        Position target = null;
+        if (mob.fireTicks() > 0) {
+            target = nearestWater();
+        }
+        if (target == null) {
+            target = RandomPositions.any(mob, FLEE_HORIZONTAL, FLEE_VERTICAL);
+        }
+        destination = target;
+        return target != null;
+    }
+
+    private boolean shouldPanic() {
+        final DamageSource source = mob.lastDamageSource();
+        return source != null
+                && mob.server().registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type(), panicCauses);
     }
 
     @Override
     public boolean shouldContinue() {
-        return remainingTicks > 0 && mob.navigation().isNavigating();
+        return mob.navigation().isNavigating();
     }
 
     @Override
     public void start() {
-        pickEscapePoint();
+        running = true;
+        final Position target = destination;
+        if (target != null) {
+            mob.navigation().moveTo(mob.location(), target, speed);
+        }
     }
 
     @Override
     public void stop() {
-        mob.navigation().stop();
+        running = false;
+        destination = null;
     }
 
-    @Override
-    public void tick() {
-        remainingTicks--;
-        mob.setMoveSpeed(speed);
-        if (!mob.navigation().isNavigating()) {
-            pickEscapePoint();
-        }
-    }
-
-
-    private void pickEscapePoint() {
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
+    /**
+     * {@return the closest water a burning mob can run to, {@code null} if there is none around or if
+     * the mob is stuck in a block}
+     */
+    private @Nullable Position nearestWater() {
+        final ServerWorld world = mob.serverWorld();
         final Location from = mob.location();
         final int originX = (int) Math.floor(from.x());
         final int originY = (int) Math.floor(from.y());
         final int originZ = (int) Math.floor(from.z());
 
-        double awayX = random.nextDouble() - 0.5;
-        double awayZ = random.nextDouble() - 0.5;
-        final var threat = mob.target();
-        if (threat != null) {
-            final Location threatPos = threat.location();
-            awayX = from.x() - threatPos.x();
-            awayZ = from.z() - threatPos.z();
+        final BlockState feet = BlockView.blockAt(world, originX, originY, originZ);
+        if (feet == null || !BlockView.isPassable(feet)) {
+            return null;
         }
-        final double length = Math.sqrt(awayX * awayX + awayZ * awayZ);
-        if (length < 1.0E-4) {
-            awayX = 1.0;
-            awayZ = 0.0;
-        } else {
-            awayX /= length;
-            awayZ /= length;
-        }
-
-        for (int attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
-            final double spread = (random.nextDouble() - 0.5) * 1.5;
-            final double dirX = awayX + spread;
-            final double dirZ = awayZ - spread;
-            final int targetX = originX + (int) Math.round(dirX * FLEE_DISTANCE);
-            final int targetZ = originZ + (int) Math.round(dirZ * FLEE_DISTANCE);
-            if (targetX == originX && targetZ == originZ) {
-                continue;
+        Position best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int dx = -WATER_HORIZONTAL; dx <= WATER_HORIZONTAL; dx++) {
+            for (int dz = -WATER_HORIZONTAL; dz <= WATER_HORIZONTAL; dz++) {
+                for (int dy = -WATER_VERTICAL; dy <= WATER_VERTICAL; dy++) {
+                    final int distance = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
+                    if (distance >= bestDistance) {
+                        continue;
+                    }
+                    final BlockState state = BlockView.blockAt(world, originX + dx, originY + dy, originZ + dz);
+                    if (state != null && BlockView.isWater(state)) {
+                        bestDistance = distance;
+                        best = Position.block(originX + dx, originY + dy, originZ + dz);
+                    }
+                }
             }
-            mob.navigation().moveTo(from, Position.block(targetX, originY, targetZ));
-            return;
         }
+        return best;
     }
 
 }

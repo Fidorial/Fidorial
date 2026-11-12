@@ -263,6 +263,7 @@ public final class CombatEngine implements CombatService {
             die(victim, source.causingEntity());
         } else if (victim instanceof final AbstractMob mob) {
             mob.playHurtSound();
+            mob.rememberDamage(source);
             mob.onHurt(source, dealt);
             aggro(mob, source.causingEntity());
         }

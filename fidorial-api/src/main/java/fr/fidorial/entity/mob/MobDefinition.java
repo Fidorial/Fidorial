@@ -12,7 +12,8 @@ import net.kyori.adventure.sound.Sound;
  * @param key           the identifier the mob is summoned and saved under
  * @param networkType   the vanilla entity type the client renders
  * @param maxHealth     the health ceiling in half-hearts
- * @param movementSpeed the walking speed in blocks per tick
+ * @param movementSpeed the walking speed, on the scale of vanilla's {@code movement_speed} attribute:
+ *                      {@code 0.2} for a cow, {@code 0.23} for a zombie
  * @param width         the hitbox width in blocks
  * @param height        the hitbox height in blocks
  * @param followRange   the radius in blocks the mob picks targets within, {@code 0} to never target
@@ -95,7 +96,8 @@ public record MobDefinition(
         }
 
         /**
-         * @param movementSpeed the walking speed in blocks per tick
+         * @param movementSpeed the walking speed, on the scale of vanilla's {@code movement_speed}
+         *                   attribute: {@code 0.2} for a cow, {@code 0.23} for a zombie
          * @return this builder
          * @since 0.1.0
          */

@@ -57,13 +57,19 @@ public interface Goals {
     List<Goal> all();
 
     /**
-     * @return the goal currently running, or {@code null} when the mob is idle
+     * @return the running goal of best priority, or {@code null} when the mob is idle
      * @since 0.1.0
      */
     @Nullable Goal active();
 
     /**
-     * Stops the active goal without removing anything.
+     * @return an immutable snapshot of the goals currently running, sorted by priority
+     * @since 0.1.0
+     */
+    List<Goal> running();
+
+    /**
+     * Stops every running goal without removing anything.
      *
      * @since 0.1.0
      */

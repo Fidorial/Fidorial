@@ -51,6 +51,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     private volatile float absorption;
     private volatile float lastDamage;
     private volatile int fireTicks;
+    private volatile float headYaw;
     private volatile boolean sentBurning;
     private final AtomicInteger invulnerableTicks = new AtomicInteger();
     private final AtomicInteger deathTicks = new AtomicInteger(-1);
@@ -99,13 +100,12 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
 
     @Override
     public final float headYaw() {
-        // TODO: implement this
-        return 0.0f;
+        return headYaw;
     }
 
     @Override
     public final void setHeadYaw(final float headYaw) {
-        // TODO: implement this
+        this.headYaw = headYaw;
     }
 
     @Override

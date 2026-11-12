@@ -28,7 +28,10 @@ public final class Chicken extends AbstractPathfinderMob implements Category.Neu
 
     private static final int AMBIENT_CHANCE = 240;
 
-    private static final double STROLL_SPEED = 0.10;
+    /**
+     * Vanilla's {@code movement_speed} attribute of the chicken, which strolls at full speed.
+     */
+    private static final double STROLL_SPEED = 0.25;
 
     private TypedKey<ChickenVariant> variant = ChickenVariantKeys.TEMPERATE;
     private int eggTimer = nextEggDelay();

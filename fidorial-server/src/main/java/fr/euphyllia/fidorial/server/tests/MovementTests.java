@@ -35,7 +35,10 @@ public final class MovementTests {
 
     private static final int SURFACE = -48;
     private static final int FLOOR = SURFACE - 1;
-    private static final double WALK_SPEED = 0.1;
+    /**
+     * On the scale of vanilla's movement speed: a brisk walk, about 4 blocks per second.
+     */
+    private static final double WALK_SPEED = 0.3;
 
     private static FidorialServer server() {
         return FidorialServer.getInstance();

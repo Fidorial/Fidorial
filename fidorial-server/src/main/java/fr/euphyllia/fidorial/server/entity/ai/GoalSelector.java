@@ -6,16 +6,27 @@ import fr.fidorial.entity.ai.Goals;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
+/**
+ * Schedules the goals of a mob as vanilla does: each running goal holds the
+ * {@linkplain Goal#flags() controls} it needs, and a goal starts only if every control it needs is
+ * free or held by an interruptible goal of lower priority.
+ */
 public class GoalSelector implements Goals {
 
     private final List<Goal> goals = new CopyOnWriteArrayList<>();
 
-    private @Nullable Goal active;
+    private final Set<Goal> running = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Map<Goal.Flag, Goal> holders = new EnumMap<>(Goal.Flag.class);
 
     @Override
     public void add(final Goal goal) {
@@ -25,16 +36,16 @@ public class GoalSelector implements Goals {
 
     @Override
     public boolean remove(final Goal goal) {
-        if (active == goal) {
-            stopAll();
-        }
+        stop(goal);
         return goals.remove(goal);
     }
 
     @Override
     public boolean removeIf(final Predicate<Goal> filter) {
-        if (active != null && filter.test(active)) {
-            stopAll();
+        for (final Goal goal : goals) {
+            if (filter.test(goal)) {
+                stop(goal);
+            }
         }
         return goals.removeIf(filter);
     }
@@ -51,42 +62,75 @@ public class GoalSelector implements Goals {
     }
 
     public void tick() {
-        if (active != null) {
-            for (final Goal goal : goals) {
-                if (goal.priority() >= active.priority()) {
-                    break;
-                }
-                if (goal.canStart()) {
-                    active.stop();
-                    active = goal;
-                    goal.start();
-                    break;
-                }
+        for (final Goal goal : goals) {
+            if (running.contains(goal) && !goal.shouldContinue()) {
+                stop(goal);
             }
         }
 
-        if (active != null && !active.shouldContinue()) {
-            active.stop();
-            active = null;
+        for (final Goal goal : goals) {
+            if (running.contains(goal) || !canTakeControls(goal) || !goal.canStart()) {
+                continue;
+            }
+            for (final Goal.Flag flag : goal.flags()) {
+                final Goal holder = holders.get(flag);
+                if (holder != null) {
+                    stop(holder);
+                }
+                holders.put(flag, goal);
+            }
+            running.add(goal);
+            goal.start();
         }
 
-        if (active == null) {
-            for (final Goal goal : goals) {
-                if (goal.canStart()) {
-                    active = goal;
-                    goal.start();
-                    break;
-                }
+        for (final Goal goal : goals) {
+            if (running.contains(goal)) {
+                goal.tick();
             }
         }
-        if (active != null) {
-            active.tick();
+    }
+
+    private boolean canTakeControls(final Goal goal) {
+        for (final Goal.Flag flag : goal.flags()) {
+            final Goal holder = holders.get(flag);
+            if (holder != null && !(holder.isInterruptible() && goal.priority() < holder.priority())) {
+                return false;
+            }
         }
+        return true;
+    }
+
+    private void stop(final Goal goal) {
+        if (!running.remove(goal)) {
+            return;
+        }
+        holders.values().removeIf(holder -> holder == goal);
+        goal.stop();
     }
 
     @Override
     public @Nullable Goal active() {
-        return active;
+        for (final Goal goal : goals) {
+            if (running.contains(goal)) {
+                return goal;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<Goal> running() {
+        final List<Goal> result = new ArrayList<>(running.size());
+        for (final Goal goal : goals) {
+            if (running.contains(goal)) {
+                result.add(goal);
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    public boolean isRunning(final Goal goal) {
+        return running.contains(goal);
     }
 
     public DebugValues.@Nullable GoalSelectorInfo debugSnapshot() {
@@ -95,7 +139,7 @@ public class GoalSelector implements Goals {
         }
         final List<DebugValues.GoalSelectorInfo.Entry> entries = new ArrayList<>(goals.size());
         for (final Goal goal : goals) {
-            entries.add(new DebugValues.GoalSelectorInfo.Entry(goal.priority(), goal == active, debugName(goal)));
+            entries.add(new DebugValues.GoalSelectorInfo.Entry(goal.priority(), running.contains(goal), debugName(goal)));
         }
         return new DebugValues.GoalSelectorInfo(entries);
     }
@@ -107,9 +151,10 @@ public class GoalSelector implements Goals {
 
     @Override
     public void stopAll() {
-        if (active != null) {
-            active.stop();
-            active = null;
+        for (final Goal goal : goals) {
+            stop(goal);
         }
+        running.clear();
+        holders.clear();
     }
 }

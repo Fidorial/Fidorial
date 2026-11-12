@@ -28,8 +28,11 @@ public final class Creeper extends AbstractPathfinderMob implements Category.Mon
     private static final double SWELL_RANGE_SQ = 3.0 * 3.0;
     private static final double DEFUSE_RANGE_SQ = 7.0 * 7.0;
     private static final float EXPLOSION_POWER = 3.0f;
-    private static final double CHASE_SPEED = 0.16;
-    private static final double STROLL_SPEED = 0.09;
+    /**
+     * Vanilla's {@code movement_speed} attribute of the creeper; it strolls at 80% of it.
+     */
+    private static final double CHASE_SPEED = 0.25;
+    private static final double STROLL_SPEED = CHASE_SPEED * 0.8;
     private static final int MD_STATE = 16;
     private static final int MD_CHARGED = 17;
     private static final int MD_IGNITED = 18;

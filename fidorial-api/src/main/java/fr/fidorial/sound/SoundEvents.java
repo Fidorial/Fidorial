@@ -130,6 +130,28 @@ public final class SoundEvents {
      */
     public static final Sound.Type COW_MOODY_DEATH = of("entity.cow_moody.death");
 
+    /**
+     * The {@code minecraft:entity.cow_moody.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type COW_MOODY_STEP = of("entity.cow_moody.step");
+
+    // --- Golden dandelion ---
+    /**
+     * The {@code minecraft:item.golden_dandelion.use} sound event, played when a baby stops growing.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type GOLDEN_DANDELION_USE = of("item.golden_dandelion.use");
+
+    /**
+     * The {@code minecraft:item.golden_dandelion.unuse} sound event, played when a baby grows again.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type GOLDEN_DANDELION_UNUSE = of("item.golden_dandelion.unuse");
+
     // --- Bat ---
     /**
      * The {@code minecraft:entity.bat.ambient} sound event.
