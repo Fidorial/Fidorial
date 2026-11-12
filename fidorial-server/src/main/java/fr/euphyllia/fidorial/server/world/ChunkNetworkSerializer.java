@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BiomeKeys;
@@ -33,9 +34,6 @@ public final class ChunkNetworkSerializer {
     private static final int MAX_INDIRECT_BIOME_BITS = 8;
 
     private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
-
-    private static final int HEIGHTMAP_WORLD_SURFACE = 1;
-    private static final int HEIGHTMAP_MOTION_BLOCKING = 4;
 
     public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
         this.blockRegistry = blockRegistry;
@@ -117,18 +115,11 @@ public final class ChunkNetworkSerializer {
             p.writeVarInt(0);
             return;
         }
-        // both heightmaps use the same predicate currently
-        final long[] motionBlocking = chunk.computeMotionBlockingHeightmap();
-        //noinspection UnnecessaryLocalVariable
-        final long[] worldSurface = motionBlocking; /*chunk.computeWorldSurfaceHeightmap();*/
-
-        p.writeVarInt(2);
-
-        p.writeVarInt(HEIGHTMAP_WORLD_SURFACE);
-        p.writeLongArray(worldSurface);
-
-        p.writeVarInt(HEIGHTMAP_MOTION_BLOCKING);
-        p.writeLongArray(motionBlocking);
+        p.writeVarInt(Heightmap.SENT_TO_CLIENTS.size());
+        for (final Heightmap type : Heightmap.SENT_TO_CLIENTS) {
+            p.writeVarInt(type.networkId());
+            p.writeLongArray(chunk.heightmap(type));
+        }
     }
 
     private void writeSection(final PacketBuffer sp, final ChunkSection section) {

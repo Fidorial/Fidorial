@@ -1,5 +1,6 @@
 package fr.fidorial.registrygen.generate;
 
+import com.palantir.javapoet.AnnotationSpec;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.FieldSpec;
 import com.palantir.javapoet.JavaFile;
@@ -13,6 +14,7 @@ import fr.fidorial.registrygen.GenerationUtils;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -29,6 +31,7 @@ public final class RegistryKeyGenerator {
 
     private static final ClassName KEY = ClassName.get(Key.class);
     private static final ClassName KEY_PATTERN = ClassName.get(KeyPattern.class);
+    private static final ClassName NULLABLE = ClassName.get(Nullable.class);
 
     /**
      * Generates {@code RegistryKey.java}.
@@ -72,6 +75,9 @@ public final class RegistryKeyGenerator {
         registryKeyType.addMethod(createFactoryMethod(registryKey));
         registryKeyType.addMethod(createFactoryKeyMethod(registryKey));
         registryKeyType.addMethod(createToStringMethod());
+        // written out so nested key hashes inline; the generated ones hit the recursive inlining limit
+        registryKeyType.addMethod(createEqualsMethod(registryKey));
+        registryKeyType.addMethod(createHashCodeMethod());
 
         JavaFile.builder(registryPackage, registryKeyType.build()).indent("    ").skipJavaLangImports(true).build().writeTo(outputDirectory);
     }
@@ -143,6 +149,29 @@ public final class RegistryKeyGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(String.class)
                 .addStatement("return $S + $N + $S", "RegistryKey[", "key", "]")
+                .build();
+    }
+
+    private static MethodSpec createEqualsMethod(final ClassName registryKey) {
+
+        final ParameterSpec otherParameter = ParameterSpec.builder(ClassName.OBJECT.annotated(AnnotationSpec.builder(NULLABLE).build()), "other", Modifier.FINAL).build();
+
+        return MethodSpec.methodBuilder("equals")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addParameter(otherParameter)
+                .addStatement("return this == other || (other instanceof final $T<?> that && key.equals(that.key()))", registryKey)
+                .build();
+    }
+
+    private static MethodSpec createHashCodeMethod() {
+
+        return MethodSpec.methodBuilder("hashCode")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.INT)
+                .addStatement("return $N.hashCode()", "key")
                 .build();
     }
 }

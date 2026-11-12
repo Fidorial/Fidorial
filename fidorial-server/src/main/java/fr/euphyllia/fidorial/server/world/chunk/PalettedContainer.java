@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.concurrent.locks.StampedLock;
 import java.util.function.Predicate;
@@ -212,6 +213,60 @@ public final class PalettedContainer<T> {
             return previous;
         } finally {
             lock.unlockWrite(stamp);
+        }
+    }
+
+    /// The indices whose value matches `test`, which runs once per palette entry.
+    public BitSet matching(final Predicate<T> test) {
+        final long stamp = lock.readLock();
+        try {
+            final Object[] pal = paletteArray;
+            final long[] d = data;
+            if (d == null) {
+                @SuppressWarnings("unchecked")
+                final T only = (T) pal[0];
+                final BitSet result = new BitSet(size);
+                if (test.test(only)) {
+                    result.set(0, size);
+                }
+                return result;
+            }
+
+            final long[] hit = new long[pal.length];
+            int matched = 0;
+            for (int i = 0; i < pal.length; i++) {
+                @SuppressWarnings("unchecked")
+                final T value = (T) pal[i];
+                if (test.test(value)) {
+                    hit[i] = 1L;
+                    matched++;
+                }
+            }
+            if (matched == 0) {
+                return new BitSet();
+            }
+            if (matched == pal.length) {
+                final BitSet all = new BitSet(size);
+                all.set(0, size);
+                return all;
+            }
+
+            final int b = bits;
+            final int perLong = valuesPerLong;
+            final long mask = (1L << b) - 1L;
+            final long[] words = new long[(size + 63) >> 6];
+            int index = 0;
+            for (final long word : d) {
+                long w = word;
+                final int end = Math.min(perLong, size - index);
+                for (int i = 0; i < end; i++, index++) {
+                    words[index >> 6] |= hit[(int) (w & mask)] << index;
+                    w >>>= b;
+                }
+            }
+            return BitSet.valueOf(words);
+        } finally {
+            lock.unlockRead(stamp);
         }
     }
 

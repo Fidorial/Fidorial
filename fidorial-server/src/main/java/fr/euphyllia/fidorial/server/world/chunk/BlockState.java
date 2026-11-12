@@ -1,9 +1,15 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.CollisionShape;
+import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
+import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
@@ -11,6 +17,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +32,18 @@ public final class BlockState {
     private volatile @Nullable BlockData data;
     private volatile int mapColor = -1;
     private volatile @Nullable CollisionShape collisionShape;
+    private volatile @Nullable BlockEntityLookup blockEntityType;
     private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
+
+    private static final Set<TypedKey<BlockType>> FLUID_BLOCKS = Set.of(
+            BlockTypeKeys.WATER,
+            BlockTypeKeys.LAVA,
+            BlockTypeKeys.BUBBLE_COLUMN,
+            BlockTypeKeys.KELP,
+            BlockTypeKeys.KELP_PLANT,
+            BlockTypeKeys.SEAGRASS,
+            BlockTypeKeys.TALL_SEAGRASS
+    );
 
     private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties) {
         this.name = name;
@@ -34,9 +52,7 @@ public final class BlockState {
                 : Collections.unmodifiableMap(new TreeMap<>(properties));
         this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
         this.air = name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
-        this.fluid = name.equals(BlockTypeKeys.WATER)
-                || name.equals(BlockTypeKeys.LAVA)
-                || "true".equals(this.properties.get("waterlogged"));
+        this.fluid = FLUID_BLOCKS.contains(name) || "true".equals(this.properties.get("waterlogged"));
     }
 
     private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean fluid) {
@@ -84,6 +100,10 @@ public final class BlockState {
         return fluid;
     }
 
+    public boolean isTagged(final TagKey<BlockType> tag) {
+        return Registries.BLOCKS.isTagged(this.name, tag);
+    }
+
     public @Nullable LightProperties lightProperties() {
         return lightProperties;
     }
@@ -119,6 +139,16 @@ public final class BlockState {
         this.data = data;
     }
 
+    /// The block entity type of this state, `null` if it has none.
+    public @Nullable TypedKey<BlockEntityType> blockEntityType() {
+        BlockEntityLookup lookup = blockEntityType;
+        if (lookup == null) {
+            lookup = new BlockEntityLookup(BlockEntityTypes.typeIdentifier(name));
+            blockEntityType = lookup;
+        }
+        return lookup.type();
+    }
+
     @Override
     public boolean equals(final @Nullable Object obj) {
         if (this == obj) return true;
@@ -137,5 +167,12 @@ public final class BlockState {
     }
 
     public record LightProperties(int opacity, int emission) {
+    }
+
+    private record BlockEntityLookup(@Nullable TypedKey<BlockEntityType> type) {
+    }
+
+    private static final class Registries {
+        private static final ServerRegistry<BlockType> BLOCKS = FidorialServer.getInstance().registries().registry(RegistryKey.BLOCK);
     }
 }

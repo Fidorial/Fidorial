@@ -60,6 +60,7 @@ import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import java.util.Objects;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.KeyPattern;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies a Minecraft registry.
@@ -368,5 +369,15 @@ public record RegistryKey<T>(Key key) {
     @Override
     public String toString() {
         return "RegistryKey[" + key + "]";
+    }
+
+    @Override
+    public boolean equals(final @Nullable Object other) {
+        return this == other || (other instanceof final RegistryKey<?> that && key.equals(that.key()));
+    }
+
+    @Override
+    public int hashCode() {
+        return key.hashCode();
     }
 }

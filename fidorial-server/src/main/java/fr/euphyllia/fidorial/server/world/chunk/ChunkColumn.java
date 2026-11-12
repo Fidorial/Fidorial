@@ -2,8 +2,8 @@ package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
-import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
+import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -13,11 +13,16 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.Nullable;
 
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.function.Predicate;
 
 public final class ChunkColumn {
+
+    public static final Key FULL_STATUS = Key.key("full");
 
     private final int chunkX;
     private final int chunkZ;
@@ -27,10 +32,12 @@ public final class ChunkColumn {
     private final int sectionCount;
     private final ChunkSection[] sections;
     private final ConcurrentInt2ObjectMap<BlockEntity> blockEntities = new ConcurrentInt2ObjectMap<>();
+    private final EnumMap<Heightmap, long[]> heightmaps = new EnumMap<>(Heightmap.class);
+    private volatile boolean heightmapsCached;
 
     private long inhabitedTime;
     private long lastUpdate;
-    private Key status = Key.key("full");
+    private Key status = FULL_STATUS;
 
     private volatile boolean lightPopulated;
     private @Nullable ChunkLightData lightData;
@@ -80,6 +87,10 @@ public final class ChunkColumn {
         final int idx = s.sectionY() - minSectionY;
         if (idx >= 0 && idx < sectionCount) {
             sections[idx] = s;
+            synchronized (heightmaps) {
+                heightmaps.clear();
+                heightmapsCached = false;
+            }
         }
     }
 
@@ -199,6 +210,9 @@ public final class ChunkColumn {
         }
 
         final BlockState previous = s.setBlock(localX, worldY & 15, localZ, state);
+        if (previous != state) {
+            updateHeightmaps(localX, worldY, localZ, state);
+        }
 
         if (previous.name().equals(state.name())) {
             return;
@@ -206,7 +220,7 @@ public final class ChunkColumn {
 
         removeBlockEntity(localX, worldY, localZ);
 
-        final TypedKey<BlockEntityType> type = BlockEntityTypes.typeIdentifier(state.name());
+        final TypedKey<BlockEntityType> type = state.blockEntityType();
         if (type != null) {
             putBlockEntity(new BlockEntity(localX, worldY, localZ, type, data));
         }
@@ -217,32 +231,65 @@ public final class ChunkColumn {
         return s == null ? BlockState.withoutProperties(BlockTypeKeys.AIR) : s.getBlock(localX, worldY & 15, localZ);
     }
 
-    // https://minecraft.wiki/w/Heightmap
-    public static final Predicate<BlockState> WORLD_SURFACE = state -> !state.isAir();
-    // vanilla: blocks motion or contains fluid (skips flowers, grass, torches and such, but counts water)
-    public static final Predicate<BlockState> MOTION_BLOCKING = state -> !state.isAir();
-
     public int heightmapBits() {
         return BitPacking.bitsFor(height + 1, 1);
     }
 
-    public long[] computeHeightmap(final Predicate<BlockState> occupied) {
-        final int[] values = new int[256];
+    /// The packed heightmap. Live types are computed on first use and then kept up to date.
+    /// Generation types currently return the copy restored from disk, or a fresh scan.
+    public long[] heightmap(final Heightmap type) {
+        synchronized (heightmaps) {
+            long[] data = heightmaps.get(type);
+            if (data == null) {
+                if (type.generationOnly()) {
+                    return computeHeightmap(type.occupies());
+                }
+                heightmapsCached = true; // see updateHeightmaps
+                data = computeHeightmap(type.occupies());
+                heightmaps.put(type, data);
+            }
+            return data.clone();
+        }
+    }
+
+    /// Restores a stored heightmap. Returns `false` and ignores the data if its length doesn't fit this column.
+    public boolean restoreHeightmap(final Heightmap type, final long[] data) {
+        final int perLong = 64 / heightmapBits();
+        if (data.length != (256 + perLong - 1) / perLong) {
+            return false;
+        }
+        synchronized (heightmaps) {
+            heightmaps.put(type, data.clone());
+            if (!type.generationOnly()) {
+                heightmapsCached = true;
+            }
+        }
+        return true;
+    }
+
+    /// Scans a heightmap for `occupied`, without caching it.
+    private long[] computeHeightmap(final Predicate<BlockState> occupied) {
+        final int bits = heightmapBits();
+        final int perLong = 64 / bits;
+        final long[] packed = new long[(256 + perLong - 1) / perLong];
         int remaining = 256;
 
         for (int i = sections.length - 1; i >= 0 && remaining > 0; i--) {
             final ChunkSection section = sections[i];
             if (section == null || section.isEmpty()) continue;
 
+            final BitSet matching = section.matchingBlocks(occupied);
+            if (matching.isEmpty()) continue;
+
             final int sectionBaseY = (minSectionY + i) << 4;
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     final int col = z * 16 + x;
-                    if (values[col] != 0) continue; // already found from a higher section
+                    if (readHeight(packed, bits, perLong, col) != 0) continue; // already found from a higher section
 
                     for (int ly = 15; ly >= 0; ly--) {
-                        if (occupied.test(section.getBlock(x, ly, z))) {
-                            values[col] = sectionBaseY + ly + 1 - minY;
+                        if (matching.get(ChunkSection.blockIndex(x, ly, z))) {
+                            writeHeight(packed, bits, perLong, col, sectionBaseY + ly + 1 - minY);
                             remaining--;
                             break;
                         }
@@ -250,15 +297,56 @@ public final class ChunkColumn {
                 }
             }
         }
-        return BitPacking.pack(values, heightmapBits());
+        return packed;
     }
 
-    public long[] computeMotionBlockingHeightmap() {
-        return computeHeightmap(MOTION_BLOCKING);
+    private void updateHeightmaps(final int localX, final int worldY, final int localZ, final BlockState state) {
+        if (!heightmapsCached) {
+            return; // any scan that starts later already sees this block
+        }
+        updateCachedHeightmaps(localX, worldY, localZ, state);
     }
 
-    public long[] computeWorldSurfaceHeightmap() {
-        return computeHeightmap(WORLD_SURFACE);
+    private void updateCachedHeightmaps(final int localX, final int worldY, final int localZ, final BlockState state) {
+        synchronized (heightmaps) {
+            final int bits = heightmapBits();
+            final int perLong = 64 / bits;
+            final int col = localZ * 16 + localX;
+            final int above = worldY + 1 - minY;
+            for (final Map.Entry<Heightmap, long[]> entry : heightmaps.entrySet()) {
+                if (entry.getKey().generationOnly()) continue; // restored from disk; stays frozen
+                final long[] data = entry.getValue();
+                final Predicate<BlockState> occupies = entry.getKey().occupies();
+                final int top = readHeight(data, bits, perLong, col);
+                if (occupies.test(state)) {
+                    if (above > top) {
+                        writeHeight(data, bits, perLong, col, above);
+                    }
+                } else if (above == top) {
+                    writeHeight(data, bits, perLong, col, scanDown(localX, worldY - 1, localZ, occupies));
+                }
+            }
+        }
+    }
+
+    private int scanDown(final int localX, final int fromY, final int localZ, final Predicate<BlockState> occupies) {
+        for (int y = fromY; y >= minY; y--) {
+            if (occupies.test(getBlock(localX, y, localZ))) {
+                return y + 1 - minY;
+            }
+        }
+        return 0;
+    }
+
+    private static int readHeight(final long[] data, final int bits, final int perLong, final int index) {
+        final int shift = (index % perLong) * bits;
+        return (int) ((data[index / perLong] >>> shift) & ((1L << bits) - 1L));
+    }
+
+    private static void writeHeight(final long[] data, final int bits, final int perLong, final int index, final int value) {
+        final int shift = (index % perLong) * bits;
+        final long mask = ((1L << bits) - 1L) << shift;
+        data[index / perLong] = (data[index / perLong] & ~mask) | ((long) value << shift);
     }
 
     public int topNonEmptySectionY() {
