@@ -6,10 +6,10 @@ import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityMotionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundExplodePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundHurtAnimationPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.GameMode;
@@ -20,11 +20,12 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.registry.keys.ParticleTypeKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.block.BlockType;
-import net.kyori.adventure.sound.Sound;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +38,12 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class Explosion {
 
     private static final float STEP = 0.3f;
-    private static final float AIR_ATTENUATION = 0.225f;
+    private static final float AIR_ATTENUATION = 0.22500001f;
+    private static final float EMITTER_PARTICLE_MIN_POWER = 2.0f;
 
     private static final float DEFAULT_BLAST_RESISTANCE = 0.5f;
+    private static final float FLUID_BLAST_RESISTANCE = 100f;
+
     // TODO : Add the `BLAST_RESISTANCE` method to BlockState.
     private static final Map<TypedKey<BlockType>, Float> BLAST_RESISTANCE = Map.ofEntries(
             Map.entry(BlockTypeKeys.BEDROCK, 3_600_000f),
@@ -54,8 +58,6 @@ public final class Explosion {
             Map.entry(BlockTypeKeys.NETHERITE_BLOCK, 1_200f),
             Map.entry(BlockTypeKeys.ENCHANTING_TABLE, 1_200f),
             Map.entry(BlockTypeKeys.ENDER_CHEST, 600f),
-            Map.entry(BlockTypeKeys.WATER, 100f),
-            Map.entry(BlockTypeKeys.LAVA, 100f),
             Map.entry(BlockTypeKeys.END_STONE, 9f),
             Map.entry(BlockTypeKeys.STONE, 6f),
             Map.entry(BlockTypeKeys.COBBLESTONE, 6f),
@@ -71,52 +73,37 @@ public final class Explosion {
 
     public static void explode(final ServerWorld world, final Location center, final float power, final AbstractEntity source) {
         final FidorialServer server = FidorialServer.getInstance();
-        playExplosionSound(server, world, center);
-        if (breaksBlocks(world, source)) {
-            destroyBlocks(server, world, center, power);
-        }
+        final List<BlockPosition> toDestroy = collectExplodedBlocks(world, center, power);
         damageEntities(server, world, center, power, source);
+        final boolean breaksBlocks = breaksBlocks(world, source);
+        if (breaksBlocks) {
+            destroyBlocks(server, world, toDestroy, power);
+        }
+        final boolean emitterParticle = power >= EMITTER_PARTICLE_MIN_POWER && breaksBlocks;
+        server.players().broadcastNear(world, center.x(), center.y(), center.z(),
+                new ClientboundExplodePacket(
+                        LocationPositionData.vec3(center),
+                        power,
+                        toDestroy.size(),
+                        emitterParticle ? ParticleTypeKeys.EXPLOSION_EMITTER : ParticleTypeKeys.EXPLOSION,
+                        SoundEvents.GENERIC_EXPLODE,
+                        List.of()), null);
     }
 
     private static boolean breaksBlocks(final ServerWorld world, final AbstractEntity source) {
         return !(source instanceof AbstractMob) || world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING);
     }
 
-    private static void playExplosionSound(final FidorialServer server, final ServerWorld world, final Location center) {
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
-        final float first = random.nextFloat();
-        final float second = random.nextFloat();
-        final float pitch = (1.0f + (first - second) * 0.2f) * 0.7f;
-        server.players().broadcastNear(world, center.x(), center.y(), center.z(),
-                new ClientboundSoundPacket(
-                        Sound.sound(SoundEvents.GENERIC_EXPLODE, Sound.Source.BLOCK, 4.0f, pitch),
-                        center.x(),
-                        center.y(),
-                        center.z()), null);
-    }
-
-    private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final Location center, final float power) {
-        final Set<BlockPosition> toDestroy = collectExplodedBlocks(world, center, power);
-        final List<BlockPosition> destroyed = new ArrayList<>(toDestroy.size());
-
+    private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final List<BlockPosition> toDestroy, final float power) {
         for (final BlockPosition pos : toDestroy) {
-            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
-                destroyed.add(pos);
-            }
-            if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)
+                    && ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
                 // TODO : drop item
             }
         }
-
-        for (int i = 0; i < destroyed.size(); i += 5) {
-            final BlockPosition broken = destroyed.get(i);
-            server.players().broadcastNear(world, broken.x() + 0.5, broken.y() + 0.5, broken.z() + 0.5,
-                    new ClientboundLevelEventPacket(
-                            ClientboundLevelEventPacket.BLOCK_BREAK, broken, 0, false), null);
-        }
     }
 
-    private static Set<BlockPosition> collectExplodedBlocks(final ServerWorld world, final Location center, final float power) {
+    private static List<BlockPosition> collectExplodedBlocks(final ServerWorld world, final Location center, final float power) {
         final Set<BlockPosition> out = new HashSet<>();
         final var random = ThreadLocalRandom.current();
         final double ox = center.x();
@@ -145,7 +132,10 @@ public final class Explosion {
                         final int by = (int) Math.floor(py);
                         final int bz = (int) Math.floor(pz);
                         final BlockState state = BlockView.blockAt(world, bx, by, bz);
-                        if (state != null && !state.isAir()) {
+                        if (state == null) {
+                            break;
+                        }
+                        if (!state.isAir()) {
                             intensity -= (resistanceOf(state) + 0.3f) * 0.3f;
                             if (intensity > 0.0f) {
                                 out.add(Position.block(bx, by, bz));
@@ -158,10 +148,17 @@ public final class Explosion {
                 }
             }
         }
-        return out;
+        final List<BlockPosition> shuffled = new ArrayList<>(out);
+        Collections.shuffle(shuffled, random);
+        return shuffled;
     }
 
     private static float resistanceOf(final BlockState state) {
+        final float resistance = blockResistanceOf(state);
+        return state.isFluid() ? Math.max(resistance, FLUID_BLAST_RESISTANCE) : resistance;
+    }
+
+    private static float blockResistanceOf(final BlockState state) {
         // Todo : Add the `BLAST_RESISTANCE` method to BlockState.
         final Float resistance = BLAST_RESISTANCE.get(state.name());
         if (resistance != null) {
@@ -238,12 +235,13 @@ public final class Explosion {
                     //                        case HARD     -> finalDamage = damage * 1.5f;
                     //                    }
 
+                    final float hurtYaw = (float) Math.toDegrees(Math.atan2(cz - pos.z(), cx - pos.x())) - pos.yaw();
                     player.setHealth(player.health() - finalDamage);
                     player.connection().send(new ClientboundSetHealthPacket(player.health(), 20, 5f));
                     player.connection()
                             .send(new ClientboundAddEntityMotionPacket(player.entityId(), new PositionData.VelocityVec3D(knockX, knockY, knockZ)));
                     server.players().broadcastNear(world, pos.x(), pos.y(), pos.z(),
-                            new ClientboundHurtAnimationPacket(player.entityId(), pos.yaw()), null);
+                            new ClientboundHurtAnimationPacket(player.entityId(), hurtYaw), null);
                 }
                 case final AbstractMob mob -> {
                     mob.setHealth(mob.health() - damage);
@@ -315,16 +313,11 @@ public final class Explosion {
             y += stepY;
             z += stepZ;
             final BlockState state = BlockView.blockAt(world, (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-            if (state != null && !state.isAir() && !isFluid(state)) {
+            if (state != null && !state.isAir() && (!state.isFluid() || state.isWaterlogged())) {
                 return false;
             }
         }
         return true;
-    }
-
-    private static boolean isFluid(final BlockState state) {
-        final TypedKey<BlockType> name = state.name();
-        return name.equals(BlockTypeKeys.WATER) || name.equals(BlockTypeKeys.LAVA); // Todo : Add isFluid to BlockState
     }
 
     private static double eyeHeight(final AbstractEntity entity) {

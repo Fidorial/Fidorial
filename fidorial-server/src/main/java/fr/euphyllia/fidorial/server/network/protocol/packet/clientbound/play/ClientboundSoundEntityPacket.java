@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play;
 
+import fr.euphyllia.fidorial.server.codecs.networking.CommonNetworkCodecs.PrimitiveCodecs;
 import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
@@ -9,7 +10,13 @@ import net.kyori.adventure.sound.Sound;
 
 public record ClientboundSoundEntityPacket(Sound sound, int entityId) implements ClientboundPacket<ClientboundSoundEntityPacket> {
 
-    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSoundEntityPacket> CODEC = NetworkEncoder.member(ClientboundSoundEntityPacket::encode);
+    public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundSoundEntityPacket> CODEC = NetworkEncoder
+            .field(SoundEventWriter.SOUND_EVENT, (final ClientboundSoundEntityPacket packet) -> packet.sound.name())
+            .then(PrimitiveCodecs.VAR_INT, packet -> SoundEventWriter.sourceId(packet.sound().source()))
+            .then(PrimitiveCodecs.VAR_INT, ClientboundSoundEntityPacket::entityId)
+            .then(PrimitiveCodecs.FLOAT, packet -> packet.sound().volume())
+            .then(PrimitiveCodecs.FLOAT, packet -> packet.sound().pitch())
+            .then(PrimitiveCodecs.LONG, packet -> SoundEventWriter.seed(packet.sound()));
 
     @Override
     public Key name() {
@@ -19,14 +26,5 @@ public record ClientboundSoundEntityPacket(Sound sound, int entityId) implements
     @Override
     public NetworkEncoder<CodecAwarePacketBuffer, ClientboundSoundEntityPacket> codec() {
         return CODEC;
-    }
-
-    private void encode(final CodecAwarePacketBuffer buf) {
-        SoundEventWriter.writeSoundEvent(buf, sound);
-        buf.writeVarInt(SoundEventWriter.sourceId(sound.source()));
-        buf.writeVarInt(entityId);
-        buf.writeFloat(sound.volume());
-        buf.writeFloat(sound.pitch());
-        buf.writeLong(SoundEventWriter.seed(sound));
     }
 }

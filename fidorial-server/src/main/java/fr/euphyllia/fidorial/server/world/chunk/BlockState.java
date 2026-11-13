@@ -26,6 +26,7 @@ public final class BlockState {
     private final Map<String, String> properties;
     private final int hashCode;
     private final boolean air;
+    private final boolean waterlogged;
     private final boolean fluid;
 
     private volatile @Nullable LightProperties lightProperties;
@@ -52,14 +53,16 @@ public final class BlockState {
                 : Collections.unmodifiableMap(new TreeMap<>(properties));
         this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
         this.air = name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
-        this.fluid = FLUID_BLOCKS.contains(name) || "true".equals(this.properties.get("waterlogged"));
+        this.waterlogged = "true".equals(this.properties.get("waterlogged"));
+        this.fluid = (FLUID_BLOCKS.contains(name) || this.waterlogged);
     }
 
-    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean fluid) {
+    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean waterlogged, final boolean fluid) {
         this.name = name;
         this.properties = properties;
         this.hashCode = hashCode;
         this.air = air;
+        this.waterlogged = waterlogged;
         this.fluid = fluid;
     }
 
@@ -74,7 +77,7 @@ public final class BlockState {
     static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties, final boolean checkIntern) {
         if (checkIntern) {
             final int hash = 31 * name.hashCode() + properties.hashCode();
-            final BlockState existing = INTERN.get(new BlockState(name, properties, hash, false, false)); // safe to pass whatever value for air and fluid as they're discarded in this context
+            final BlockState existing = INTERN.get(new BlockState(name, properties, hash, false, false, false)); // safe to pass whatever value for air, waterlogged and fluid as they're discarded in this context
             if (existing != null) {
                 return existing;
             }
@@ -94,6 +97,10 @@ public final class BlockState {
 
     public boolean isAir() {
         return air;
+    }
+
+    public boolean isWaterlogged() {
+        return waterlogged;
     }
 
     public boolean isFluid() {
