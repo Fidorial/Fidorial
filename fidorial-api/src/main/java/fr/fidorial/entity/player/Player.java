@@ -209,6 +209,65 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     }
 
     /**
+     * {@return the experience level of this player}, the number shown above the experience bar
+     *
+     * @since 0.1.0
+     */
+    int experienceLevel();
+
+    /**
+     * {@return how far this player is towards the next level}, from {@code 0} to {@code 1}
+     * excluded: how full the experience bar is
+     *
+     * @since 0.1.0
+     */
+    float experienceProgress();
+
+    /**
+     * {@return every experience point this player gained since they last lost their experience}
+     *
+     * @since 0.1.0
+     */
+    int totalExperience();
+
+    /**
+     * {@return how many experience points take this player from their level to the next}
+     *
+     * <p>As in Vanilla: {@code 7 + 2 * level} below level 15, {@code 37 + 5 * (level - 15)} below
+     * level 30, {@code 112 + 9 * (level - 30)} from there on.</p>
+     *
+     * @since 0.1.0
+     */
+    int experienceForNextLevel();
+
+    /**
+     * Gives this player experience points, or takes some with a negative amount; the level follows.
+     *
+     * @param points how many experience points to give
+     * @since 0.1.0
+     */
+    void giveExperience(int points);
+
+    /**
+     * Gives this player whole levels, or takes some with a negative amount; the experience bar
+     * stays as full as it was. Every fifth level reached rings.
+     *
+     * @param levels how many levels to give
+     * @since 0.1.0
+     */
+    void giveExperienceLevels(int levels);
+
+    /**
+     * Sets the experience of this player.
+     *
+     * @param level    the experience level, not negative
+     * @param progress how far towards the next level, from {@code 0} to {@code 1} excluded
+     * @throws IllegalArgumentException if {@code level} is negative
+     * @since 0.1.0
+     */
+    void setExperience(int level, float progress);
+
+    /**
      * {@return the current game mode of this player}
      *
      * @since 0.1.0

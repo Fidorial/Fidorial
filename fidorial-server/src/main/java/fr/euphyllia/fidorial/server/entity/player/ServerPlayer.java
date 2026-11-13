@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetActionBarTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetExperiencePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetPlayerInventoryPacket;
@@ -133,6 +134,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             PlayerInventory.FEET, PlayerInventory.LEGS, PlayerInventory.CHEST, PlayerInventory.HEAD
     };
     private static final int VOID_MARGIN = 64;
+    /** A player takes one orb every other tick. */
+    private static final int TAKE_EXPERIENCE_DELAY_TICKS = 2;
+    /** The level-up sound rings at most once every five seconds. */
+    private static final int LEVEL_UP_SOUND_INTERVAL_TICKS = 100;
+    private static final int LEVEL_UP_SOUND_EVERY = 5;
+    /** A dead player leaves 7 points per level, 100 at most. */
+    private static final int DEATH_EXPERIENCE_PER_LEVEL = 7;
+    private static final int MAX_DEATH_EXPERIENCE = 100;
     private static final float VOID_DAMAGE = 4.0f;
     private static final byte FLAG_SNEAKING = 0x02;
     private static final byte FLAG_SPRINTING = 0x08;
@@ -164,6 +173,13 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private volatile boolean sneaking;
     private volatile boolean falling;
     private volatile boolean awaitingRespawn;
+    private volatile AtomicInteger experienceLevel = new AtomicInteger(0);
+    private volatile AtomicReference<Float> experienceProgress = new AtomicReference<>(0.0f);
+    private volatile AtomicInteger totalExperience = new AtomicInteger(0);
+    private volatile boolean experienceDirty = true;
+    private int takeExperienceDelay;
+    private long ticksLived;
+    private long lastLevelUpTick = -LEVEL_UP_SOUND_INTERVAL_TICKS;
     private volatile double fallDistance;
     private final AtomicInteger ticksSinceLastAttack = new AtomicInteger(MAX_TRACKED_ATTACK_TICKS);
     private volatile int airSupply = MAX_AIR_SUPPLY;
@@ -584,6 +600,165 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         return gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR;
     }
 
+    @Override
+    public int experienceLevel() {
+        return experienceLevel.get();
+    }
+
+    @Override
+    public float experienceProgress() {
+        return experienceProgress.get();
+    }
+
+    @Override
+    public int totalExperience() {
+        return totalExperience.get();
+    }
+
+    @Override
+    public int experienceForNextLevel() {
+        return experienceForNextLevel(experienceLevel.get());
+    }
+
+    /**
+     * {@return how many experience points take a player from a level to the next}, as in Vanilla
+     */
+    public static int experienceForNextLevel(final int level) {
+        if (level >= 30) {
+            return 112 + (level - 30) * 9;
+        }
+        return level >= 15 ? 37 + (level - 15) * 5 : 7 + level * 2;
+    }
+
+    @Override
+    public void giveExperience(final int points) {
+        float progress = experienceProgress.get() + (float) points / experienceForNextLevel(experienceLevel.get());
+        totalExperience.set((int) Math.clamp((long) totalExperience.get() + points, 0L, (long) Integer.MAX_VALUE));
+
+        while (progress < 0.0f) {
+            final float missing = progress * experienceForNextLevel(experienceLevel.get());
+            if (experienceLevel.get() > 0) {
+                addLevels(-1);
+                progress = 1.0f + missing / experienceForNextLevel(experienceLevel.get());
+            } else {
+                addLevels(-1);
+                progress = 0.0f;
+            }
+        }
+        while (progress >= 1.0f) {
+            progress = (progress - 1.0f) * experienceForNextLevel(experienceLevel.get());
+            addLevels(1);
+            progress /= experienceForNextLevel(experienceLevel.get());
+        }
+        experienceProgress.set(progress);
+        experienceDirty = true;
+    }
+
+    @Override
+    public void giveExperienceLevels(final int levels) {
+        if (levels == 0) {
+            return;
+        }
+        addLevels(levels);
+        experienceDirty = true;
+    }
+
+    /**
+     * Below zero the player loses everything, and every fifth
+     * level reached rings, louder up to level 30.
+     */
+    private void addLevels(final int levels) {
+        final long sum = (long) experienceLevel.get() + levels;
+        int level = (int) Math.clamp(sum, (long) Integer.MIN_VALUE, (long) Integer.MAX_VALUE);
+        if (level < 0) {
+            level = 0;
+            experienceProgress.set(0.0f);
+            totalExperience.set(0);
+        }
+        experienceLevel.set(level);
+
+        if (levels > 0 && level % LEVEL_UP_SOUND_EVERY == 0
+                && lastLevelUpTick < ticksLived - LEVEL_UP_SOUND_INTERVAL_TICKS) {
+            final float volume = level > 30 ? 1.0f : level / 30.0f;
+            final Location at = location();
+            final ClientboundSoundPacket sound = new ClientboundSoundPacket(
+                    Sound.sound(SoundEvents.PLAYER_LEVELUP, Sound.Source.PLAYER, volume * 0.75f, 1.0f),
+                    at.x(), at.y(), at.z());
+            connection.send(sound);
+            sendToTrackers(sound);
+            lastLevelUpTick = ticksLived;
+        }
+    }
+
+    @Override
+    public void setExperience(final int level, final float progress) {
+        if (level < 0) {
+            throw new IllegalArgumentException("An experience level cannot be negative, got " + level);
+        }
+        experienceLevel.set(level);
+        // the bar stops one point short of the next level
+        final float needed = experienceForNextLevel(level);
+        experienceProgress.set(Float.isNaN(progress) ? 0.0f : Math.clamp(progress, 0.0f, (needed - 1.0f) / needed));
+        experienceDirty = true;
+    }
+
+    /**
+     * Gives back the experience a player had when they left.
+     */
+    public void restoreExperience(final int level, final float progress, final int total) {
+        experienceLevel.set(Math.max(0, level));
+        experienceProgress.set(Float.isNaN(progress) ? 0.0f : Math.clamp(progress, 0.0f, 1.0f));
+        totalExperience.set(Math.max(0, total));
+        experienceDirty = true;
+    }
+
+    /**
+     * {@return how much experience this player leaves when they die}: as in Vanilla,
+     * {@value #DEATH_EXPERIENCE_PER_LEVEL} points per level, {@value #MAX_DEATH_EXPERIENCE} at most
+     */
+    public int deathExperience() {
+        return gameMode == GameMode.SPECTATOR
+                ? 0
+                : (int) Math.min((long) experienceLevel.get() * DEATH_EXPERIENCE_PER_LEVEL, MAX_DEATH_EXPERIENCE);
+    }
+
+    /**
+     * Takes away all the experience of this player, as when they die without keeping their inventory.
+     */
+    public void clearExperience() {
+        restoreExperience(0, 0.0f, 0);
+    }
+
+    /**
+     * {@return {@code true} if this player may take an orb now}; as in Vanilla they then wait
+     * {@value #TAKE_EXPERIENCE_DELAY_TICKS} ticks before the next one. Called by the region thread
+     * that ticks this player.
+     */
+    public boolean startTakingExperience() {
+        if (takeExperienceDelay > 0) {
+            return false;
+        }
+        takeExperienceDelay = TAKE_EXPERIENCE_DELAY_TICKS;
+        return true;
+    }
+
+    private void syncExperience() {
+        if (!experienceDirty) {
+            return;
+        }
+        experienceDirty = false;
+        final ClientboundSetExperiencePacket packet = new ClientboundSetExperiencePacket(experienceProgress.get(), experienceLevel.get(), totalExperience.get());
+        connection.send(packet);
+    }
+
+    /**
+     * Makes the next tick send the experience bar again, as after a respawn, which empties it on
+     * the client.
+     */
+    public void resendExperience() {
+        experienceDirty = true;
+    }
+
     public void resetOnRespawn() {
         setHealth(maxHealth());
         setAbsorptionAmount(0f);
@@ -594,6 +769,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         setFallDistance(0.0);
         setFlying(this.gameMode == GameMode.SPECTATOR);
         setAwaitingRespawn(false);
+        resendExperience();
         clearEffectsSilently();
         this.ticksSinceLastAttack.set(MAX_TRACKED_ATTACK_TICKS);
     }
@@ -630,6 +806,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (isRemoved()) {
             return;
         }
+        ticksLived++;
+        if (takeExperienceDelay > 0) {
+            takeExperienceDelay--;
+        }
+        syncExperience();
         tickMenu();
         tickLiving(currentTick);
         equipmentEnchantments.tick(!isDead() && !awaitingRespawn);

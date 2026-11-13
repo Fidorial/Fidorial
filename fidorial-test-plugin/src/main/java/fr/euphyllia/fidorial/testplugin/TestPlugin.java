@@ -38,12 +38,14 @@ import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.event.server.ServerStartedEvent;
 import fr.fidorial.event.server.ServerStatusRequestEvent;
 import fr.fidorial.event.server.ServerStoppingEvent;
+import fr.fidorial.math.Location;
 import fr.fidorial.plugin.Plugin;
 import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
+import fr.fidorial.world.World;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.SignedMessage;
@@ -265,15 +267,22 @@ public final class TestPlugin implements Plugin {
         events.subscribe(ServerStoppingEvent.class, _ -> logger.info("[TestPlugin][event] ServerStoppingEvent received"));
 
         events.subscribe(PlayerJoinEvent.class, e -> {
+            final Player player = e.player();
+            if (player == null) return;
             eventCount.incrementAndGet();
-            logger.info("[TestPlugin][event] PlayerJoin: {}", e.player().name());
-            msg(e.player(), "[TestPlugin] Welcome " + e.player().name() + "! Type /apitest to test the API.");
+            logger.info("[TestPlugin][event] PlayerJoin: {}", player.name());
+            msg(player, "[TestPlugin] Welcome " + player.name() + "! Type /apitest to test the API.");
 
-            final var chatType = TestChatTypes.ARRIVAL.bind(e.player().displayName());
+            final var chatType = TestChatTypes.ARRIVAL.bind(player.displayName());
             server.players().online().forEach(viewer -> viewer.sendMessage(Component.text("Hi!"), chatType));
             if (resourcePackRequest != null) {
-                e.player().sendResourcePacks(resourcePackRequest);
+                player.sendResourcePacks(resourcePackRequest);
             }
+            final int totalExp = player.totalExperience();
+            player.giveExperience(totalExp + 1);
+            final Location at = player.location();
+            final World world = player.world();
+            world.scheduler().executeDelayed(world.key(), at.chunk(), () -> player.world().dropExperience(at, totalExp), 20*10);
         });
 
         events.subscribe(PlayerQuitEvent.class, e -> {

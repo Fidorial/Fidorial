@@ -263,7 +263,6 @@ public final class CombatEngine implements CombatService {
             die(victim, source.causingEntity());
         } else if (victim instanceof final AbstractMob mob) {
             mob.playHurtSound();
-            mob.rememberDamage(source);
             mob.onHurt(source, dealt);
             aggro(mob, source.causingEntity());
         }
@@ -410,6 +409,20 @@ public final class CombatEngine implements CombatService {
             } else {
                 player.execute(() -> dropInventory(player));
             }
+            dropExperience(player);
+        }
+    }
+
+    /**
+     * Leaves the experience of a dead player where they died, as vanilla does: 7 points per level,
+     * 100 at most; the rest is lost.
+     */
+    private void dropExperience(final ServerPlayer player) {
+        final int dropped = player.deathExperience();
+        player.clearExperience();
+        if (dropped > 0 && player.world() instanceof final ServerWorld world) {
+            final Location at = player.location();
+            server.entities().awardExperience(world, at.x(), at.y(), at.z(), dropped);
         }
     }
 

@@ -37,9 +37,14 @@ public abstract class AbstractMob extends AbstractLivingEntity {
      * For how long a mob remembers what hurt it, as in Vanilla.
      */
     private static final int DAMAGE_MEMORY_TICKS = 40;
+    /**
+     * For how long a mob counts as killed by the player who hit it, as in Vanilla.
+     */
+    private static final int HURT_BY_PLAYER_MEMORY_TICKS = 100;
 
     private @Nullable DamageSource lastDamageSource;
     private int damageMemoryTicks;
+    private int hurtByPlayerTicks;
 
     private final List<MobBehaviour> behaviours = new CopyOnWriteArrayList<>();
 
@@ -62,7 +67,46 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         if (shouldDropLoot()) {
             dropLoot();
         }
+        dropExperience();
         dispatch(MobBehaviour::onDeath, "onDeath");
+    }
+
+    /**
+     * Leaves the experience of this mob where it died, as vanilla does: only if a player hit it
+     * within the last five seconds, never for a baby, and not while the {@code mob_drops} game rule
+     * is off.
+     */
+    private void dropExperience() {
+        if (hurtByPlayerTicks <= 0 || !shouldDropExperience()
+                || !(world() instanceof final ServerWorld serverWorld)
+                || !serverWorld.gameRuleValues().getBoolean(GameRuleKeys.MOB_DROPS)) {
+            return;
+        }
+        final Location at = location();
+        server().entities().awardExperience(serverWorld, at.x(), at.y(), at.z(), experienceReward());
+    }
+
+    /**
+     * {@return {@code true} if this mob leaves experience when a player kills it}: as in Vanilla, a
+     * baby leaves none
+     */
+    protected boolean shouldDropExperience() {
+        return !isBaby();
+    }
+
+    /**
+     * {@return how much experience this mob leaves when a player kills it}
+     */
+    protected int experienceReward() {
+        return 0;
+    }
+
+    /**
+     * {@return {@code true} if a player hit this mob within the last five seconds}: it then counts
+     * as killed by a player
+     */
+    public final boolean wasRecentlyHurtByPlayer() {
+        return hurtByPlayerTicks > 0;
     }
 
     /**
@@ -114,6 +158,9 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     public final void rememberDamage(final DamageSource source) {
         this.lastDamageSource = source;
         this.damageMemoryTicks = DAMAGE_MEMORY_TICKS;
+        if (source.causingEntity() instanceof Player) {
+            this.hurtByPlayerTicks = HURT_BY_PLAYER_MEMORY_TICKS;
+        }
     }
 
     /**
@@ -122,6 +169,9 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     protected final void tickDamageMemory() {
         if (damageMemoryTicks > 0 && --damageMemoryTicks == 0) {
             lastDamageSource = null;
+        }
+        if (hurtByPlayerTicks > 0) {
+            hurtByPlayerTicks--;
         }
     }
 

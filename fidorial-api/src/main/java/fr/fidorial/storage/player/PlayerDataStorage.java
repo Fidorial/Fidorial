@@ -10,7 +10,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * Persistence backend for the game mode, abilities, respawn point and last position of players.
+ * Persistence backend for the game mode, abilities, respawn point, last position and experience of
+ * players.
  *
  * <p>The server registers a default implementation as a {@linkplain ServiceRegistry
  * service}; plugins may replace it, for instance to store players in a database.</p>
@@ -58,13 +59,33 @@ public interface PlayerDataStorage {
      * @param abilities       the player's movement abilities
      * @param respawnLocation the position the player respawns at, or {@code null} for the world spawn
      * @param lastLocation    the position the player was last at, or {@code null} if never saved
+     * @param experience      the experience of the player
      * @since 0.1.0
      */
     record PlayerData(
             GameMode gameMode,
             PlayerAbilities abilities,
             @Nullable Location respawnLocation,
-            @Nullable Location lastLocation
+            @Nullable Location lastLocation,
+            Experience experience
     ) {
+    }
+
+    /**
+     * The experience of a player.
+     *
+     * @param level    the experience level
+     * @param progress how far towards the next level, from {@code 0} to {@code 1} excluded
+     * @param total    every experience point gained since the player last lost their experience
+     * @since 0.1.0
+     */
+    record Experience(int level, float progress, int total) {
+
+        /**
+         * No experience at all: what a new player has.
+         *
+         * @since 0.1.0
+         */
+        public static final Experience NONE = new Experience(0, 0f, 0);
     }
 }

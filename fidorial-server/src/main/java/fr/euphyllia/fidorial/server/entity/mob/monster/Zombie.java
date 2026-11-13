@@ -134,6 +134,7 @@ public class Zombie extends AbstractPathfinderMob implements Category.Monster {
         return random.nextBoolean() ? magnitude : -magnitude;
     }
 
+    @Override
     public final boolean isBaby() {
         return baby;
     }

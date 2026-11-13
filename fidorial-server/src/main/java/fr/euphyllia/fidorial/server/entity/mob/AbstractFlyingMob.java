@@ -38,6 +38,8 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
             return;
         }
 
+        tickDamageMemory();
+
         goals.tick();
         tickBehaviours(currentTick);
         tickFlight(currentTick);

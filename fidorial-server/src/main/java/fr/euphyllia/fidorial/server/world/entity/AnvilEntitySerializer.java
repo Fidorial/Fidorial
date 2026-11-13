@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
+import fr.euphyllia.fidorial.server.entity.item.ServerExperienceOrb;
 import fr.euphyllia.fidorial.server.entity.item.ServerItemEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
@@ -51,7 +52,7 @@ public class AnvilEntitySerializer {
     }
 
     public static boolean isPersistable(final AbstractEntity entity) {
-        if (entity instanceof ServerItemEntity) {
+        if (entity instanceof ServerItemEntity || entity instanceof ServerExperienceOrb) {
             return !entity.isRemoved();
         }
         if (!(entity instanceof AbstractMob) || entity.isRemoved()) {
@@ -146,6 +147,24 @@ public class AnvilEntitySerializer {
         return list.get(index) instanceof final FloatBinaryTag tag ? tag.value() : 0f;
     }
 
+    private static ServerExperienceOrb readExperienceOrb(final CompoundBinaryTag c, final Location location,
+                                                         final IntSupplier idAllocator) {
+        final int[] uuid = c.getIntArray("UUID");
+        final int value = Math.max(0, c.getShort("Value", (short) 0));
+        final ServerExperienceOrb orb = uuid.length == 4
+                ? new ServerExperienceOrb(idAllocator.getAsInt(), uuidFromInts(uuid), location, value)
+                : new ServerExperienceOrb(idAllocator.getAsInt(), location, value);
+        orb.setHealth(c.getShort("Health", (short) 5));
+        orb.setAge(c.getShort("Age", (short) 0));
+        orb.setCount(c.getInt("Count", 1));
+        final ListBinaryTag motion = c.getList("Motion");
+        if (motion.size() == 3) {
+            orb.setVelocity(doubleAt(motion, 0), doubleAt(motion, 1), doubleAt(motion, 2));
+        }
+        orb.setOnGround(c.getBoolean("OnGround"));
+        return orb;
+    }
+
     public static int[] uuidToInts(final UUID uuid) {
         final long msb = uuid.getMostSignificantBits();
         final long lsb = uuid.getLeastSignificantBits();
@@ -191,6 +210,9 @@ public class AnvilEntitySerializer {
         } else if (entity instanceof final ServerItemEntity item) {
             c.put("Motion", doubleList(item.velocityX(), item.velocityY(), item.velocityZ()));
             c.putBoolean("OnGround", item.onGround());
+        } else if (entity instanceof final ServerExperienceOrb orb) {
+            c.put("Motion", doubleList(orb.velocityX(), orb.velocityY(), orb.velocityZ()));
+            c.putBoolean("OnGround", orb.onGround());
         } else {
             c.put("Motion", doubleList(0.0, 0.0, 0.0));
             c.putBoolean("OnGround", false);
@@ -206,6 +228,12 @@ public class AnvilEntitySerializer {
         }
         if (entity instanceof final ServerItemEntity item) {
             writeItemEntity(c, item);
+        }
+        if (entity instanceof final ServerExperienceOrb orb) {
+            c.putShort("Health", (short) orb.health());
+            c.putShort("Age", (short) orb.age());
+            c.putShort("Value", (short) orb.value());
+            c.putInt("Count", orb.count());
         }
         if (entity instanceof final AbstractMob mob) {
             mob.saveAdditional(c);
@@ -237,7 +265,8 @@ public class AnvilEntitySerializer {
         }
 
         final EntityType type = EntityTypes.get(TypedKey.withRegistry(RegistryKey.ENTITY_TYPE, id));
-        if (type == null || (type != EntityTypes.ITEM && !MobFactories.isMob(type))) {
+        if (type == null
+                || (type != EntityTypes.ITEM && type != EntityTypes.EXPERIENCE_ORB && !MobFactories.isMob(type))) {
             return null;
         }
 
@@ -252,6 +281,9 @@ public class AnvilEntitySerializer {
 
         if (type == EntityTypes.ITEM) {
             return readItemEntity(c, location, idAllocator);
+        }
+        if (type == EntityTypes.EXPERIENCE_ORB) {
+            return readExperienceOrb(c, location, idAllocator);
         }
 
         final AbstractMob mob = MobFactories.create(type, idAllocator.getAsInt(), location);

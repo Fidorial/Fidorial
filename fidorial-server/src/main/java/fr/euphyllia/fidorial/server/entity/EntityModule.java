@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.combat.CombatEngine;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
+import fr.euphyllia.fidorial.server.entity.item.ServerExperienceOrb;
 import fr.euphyllia.fidorial.server.entity.item.ServerItemEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.PlayerList;
@@ -16,6 +17,7 @@ import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.combat.CombatService;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.ExperienceOrb;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
@@ -216,6 +218,71 @@ public final class EntityModule implements ServerModule {
             world.scheduler().execute(world.key(), chunk, () -> spawn(item));
         }
         return item;
+    }
+
+    /**
+     * Drops experience as vanilla awards it: split into orbs of vanilla's values, the biggest first,
+     * each either taken in by an orb of that value already lying within half a block, or thrown a
+     * little way from the point.
+     *
+     * <p>Off the region thread owning {@code (x, z)}, that thread does it shortly after.</p>
+     */
+    public void awardExperience(final ServerWorld world, final double x, final double y, final double z, final int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        final ChunkPos chunk = Location.of(world, x, y, z, 0f, 0f).chunk();
+        if (!world.scheduler().isOwnedByCurrentThread(world.key(), chunk)) {
+            world.scheduler().execute(world.key(), chunk, () -> awardExperience(world, x, y, z, amount));
+            return;
+        }
+        int left = amount;
+        while (left > 0) {
+            final int value = ExperienceOrb.biggestOrbValue(left);
+            left -= value;
+            if (!mergeIntoExistingOrb(world, x, y, z, value)) {
+                spawnExperienceOrb(world, x, y, z, value);
+            }
+        }
+    }
+
+    /**
+     * Creates one orb worth {@code value} and throws it a little way, on the region thread owning
+     * its chunk.
+     *
+     * @return the orb, already in its world when called from the region thread owning
+     *         {@code (x, z)}, added by that thread shortly after otherwise
+     */
+    public ServerExperienceOrb spawnExperienceOrb(final ServerWorld world, final double x, final double y, final double z,
+                                                  final int value) {
+        final ServerExperienceOrb orb = new ServerExperienceOrb(ids.allocate(),
+                Location.of(world, x, y, z, ThreadLocalRandom.current().nextFloat() * 360.0f, 0f), value);
+        orb.scatter();
+        final ChunkPos chunk = orb.chunk();
+        if (world.scheduler().isOwnedByCurrentThread(world.key(), chunk)) {
+            spawn(orb);
+        } else {
+            world.scheduler().execute(world.key(), chunk, () -> spawn(orb));
+        }
+        return orb;
+    }
+
+    private static boolean mergeIntoExistingOrb(final ServerWorld world, final double x, final double y, final double z,
+                                                final int value) {
+        final int group = ThreadLocalRandom.current().nextInt(ServerExperienceOrb.ORB_GROUPS_PER_AREA);
+        final ChunkPos chunk = Location.of(world, x, y, z, 0f, 0f).chunk();
+        final ServerExperienceOrb[] found = new ServerExperienceOrb[1];
+        world.entityManager().forEachInChunkRange(chunk.x(), chunk.z(), 1, entity -> {
+            if (found[0] == null && entity instanceof final ServerExperienceOrb orb
+                    && orb.canMerge(group, value) && orb.isOwnedByCurrentThread() && orb.touchesBoxAround(x, y, z)) {
+                found[0] = orb;
+            }
+        });
+        if (found[0] == null) {
+            return false;
+        }
+        found[0].absorbOne();
+        return true;
     }
 
     private static double eyeHeight(final ServerPlayer player) {

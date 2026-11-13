@@ -1,6 +1,7 @@
 package fr.fidorial.world;
 
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.ExperienceOrb;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.item.ItemStack;
@@ -314,4 +315,21 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     ItemEntity dropItem(Location location, ItemStack item);
+
+    /**
+     * Drops experience on the ground, the way a killed mob leaves it: split into orbs of vanilla's
+     * values, the biggest first, each thrown a little way from {@code location}. An orb of the same
+     * value already lying there may take the experience instead of a new one appearing.
+     *
+     * <p>Callable from any thread: off the region thread owning {@code location}, the orbs are
+     * added to the world by that thread shortly after.</p>
+     *
+     * @param location where to drop the experience, in this world, in a loaded chunk
+     * @param amount   how many experience points to drop; nothing happens when it is not positive
+     * @throws IllegalArgumentException if {@code location} is in another world or in a chunk that
+     *                                  is not loaded
+     * @see ExperienceOrb
+     * @since 0.1.0
+     */
+    void dropExperience(Location location, int amount);
 }

@@ -13,6 +13,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -38,6 +39,9 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
      * The lowest light, sky and block light together, animals spawn in: vanilla wants more than 8.
      */
     public static final int MIN_SPAWN_LIGHT = 9;
+
+    private static final int MAX_BREEDING_EXPERIENCE = 7;
+    private static final int MAX_EXPERIENCE_REWARD = 3;
 
     private static final byte ENTITY_EVENT_LOVE_HEARTS = 18;
     private static final int AMBIENT_SOUND_INTERVAL = 120;
@@ -199,7 +203,12 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         resetLove();
         partner.resetLove();
         sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_LOVE_HEARTS));
-        // TODO: experience orb of 1 to 7 points, once experience orbs exist
+        final ServerWorld world = serverWorld();
+        if (world.gameRuleValues().getBoolean(GameRuleKeys.MOB_DROPS)) {
+            final Location at = location();
+            server().entities().spawnExperienceOrb(world, at.x(), at.y(), at.z(),
+                    1 + ThreadLocalRandom.current().nextInt(MAX_BREEDING_EXPERIENCE));
+        }
         server().entities().spawn(offspring);
     }
 
@@ -209,6 +218,14 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
     protected final Location birthLocation() {
         final Location at = location();
         return at.with(at.x(), at.y(), at.z(), 0f, 0f);
+    }
+
+    /**
+     * {@return what a player gets for killing this animal}: 1 to 3 points, as in Vanilla
+     */
+    @Override
+    protected int experienceReward() {
+        return 1 + ThreadLocalRandom.current().nextInt(MAX_EXPERIENCE_REWARD);
     }
 
     @Override

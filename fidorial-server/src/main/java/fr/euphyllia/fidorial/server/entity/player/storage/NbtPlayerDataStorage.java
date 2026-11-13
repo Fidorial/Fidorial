@@ -52,6 +52,10 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
     private static final String ABILITIES_FLY_SPEED = "flySpeed";
     private static final String ABILITIES_WALK_SPEED = "walkSpeed";
 
+    private static final String XP_LEVEL = "XpLevel";
+    private static final String XP_PROGRESS = "XpP";
+    private static final String XP_TOTAL = "XpTotal";
+
     private final Path dataDir;
     private final boolean gzip;
 
@@ -85,7 +89,9 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
         final Path file = fileFor(uuid);
         if (!Files.isRegularFile(file)) {
-            return new PlayerData(defaultGameMode, ServerPlayer.withGameModeDefaults(defaultGameMode, PlayerAbilities.DEFAULT), null, null);
+            return new PlayerData(defaultGameMode, ServerPlayer.withGameModeDefaults(defaultGameMode, PlayerAbilities.DEFAULT), null, null, new Experience(
+                    0, 0, 0
+            ));
         }
 
         final CompoundBinaryTag root = DataFixersRegistry.update(DataFixerType.PLAYER, tryReadNamed(file), false);
@@ -141,7 +147,12 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
                 abilitiesTag.getFloat(ABILITIES_FLY_SPEED, modeDefaults.flySpeed()),
                 abilitiesTag.getFloat(ABILITIES_WALK_SPEED, modeDefaults.walkSpeed()));
 
-        return new PlayerData(resolvedMode, abilities, respawnLocation, location);
+        final Experience experience = new Experience(
+                Math.max(0, root.getInt(XP_LEVEL, 0)),
+                Math.clamp(root.getFloat(XP_PROGRESS, 0f), 0f, 1f),
+                Math.max(0, root.getInt(XP_TOTAL, 0)));
+
+        return new PlayerData(resolvedMode, abilities, respawnLocation, location, experience);
     }
 
     private CompoundBinaryTag tryReadNamed(final Path file) throws IOException {
@@ -159,6 +170,9 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
         final CompoundBinaryTag.Builder root = CompoundBinaryTag.builder();
         root.putInt("DataVersion", VersionConstants.DATA_VERSION);
         root.putInt(GAMEMODE_TYPE, data.gameMode().id());
+        root.putInt(XP_LEVEL, data.experience().level());
+        root.putFloat(XP_PROGRESS, data.experience().progress());
+        root.putInt(XP_TOTAL, data.experience().total());
 
         final Location respawnLocation = data.respawnLocation();
         if (respawnLocation != null) {

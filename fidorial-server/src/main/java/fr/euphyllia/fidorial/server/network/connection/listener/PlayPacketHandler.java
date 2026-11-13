@@ -290,6 +290,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (data.respawnLocation() != null) {
             created.setRespawnPoint(data.respawnLocation());
         }
+        final PlayerDataStorage.Experience experience = data.experience();
+        created.restoreExperience(experience.level(), experience.progress(), experience.total());
         return created;
     }
 
@@ -321,7 +323,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
         } catch (final Exception e) {
             LOGGER.error("Chargement des donnees de {} impossible, valeurs par defaut utilisees", profile.name(), e);
             final GameMode mode = worldOrDisconnect().configuration().gameplay().defaultGameMode();
-            return new PlayerDataStorage.PlayerData(mode, ServerPlayer.withGameModeDefaults(mode, PlayerAbilities.DEFAULT), null, null);
+            final PlayerDataStorage.Experience emptyExperience = new PlayerDataStorage.Experience(0, 0, 0);
+            return new PlayerDataStorage.PlayerData(mode, ServerPlayer.withGameModeDefaults(mode, PlayerAbilities.DEFAULT), null, null, emptyExperience);
         }
     }
 

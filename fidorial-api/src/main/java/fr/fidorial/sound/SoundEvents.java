@@ -137,6 +137,15 @@ public final class SoundEvents {
      */
     public static final Sound.Type COW_MOODY_STEP = of("entity.cow_moody.step");
 
+    // --- Experience ---
+    /**
+     * The {@code minecraft:entity.player.levelup} sound event, played every fifth level a player
+     * reaches.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PLAYER_LEVELUP = of("entity.player.levelup");
+
     // --- Golden dandelion ---
     /**
      * The {@code minecraft:item.golden_dandelion.use} sound event, played when a baby stops growing.

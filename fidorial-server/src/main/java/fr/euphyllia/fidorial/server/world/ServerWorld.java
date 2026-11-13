@@ -313,6 +313,18 @@ public final class ServerWorld implements World {
         return FidorialServer.getInstance().entities().dropNaturally(this, location.x(), location.y(), location.z(), item);
     }
 
+    @Override
+    public void dropExperience(final Location location, final int amount) {
+        if (location.world() != this) {
+            throw new IllegalArgumentException("The location " + location + " is not in the world " + key());
+        }
+        final ChunkPos chunk = location.chunk();
+        if (!isChunkLoaded(chunk.x(), chunk.z())) {
+            throw new IllegalArgumentException("Cannot drop experience into the unloaded chunk " + chunk + " of " + key());
+        }
+        FidorialServer.getInstance().entities().awardExperience(this, location.x(), location.y(), location.z(), amount);
+    }
+
     public void addEntity(final AbstractEntity entity) {
         ThreadContexts.checkOwnedByCurrentThread(entity, "addEntity");
         entities.add(entity);
