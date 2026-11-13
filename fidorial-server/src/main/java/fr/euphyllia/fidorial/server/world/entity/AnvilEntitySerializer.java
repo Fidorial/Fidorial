@@ -19,8 +19,6 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.World;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.DoubleBinaryTag;
-import net.kyori.adventure.nbt.FloatBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -31,6 +29,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.IntSupplier;
+
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.doubleAt;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.doubleList;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.floatAt;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.floatList;
 
 public class AnvilEntitySerializer {
 
@@ -116,35 +119,6 @@ public class AnvilEntitySerializer {
         }
         item.setOnGround(c.getBoolean("OnGround"));
         return item;
-    }
-
-    private static ListBinaryTag doubleList(final double a, final double b, final double c) {
-        return ListBinaryTag.builder()
-                .add(DoubleBinaryTag.doubleBinaryTag(a))
-                .add(DoubleBinaryTag.doubleBinaryTag(b))
-                .add(DoubleBinaryTag.doubleBinaryTag(c))
-                .build();
-    }
-
-    private static ListBinaryTag floatList(final float a, final float b) {
-        return ListBinaryTag.builder()
-                .add(FloatBinaryTag.floatBinaryTag(a))
-                .add(FloatBinaryTag.floatBinaryTag(b))
-                .build();
-    }
-
-    private static double doubleAt(final ListBinaryTag list, final int index) {
-        if (index >= list.size()) {
-            return 0.0;
-        }
-        return list.get(index) instanceof final DoubleBinaryTag tag ? tag.value() : 0.0;
-    }
-
-    private static float floatAt(final ListBinaryTag list, final int index) {
-        if (index >= list.size()) {
-            return 0f;
-        }
-        return list.get(index) instanceof final FloatBinaryTag tag ? tag.value() : 0f;
     }
 
     private static ServerExperienceOrb readExperienceOrb(final CompoundBinaryTag c, final Location location,

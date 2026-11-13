@@ -1,7 +1,9 @@
 package fr.euphyllia.fidorial.server.world.storage;
 
 import com.google.common.base.Preconditions;
+import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
@@ -37,6 +39,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.readList;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.writeList;
 
 public final class LevelData {
 
@@ -158,13 +163,13 @@ public final class LevelData {
         final CompoundBinaryTag dataPacks = data.getCompound("DataPacks");
         if (dataPacks.contains("Enabled")) {
             l.enabledPacks.clear();
-            readStrings(dataPacks.getList("Enabled"), l.enabledPacks);
+            readList(dataPacks.getList("Enabled"), l.enabledPacks, CommonCodecs.NON_BLANK_STRING);
         }
-        readStrings(dataPacks.getList("Disabled"), l.disabledPacks);
+        readList(dataPacks.getList("Disabled"), l.disabledPacks, Codec.STRING);
 
         if (data.contains("enabled_features")) {
             l.enabledFeatures.clear();
-            readKeys(data.getList("enabled_features"), l.enabledFeatures);
+            readList(data.getList("enabled_features"), l.enabledFeatures, CommonCodecs.KEY_CODEC);
         }
 
         final CompoundBinaryTag difficultySettings = data.getCompound("difficulty_settings");
@@ -314,12 +319,12 @@ public final class LevelData {
         data.putBoolean("allowCommands", allowCommands);
 
         final CompoundBinaryTag.Builder dataPacks = CompoundBinaryTag.builder();
-        dataPacks.put("Enabled", stringList(enabledPacks));
-        dataPacks.put("Disabled", stringList(disabledPacks));
+        dataPacks.put("Enabled", writeList(enabledPacks, Codec.STRING));
+        dataPacks.put("Disabled", writeList(disabledPacks, Codec.STRING));
         data.put("DataPacks", dataPacks.build());
 
         if (!enabledFeatures.equals(DEFAULT_FEATURES)) {
-            data.put("enabled_features", keyList(enabledFeatures));
+            data.put("enabled_features", writeList(enabledFeatures, CommonCodecs.KEY_CODEC));
         }
 
         data.put("ServerBrands", ListBinaryTag.builder().add(StringBinaryTag.stringBinaryTag("Fidorial")).build());
@@ -480,38 +485,6 @@ public final class LevelData {
 
     public boolean exists(final Path levelDat) {
         return Files.isRegularFile(levelDat);
-    }
-
-    private static void readStrings(final ListBinaryTag list, final List<String> out) {
-        for (final BinaryTag entry : list) {
-            if (entry instanceof final StringBinaryTag string) {
-                out.add(string.value());
-            }
-        }
-    }
-
-    private static void readKeys(final ListBinaryTag list, final List<Key> out) {
-        for (final BinaryTag entry : list) {
-            if (entry instanceof final StringBinaryTag string) {
-                out.add(Key.key(string.value()));
-            }
-        }
-    }
-
-    private static ListBinaryTag stringList(final List<String> values) {
-        final ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
-        for (final String value : values) {
-            builder.add(StringBinaryTag.stringBinaryTag(value));
-        }
-        return builder.build();
-    }
-
-    private static ListBinaryTag keyList(final List<Key> values) {
-        final ListBinaryTag.Builder<BinaryTag> builder = ListBinaryTag.builder();
-        for (final Key value : values) {
-            builder.add(StringBinaryTag.stringBinaryTag(value.asString()));
-        }
-        return builder.build();
     }
 
     public record DimensionGenerator(Dimension dimension, ChunkGeneratorConfig config) {

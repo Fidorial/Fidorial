@@ -14,8 +14,6 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTagIO;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.DoubleBinaryTag;
-import net.kyori.adventure.nbt.FloatBinaryTag;
 import net.kyori.adventure.nbt.ListBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
@@ -27,6 +25,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
+
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.doubleList;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.floatAt;
+import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.floatList;
 
 public class NbtPlayerDataStorage implements PlayerDataStorage {
 
@@ -132,8 +134,8 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
                 final var x = pos.getDouble(0);
                 final var y = pos.getDouble(1);
                 final var z = pos.getDouble(2);
-                final var yaw = rotation.getFloat(0, 0);
-                final var pitch = rotation.getFloat(1, 0);
+                final var yaw = floatAt(rotation, 0);
+                final var pitch = floatAt(rotation, 1);
                 location = Location.of(world, x, y, z, yaw, pitch);
             }
         }
@@ -227,20 +229,5 @@ public class NbtPlayerDataStorage implements PlayerDataStorage {
 
     public Path dataDir() {
         return dataDir;
-    }
-
-    private static ListBinaryTag doubleList(final double a, final double b, final double c) {
-        return ListBinaryTag.builder()
-                .add(DoubleBinaryTag.doubleBinaryTag(a))
-                .add(DoubleBinaryTag.doubleBinaryTag(b))
-                .add(DoubleBinaryTag.doubleBinaryTag(c))
-                .build();
-    }
-
-    private static ListBinaryTag floatList(final float a, final float b) {
-        return ListBinaryTag.builder()
-                .add(FloatBinaryTag.floatBinaryTag(a))
-                .add(FloatBinaryTag.floatBinaryTag(b))
-                .build();
     }
 }
