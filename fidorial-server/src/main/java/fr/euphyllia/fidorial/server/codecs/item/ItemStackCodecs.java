@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.codecs.item.component.WrittenBookTexts;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
+import fr.fidorial.item.component.SuspiciousStewEffects;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentMap;
@@ -108,6 +109,16 @@ public final class ItemStackCodecs {
             Codec.BOOL.optionalFieldOf("resolved", false).forGetter(WrittenBookContent::resolved)
     ).apply(instance, WrittenBookContent::new));
 
+    public static final Codec<SuspiciousStewEffects.Entry> SUSPICIOUS_STEW_EFFECT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ReferenceCodecs.key(RegistryKey.MOB_EFFECT).fieldOf("id").forGetter(SuspiciousStewEffects.Entry::effect),
+            Codec.INT.optionalFieldOf("duration", SuspiciousStewEffects.DEFAULT_DURATION)
+                    .forGetter(SuspiciousStewEffects.Entry::duration)
+    ).apply(instance, SuspiciousStewEffects.Entry::new));
+
+    public static final Codec<SuspiciousStewEffects> SUSPICIOUS_STEW_EFFECTS_CODEC = SUSPICIOUS_STEW_EFFECT_CODEC
+            .listOf()
+            .xmap(SuspiciousStewEffects::new, SuspiciousStewEffects::effects);
+
     static {
         register(DataComponentTypes.MAX_STACK_SIZE, Codec.INT);
         register(DataComponentTypes.MAX_DAMAGE, Codec.INT);
@@ -124,6 +135,7 @@ public final class ItemStackCodecs {
         register(DataComponentTypes.STORED_ENCHANTMENTS, ENCHANTMENTS_CODEC);
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Codec.BOOL);
         register(DataComponentTypes.WRITTEN_BOOK_CONTENT, WRITTEN_BOOK_CONTENT_CODEC);
+        register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, SUSPICIOUS_STEW_EFFECTS_CODEC);
     }
 
     public static final Codec<DataComponentMap> COMPONENT_MAP_CODEC = new Codec<>() {

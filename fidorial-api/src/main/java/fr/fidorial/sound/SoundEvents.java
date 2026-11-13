@@ -137,6 +137,46 @@ public final class SoundEvents {
      */
     public static final Sound.Type COW_MOODY_STEP = of("entity.cow_moody.step");
 
+    // --- Mooshroom ---
+    /**
+     * The {@code minecraft:entity.mooshroom.convert} sound event, played when lightning changes the
+     * colour of a mooshroom.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MOOSHROOM_CONVERT = of("entity.mooshroom.convert");
+
+    /**
+     * The {@code minecraft:entity.mooshroom.eat} sound event, played when a brown mooshroom eats a
+     * flower.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MOOSHROOM_EAT = of("entity.mooshroom.eat");
+
+    /**
+     * The {@code minecraft:entity.mooshroom.milk} sound event, played when a bowl is filled with
+     * mushroom stew.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MOOSHROOM_MILK = of("entity.mooshroom.milk");
+
+    /**
+     * The {@code minecraft:entity.mooshroom.suspicious_milk} sound event, played when a bowl is
+     * filled with suspicious stew.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MOOSHROOM_SUSPICIOUS_MILK = of("entity.mooshroom.suspicious_milk");
+
+    /**
+     * The {@code minecraft:entity.mooshroom.shear} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MOOSHROOM_SHEAR = of("entity.mooshroom.shear");
+
     // --- Experience ---
     /**
      * The {@code minecraft:entity.player.levelup} sound event, played every fifth level a player

@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.PlayerInventories;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
@@ -14,7 +15,9 @@ import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
+import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
@@ -253,6 +256,71 @@ public abstract class AbstractMob extends AbstractLivingEntity {
      */
     protected static int handSlot(final ServerPlayer player, final EquipmentSlotGroup hand) {
         return hand == EquipmentSlotGroup.OFF_HAND ? PlayerInventory.OFF_HAND : player.selectedSlot();
+    }
+
+    /**
+     * Turns one item of a hand into another, fills a bucket or a bowl: the last item of
+     * the stack becomes the result, otherwise the result goes to the inventory, or to the ground if
+     * it is full. In creative mode the item is kept and the result is given.
+     *
+     * @param limitCreativeStackSize whether a creative player only gets the result if they have none
+     */
+    protected final void fillItem(final ServerPlayer player, final int slot, final ItemStack result,
+                                  final boolean limitCreativeStackSize) {
+        final PlayerInventory inventory = player.inventory();
+        final boolean creative = player.gameMode() == GameMode.CREATIVE;
+        if (creative && limitCreativeStackSize) {
+            if (!holds(inventory, result)) {
+                PlayerInventories.add(inventory, player.selectedSlot(), result);
+            }
+            return;
+        }
+        if (!creative) {
+            final ItemStack held = inventory.get(slot);
+            if (held.count() <= 1) {
+                inventory.set(slot, result);
+                return;
+            }
+            inventory.set(slot, held.withCount(held.count() - 1));
+        }
+        final ItemStack left = PlayerInventories.add(inventory, player.selectedSlot(), result);
+        if (!left.isEmpty()) {
+            server().entities().dropFromPlayer(player, left);
+        }
+    }
+
+    private static boolean holds(final PlayerInventory inventory, final ItemStack stack) {
+        for (int slot = 0, size = inventory.size(); slot < size; slot++) {
+            if (stack.isSimilar(inventory.get(slot))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Wears the tool of a hand by one use; it is gone once it breaks. A creative player wears nothing.
+     */
+    protected static void wearItem(final ServerPlayer player, final int slot) {
+        if (player.gameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        // TODO: Unbreaking, and the sound and particles of a tool that breaks
+        final ItemStack tool = player.inventory().get(slot);
+        final int durability = ItemDefaults.maxDamage(tool.id(), tool);
+        if (durability <= 0) {
+            return;
+        }
+        final int damage = tool.getOrDefault(DataComponentTypes.DAMAGE, 0) + 1;
+        player.inventory().set(slot, damage >= durability ? ItemStack.EMPTY : tool.with(DataComponentTypes.DAMAGE, damage));
+    }
+
+    /**
+     * Makes this mob count as hit by a player for as long as another mob does, as when vanilla
+     * turns a mob into another.
+     */
+    protected final void copyHurtByPlayerFrom(final AbstractMob other) {
+        this.hurtByPlayerTicks = other.hurtByPlayerTicks;
     }
 
     public final boolean onInteract(final Player player, final EquipmentSlotGroup hand) {

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
+import fr.fidorial.item.component.SuspiciousStewEffects;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.map.MapManager;
@@ -121,6 +122,12 @@ public class DataComponentTypes {
      */
     public static final DataComponentType<WrittenBookContent> WRITTEN_BOOK_CONTENT =
             register(DataComponentTypeKeys.WRITTEN_BOOK_CONTENT, WrittenBookContent.class);
+
+    /**
+     * The effects a suspicious stew gives whoever eats it.
+     */
+    public static final DataComponentType<SuspiciousStewEffects> SUSPICIOUS_STEW_EFFECTS =
+            register(DataComponentTypeKeys.SUSPICIOUS_STEW_EFFECTS, SuspiciousStewEffects.class);
 
     private DataComponentTypes() {
         throw new UnsupportedOperationException("DataComponentTypes cannot be instantiated.");

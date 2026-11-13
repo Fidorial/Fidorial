@@ -121,6 +121,14 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
         return (int) (secondsUntilAdult * FEED_GROWTH_FRACTION);
     }
 
+    /**
+     * Makes this mob as old as another, as when vanilla turns a mob into another.
+     */
+    protected final void copyAgeFrom(final AbstractAgeableMob other) {
+        setAge(other.age);
+        this.forcedAge = other.forcedAge;
+    }
+
     public final int forcedAge() {
         return forcedAge;
     }

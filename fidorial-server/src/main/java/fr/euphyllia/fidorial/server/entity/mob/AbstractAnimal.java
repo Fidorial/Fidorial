@@ -65,7 +65,24 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
         return ground != null
                 && BlockView.isTagged(BlockTypeTagKeys.ANIMALS_SPAWNABLE_ON, ground)
-                && world.lightLevelAt(x, y, z) >= MIN_SPAWN_LIGHT;
+                && isBrightEnoughToSpawn(world, x, y, z);
+    }
+
+    /**
+     * {@return {@code true} if a block is bright enough for animals to spawn}: as in Vanilla, in a
+     * light above 8, sky and block light together
+     */
+    public static boolean isBrightEnoughToSpawn(final ServerWorld world, final int x, final int y, final int z) {
+        return world.lightLevelAt(x, y, z) >= MIN_SPAWN_LIGHT;
+    }
+
+    /**
+     * {@return how much animals like a block for its light alone}, as in Vanilla: the brighter, the
+     * better
+     */
+    protected static float lightWalkValue(final ServerWorld world, final int x, final int y, final int z) {
+        final float light = world.lightLevelAt(x, y, z) / 15.0f;
+        return light / (4.0f - 3.0f * light) - 0.5f;
     }
 
     @Override
@@ -245,8 +262,7 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         if (ground != null && ground.name().equals(BlockTypeKeys.GRASS_BLOCK)) {
             return GRASS_WALK_VALUE;
         }
-        final float light = world.lightLevelAt(x, y, z) / 15.0f;
-        return light / (4.0f - 3.0f * light) - 0.5f;
+        return lightWalkValue(world, x, y, z);
     }
 
     @Override

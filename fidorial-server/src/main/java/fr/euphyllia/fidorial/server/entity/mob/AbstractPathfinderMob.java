@@ -345,6 +345,27 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     /**
+     * Turns this mob into another, converts a mob: the new one takes its place with its speed,
+     * its fire, its age if both grow up, and whether a player hit it; it starts at full health.
+     * This mob is gone afterwards.
+     *
+     * @param replacement the new mob, created where this one stands and not yet in the world
+     */
+    protected final void convertTo(final AbstractPathfinderMob replacement) {
+        replacement.setVelocity(velocityX(), velocityY(), velocityZ());
+        replacement.setOnGround(onGround());
+        replacement.setFireTicks(fireTicks());
+        replacement.copyHurtByPlayerFrom(this);
+        if (this instanceof final AbstractAgeableMob from && replacement instanceof final AbstractAgeableMob to) {
+            to.copyAgeFrom(from);
+        }
+        world().scheduler().execute(world().key(), location().chunk(), () -> {
+            server().entities().spawn(replacement);
+            server().entities().despawn(this);
+        });
+    }
+
+    /**
      * {@return how much this mob likes to walk to a block; a random stroll goes to the best of the
      * spots it considers}
      */

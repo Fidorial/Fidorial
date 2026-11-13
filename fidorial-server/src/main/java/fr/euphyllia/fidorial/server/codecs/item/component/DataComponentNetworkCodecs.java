@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
+import fr.fidorial.item.component.SuspiciousStewEffects;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentType;
@@ -12,6 +13,7 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.item.enchantment.EnchantmentDefinition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.MobEffect;
 import io.netty.handler.codec.DecoderException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -31,6 +33,8 @@ public class DataComponentNetworkCodecs {
     private static final int MAX_COMPONENT_TEXT_LENGTH = 262_144;
 
     private static final int MAX_ENCHANTMENTS = 1024;
+
+    private static final int MAX_STEW_EFFECTS = 256;
 
     public interface Codec<T> {
 
@@ -56,6 +60,7 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.STORED_ENCHANTMENTS, enchantmentsCodec());
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, booleanCodec());
         register(DataComponentTypes.WRITTEN_BOOK_CONTENT, writtenBookContentCodec());
+        register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, suspiciousStewEffectsCodec());
     }
 
     private DataComponentNetworkCodecs() {
@@ -163,6 +168,36 @@ public class DataComponentNetworkCodecs {
                 }
 
                 return new ItemLore(lines);
+            }
+        };
+    }
+
+    private static Codec<SuspiciousStewEffects> suspiciousStewEffectsCodec() {
+        return new Codec<>() {
+            @Override
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final SuspiciousStewEffects value) {
+                final ServerRegistry<MobEffect> registry = registries.registry(RegistryKey.MOB_EFFECT);
+                buf.writeVarInt(value.effects().size());
+                for (final SuspiciousStewEffects.Entry entry : value.effects()) {
+                    buf.writeVarInt(registry.networkId(entry.effect()));
+                    buf.writeVarInt(entry.duration());
+                }
+            }
+
+            @Override
+            public SuspiciousStewEffects read(final PacketBuffer buf, final ServerRegistries registries) {
+                final ServerRegistry<MobEffect> registry = registries.registry(RegistryKey.MOB_EFFECT);
+                final int size = readBoundedLength(buf, MAX_STEW_EFFECTS, "suspicious stew effects");
+                final List<SuspiciousStewEffects.Entry> effects = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    final TypedKey<MobEffect> effect = registry.byNetworkId(buf.readVarInt());
+                    final int duration = buf.readVarInt();
+                    if (effect == null) {
+                        throw new DecoderException("Unknown mob effect network id");
+                    }
+                    effects.add(new SuspiciousStewEffects.Entry(effect, duration));
+                }
+                return new SuspiciousStewEffects(effects);
             }
         };
     }
