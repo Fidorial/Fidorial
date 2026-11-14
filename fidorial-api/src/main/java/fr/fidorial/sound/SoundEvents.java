@@ -137,6 +137,136 @@ public final class SoundEvents {
      */
     public static final Sound.Type COW_MOODY_STEP = of("entity.cow_moody.step");
 
+    // --- Pig ---
+    /**
+     * The {@code minecraft:entity.pig.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_AMBIENT = of("entity.pig.ambient");
+
+    /**
+     * The {@code minecraft:entity.pig.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_DEATH = of("entity.pig.death");
+
+    /**
+     * The {@code minecraft:entity.pig.eat} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_EAT = of("entity.pig.eat");
+
+    /**
+     * The {@code minecraft:entity.pig.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_HURT = of("entity.pig.hurt");
+
+    /**
+     * The {@code minecraft:entity.pig.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_STEP = of("entity.pig.step");
+
+    // --- Pig ("mini" sound variant) ---
+    /**
+     * The {@code minecraft:entity.pig_mini.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_MINI_AMBIENT = of("entity.pig_mini.ambient");
+
+    /**
+     * The {@code minecraft:entity.pig_mini.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_MINI_DEATH = of("entity.pig_mini.death");
+
+    /**
+     * The {@code minecraft:entity.pig_mini.eat} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_MINI_EAT = of("entity.pig_mini.eat");
+
+    /**
+     * The {@code minecraft:entity.pig_mini.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_MINI_HURT = of("entity.pig_mini.hurt");
+
+    // --- Pig ("big" sound variant) ---
+    /**
+     * The {@code minecraft:entity.pig_big.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_BIG_AMBIENT = of("entity.pig_big.ambient");
+
+    /**
+     * The {@code minecraft:entity.pig_big.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_BIG_DEATH = of("entity.pig_big.death");
+
+    /**
+     * The {@code minecraft:entity.pig_big.eat} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_BIG_EAT = of("entity.pig_big.eat");
+
+    /**
+     * The {@code minecraft:entity.pig_big.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type PIG_BIG_HURT = of("entity.pig_big.hurt");
+
+    // --- Baby pig ---
+    /**
+     * The {@code minecraft:entity.baby_pig.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_PIG_AMBIENT = of("entity.baby_pig.ambient");
+
+    /**
+     * The {@code minecraft:entity.baby_pig.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_PIG_DEATH = of("entity.baby_pig.death");
+
+    /**
+     * The {@code minecraft:entity.baby_pig.eat} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_PIG_EAT = of("entity.baby_pig.eat");
+
+    /**
+     * The {@code minecraft:entity.baby_pig.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_PIG_HURT = of("entity.baby_pig.hurt");
+
+    /**
+     * The {@code minecraft:entity.baby_pig.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_PIG_STEP = of("entity.baby_pig.step");
+
     // --- Mooshroom ---
     /**
      * The {@code minecraft:entity.mooshroom.convert} sound event, played when lightning changes the
