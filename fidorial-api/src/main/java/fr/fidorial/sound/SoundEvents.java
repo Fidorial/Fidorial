@@ -195,6 +195,14 @@ public final class SoundEvents {
      */
     public static final Sound.Type COW_MOODY_STEP = of("entity.cow_moody.step");
 
+    // --- Dye ---
+    /**
+     * The {@code minecraft:item.dye.use} sound event, played when something is dyed.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DYE_USE = of("item.dye.use");
+
     // --- Pig ---
     /**
      * The {@code minecraft:entity.pig.ambient} sound event.
@@ -324,6 +332,42 @@ public final class SoundEvents {
      * @since 0.1.0
      */
     public static final Sound.Type BABY_PIG_STEP = of("entity.baby_pig.step");
+
+    // --- Sheep ---
+    /**
+     * The {@code minecraft:entity.sheep.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SHEEP_AMBIENT = of("entity.sheep.ambient");
+
+    /**
+     * The {@code minecraft:entity.sheep.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SHEEP_DEATH = of("entity.sheep.death");
+
+    /**
+     * The {@code minecraft:entity.sheep.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SHEEP_HURT = of("entity.sheep.hurt");
+
+    /**
+     * The {@code minecraft:entity.sheep.shear} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SHEEP_SHEAR = of("entity.sheep.shear");
+
+    /**
+     * The {@code minecraft:entity.sheep.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SHEEP_STEP = of("entity.sheep.step");
 
     // --- Mooshroom ---
     /**
