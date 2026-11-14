@@ -446,7 +446,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     }
 
     public CompletableFuture<Boolean> enterConfiguration() {
-        return isActive()
+        return isActive() && state != ConnectionState.MOCK_PLAY
                 ? CompletableFuture.supplyAsync(this::startConfiguration, this::execute).thenCompose(Function.identity())
                 : CompletableFuture.completedFuture(false);
     }

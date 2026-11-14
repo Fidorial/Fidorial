@@ -2,22 +2,18 @@ package fr.euphyllia.fidorial.server.entity.mob.creature.cow;
 
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
-import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractAnimal;
+import fr.euphyllia.fidorial.server.entity.mob.creature.FarmAnimalVariants;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
-import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.CowSoundVariant;
 import fr.fidorial.registry.data.CowVariant;
-import fr.fidorial.registry.keys.BiomeTagKeys;
 import fr.fidorial.registry.keys.CowSoundVariantKeys;
 import fr.fidorial.registry.keys.CowVariantKeys;
-import fr.fidorial.world.biome.BiomeDefinition;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -49,9 +45,9 @@ public final class Cow extends AbstractCow implements Category.Neutral {
      */
     public Cow(final int entityId, final Location location) {
         this(entityId, location, false);
-        this.variant = variantForBiome(BlockView.biomeAt(serverWorld(),
-                (int) Math.floor(location.x()), (int) Math.floor(location.y()), (int) Math.floor(location.z())));
-        this.soundVariant = randomSoundVariant();
+        this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
+                CowVariantKeys.TEMPERATE, CowVariantKeys.WARM, CowVariantKeys.COLD);
+        this.soundVariant = FarmAnimalVariants.random(RegistryKey.COW_SOUND_VARIANT, CowSoundVariantKeys.CLASSIC);
     }
 
     /**
@@ -67,24 +63,6 @@ public final class Cow extends AbstractCow implements Category.Neutral {
      */
     public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
         return checkAnimalSpawnRules(world, x, y, z);
-    }
-
-    /**
-     * {@return the variant of the cows that spawn in a biome}: as in Vanilla, from the
-     * {@code spawns_warm_variant_farm_animals} and {@code spawns_cold_variant_farm_animals} biome tags
-     */
-    public TypedKey<CowVariant> variantForBiome(final @Nullable TypedKey<BiomeDefinition> biome) {
-        if (biome == null) {
-            return CowVariantKeys.TEMPERATE;
-        }
-        final ServerRegistry<BiomeDefinition> biomes = server().registries().registry(RegistryKey.BIOME);
-        if (biomes.isTagged(biome, BiomeTagKeys.SPAWNS_WARM_VARIANT_FARM_ANIMALS)) {
-            return CowVariantKeys.WARM;
-        }
-        if (biomes.isTagged(biome, BiomeTagKeys.SPAWNS_COLD_VARIANT_FARM_ANIMALS)) {
-            return CowVariantKeys.COLD;
-        }
-        return CowVariantKeys.TEMPERATE;
     }
 
     private TypedKey<CowSoundVariant> randomSoundVariant() {
@@ -118,13 +96,10 @@ public final class Cow extends AbstractCow implements Category.Neutral {
     }
 
     private ClientboundSetEntityMetadataPacket variantMetadata() {
-        final int variantId = variantNetworkId();
-        final int soundVariantId = server().registries().registry(RegistryKey.COW_SOUND_VARIANT).networkId(soundVariant);
         return ClientboundSetEntityMetadataPacket.of(entityId(),
-                ClientboundSetEntityMetadataPacket.Entry.raw(MD_VARIANT, MD_TYPE_COW_VARIANT,
-                        buffer -> buffer.writeVarInt(variantId)),
-                ClientboundSetEntityMetadataPacket.Entry.raw(MD_SOUND_VARIANT, MD_TYPE_COW_SOUND_VARIANT,
-                        buffer -> buffer.writeVarInt(soundVariantId)));
+                FarmAnimalVariants.metadata(MD_VARIANT, MD_TYPE_COW_VARIANT, RegistryKey.COW_VARIANT, variant),
+                FarmAnimalVariants.metadata(MD_SOUND_VARIANT, MD_TYPE_COW_SOUND_VARIANT,
+                        RegistryKey.COW_SOUND_VARIANT, soundVariant));
     }
 
     @Override
@@ -156,25 +131,7 @@ public final class Cow extends AbstractCow implements Category.Neutral {
     @Override
     public void loadAdditional(final CompoundBinaryTag tag) {
         super.loadAdditional(tag);
-        final TypedKey<CowVariant> savedVariant = savedKey(RegistryKey.COW_VARIANT, tag.getString("variant"));
-        if (savedVariant != null) {
-            this.variant = savedVariant;
-        }
-        final TypedKey<CowSoundVariant> savedVoice = savedKey(RegistryKey.COW_SOUND_VARIANT, tag.getString("sound_variant"));
-        if (savedVoice != null) {
-            this.soundVariant = savedVoice;
-        }
-    }
-
-    /**
-     * {@return the entry of a registry saved under its name, {@code null} if it is unknown or absent}
-     */
-    @SuppressWarnings("PatternValidation")
-    private <T> @Nullable TypedKey<T> savedKey(final RegistryKey<T> registry, final String name) {
-        if (name.isEmpty() || !Key.parseable(name)) {
-            return null;
-        }
-        final TypedKey<T> key = TypedKey.withRegistry(registry, Key.key(name));
-        return server().registries().registry(registry).contains(key) ? key : null;
+        this.variant = FarmAnimalVariants.saved(RegistryKey.COW_VARIANT, tag.getString("variant"), variant);
+        this.soundVariant = FarmAnimalVariants.saved(RegistryKey.COW_SOUND_VARIANT, tag.getString("sound_variant"), soundVariant);
     }
 }

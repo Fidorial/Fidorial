@@ -574,11 +574,7 @@ public final class ServerExperienceOrb extends AbstractEntity implements Experie
         if (isRemoved()) {
             return;
         }
-        if (isOwnedByCurrentThread()) {
-            server().entities().despawn(this);
-        } else {
-            execute(() -> server().entities().despawn(this));
-        }
+        runOrExecute(() -> server().entities().despawn(this));
     }
 
     private void markSaveDirty() {

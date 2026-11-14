@@ -281,8 +281,8 @@ public final class TestPlugin implements Plugin {
             final int totalExp = player.totalExperience();
             player.giveExperience(totalExp + 1);
             final Location at = player.location();
-            final World world = player.world();
-            world.scheduler().executeDelayed(world.key(), at.chunk(), () -> player.world().dropExperience(at, totalExp), 20*10);
+            final World world = at.world();
+            world.scheduler().executeDelayed(world.key(), at.chunk(), () -> world.dropExperience(at, totalExp), 20*10);
         });
 
         events.subscribe(PlayerQuitEvent.class, e -> {

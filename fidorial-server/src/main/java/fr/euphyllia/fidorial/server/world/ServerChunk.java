@@ -65,7 +65,7 @@ public final class ServerChunk implements Chunk {
             column.setBlock(localX & 15, worldY, localZ & 15, state);
             world.markDirty(column.chunkX(), column.chunkZ());
             future.complete(true);
-        });
+        }, () -> future.complete(false));
         if (!scheduled) future.complete(false);
         return future;
     }
@@ -94,25 +94,31 @@ public final class ServerChunk implements Chunk {
     }
 
     @Override
-    public boolean execute(final Runnable task) {
-        if (world.isChunkLoaded(column.chunkX(), column.chunkZ())) {
-            world().scheduler().execute(world().key(), pos(), task);
-            return true;
+    public boolean execute(final Runnable task, final Runnable retired) {
+        if (!world.isChunkLoaded(column.chunkX(), column.chunkZ())) {
+            return false;
         }
-        return false;
+        return world().scheduler().execute(world().key(), pos(), () -> runOrRetire(task, retired));
     }
 
     @Override
-    public boolean executeDelayed(final Runnable task, final long delayTicks) {
-        if (world.isChunkLoaded(column.chunkX(), column.chunkZ())) {
-            world().scheduler().executeDelayed(world().key(), pos(), task, delayTicks);
-            return true;
+    public boolean executeDelayed(final Runnable task, final Runnable retired, final long delayTicks) {
+        if (!world.isChunkLoaded(column.chunkX(), column.chunkZ())) {
+            return false;
         }
-        return false;
+        return world().scheduler().executeDelayed(world().key(), pos(), () -> runOrRetire(task, retired), delayTicks);
     }
 
     @Override
     public boolean isOwnedByCurrentThread() {
         return world().scheduler().isOwnedByCurrentThread(world().key(), pos());
+    }
+
+    private void runOrRetire(final Runnable task, final Runnable retired) {
+        if (world.loadedColumn(column.chunkX(), column.chunkZ()) == column) {
+            task.run();
+        } else {
+            retired.run();
+        }
     }
 }

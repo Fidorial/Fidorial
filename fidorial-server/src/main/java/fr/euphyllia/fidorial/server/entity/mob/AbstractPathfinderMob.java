@@ -366,6 +366,13 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     /**
+     * Called when this mob ate the grass it grazed.
+     */
+    public void ate() {
+        server().debug().gameEvents().emit(world(), GameEventKeys.EAT, location());
+    }
+
+    /**
      * {@return how much this mob likes to walk to a block; a random stroll goes to the best of the
      * spots it considers}
      */

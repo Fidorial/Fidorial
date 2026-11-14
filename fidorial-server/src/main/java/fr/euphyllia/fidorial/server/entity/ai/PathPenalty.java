@@ -10,31 +10,42 @@ public interface PathPenalty {
 
     double BLOCKED = Double.POSITIVE_INFINITY;
 
-    PathPenalty LAND_ANIMAL = (world, x, y, z) -> {
-        final BlockState state = BlockView.blockAt(world, x, y, z);
-        if (state == null) {
-            return 0.0;
-        }
-        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, state) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, state)) {
-            return BLOCKED;
-        }
-        final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
-        if (ground != null && (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, ground) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, ground))) {
-            return BLOCKED;
-        }
+    /**
+     * What the land animals avoid: fire, cactus and the like at all costs, then water, rails and
+     * honey, as in Vanilla.
+     */
+    PathPenalty LAND_ANIMAL = landAnimal(true);
+    /**
+     * What the chicken avoids: as {@link #LAND_ANIMAL}, but water costs it nothing, as in Vanilla.
+     */
+    PathPenalty WADING_ANIMAL = landAnimal(false);
 
-        double cost = 0.0;
-        if (state.name().equals(BlockTypeKeys.WATER)) {
-            cost += 8.0;
-        }
-        if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_RAILS, state)) {
-            cost += 16.0;
-        }
-        if (ground != null && BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_STICKY, ground)) {
-            cost += 8.0;
-        }
-        return cost;
-    };
+    private static PathPenalty landAnimal(final boolean avoidsWater) {
+        return (world, x, y, z) -> {
+            final BlockState state = BlockView.blockAt(world, x, y, z);
+            if (state == null) {
+                return 0.0;
+            }
+            if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, state) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, state)) {
+                return BLOCKED;
+            }
+            final BlockState ground = BlockView.blockAt(world, x, y - 1, z);
+            if (ground != null && (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_DAMAGING, ground) || BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_POWDER_SNOW, ground))) {
+                return BLOCKED;
+            }
+            double cost = 0.0;
+            if (avoidsWater && state.name().equals(BlockTypeKeys.WATER)) {
+                cost += 8.0;
+            }
+            if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_RAILS, state)) {
+                cost += 16.0;
+            }
+            if (ground != null && BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_STICKY, ground)) {
+                cost += 8.0;
+            }
+            return cost;
+        };
+    }
 
     double cost(ServerWorld world, int x, int y, int z);
 }

@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantments;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.EntitiesResolver;
@@ -88,19 +89,10 @@ public final class EnchantCommand {
         final List<Entity> targets = EntitiesResolver.entities(context, "targets");
         final List<CompletableFuture<Outcome>> outcomes = new ArrayList<>(targets.size());
         for (final Entity target : targets) {
-            if (!(target instanceof final LivingEntity living)) {
-                outcomes.add(CompletableFuture.completedFuture(Outcome.NOT_LIVING));
+            if (!(target instanceof final AbstractLivingEntity living)) {
                 continue;
             }
-            if (living.isOwnedByCurrentThread()) {
-                outcomes.add(CompletableFuture.completedFuture(apply(registry, living, key, level)));
-                continue;
-            }
-            final CompletableFuture<Outcome> outcome = new CompletableFuture<>();
-            if (!living.execute(() -> outcome.complete(apply(registry, living, key, level)))) {
-                outcome.complete(Outcome.NOT_LIVING);
-            }
-            outcomes.add(outcome);
+            outcomes.add(living.supply(() -> apply(registry, living, key, level), Outcome.NOT_LIVING));
         }
 
         final Component name = registry.displayName(key, level);

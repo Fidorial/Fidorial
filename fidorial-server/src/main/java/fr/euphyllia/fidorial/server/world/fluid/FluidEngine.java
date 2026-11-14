@@ -302,13 +302,7 @@ public final class FluidEngine implements FluidManager {
     }
 
     private void spreadTo(final ServerWorld world, final Key worldName, final int tx, final int y, final int tz, final FluidType type, final int spreadLevel) {
-        final ChunkPos targetChunk = ChunkPos.fromBlock(tx, tz);
-        if (world.scheduler().isOwnedByCurrentThread(worldName, targetChunk)) {
-            spreadToOwned(world, worldName, tx, y, tz, type, spreadLevel);
-            return;
-        }
-        // the neighbor crosses into a region we don't currently own
-        regionizer.execute(worldName, targetChunk,
+        regionizer.runOrExecute(worldName, ChunkPos.fromBlock(tx, tz),
                 () -> spreadToOwned(world, worldName, tx, y, tz, type, spreadLevel));
     }
 

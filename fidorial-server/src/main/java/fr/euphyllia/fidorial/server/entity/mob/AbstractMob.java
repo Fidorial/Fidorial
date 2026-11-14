@@ -21,6 +21,7 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -129,15 +130,18 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     /**
-     * Drops a stack where this mob stands, as vanilla drops the loot of a mob.
+     * Drops a stack where this mob stands, as vanilla drops what a mob leaves, its loot or an egg:
+     * thrown up a little, in a random direction.
      */
     protected final void dropLootItem(final ItemStack stack) {
         if (stack.isEmpty() || !(world() instanceof final ServerWorld serverWorld)) {
             return;
         }
         final Location at = location();
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
         server().entities().dropItem(serverWorld, at.x(), at.y(), at.z(), stack,
-                0.0, 0.0, 0.0, ItemEntity.DEFAULT_PICKUP_DELAY, null);
+                random.nextDouble() * 0.2 - 0.1, 0.2, random.nextDouble() * 0.2 - 0.1,
+                ItemEntity.DEFAULT_PICKUP_DELAY, null);
     }
 
     /**
@@ -197,6 +201,16 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     @Override
     protected void onRemoved() {
         dispatch(MobBehaviour::onRemove, "onRemove");
+    }
+
+    @Override
+    protected void onLeftWorld(final ServerWorld from, final ChunkPos chunk) {
+        server().workers().regionizer().removeTicket(from.key(), chunk);
+    }
+
+    @Override
+    protected void onEnteredWorld(final ServerWorld to, final ChunkPos chunk) {
+        server().workers().regionizer().addTicket(to.key(), chunk);
     }
 
     protected Sound.@Nullable Type hurtSound() {

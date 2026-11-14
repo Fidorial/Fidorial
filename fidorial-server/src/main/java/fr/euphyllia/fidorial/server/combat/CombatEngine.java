@@ -169,6 +169,7 @@ public final class CombatEngine implements CombatService {
         return applyDamage(victim, source, amount, source.noKnockback() ? 0.0 : BASE_KNOCKBACK);
     }
 
+    // FIXME: the caller may not own the victim: a hit across a region border changes it from another thread
     private boolean applyDamage(
             final AbstractLivingEntity victim,
             final DamageSource source,
@@ -358,6 +359,7 @@ public final class CombatEngine implements CombatService {
         }
     }
 
+    // FIXME: the caller may not own the victim: a hit across a region border changes it from another thread
     @Override
     public void kill(final LivingEntity target, final @Nullable Entity killer) {
         if (!(target instanceof final AbstractLivingEntity victim) || victim.isDead()) {
@@ -404,12 +406,10 @@ public final class CombatEngine implements CombatService {
         }
 
         if (!event.keepInventory()) {
-            if (player.isOwnedByCurrentThread()) {
+            player.runOrExecute(() -> {
                 dropInventory(player);
-            } else {
-                player.execute(() -> dropInventory(player));
-            }
-            dropExperience(player);
+                dropExperience(player);
+            });
         }
     }
 

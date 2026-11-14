@@ -8,6 +8,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.resource.ResourceArgument;
 import fr.euphyllia.fidorial.server.command.brigadier.argument.util.ExceptionFactory;
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.EntitiesResolver;
 import fr.fidorial.entity.Entity;
@@ -149,18 +150,10 @@ public final class EffectCommand {
                              final Feedback feedback) throws CommandSyntaxException {
         final List<CompletableFuture<Boolean>> results = new ArrayList<>(targets.size());
         for (final Entity target : targets) {
-            if (!(target instanceof final LivingEntity living)) {
+            if (!(target instanceof final AbstractLivingEntity living)) {
                 continue;
             }
-            if (living.isOwnedByCurrentThread()) {
-                results.add(CompletableFuture.completedFuture(action.test(living)));
-                continue;
-            }
-            final CompletableFuture<Boolean> result = new CompletableFuture<>();
-            if (!living.execute(() -> result.complete(action.test(living)))) {
-                result.complete(false);
-            }
-            results.add(result);
+            results.add(living.supply(() -> action.test(living), false));
         }
 
         final CommandSource source = context.getSource();

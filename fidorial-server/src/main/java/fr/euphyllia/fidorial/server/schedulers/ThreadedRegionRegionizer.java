@@ -140,6 +140,15 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         return enqueue(worldName, pos, task, 0L);
     }
 
+    /// Runs the task right away if the current thread owns the chunk, and schedules it otherwise.
+    public boolean runOrExecute(final Key worldName, final ChunkPos pos, final Runnable task) {
+        if (isOwnedByCurrentThread(worldName, pos)) {
+            task.run();
+            return true;
+        }
+        return execute(worldName, pos, task);
+    }
+
     @Override
     public boolean executeDelayed(final Key worldName, final ChunkPos pos, final Runnable task, final long delayTicks) {
         return enqueue(worldName, pos, task, Math.max(0L, delayTicks));
