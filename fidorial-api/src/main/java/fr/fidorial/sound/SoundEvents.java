@@ -72,6 +72,64 @@ public final class SoundEvents {
      */
     public static final Sound.Type CHICKEN_EGG = of("entity.chicken.egg");
 
+    // --- Chicken ("picky" sound variant) ---
+    /**
+     * The {@code minecraft:entity.chicken_picky.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type CHICKEN_PICKY_AMBIENT = of("entity.chicken_picky.ambient");
+
+    /**
+     * The {@code minecraft:entity.chicken_picky.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type CHICKEN_PICKY_HURT = of("entity.chicken_picky.hurt");
+
+    /**
+     * The {@code minecraft:entity.chicken_picky.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type CHICKEN_PICKY_DEATH = of("entity.chicken_picky.death");
+
+    /**
+     * The {@code minecraft:entity.chicken_picky.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type CHICKEN_PICKY_STEP = of("entity.chicken_picky.step");
+
+    // --- Baby chicken ---
+    /**
+     * The {@code minecraft:entity.baby_chicken.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_CHICKEN_AMBIENT = of("entity.baby_chicken.ambient");
+
+    /**
+     * The {@code minecraft:entity.baby_chicken.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_CHICKEN_HURT = of("entity.baby_chicken.hurt");
+
+    /**
+     * The {@code minecraft:entity.baby_chicken.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_CHICKEN_DEATH = of("entity.baby_chicken.death");
+
+    /**
+     * The {@code minecraft:entity.baby_chicken.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type BABY_CHICKEN_STEP = of("entity.baby_chicken.step");
+
     // --- Cow ---
     /**
      * The {@code minecraft:entity.cow.ambient} sound event.
