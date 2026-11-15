@@ -172,8 +172,7 @@ public final class ChargeGoal implements Goal {
     }
 
     private @Nullable Player pickTarget() {
-        final Player target = mob.target();
-        if (target != null && target.isAlive() && mob.distanceSqTo(target) <= TRIGGER_RANGE * TRIGGER_RANGE) {
+        if (mob.target() instanceof final Player target && target.isAlive() && mob.distanceSqTo(target) <= TRIGGER_RANGE * TRIGGER_RANGE) {
             return target;
         }
         final Player nearest = mob.nearestPlayer(TRIGGER_RANGE);

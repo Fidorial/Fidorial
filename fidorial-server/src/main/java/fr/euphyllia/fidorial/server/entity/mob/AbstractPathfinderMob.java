@@ -1,30 +1,40 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
+import fr.euphyllia.fidorial.server.entity.ai.goal.NearestAttackableTargetGoal;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAnimatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.GameEventKeys;
+import net.kyori.adventure.sound.Sound;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private static final double GRAVITY = 0.08;
     private static final double VERTICAL_DRAG = 0.98;
     /**
-     * What is left of the horizontal speed of a mob after a tick on the ground, as in Vanilla: the
+     * What is left of the horizontal speed of a mob after a tick on the ground: the
      * slipperiness of an ordinary block, {@code 0.6}, times {@code 0.91}.
      */
     private static final double GROUND_FRICTION = 0.6 * 0.91;
     private static final double AIR_FRICTION = 0.91;
     /**
-     * How much a mob accelerates in the air and in water for a full input, as in Vanilla.
+     * How much a mob accelerates in the air and in water for a full input.
      */
     private static final double AIR_ACCELERATION = 0.02;
     private static final double WATER_ACCELERATION = 0.02;
@@ -40,12 +50,12 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double MAX_FALL_SPEED = 3.0;
     private static final double MIN_VELOCITY = 0.003;
     /**
-     * How far a mob turns towards where it walks in one tick, in degrees, as in Vanilla.
+     * How far a mob turns towards where it walks in one tick, in degrees.
      */
     private static final float MAX_TURN = 90.0f;
 
     /**
-     * How high a block mobs walk onto without jumping, as in Vanilla.
+     * How high a block mobs walk onto without jumping.
      */
     private static final double STEP_HEIGHT = 0.6;
 
@@ -56,9 +66,21 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private static final int TARGET_SCAN_INTERVAL = 10;
 
+    private static final int AMBIENT_SOUND_RANGE = 1000;
+    private static final int DEFAULT_AMBIENT_SOUND_INTERVAL = 80;
+
+    /**
+     * How far past its own box a mob reaches with a bare hand.
+     */
+    private static final double MELEE_REACH = Math.sqrt(2.04) - 0.6;
+    private static final double DEFAULT_TARGET_WIDTH = 0.6;
+    private static final double DEFAULT_TARGET_HEIGHT = 1.8;
+    private static final double SNEAKING_PLAYER_HEIGHT = 1.5;
+
     protected final Navigation navigation;
 
     private double stepDistance;
+    private int ambientSoundTime;
     private int jumpDelay;
 
     protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
@@ -86,15 +108,22 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             return;
         }
 
-        final ServerPlayer currentTarget = target();
-        if (currentTick % TARGET_SCAN_INTERVAL == 0) {
+        final AbstractLivingEntity currentTarget = target();
+        if (!picksPlayersByItself()) {
+            if (currentTarget != null && (currentTarget.isRemoved() || currentTarget.isDead()
+                    || !currentTarget.world().equals(world()))) {
+                setTarget(null);
+            }
+        } else if (currentTick % TARGET_SCAN_INTERVAL == 0) {
             updateTarget();
-        } else if (currentTarget != null && !isValidTarget(currentTarget, dropRangeSq())) {
+        } else if (currentTarget != null
+                && !(currentTarget instanceof final ServerPlayer player && isValidTarget(player, dropRangeSq()))) {
             setTarget(null);
         }
 
         tickDamageMemory();
         tickNoActionTime(currentTick);
+        tickAmbientSound();
         setMoveSpeed(0.0);
         goals.tick();
         tickBehaviours(currentTick);
@@ -110,6 +139,102 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         if (after.y() < serverWorld().minY() - 64) {
             server().entities().despawn(this);
         }
+    }
+
+    /**
+     * {@return {@code true} if this mob goes after the nearest player without any goal asking for
+     * it}, as mobs did before they had goals to pick their target. A mob that picks its targets as
+     * Vanilla does, with {@link NearestAttackableTargetGoal}
+     * and the like, answers {@code false}.
+     */
+    public boolean picksPlayersByItself() {
+        return true;
+    }
+
+    private void tickAmbientSound() {
+        if (ThreadLocalRandom.current().nextInt(AMBIENT_SOUND_RANGE) >= ambientSoundTime++) {
+            return;
+        }
+        ambientSoundTime = -ambientSoundInterval();
+        final Sound.Type sound = ambientSound();
+        if (sound != null) {
+            playSound(sound, soundVolume(), voicePitch());
+        }
+    }
+
+    /**
+     * {@return the sound this mob makes now and then, {@code null} for none}
+     */
+    protected Sound.@Nullable Type ambientSound() {
+        return null;
+    }
+
+    /**
+     * {@return how many ticks this mob stays silent after a sound}; the chance of the
+     * next one then grows by one in a thousand every tick
+     */
+    protected int ambientSoundInterval() {
+        return DEFAULT_AMBIENT_SOUND_INTERVAL;
+    }
+
+    @Override
+    public void playHurtSound() {
+        ambientSoundTime = -ambientSoundInterval();
+        super.playHurtSound();
+    }
+
+    /**
+     * {@return {@code true} if this mob stands close enough to an entity to hit it}: when its box,
+     * widened by {@value #MELEE_REACH} blocks on each side, touches the box of the entity
+     */
+    public final boolean isWithinMeleeRange(final AbstractLivingEntity entity) {
+        final Location self = location();
+        final Location other = entity.location();
+        final double reach = halfWidth() + MELEE_REACH + halfWidthOf(entity);
+        return Math.abs(self.x() - other.x()) < reach
+                && Math.abs(self.z() - other.z()) < reach
+                && self.y() < other.y() + heightOf(entity)
+                && other.y() < self.y() + height();
+    }
+
+    /**
+     * Hits a living entity with the {@linkplain #attackDamage() attack damage} of this mob.
+     *
+     * @return {@code true} if the entity was hurt
+     */
+    public boolean attack(final AbstractLivingEntity target) {
+        final float damage = attackDamage();
+        return damage > 0f && server().entities().combat().damage(target, DamageSource.mobAttack(this), damage);
+    }
+
+    /**
+     * Shows this mob swinging its main hand.
+     */
+    public final void swingMainHand() {
+        sendToTrackers(new ClientboundAnimatePacket(entityId(), ClientboundAnimatePacket.SWING_MAIN_HAND));
+    }
+
+    /**
+     * {@return the head a player wears to be noticed by this mob from half as far only, {@code null}
+     * if no head fools it}
+     */
+    public @Nullable TypedKey<Item> disguiseHead() {
+        return null;
+    }
+
+    /**
+     * {@return half the width of the box of a living entity}
+     */
+    public static double halfWidthOf(final AbstractLivingEntity entity) {
+        return entity instanceof final AbstractMovingMob mob ? mob.width() / 2.0 : DEFAULT_TARGET_WIDTH / 2.0;
+    }
+
+    private static double heightOf(final AbstractLivingEntity entity) {
+        return switch (entity) {
+            case final AbstractMovingMob mob -> mob.height();
+            case final ServerPlayer player -> player.isSneaking() ? SNEAKING_PLAYER_HEIGHT : DEFAULT_TARGET_HEIGHT;
+            default -> DEFAULT_TARGET_HEIGHT;
+        };
     }
 
     @Override
@@ -140,8 +265,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double acquireSq = followRange() * followRange();
         ServerPlayer best = null;
         double bestDistSq = Double.MAX_VALUE;
-        final ServerPlayer current = target();
-        if (current != null && isTargetable(current)) {
+        if (target() instanceof final ServerPlayer current && isTargetable(current)) {
             final double distSq = distanceSqTo(current);
             if (distSq <= dropRangeSq()) {
                 best = current;
@@ -345,9 +469,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     /**
-     * Turns this mob into another, converts a mob: the new one takes its place with its speed,
-     * its fire, its age if both grow up, and whether a player hit it; it starts at full health.
-     * This mob is gone afterwards.
+     * Turns this mob into another, as vanilla converts a mob: the new one takes its place with its
+     * speed, its fire, its effects, its age if both grow up, and whether a player hit it; it starts
+     * at full health. This mob is gone afterwards.
      *
      * @param replacement the new mob, created where this one stands and not yet in the world
      */
@@ -356,11 +480,19 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         replacement.setOnGround(onGround());
         replacement.setFireTicks(fireTicks());
         replacement.copyHurtByPlayerFrom(this);
+        replacement.setAbsorptionAmount(absorptionAmount());
+        replacement.setInvulnerableTicks(invulnerableTicks());
+        if (isPersistenceRequired()) {
+            replacement.setPersistenceRequired(true);
+        }
         if (this instanceof final AbstractAgeableMob from && replacement instanceof final AbstractAgeableMob to) {
             to.copyAgeFrom(from);
         }
         world().scheduler().execute(world().key(), location().chunk(), () -> {
             server().entities().spawn(replacement);
+            for (final MobEffectInstance effect : activeEffects()) {
+                replacement.addEffect(effect);
+            }
             server().entities().despawn(this);
         });
     }

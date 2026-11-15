@@ -13,6 +13,7 @@ import net.kyori.adventure.key.Key;
  * <p><a href="https://minecraft.wiki/w/Java_Edition_protocol/Packets#Entity_Animation">Entity Animation</a></p>
  */
 public record ClientboundAnimatePacket(int entityId, int action) implements ClientboundPacket<ClientboundAnimatePacket> {
+    public static final int SWING_MAIN_HAND = 0;
     public static final int LEAVE_BED = 2;
     public static final int CRITICAL_HIT = 4;
     public static final int MAGIC_CRITICAL_HIT = 5;

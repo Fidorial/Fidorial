@@ -2,6 +2,7 @@ package fr.fidorial.combat;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
@@ -22,6 +23,12 @@ import java.util.Set;
  * @since 0.1.0
  */
 public final class DamageSource {
+
+    private static final Set<TypedKey<DamageType>> ALWAYS_SCALES_WITH_DIFFICULTY = Set.of(
+            DamageTypeKeys.BAD_RESPAWN_POINT,
+            DamageTypeKeys.EXPLOSION,
+            DamageTypeKeys.PLAYER_EXPLOSION,
+            DamageTypeKeys.SONIC_BOOM);
 
     private static final Set<TypedKey<DamageType>> BYPASSES_ARMOR = Set.of(
             DamageTypeKeys.CRAMMING,
@@ -316,6 +323,19 @@ public final class DamageSource {
      */
     public boolean noKnockback() {
         return NO_KNOCKBACK.contains(type);
+    }
+
+    /**
+     * Tells whether the difficulty of the world changes how much of this damage a player takes: always
+     * for explosions, otherwise when a living entity other than a player caused it. Such damage
+     * is halved plus one on easy and grows by half on hard.
+     *
+     * @return {@code true} when this damage scales with the difficulty
+     * @since 0.1.0
+     */
+    public boolean scalesWithDifficulty() {
+        return ALWAYS_SCALES_WITH_DIFFICULTY.contains(type)
+                || (causingEntity instanceof LivingEntity && !(causingEntity instanceof Player));
     }
 
     /**

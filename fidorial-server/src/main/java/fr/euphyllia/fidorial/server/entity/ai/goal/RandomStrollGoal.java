@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.DoubleSupplier;
 
 /**
  * Makes a mob wander, as vanilla's {@code WaterAvoidingRandomStrollGoal}: once every
@@ -25,13 +26,21 @@ public final class RandomStrollGoal implements Goal {
 
     private final AbstractPathfinderMob mob;
     private final int priority;
-    private final double speed;
+    private final DoubleSupplier speed;
     private @Nullable Position destination;
 
     /**
      * @param speed the movement speed of the mob times vanilla's speed modifier
      */
     public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final double speed) {
+        this(mob, priority, () -> speed);
+    }
+
+    /**
+     * @param speed the movement speed of the mob times vanilla's speed modifier, asked for at each
+     *              stroll: for a mob whose speed changes, as a zombie turning into a baby
+     */
+    public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final DoubleSupplier speed) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
@@ -70,7 +79,7 @@ public final class RandomStrollGoal implements Goal {
     public void start() {
         final Position target = destination;
         if (target != null) {
-            mob.navigation().moveTo(mob.location(), target, speed);
+            mob.navigation().moveTo(mob.location(), target, speed.getAsDouble());
         }
     }
 

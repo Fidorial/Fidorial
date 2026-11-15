@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.debug.DebugValues;
 import fr.euphyllia.fidorial.server.debug.EntityDebugState;
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.GoalSelector;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
@@ -13,6 +14,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMoveEntityPosRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMoveEntityRotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -20,12 +22,12 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobDefinition;
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
@@ -73,9 +75,15 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private static final double ACTIVITY_RANGE = 32.0;
     private static final int ACTIVITY_SCAN_INTERVAL = 10;
 
+    private static final double MAX_SIGHT = 128.0;
+    private static final double DEFAULT_EYE_HEIGHT = 1.5;
+    private static final int MD_MOB_FLAGS = 15;
+    private static final int MOB_FLAG_AGGRESSIVE = 0x04;
+
     protected final GoalSelector goals = new GoalSelector();
 
-    private @Nullable ServerPlayer target;
+    private @Nullable AbstractLivingEntity target;
+    private boolean aggressive;
     private double moveSpeed;
     private double followRangeOverride = -1.0;
 
@@ -152,13 +160,37 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     }
 
     @Override
-    public final @Nullable ServerPlayer target() {
+    public final @Nullable AbstractLivingEntity target() {
         return target;
     }
 
     @Override
-    public final void setTarget(final @Nullable Player target) {
-        this.target = target instanceof final ServerPlayer serverPlayer ? serverPlayer : null;
+    public final void setTarget(final @Nullable LivingEntity target) {
+        this.target = target instanceof final AbstractLivingEntity living && living != this ? living : null;
+    }
+
+    /**
+     * {@return {@code true} while this mob shows that it attacks}: a zombie then raises its arms
+     */
+    public final boolean isAggressive() {
+        return aggressive;
+    }
+
+    /**
+     * Shows or hides the attacking stance of this mob, {@code aggressive} mob flag.
+     *
+     * @param aggressive {@code true} to show the stance
+     */
+    public final void setAggressive(final boolean aggressive) {
+        if (this.aggressive == aggressive) {
+            return;
+        }
+        this.aggressive = aggressive;
+        sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(), mobFlagsEntry()));
+    }
+
+    private ClientboundSetEntityMetadataPacket.Entry mobFlagsEntry() {
+        return ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_MOB_FLAGS, aggressive ? MOB_FLAG_AGGRESSIVE : 0);
     }
 
     @Override
@@ -495,6 +527,13 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         }
     }
 
+    /**
+     * Makes this mob idle sooner; monsters do in the light.
+     */
+    protected final void addNoActionTime(final int ticks) {
+        noActionTime += ticks;
+    }
+
     protected final void resetNoActionTime() {
         noActionTime = 0;
     }
@@ -531,6 +570,13 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
      */
     public final boolean isInWater() {
         return waterHeight() > 0.0;
+    }
+
+    /**
+     * {@return {@code true} if the eyes of this mob are under water}
+     */
+    public final boolean isEyeInWater() {
+        return waterHeight() > eyeHeight();
     }
 
     /**
@@ -579,13 +625,21 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         return best;
     }
 
+    /**
+     * {@return {@code true} if nothing solid stands between the eyes of this mob and those of an
+     * entity}, where a mob never sees further than {@value #MAX_SIGHT} blocks
+     */
     @Override
     public final boolean hasLineOfSightTo(final Entity entity) {
+        if (!entity.world().equals(world()) || distanceSqTo(entity) > MAX_SIGHT * MAX_SIGHT) {
+            return false;
+        }
         final Location self = location();
         final Location other = entity.location();
+        final double otherEyes = eyeHeightOf(entity);
         return BlockView.hasLineOfSight(serverWorld(),
-                self.x(), self.y() + 1.2, self.z(),
-                other.x(), other.y() + 1.5, other.z());
+                self.x(), self.y() + eyeHeight(), self.z(),
+                other.x(), other.y() + (otherEyes > 0.0 ? otherEyes : DEFAULT_EYE_HEIGHT), other.z());
     }
 
     public final EntityDebugState debugState() {
@@ -602,9 +656,11 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             behaviors.add(GoalSelector.debugName(running));
         }
         final List<String> memories = new ArrayList<>(2);
-        final ServerPlayer currentTarget = target;
+        final AbstractLivingEntity currentTarget = target;
         if (currentTarget != null) {
-            memories.add("attack_target: " + currentTarget.name());
+            memories.add("attack_target: " + (currentTarget instanceof final ServerPlayer player
+                    ? player.name()
+                    : currentTarget.type().key().key().value() + "#" + currentTarget.entityId()));
         }
         final Position waypoint = navigation().currentWaypoint();
         if (waypoint != null) {
@@ -711,6 +767,9 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     @Override
     public void sendSpawnPackets(final ClientConnection connection) {
         super.sendSpawnPackets(connection);
+        if (aggressive) {
+            connection.send(ClientboundSetEntityMetadataPacket.of(entityId(), mobFlagsEntry()));
+        }
         server().debug().entities().sendCurrent(this, connection);
     }
 }

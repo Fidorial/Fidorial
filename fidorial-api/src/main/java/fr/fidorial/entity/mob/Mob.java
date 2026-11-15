@@ -38,22 +38,21 @@ public interface Mob extends LivingEntity {
     Navigator navigation();
 
     /**
-     * @return the player this mob is after, or {@code null}
+     * @return the living entity this mob is after, a player most of the time, or {@code null}
      * @since 0.1.0
      */
-    @Nullable Player target();
+    @Nullable LivingEntity target();
 
     /**
-     * Sets the player this mob is after.
+     * Sets the living entity this mob is after.
      *
-     * <p>A mob re-picks its own target every few ticks among the players within
-     * {@link #followRange()}, so a target set from outside that range is dropped shortly after.
-     * Widen {@link #setFollowRange(double)} first to make it stick.</p>
+     * <p>A mob keeps picking its own target, so one set from outside {@link #followRange()} is
+     * dropped shortly after. Widen {@link #setFollowRange(double)} first to make it stick.</p>
      *
-     * @param target the player to chase, or {@code null} to clear
+     * @param target the entity to go after, or {@code null} to clear
      * @since 0.1.0
      */
-    void setTarget(@Nullable Player target);
+    void setTarget(@Nullable LivingEntity target);
 
     /**
      * @param maxDistance the search radius in blocks, negative for unlimited

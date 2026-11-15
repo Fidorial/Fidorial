@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.ai.goal;
 
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,7 +26,7 @@ public final class LookAtTargetGoal implements Goal {
 
     @Override
     public boolean canStart() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         return target != null
                 && mob.distanceSqTo(target) <= rangeSq
                 && ThreadLocalRandom.current().nextInt(40) == 0;
@@ -34,7 +34,7 @@ public final class LookAtTargetGoal implements Goal {
 
     @Override
     public boolean shouldContinue() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         return remainingTicks > 0 && target != null && mob.distanceSqTo(target) <= rangeSq;
     }
 
@@ -46,7 +46,7 @@ public final class LookAtTargetGoal implements Goal {
     @Override
     public void tick() {
         remainingTicks--;
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         if (target != null) {
             mob.lookAt(target);
         }

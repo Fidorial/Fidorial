@@ -191,9 +191,9 @@ public final class CombatEngine implements CombatService {
     private boolean applyScaledDamage(
             final AbstractLivingEntity victim,
             final DamageSource source,
-            final float amount,
+            final float rawAmount,
             final double knockback) {
-        if (amount <= 0f || victim.isRemoved() || victim.isDead()) {
+        if (rawAmount <= 0f || victim.isRemoved() || victim.isDead()) {
             return false;
         }
         if (victim instanceof final ServerPlayer player
@@ -205,6 +205,10 @@ public final class CombatEngine implements CombatService {
             return false;
         }
         if (EnchantmentEngine.isImmune(victim, source)) {
+            return false;
+        }
+        final float amount = victim instanceof ServerPlayer ? scaleWithDifficulty(source, rawAmount) : rawAmount;
+        if (amount <= 0f) {
             return false;
         }
 
@@ -267,6 +271,18 @@ public final class CombatEngine implements CombatService {
             aggro(mob, source.causingEntity());
         }
         return true;
+    }
+
+    private float scaleWithDifficulty(final DamageSource source, final float amount) {
+        if (!source.scalesWithDifficulty()) {
+            return amount;
+        }
+        return switch (server.worlds().manager().levelData().difficulty) {
+            case 0 -> 0f;
+            case 1 -> Math.min(amount / 2f + 1f, amount);
+            case 3 -> amount * 1.5f;
+            default -> amount;
+        };
     }
 
     private boolean isDisabledByGameRule(final AbstractLivingEntity victim, final DamageSource source) {
@@ -378,6 +394,9 @@ public final class CombatEngine implements CombatService {
             sendToViewersAndSelf(victim, new ClientboundEntityEventPacket(victim.entityId(), ENTITY_EVENT_DEATH));
         }
         server.events().post(new EntityDeathEventImpl(victim, killer));
+        if (killer instanceof final AbstractMob mob && !mob.isRemoved()) {
+            mob.onKilledEntity(victim);
+        }
     }
 
     private void killPlayer(final ServerPlayer player, final @Nullable Entity killer) {
@@ -467,7 +486,8 @@ public final class CombatEngine implements CombatService {
     }
 
     private void aggro(final AbstractMob mob, final @Nullable Entity attacker) {
-        if (mob instanceof final AbstractPathfinderMob pathfinder && attacker instanceof final ServerPlayer player) {
+        if (mob instanceof final AbstractPathfinderMob pathfinder && pathfinder.picksPlayersByItself()
+                && attacker instanceof final ServerPlayer player) {
             pathfinder.setTarget(player);
         }
     }

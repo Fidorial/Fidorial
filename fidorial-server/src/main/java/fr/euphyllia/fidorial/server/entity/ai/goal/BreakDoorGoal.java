@@ -16,6 +16,7 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -26,9 +27,14 @@ public final class BreakDoorGoal implements Goal {
 
     private static final int BREAK_TICKS = 240;
 
+    /**
+     * The mob hits the door one tick out of this many on average, as in Vanilla.
+     */
     private static final int SHAKE_INTERVAL = 20;
 
     private static final int SEARCH_RADIUS = 2;
+
+    private static final int HARD_DIFFICULTY = 3;
 
     private static final int NO_DESTROY_STAGE = -1;
 
@@ -51,6 +57,10 @@ public final class BreakDoorGoal implements Goal {
         return name.key().value().endsWith("_door") && !name.equals(BlockTypeKeys.IRON_DOOR);
     }
 
+    private static boolean isHardDifficulty() {
+        return FidorialServer.getInstance().worlds().manager().levelData().difficulty == HARD_DIFFICULTY;
+    }
+
     private static boolean isClosed(final BlockState state) {
         return !"true".equals(state.properties().get("open"));
     }
@@ -66,7 +76,7 @@ public final class BreakDoorGoal implements Goal {
 
     @Override
     public boolean canStart() {
-        if (mob.target() == null) {
+        if (mob.target() == null || !isHardDifficulty()) {
             return false;
         }
         if (!(mob.world() instanceof final ServerWorld world)
@@ -87,7 +97,7 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null || pos == null || !(mob.world() instanceof final ServerWorld world)) {
             return false;
         }
-        if (!world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
+        if (!world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING) || !isHardDifficulty()) {
             return false;
         }
         final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
@@ -121,8 +131,9 @@ public final class BreakDoorGoal implements Goal {
 
         progress++;
 
-        if (progress % SHAKE_INTERVAL == 0) {
+        if (ThreadLocalRandom.current().nextInt(SHAKE_INTERVAL) == 0) {
             playSound(SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, 2.0f);
+            mob.swingMainHand();
         }
 
         final int stage = Math.min(DESTROY_STAGES - 1, progress * DESTROY_STAGES / BREAK_TICKS);
@@ -146,13 +157,15 @@ public final class BreakDoorGoal implements Goal {
         }
 
         clearDestroyStage();
+        final BlockData data = state.data();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
         server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
         server.worlds().blockEdits().set(world, other, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
 
         server.players().broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
-                new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos, 0, false), null);
+                new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos,
+                        data == null ? 0 : data.networkId(), false), null);
         playSound(SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 2.0f);
 
         door = null;
@@ -212,7 +225,10 @@ public final class BreakDoorGoal implements Goal {
         if (pos == null) {
             return;
         }
-        final float pitch = 0.8f + ThreadLocalRandom.current().nextFloat() * 0.4f;
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final float first = random.nextFloat();
+        final float second = random.nextFloat();
+        final float pitch = (first - second) * 0.2f + 1.0f;
         mob.sendToTrackers(new ClientboundSoundPacket(
                 Sound.sound(type, Sound.Source.HOSTILE, volume, pitch),
                 pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5));

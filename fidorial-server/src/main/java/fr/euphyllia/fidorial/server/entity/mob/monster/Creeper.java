@@ -1,12 +1,12 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster;
 
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.goal.ChaseTargetGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.LookAtTargetGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.RandomStrollGoal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.Explosion;
@@ -121,13 +121,13 @@ public final class Creeper extends AbstractPathfinderMob implements Category.Mon
 
         @Override
         public boolean canStart() {
-            final ServerPlayer target = target();
+            final AbstractLivingEntity target = target();
             return target != null && distanceSqTo(target) <= SWELL_RANGE_SQ && hasLineOfSightTo(target);
         }
 
         @Override
         public boolean shouldContinue() {
-            final ServerPlayer target = target();
+            final AbstractLivingEntity target = target();
             return target != null && distanceSqTo(target) <= DEFUSE_RANGE_SQ && hasLineOfSightTo(target);
         }
 
@@ -144,7 +144,7 @@ public final class Creeper extends AbstractPathfinderMob implements Category.Mon
 
         @Override
         public void tick() {
-            final ServerPlayer target = target();
+            final AbstractLivingEntity target = target();
             if (target != null) {
                 lookAt(target);
             }

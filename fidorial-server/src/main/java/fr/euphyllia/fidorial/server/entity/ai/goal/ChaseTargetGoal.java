@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.ai.goal;
 
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
 
 public final class ChaseTargetGoal implements Goal {
@@ -38,7 +38,7 @@ public final class ChaseTargetGoal implements Goal {
 
     @Override
     public void tick() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         if (target == null) {
             return;
         }

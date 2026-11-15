@@ -20,6 +20,8 @@ import java.util.Optional;
 
 public class BlockView {
 
+    private static final double MAX_SIGHT = 128.0;
+
     private BlockView() {
     }
 
@@ -123,6 +125,10 @@ public class BlockView {
                 : null;
     }
 
+    /**
+     * {@return {@code true} if no solid block stands between two points}; nothing is
+     * seen from further than {@value #MAX_SIGHT} blocks
+     */
     public static boolean hasLineOfSight(
             final ServerWorld world,
             final double fromX,
@@ -136,8 +142,8 @@ public class BlockView {
         final double dy = toY - fromY;
         final double dz = toZ - fromZ;
         final double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (distance < 1.0E-6 || distance > 32.0) {
-            return distance <= 32.0;
+        if (distance < 1.0E-6 || distance > MAX_SIGHT) {
+            return distance <= MAX_SIGHT;
         }
         final int steps = (int) Math.ceil(distance * 2.0);
         final double stepX = dx / steps;

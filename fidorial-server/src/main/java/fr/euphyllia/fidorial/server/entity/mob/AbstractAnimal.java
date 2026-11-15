@@ -15,7 +15,6 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
@@ -45,12 +44,10 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
 
     private static final byte ENTITY_EVENT_LOVE_HEARTS = 18;
     private static final int AMBIENT_SOUND_INTERVAL = 120;
-    private static final int AMBIENT_SOUND_RANGE = 1000;
     private static final float GRASS_WALK_VALUE = 10.0f;
 
     private int inLove;
     private @Nullable UUID loveCause;
-    private int ambientSoundTime;
 
     protected AbstractAnimal(final int entityId, final UUID uuid, final EntityType type,
                              final Location location, final float maxHealth, final boolean baby) {
@@ -97,25 +94,11 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         if (inLove > 0) {
             inLove--;
         }
-        tickAmbientSound();
     }
 
-    private void tickAmbientSound() {
-        if (ThreadLocalRandom.current().nextInt(AMBIENT_SOUND_RANGE) >= ambientSoundTime++) {
-            return;
-        }
-        ambientSoundTime = -AMBIENT_SOUND_INTERVAL;
-        final Sound.Type sound = ambientSound();
-        if (sound != null) {
-            playSound(sound, soundVolume(), voicePitch());
-        }
-    }
-
-    /**
-     * {@return the sound this animal makes now and then, {@code null} for none}
-     */
-    protected Sound.@Nullable Type ambientSound() {
-        return null;
+    @Override
+    protected int ambientSoundInterval() {
+        return AMBIENT_SOUND_INTERVAL;
     }
 
     /**

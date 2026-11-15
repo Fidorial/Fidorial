@@ -40,6 +40,7 @@ public class Navigation implements Navigator {
     private double lastDistanceSq = Double.MAX_VALUE;
     private int stuckTicks;
     private double speed;
+    private boolean pathFailed;
 
     public Navigation(final ServerWorld world) {
         this.world = world;
@@ -105,6 +106,13 @@ public class Navigation implements Navigator {
         return requestInFlight;
     }
 
+    /**
+     * {@return {@code true} if the last path asked for was not found}: there is no way to the goal
+     */
+    public boolean lastPathFailed() {
+        return pathFailed;
+    }
+
     public @Nullable PathPenalty pathPenalty() {
         return pathPenalty;
     }
@@ -115,6 +123,7 @@ public class Navigation implements Navigator {
         if (result != null) {
             requestInFlight = false;
             path = result.path();
+            pathFailed = path == null;
             waypointIndex = 0;
             lastDistanceSq = Double.MAX_VALUE;
             stuckTicks = 0;

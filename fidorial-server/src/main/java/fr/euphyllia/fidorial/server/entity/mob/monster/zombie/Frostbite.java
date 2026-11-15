@@ -1,15 +1,13 @@
-package fr.euphyllia.fidorial.server.entity.mob.monster;
+package fr.euphyllia.fidorial.server.entity.mob.monster.zombie;
 
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.goal.RangedAttackGoal;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.entity.projectile.IceBall;
-import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.sound.SoundEvents;
 import net.kyori.adventure.sound.Sound;
-import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -30,7 +28,15 @@ public final class Frostbite extends Zombie {
     private int iceBalls;
 
     public Frostbite(final int entityId, final Location location) {
-        super(entityId, EntityTypes.FROSTBITE, location, SpawnData.roll());
+        this(entityId, location, true);
+    }
+
+    /**
+     * @param spawned {@code true} for a frostbite that spawns, with the random traits of a zombie
+     *                that does
+     */
+    public Frostbite(final int entityId, final Location location, final boolean spawned) {
+        super(entityId, EntityTypes.FROSTBITE, location, spawned);
         this.iceBalls = ThreadLocalRandom.current().nextInt(MIN_ICE_BALLS, MAX_ICE_BALLS + 1);
         goals.add(new RangedAttackGoal(this, 0, RANGED_MIN_RANGE, RANGED_MAX_RANGE, THROW_COOLDOWN_TICKS,
                 this::hasIceBalls, this::throwIceBall));
@@ -69,22 +75,22 @@ public final class Frostbite extends Zombie {
     }
 
     @Override
-    protected EntityType waterConversionType() {
-        return EntityTypes.ZOMBIE;
+    protected Zombie drownedForm(final int entityId, final Location location) {
+        return new Zombie(entityId, location, false);
     }
 
     @Override
-    protected Sound.Type waterConversionSound() {
+    protected Sound.Type drownedSound() {
         return SoundEvents.FROSTBITE_CONVERTED_TO_ZOMBIE;
     }
 
     @Override
-    protected @Nullable EntityType powderSnowConversionType() {
-        return null; // already frozen
+    protected boolean convertsWhenFreezing() {
+        return false; // already frozen
     }
 
     @Override
-    protected void onAttackLanded(final ServerPlayer target) {
+    protected void onAttackLanded(final AbstractLivingEntity target) {
         final int duration = FREEZING_TICKS_PER_DIFFICULTY * difficulty();
         if (duration <= 0 || target.isDead()) {
             return;
@@ -92,7 +98,7 @@ public final class Frostbite extends Zombie {
         target.addEffect(server().registries().effects().builder(MobEffectKeys.FREEZING).duration(duration).build());
     }
 
-    private void throwIceBall(final ServerPlayer target) {
+    private void throwIceBall(final AbstractLivingEntity target) {
         if (iceBalls <= 0) {
             return;
         }

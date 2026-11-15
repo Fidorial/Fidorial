@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.ai.goal;
 
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.ai.Goal;
 
 import java.util.function.BooleanSupplier;
@@ -46,7 +46,7 @@ public final class RangedAttackGoal implements Goal {
 
     @Override
     public boolean canStart() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         if (target == null || target.isDead() || !canShoot.getAsBoolean()) {
             return false;
         }
@@ -56,7 +56,7 @@ public final class RangedAttackGoal implements Goal {
 
     @Override
     public boolean shouldContinue() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         if (target == null || target.isDead() || target.isRemoved() || !canShoot.getAsBoolean()) {
             return false;
         }
@@ -74,7 +74,7 @@ public final class RangedAttackGoal implements Goal {
 
     @Override
     public void tick() {
-        final ServerPlayer target = mob.target();
+        final AbstractLivingEntity target = mob.target();
         if (target == null) {
             return;
         }
@@ -89,6 +89,6 @@ public final class RangedAttackGoal implements Goal {
 
     @FunctionalInterface
     public interface Shooter {
-        void shoot(ServerPlayer target);
+        void shoot(AbstractLivingEntity target);
     }
 }

@@ -1,7 +1,6 @@
-package fr.euphyllia.fidorial.server.entity.mob.monster;
+package fr.euphyllia.fidorial.server.entity.mob.monster.zombie;
 
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
-import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
 import net.kyori.adventure.sound.Sound;
@@ -11,7 +10,14 @@ public final class Husk extends Zombie {
     public static final float MAX_HEALTH = 20f;
 
     public Husk(final int entityId, final Location location) {
-        super(entityId, EntityTypes.HUSK, location, SpawnData.roll());
+        this(entityId, location, true);
+    }
+
+    /**
+     * @param spawned {@code true} for a husk that spawns, with the random traits of a zombie that does
+     */
+    public Husk(final int entityId, final Location location, final boolean spawned) {
+        super(entityId, EntityTypes.HUSK, location, spawned);
     }
 
     @Override
@@ -34,12 +40,22 @@ public final class Husk extends Zombie {
     }
 
     @Override
-    protected EntityType waterConversionType() {
-        return EntityTypes.ZOMBIE;
+    protected Zombie drownedForm(final int entityId, final Location location) {
+        return new Zombie(entityId, location, false);
     }
 
     @Override
-    protected Sound.Type waterConversionSound() {
+    protected Sound.Type drownedSound() {
+        return SoundEvents.HUSK_CONVERTED_TO_ZOMBIE;
+    }
+
+    @Override
+    protected Zombie frozenForm(final int entityId, final Location location) {
+        return new Zombie(entityId, location, false);
+    }
+
+    @Override
+    protected Sound.Type frozenSound() {
         return SoundEvents.HUSK_CONVERTED_TO_ZOMBIE;
     }
 }

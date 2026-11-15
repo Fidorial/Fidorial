@@ -37,17 +37,26 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     private static final byte ENTITY_EVENT_DEATH = 3;
 
     /**
-     * For how long a mob remembers what hurt it, as in Vanilla.
+     * For how long a mob remembers what hurt it.
      */
     private static final int DAMAGE_MEMORY_TICKS = 40;
     /**
-     * For how long a mob counts as killed by the player who hit it, as in Vanilla.
+     * For how long a mob counts as killed by the player who hit it.
      */
     private static final int HURT_BY_PLAYER_MEMORY_TICKS = 100;
+
+    /**
+     * How long a mob remembers who hurt it.
+     */
+    private static final int HURT_BY_MOB_MEMORY_TICKS = 100;
 
     private @Nullable DamageSource lastDamageSource;
     private int damageMemoryTicks;
     private int hurtByPlayerTicks;
+    private @Nullable AbstractLivingEntity lastHurtByMob;
+    private int hurtByMobTicks;
+    private int hurtByMobStamp;
+    private boolean persistenceRequired;
 
     private final List<MobBehaviour> behaviours = new CopyOnWriteArrayList<>();
 
@@ -167,6 +176,43 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         if (source.causingEntity() instanceof Player) {
             this.hurtByPlayerTicks = HURT_BY_PLAYER_MEMORY_TICKS;
         }
+        if (source.causingEntity() instanceof final AbstractLivingEntity attacker && attacker != this) {
+            this.lastHurtByMob = attacker;
+            this.hurtByMobTicks = HURT_BY_MOB_MEMORY_TICKS;
+            this.hurtByMobStamp++;
+        }
+    }
+
+    /**
+     * {@return the living entity that last hurt this mob, {@code null} once it died or
+     * {@value #HURT_BY_MOB_MEMORY_TICKS} ticks have passed}; as in Vanilla, this is who a mob that
+     * fights back goes after
+     */
+    public final @Nullable AbstractLivingEntity lastHurtByMob() {
+        return lastHurtByMob;
+    }
+
+    /**
+     * {@return a number that changes each time this mob is hurt by a living entity}, so that a goal
+     * tells a new hit from the one it already answered
+     */
+    public final int lastHurtByMobStamp() {
+        return hurtByMobStamp;
+    }
+
+    /**
+     * {@return {@code true} if this mob never despawns on its own}, vanilla's
+     * {@code PersistenceRequired}
+     */
+    public final boolean isPersistenceRequired() {
+        return persistenceRequired;
+    }
+
+    /**
+     * @param persistenceRequired {@code true} to keep this mob from despawning on its own
+     */
+    public final void setPersistenceRequired(final boolean persistenceRequired) {
+        this.persistenceRequired = persistenceRequired;
     }
 
     /**
@@ -179,6 +225,18 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         if (hurtByPlayerTicks > 0) {
             hurtByPlayerTicks--;
         }
+        final AbstractLivingEntity attacker = lastHurtByMob;
+        if (attacker != null && (--hurtByMobTicks <= 0 || attacker.isDead() || attacker.isRemoved())) {
+            lastHurtByMob = null;
+        }
+    }
+
+    /**
+     * Called when a living entity died of a blow of this mob.
+     *
+     * @param victim the entity that died
+     */
+    public void onKilledEntity(final AbstractLivingEntity victim) {
     }
 
     /**
@@ -187,6 +245,9 @@ public abstract class AbstractMob extends AbstractLivingEntity {
      * @param tag the entity being written
      */
     public void saveAdditional(final CompoundBinaryTag.Builder tag) {
+        if (persistenceRequired) {
+            tag.putBoolean("PersistenceRequired", true);
+        }
     }
 
     /**
@@ -195,6 +256,7 @@ public abstract class AbstractMob extends AbstractLivingEntity {
      * @param tag the saved entity
      */
     public void loadAdditional(final CompoundBinaryTag tag) {
+        persistenceRequired = tag.getBoolean("PersistenceRequired");
     }
 
     @Override
