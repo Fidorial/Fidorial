@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.entity;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
@@ -12,7 +11,6 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
-import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import net.kyori.adventure.text.Component;
@@ -23,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public abstract class AbstractEntity implements Entity {
@@ -34,6 +33,8 @@ public abstract class AbstractEntity implements Entity {
     private final AtomicBoolean removed = new AtomicBoolean(false);
     private UUID uuid;
     private volatile Location location;
+
+    private final EntityTaskQueue tasks = new EntityTaskQueue(this);
 
     protected AbstractEntity(final int entityId, final UUID uuid, final EntityType type, final Location location) {
         this.entityId = entityId;
@@ -94,10 +95,17 @@ public abstract class AbstractEntity implements Entity {
     public final void remove() {
         if (removed.compareAndSet(false, true)) {
             onRemoved();
+            tasks.retireAll();
         }
     }
 
     protected void onRemoved() {
+    }
+
+    protected void onLeftWorld(final ServerWorld from, final ChunkPos chunk) {
+    }
+
+    protected void onEnteredWorld(final ServerWorld to, final ChunkPos chunk) {
     }
 
     public void tick(final long currentTick) {
@@ -132,63 +140,55 @@ public abstract class AbstractEntity implements Entity {
             return CompletableFuture.completedFuture(false);
         }
 
-        final World from = world();
-        final Location previous = location();
-
-        if (from == target) {
-            final ChunkPos fromChunk = previous.chunk();
-            final CompletableFuture<Boolean> result = new CompletableFuture<>();
-            final boolean scheduled = target.scheduler().execute(target.key(), fromChunk, () -> {
-                try {
-                    setLocation(location);
-                    target.entityMoved(this, fromChunk, location.chunk());
-                    finishTeleport(location);
-                    result.complete(true);
-                } catch (final Exception exception) {
-                    LOGGER.error("An error occurred while teleporting the player : ", exception);
-                    result.complete(false);
-                }
-            });
-            if (!scheduled) result.complete(false);
-            return result;
-        }
-
-        if (!(from instanceof final ServerWorld old)) {
-            return CompletableFuture.completedFuture(false);
-        }
-
-        final ChunkPos fromChunk = previous.chunk();
         final ChunkPos destChunk = location.chunk();
         final CompletableFuture<Boolean> result = new CompletableFuture<>();
 
-        final boolean departureScheduled = old.scheduler().execute(old.key(), fromChunk, () -> {
-            old.removeEntity(this);
-            if (this instanceof AbstractMob) {
-                server().workers().regionizer().removeTicket(old.key(), fromChunk);
-            }
+        final boolean scheduled = execute(() -> {
+            try {
+                final Location previous = location();
+                final ChunkPos fromChunk = previous.chunk();
+                if (!(previous.world() instanceof final ServerWorld old)) {
+                    result.complete(false);
+                    return;
+                }
 
-            final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
-                try {
+                if (old == target) {
                     setLocation(location);
-                    target.addEntity(this);
-                    if (this instanceof AbstractMob) {
-                        server().workers().regionizer().addTicket(target.key(), destChunk);
-                    }
+                    target.entityMoved(this, fromChunk, destChunk);
                     finishTeleport(location);
                     result.complete(true);
-                } catch (final Exception exception) {
-                    LOGGER.error("An error occurred while teleporting the entity : ", exception);
-                    result.complete(false);
+                    return;
                 }
-            });
 
-            if (!arrivalScheduled) {
-                LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}", this, old.key(), target.key());
+                old.removeEntity(this);
+                onLeftWorld(old, fromChunk);
+
+                final boolean arrivalScheduled = target.scheduler().execute(target.key(), destChunk, () -> {
+                    try {
+                        setLocation(location);
+                        target.addEntity(this);
+                        onEnteredWorld(target, destChunk);
+                        finishTeleport(location);
+                        result.complete(true);
+                    } catch (final Exception exception) {
+                        LOGGER.error("An error occurred while teleporting the entity : ", exception);
+                        result.complete(false);
+                    }
+                });
+
+                if (!arrivalScheduled) {
+                    LOGGER.warn("{} was removed from {} but could not be scheduled to arrive in {}", this, old.key(), target.key());
+                    result.complete(false);
+                    return;
+                }
+                setLocation(location);
+            } catch (final Exception exception) {
+                LOGGER.error("An error occurred while teleporting the entity : ", exception);
                 result.complete(false);
             }
-        });
+        }, () -> result.complete(false));
 
-        if (!departureScheduled) {
+        if (!scheduled) {
             result.complete(false);
         }
 
@@ -211,37 +211,36 @@ public abstract class AbstractEntity implements Entity {
     }
 
     @Override
-    public boolean execute(final Runnable task) {
-        if (isRemoved()) {
-            return false;
+    public boolean execute(final Runnable task, final Runnable retired) {
+        return tasks.execute(task, retired);
+    }
+
+    /// Attempts to execute the task right away if on the correct thread, and schedules it otherwise.
+    public final boolean runOrExecute(final Runnable task) {
+        if (isOwnedByCurrentThread()) {
+            task.run();
+            return true;
         }
-        server().scheduler().execute(world().key(), chunk(), task);
-        return true;
+        return execute(task);
     }
 
     @Override
-    public boolean executeDelayed(final Runnable task, final long delayTicks) {
-        if (isRemoved()) {
-            return false;
-        }
-        server().scheduler().executeDelayed(world().key(), chunk(), () -> runOrChase(task), delayTicks);
-        return true;
+    public boolean executeDelayed(final Runnable task, final Runnable retired, final long delayTicks) {
+        return tasks.executeDelayed(task, retired, delayTicks);
     }
 
     @Override
     public boolean isOwnedByCurrentThread() {
-        return !isRemoved() && server().scheduler().isOwnedByCurrentThread(world().key(), chunk());
+        final Location at = location;
+        return !isRemoved() && server().scheduler().isOwnedByCurrentThread(at.world().key(), at.chunk());
     }
 
-    private void runOrChase(final Runnable task) {
-        if (isRemoved()) {
-            return;
+    /// Runs the task on the thread owning this entity; completes with `fallback` if the entity is removed first.
+    public final <T> CompletableFuture<T> supply(final Supplier<T> task, final T fallback) {
+        final CompletableFuture<T> result = new CompletableFuture<>();
+        if (!execute(() -> result.complete(task.get()), () -> result.complete(fallback))) {
+            result.complete(fallback);
         }
-        final RegionizedScheduler scheduler = server().scheduler();
-        if (scheduler.isOwnedByCurrentThread(world().key(), chunk())) {
-            task.run();
-        } else {
-            scheduler.execute(world().key(), chunk(), () -> runOrChase(task));
-        }
+        return result;
     }
 }

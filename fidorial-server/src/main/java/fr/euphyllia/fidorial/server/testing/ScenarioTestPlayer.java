@@ -33,16 +33,22 @@ final class ScenarioTestPlayer {
 
         connection.setProfile(profile);
         connection.setPlayer(player);
-        ((ServerWorld) location.world()).addEntity(player);
-        connection.bindMockPlayer(player);
-        server.players().connect(connection);
-        player.invalidatePermissions();
+        final ServerWorld world = (ServerWorld) location.world();
+        player.runOrExecute(() -> {
+            world.addEntity(player);
+            connection.bindMockPlayer(player);
+            server.players().connect(connection);
+            player.invalidatePermissions();
+        });
         return player;
     }
 
     static void despawn(final FidorialServer server, final ServerPlayer player) {
-        final ClientConnection connection = player.connection();
-        connection.mockDisconnect();
-        server.players().disconnect(connection);
+        if (player.isRemoved()) return;
+        player.runOrExecute(() -> {
+            final ClientConnection connection = player.connection();
+            connection.mockDisconnect();
+            server.players().disconnect(connection);
+        });
     }
 }

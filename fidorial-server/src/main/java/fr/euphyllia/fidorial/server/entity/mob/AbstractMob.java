@@ -21,6 +21,7 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
@@ -262,6 +263,16 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     @Override
     protected void onRemoved() {
         dispatch(MobBehaviour::onRemove, "onRemove");
+    }
+
+    @Override
+    protected void onLeftWorld(final ServerWorld from, final ChunkPos chunk) {
+        server().workers().regionizer().removeTicket(from.key(), chunk);
+    }
+
+    @Override
+    protected void onEnteredWorld(final ServerWorld to, final ChunkPos chunk) {
+        server().workers().regionizer().addTicket(to.key(), chunk);
     }
 
     protected Sound.@Nullable Type hurtSound() {

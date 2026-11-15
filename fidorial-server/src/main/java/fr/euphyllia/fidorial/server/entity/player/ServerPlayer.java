@@ -184,6 +184,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private final AtomicInteger ticksSinceLastAttack = new AtomicInteger(MAX_TRACKED_ATTACK_TICKS);
     private volatile int airSupply = MAX_AIR_SUPPLY;
     private volatile int lastTeleportId;
+    private volatile int awaitingTeleportId;
     private volatile boolean onGround;
     private final AtomicReference<PlayerAbilities> abilities;
     private final InventoryMenu inventoryMenu;
@@ -1321,9 +1322,10 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     }
 
     public int nextTeleportId() {
-        final var id = lastTeleportId;
-        lastTeleportId = id + 1;
-        return lastTeleportId;
+        final int id = lastTeleportId + 1;
+        lastTeleportId = id;
+        awaitingTeleportId = id;
+        return id;
     }
 
     @Override
@@ -1332,6 +1334,16 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
             return CompletableFuture.completedFuture(false);
         }
         return connection.teleport(location);
+    }
+
+    public void acceptTeleport(final int id) {
+        if (awaitingTeleportId == id) {
+            awaitingTeleportId = 0;
+        }
+    }
+
+    public boolean isAwaitingTeleport() {
+        return awaitingTeleportId != 0;
     }
 
     public DebugSubscriptionState debugSubscriptions() {

@@ -10,7 +10,11 @@ import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
 import net.kyori.adventure.key.Key;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("unused")
@@ -53,6 +57,43 @@ public final class PlayerTests {
                 .waitUntil(() -> player.location().equals(point),
                         "Expected the player location after respawning to match what was set, got " + player.location())
                 .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 500) // IO heavy
+    public static void stressTest(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final List<Player> players = new ArrayList<>(1000);
+        for (int i = 0; i < 1000; i++) {
+            players.add(helper.summonPlayer(String.valueOf(i), randomLocation(world), GameMode.SURVIVAL));
+        }
+        final List<CompletableFuture<Boolean>> teleports = new ArrayList<>(players.size());
+
+        helper.sequence()
+                .waitUntil(() -> players.stream().allMatch(player -> world.entity(player.entityId()).isPresent()),
+                        "Expected every player to be in the world")
+                .waitUntil(() -> new HashSet<>(FidorialServer.getInstance().players().online()).containsAll(players),
+                        "Expected every player to be online")
+                .execute(() -> {
+                    for (final Player player : players) {
+                        teleports.add(player.teleport(randomLocation(world)));
+                    }
+                })
+                .waitUntil(() -> teleports.stream().allMatch(CompletableFuture::isDone),
+                        "Expected every teleport to complete")
+                .execute(() -> helper.assertTrue(teleports.stream().allMatch(CompletableFuture::join),
+                        "Expected every teleport to succeed"))
+                .build();
+    }
+
+    private static Location randomLocation(final World world) {
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        return Location.of(
+                world,
+                random.nextDouble(-1000, 1000),
+                65,
+                random.nextDouble(-1000, 1000),
+                random.nextFloat(-180f, 180f),
+                random.nextFloat(-90f, 90f));
     }
 
     private static World crossWorldDestination() {

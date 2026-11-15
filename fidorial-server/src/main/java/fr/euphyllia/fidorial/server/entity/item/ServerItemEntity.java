@@ -715,11 +715,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         if (isRemoved()) {
             return;
         }
-        if (isOwnedByCurrentThread()) {
-            server().entities().despawn(this);
-        } else {
-            execute(() -> server().entities().despawn(this));
-        }
+        runOrExecute(() -> server().entities().despawn(this));
     }
 
     private void markSaveDirty() {

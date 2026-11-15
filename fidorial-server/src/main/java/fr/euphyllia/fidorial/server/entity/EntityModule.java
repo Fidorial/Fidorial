@@ -211,12 +211,7 @@ public final class EntityModule implements ServerModule {
         if (thrower != null) {
             item.setThrower(thrower.uuid());
         }
-        final ChunkPos chunk = item.chunk();
-        if (world.scheduler().isOwnedByCurrentThread(world.key(), chunk)) {
-            spawn(item);
-        } else {
-            world.scheduler().execute(world.key(), chunk, () -> spawn(item));
-        }
+        regionizer.runOrExecute(world.key(), item.chunk(), () -> spawn(item));
         return item;
     }
 
@@ -258,12 +253,7 @@ public final class EntityModule implements ServerModule {
         final ServerExperienceOrb orb = new ServerExperienceOrb(ids.allocate(),
                 Location.of(world, x, y, z, ThreadLocalRandom.current().nextFloat() * 360.0f, 0f), value);
         orb.scatter();
-        final ChunkPos chunk = orb.chunk();
-        if (world.scheduler().isOwnedByCurrentThread(world.key(), chunk)) {
-            spawn(orb);
-        } else {
-            world.scheduler().execute(world.key(), chunk, () -> spawn(orb));
-        }
+        regionizer.runOrExecute(world.key(), orb.chunk(), () -> spawn(orb));
         return orb;
     }
 
