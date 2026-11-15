@@ -197,9 +197,17 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
      * @param viewer the connection of the viewer
      */
     protected final void sendBurningTo(final ClientConnection viewer) {
-        if (sentBurning) {
-            viewer.send(sharedFlagsPacket(true));
+        if (sharedFlags(sentBurning) != 0) {
+            viewer.send(sharedFlagsPacket(sentBurning));
         }
+    }
+
+    /**
+     * Sends the shared flags to the viewers again, after one of those a subclass adds in
+     * {@link #sharedFlags(boolean)} changed.
+     */
+    protected final void refreshSharedFlags() {
+        sendSharedFlags(sharedFlagsPacket(sentBurning));
     }
 
     @Override

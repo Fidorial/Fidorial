@@ -119,6 +119,7 @@ public final class ServerWorld implements World {
     private volatile @Nullable IntSupplier entityIdSupplier;
     private volatile @Nullable EntitySpawnBridge entityBridge;
     private volatile @Nullable Iterable<? extends Audience> adventure$audiences;
+    private static final int SEA_LEVEL = 63;
 
     public ServerWorld(
             final Dimension dimension,
@@ -184,6 +185,14 @@ public final class ServerWorld implements World {
     @Override
     public int height() {
         return height;
+    }
+
+    /**
+     * {@return the height of the surface of the sea}; the same in every world for now, the one the
+     * client is told when it joins
+     */
+    public int seaLevel() {
+        return SEA_LEVEL;
     }
 
     @Override

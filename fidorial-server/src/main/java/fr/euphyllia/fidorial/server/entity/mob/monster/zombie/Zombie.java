@@ -140,20 +140,31 @@ public class Zombie extends AbstractMonster {
     }
 
     protected Zombie(final int entityId, final EntityType type, final Location location, final boolean spawned) {
+        this(entityId, type, location, spawned, true);
+    }
+
+    /**
+     * @param behaves {@code true} for a zombie that moves, attacks and picks its targets as the
+     *                plain zombie does; {@code false} for a kind that adds goals of its own for
+     *                that, and only shares with the others the way they look around
+     */
+    protected Zombie(final int entityId, final EntityType type, final Location location, final boolean spawned,
+                     final boolean behaves) {
         super(entityId, UUID.randomUUID(), type, location, MAX_HEALTH);
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
                 .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT);
 
-        goals.add(new ZombieAttackGoal(this, 3, 1.0, false));
-        goals.add(new RandomStrollGoal(this, 7, this::movementSpeed));
         goals.add(new LookAtPlayerGoal(this, 8, 8.0));
         goals.add(new RandomLookAroundGoal(this, 8));
-        goals.add(new HurtByTargetGoal(this, 1).alertOthers(ZombifiedPiglin.class));
-        goals.add(new NearestAttackableTargetGoal<>(this, 2, ServerPlayer.class, true));
-        goals.add(new NearestAttackableTargetGoal<>(this, 3, Villager.class, false));
-        goals.add(new NearestAttackableTargetGoal<>(this, 3, WanderingTrader.class, false));
-        goals.add(new NearestAttackableTargetGoal<>(this, 3, IronGolem.class, true));
-
+        if (behaves) {
+            goals.add(new ZombieAttackGoal(this, 3, 1.0, false));
+            goals.add(new RandomStrollGoal(this, 7, this::movementSpeed));
+            goals.add(new HurtByTargetGoal(this, 1).alertOthers(ZombifiedPiglin.class));
+            goals.add(new NearestAttackableTargetGoal<>(this, 2, ServerPlayer.class, true));
+            goals.add(new NearestAttackableTargetGoal<>(this, 3, Villager.class, false));
+            goals.add(new NearestAttackableTargetGoal<>(this, 3, WanderingTrader.class, false));
+            goals.add(new NearestAttackableTargetGoal<>(this, 3, IronGolem.class, true));
+        }
         if (spawned) {
             finalizeSpawn();
         }
@@ -571,7 +582,11 @@ public class Zombie extends AbstractMonster {
         return random.nextInt(REINFORCEMENT_MIN_OFFSET, REINFORCEMENT_MAX_OFFSET + 1) * random.nextInt(-1, 2);
     }
 
-    private boolean isReinforcementSpot(final ServerWorld world, final int x, final int y, final int z) {
+    /**
+     * {@return {@code true} if a reinforcement of this kind of zombie may spawn with its feet in a
+     * block}: on solid ground, in the dark, with room for it and no water
+     */
+    protected boolean canReinforcementSpawnAt(final ServerWorld world, final int x, final int y, final int z) {
         if (!BlockView.isSolidGround(world, x, y - 1, z) || !isDarkEnoughToSpawn(world, x, y, z)) {
             return false;
         }
@@ -580,6 +595,13 @@ public class Zombie extends AbstractMonster {
             if (state == null || !BlockView.isPassable(state) || BlockView.isWater(state)) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    private boolean isReinforcementSpot(final ServerWorld world, final int x, final int y, final int z) {
+        if (!canReinforcementSpawnAt(world, x, y, z)) {
+            return false;
         }
         for (final ServerPlayer player : server().players().online()) {
             if (player.isDead() || !player.world().equals(world)) {
@@ -601,7 +623,7 @@ public class Zombie extends AbstractMonster {
      * it gets the less likely, never in the light of a block where the dimension forbids forbids
      * it, and in a light that does not go above what the dimension draws
      */
-    private static boolean isDarkEnoughToSpawn(final ServerWorld world, final int x, final int y, final int z) {
+    public static boolean isDarkEnoughToSpawn(final ServerWorld world, final int x, final int y, final int z) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         if (world.dimensionType().hasSkylight() && world.skyLightAt(x, y, z) > random.nextInt(32)) {
             return false;
@@ -653,13 +675,29 @@ public class Zombie extends AbstractMonster {
         if (flesh > 0) {
             dropLootItem(ItemStack.of(ItemKeys.ROTTEN_FLESH, flesh));
         }
-        if (wasRecentlyHurtByPlayer() && random.nextFloat() < RARE_LOOT_CHANCE) {
-            dropLootItem(ItemStack.of(switch (random.nextInt(3)) {
-                case 0 -> ItemKeys.IRON_INGOT;
-                case 1 -> ItemKeys.CARROT;
-                default -> fireTicks() > 0 ? ItemKeys.BAKED_POTATO : ItemKeys.POTATO;
-            }, 1));
+        if (wasRecentlyHurtByPlayer() && random.nextFloat() < rareLootChance()) {
+            dropLootItem(ItemStack.of(rareLoot(), 1));
         }
+    }
+
+    /**
+     * {@return the chance, between {@code 0} and {@code 1}, that this zombie leaves its
+     * {@linkplain #rareLoot() rare loot} when a player kills it}
+     */
+    protected float rareLootChance() {
+        return RARE_LOOT_CHANCE;
+    }
+
+    /**
+     * {@return the item this zombie leaves now and then when a player kills it}: an iron ingot, a
+     * carrot or a potato, baked if the zombie burns
+     */
+    protected TypedKey<Item> rareLoot() {
+        return switch (ThreadLocalRandom.current().nextInt(3)) {
+            case 0 -> ItemKeys.IRON_INGOT;
+            case 1 -> ItemKeys.CARROT;
+            default -> fireTicks() > 0 ? ItemKeys.BAKED_POTATO : ItemKeys.POTATO;
+        };
     }
 
     @Override

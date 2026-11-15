@@ -599,6 +599,34 @@ public final class SoundEvents {
     public static final Sound.Type DROWNED_STEP = of("entity.drowned.step");
 
     /**
+     * The {@code minecraft:entity.drowned.ambient_water} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_AMBIENT_WATER = of("entity.drowned.ambient_water");
+
+    /**
+     * The {@code minecraft:entity.drowned.hurt_water} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_HURT_WATER = of("entity.drowned.hurt_water");
+
+    /**
+     * The {@code minecraft:entity.drowned.death_water} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_DEATH_WATER = of("entity.drowned.death_water");
+
+    /**
+     * The {@code minecraft:entity.drowned.swim} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type DROWNED_SWIM = of("entity.drowned.swim");
+
+    /**
      * The {@code minecraft:entity.drowned.converted_to_zombie} sound event.
      *
      * @since 0.1.0

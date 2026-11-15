@@ -46,6 +46,18 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double JUMP_VELOCITY = 0.42;
     private static final double SWIM_UP_VELOCITY = 0.04;
     private static final double LEAVE_WATER_VELOCITY = 0.3;
+
+    /**
+     * How a mob that swims moves: it drifts up by {@code SWIM_LIFT} a tick when it rises, gains an
+     * eighth of the speed it lacks each tick, is pulled to its waypoint by its speed times the
+     * distance along each axis, pushes forward under water, and loses a tenth of its speed a tick.
+     */
+    private static final double SWIM_LIFT = 0.002;
+    private static final double SWIM_SPEED_GAIN = 0.125;
+    private static final double SWIM_HORIZONTAL_PULL = 0.005;
+    private static final double SWIM_VERTICAL_PULL = 0.1;
+    private static final double SWIM_ACCELERATION = 0.01;
+    private static final double SWIM_DRAG = 0.9;
     private static final int JUMP_DELAY_TICKS = 10;
     private static final double MAX_FALL_SPEED = 3.0;
     private static final double MIN_VELOCITY = 0.003;
@@ -80,6 +92,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     protected final Navigation navigation;
 
     private double stepDistance;
+    private double swimSpeed;
     private int ambientSoundTime;
     private int jumpDelay;
 
@@ -326,7 +339,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double y = current.y();
         final double z = current.z();
 
-        navigation.tick(x, z);
+        final double waterDepth = waterHeight();
+        final boolean inWater = waterDepth > 0.0;
+        final boolean swimming = inWater && wantsToSwim();
+        navigation.tick(x, y, z, swimming);
 
         double velocityX = velocityX();
         double velocityY = velocityY();
@@ -338,8 +354,6 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         float yaw = yaw();
         boolean onGround = onGround();
         final boolean wasOnGround = onGround;
-        final double waterDepth = waterHeight();
-        final boolean inWater = waterDepth > 0.0;
         final boolean canSwimUp = inWater && waterDepth > (onGround ? swimThreshold() : 0.0);
         final boolean wasFalling = velocityY <= 0.0;
 
@@ -351,12 +365,43 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double speed = moveSpeed() > 0.0 ? moveSpeed() : navigation.speed();
         final var waypoint = navigation.currentWaypoint();
         boolean walking = false;
-        if (waypoint != null && speed > 0.0) {
-            final double dx = waypoint.x() + 0.5 - x;
-            final double dz = waypoint.z() + 0.5 - z;
-            if (dx * dx + dz * dz > 2.5E-7) {
-                yaw = rotateTowards(yaw, (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0f, MAX_TURN);
-                walking = true;
+        if (swimming) {
+            if (risesWhileSwimming()) {
+                velocityY += SWIM_LIFT;
+            }
+            if (waypoint != null && speed > 0.0) {
+                // swims to the waypoint itself, up or down as well: the further it is, the harder
+                final double dx = waypoint.x() + 0.5 - x;
+                final double dy = waypoint.y() - y;
+                final double dz = waypoint.z() + 0.5 - z;
+                final double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (distance > 1.0E-4) {
+                    yaw = rotateTowards(yaw, (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0f, MAX_TURN);
+                    swimSpeed += (speed - swimSpeed) * SWIM_SPEED_GAIN;
+                    velocityX += swimSpeed * dx * SWIM_HORIZONTAL_PULL;
+                    velocityY += swimSpeed * dy / distance * SWIM_VERTICAL_PULL;
+                    velocityZ += swimSpeed * dz * SWIM_HORIZONTAL_PULL;
+                    if (waterDepth > eyeHeight()) {
+                        final double radians = Math.toRadians(yaw);
+                        velocityX -= Math.sin(radians) * swimSpeed * SWIM_ACCELERATION;
+                        velocityZ += Math.cos(radians) * swimSpeed * SWIM_ACCELERATION;
+                    }
+                }
+            } else {
+                swimSpeed = 0.0;
+            }
+        } else {
+            swimSpeed = 0.0;
+            if (!onGround) {
+                velocityY -= sinkingPull();
+            }
+            if (waypoint != null && speed > 0.0) {
+                final double dx = waypoint.x() + 0.5 - x;
+                final double dz = waypoint.z() + 0.5 - z;
+                if (dx * dx + dz * dz > 2.5E-7) {
+                    yaw = rotateTowards(yaw, (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0f, MAX_TURN);
+                    walking = true;
+                }
             }
         }
 
@@ -413,7 +458,12 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double newY = y + moved.y();
         final double newZ = z + moved.z();
 
-        if (inWater) {
+        if (swimming && waterDepth > eyeHeight()) {
+            // under water, a mob that swims neither sinks nor floats: it only slows down
+            velocityX *= SWIM_DRAG;
+            velocityY *= SWIM_DRAG;
+            velocityZ *= SWIM_DRAG;
+        } else if (inWater) {
             velocityX *= WATER_DRAG;
             velocityY *= WATER_DRAG;
             velocityZ *= WATER_DRAG;
@@ -458,6 +508,30 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
+    }
+
+    /**
+     * {@return {@code true} if, in water, this mob swims to the waypoints of its path, up and down
+     * as well, rather than walking on the bottom}; such a mob needs a navigation that
+     * {@linkplain Navigation#setSwims(boolean) goes through the water}
+     */
+    protected boolean wantsToSwim() {
+        return false;
+    }
+
+    /**
+     * {@return {@code true} if this mob drifts up while it {@linkplain #wantsToSwim() swims}}
+     */
+    protected boolean risesWhileSwimming() {
+        return false;
+    }
+
+    /**
+     * {@return how much faster than the others this mob goes down each tick it is off the ground and
+     * does not swim}; a mob made to walk on the bottom of the water sinks to it
+     */
+    protected double sinkingPull() {
+        return 0.0;
     }
 
     /**

@@ -44,8 +44,69 @@ public final class RandomPositions {
         return pick(mob, horizontal, vertical, false);
     }
 
+    /**
+     * {@return a spot for a mob that swims as well as it walks, {@code null} if none of the tries
+     * fits}: on the ground or anywhere in the water
+     *
+     * @param horizontal how far the spot may be along each horizontal axis
+     * @param vertical   how far the spot may be above or below
+     */
+    public static @Nullable BlockPosition amphibious(final AbstractPathfinderMob mob, final int horizontal, final int vertical) {
+        return pick(mob, horizontal, vertical, false, true);
+    }
+
+    /**
+     * {@return a spot for a mob that swims as well as it walks, in the half of its surroundings that
+     * faces a point, {@code null} if none of the tries fits}: on the ground or anywhere in the water
+     *
+     * @param horizontal how far the spot may be along each horizontal axis
+     * @param vertical   how far the spot may be above or below
+     * @param towardsX   where the point is along the x axis
+     * @param towardsZ   where the point is along the z axis
+     */
+    public static @Nullable BlockPosition amphibiousTowards(final AbstractPathfinderMob mob, final int horizontal,
+                                                            final int vertical, final double towardsX, final double towardsZ) {
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final ServerWorld world = mob.serverWorld();
+        final Location from = mob.location();
+        final int originX = (int) Math.floor(from.x());
+        final int originY = (int) Math.floor(from.y());
+        final int originZ = (int) Math.floor(from.z());
+        final int maxY = world.minY() + world.height() - 1;
+        final double facing = Math.atan2(towardsZ - from.z(), towardsX - from.x()) - Math.PI / 2.0;
+        BlockPosition best = null;
+        float bestValue = Float.NEGATIVE_INFINITY;
+        for (int attempt = 0; attempt < ATTEMPTS; attempt++) {
+            final double angle = facing + (2.0 * random.nextDouble() - 1.0) * Math.PI / 2.0;
+            final double distance = Math.sqrt(random.nextDouble()) * Math.sqrt(2.0) * horizontal;
+            final double offsetX = -distance * Math.sin(angle);
+            final double offsetZ = distance * Math.cos(angle);
+            if (Math.abs(offsetX) > horizontal || Math.abs(offsetZ) > horizontal) {
+                continue;
+            }
+            final int x = originX + (int) Math.floor(offsetX);
+            final int y = originY + random.nextInt(2 * vertical + 1) - vertical;
+            final int z = originZ + (int) Math.floor(offsetZ);
+            if (y <= world.minY() || y > maxY || !BlockView.isPassable(world, x, y, z)
+                    || !(isSolid(world, x, y - 1, z) || isWater(world, x, y - 1, z))) {
+                continue;
+            }
+            final float value = mob.walkTargetValue(x, y, z);
+            if (value > bestValue) {
+                bestValue = value;
+                best = Position.block(x, y, z);
+            }
+        }
+        return best;
+    }
+
     private static @Nullable BlockPosition pick(final AbstractPathfinderMob mob, final int horizontal, final int vertical,
                                                 final boolean landOnly) {
+        return pick(mob, horizontal, vertical, landOnly, false);
+    }
+
+    private static @Nullable BlockPosition pick(final AbstractPathfinderMob mob, final int horizontal, final int vertical,
+                                                final boolean landOnly, final boolean overWater) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final ServerWorld world = mob.serverWorld();
         final Location from = mob.location();
@@ -61,7 +122,11 @@ public final class RandomPositions {
             final int x = originX + random.nextInt(2 * horizontal + 1) - horizontal;
             int y = originY + random.nextInt(2 * vertical + 1) - vertical;
             final int z = originZ + random.nextInt(2 * horizontal + 1) - horizontal;
-            if (y <= world.minY() || y > maxY || !isSolid(world, x, y - 1, z)) {
+            if (y <= world.minY() || y > maxY
+                    || !(isSolid(world, x, y - 1, z) || (overWater && isWater(world, x, y - 1, z)))) {
+                continue;
+            }
+            if (overWater && !BlockView.isPassable(world, x, y, z)) {
                 continue;
             }
             if (landOnly) {
@@ -83,6 +148,11 @@ public final class RandomPositions {
             }
         }
         return best;
+    }
+
+    private static boolean isWater(final ServerWorld world, final int x, final int y, final int z) {
+        final BlockState state = BlockView.blockAt(world, x, y, z);
+        return state != null && BlockView.isWater(state);
     }
 
     private static boolean isSolid(final ServerWorld world, final int x, final int y, final int z) {

@@ -27,6 +27,7 @@ public final class RandomStrollGoal implements Goal {
     private final AbstractPathfinderMob mob;
     private final int priority;
     private final DoubleSupplier speed;
+    private final boolean amphibious;
     private @Nullable Position destination;
 
     /**
@@ -41,9 +42,21 @@ public final class RandomStrollGoal implements Goal {
      *              stroll: for a mob whose speed changes, as a zombie turning into a baby
      */
     public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final DoubleSupplier speed) {
+        this(mob, priority, speed, false);
+    }
+
+    /**
+     * @param speed      the movement speed of the mob times the speed modifier of the goal, asked
+     *                   for at each stroll
+     * @param amphibious {@code true} for a mob at home in the water, which strolls to the water as
+     *                   to the land instead of keeping out of it
+     */
+    public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final DoubleSupplier speed,
+                            final boolean amphibious) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
+        this.amphibious = amphibious;
     }
 
     @Override
@@ -64,9 +77,13 @@ public final class RandomStrollGoal implements Goal {
         if (ThreadLocalRandom.current().nextInt(INTERVAL) != 0) {
             return false;
         }
-        destination = mob.isInWater()
-                ? RandomPositions.land(mob, HORIZONTAL_FROM_WATER, VERTICAL)
-                : RandomPositions.land(mob, HORIZONTAL, VERTICAL);
+        if (amphibious) {
+            destination = RandomPositions.amphibious(mob, HORIZONTAL, VERTICAL);
+        } else {
+            destination = mob.isInWater()
+                    ? RandomPositions.land(mob, HORIZONTAL_FROM_WATER, VERTICAL)
+                    : RandomPositions.land(mob, HORIZONTAL, VERTICAL);
+        }
         return destination != null;
     }
 

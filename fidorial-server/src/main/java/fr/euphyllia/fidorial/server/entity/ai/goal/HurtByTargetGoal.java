@@ -20,6 +20,7 @@ public final class HurtByTargetGoal extends TargetGoal {
     private int answeredStamp;
     private boolean alertsOthers;
     private Set<Class<?>> notAlerted = Set.of();
+    private Set<Class<?>> forgiven = Set.of();
 
     public HurtByTargetGoal(final AbstractPathfinderMob mob, final int priority) {
         super(mob, priority, true);
@@ -39,11 +40,28 @@ public final class HurtByTargetGoal extends TargetGoal {
         return this;
     }
 
+    /**
+     * Makes the mob put up with the blows of some mobs: it does not go after an attacker of one of
+     * these classes, or of a class that extends one of them.
+     *
+     * @param forgiven the classes of the attackers the mob leaves alone
+     * @return this goal
+     */
+    public HurtByTargetGoal ignoringDamageFrom(final Class<?>... forgiven) {
+        this.forgiven = Set.of(forgiven);
+        return this;
+    }
+
     @Override
     public boolean canStart() {
         final AbstractLivingEntity attacker = mob.lastHurtByMob();
         if (attacker == null || mob.lastHurtByMobStamp() == answeredStamp) {
             return false;
+        }
+        for (final Class<?> kind : forgiven) {
+            if (kind.isInstance(attacker)) {
+                return false;
+            }
         }
         // the one that hurt the mob is known without being seen, hidden or not
         return Targeting.test(mob, attacker, 0.0, false, false);

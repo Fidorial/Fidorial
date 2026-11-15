@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
  * The attack of a zombie : a melee attack during which the mob raises its arms,
  * except for the half second that follows each blow.
  */
-public final class ZombieAttackGoal extends MeleeAttackGoal {
+public class ZombieAttackGoal extends MeleeAttackGoal {
 
     private static final int RAISE_ARMS_AFTER_TICKS = 5;
 

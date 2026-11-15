@@ -49,8 +49,19 @@ public class AStarPathfinder {
 
     public static @Nullable Path find(final ServerWorld world, final Position start, final Position goal, final int maxNodes,
                                       @Nullable final PathPenalty penalty) {
-        final Position from = snapToGround(world, start);
-        Position to = snapToGround(world, goal);
+        return find(world, start, goal, maxNodes, penalty, false);
+    }
+
+    /**
+     * Looks for a path between two blocks.
+     *
+     * @param swims {@code true} for a mob that swims as well as it walks: its path then also goes
+     *              through the water, up, down and across, from one block of water to the next
+     */
+    public static @Nullable Path find(final ServerWorld world, final Position start, final Position goal, final int maxNodes,
+                                      @Nullable final PathPenalty penalty, final boolean swims) {
+        final Position from = snap(world, start, swims);
+        Position to = snap(world, goal, swims);
         if (from == null) {
             return null;
         }
@@ -90,30 +101,67 @@ public class AStarPathfinder {
                 final int nx = current.x + dir[0];
                 final int nz = current.z + dir[1];
                 final int ny = stepHeight(world, current.x, current.y, current.z, nx, nz);
-                if (ny == Integer.MIN_VALUE) {
-                    continue;
+                if (ny != Integer.MIN_VALUE) {
+                    relax(world, nodes, open, current, nx, ny, nz, to, penalty);
                 }
-                final double extra = penalty == null ? 0.0 : penalty.cost(world, nx, ny, nz);
-                if (extra == PathPenalty.BLOCKED) {
-                    continue;
+                if (swims && ny != current.y && isSwimNode(world, nx, current.y, nz)) {
+                    relax(world, nodes, open, current, nx, current.y, nz, to, penalty);
                 }
-                final double moveCost = 1.0 + verticalCost(ny - current.y) + extra;
-                final double g = current.g + moveCost;
-                final long key = pack(nx, ny, nz);
-                Node neighbor = nodes.get(key);
-                if (neighbor == null) {
-                    neighbor = new Node(nx, ny, nz, current, g, heuristic(Position.block(nx, ny, nz), to));
-                    nodes.put(key, neighbor);
-                    open.add(neighbor);
-                } else if (!neighbor.closed && g < neighbor.g) {
-                    neighbor.g = g;
-                    neighbor.parent = current;
-                    open.add(neighbor); // re-insertion, l'ancienne entree sera ignoree via closed/g
+            }
+            if (swims) {
+                if (isSwimNode(world, current.x, current.y + 1, current.z)) {
+                    relax(world, nodes, open, current, current.x, current.y + 1, current.z, to, penalty);
+                }
+                if (isSwimNode(world, current.x, current.y - 1, current.z)) {
+                    relax(world, nodes, open, current, current.x, current.y - 1, current.z, to, penalty);
                 }
             }
         }
 
         return best == startNode ? null : buildPath(best, false);
+    }
+
+    private static void relax(final ServerWorld world, final Long2ObjectOpenHashMap<Node> nodes, final PriorityQueue<Node> open,
+                              final Node current, final int nx, final int ny, final int nz, final Position to,
+                              @Nullable final PathPenalty penalty) {
+        final double extra = penalty == null ? 0.0 : penalty.cost(world, nx, ny, nz);
+        if (extra == PathPenalty.BLOCKED) {
+            return;
+        }
+        final double moveCost = 1.0 + verticalCost(ny - current.y) + extra;
+        final double g = current.g + moveCost;
+
+        final long key = pack(nx, ny, nz);
+        Node neighbor = nodes.get(key);
+        if (neighbor == null) {
+            neighbor = new Node(nx, ny, nz, current, g, heuristic(Position.block(nx, ny, nz), to));
+            nodes.put(key, neighbor);
+            open.add(neighbor);
+        } else if (!neighbor.closed && g < neighbor.g) {
+            neighbor.g = g;
+            neighbor.parent = current;
+            open.add(neighbor); // re-insertion, l'ancienne entree sera ignoree via closed/g
+        }
+    }
+
+    /**
+     * {@return {@code true} if a mob that swims may be in a block}: in water, with room for its head
+     * in the block above, water or not
+     */
+    private static boolean isSwimNode(final ServerWorld world, final int x, final int y, final int z) {
+        final BlockState state = BlockView.blockAt(world, x, y, z);
+        return state != null && BlockView.isWater(state) && BlockView.isPassable(world, x, y + 1, z);
+    }
+
+    /**
+     * {@return the block a path starts from or ends at}: for a mob that swims, the block of water it
+     * is in; otherwise the ground under it
+     */
+    private static @Nullable Position snap(final ServerWorld world, final Position pos, final boolean swims) {
+        if (swims && isSwimNode(world, pos.blockX(), pos.blockY(), pos.blockZ())) {
+            return Position.block(pos.blockX(), pos.blockY(), pos.blockZ());
+        }
+        return snapToGround(world, pos);
     }
 
     /**

@@ -18,6 +18,11 @@ public class Navigation implements Navigator {
 
     private static final double WAYPOINT_REACHED_SQ = 0.35 * 0.35;
 
+    /**
+     * A mob that swims drifts: it reaches a waypoint from a little further than one that walks.
+     */
+    private static final double SWIM_WAYPOINT_REACHED_SQ = 0.45 * 0.45;
+
     private static final int REPATH_COOLDOWN_TICKS = 10;
 
     private static final double REPATH_TARGET_MOVED_SQ = 2.0 * 2.0;
@@ -29,6 +34,7 @@ public class Navigation implements Navigator {
     private final AtomicReference<@Nullable PathResult> pendingResult = new AtomicReference<>();
 
     private @Nullable PathPenalty pathPenalty;
+    private boolean swims;
     private @Nullable Path path;
     private int waypointIndex;
     private @Nullable Position requestedGoal;
@@ -44,6 +50,13 @@ public class Navigation implements Navigator {
 
     public Navigation(final ServerWorld world) {
         this.world = world;
+    }
+
+    /**
+     * Tells whether the paths go through the water, for a mob that swims as well as it walks.
+     */
+    public void setSwims(final boolean swims) {
+        this.swims = swims;
     }
 
     public void setPathPenalty(@Nullable final PathPenalty pathPenalty) {
@@ -99,10 +112,13 @@ public class Navigation implements Navigator {
         requestedGoal = goal;
         lastRequestTick = age;
         final PathPenalty penalty = this.pathPenalty;
+        final boolean swimming = this.swims;
         requestInFlight = FidorialServer.getInstance()
                 .workers().aiWorker()
                 .submit(() -> pendingResult.set(
-                        new PathResult(AStarPathfinder.find(world, from, goal, MAX_NODES, penalty))));
+                        new PathResult(AStarPathfinder.find(world, from, goal, MAX_NODES, penalty, swimming))
+                        )
+                );
         return requestInFlight;
     }
 
@@ -118,6 +134,16 @@ public class Navigation implements Navigator {
     }
 
     public void tick(final double x, final double z) {
+        tick(x, 0.0, z, false);
+    }
+
+    /**
+     * Follows the path from where the mob is.
+     *
+     * @param vertical {@code true} for a mob that swims along its path: a waypoint is then only
+     *                 reached within a block of its height, and not from under or above it
+     */
+    public void tick(final double x, final double y, final double z, final boolean vertical) {
         age++;
         final PathResult result = pendingResult.getAndSet(null);
         if (result != null) {
@@ -138,8 +164,9 @@ public class Navigation implements Navigator {
         }
         final double dx = waypoint.x() + 0.5 - x;
         final double dz = waypoint.z() + 0.5 - z;
-        final double distSq = dx * dx + dz * dz;
-        if (distSq < WAYPOINT_REACHED_SQ) {
+        final double dy = vertical ? waypoint.y() - y : 0.0;
+        final double distSq = dx * dx + dz * dz + (vertical ? dy * dy : 0.0);
+        if (dx * dx + dz * dz < (vertical ? SWIM_WAYPOINT_REACHED_SQ : WAYPOINT_REACHED_SQ) && Math.abs(dy) < 1.0) {
             waypointIndex++;
             lastDistanceSq = Double.MAX_VALUE;
             stuckTicks = 0;
@@ -164,6 +191,14 @@ public class Navigation implements Navigator {
             return null;
         }
         return path.waypoints().get(waypointIndex);
+    }
+
+    /**
+     * {@return where the path being followed leads, {@code null} when no path is followed}
+     */
+    public @Nullable Position destination() {
+        final Path current = path;
+        return current == null || current.waypoints().isEmpty() ? null : current.waypoints().getLast();
     }
 
     @Override
