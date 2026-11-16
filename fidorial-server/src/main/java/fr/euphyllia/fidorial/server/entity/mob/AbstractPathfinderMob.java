@@ -7,13 +7,14 @@ import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.ai.goal.NearestAttackableTargetGoal;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAnimatePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
@@ -190,10 +191,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     /**
-     * Shows this mob swinging its main hand.
+     * Shows this mob swinging its main hand, with the plain swing of an empty hand.
      */
     public final void swingMainHand() {
-        sendToTrackers(new ClientboundAnimatePacket(entityId(), ClientboundAnimatePacket.SWING_MAIN_HAND));
+        sendToTrackers(new ClientboundSwingAnimationPacket(entityId(), true, SwingAnimation.DEFAULT));
     }
 
     /**

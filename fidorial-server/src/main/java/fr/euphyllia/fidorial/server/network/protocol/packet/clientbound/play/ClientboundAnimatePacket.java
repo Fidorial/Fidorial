@@ -8,22 +8,30 @@ import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer
 import net.kyori.adventure.key.Key;
 
 /**
- * Plays a one-shot animation on an entity: an arm swing, or the sparks of a critical hit.
+ * Plays a one-shot animation on an entity: a player waking up, or the sparks of a critical hit. An
+ * arm swing has its own packet, {@link ClientboundSwingAnimationPacket}.
  *
  * <p><a href="https://minecraft.wiki/w/Java_Edition_protocol/Packets#Entity_Animation">Entity Animation</a></p>
  */
 public record ClientboundAnimatePacket(int entityId, int action) implements ClientboundPacket<ClientboundAnimatePacket> {
-    public static final int SWING_MAIN_HAND = 0;
-    public static final int LEAVE_BED = 2;
-    public static final int CRITICAL_HIT = 4;
-    public static final int MAGIC_CRITICAL_HIT = 5;
+    /**
+     * Only a player can wake up: the client takes the entity of this action for a player.
+     */
+    public static final int WAKE_UP = 0;
+    public static final int CRITICAL_HIT = 1;
+    public static final int MAGIC_CRITICAL_HIT = 2;
 
     public static final NetworkEncoder<CodecAwarePacketBuffer, ClientboundAnimatePacket> CODEC = NetworkEncoder
             .field(PrimitiveCodecs.VAR_INT, ClientboundAnimatePacket::entityId)
             .then(PrimitiveCodecs.UNSIGNED_BYTE, ClientboundAnimatePacket::action);
 
-    public static ClientboundAnimatePacket leaveBed(final int entityId) {
-        return new ClientboundAnimatePacket(entityId, LEAVE_BED);
+    /**
+     * {@return the packet that shows a player waking up}
+     *
+     * @param playerId the entity id of a player, never of another entity
+     */
+    public static ClientboundAnimatePacket wakeUp(final int playerId) {
+        return new ClientboundAnimatePacket(playerId, WAKE_UP);
     }
 
     public static ClientboundAnimatePacket criticalHit(final int entityId) {
