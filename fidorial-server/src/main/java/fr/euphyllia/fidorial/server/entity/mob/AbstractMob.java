@@ -387,6 +387,17 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     /**
+     * Takes one item from a hand of a player, unless the player is in creative mode.
+     */
+    protected static void consumeItem(final ServerPlayer player, final int slot) {
+        if (player.gameMode() == GameMode.CREATIVE) {
+            return;
+        }
+        final ItemStack held = player.inventory().get(slot);
+        player.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
+    }
+
+    /**
      * Wears the tool of a hand by one use; it is gone once it breaks. A creative player wears nothing.
      */
     protected static void wearItem(final ServerPlayer player, final int slot) {

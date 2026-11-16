@@ -668,6 +668,20 @@ public final class SoundEvents {
     public static final Sound.Type FROSTBITE_STEP = of("entity.frostbite.step");
 
     /**
+     * The {@code minecraft:item.flintandsteel.use} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FLINTANDSTEEL_USE = of("item.flintandsteel.use");
+
+    /**
+     * The {@code minecraft:item.firecharge.use} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type FIRECHARGE_USE = of("item.firecharge.use");
+
+    /**
      * The {@code minecraft:entity.frostbite.throw} sound event.
      *
      * @since 0.1.0

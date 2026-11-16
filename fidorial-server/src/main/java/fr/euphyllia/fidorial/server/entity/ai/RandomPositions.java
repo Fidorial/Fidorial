@@ -66,6 +66,27 @@ public final class RandomPositions {
      */
     public static @Nullable BlockPosition amphibiousTowards(final AbstractPathfinderMob mob, final int horizontal,
                                                             final int vertical, final double towardsX, final double towardsZ) {
+        return towards(mob, horizontal, vertical, towardsX, towardsZ, true);
+    }
+
+    /**
+     * {@return a spot on solid ground in the half of the surroundings of a mob that faces away from a
+     * point, {@code null} if none of the tries fits}: where a mob flees to
+     *
+     * @param horizontal how far the spot may be along each horizontal axis
+     * @param vertical   how far the spot may be above or below
+     * @param fromX      where the point to flee is along the x axis
+     * @param fromZ      where the point to flee is along the z axis
+     */
+    public static @Nullable BlockPosition landAwayFrom(final AbstractPathfinderMob mob, final int horizontal,
+                                                       final int vertical, final double fromX, final double fromZ) {
+        final Location at = mob.location();
+        return towards(mob, horizontal, vertical, 2.0 * at.x() - fromX, 2.0 * at.z() - fromZ, false);
+    }
+
+    private static @Nullable BlockPosition towards(final AbstractPathfinderMob mob, final int horizontal,
+                                                   final int vertical, final double towardsX, final double towardsZ,
+                                                   final boolean overWater) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final ServerWorld world = mob.serverWorld();
         final Location from = mob.location();
@@ -88,7 +109,7 @@ public final class RandomPositions {
             final int y = originY + random.nextInt(2 * vertical + 1) - vertical;
             final int z = originZ + (int) Math.floor(offsetZ);
             if (y <= world.minY() || y > maxY || !BlockView.isPassable(world, x, y, z)
-                    || !(isSolid(world, x, y - 1, z) || isWater(world, x, y - 1, z))) {
+                    || !(isSolid(world, x, y - 1, z) || (overWater && isWater(world, x, y - 1, z)))) {
                 continue;
             }
             final float value = mob.walkTargetValue(x, y, z);

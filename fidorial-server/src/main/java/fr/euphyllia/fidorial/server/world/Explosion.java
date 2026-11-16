@@ -2,23 +2,26 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
+import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
+import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundExplodePacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundHurtAnimationPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.registry.keys.DamageTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ParticleTypeKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -67,6 +70,8 @@ public final class Explosion {
             Map.entry(BlockTypeKeys.ANDESITE, 6f),
             Map.entry(BlockTypeKeys.BRICKS, 6f),
             Map.entry(BlockTypeKeys.GLASS, 0.3f));
+
+    private static final double SNEAKING_PLAYER_HEIGHT = 1.5;
 
     private Explosion() {
     }
@@ -188,6 +193,7 @@ public final class Explosion {
 
         final List<AbstractEntity> affected = new ArrayList<>();
         world.entityManager().forEachNear(center.chunk(), range, affected::add);
+        final DamageSource damageSource = damageSource(source, center);
 
         for (final AbstractEntity abstractEntity : affected) {
             if (abstractEntity == source || abstractEntity.isRemoved()) {
@@ -219,40 +225,47 @@ public final class Explosion {
                 knockZ = ez / eyeDist * impact;
             }
 
-            switch (abstractEntity) {
-                case final ServerPlayer player -> {
-                    final GameMode mode = player.gameMode();
-                    if (mode == GameMode.CREATIVE || mode == GameMode.SPECTATOR) {
-                        continue;
-                    }
-
-                    final float finalDamage = damage;
-                    // Todo : Uncomment once implemented.
-                    //                    switch (world.difficulty()) {
-                    //                        case PEACEFUL -> { continue; }
-                    //                        case EASY     -> finalDamage = Math.min(damage / 2f + 1f, damage);
-                    //                        case NORMAL   -> finalDamage = damage;
-                    //                        case HARD     -> finalDamage = damage * 1.5f;
-                    //                    }
-
-                    final float hurtYaw = (float) Math.toDegrees(Math.atan2(cz - pos.z(), cx - pos.x())) - pos.yaw();
-                    player.setHealth(player.health() - finalDamage);
-                    player.connection().send(new ClientboundSetHealthPacket(player.health(), 20, 5f));
-                    player.connection()
-                            .send(new ClientboundAddEntityMotionPacket(player.entityId(), new PositionData.VelocityVec3D(knockX, knockY, knockZ)));
-                    server.players().broadcastNear(world, pos.x(), pos.y(), pos.z(),
-                            new ClientboundHurtAnimationPacket(player.entityId(), hurtYaw), null);
-                }
-                case final AbstractMob mob -> {
-                    mob.setHealth(mob.health() - damage);
-                    if (!mob.isRemoved()) {
-                        mob.sendToTrackers(new ClientboundHurtAnimationPacket(mob.entityId(), 0f));
-                    }
-                }
-                default -> {
-                }
+            if (abstractEntity instanceof final AbstractLivingEntity living) {
+                server.entities().combat().damage(living, damageSource, damage);
+                pushAway(living, knockX, knockY, knockZ);
             }
         }
+    }
+
+    /**
+     * Pushes a living entity away from an explosion, less if it resists the blast; a spectator and a
+     * creative player who flies are not pushed.
+     */
+    private static void pushAway(final AbstractLivingEntity entity, final double x, final double y, final double z) {
+        switch (entity) {
+            case final ServerPlayer player -> {
+                if (player.gameMode() == GameMode.SPECTATOR || (player.gameMode() == GameMode.CREATIVE && player.isFlying())) {
+                    return;
+                }
+                final double kept = 1.0 - Math.clamp(player.attributeValue(AttributeKeys.EXPLOSION_KNOCKBACK_RESISTANCE), 0.0, 1.0);
+                // the client moves its player itself
+                player.connection().send(new ClientboundAddEntityMotionPacket(player.entityId(),
+                        new PositionData.VelocityVec3D(x * kept, y * kept, z * kept)));
+            }
+            case final AbstractMovingMob mob -> {
+                if (!mob.isRemoved() && !mob.isDead()) {
+                    mob.setVelocity(mob.velocityX() + x, mob.velocityY() + y, mob.velocityZ() + z);
+                }
+            }
+            default -> {
+
+            }
+        }
+    }
+
+    /**
+     * {@return what the victims of an explosion are hurt by}: an explosion with an attacker when a
+     * living entity set it off, a plain one otherwise
+     */
+    private static DamageSource damageSource(final AbstractEntity source, final Location center) {
+        return source instanceof final AbstractLivingEntity living
+                ? DamageSource.of(DamageTypeKeys.PLAYER_EXPLOSION, living, source).withPosition(center)
+                : DamageSource.of(DamageTypeKeys.EXPLOSION, null, source).withPosition(center);
     }
 
     private static float getExposure(final ServerWorld world, final Location center, final AbstractEntity entity) {
@@ -321,6 +334,10 @@ public final class Explosion {
     }
 
     private static double eyeHeight(final AbstractEntity entity) {
+        final double eyes = AbstractMovingMob.eyeHeightOf(entity);
+        if (eyes > 0.0) {
+            return eyes;
+        }
         final double[] box = boundingBox(entity);
         return (box[4] - box[1]) * 0.85;
     }
@@ -328,12 +345,14 @@ public final class Explosion {
     private static double[] boundingBox(final AbstractEntity entity) {
         double width = 0.6;
         double height = 1.8;
-        if (entity instanceof ServerPlayer) {
-            width = 0.6;
-            height = 1.8;
-        } else if (entity instanceof AbstractMob) {
-            width = 0.6;
-            height = 1.7;
+        if (entity instanceof final AbstractMovingMob mob) {
+            width = mob.width();
+            height = mob.height();
+        } else if (entity instanceof final ServerPlayer player && player.isSneaking()) {
+            height = SNEAKING_PLAYER_HEIGHT;
+        } else if (!(entity instanceof ServerPlayer)) {
+            width = entity.type().width();
+            height = entity.type().height();
         }
         final Location loc = entity.location();
         final double half = width / 2.0;

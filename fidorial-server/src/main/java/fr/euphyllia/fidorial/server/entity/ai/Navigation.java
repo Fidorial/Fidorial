@@ -86,6 +86,13 @@ public class Navigation implements Navigator {
         return speed;
     }
 
+    /**
+     * Changes the speed along the path being followed, as a mob that starts to run.
+     */
+    public void setSpeed(final double speed) {
+        this.speed = speed;
+    }
+
     @Override
     public void moveTo(final Location from, final Position goal) {
         if (request(from, goal)) {

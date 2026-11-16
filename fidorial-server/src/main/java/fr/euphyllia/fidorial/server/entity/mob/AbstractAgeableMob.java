@@ -5,7 +5,6 @@ import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.fidorial.entity.EntityType;
-import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
@@ -183,17 +182,6 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
                 .isTagged(type().key(), EntityTypeTagKeys.CANNOT_BE_AGE_LOCKED);
     }
 
-    /**
-     * Takes one item from a hand of a player, unless the player is in creative mode.
-     */
-    protected static void consumeItem(final ServerPlayer player, final int slot) {
-        if (player.gameMode() == GameMode.CREATIVE) {
-            return;
-        }
-        final ItemStack held = player.inventory().get(slot);
-        player.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
-    }
-
     protected abstract double adultHeight();
 
     protected abstract double adultWidth();
@@ -236,7 +224,6 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
         this.forcedAge = tag.getInt("ForcedAge", 0);
         setAgeLocked(tag.getBoolean("AgeLocked", false));
     }
-
 
     private ClientboundSetEntityMetadataPacket ageMetadata() {
         return ClientboundSetEntityMetadataPacket.of(entityId(),
