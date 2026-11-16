@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.combat;
 
+import com.google.gson.JsonElement;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
@@ -166,7 +167,7 @@ public final class CombatEngine implements CombatService {
         if (!(target instanceof final AbstractLivingEntity victim)) {
             return false;
         }
-        return applyDamage(victim, source, amount, source.noKnockback() ? 0.0 : BASE_KNOCKBACK);
+        return applyDamage(victim, source, amount, hasDamageTag(source, DamageTypeTagKeys.NO_KNOCKBACK) ? 0.0 : BASE_KNOCKBACK);
     }
 
     // FIXME: the caller may not own the victim: a hit across a region border changes it from another thread
@@ -175,7 +176,7 @@ public final class CombatEngine implements CombatService {
             final DamageSource source,
             final float amount,
             final double knockback) {
-        if (!source.type().equals(DamageTypeKeys.FREEZE)) {
+        if (!hasDamageTag(source, DamageTypeTagKeys.IS_FREEZING)) {
             return applyScaledDamage(victim, source, amount, knockback);
         }
         final ServerRegistry<EntityType> entityTypes = server.registries().registry(RegistryKey.ENTITY_TYPE);
@@ -199,7 +200,7 @@ public final class CombatEngine implements CombatService {
         }
         if (victim instanceof final ServerPlayer player
                 && player.isInvulnerableToDamage()
-                && !source.bypassesInvulnerability()) {
+                && !hasDamageTag(source, DamageTypeTagKeys.BYPASSES_INVULNERABILITY)) {
             return false;
         }
         if (victim instanceof ServerPlayer && isDisabledByGameRule(victim, source)) {
@@ -213,7 +214,7 @@ public final class CombatEngine implements CombatService {
             return false;
         }
 
-        final boolean withinInvulnerability = !source.bypassesInvulnerability()
+        final boolean withinInvulnerability = !hasDamageTag(source, DamageTypeTagKeys.BYPASSES_INVULNERABILITY)
                 && victim.invulnerableTicks() > AbstractLivingEntity.INVULNERABILITY_OVERRIDE_THRESHOLD;
 
         float incoming = amount;
@@ -279,7 +280,7 @@ public final class CombatEngine implements CombatService {
     }
 
     private float scaleWithDifficulty(final DamageSource source, final float amount) {
-        if (!source.scalesWithDifficulty()) {
+        if (!scalesWithDifficulty(source)) {
             return amount;
         }
         return switch (server.worlds().manager().levelData().difficulty) {
@@ -292,19 +293,16 @@ public final class CombatEngine implements CombatService {
 
     private boolean isDisabledByGameRule(final AbstractLivingEntity victim, final DamageSource source) {
         final GameRuleOverrides rules = gameRulesOf(victim);
-        final TypedKey<DamageType> type = source.type();
-        if (type.equals(DamageTypeKeys.DROWN)) {
+        if (hasDamageTag(source, DamageTypeTagKeys.IS_DROWNING)) {
             return !rules.getBoolean(GameRuleKeys.DROWNING_DAMAGE);
         }
-        if (type.equals(DamageTypeKeys.FALL)
-                || type.equals(DamageTypeKeys.STALAGMITE)
-                || type.equals(DamageTypeKeys.ENDER_PEARL)) {
+        if (hasDamageTag(source, DamageTypeTagKeys.IS_FALL)) {
             return !rules.getBoolean(GameRuleKeys.FALL_DAMAGE);
         }
-        if (source.isFire() || type.equals(DamageTypeKeys.FIREBALL)) {
+        if (hasDamageTag(source, DamageTypeTagKeys.IS_FIRE)) {
             return !rules.getBoolean(GameRuleKeys.FIRE_DAMAGE);
         }
-        if (type.equals(DamageTypeKeys.FREEZE)) {
+        if (hasDamageTag(source, DamageTypeTagKeys.IS_FREEZING)) {
             return !rules.getBoolean(GameRuleKeys.FREEZE_DAMAGE);
         }
         return false;
@@ -316,7 +314,7 @@ public final class CombatEngine implements CombatService {
 
     private float reduce(final AbstractLivingEntity victim, final DamageSource source, final float amount) {
         float damage = amount;
-        if (!source.bypassesArmor()) {
+        if (!hasDamageTag(source, DamageTypeTagKeys.BYPASSES_ARMOR)) {
             damage = CombatRules.damageAfterArmor(damage, (float) victim.armor(), (float) victim.armorToughness(),
                     share -> EnchantmentEngine.armorEffectiveness(victim, source, share));
         }
@@ -328,6 +326,25 @@ public final class CombatEngine implements CombatService {
 
     private boolean hasDamageTag(final DamageSource source, final TagKey<DamageType> tag) {
         return server.registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type(), tag);
+    }
+
+    /**
+     * Tells whether the difficulty changes how much of a damage a player takes, from the
+     * {@code scaling} of its type in the game data: {@code always}, {@code never}, or
+     * {@code when_caused_by_living_non_player}. A type without data never scales.
+     */
+    private boolean scalesWithDifficulty(final DamageSource source) {
+        final JsonElement data = server.registries().registry(RegistryKey.DAMAGE_TYPE).data(source.type());
+        final JsonElement scaling = data != null && data.isJsonObject() ? data.getAsJsonObject().get("scaling") : null;
+        if (scaling == null || !scaling.isJsonPrimitive()) {
+            return false;
+        }
+        return switch (scaling.getAsString()) {
+            case "always" -> true;
+            case "when_caused_by_living_non_player" ->
+                    source.causingEntity() instanceof LivingEntity && !(source.causingEntity() instanceof Player);
+            default -> false;
+        };
     }
 
     private float soakWithAbsorption(final AbstractLivingEntity victim, final float damage) {

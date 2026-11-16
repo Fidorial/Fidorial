@@ -2,7 +2,6 @@ package fr.fidorial.combat;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
@@ -10,7 +9,6 @@ import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.keys.DamageTypeKeys;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
 
 /**
  * Describes where a hit came from.
@@ -23,64 +21,6 @@ import java.util.Set;
  * @since 0.1.0
  */
 public final class DamageSource {
-
-    private static final Set<TypedKey<DamageType>> ALWAYS_SCALES_WITH_DIFFICULTY = Set.of(
-            DamageTypeKeys.BAD_RESPAWN_POINT,
-            DamageTypeKeys.EXPLOSION,
-            DamageTypeKeys.PLAYER_EXPLOSION,
-            DamageTypeKeys.SONIC_BOOM);
-
-    private static final Set<TypedKey<DamageType>> BYPASSES_ARMOR = Set.of(
-            DamageTypeKeys.CRAMMING,
-            DamageTypeKeys.DRAGON_BREATH,
-            DamageTypeKeys.DROWN,
-            DamageTypeKeys.DRY_OUT,
-            DamageTypeKeys.FALL,
-            DamageTypeKeys.FLY_INTO_WALL,
-            DamageTypeKeys.FREEZE,
-            DamageTypeKeys.GENERIC,
-            DamageTypeKeys.GENERIC_KILL,
-            DamageTypeKeys.IN_WALL,
-            DamageTypeKeys.INDIRECT_MAGIC,
-            DamageTypeKeys.MAGIC,
-            DamageTypeKeys.OUT_OF_WORLD,
-            DamageTypeKeys.OUTSIDE_BORDER,
-            DamageTypeKeys.SONIC_BOOM,
-            DamageTypeKeys.STALAGMITE,
-            DamageTypeKeys.STARVE,
-            DamageTypeKeys.WITHER);
-
-    private static final Set<TypedKey<DamageType>> BYPASSES_INVULNERABILITY = Set.of(
-            DamageTypeKeys.GENERIC_KILL,
-            DamageTypeKeys.OUT_OF_WORLD);
-
-    private static final Set<TypedKey<DamageType>> FIRE = Set.of(
-            DamageTypeKeys.CAMPFIRE,
-            DamageTypeKeys.HOT_FLOOR,
-            DamageTypeKeys.IN_FIRE,
-            DamageTypeKeys.LAVA,
-            DamageTypeKeys.ON_FIRE,
-            DamageTypeKeys.SULFUR_CUBE_HOT,
-            DamageTypeKeys.UNATTRIBUTED_FIREBALL);
-
-    private static final Set<TypedKey<DamageType>> PROJECTILE = Set.of(
-            DamageTypeKeys.ARROW,
-            DamageTypeKeys.FIREBALL,
-            DamageTypeKeys.MOB_PROJECTILE,
-            DamageTypeKeys.SPEAR,
-            DamageTypeKeys.SPIT,
-            DamageTypeKeys.THROWN,
-            DamageTypeKeys.TRIDENT,
-            DamageTypeKeys.WIND_CHARGE,
-            DamageTypeKeys.WITHER_SKULL);
-
-    private static final Set<TypedKey<DamageType>> NO_KNOCKBACK = Set.of(
-            DamageTypeKeys.DROWN,
-            DamageTypeKeys.FALL,
-            DamageTypeKeys.FREEZE,
-            DamageTypeKeys.IN_WALL,
-            DamageTypeKeys.OUT_OF_WORLD,
-            DamageTypeKeys.STARVE);
 
     private final TypedKey<DamageType> type;
     private final @Nullable Entity causingEntity;
@@ -288,54 +228,6 @@ public final class DamageSource {
      */
     public @Nullable Location position() {
         return position;
-    }
-
-    /**
-     * @return {@code true} when armour points do not reduce this damage
-     */
-    public boolean bypassesArmor() {
-        return BYPASSES_ARMOR.contains(type);
-    }
-
-    /**
-     * @return {@code true} when this damage ignores both invulnerability frames and creative mode
-     */
-    public boolean bypassesInvulnerability() {
-        return BYPASSES_INVULNERABILITY.contains(type);
-    }
-
-    /**
-     * @return {@code true} when this damage counts as fire for resistances and effects
-     */
-    public boolean isFire() {
-        return FIRE.contains(type);
-    }
-
-    /**
-     * @return {@code true} when the hit came from a projectile
-     */
-    public boolean isProjectile() {
-        return PROJECTILE.contains(type);
-    }
-
-    /**
-     * @return {@code true} when this damage must never push the victim around
-     */
-    public boolean noKnockback() {
-        return NO_KNOCKBACK.contains(type);
-    }
-
-    /**
-     * Tells whether the difficulty of the world changes how much of this damage a player takes: always
-     * for explosions, otherwise when a living entity other than a player caused it. Such damage
-     * is halved plus one on easy and grows by half on hard.
-     *
-     * @return {@code true} when this damage scales with the difficulty
-     * @since 0.1.0
-     */
-    public boolean scalesWithDifficulty() {
-        return ALWAYS_SCALES_WITH_DIFFICULTY.contains(type)
-                || (causingEntity instanceof LivingEntity && !(causingEntity instanceof Player));
     }
 
     /**
