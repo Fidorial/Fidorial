@@ -465,6 +465,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             } else {
                 velocityY = sinkInFluid(velocityY * SHALLOW_LAVA_VERTICAL_DRAG, wasFalling);
             }
+            velocityY -= GRAVITY / 4.0;
             if (blockedHorizontally && !isBoxBlocked(newX + velocityX, y + 0.6, newZ + velocityZ)) {
                 velocityY = LEAVE_FLUID_VELOCITY;
             }
