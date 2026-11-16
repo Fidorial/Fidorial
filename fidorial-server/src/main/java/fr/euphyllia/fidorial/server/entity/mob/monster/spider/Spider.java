@@ -86,8 +86,12 @@ public class Spider extends AbstractMonster {
      */
     public Spider(final int entityId, final Location location) {
         this(entityId, EntityTypes.SPIDER, location, MAX_HEALTH);
+        finalizeSpawn();
     }
 
+    /**
+     * Creates a spider of another kind, without the random traits of one that spawns.
+     */
     protected Spider(final int entityId, final EntityType type, final Location location, final float maxHealth) {
         super(entityId, UUID.randomUUID(), type, location, maxHealth);
         navigation.setClimbsWalls(width());
@@ -102,7 +106,6 @@ public class Spider extends AbstractMonster {
         goals.add(new HurtByTargetGoal(this, 1));
         goals.add(new NearestAttackableTargetGoal<>(this, 2, ServerPlayer.class, true).onlyWhen(this::isInTheDark));
         goals.add(new NearestAttackableTargetGoal<>(this, 3, IronGolem.class, true).onlyWhen(this::isInTheDark));
-        finalizeSpawn();
     }
 
     /**
