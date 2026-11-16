@@ -203,6 +203,28 @@ public final class SoundEvents {
      */
     public static final Sound.Type DYE_USE = of("item.dye.use");
 
+    // --- Endermite ---
+    /**
+     * The {@code minecraft:entity.endermite.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMITE_AMBIENT = of("entity.endermite.ambient");
+
+    /**
+     * The {@code minecraft:entity.endermite.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMITE_HURT = of("entity.endermite.hurt");
+
+    /**
+     * The {@code minecraft:entity.endermite.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMITE_DEATH = of("entity.endermite.death");
+
     // --- Pig ---
     /**
      * The {@code minecraft:entity.pig.ambient} sound event.

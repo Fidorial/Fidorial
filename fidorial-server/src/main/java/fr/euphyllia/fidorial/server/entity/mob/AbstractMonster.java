@@ -1,9 +1,11 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
+import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.Brightness;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
+import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
@@ -38,7 +40,17 @@ public abstract class AbstractMonster extends AbstractPathfinderMob implements C
      * {@linkplain #isDarkEnoughToSpawn dark enough}
      */
     public static boolean checkMonsterSpawnRules(final ServerWorld world, final int x, final int y, final int z) {
-        return BlockView.isSolidGround(world, x, y - 1, z) && isDarkEnoughToSpawn(world, x, y, z);
+        return checkAnyLightMonsterSpawnRules(world, x, y, z) && isDarkEnoughToSpawn(world, x, y, z);
+    }
+
+    /**
+     * {@return {@code true} if a monster that minds no light may spawn on a block}: on solid ground,
+     * unless the world is peaceful
+     */
+    @NeedsToBeRevisited("Difficulty per world")
+    public static boolean checkAnyLightMonsterSpawnRules(final ServerWorld world, final int x, final int y, final int z) {
+        return FidorialServer.getInstance().worlds().manager().levelData().difficulty != LocalDifficulty.PEACEFUL
+                && BlockView.isSolidGround(world, x, y - 1, z);
     }
 
     /**
