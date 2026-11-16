@@ -244,6 +244,10 @@ public final class CombatEngine implements CombatService {
         final float dealt = soakWithAbsorption(victim, reduced);
         broadcastHurt(victim, source);
 
+        if (victim instanceof final AbstractMob mob) {
+            mob.rememberDamage(source);
+        }
+
         if (dealt > 0f) {
             victim.setHealth(victim.health() - dealt);
         }
