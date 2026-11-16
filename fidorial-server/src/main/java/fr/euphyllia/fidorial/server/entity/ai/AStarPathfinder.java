@@ -150,7 +150,7 @@ public class AStarPathfinder {
      */
     private static boolean isSwimNode(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState state = BlockView.blockAt(world, x, y, z);
-        return state != null && BlockView.isWater(state) && BlockView.isPassable(world, x, y + 1, z);
+        return state != null && state.isWater() && BlockView.isPassable(world, x, y + 1, z);
     }
 
     /**

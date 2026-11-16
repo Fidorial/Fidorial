@@ -267,7 +267,7 @@ public final class ServerExperienceOrb extends AbstractEntity implements Experie
 
         final boolean colliding = collides(world, before.x(), before.y(), before.z());
         final BlockState atEyes = BlockView.blockAt(world, floor(before.x()), floor(before.y() + EYE_HEIGHT), floor(before.z()));
-        if (atEyes != null && BlockView.isWater(atEyes)) {
+        if (atEyes != null && atEyes.isWater()) {
             velocityX *= WATER_DRAG;
             velocityY = Math.min(velocityY + WATER_LIFT, MAX_WATER_RISE);
             velocityZ *= WATER_DRAG;

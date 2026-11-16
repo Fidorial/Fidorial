@@ -97,7 +97,7 @@ public final class Drowned extends Zombie {
 
     private static boolean isWater(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState state = BlockView.blockAt(world, x, y, z);
-        return state != null && BlockView.isWater(state);
+        return state != null && state.isWater();
     }
 
     /**

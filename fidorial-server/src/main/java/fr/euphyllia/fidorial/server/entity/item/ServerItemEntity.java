@@ -285,7 +285,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
             return;
         }
 
-        move(world, before, BlockTypeKeys.LAVA.equals(inside.name()) || BlockTypeKeys.WATER.equals(inside.name()));
+        move(world, before, inside.isFluid());
         if (isRemoved()) {
             return;
         }

@@ -22,15 +22,6 @@ final class FallDistanceModifiers {
 
     private static final Set<TypedKey<BlockType>> ALWAYS_PORTALS = Set.of(BlockTypeKeys.END_PORTAL, BlockTypeKeys.END_GATEWAY);
     private static final TypedKey<BlockType> NETHER_PORTAL = BlockTypeKeys.NETHER_PORTAL;
-    /**
-     * The blocks whose fluid is always a water source, without a {@code waterlogged} property.
-     */
-    private static final Set<TypedKey<BlockType>> ALWAYS_WATERLOGGED = Set.of(
-            BlockTypeKeys.BUBBLE_COLUMN,
-            BlockTypeKeys.KELP,
-            BlockTypeKeys.KELP_PLANT,
-            BlockTypeKeys.SEAGRASS,
-            BlockTypeKeys.TALL_SEAGRASS);
 
     private static final float WATER_MULTIPLIER = 0.0f;
     private static final float LAVA_MULTIPLIER = 0.5f;
@@ -150,7 +141,7 @@ final class FallDistanceModifiers {
         if (type != null) {
             return type;
         }
-        if ("true".equals(state.properties().get("waterlogged")) || ALWAYS_WATERLOGGED.contains(state.name())) {
+        if (state.isWater()) {
             return FluidType.WATER;
         }
         return null;

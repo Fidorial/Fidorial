@@ -37,7 +37,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
 
@@ -53,13 +52,6 @@ public final class ServerFarmingWorld implements FarmingWorld {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerFarmingWorld.class);
 
     private static final BlockFace[] FACES = BlockFace.values();
-
-    /**
-     * The blocks that are full of water without saying so in their state.
-     */
-    private static final Set<TypedKey<BlockType>> ALWAYS_WET = Set.of(
-            BlockTypeKeys.WATER, BlockTypeKeys.BUBBLE_COLUMN, BlockTypeKeys.KELP, BlockTypeKeys.KELP_PLANT,
-            BlockTypeKeys.SEAGRASS, BlockTypeKeys.TALL_SEAGRASS);
 
     private static final int MAX_LIGHT = 15;
 
@@ -188,7 +180,7 @@ public final class ServerFarmingWorld implements FarmingWorld {
         if (state == null) {
             return false;
         }
-        return ALWAYS_WET.contains(state.key()) || (state instanceof final Waterlogged holder && holder.isWaterlogged());
+        return engine.blockStates().toBlockState(state).isWater();
     }
 
     @Override

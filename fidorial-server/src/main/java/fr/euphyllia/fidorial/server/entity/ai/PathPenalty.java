@@ -2,7 +2,6 @@ package fr.euphyllia.fidorial.server.entity.ai;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 
 @FunctionalInterface
@@ -34,7 +33,7 @@ public interface PathPenalty {
                 return BLOCKED;
             }
             double cost = 0.0;
-            if (avoidsWater && state.name().equals(BlockTypeKeys.WATER)) {
+            if (avoidsWater && state.isWater()) {
                 cost += 8.0;
             }
             if (BlockView.isTagged(BlockTypeTagKeys.PATHFINDING_RAILS, state)) {

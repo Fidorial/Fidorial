@@ -85,7 +85,7 @@ final class DrownedGoToWaterGoal implements Goal {
             final int y = originY + VERTICAL_OFFSET - random.nextInt(VERTICAL_SPREAD);
             final int z = originZ + random.nextInt(HORIZONTAL_SPREAD) - HORIZONTAL_OFFSET;
             final BlockState state = BlockView.blockAt(world, x, y, z);
-            if (state != null && BlockView.isWater(state)) {
+            if (state != null && state.isWater()) {
                 return Position.block(x, y, z);
             }
         }

@@ -130,7 +130,7 @@ public final class PanicGoal implements Goal {
                         continue;
                     }
                     final BlockState state = BlockView.blockAt(world, originX + dx, originY + dy, originZ + dz);
-                    if (state != null && BlockView.isWater(state)) {
+                    if (state != null && state.isWater()) {
                         bestDistance = distance;
                         best = Position.block(originX + dx, originY + dy, originZ + dz);
                     }

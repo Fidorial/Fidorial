@@ -617,7 +617,7 @@ public class Zombie extends AbstractMonster {
         }
         for (int dy = 0; dy < 2; dy++) {
             final BlockState state = BlockView.blockAt(world, x, y + dy, z);
-            if (state == null || !BlockView.isPassable(state) || BlockView.isWater(state)) {
+            if (state == null || !BlockView.isPassable(state) || state.isWater()) {
                 return false;
             }
         }

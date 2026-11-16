@@ -27,6 +27,7 @@ public final class BlockState {
     private final int hashCode;
     private final boolean air;
     private final boolean waterlogged;
+    private final boolean water;
     private final boolean fluid;
 
     private volatile @Nullable LightProperties lightProperties;
@@ -36,7 +37,10 @@ public final class BlockState {
     private volatile @Nullable BlockEntityLookup blockEntityType;
     private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
-    private static final Set<TypedKey<BlockType>> FLUID_BLOCKS = Set.of(
+    /**
+     * The blocks full of water without a {@code waterlogged} property to say so.
+     */
+    private static final Set<TypedKey<BlockType>> WATER_BLOCKS = Set.of(
             BlockTypeKeys.WATER,
             BlockTypeKeys.LAVA,
             BlockTypeKeys.BUBBLE_COLUMN,
@@ -54,16 +58,21 @@ public final class BlockState {
         this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
         this.air = name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
         this.waterlogged = "true".equals(this.properties.get("waterlogged"));
-        this.fluid = (FLUID_BLOCKS.contains(name) || this.waterlogged);
+        this.water = WATER_BLOCKS.contains(name) || this.waterlogged;
+        this.fluid = this.water || name.equals(BlockTypeKeys.LAVA);
     }
 
-    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode, final boolean air, final boolean waterlogged, final boolean fluid) {
+    /**
+     * A key to look up the interned state: only its name, properties and hash code are read.
+     */
+    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode) {
         this.name = name;
         this.properties = properties;
         this.hashCode = hashCode;
-        this.air = air;
-        this.waterlogged = waterlogged;
-        this.fluid = fluid;
+        this.air = false;
+        this.waterlogged = false;
+        this.water = false;
+        this.fluid = false;
     }
 
     public static BlockState withoutProperties(final TypedKey<BlockType> name) {
@@ -77,7 +86,7 @@ public final class BlockState {
     static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties, final boolean checkIntern) {
         if (checkIntern) {
             final int hash = 31 * name.hashCode() + properties.hashCode();
-            final BlockState existing = INTERN.get(new BlockState(name, properties, hash, false, false, false)); // safe to pass whatever value for air, waterlogged and fluid as they're discarded in this context
+            final BlockState existing = INTERN.get(new BlockState(name, properties, hash));
             if (existing != null) {
                 return existing;
             }
@@ -103,6 +112,17 @@ public final class BlockState {
         return waterlogged;
     }
 
+    /**
+     * {@return {@code true} if this block is water or holds water}: water itself, a waterlogged
+     * block, or a block that is always under water such as kelp, seagrass or a bubble column
+     */
+    public boolean isWater() {
+        return water;
+    }
+
+    /**
+     * {@return {@code true} if this block {@linkplain #isWater() holds water} or is lava}
+     */
     public boolean isFluid() {
         return fluid;
     }

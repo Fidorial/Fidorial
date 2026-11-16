@@ -155,7 +155,7 @@ public final class RandomPositions {
                     y++;
                 }
                 final BlockState state = BlockView.blockAt(world, x, y, z);
-                if (state == null || BlockView.isWater(state)) {
+                if (state == null || state.isWater()) {
                     continue;
                 }
             }
@@ -173,7 +173,7 @@ public final class RandomPositions {
 
     private static boolean isWater(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState state = BlockView.blockAt(world, x, y, z);
-        return state != null && BlockView.isWater(state);
+        return state != null && state.isWater();
     }
 
     private static boolean isSolid(final ServerWorld world, final int x, final int y, final int z) {

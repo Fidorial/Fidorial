@@ -13,7 +13,6 @@ import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.Chunk;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockType;
-import fr.fidorial.world.block.data.Waterlogged;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
@@ -59,14 +58,6 @@ public class BlockView {
     }
 
     /**
-     * {@return {@code true} if a block is water or holds water}
-     */
-    public static boolean isWater(final BlockState state) {
-        return state.name().equals(BlockTypeKeys.WATER)
-                || (state.data() instanceof final Waterlogged waterlogged && waterlogged.isWaterlogged());
-    }
-
-    /**
      * {@return the height the water of a block reaches, {@link Double#NaN} if it holds none}
      *
      * <p>As in Vanilla, a source fills 8/9 of its block, flowing water loses 1/9 per level, and water
@@ -74,11 +65,11 @@ public class BlockView {
      */
     public static double waterSurface(final ServerWorld world, final int x, final int y, final int z) {
         final BlockState state = blockAt(world, x, y, z);
-        if (state == null || !isWater(state)) {
+        if (state == null || !state.isWater()) {
             return Double.NaN;
         }
         final BlockState above = blockAt(world, x, y + 1, z);
-        if (above != null && isWater(above)) {
+        if (above != null && above.isWater()) {
             return y + 1.0;
         }
         int level = 0;
