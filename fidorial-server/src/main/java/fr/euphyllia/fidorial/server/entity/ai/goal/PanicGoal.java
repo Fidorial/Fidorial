@@ -95,6 +95,9 @@ public final class PanicGoal implements Goal {
         running = true;
         final Position target = destination;
         if (target != null) {
+            // the goal it interrupts may leave its path behind, or one on its way: neither is to be
+            // followed, nor to make the flight wait
+            mob.navigation().stop();
             mob.navigation().moveTo(mob.location(), target, speed);
         }
     }

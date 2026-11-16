@@ -107,7 +107,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
                                     final Location location, final float maxHealth) {
         super(entityId, uuid, type, location, maxHealth);
-        this.navigation = new Navigation(serverWorld());
+        this.navigation = new Navigation(serverWorld(), this::halfWidth);
     }
 
     @Override
@@ -413,8 +413,11 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             if (canSwimUp) {
                 // too high a bank to step onto: swim up along it
                 velocityY += SWIM_UP_VELOCITY;
-            } else if (onGround && jumpDelay == 0 && !isBoxBlocked(x, y + 1.0, z)) {
-                // too high a block to step onto: jump onto it, if there is room above
+            } else if (onGround && jumpDelay == 0 && waypoint != null && waypoint.y() > y
+                    && !isBoxBlocked(x, y + 1.0, z)) {
+                // too high a block to step onto: jump onto it, if there is room above. Only on the
+                // way up: against the corner of a wall at its own height, a mob slides along it
+                // rather than hopping on the spot
                 velocityY = JUMP_VELOCITY;
                 jumpDelay = JUMP_DELAY_TICKS;
                 moved = collide(x, y, z, velocityX, velocityY, velocityZ, stepHeight(), onGround);

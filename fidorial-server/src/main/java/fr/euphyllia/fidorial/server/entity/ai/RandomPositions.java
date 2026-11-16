@@ -147,7 +147,8 @@ public final class RandomPositions {
                     || !(isSolid(world, x, y - 1, z) || (overWater && isWater(world, x, y - 1, z)))) {
                 continue;
             }
-            if (overWater && !BlockView.isPassable(world, x, y, z)) {
+            // a spot inside a block is nowhere to go; one on land is moved up out of it below
+            if (!landOnly && !BlockView.isPassable(world, x, y, z)) {
                 continue;
             }
             if (landOnly) {

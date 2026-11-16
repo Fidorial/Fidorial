@@ -91,6 +91,8 @@ public final class AvoidEntityGoal<T extends AbstractLivingEntity> implements Go
     public void start() {
         final BlockPosition spot = refuge;
         if (spot != null) {
+            // as a mob that panics: what it was doing does not hold it back
+            mob.navigation().stop();
             mob.navigation().moveTo(mob.location(), spot, mob.movementSpeed() * walkSpeedModifier);
         }
     }

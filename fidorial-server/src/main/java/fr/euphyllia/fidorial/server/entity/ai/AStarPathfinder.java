@@ -17,6 +17,22 @@ import java.util.PriorityQueue;
 public class AStarPathfinder {
 
     private static final int[][] CARDINALS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    /**
+     * The diagonals, each followed by the two of the {@link #CARDINALS} it passes between.
+     */
+    private static final int[][] DIAGONALS = {{1, 1, 0, 2}, {1, -1, 0, 3}, {-1, 1, 1, 2}, {-1, -1, 1, 3}};
+
+    /**
+     * How much the distance left to the goal weighs against the distance walked: the search heads
+     * for the goal rather than for the shortest way there.
+     */
+    private static final double HEURISTIC_WEIGHT = 1.5;
+
+    /**
+     * Half the width paths are made for when the mob is not known: that of a zombie.
+     */
+    private static final double DEFAULT_HALF_WIDTH = 0.3;
     private static final int MAX_DROP = 3;
 
     /**
@@ -52,32 +68,46 @@ public class AStarPathfinder {
         return find(world, start, goal, maxNodes, penalty, false);
     }
 
-    /**
-     * Looks for a path between two blocks.
-     *
-     * @param swims {@code true} for a mob that swims as well as it walks: its path then also goes
-     *              through the water, up, down and across, from one block of water to the next
-     */
     public static @Nullable Path find(final ServerWorld world, final Position start, final Position goal, final int maxNodes,
                                       @Nullable final PathPenalty penalty, final boolean swims) {
+        return find(world, start, goal, maxNodes, penalty, swims, DEFAULT_HALF_WIDTH);
+    }
+
+    /**
+     * Looks for a path between two blocks: from a block to one of the eight around it, the distance
+     * walked counting for what it is, a diagonal for more than a side.
+     *
+     * @param swims     {@code true} for a mob that swims as well as it walks: its path then also goes
+     *              through the water, up, down and across, from one block of water to the next
+     * @param halfWidth half the width of the mob; one wider than a block is stricter about diagonals
+     */
+    public static @Nullable Path find(final ServerWorld world, final Position start, final Position goal, final int maxNodes,
+                                      @Nullable final PathPenalty penalty, final boolean swims, final double halfWidth) {
         final Position from = snap(world, start, swims);
-        Position to = snap(world, goal, swims);
+        Position snappedGoal = snap(world, goal, swims);
         if (from == null) {
             return null;
         }
-        if (to == null) {
-            to = goal;
+        if (snappedGoal == null) {
+            snappedGoal = goal;
         }
-        if (from.equals(to)) {
+        // the goal is a block: where a player stands is seldom a whole number, and no node is ever there
+        final BlockPosition to = Position.block(snappedGoal.blockX(), snappedGoal.blockY(), snappedGoal.blockZ());
+        if (from.blockX() == to.blockX() && from.blockY() == to.blockY() && from.blockZ() == to.blockZ()) {
             return null;
         }
+        final boolean wide = halfWidth > 0.5;
 
         final Long2ObjectOpenHashMap<Node> nodes = new Long2ObjectOpenHashMap<>();
         final PriorityQueue<Node> open = new PriorityQueue<>();
 
-        final Node startNode = new Node(from.blockX(), from.blockY(), from.blockZ(), null, 0.0, heuristic(from, to));
+        final Node startNode = new Node(from.blockX(), from.blockY(), from.blockZ(), null, 0.0,
+                heuristic(from.blockX(), from.blockY(), from.blockZ(), to));
         nodes.put(pack(from.blockX(), from.blockY(), from.blockZ()), startNode);
         open.add(startNode);
+        // where the mob gets to on each side of a node, and what it costs it to be there
+        final int[] sideHeights = new int[CARDINALS.length];
+        final double[] sideCosts = new double[CARDINALS.length];
 
         Node best = startNode;
         int visited = 0;
@@ -93,19 +123,34 @@ public class AStarPathfinder {
             if (current.h < best.h) {
                 best = current;
             }
-            if (current.x == to.x() && current.y == to.y() && current.z == to.z()) {
+            if (current.x == to.blockX() && current.y == to.blockY() && current.z == to.blockZ()) {
                 return buildPath(current, true);
             }
 
-            for (final int[] dir : CARDINALS) {
-                final int nx = current.x + dir[0];
-                final int nz = current.z + dir[1];
+            for (int side = 0; side < CARDINALS.length; side++) {
+                final int nx = current.x + CARDINALS[side][0];
+                final int nz = current.z + CARDINALS[side][1];
+                final int ny = stepHeight(world, current.x, current.y, current.z, nx, nz);
+                sideHeights[side] = ny;
+                sideCosts[side] = ny == Integer.MIN_VALUE
+                        ? PathPenalty.BLOCKED
+                        : relax(world, nodes, open, current, nx, ny, nz, to, penalty);
+                if (swims && ny != current.y && isSwimNode(world, nx, current.y, nz)) {
+                    relax(world, nodes, open, current, nx, current.y, nz, to, penalty);
+                }
+            }
+            for (final int[] diagonal : DIAGONALS) {
+                // a mob only cuts a corner it could walk around on either side without going up: not
+                // that of a wall, of a step, nor of what it keeps out of
+                if (!isOpenSide(sideHeights[diagonal[2]], sideCosts[diagonal[2]], current.y, wide)
+                        || !isOpenSide(sideHeights[diagonal[3]], sideCosts[diagonal[3]], current.y, wide)) {
+                    continue;
+                }
+                final int nx = current.x + diagonal[0];
+                final int nz = current.z + diagonal[1];
                 final int ny = stepHeight(world, current.x, current.y, current.z, nx, nz);
                 if (ny != Integer.MIN_VALUE) {
                     relax(world, nodes, open, current, nx, ny, nz, to, penalty);
-                }
-                if (swims && ny != current.y && isSwimNode(world, nx, current.y, nz)) {
-                    relax(world, nodes, open, current, nx, current.y, nz, to, penalty);
                 }
             }
             if (swims) {
@@ -121,27 +166,51 @@ public class AStarPathfinder {
         return best == startNode ? null : buildPath(best, false);
     }
 
-    private static void relax(final ServerWorld world, final Long2ObjectOpenHashMap<Node> nodes, final PriorityQueue<Node> open,
-                              final Node current, final int nx, final int ny, final int nz, final Position to,
-                              @Nullable final PathPenalty penalty) {
+    /**
+     * {@return {@code true} if a mob may cut the corner of a node on one of its sides}: it gets there,
+     * no higher than where it stands, and the block is none it keeps out of; a mob wider than a block
+     * does not cut the corner of a block that costs it anything
+     *
+     * @param height where the mob gets to on that side, {@link Integer#MIN_VALUE} for nowhere
+     * @param cost   what the block there costs it, {@link PathPenalty#BLOCKED} if it keeps out
+     */
+    private static boolean isOpenSide(final int height, final double cost, final int level, final boolean wide) {
+        return height != Integer.MIN_VALUE && height <= level && cost < PathPenalty.BLOCKED && !(wide && cost > 0.0);
+    }
+
+    /**
+     * Counts the way to a node through another, if it is the shortest known.
+     *
+     * @return what the node costs the mob beyond the distance, {@link PathPenalty#BLOCKED} if the mob
+     *         keeps out of it
+     */
+    private static double relax(final ServerWorld world, final Long2ObjectOpenHashMap<Node> nodes, final PriorityQueue<Node> open,
+                                final Node current, final int nx, final int ny, final int nz, final BlockPosition to,
+                                @Nullable final PathPenalty penalty) {
         final double extra = penalty == null ? 0.0 : penalty.cost(world, nx, ny, nz);
         if (extra == PathPenalty.BLOCKED) {
-            return;
+            return extra;
         }
-        final double moveCost = 1.0 + verticalCost(ny - current.y) + extra;
-        final double g = current.g + moveCost;
+        // a step costs the distance between the two nodes: more across a corner, up or down
+        final int dx = nx - current.x;
+        final int dy = ny - current.y;
+        final int dz = nz - current.z;
+        final double g = current.g + Math.sqrt(dx * dx + dy * dy + dz * dz) + extra;
 
         final long key = pack(nx, ny, nz);
         Node neighbor = nodes.get(key);
         if (neighbor == null) {
-            neighbor = new Node(nx, ny, nz, current, g, heuristic(Position.block(nx, ny, nz), to));
+            neighbor = new Node(nx, ny, nz, current, g, heuristic(nx, ny, nz, to));
             nodes.put(key, neighbor);
             open.add(neighbor);
         } else if (!neighbor.closed && g < neighbor.g) {
+            // taken out before its cost changes: the queue does not notice a node that moves up by itself
+            open.remove(neighbor);
             neighbor.g = g;
             neighbor.parent = current;
-            open.add(neighbor); // re-insertion, l'ancienne entree sera ignoree via closed/g
+            open.add(neighbor);
         }
+        return extra;
     }
 
     /**
@@ -255,18 +324,11 @@ public class AStarPathfinder {
         return null;
     }
 
-    private static double verticalCost(final int dy) {
-        if (dy > 0) {
-            return 0.5;
-        }
-        return dy < 0 ? -dy * 0.1 : 0.0;
-    }
-
-    private static double heuristic(final Position a, final Position b) {
-        final double dx = a.x() - b.x();
-        final double dy = a.y() - b.y();
-        final double dz = a.z() - b.z();
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
+    private static double heuristic(final int x, final int y, final int z, final BlockPosition goal) {
+        final double dx = x - goal.blockX();
+        final double dy = y - goal.blockY();
+        final double dz = z - goal.blockZ();
+        return HEURISTIC_WEIGHT * Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     private static @Nullable Path buildPath(final Node end, final boolean reachedGoal) {
