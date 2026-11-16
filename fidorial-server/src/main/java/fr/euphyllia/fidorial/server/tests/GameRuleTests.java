@@ -141,7 +141,7 @@ public final class GameRuleTests {
         final Subscription subscription = FidorialServer.getInstance().events().subscribe(GameRuleChangeEvent.class, event -> {
             if (event.rule().key().equals(GameRuleKeys.SPAWN_WARDENS)) {
                 event.setCancelled(true);
-            } else if (event.rule().key().equals(GameRuleKeys.RANDOM_TICK_SPEED)) {
+            } else if (event.rule().key().equals(GameRuleKeys.MAX_COMMAND_FORKS)) {
                 event.setNewValue(Math.min(Integer.parseInt(event.newValue()), 20));
             }
         });
@@ -149,18 +149,18 @@ public final class GameRuleTests {
             helper.assertTrue(!rules.setBoolean(GameRuleKeys.SPAWN_WARDENS, false), "A cancelled change should report no change");
             helper.assertTrue(rules.getBoolean(GameRuleKeys.SPAWN_WARDENS), "A cancelled change should leave the rule untouched");
 
-            helper.assertTrue(rules.setInt(GameRuleKeys.RANDOM_TICK_SPEED, 1_000), "An altered change should still apply");
-            helper.assertTrue(rules.getInt(GameRuleKeys.RANDOM_TICK_SPEED) == 20, "Expected the value set by the listener");
+            helper.assertTrue(rules.setInt(GameRuleKeys.MAX_COMMAND_FORKS, 1_000), "An altered change should still apply");
+            helper.assertTrue(rules.getInt(GameRuleKeys.MAX_COMMAND_FORKS) == 20, "Expected the value set by the listener");
         } finally {
             subscription.unsubscribe();
             rules.reset(GameRuleKeys.SPAWN_WARDENS);
-            rules.reset(GameRuleKeys.RANDOM_TICK_SPEED);
+            rules.reset(GameRuleKeys.MAX_COMMAND_FORKS);
         }
     }
 
     @ScenarioTest(timeoutTicks = 40)
     public static void fallDamageRuleProtectsPlayers(final ScenarioTestHelper helper) {
-        final FidorialGameRules rules = FidorialServer.getInstance().worlds().gameRules();
+        final WorldGameRules rules = helper.world().gameRules();
         final Player player = helper.summonPlayer("NoFallDamage", Location.of(helper.world(), 0.5, 65, 0.5, 0f, 0f), GameMode.SURVIVAL);
         final AtomicBoolean hurtWhileDisabled = new AtomicBoolean(true);
         final AtomicBoolean hurtWhileEnabled = new AtomicBoolean(false);
@@ -171,7 +171,7 @@ public final class GameRuleTests {
                     try {
                         hurtWhileDisabled.set(player.damage(DamageSource.fall(), 4f));
                     } finally {
-                        rules.reset(GameRuleKeys.FALL_DAMAGE);
+                        rules.removeOverride(GameRuleKeys.FALL_DAMAGE);
                     }
                     hurtWhileEnabled.set(player.damage(DamageSource.fall(), 4f));
                 })
@@ -195,23 +195,23 @@ public final class GameRuleTests {
         final WorldGameRules otherRules = other.gameRules();
         final List<GameRuleChangeEvent> seen = new ArrayList<>();
         final Subscription subscription = FidorialServer.getInstance().events().subscribe(GameRuleChangeEvent.class, event -> {
-            if (event.rule().key().equals(GameRuleKeys.SPAWN_PATROLS)) {
+            if (event.rule().key().equals(GameRuleKeys.SPAWN_WANDERING_TRADERS)) {
                 seen.add(event);
             }
         });
         try {
-            helper.assertTrue(otherRules.setBoolean(GameRuleKeys.SPAWN_PATROLS, false), "Expected the override to be stored");
-            helper.assertTrue(otherRules.isOverridden(GameRuleKeys.SPAWN_PATROLS), "Expected the world to override spawn_patrols");
-            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "Expected the override in effect in the world");
-            helper.assertTrue(base.getBoolean(GameRuleKeys.SPAWN_PATROLS), "An override must not change the base value");
+            helper.assertTrue(otherRules.setBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS, false), "Expected the override to be stored");
+            helper.assertTrue(otherRules.isOverridden(GameRuleKeys.SPAWN_WANDERING_TRADERS), "Expected the world to override spawn_wandering_traders");
+            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS), "Expected the override in effect in the world");
+            helper.assertTrue(base.getBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS), "An override must not change the base value");
 
-            base.setBoolean(GameRuleKeys.SPAWN_PATROLS, false);
-            base.setBoolean(GameRuleKeys.SPAWN_PATROLS, true);
-            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "A base change must not reach an overriding world");
+            base.setBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS, false);
+            base.setBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS, true);
+            helper.assertTrue(!otherRules.getBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS), "A base change must not reach an overriding world");
 
-            helper.assertTrue(otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS), "Expected the override to be removed");
-            helper.assertTrue(otherRules.getBoolean(GameRuleKeys.SPAWN_PATROLS), "Without override, the world follows the base value");
-            helper.assertTrue(!otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS), "There is no override left to remove");
+            helper.assertTrue(otherRules.removeOverride(GameRuleKeys.SPAWN_WANDERING_TRADERS), "Expected the override to be removed");
+            helper.assertTrue(otherRules.getBoolean(GameRuleKeys.SPAWN_WANDERING_TRADERS), "Without override, the world follows the base value");
+            helper.assertTrue(!otherRules.removeOverride(GameRuleKeys.SPAWN_WANDERING_TRADERS), "There is no override left to remove");
 
             helper.assertTrue(seen.size() == 4, "Expected 4 events (override, 2 base changes, removal), got " + seen.size());
             helper.assertTrue(seen.get(0).world().isPresent() && seen.get(1).world().isEmpty(),
@@ -220,8 +220,8 @@ public final class GameRuleTests {
                     "The removal event should announce the inherited value");
         } finally {
             subscription.unsubscribe();
-            otherRules.removeOverride(GameRuleKeys.SPAWN_PATROLS);
-            base.reset(GameRuleKeys.SPAWN_PATROLS);
+            otherRules.removeOverride(GameRuleKeys.SPAWN_WANDERING_TRADERS);
+            base.reset(GameRuleKeys.SPAWN_WANDERING_TRADERS);
         }
     }
 
