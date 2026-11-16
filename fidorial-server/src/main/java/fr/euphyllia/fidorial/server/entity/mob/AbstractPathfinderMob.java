@@ -2,17 +2,20 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
+import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.ai.goal.NearestAttackableTargetGoal;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAnimatePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 
 import java.util.List;
@@ -54,6 +57,12 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double SWIM_ACCELERATION = 0.01;
     private static final double SWIM_DRAG = 0.9;
     private static final int JUMP_DELAY_TICKS = 10;
+    /**
+     * On a ladder or up a wall a mob moves at most this fast across and down, and goes up at
+     * {@code CLIMB_UP_VELOCITY} before gravity while it pushes against the wall.
+     */
+    private static final double CLIMB_SPEED = 0.15;
+    private static final double CLIMB_UP_VELOCITY = 0.2;
     private static final double MAX_FALL_SPEED = 3.0;
     private static final double MIN_VELOCITY = 0.003;
     /**
@@ -86,6 +95,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private double stepDistance;
     private double swimSpeed;
     private int jumpDelay;
+    private boolean horizontalCollision;
 
     protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
                                     final Location location, final float maxHealth) {
@@ -313,8 +323,8 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         }
 
         // a goal that sets the speed every tick wins over the speed asked along the path
-        final double speed = moveSpeed() > 0.0 ? moveSpeed() : navigation.speed();
-        final var waypoint = navigation.currentWaypoint();
+        final double speed = moveSpeed() > 0.0 ? moveSpeed() : navigation.headingSpeed();
+        final var waypoint = navigation.heading();
         boolean walking = false;
         if (swimming) {
             if (risesWhileSwimming()) {
@@ -373,6 +383,13 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             velocityZ += Math.cos(radians) * acceleration;
         }
 
+        if (!inWater && onClimbable(x, y, z)) {
+            // on a ladder or up a wall a mob moves slowly across and slides down slowly
+            velocityX = Math.clamp(velocityX, -CLIMB_SPEED, CLIMB_SPEED);
+            velocityZ = Math.clamp(velocityZ, -CLIMB_SPEED, CLIMB_SPEED);
+            velocityY = Math.max(velocityY, -CLIMB_SPEED);
+        }
+
         if (velocityY < 0.0 && !onGround) {
             velocityY *= fallDrag();
         }
@@ -408,6 +425,12 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double newX = x + moved.x();
         final double newY = y + moved.y();
         final double newZ = z + moved.z();
+
+        horizontalCollision = blockedHorizontally;
+        if (blockedHorizontally && onClimbable(newX, newY, newZ)) {
+            // against a wall it may climb, a mob goes up
+            velocityY = CLIMB_UP_VELOCITY;
+        }
 
         if (swimming && waterDepth > eyeHeight()) {
             // under water, a mob that swims neither sinks nor floats: it only slows down
@@ -459,6 +482,26 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
+    }
+
+    /**
+     * {@return {@code true} if this mob climbs where it stands}: as any living entity, in a block of
+     * the {@code climbable} tag such as a ladder or vines
+     *
+     * @param x where the mob stands
+     * @param y where the mob stands
+     * @param z where the mob stands
+     */
+    protected boolean onClimbable(final double x, final double y, final double z) {
+        final BlockState state = BlockView.blockAt(serverWorld(), (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+        return state != null && state.isTagged(BlockTypeTagKeys.CLIMBABLE);
+    }
+
+    /**
+     * {@return {@code true} if a block stopped this mob across during its last move}
+     */
+    protected final boolean horizontalCollision() {
+        return horizontalCollision;
     }
 
     /**

@@ -48,6 +48,14 @@ public class Navigation implements Navigator {
     private double speed;
     private boolean pathFailed;
 
+    /**
+     * For a mob that climbs walls, where it was last sent, the speed asked, and how close to it it
+     * stops walking straight there once its path ends.
+     */
+    private double climberWidth;
+    private @Nullable BlockPosition climbGoal;
+    private double climbSpeed;
+
     public Navigation(final ServerWorld world) {
         this.world = world;
     }
@@ -64,6 +72,17 @@ public class Navigation implements Navigator {
     }
 
     /**
+     * Makes this the navigation of a mob that climbs walls: once its path ends, or while there is
+     * none, the mob walks straight to where it was last sent, up the walls in its way, until it is
+     * within its width of it.
+     *
+     * @param width the width of the mob
+     */
+    public void setClimbsWalls(final double width) {
+        this.climberWidth = width;
+    }
+
+    /**
      * Asks for a path to a goal, to be followed at a speed, as vanilla's navigation: the mob keeps
      * that speed until the path ends, whichever goal asked for it.
      *
@@ -71,6 +90,7 @@ public class Navigation implements Navigator {
      * @return {@code false} if the request was dropped, another one being on its way or too recent
      */
     public boolean moveTo(final Location from, final Position goal, final double speed) {
+        aimClimb(goal, speed);
         if (!request(from, goal)) {
             return false;
         }
@@ -95,9 +115,34 @@ public class Navigation implements Navigator {
 
     @Override
     public void moveTo(final Location from, final Position goal) {
+        aimClimb(goal, 0.0);
         if (request(from, goal)) {
             this.speed = 0.0;
         }
+    }
+
+    private void aimClimb(final Position goal, final double speed) {
+        if (climberWidth > 0.0) {
+            climbGoal = Position.block((int) Math.floor(goal.x()), (int) Math.floor(goal.y()), (int) Math.floor(goal.z()));
+            climbSpeed = speed;
+        }
+    }
+
+    /**
+     * {@return where the mob heads for now}: the next point of its path, or, for a mob that
+     * {@linkplain #setClimbsWalls climbs walls} and has no path to follow, where it was last sent;
+     * {@code null} if it heads nowhere
+     */
+    public @Nullable Position heading() {
+        final Position waypoint = currentWaypoint();
+        return waypoint != null || path != null ? waypoint : climbGoal;
+    }
+
+    /**
+     * {@return the speed the mob heads for its {@linkplain #heading() heading} at}
+     */
+    public double headingSpeed() {
+        return path == null && climbGoal != null ? climbSpeed : speed;
     }
 
     /**
@@ -162,6 +207,7 @@ public class Navigation implements Navigator {
             stuckTicks = 0;
         }
         if (path == null) {
+            dropReachedClimbGoal(x, y, z);
             return;
         }
 
@@ -190,6 +236,29 @@ public class Navigation implements Navigator {
             lastDistanceSq = distSq;
             stuckTicks = 0;
         }
+    }
+
+    /**
+     * A mob that climbs walls stops walking straight to where it was sent once it is within its width
+     * of the middle of that block, or of the block at its own height above it.
+     */
+    private void dropReachedClimbGoal(final double x, final double y, final double z) {
+        final BlockPosition goal = climbGoal;
+        if (goal == null) {
+            return;
+        }
+        if (isWithin(goal.blockX(), goal.blockY(), goal.blockZ(), x, y, z)
+                || (y > goal.blockY() && isWithin(goal.blockX(), (int) Math.floor(y), goal.blockZ(), x, y, z))) {
+            climbGoal = null;
+        }
+    }
+
+    private boolean isWithin(final int blockX, final int blockY, final int blockZ,
+                             final double x, final double y, final double z) {
+        final double dx = blockX + 0.5 - x;
+        final double dy = blockY + 0.5 - y;
+        final double dz = blockZ + 0.5 - z;
+        return dx * dx + dy * dy + dz * dz < climberWidth * climberWidth;
     }
 
     @Override

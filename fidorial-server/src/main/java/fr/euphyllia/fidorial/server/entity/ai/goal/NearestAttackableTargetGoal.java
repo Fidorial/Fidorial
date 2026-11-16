@@ -8,13 +8,14 @@ import fr.fidorial.math.Location;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 /**
  * Makes a mob go after the nearest living entity of a kind within its
- * {@linkplain AbstractPathfinderMob#followRange() follow range}, as vanilla's
- * {@code NearestAttackableTargetGoal}. The mob looks around once in a while rather than every tick,
- * and notices from closer an entity that {@linkplain Targeting#visibility hides}.
+ * {@linkplain AbstractPathfinderMob#followRange() follow range}. The mob
+ * looks around once in a while rather than every tick, and notices from
+ * closer an entity that {@linkplain Targeting#visibility hides}.
  *
  * @param <T> the kind of entity the mob goes after
  */
@@ -29,6 +30,7 @@ public final class NearestAttackableTargetGoal<T extends AbstractLivingEntity> e
     private final int interval;
     private final boolean mustSee;
     private final @Nullable Predicate<T> selector;
+    private BooleanSupplier condition = () -> true;
     private @Nullable AbstractLivingEntity found;
 
     /**
@@ -54,8 +56,22 @@ public final class NearestAttackableTargetGoal<T extends AbstractLivingEntity> e
         this.selector = selector;
     }
 
+    /**
+     * Makes the mob look for a target only while a condition holds, such as a spider in the dark;
+     * a target it already has is kept whatever the condition.
+     *
+     * @return this goal
+     */
+    public NearestAttackableTargetGoal<T> onlyWhen(final BooleanSupplier condition) {
+        this.condition = condition;
+        return this;
+    }
+
     @Override
     public boolean canStart() {
+        if (!condition.getAsBoolean()) {
+            return false;
+        }
         if (interval > 0 && ThreadLocalRandom.current().nextInt(interval) != 0) {
             return false;
         }

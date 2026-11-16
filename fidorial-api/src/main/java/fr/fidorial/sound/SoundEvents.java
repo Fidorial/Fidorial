@@ -814,6 +814,35 @@ public final class SoundEvents {
      */
     public static final Sound.Type PLAYER_DEATH = of("entity.player.death");
 
+    // --- Spider ---
+    /**
+     * The {@code minecraft:entity.spider.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SPIDER_AMBIENT = of("entity.spider.ambient");
+
+    /**
+     * The {@code minecraft:entity.spider.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SPIDER_HURT = of("entity.spider.hurt");
+
+    /**
+     * The {@code minecraft:entity.spider.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SPIDER_DEATH = of("entity.spider.death");
+
+    /**
+     * The {@code minecraft:entity.spider.step} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SPIDER_STEP = of("entity.spider.step");
+
     private SoundEvents() {
     }
 
