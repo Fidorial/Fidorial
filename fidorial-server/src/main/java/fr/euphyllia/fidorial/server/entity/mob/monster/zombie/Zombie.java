@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.entity.mob.monster.zombie;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
-import fr.euphyllia.fidorial.server.entity.ai.Brightness;
 import fr.euphyllia.fidorial.server.entity.ai.goal.BreakDoorGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.HurtByTargetGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.LookAtPlayerGoal;
@@ -39,7 +38,6 @@ import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.ChunkPos;
-import fr.fidorial.world.dimension.IntProvider;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.sound.Sound;
@@ -217,6 +215,14 @@ public class Zombie extends AbstractMonster {
             }
             setCanBreakDoors(true);
         }
+    }
+
+    /**
+     * {@return {@code true} if zombies may spawn on a block}: as any monster, on solid ground in the
+     * dark
+     */
+    public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
+        return checkMonsterSpawnRules(world, x, y, z);
     }
 
     @Override
@@ -616,32 +622,6 @@ public class Zombie extends AbstractMonster {
             }
         }
         return true;
-    }
-
-    /**
-     * {@return {@code true} if a block is dark enough for a monster to spawn} : the more sky light
-     * it gets the less likely, never in the light of a block where the dimension forbids forbids
-     * it, and in a light that does not go above what the dimension draws
-     */
-    public static boolean isDarkEnoughToSpawn(final ServerWorld world, final int x, final int y, final int z) {
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (world.dimensionType().hasSkylight() && world.skyLightAt(x, y, z) > random.nextInt(32)) {
-            return false;
-        }
-        final int blockLightLimit = world.dimensionType().monsterSpawnBlockLightLimit();
-        if (blockLightLimit < 15 && world.blockLightAt(x, y, z) > blockLightLimit) {
-            return false;
-        }
-        return Brightness.light(world, x, y, z) <= sample(world.dimensionType().monsterSpawnLightLevel(), random);
-    }
-
-    private static int sample(final IntProvider provider, final ThreadLocalRandom random) {
-        return switch (provider) {
-            case final IntProvider.Constant constant -> constant.value();
-            case final IntProvider.Uniform uniform ->
-                    random.nextInt(uniform.minInclusive(), uniform.maxInclusive() + 1);
-            default -> 0;
-        };
     }
 
     /**

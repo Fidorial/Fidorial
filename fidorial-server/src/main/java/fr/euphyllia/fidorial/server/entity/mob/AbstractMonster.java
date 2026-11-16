@@ -1,12 +1,15 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.entity.Category;
+import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.Brightness;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.world.dimension.IntProvider;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -32,9 +35,59 @@ public abstract class AbstractMonster extends AbstractPathfinderMob implements C
     private static final int DESPAWN_CHANCE = 800;
     private static final float BRIGHT = 0.5f;
 
+    /**
+     * How much light the sky loses under a thunderstorm when monsters look for a place to spawn.
+     */
+    private static final int THUNDER_SKY_DARKENING = 10;
+
     protected AbstractMonster(final int entityId, final UUID uuid, final EntityType type,
                               final Location location, final float maxHealth) {
         super(entityId, uuid, type, location, maxHealth);
+    }
+
+    /**
+     * {@return {@code true} if a monster may spawn on a block}: on solid ground, where it is
+     * {@linkplain #isDarkEnoughToSpawn dark enough}
+     */
+    public static boolean checkMonsterSpawnRules(final ServerWorld world, final int x, final int y, final int z) {
+        return BlockView.isSolidGround(world, x, y - 1, z) && isDarkEnoughToSpawn(world, x, y, z);
+    }
+
+    /**
+     * {@return {@code true} if a monster of the surface may spawn on a block}: where
+     * {@linkplain #checkMonsterSpawnRules any monster may}, under the open sky
+     */
+    public static boolean checkSurfaceMonsterSpawnRules(final ServerWorld world, final int x, final int y, final int z) {
+        return checkMonsterSpawnRules(world, x, y, z) && Brightness.canSeeSky(world, x, y, z);
+    }
+
+    /**
+     * {@return {@code true} if a block is dark enough for a monster to spawn}: the more sky light it
+     * gets the less likely, never in the light of a block where the dimension forbids it, and in a
+     * light that does not go above what the dimension draws. A thunderstorm counts as the night.
+     */
+    public static boolean isDarkEnoughToSpawn(final ServerWorld world, final int x, final int y, final int z) {
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (world.dimensionType().hasSkylight() && world.skyLightAt(x, y, z) > random.nextInt(32)) {
+            return false;
+        }
+        final int blockLightLimit = world.dimensionType().monsterSpawnBlockLightLimit();
+        if (blockLightLimit < 15 && world.blockLightAt(x, y, z) > blockLightLimit) {
+            return false;
+        }
+        final int light = world.weather().isThundering()
+                ? Brightness.light(world, x, y, z, THUNDER_SKY_DARKENING)
+                : Brightness.light(world, x, y, z);
+        return light <= sample(world.dimensionType().monsterSpawnLightLevel(), random);
+    }
+
+    private static int sample(final IntProvider provider, final ThreadLocalRandom random) {
+        return switch (provider) {
+            case final IntProvider.Constant constant -> constant.value();
+            case final IntProvider.Uniform uniform ->
+                    random.nextInt(uniform.minInclusive(), uniform.maxInclusive() + 1);
+            default -> 0;
+        };
     }
 
     @Override

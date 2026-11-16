@@ -60,14 +60,23 @@ public final class Brightness {
      * and of what the sky gives right now
      */
     public static int light(final ServerWorld world, final int x, final int y, final int z) {
+        return light(world, x, y, z, skyDarkening(world));
+    }
+
+    /**
+     * {@return the light of a block, from 0 to 15, were the sky to lose a given share of its light}
+     *
+     * @param skyDarkening how much light the sky loses, from 0 to 15
+     */
+    public static int light(final ServerWorld world, final int x, final int y, final int z, final int skyDarkening) {
         if (!isLightKnown(world, x, z)) {
-            return world.dimensionType().hasSkylight() ? MAX_LIGHT - skyDarkening(world) : 0;
+            return world.dimensionType().hasSkylight() ? MAX_LIGHT - skyDarkening : 0;
         }
         final int block = world.blockLightAt(x, y, z);
         if (block >= MAX_LIGHT || !world.dimensionType().hasSkylight()) {
             return block;
         }
-        return Math.max(block, world.skyLightAt(x, y, z) - skyDarkening(world));
+        return Math.max(block, world.skyLightAt(x, y, z) - skyDarkening);
     }
 
     /**
