@@ -68,7 +68,7 @@ public final class Drowned extends Zombie {
         goals.add(new DrownedAttackGoal(this, 2, 1.0, false));
         goals.add(new DrownedGoToBeachGoal(this, 5, 1.0));
         goals.add(new DrownedSwimUpGoal(this, 6, 1.0));
-        goals.add(new RandomStrollGoal(this, 7, this::movementSpeed, true));
+        goals.add(new RandomStrollGoal(this, 7, this::movementSpeed, RandomStrollGoal.Terrain.WATER_TOO));
         goals.add(new HurtByTargetGoal(this, 1).ignoringDamageFrom(Drowned.class).alertOthers(ZombifiedPiglin.class));
         goals.add(new NearestAttackableTargetGoal<>(this, 2, ServerPlayer.class, 10, true, this::okTarget));
         goals.add(new NearestAttackableTargetGoal<>(this, 3, Villager.class, false));

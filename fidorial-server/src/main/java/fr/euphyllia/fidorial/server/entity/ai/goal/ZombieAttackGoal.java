@@ -17,6 +17,14 @@ public class ZombieAttackGoal extends MeleeAttackGoal {
         super(mob, priority, speedModifier, followsUnseenTarget);
     }
 
+    /**
+     * @param attackInterval how many ticks the mob waits between two blows
+     */
+    public ZombieAttackGoal(final AbstractPathfinderMob mob, final int priority, final double speedModifier,
+                            final boolean followsUnseenTarget, final int attackInterval) {
+        super(mob, priority, speedModifier, followsUnseenTarget, attackInterval);
+    }
+
     @Override
     public void start() {
         super.start();

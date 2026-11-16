@@ -27,7 +27,7 @@ public final class RandomStrollGoal implements Goal {
     private final AbstractPathfinderMob mob;
     private final int priority;
     private final DoubleSupplier speed;
-    private final boolean amphibious;
+    private final Terrain terrain;
     private @Nullable Position destination;
 
     /**
@@ -42,21 +42,38 @@ public final class RandomStrollGoal implements Goal {
      *              stroll: for a mob whose speed changes, as a zombie turning into a baby
      */
     public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final DoubleSupplier speed) {
-        this(mob, priority, speed, false);
+        this(mob, priority, speed, Terrain.LAND);
     }
 
     /**
-     * @param speed      the movement speed of the mob times the speed modifier of the goal, asked
-     *                   for at each stroll
-     * @param amphibious {@code true} for a mob at home in the water, which strolls to the water as
-     *                   to the land instead of keeping out of it
+     * @param speed   the movement speed of the mob times the speed modifier of the goal, asked for
+     *                at each stroll
+     * @param terrain where the mob strolls to
      */
     public RandomStrollGoal(final AbstractPathfinderMob mob, final int priority, final DoubleSupplier speed,
-                            final boolean amphibious) {
+                            final Terrain terrain) {
         this.mob = mob;
         this.priority = priority;
         this.speed = speed;
-        this.amphibious = amphibious;
+        this.terrain = terrain;
+    }
+
+    /**
+     * Where a mob strolls to.
+     */
+    public enum Terrain {
+        /**
+         * Solid ground out of the water; a mob in the water looks for the shore from further away.
+         */
+        LAND,
+        /**
+         * Any solid ground, under water or not.
+         */
+        ANY_GROUND,
+        /**
+         * The ground or anywhere in the water, for a mob at home in it.
+         */
+        WATER_TOO
     }
 
     @Override
@@ -77,13 +94,13 @@ public final class RandomStrollGoal implements Goal {
         if (ThreadLocalRandom.current().nextInt(INTERVAL) != 0) {
             return false;
         }
-        if (amphibious) {
-            destination = RandomPositions.amphibious(mob, HORIZONTAL, VERTICAL);
-        } else {
-            destination = mob.isInWater()
+        destination = switch (terrain) {
+            case WATER_TOO -> RandomPositions.amphibious(mob, HORIZONTAL, VERTICAL);
+            case ANY_GROUND -> RandomPositions.any(mob, HORIZONTAL, VERTICAL);
+            case LAND -> mob.isInWater()
                     ? RandomPositions.land(mob, HORIZONTAL_FROM_WATER, VERTICAL)
                     : RandomPositions.land(mob, HORIZONTAL, VERTICAL);
-        }
+        };
         return destination != null;
     }
 

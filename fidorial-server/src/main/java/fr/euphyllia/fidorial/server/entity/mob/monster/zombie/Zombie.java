@@ -308,8 +308,27 @@ public class Zombie extends AbstractMonster {
     }
 
     @Override
-    public double movementSpeed() {
-        return baby ? MOVEMENT_SPEED * (1.0 + BABY_SPEED_BONUS) : MOVEMENT_SPEED;
+    public final double movementSpeed() {
+        return baby ? baseMovementSpeed() * (1.0 + BABY_SPEED_BONUS) : baseMovementSpeed();
+    }
+
+    /**
+     * {@return the movement speed of an adult of this kind of zombie}
+     */
+    protected double baseMovementSpeed() {
+        return MOVEMENT_SPEED;
+    }
+
+    /**
+     * Gives this kind of zombie another health than that of the plain zombie; a leader keeps its
+     * share on top of it. The zombie is left at full health.
+     *
+     * @param health the health of this kind of zombie, without any bonus
+     */
+    protected final void setBaseMaxHealth(final float health) {
+        maxHealthAttribute.setBase(health);
+        setMaxHealth((float) maxHealthAttribute.value());
+        setHealth(maxHealth());
     }
 
     @Override

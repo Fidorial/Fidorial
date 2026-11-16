@@ -233,6 +233,18 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     /**
+     * Lives one tick: what hurts it wears off, its effects and its fire run their course, and once
+     * dead it goes away at the end of its death animation. A mob that moves does this in its own
+     * tick; this one is for the mobs that have no behaviour yet.
+     */
+    @Override
+    public void tick(final long currentTick) {
+        if (!isRemoved()) {
+            tickLiving(currentTick);
+        }
+    }
+
+    /**
      * Called when a living entity died of a blow of this mob.
      *
      * @param victim the entity that died

@@ -194,6 +194,15 @@ public class Navigation implements Navigator {
     }
 
     /**
+     * {@return {@code true} if the path being followed stops short of where the mob was sent}: there
+     * is no way to the goal itself
+     */
+    public boolean isGoalOutOfReach() {
+        final Path current = path;
+        return current != null && !current.reachesGoal();
+    }
+
+    /**
      * {@return where the path being followed leads, {@code null} when no path is followed}
      */
     public @Nullable Position destination() {

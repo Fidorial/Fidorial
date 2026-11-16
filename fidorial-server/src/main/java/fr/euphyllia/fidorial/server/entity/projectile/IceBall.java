@@ -23,6 +23,7 @@ import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * The projectile thrown by a frostbite: it deals damage scaling with its speed,
@@ -36,6 +37,7 @@ public final class IceBall extends AbstractEntity {
 
     // Flight of every thrown item (snowball, egg, ...).
     private static final double GRAVITY = 0.03;
+    private static final float BREAK_VOLUME = 0.5f;
     private static final double DRAG = 0.99;
 
     private static final int AIM_ROUNDS = 4;
@@ -66,33 +68,6 @@ public final class IceBall extends AbstractEntity {
         this.velocityZ = velocityZ;
     }
 
-    public static IceBall thrownAt(final int entityId, final Location from, final @Nullable AbstractLivingEntity owner,
-                                   final double targetX, final double targetY, final double targetZ,
-                                   final double speed) {
-        final double dx = targetX - from.x();
-        final double dy = targetY - from.y();
-        final double dz = targetZ - from.z();
-        final double horizontal = Math.sqrt(dx * dx + dz * dz);
-
-        double flightTicks = Math.sqrt(dx * dx + dy * dy + dz * dz) / speed;
-        double aimY = dy;
-        for (int round = 0; round < AIM_ROUNDS; round++) {
-            aimY = dy + GRAVITY * flightTicks * Math.max(0.0, flightTicks - 1.0) / 2.0;
-            final double horizontalSpeed = horizontal * speed / Math.sqrt(dx * dx + aimY * aimY + dz * dz);
-            if (horizontalSpeed < 1.0E-6) {
-                break;
-            }
-            flightTicks = horizontal / horizontalSpeed;
-        }
-
-        final double length = Math.sqrt(dx * dx + aimY * aimY + dz * dz);
-        if (length < 1.0E-6) {
-            return new IceBall(entityId, from, owner, 0.0, 0.0, 0.0);
-        }
-        final double scale = speed / length;
-        return new IceBall(entityId, from, owner, dx * scale, aimY * scale, dz * scale);
-    }
-
     public @Nullable AbstractLivingEntity owner() {
         return owner;
     }
@@ -111,6 +86,12 @@ public final class IceBall extends AbstractEntity {
             server().entities().despawn(this);
             return;
         }
+
+        // A thrown item falls then slows down before it moves, on its first tick as on the others.
+        velocityY -= GRAVITY;
+        velocityX *= DRAG;
+        velocityY *= DRAG;
+        velocityZ *= DRAG;
 
         final Location from = location();
         double x = from.x();
@@ -151,9 +132,6 @@ public final class IceBall extends AbstractEntity {
         }
 
         moveTo(world, from, x, y, z);
-        velocityX *= DRAG;
-        velocityY = velocityY * DRAG - GRAVITY;
-        velocityZ *= DRAG;
     }
 
     /**
@@ -221,7 +199,8 @@ public final class IceBall extends AbstractEntity {
         final Location location = location();
         sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_BREAK));
         sendToTrackers(new ClientboundSoundPacket(
-                Sound.sound(SoundEvents.ICE_BALL_BREAK, soundSource(), 1.0f, 1.0f),
+                Sound.sound(SoundEvents.ICE_BALL_BREAK, soundSource(), BREAK_VOLUME,
+                        0.4f / (ThreadLocalRandom.current().nextFloat() * 0.4f + 0.8f)),
                 location.x(), location.y(), location.z()));
         server().entities().despawn(this);
     }
