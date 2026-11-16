@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.debug.EntityDebugState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.GoalSelector;
+import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
@@ -32,14 +33,19 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Item;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.world.ChunkPos;
+import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 
 public abstract class AbstractMovingMob extends AbstractMob implements Mob {
@@ -76,6 +82,17 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     private static final int ACTIVITY_SCAN_INTERVAL = 10;
 
     private static final double MAX_SIGHT = 128.0;
+    private static final int AMBIENT_SOUND_RANGE = 1000;
+    private static final int DEFAULT_AMBIENT_SOUND_INTERVAL = 80;
+    /**
+     * Further than this from every player a mob that may despawn goes away at once, closer than
+     * {@code NO_DESPAWN_DISTANCE} never: the distances of vanilla's mob categories, the same for
+     * monsters and ambient mobs.
+     */
+    private static final double DESPAWN_DISTANCE = 128.0;
+    private static final double NO_DESPAWN_DISTANCE = 32.0;
+    private static final int IDLE_TICKS_BEFORE_DESPAWN = 600;
+    private static final int DESPAWN_CHANCE = 800;
     private static final double DEFAULT_EYE_HEIGHT = 1.5;
     private static final int MD_MOB_FLAGS = 15;
     private static final int MOB_FLAG_AGGRESSIVE = 0x04;
@@ -106,6 +123,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
 
     private boolean jumpRequested;
     private int noActionTime;
+    private int ambientSoundTime;
 
     private double sentX;
     private double sentY;
@@ -602,6 +620,110 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         final double dy = self.y() - other.y();
         final double dz = self.z() - other.z();
         return dx * dx + dy * dy + dz * dz;
+    }
+
+    /**
+     * Plays the {@linkplain #ambientSound() sound} of this mob now and then: as in Vanilla, the chance
+     * grows by one in a thousand every tick after the last one.
+     */
+    protected final void tickAmbientSound() {
+        if (ThreadLocalRandom.current().nextInt(AMBIENT_SOUND_RANGE) >= ambientSoundTime++) {
+            return;
+        }
+        ambientSoundTime = -ambientSoundInterval();
+        final Sound.Type sound = ambientSound();
+        if (sound != null) {
+            playSound(sound, soundVolume(), voicePitch());
+        }
+    }
+
+    /**
+     * {@return the sound this mob makes now and then, {@code null} for none}
+     */
+    protected Sound.@Nullable Type ambientSound() {
+        return null;
+    }
+
+    /**
+     * {@return how many ticks this mob stays silent after a sound}; the chance of the
+     * next one then grows by one in a thousand every tick
+     */
+    protected int ambientSoundInterval() {
+        return DEFAULT_AMBIENT_SOUND_INTERVAL;
+    }
+
+    @Override
+    public void playHurtSound() {
+        ambientSoundTime = -ambientSoundInterval();
+        super.playHurtSound();
+    }
+
+    /**
+     * {@return the head a player wears to be noticed by this mob from half as far only, {@code null}
+     * if no head fools it}
+     */
+    public @Nullable TypedKey<Item> disguiseHead() {
+        return null;
+    }
+
+    /**
+     * {@return {@code true} if this mob goes away in a peaceful world}, as the monsters do
+     */
+    protected boolean despawnsInPeaceful() {
+        return false;
+    }
+
+    /**
+     * Removes this mob from a peaceful world if it {@linkplain #despawnsInPeaceful() goes away there},
+     * and, unless it is {@linkplain #isPersistenceRequired() persistent}, once every player is far
+     * enough: at once beyond 128 blocks, now and then beyond 32 blocks after 30 seconds without
+     * anything to do.
+     */
+    protected final void checkDespawn() {
+        if (despawnsInPeaceful() && server().worlds().manager().levelData().difficulty == LocalDifficulty.PEACEFUL) {
+            server().entities().despawn(this);
+            return;
+        }
+        if (isPersistenceRequired()) {
+            resetNoActionTime();
+            return;
+        }
+        final ServerPlayer nearest = nearestPlayer(-1.0);
+        if (nearest == null) {
+            return;
+        }
+        final double distanceSq = distanceSqTo(nearest);
+        if (distanceSq > DESPAWN_DISTANCE * DESPAWN_DISTANCE) {
+            server().entities().despawn(this);
+        } else if (distanceSq > NO_DESPAWN_DISTANCE * NO_DESPAWN_DISTANCE) {
+            if (noActionTime() > IDLE_TICKS_BEFORE_DESPAWN
+                    && ThreadLocalRandom.current().nextInt(DESPAWN_CHANCE) == 0) {
+                server().entities().despawn(this);
+            }
+        } else {
+            resetNoActionTime();
+        }
+    }
+
+    /**
+     * {@return {@code true} if a cobweb holds this mob}: one of the blocks its box touches is a
+     * cobweb, which slows down what the mob moves in it
+     */
+    protected final boolean isInCobweb() {
+        final Location loc = location();
+        final double half = halfWidth() - 1.0E-3;
+        final ServerWorld world = serverWorld();
+        for (int x = (int) Math.floor(loc.x() - half); x <= (int) Math.floor(loc.x() + half); x++) {
+            for (int z = (int) Math.floor(loc.z() - half); z <= (int) Math.floor(loc.z() + half); z++) {
+                for (int y = (int) Math.floor(loc.y() + 1.0E-3); y <= (int) Math.floor(loc.y() + height() - 1.0E-3); y++) {
+                    final BlockState state = BlockView.blockAt(world, x, y, z);
+                    if (state != null && state.name().equals(BlockTypeKeys.COBWEB)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override

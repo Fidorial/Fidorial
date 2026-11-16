@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.ai;
 
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
+import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.entity.GameMode;
@@ -84,7 +85,7 @@ public final class Targeting {
      * {@code 1}}. As in Vanilla, sneaking takes a fifth off; being invisible leaves 70% of the share
      * of armour worn, a tenth at least; wearing the head of the kind of the mob halves it.
      */
-    public static double visibility(final AbstractLivingEntity target, final AbstractPathfinderMob mob) {
+    public static double visibility(final AbstractLivingEntity target, final AbstractMovingMob mob) {
         if (!(target instanceof final ServerPlayer player)) {
             return target.hasEffect(MobEffectKeys.INVISIBILITY) ? INVISIBLE_VISIBILITY * MIN_ARMOR_COVER : 1.0;
         }

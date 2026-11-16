@@ -4,7 +4,6 @@ import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.Brightness;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
-import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
@@ -22,17 +21,6 @@ public abstract class AbstractMonster extends AbstractPathfinderMob implements C
 
     private static final int EXPERIENCE = 5;
 
-    /**
-     * Further than this from every player a monster goes away at once, as in Vanilla.
-     */
-    private static final double DESPAWN_DISTANCE = 128.0;
-
-    /**
-     * Closer than this to a player a monster never goes away, as in Vanilla.
-     */
-    private static final double NO_DESPAWN_DISTANCE = 32.0;
-    private static final int IDLE_TICKS_BEFORE_DESPAWN = 600;
-    private static final int DESPAWN_CHANCE = 800;
     private static final float BRIGHT = 0.5f;
 
     /**
@@ -102,35 +90,9 @@ public abstract class AbstractMonster extends AbstractPathfinderMob implements C
         checkDespawn();
     }
 
-    /**
-     * Removes this monster from a peaceful world, and, unless it is
-     * {@linkplain #isPersistenceRequired() persistent}, once every player is far enough: at once
-     * beyond 128 blocks, now and then beyond 32 blocks after 30 seconds without anything to do.
-     */
-    private void checkDespawn() {
-        if (difficulty() == LocalDifficulty.PEACEFUL) {
-            server().entities().despawn(this);
-            return;
-        }
-        if (isPersistenceRequired()) {
-            resetNoActionTime();
-            return;
-        }
-        final ServerPlayer nearest = nearestPlayer(-1.0);
-        if (nearest == null) {
-            return;
-        }
-        final double distanceSq = distanceSqTo(nearest);
-        if (distanceSq > DESPAWN_DISTANCE * DESPAWN_DISTANCE) {
-            server().entities().despawn(this);
-        } else if (distanceSq > NO_DESPAWN_DISTANCE * NO_DESPAWN_DISTANCE) {
-            if (noActionTime() > IDLE_TICKS_BEFORE_DESPAWN
-                    && ThreadLocalRandom.current().nextInt(DESPAWN_CHANCE) == 0) {
-                server().entities().despawn(this);
-            }
-        } else {
-            resetNoActionTime();
-        }
+    @Override
+    protected final boolean despawnsInPeaceful() {
+        return true;
     }
 
     /**

@@ -13,15 +13,10 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.math.Location;
-import fr.fidorial.registry.TypedKey;
-import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.GameEventKeys;
-import net.kyori.adventure.sound.Sound;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
@@ -78,9 +73,6 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private static final int TARGET_SCAN_INTERVAL = 10;
 
-    private static final int AMBIENT_SOUND_RANGE = 1000;
-    private static final int DEFAULT_AMBIENT_SOUND_INTERVAL = 80;
-
     /**
      * How far past its own box a mob reaches with a bare hand.
      */
@@ -93,7 +85,6 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     private double stepDistance;
     private double swimSpeed;
-    private int ambientSoundTime;
     private int jumpDelay;
 
     protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
@@ -164,38 +155,6 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         return true;
     }
 
-    private void tickAmbientSound() {
-        if (ThreadLocalRandom.current().nextInt(AMBIENT_SOUND_RANGE) >= ambientSoundTime++) {
-            return;
-        }
-        ambientSoundTime = -ambientSoundInterval();
-        final Sound.Type sound = ambientSound();
-        if (sound != null) {
-            playSound(sound, soundVolume(), voicePitch());
-        }
-    }
-
-    /**
-     * {@return the sound this mob makes now and then, {@code null} for none}
-     */
-    protected Sound.@Nullable Type ambientSound() {
-        return null;
-    }
-
-    /**
-     * {@return how many ticks this mob stays silent after a sound}; the chance of the
-     * next one then grows by one in a thousand every tick
-     */
-    protected int ambientSoundInterval() {
-        return DEFAULT_AMBIENT_SOUND_INTERVAL;
-    }
-
-    @Override
-    public void playHurtSound() {
-        ambientSoundTime = -ambientSoundInterval();
-        super.playHurtSound();
-    }
-
     /**
      * {@return {@code true} if this mob stands close enough to an entity to hit it}: when its box,
      * widened by {@value #MELEE_REACH} blocks on each side, touches the box of the entity
@@ -225,14 +184,6 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
      */
     public final void swingMainHand() {
         sendToTrackers(new ClientboundAnimatePacket(entityId(), ClientboundAnimatePacket.SWING_MAIN_HAND));
-    }
-
-    /**
-     * {@return the head a player wears to be noticed by this mob from half as far only, {@code null}
-     * if no head fools it}
-     */
-    public @Nullable TypedKey<Item> disguiseHead() {
-        return null;
     }
 
     /**

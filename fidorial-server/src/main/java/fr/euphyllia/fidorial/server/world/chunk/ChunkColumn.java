@@ -252,6 +252,19 @@ public final class ChunkColumn {
         }
     }
 
+    /// The height of a heightmap in one column: one above its highest block, `minY()` if it has none.
+    public int height(final Heightmap type, final int localX, final int localZ) {
+        final int bits = heightmapBits();
+        final int column = localZ * 16 + localX;
+        synchronized (heightmaps) {
+            final long[] cached = heightmaps.get(type);
+            if (cached != null) {
+                return minY + readHeight(cached, bits, 64 / bits, column);
+            }
+        }
+        return minY + readHeight(heightmap(type), bits, 64 / bits, column);
+    }
+
     /// Restores a stored heightmap. Returns `false` and ignores the data if its length doesn't fit this column.
     public boolean restoreHeightmap(final Heightmap type, final long[] data) {
         final int perLong = 64 / heightmapBits();
