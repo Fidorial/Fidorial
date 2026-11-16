@@ -16,6 +16,7 @@ import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class BlockView {
 
@@ -50,7 +51,7 @@ public class BlockView {
         if (state.isAir()) {
             return true;
         }
-        if (state.name().equals(BlockTypeKeys.LAVA) || isPowderSnow(state)) {
+        if (state.isLava() || isPowderSnow(state)) {
             return false;
         }
 
@@ -64,16 +65,30 @@ public class BlockView {
      * under water fills the whole block.</p>
      */
     public static double waterSurface(final ServerWorld world, final int x, final int y, final int z) {
+        return surface(world, x, y, z, BlockState::isWater);
+    }
+
+    /**
+     * {@return the height the lava of a block reaches, {@link Double#NaN} if it holds none}, as
+     * {@link #waterSurface} for water
+     */
+    public static double lavaSurface(final ServerWorld world, final int x, final int y, final int z) {
+        return surface(world, x, y, z, BlockState::isLava);
+    }
+
+    private static double surface(final ServerWorld world, final int x, final int y, final int z,
+                                  final Predicate<BlockState> holds) {
         final BlockState state = blockAt(world, x, y, z);
-        if (state == null || !state.isWater()) {
+        if (state == null || !holds.test(state)) {
             return Double.NaN;
         }
         final BlockState above = blockAt(world, x, y + 1, z);
-        if (above != null && above.isWater()) {
+        if (above != null && holds.test(above)) {
             return y + 1.0;
         }
         int level = 0;
-        if (state.name().equals(BlockTypeKeys.WATER)) {
+        // only the fluid blocks themselves have a fluid level: a waterlogged light has a level of light
+        if (state.name().equals(BlockTypeKeys.WATER) || state.isLava()) {
             final String property = state.properties().get("level");
             if (property != null) {
                 try {

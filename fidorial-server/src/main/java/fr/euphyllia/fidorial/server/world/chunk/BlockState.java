@@ -42,7 +42,6 @@ public final class BlockState {
      */
     private static final Set<TypedKey<BlockType>> WATER_BLOCKS = Set.of(
             BlockTypeKeys.WATER,
-            BlockTypeKeys.LAVA,
             BlockTypeKeys.BUBBLE_COLUMN,
             BlockTypeKeys.KELP,
             BlockTypeKeys.KELP_PLANT,
@@ -118,6 +117,13 @@ public final class BlockState {
      */
     public boolean isWater() {
         return water;
+    }
+
+    /**
+     * {@return {@code true} if this block is lava}
+     */
+    public boolean isLava() {
+        return fluid && !water;
     }
 
     /**

@@ -33,18 +33,24 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double GROUND_FRICTION = 0.6 * 0.91;
     private static final double AIR_FRICTION = 0.91;
     /**
-     * How much a mob accelerates in the air and in water for a full input.
+     * How much a mob accelerates in the air and in water or lava for a full input.
      */
     private static final double AIR_ACCELERATION = 0.02;
-    private static final double WATER_ACCELERATION = 0.02;
+    private static final double FLUID_ACCELERATION = 0.02;
     private static final double WATER_DRAG = 0.8;
+    /**
+     * What is left of the speed of a mob after a tick in lava; in lava too shallow to swim in, it
+     * keeps more of its vertical speed.
+     */
+    private static final double LAVA_DRAG = 0.5;
+    private static final double SHALLOW_LAVA_VERTICAL_DRAG = 0.8;
     /**
      * Vanilla scales the input of a living entity by this factor every tick.
      */
     private static final double INPUT_SCALE = 0.98;
     private static final double JUMP_VELOCITY = 0.42;
     private static final double SWIM_UP_VELOCITY = 0.04;
-    private static final double LEAVE_WATER_VELOCITY = 0.3;
+    private static final double LEAVE_FLUID_VELOCITY = 0.3;
 
     /**
      * How a mob that swims moves: it drifts up by {@code SWIM_LIFT} a tick when it rises, gains an
@@ -303,6 +309,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
         final double waterDepth = waterHeight();
         final boolean inWater = waterDepth > 0.0;
+        // water wins over lava when a mob touches both
+        final double lavaDepth = inWater ? 0.0 : lavaHeight();
+        final boolean inLava = lavaDepth > 0.0;
         final boolean swimming = inWater && wantsToSwim();
         navigation.tick(x, y, z, swimming);
 
@@ -316,7 +325,8 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         float yaw = yaw();
         boolean onGround = onGround();
         final boolean wasOnGround = onGround;
-        final boolean canSwimUp = inWater && waterDepth > (onGround ? swimThreshold() : 0.0);
+        final double fluidJumpThreshold = onGround ? swimThreshold() : 0.0;
+        final boolean canSwimUp = (inWater && waterDepth > fluidJumpThreshold) || (inLava && lavaDepth > fluidJumpThreshold);
         final boolean wasFalling = velocityY <= 0.0;
 
         if (jumpDelay > 0) {
@@ -377,14 +387,14 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         }
 
         if (walking) {
-            final double push = inWater ? WATER_ACCELERATION : onGround ? speed : AIR_ACCELERATION;
+            final double push = inWater || inLava ? FLUID_ACCELERATION : onGround ? speed : AIR_ACCELERATION;
             final double acceleration = push * Math.min(1.0, speed * INPUT_SCALE);
             final double radians = Math.toRadians(yaw);
             velocityX -= Math.sin(radians) * acceleration;
             velocityZ += Math.cos(radians) * acceleration;
         }
 
-        if (!inWater && onClimbable(x, y, z)) {
+        if (!inWater && !inLava && onClimbable(x, y, z)) {
             // on a ladder or up a wall a mob moves slowly across and slides down slowly
             velocityX = Math.clamp(velocityX, -CLIMB_SPEED, CLIMB_SPEED);
             velocityZ = Math.clamp(velocityZ, -CLIMB_SPEED, CLIMB_SPEED);
@@ -428,7 +438,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double newZ = z + moved.z();
 
         horizontalCollision = blockedHorizontally;
-        if (blockedHorizontally && onClimbable(newX, newY, newZ)) {
+        if (blockedHorizontally && !inLava && onClimbable(newX, newY, newZ)) {
             // against a wall it may climb, a mob goes up
             velocityY = CLIMB_UP_VELOCITY;
         }
@@ -442,15 +452,21 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             velocityX *= WATER_DRAG;
             velocityY *= WATER_DRAG;
             velocityZ *= WATER_DRAG;
-            // as in Vanilla, water pulls down with a sixteenth of the gravity, and sinking settles
-            if (wasFalling && Math.abs(velocityY - 0.005) >= 0.003 && Math.abs(velocityY - GRAVITY / 16.0) < 0.003) {
-                velocityY = -0.003;
-            } else {
-                velocityY -= GRAVITY / 16.0;
-            }
+            velocityY = sinkInFluid(velocityY, wasFalling);
             if (blockedHorizontally && !isBoxBlocked(newX + velocityX, y + 0.6, newZ + velocityZ)) {
                 // against a bank it can climb: hop out of the water
-                velocityY = LEAVE_WATER_VELOCITY;
+                velocityY = LEAVE_FLUID_VELOCITY;
+            }
+        } else if (inLava) {
+            velocityX *= LAVA_DRAG;
+            velocityZ *= LAVA_DRAG;
+            if (lavaDepth > swimThreshold()) {
+                velocityY *= LAVA_DRAG;
+            } else {
+                velocityY = sinkInFluid(velocityY * SHALLOW_LAVA_VERTICAL_DRAG, wasFalling);
+            }
+            if (blockedHorizontally && !isBoxBlocked(newX + velocityX, y + 0.6, newZ + velocityZ)) {
+                velocityY = LEAVE_FLUID_VELOCITY;
             }
         } else {
             velocityY = (velocityY - GRAVITY) * VERTICAL_DRAG;
@@ -483,6 +499,17 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
+    }
+
+    /**
+     * {@return the vertical speed of a mob in a fluid once the fluid pulled it down with a sixteenth
+     * of the gravity}; a mob that was already sinking that slowly settles at {@code -0.003}
+     */
+    private static double sinkInFluid(final double velocityY, final boolean wasFalling) {
+        if (wasFalling && Math.abs(velocityY - 0.005) >= 0.003 && Math.abs(velocityY - GRAVITY / 16.0) < 0.003) {
+            return -0.003;
+        }
+        return velocityY - GRAVITY / 16.0;
     }
 
     /**

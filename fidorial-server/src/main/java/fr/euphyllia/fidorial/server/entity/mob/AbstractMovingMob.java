@@ -560,6 +560,17 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
      * {@return how deep this mob stands in water, {@code 0} when it does not touch any}
      */
     public final double waterHeight() {
+        return fluidHeight(BlockView::waterSurface);
+    }
+
+    /**
+     * {@return how deep this mob stands in lava, {@code 0} when it does not touch any}
+     */
+    public final double lavaHeight() {
+        return fluidHeight(BlockView::lavaSurface);
+    }
+
+    private double fluidHeight(final FluidSurface fluid) {
         final Location loc = location();
         final double half = halfWidth() - 1.0E-3;
         final int minX = (int) Math.floor(loc.x() - half);
@@ -573,7 +584,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 for (int y = minY; y <= maxY; y++) {
-                    final double top = BlockView.waterSurface(world, x, y, z);
+                    final double top = fluid.at(world, x, y, z);
                     if (!Double.isNaN(top) && top > loc.y()) {
                         surface = Math.max(surface, top);
                     }
@@ -588,6 +599,13 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
      */
     public final boolean isInWater() {
         return waterHeight() > 0.0;
+    }
+
+    /**
+     * {@return {@code true} if this mob touches lava}
+     */
+    public final boolean isInLava() {
+        return lavaHeight() > 0.0;
     }
 
     /**
@@ -893,5 +911,13 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             connection.send(ClientboundSetEntityMetadataPacket.of(entityId(), mobFlagsEntry()));
         }
         server().debug().entities().sendCurrent(this, connection);
+    }
+
+    /**
+     * Where the top of a fluid is in a block, {@link Double#NaN} if the block holds none of it.
+     */
+    @FunctionalInterface
+    private interface FluidSurface {
+        double at(ServerWorld world, int x, int y, int z);
     }
 }

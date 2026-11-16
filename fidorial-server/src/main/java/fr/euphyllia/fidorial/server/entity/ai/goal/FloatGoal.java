@@ -7,8 +7,8 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Keeps a mob afloat, as vanilla's {@code FloatGoal}: while it is deep enough in water to swim, it
- * swims up four ticks out of five. Only jumping is needed, so the mob keeps walking meanwhile.
+ * Keeps a mob afloat: while it is deep enough in water to swim, or in any lava, it swims up four
+ * ticks out of five. Only jumping is needed, so the mob keeps walking meanwhile.
  */
 public final class FloatGoal implements Goal {
 
@@ -35,7 +35,7 @@ public final class FloatGoal implements Goal {
 
     @Override
     public boolean canStart() {
-        return mob.isDeepEnoughToSwim();
+        return mob.isDeepEnoughToSwim() || mob.isInLava();
     }
 
     @Override
