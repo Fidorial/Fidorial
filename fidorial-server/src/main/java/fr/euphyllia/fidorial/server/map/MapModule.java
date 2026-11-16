@@ -43,6 +43,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MapDecorationType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
@@ -690,7 +691,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
     }
 
     private static boolean isBanner(final BlockState state) {
-        return state.name().key().value().endsWith("_banner");
+        return state.isTagged(BlockTypeTagKeys.BANNERS);
     }
 
     /**

@@ -12,12 +12,11 @@ import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
-import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -53,8 +52,7 @@ public final class BreakDoorGoal implements Goal {
     }
 
     public static boolean isBreakableDoor(final BlockState state) {
-        final TypedKey<BlockType> name = state.name();
-        return name.key().value().endsWith("_door") && !name.equals(BlockTypeKeys.IRON_DOOR);
+        return state.isTagged(BlockTypeTagKeys.MOB_INTERACTABLE_DOORS);
     }
 
     private static boolean isHardDifficulty() {

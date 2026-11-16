@@ -20,24 +20,18 @@ import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.JigsawStructure;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;
-import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import fr.fidorial.world.block.BlockType;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.structure.StructureRotation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public final class PiecePlacer {
 
     private static final int MAX_FOUNDATION_DEPTH = 12;
-    private static final Set<TypedKey<BlockType>> DIRT_GROUND =
-            Set.of(BlockTypeKeys.GRASS_BLOCK, BlockTypeKeys.MYCELIUM, BlockTypeKeys.PODZOL);
-    private static final Set<TypedKey<BlockType>> NETHERRACK_GROUND =
-            Set.of(BlockTypeKeys.CRIMSON_NYLIUM, BlockTypeKeys.WARPED_NYLIUM);
 
     private final StructureRegistry registry;
     private final TerrainView terrain;
@@ -216,11 +210,10 @@ public final class PiecePlacer {
     }
 
     private BlockState foundationBlock(final BlockState ground) {
-        final TypedKey<BlockType> name = ground.name();
-        if (DIRT_GROUND.contains(name)) {
+        if (ground.isTagged(BlockTypeTagKeys.GRASS_BLOCKS)) {
             return dirt == null ? ground : dirt;
         }
-        if (NETHERRACK_GROUND.contains(name)) {
+        if (ground.isTagged(BlockTypeTagKeys.NYLIUM)) {
             return netherrack == null ? ground : netherrack;
         }
         return ground;

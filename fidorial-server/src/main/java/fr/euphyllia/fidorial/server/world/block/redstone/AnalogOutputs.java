@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.fidorial.math.BlockPosition;
+import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
@@ -33,18 +35,15 @@ public final class AnalogOutputs {
     /**
      * {@return the redstone behaviour of every vanilla block whose state alone gives a comparator a
      * level, by block}
+     *
+     * @param blocks the block registry, whose tags give the candle cakes and copper golem statues
      */
-    public static Map<TypedKey<BlockType>, RedstoneBehaviour> vanilla() {
+    public static Map<TypedKey<BlockType>, RedstoneBehaviour> vanilla(final Registry<BlockType> blocks) {
         final Map<TypedKey<BlockType>, RedstoneBehaviour> outputs = new HashMap<>();
         // a slice is worth 2: 14 for a whole cake, 2 for its last slice
         outputs.put(BlockTypeKeys.CAKE, new StateOutput(state -> (7 - number(state, "bites")) * 2));
         final StateOutput wholeCake = new StateOutput(_ -> 14);
-        for (final TypedKey<BlockType> candleCake : List.of(BlockTypeKeys.CANDLE_CAKE, BlockTypeKeys.WHITE_CANDLE_CAKE,
-                BlockTypeKeys.ORANGE_CANDLE_CAKE, BlockTypeKeys.MAGENTA_CANDLE_CAKE, BlockTypeKeys.LIGHT_BLUE_CANDLE_CAKE,
-                BlockTypeKeys.YELLOW_CANDLE_CAKE, BlockTypeKeys.LIME_CANDLE_CAKE, BlockTypeKeys.PINK_CANDLE_CAKE,
-                BlockTypeKeys.GRAY_CANDLE_CAKE, BlockTypeKeys.LIGHT_GRAY_CANDLE_CAKE, BlockTypeKeys.CYAN_CANDLE_CAKE,
-                BlockTypeKeys.PURPLE_CANDLE_CAKE, BlockTypeKeys.BLUE_CANDLE_CAKE, BlockTypeKeys.BROWN_CANDLE_CAKE,
-                BlockTypeKeys.GREEN_CANDLE_CAKE, BlockTypeKeys.RED_CANDLE_CAKE, BlockTypeKeys.BLACK_CANDLE_CAKE)) {
+        for (final TypedKey<BlockType> candleCake : blocks.tag(BlockTypeTagKeys.CANDLE_CAKES)) {
             outputs.put(candleCake, wholeCake);
         }
 
@@ -65,11 +64,7 @@ public final class AnalogOutputs {
 
         // 1 standing, 2 sitting, 3 running, 4 star
         final StateOutput pose = new StateOutput(state -> STATUE_POSES.indexOf(state.get("copper_golem_pose")) + 1);
-        for (final TypedKey<BlockType> statue : List.of(BlockTypeKeys.COPPER_GOLEM_STATUE,
-                BlockTypeKeys.EXPOSED_COPPER_GOLEM_STATUE, BlockTypeKeys.WEATHERED_COPPER_GOLEM_STATUE,
-                BlockTypeKeys.OXIDIZED_COPPER_GOLEM_STATUE, BlockTypeKeys.WAXED_COPPER_GOLEM_STATUE,
-                BlockTypeKeys.WAXED_EXPOSED_COPPER_GOLEM_STATUE, BlockTypeKeys.WAXED_WEATHERED_COPPER_GOLEM_STATUE,
-                BlockTypeKeys.WAXED_OXIDIZED_COPPER_GOLEM_STATUE)) {
+        for (final TypedKey<BlockType> statue : blocks.tag(BlockTypeTagKeys.COPPER_GOLEM_STATUES)) {
             outputs.put(statue, pose);
         }
         return Map.copyOf(outputs);

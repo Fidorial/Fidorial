@@ -1,8 +1,10 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
+import fr.fidorial.registry.Registry;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockBehaviour;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
 
 import java.util.ArrayList;
@@ -46,8 +48,9 @@ public final class VanillaRedstone {
      * Attaches the vanilla redstone behaviours to their blocks.
      *
      * @param registry where to attach them
+     * @param blocks   the block registry, whose tags list some of the blocks
      */
-    public static void attach(final FidorialRedstoneRegistry registry) {
+    public static void attach(final FidorialRedstoneRegistry registry, final Registry<BlockType> blocks) {
         for (final BlockBehaviour behaviour : blockBehaviours()) {
             if (behaviour instanceof final RedstoneBehaviour redstone) {
                 registry.attachVanilla(behaviour.key(), redstone);
@@ -60,6 +63,6 @@ public final class VanillaRedstone {
         registry.attachVanilla(BlockTypeKeys.STICKY_PISTON, PistonBaseBlock.STICKY);
         registry.attachVanilla(PistonHeadBlock.KEY, PistonHeadBlock.INSTANCE);
         registry.attachVanilla(MovingPistonBlock.KEY, MovingPistonBlock.INSTANCE);
-        AnalogOutputs.vanilla().forEach(registry::attachVanilla);
+        AnalogOutputs.vanilla(blocks).forEach(registry::attachVanilla);
     }
 }

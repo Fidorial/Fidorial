@@ -68,7 +68,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
      */
     public RegistryModule(final Path datapacksFolder) {
         this.datapacksFolder = datapacksFolder;
-        VanillaRedstone.attach(redstone);
+        VanillaRedstone.attach(redstone, registries.registry(RegistryKey.BLOCK));
     }
 
     @Override
