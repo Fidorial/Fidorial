@@ -11,9 +11,11 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundExplodePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
@@ -101,9 +103,15 @@ public final class Explosion {
 
     private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final List<BlockPosition> toDestroy, final float power) {
         for (final BlockPosition pos : toDestroy) {
-            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)
-                    && ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
-                // TODO : drop item
+            final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
+            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
+                if (state != null) {
+                    // an infested block lets its silverfish out whatever happens to its drops
+                    InfestedBlocks.afterBreak(world, pos, state, ItemStack.EMPTY);
+                }
+                if (ThreadLocalRandom.current().nextFloat() < 1.0f / power) {
+                    // TODO : drop item
+                }
             }
         }
     }

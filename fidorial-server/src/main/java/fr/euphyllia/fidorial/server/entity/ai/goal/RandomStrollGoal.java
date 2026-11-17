@@ -28,6 +28,7 @@ public final class RandomStrollGoal implements Goal {
     private final int priority;
     private final DoubleSupplier speed;
     private final Terrain terrain;
+    private int interval = INTERVAL;
     private @Nullable Position destination;
 
     /**
@@ -56,6 +57,17 @@ public final class RandomStrollGoal implements Goal {
         this.priority = priority;
         this.speed = speed;
         this.terrain = terrain;
+    }
+
+    /**
+     * Makes the mob set off one tick in so many on average, rather than one in 120.
+     *
+     * @param interval the average number of ticks between two strolls
+     * @return this goal
+     */
+    public RandomStrollGoal interval(final int interval) {
+        this.interval = interval;
+        return this;
     }
 
     /**
@@ -91,7 +103,7 @@ public final class RandomStrollGoal implements Goal {
         if (mob.noActionTime() >= IDLE_LIMIT_TICKS) {
             return false;
         }
-        if (ThreadLocalRandom.current().nextInt(INTERVAL) != 0) {
+        if (ThreadLocalRandom.current().nextInt(interval) != 0) {
             return false;
         }
         destination = switch (terrain) {

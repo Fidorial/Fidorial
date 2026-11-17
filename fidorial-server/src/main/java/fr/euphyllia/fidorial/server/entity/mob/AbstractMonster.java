@@ -5,9 +5,11 @@ import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.ai.Brightness;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.dimension.IntProvider;
@@ -41,6 +43,28 @@ public abstract class AbstractMonster extends AbstractPathfinderMob implements C
      */
     public static boolean checkMonsterSpawnRules(final ServerWorld world, final int x, final int y, final int z) {
         return checkAnyLightMonsterSpawnRules(world, x, y, z) && isDarkEnoughToSpawn(world, x, y, z);
+    }
+
+    /**
+     * {@return {@code true} if no player in survival or adventure stands within a distance of the
+     * middle of a block}
+     */
+    public static boolean isAwayFromPlayers(final ServerWorld world, final int x, final int y, final int z,
+                                            final double distance) {
+        for (final ServerPlayer player : FidorialServer.getInstance().players().online()) {
+            if (!player.world().equals(world) || player.isDead()
+                    || player.gameMode() == GameMode.CREATIVE || player.gameMode() == GameMode.SPECTATOR) {
+                continue;
+            }
+            final Location at = player.location();
+            final double dx = at.x() - (x + 0.5);
+            final double dy = at.y() - (y + 0.5);
+            final double dz = at.z() - (z + 0.5);
+            if (dx * dx + dy * dy + dz * dz < distance * distance) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

@@ -1,6 +1,5 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.endermite;
 
-import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.goal.ClimbOnTopOfPowderSnowGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.FloatGoal;
@@ -14,7 +13,6 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractMonster;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
-import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
 import net.kyori.adventure.key.Key;
@@ -85,23 +83,8 @@ public final class Endermite extends AbstractMonster {
      * unless the world is peaceful, and away from the players in survival or adventure
      */
     public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
-        if (!checkAnyLightMonsterSpawnRules(world, x, y, z)) {
-            return false;
-        }
-        for (final ServerPlayer player : FidorialServer.getInstance().players().online()) {
-            if (!player.world().equals(world) || player.isDead()
-                    || player.gameMode() == GameMode.CREATIVE || player.gameMode() == GameMode.SPECTATOR) {
-                continue;
-            }
-            final Location at = player.location();
-            final double dx = at.x() - (x + 0.5);
-            final double dy = at.y() - (y + 0.5);
-            final double dz = at.z() - (z + 0.5);
-            if (dx * dx + dy * dy + dz * dz < PLAYER_NEARBY_DISTANCE * PLAYER_NEARBY_DISTANCE) {
-                return false;
-            }
-        }
-        return true;
+        return checkAnyLightMonsterSpawnRules(world, x, y, z)
+                && isAwayFromPlayers(world, x, y, z, PLAYER_NEARBY_DISTANCE);
     }
 
     @Override

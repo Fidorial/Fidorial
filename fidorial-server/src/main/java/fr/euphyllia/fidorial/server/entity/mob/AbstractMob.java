@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 public abstract class AbstractMob extends AbstractLivingEntity {
 
     private static final byte ENTITY_EVENT_DEATH = 3;
+    private static final byte ENTITY_EVENT_SPAWN_ANIMATION = 20;
 
     /**
      * For how long a mob remembers what hurt it.
@@ -82,6 +83,13 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         }
         dropExperience();
         dispatch(MobBehaviour::onDeath, "onDeath");
+    }
+
+    /**
+     * Shows the puff of smoke of a mob that appears or vanishes on the spot.
+     */
+    public final void spawnAnimation() {
+        sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_SPAWN_ANIMATION));
     }
 
     /**

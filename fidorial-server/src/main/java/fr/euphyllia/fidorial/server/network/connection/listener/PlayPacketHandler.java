@@ -82,6 +82,7 @@ import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
+import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
@@ -881,12 +882,17 @@ public final class PlayPacketHandler implements PlayPacketListener {
         world.scheduler().execute(world.key(), chunkPos, () -> {
             final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
             if (!event.isCancelled()) {
-                if (acting.gameMode() != GameMode.CREATIVE) {
+                final boolean survival = acting.gameMode() != GameMode.CREATIVE;
+                final BlockState broken = blockAt(world, packet.position());
+                if (survival) {
                     // what farming gives is dropped while the block still stands
                     server.worlds().farming().world(world).harvest(packet.position(), acting, acting.heldItem());
                 }
                 server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR), true);
                 server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
+                if (survival && broken != null) {
+                    InfestedBlocks.afterBreak(world, packet.position(), broken, acting.heldItem());
+                }
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
@@ -954,12 +960,16 @@ public final class PlayPacketHandler implements PlayPacketListener {
      * {@return {@code true} if the block at a position breaks as soon as a player starts mining it}
      */
     private boolean instantMine(final BlockPosition position) {
-        final ChunkColumn column = serverWorld().loadedColumn(position.chunkX(), position.chunkZ());
+        final BlockState state = blockAt(serverWorld(), position);
+        return state != null && !state.isAir() && BlockMining.breaksInstantly(state.name());
+    }
+
+    private static @Nullable BlockState blockAt(final ServerWorld world, final BlockPosition position) {
+        final ChunkColumn column = world.loadedColumn(position.chunkX(), position.chunkZ());
         if (column == null || position.blockY() < column.minY() || position.blockY() >= column.minY() + column.height()) {
-            return false;
+            return null;
         }
-        final BlockState state = column.getBlock(position.blockX() & 15, position.blockY(), position.blockZ() & 15);
-        return !state.isAir() && BlockMining.breaksInstantly(state.name());
+        return column.getBlock(position.blockX() & 15, position.blockY(), position.blockZ() & 15);
     }
 
     @Override

@@ -836,6 +836,28 @@ public final class SoundEvents {
      */
     public static final Sound.Type PLAYER_DEATH = of("entity.player.death");
 
+    // --- Silverfish ---
+    /**
+     * The {@code minecraft:entity.silverfish.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SILVERFISH_AMBIENT = of("entity.silverfish.ambient");
+
+    /**
+     * The {@code minecraft:entity.silverfish.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SILVERFISH_HURT = of("entity.silverfish.hurt");
+
+    /**
+     * The {@code minecraft:entity.silverfish.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SILVERFISH_DEATH = of("entity.silverfish.death");
+
     // --- Spider ---
     /**
      * The {@code minecraft:entity.spider.ambient} sound event.
