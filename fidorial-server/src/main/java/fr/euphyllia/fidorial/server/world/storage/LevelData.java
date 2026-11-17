@@ -471,6 +471,14 @@ public final class LevelData {
                             .putString("preset", biomeSourcePreset.asString())
                             .build())
                     .build();
+
+            case ChunkGeneratorConfig.TheEnd _ -> CompoundBinaryTag.builder()
+                    .putString("type", "minecraft:noise")
+                    .putString("settings", "minecraft:end")
+                    .put("biome_source", CompoundBinaryTag.builder()
+                            .putString("type", "minecraft:the_end")
+                            .build())
+                    .build();
         };
     }
 

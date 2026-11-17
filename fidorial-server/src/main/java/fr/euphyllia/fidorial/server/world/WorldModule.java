@@ -36,6 +36,7 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.registry.keys.DimensionTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -169,6 +170,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         if (overworld.generator.describeForSave() instanceof ChunkGeneratorConfig.Debug) {
             tickRates.setFrozen(true);
         }
+        manager.theEnd(registries.registry(RegistryKey.DIMENSION_TYPE).get(DimensionTypeKeys.THE_END));
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();

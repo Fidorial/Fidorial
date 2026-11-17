@@ -15,4 +15,10 @@ public sealed interface ChunkGeneratorConfig {
 
     record Noise(Key settings, Key biomeSourcePreset) implements ChunkGeneratorConfig {
     }
+
+    /**
+     * The islands of the End, shaped by the seed of the world alone: there is nothing to configure.
+     */
+    record TheEnd() implements ChunkGeneratorConfig {
+    }
 }
