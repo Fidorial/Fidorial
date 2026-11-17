@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.entity.mob.AngerableMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.events.entity.EntityDeathEventImpl;
 import fr.euphyllia.fidorial.server.events.player.PlayerDeathEventImpl;
@@ -79,6 +80,9 @@ public final class CombatEngine implements CombatService {
     private static final double MAX_UPWARD_KNOCKBACK = 0.4;
 
     private static final byte ENTITY_EVENT_DEATH = 3;
+
+    private static final double FORGIVE_RANGE = 32.0;
+    private static final double FORGIVE_RANGE_Y = 10.0;
 
     private static final float FREEZE_HURTS_EXTRA_MULTIPLIER = 5.0f;
 
@@ -172,6 +176,18 @@ public final class CombatEngine implements CombatService {
 
     // FIXME: the caller may not own the victim: a hit across a region border changes it from another thread
     private boolean applyDamage(
+            final AbstractLivingEntity victim,
+            final DamageSource source,
+            final float amount,
+            final double knockback) {
+        if (victim instanceof final AbstractMob mob) {
+            // a mob may dodge the hit, or act whether it hurt or not
+            return mob.takeHit(source, () -> applyUnchecked(victim, source, amount, knockback));
+        }
+        return applyUnchecked(victim, source, amount, knockback);
+    }
+
+    private boolean applyUnchecked(
             final AbstractLivingEntity victim,
             final DamageSource source,
             final float amount,
@@ -427,6 +443,9 @@ public final class CombatEngine implements CombatService {
             return;
         }
         player.setAwaitingRespawn(true);
+        if (gameRulesOf(player).getBoolean(GameRuleKeys.FORGIVE_DEAD_PLAYERS)) {
+            forgive(player);
+        }
 
         final Component message = deathMessage(player, killer);
         final boolean keepInventory = gameRulesOf(player).getBoolean(GameRuleKeys.KEEP_INVENTORY);
@@ -451,6 +470,32 @@ public final class CombatEngine implements CombatService {
                 dropExperience(player);
             });
         }
+    }
+
+    /**
+     * Makes the mobs that hold a grudge around a dead player forgive them: those within 32 blocks
+     * across and 10 up or down of the block they died in.
+     */
+    private void forgive(final ServerPlayer player) {
+        if (!(player.world() instanceof final ServerWorld world)) {
+            return;
+        }
+        final Location at = player.location();
+        final double blockX = Math.floor(at.x());
+        final double blockY = Math.floor(at.y());
+        final double blockZ = Math.floor(at.z());
+        world.entityManager().forEachNear(at.chunk(), FORGIVE_RANGE + 1.0, entity -> {
+            if (!(entity instanceof final AngerableMob angerable) || entity.isRemoved()
+                    || !server.workers().regionizer().isOwnedByCurrentThread(world.key(), entity.location().chunk())) {
+                return;
+            }
+            final Location there = entity.location();
+            if (there.x() >= blockX - FORGIVE_RANGE && there.x() <= blockX + 1.0 + FORGIVE_RANGE
+                    && there.y() >= blockY - FORGIVE_RANGE_Y && there.y() <= blockY + 1.0 + FORGIVE_RANGE_Y
+                    && there.z() >= blockZ - FORGIVE_RANGE && there.z() <= blockZ + 1.0 + FORGIVE_RANGE) {
+                angerable.anger().playerDied(player);
+            }
+        });
     }
 
     /**

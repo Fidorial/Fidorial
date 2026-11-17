@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public abstract class AbstractMob extends AbstractLivingEntity {
@@ -202,6 +203,15 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     /**
+     * Forgets the living entity that last hurt this mob: a mob that stops being angry no longer
+     * fights back.
+     */
+    public final void forgetLastHurtByMob() {
+        this.lastHurtByMob = null;
+        this.hurtByMobTicks = 0;
+    }
+
+    /**
      * {@return a number that changes each time this mob is hurt by a living entity}, so that a goal
      * tells a new hit from the one it already answered
      */
@@ -335,6 +345,18 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     public void onHurt(final DamageSource source, final float amount) {
+    }
+
+    /**
+     * Takes a hit: {@code hurt} deals it the usual way and tells whether it hurt. A mob that dodges
+     * some hits, or does something whether a hit hurt it or not, overrides this.
+     *
+     * @param source what hits this mob
+     * @param hurt   deals the hit
+     * @return {@code true} if the hit hurt this mob
+     */
+    public boolean takeHit(final DamageSource source, final BooleanSupplier hurt) {
+        return hurt.getAsBoolean();
     }
 
     /**

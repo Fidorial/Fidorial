@@ -29,6 +29,7 @@ public final class BlockItems {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(BlockItems.class);
 
     private static volatile Map<Key, TypedKey<BlockType>> blocks = Map.of();
+    private static volatile Map<Key, TypedKey<Item>> items = Map.of();
 
     private BlockItems() {
         throw new UnsupportedOperationException("BlockItems cannot be instantiated.");
@@ -45,6 +46,7 @@ public final class BlockItems {
                 return;
             }
             blocks = load(new InputStreamReader(input, StandardCharsets.UTF_8));
+            items = itemsOf(blocks);
         } catch (final IOException exception) {
             throw new UncheckedIOException("Failed to load " + RESOURCE, exception);
         }
@@ -60,6 +62,32 @@ public final class BlockItems {
         }
         LOGGER.debug("Read the blocks of {} items", loaded.size());
         return Map.copyOf(loaded);
+    }
+
+    /**
+     * {@return the item placing each block}: the item of the same name as the block when several
+     * place it
+     */
+    static Map<Key, TypedKey<Item>> itemsOf(final Map<Key, TypedKey<BlockType>> blocks) {
+        final Map<Key, TypedKey<Item>> loaded = new HashMap<>();
+        for (final Map.Entry<Key, TypedKey<BlockType>> entry : blocks.entrySet()) {
+            final Key block = entry.getValue().key();
+            if (!loaded.containsKey(block) || entry.getKey().equals(block)) {
+                loaded.put(block, TypedKey.withRegistry(RegistryKey.ITEM, entry.getKey()));
+            }
+        }
+        return Map.copyOf(loaded);
+    }
+
+    /**
+     * {@return the item that places a block, the item of the same name when the dataset does not
+     * say}
+     *
+     * @param block the block
+     */
+    public static TypedKey<Item> item(final TypedKey<BlockType> block) {
+        final TypedKey<Item> item = items.get(block.key());
+        return item != null ? item : TypedKey.withRegistry(RegistryKey.ITEM, block.key());
     }
 
     /**

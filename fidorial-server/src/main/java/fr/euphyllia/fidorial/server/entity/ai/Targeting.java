@@ -4,6 +4,8 @@ import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemStack;
@@ -78,6 +80,38 @@ public final class Targeting {
             }
         }
         return !lineOfSight || mob.hasLineOfSightTo(target);
+    }
+
+    /**
+     * {@return {@code true} if a player looks at a point of an entity}: the point lies within a cone
+     * around where the player looks, the narrower the further away, and nothing solid stands between
+     * the eyes of the player and the point
+     *
+     * @param cone   how far from where the player looks the point may lie, one block away
+     * @param gazeY  the height of the point looked at, in the world
+     */
+    public static boolean isLookedAt(final ServerPlayer player, final Entity entity, final double cone, final double gazeY) {
+        if (!(player.world() instanceof final ServerWorld world) || !world.equals(entity.world())) {
+            return false;
+        }
+        final Location eyes = player.location();
+        final double eyeY = eyes.y() + player.eyeHeight();
+        final double yaw = Math.toRadians(-eyes.yaw());
+        final double pitch = Math.toRadians(eyes.pitch());
+        final double lookX = Math.sin(yaw) * Math.cos(pitch);
+        final double lookY = -Math.sin(pitch);
+        final double lookZ = Math.cos(yaw) * Math.cos(pitch);
+        final Location at = entity.location();
+        final double dx = at.x() - eyes.x();
+        final double dy = gazeY - eyeY;
+        final double dz = at.z() - eyes.z();
+        final double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (distance < 1.0E-7) {
+            return false;
+        }
+        final double dot = (lookX * dx + lookY * dy + lookZ * dz) / distance;
+        return dot > 1.0 - cone / distance
+                && BlockView.hasLineOfSight(world, eyes.x(), eyeY, eyes.z(), at.x(), gazeY, at.z());
     }
 
     /**

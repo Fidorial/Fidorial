@@ -3,7 +3,9 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.Targeting;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.keys.GameRuleKeys;
 
 import java.util.Set;
 
@@ -56,6 +58,10 @@ public final class HurtByTargetGoal extends TargetGoal {
     public boolean canStart() {
         final AbstractLivingEntity attacker = mob.lastHurtByMob();
         if (attacker == null || mob.lastHurtByMobStamp() == answeredStamp) {
+            return false;
+        }
+        if (attacker instanceof ServerPlayer && mob.serverWorld().gameRuleValues().getBoolean(GameRuleKeys.UNIVERSAL_ANGER)) {
+            // a mob angry at every player does not single out the one that hurt it
             return false;
         }
         for (final Class<?> kind : forgiven) {

@@ -203,6 +203,43 @@ public final class SoundEvents {
      */
     public static final Sound.Type DYE_USE = of("item.dye.use");
 
+    // --- Enderman ---
+    /**
+     * The {@code minecraft:entity.enderman.ambient} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMAN_AMBIENT = of("entity.enderman.ambient");
+
+    /**
+     * The {@code minecraft:entity.enderman.scream} sound event, played instead of the ambient sound
+     * while an enderman has a target.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMAN_SCREAM = of("entity.enderman.scream");
+
+    /**
+     * The {@code minecraft:entity.enderman.teleport} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMAN_TELEPORT = of("entity.enderman.teleport");
+
+    /**
+     * The {@code minecraft:entity.enderman.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMAN_HURT = of("entity.enderman.hurt");
+
+    /**
+     * The {@code minecraft:entity.enderman.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type ENDERMAN_DEATH = of("entity.enderman.death");
+
     // --- Endermite ---
     /**
      * The {@code minecraft:entity.endermite.ambient} sound event.

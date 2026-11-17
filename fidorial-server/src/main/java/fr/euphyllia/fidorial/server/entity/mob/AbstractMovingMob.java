@@ -185,6 +185,16 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
     @Override
     public final void setTarget(final @Nullable LivingEntity target) {
         this.target = target instanceof final AbstractLivingEntity living && living != this ? living : null;
+        onTargetSet(this.target);
+    }
+
+    /**
+     * Called each time the target of this mob is set, even to the one it already had: the goals
+     * that keep after a target set it again every tick.
+     *
+     * @param target the new target, {@code null} when the mob gives up
+     */
+    protected void onTargetSet(final @Nullable AbstractLivingEntity target) {
     }
 
     /**
@@ -702,7 +712,7 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
             server().entities().despawn(this);
             return;
         }
-        if (isPersistenceRequired()) {
+        if (isPersistenceRequired() || requiresCustomPersistence()) {
             resetNoActionTime();
             return;
         }
@@ -721,6 +731,39 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         } else {
             resetNoActionTime();
         }
+    }
+
+    /**
+     * {@return {@code true} if this mob stays while it holds something worth keeping}, as an
+     * enderman with a block: it then does not despawn, though it is not
+     * {@linkplain #isPersistenceRequired() persistent}
+     */
+    protected boolean requiresCustomPersistence() {
+        return false;
+    }
+
+    /**
+     * Moves this mob at once to a point of its world, in a chunk the current thread owns: the
+     * players see it jump there rather than walk.
+     */
+    protected final void teleportTo(final double x, final double y, final double z) {
+        final Location from = location();
+        final Location to = from.with(x, y, z, yaw, pitch);
+        setLocation(to);
+        updateChunkMembership(from, to);
+        sendToTrackers(new ClientboundEntityPositionSyncPacket(
+                entityId(),
+                new PositionData.LinearPositionPath(LocationPositionData.vec3(to)),
+                new PositionData.FloatRotation(yaw, pitch),
+                headYaw(),
+                onGround));
+        sentX = x;
+        sentY = y;
+        sentZ = z;
+        sentYaw = yaw;
+        sentPitch = pitch;
+        sentHeadYaw = headYaw();
+        ticksSinceSync = 0;
     }
 
     /**

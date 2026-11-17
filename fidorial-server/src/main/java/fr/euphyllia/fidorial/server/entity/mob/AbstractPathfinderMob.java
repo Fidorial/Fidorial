@@ -7,8 +7,10 @@ import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.ai.goal.NearestAttackableTargetGoal;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
@@ -18,9 +20,11 @@ import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
+import fr.fidorial.world.ChunkPos;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
@@ -96,6 +100,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double DEFAULT_TARGET_WIDTH = 0.6;
     private static final double DEFAULT_TARGET_HEIGHT = 1.8;
     private static final double SNEAKING_PLAYER_HEIGHT = 1.5;
+    /**
+     * The entity event that shows the particles of a teleport.
+     */
+    private static final byte ENTITY_EVENT_TELEPORT = 46;
 
     protected final Navigation navigation;
 
@@ -624,5 +632,77 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     protected void onStep() {
+    }
+
+    /**
+     * Tries to teleport this mob to a point: it lands on the first block below the point an entity
+     * may teleport onto, in the column of the point, as long as that block is not one it avoids,
+     * and the room it would take up there holds no block it avoids, no fluid, and nothing it would
+     * bump into. The point has to be in a chunk the current thread owns.
+     *
+     * @param showParticles {@code true} to show the particles of a teleport where it lands
+     * @param avoids        the blocks this mob does not teleport onto, nor into
+     * @return {@code true} if this mob teleported
+     */
+    public final boolean randomTeleport(final double x, final double y, final double z, final boolean showParticles,
+                                        final Predicate<BlockState> avoids) {
+        final ServerWorld world = serverWorld();
+        final int blockX = (int) Math.floor(x);
+        final int blockZ = (int) Math.floor(z);
+        if (world.loadedColumn(blockX >> 4, blockZ >> 4) == null
+                || !server().workers().regionizer().isOwnedByCurrentThread(world.key(), new ChunkPos(blockX >> 4, blockZ >> 4))) {
+            return false;
+        }
+        double landingY = y;
+        for (int blockY = (int) Math.floor(y) - 1; blockY >= world.minY(); blockY--) {
+            final BlockState ground = BlockView.blockAt(world, blockX, blockY, blockZ);
+            if (ground != null && BlockView.isTagged(BlockTypeTagKeys.ENTITIES_CAN_TELEPORT_TO, ground)) {
+                return teleportOnto(ground, x, landingY, z, showParticles, avoids);
+            }
+            landingY--;
+        }
+        return false;
+    }
+
+    /**
+     * {@return {@code true} if this mob may teleport to a point}, once the room there is clear; any
+     * point is fine but for the mobs that avoid some
+     */
+    protected boolean canRandomlyTeleportTo(final double x, final double y, final double z) {
+        return true;
+    }
+
+    private boolean teleportOnto(final BlockState ground, final double x, final double y, final double z,
+                                 final boolean showParticles, final Predicate<BlockState> avoids) {
+        if (avoids.test(ground) || isBoxBlocked(x, y, z) || boxHolds(x, y, z, avoids)
+                || !canRandomlyTeleportTo(x, y, z)) {
+            return false;
+        }
+        teleportTo(x, y, z);
+        if (showParticles) {
+            sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_TELEPORT));
+        }
+        navigation.stop();
+        return true;
+    }
+
+    /**
+     * {@return {@code true} if the room this mob would take up at a point holds a fluid or a block it
+     * avoids}
+     */
+    private boolean boxHolds(final double x, final double y, final double z, final Predicate<BlockState> avoids) {
+        final ServerWorld world = serverWorld();
+        final double half = halfWidth();
+        for (int bx = (int) Math.floor(x - half); bx < (int) Math.ceil(x + half); bx++) {
+            for (int by = (int) Math.floor(y); by < (int) Math.ceil(y + height()); by++) {
+                for (int bz = (int) Math.floor(z - half); bz < (int) Math.ceil(z + half); bz++) {
+                    final BlockState state = BlockView.blockAt(world, bx, by, bz);
+                    if (state == null || state.isFluid() || avoids.test(state)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
