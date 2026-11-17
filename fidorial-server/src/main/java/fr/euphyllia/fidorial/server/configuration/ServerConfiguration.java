@@ -49,13 +49,14 @@ public record ServerConfiguration(
             int port,
             boolean onlineMode,
             boolean encryptOfflineModeConnections,
+            int keyRotationPeriodSeconds,
             int compressionThreshold,
             boolean useIoUring,
             boolean enforceSecureChat,
             ProxyForwarding proxy
     ) {
         static final Network DEFAULTS = new Network(
-                25565, true, false, 256, false, true, new ProxyForwarding.None());
+                25565, true, false, 60, 256, false, true, new ProxyForwarding.None());
 
         static final Codec<Network> CODEC = configRecord(Network.class, DEFAULTS)
                 .field("port", Network::port, commented(Codec.intRange(1, 65535),
@@ -64,6 +65,9 @@ public record ServerConfiguration(
                         "Whether to authenticate players with Mojang"))
                 .field("encrypt-offline-mode-connections", Network::encryptOfflineModeConnections, commented(Codec.BOOL,
                         "Whether offline mode connections should be encrypted"))
+                .field("key-rotation-period-seconds", Network::keyRotationPeriodSeconds, commented(CommonCodecs.NON_NEGATIVE_INT,
+                        "The minimum time in seconds before the key used to establish new encrypted connections is "
+                                + "recreated. Set to 0 to use a different key for every connection"))
                 .field("compression-threshold", Network::compressionThreshold, commented(Codec.INT,
                         "The minimum size in bytes for a packet to be compressed. Set to -1 to disable"))
                 .field("use-io-uring", Network::useIoUring, commented(Codec.BOOL,

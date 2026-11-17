@@ -217,6 +217,11 @@ public final class DataComponentTypeKeys {
     public static final TypedKey<DataComponentType<?>> DEBUG_STICK_STATE = create("debug_stick_state");
 
     /**
+     * Key for {@code minecraft:dispense_behavior}.
+     */
+    public static final TypedKey<DataComponentType<?>> DISPENSE_BEHAVIOR = create("dispense_behavior");
+
+    /**
      * Key for {@code minecraft:dye}.
      */
     public static final TypedKey<DataComponentType<?>> DYE = create("dye");
@@ -663,6 +668,7 @@ public final class DataComponentTypeKeys {
         DAMAGE_TYPE,
         DEATH_PROTECTION,
         DEBUG_STICK_STATE,
+        DISPENSE_BEHAVIOR,
         DYE,
         DYED_COLOR,
         ENCHANTABLE,

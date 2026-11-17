@@ -116,209 +116,219 @@ public interface ArgumentTypeIds {
     int GAMEMODE_ARGUMENT_ID = 19;
 
     /**
+     * {@code minecraft:greedy_string}
+     */
+    int GREEDY_STRING_ARGUMENT_ID = 20;
+
+    /**
      * {@code minecraft:heightmap}
      */
-    int HEIGHTMAP_ARGUMENT_ID = 20;
+    int HEIGHTMAP_ARGUMENT_ID = 21;
 
     /**
      * {@code minecraft:hex_color}
      */
-    int HEX_COLOR_ARGUMENT_ID = 21;
+    int HEX_COLOR_ARGUMENT_ID = 22;
 
     /**
      * {@code minecraft:int_range}
      */
-    int INT_RANGE_ARGUMENT_ID = 22;
+    int INT_RANGE_ARGUMENT_ID = 23;
 
     /**
      * {@code minecraft:integer}
      */
-    int INTEGER_ARGUMENT_ID = 23;
+    int INTEGER_ARGUMENT_ID = 24;
 
     /**
      * {@code minecraft:item_predicate}
      */
-    int ITEM_PREDICATE_ARGUMENT_ID = 24;
+    int ITEM_PREDICATE_ARGUMENT_ID = 25;
 
     /**
      * {@code minecraft:item_slot}
      */
-    int ITEM_SLOT_ARGUMENT_ID = 25;
+    int ITEM_SLOT_ARGUMENT_ID = 26;
 
     /**
      * {@code minecraft:item_slots}
      */
-    int ITEM_SLOTS_ARGUMENT_ID = 26;
+    int ITEM_SLOTS_ARGUMENT_ID = 27;
 
     /**
      * {@code minecraft:item_stack}
      */
-    int ITEM_STACK_ARGUMENT_ID = 27;
+    int ITEM_STACK_ARGUMENT_ID = 28;
 
     /**
      * {@code minecraft:long}
      */
-    int LONG_ARGUMENT_ID = 28;
+    int LONG_ARGUMENT_ID = 29;
 
     /**
      * {@code minecraft:loot_modifier}
      */
-    int LOOT_MODIFIER_ARGUMENT_ID = 29;
+    int LOOT_MODIFIER_ARGUMENT_ID = 30;
 
     /**
      * {@code minecraft:loot_predicate}
      */
-    int LOOT_PREDICATE_ARGUMENT_ID = 30;
+    int LOOT_PREDICATE_ARGUMENT_ID = 31;
 
     /**
      * {@code minecraft:loot_table}
      */
-    int LOOT_TABLE_ARGUMENT_ID = 31;
+    int LOOT_TABLE_ARGUMENT_ID = 32;
 
     /**
      * {@code minecraft:message}
      */
-    int MESSAGE_ARGUMENT_ID = 32;
+    int MESSAGE_ARGUMENT_ID = 33;
 
     /**
      * {@code minecraft:nbt_compound_tag}
      */
-    int NBT_COMPOUND_TAG_ARGUMENT_ID = 33;
+    int NBT_COMPOUND_TAG_ARGUMENT_ID = 34;
 
     /**
      * {@code minecraft:nbt_path}
      */
-    int NBT_PATH_ARGUMENT_ID = 34;
+    int NBT_PATH_ARGUMENT_ID = 35;
 
     /**
      * {@code minecraft:nbt_tag}
      */
-    int NBT_TAG_ARGUMENT_ID = 35;
+    int NBT_TAG_ARGUMENT_ID = 36;
 
     /**
      * {@code minecraft:objective}
      */
-    int OBJECTIVE_ARGUMENT_ID = 36;
+    int OBJECTIVE_ARGUMENT_ID = 37;
 
     /**
      * {@code minecraft:objective_criteria}
      */
-    int OBJECTIVE_CRITERIA_ARGUMENT_ID = 37;
+    int OBJECTIVE_CRITERIA_ARGUMENT_ID = 38;
 
     /**
      * {@code minecraft:operation}
      */
-    int OPERATION_ARGUMENT_ID = 38;
+    int OPERATION_ARGUMENT_ID = 39;
 
     /**
      * {@code minecraft:particle}
      */
-    int PARTICLE_ARGUMENT_ID = 39;
+    int PARTICLE_ARGUMENT_ID = 40;
 
     /**
      * {@code minecraft:pattern}
      */
-    int PATTERN_ARGUMENT_ID = 40;
+    int PATTERN_ARGUMENT_ID = 41;
+
+    /**
+     * {@code minecraft:quoted_string}
+     */
+    int QUOTED_STRING_ARGUMENT_ID = 42;
 
     /**
      * {@code minecraft:resource}
      */
-    int RESOURCE_ARGUMENT_ID = 41;
+    int RESOURCE_ARGUMENT_ID = 43;
 
     /**
      * {@code minecraft:resource_location}
      */
-    int RESOURCE_LOCATION_ARGUMENT_ID = 42;
+    int RESOURCE_LOCATION_ARGUMENT_ID = 44;
 
     /**
      * {@code minecraft:resource_or_tag}
      */
-    int RESOURCE_OR_TAG_ARGUMENT_ID = 43;
+    int RESOURCE_OR_TAG_ARGUMENT_ID = 45;
 
     /**
      * {@code minecraft:resource_selector}
      */
-    int RESOURCE_SELECTOR_ARGUMENT_ID = 44;
+    int RESOURCE_SELECTOR_ARGUMENT_ID = 46;
 
     /**
      * {@code minecraft:rotation}
      */
-    int ROTATION_ARGUMENT_ID = 45;
+    int ROTATION_ARGUMENT_ID = 47;
 
     /**
      * {@code minecraft:score_holder}
      */
-    int SCORE_HOLDER_ARGUMENT_ID = 46;
+    int SCORE_HOLDER_ARGUMENT_ID = 48;
 
     /**
      * {@code minecraft:scoreboard_slot}
      */
-    int SCOREBOARD_SLOT_ARGUMENT_ID = 47;
+    int SCOREBOARD_SLOT_ARGUMENT_ID = 49;
 
     /**
      * {@code minecraft:slot_source}
      */
-    int SLOT_SOURCE_ARGUMENT_ID = 48;
-
-    /**
-     * {@code minecraft:string}
-     */
-    int STRING_ARGUMENT_ID = 49;
+    int SLOT_SOURCE_ARGUMENT_ID = 50;
 
     /**
      * {@code minecraft:style}
      */
-    int STYLE_ARGUMENT_ID = 50;
+    int STYLE_ARGUMENT_ID = 51;
 
     /**
      * {@code minecraft:swing_animation}
      */
-    int SWING_ANIMATION_ARGUMENT_ID = 51;
+    int SWING_ANIMATION_ARGUMENT_ID = 52;
 
     /**
      * {@code minecraft:swizzle}
      */
-    int SWIZZLE_ARGUMENT_ID = 52;
+    int SWIZZLE_ARGUMENT_ID = 53;
 
     /**
      * {@code minecraft:team}
      */
-    int TEAM_ARGUMENT_ID = 53;
+    int TEAM_ARGUMENT_ID = 54;
 
     /**
      * {@code minecraft:team_color}
      */
-    int TEAM_COLOR_ARGUMENT_ID = 54;
+    int TEAM_COLOR_ARGUMENT_ID = 55;
 
     /**
      * {@code minecraft:template_mirror}
      */
-    int TEMPLATE_MIRROR_ARGUMENT_ID = 55;
+    int TEMPLATE_MIRROR_ARGUMENT_ID = 56;
 
     /**
      * {@code minecraft:template_rotation}
      */
-    int TEMPLATE_ROTATION_ARGUMENT_ID = 56;
+    int TEMPLATE_ROTATION_ARGUMENT_ID = 57;
 
     /**
      * {@code minecraft:time}
      */
-    int TIME_ARGUMENT_ID = 57;
+    int TIME_ARGUMENT_ID = 58;
 
     /**
      * {@code minecraft:uuid}
      */
-    int UUID_ARGUMENT_ID = 58;
+    int UUID_ARGUMENT_ID = 59;
 
     /**
      * {@code minecraft:vec2}
      */
-    int VEC2_ARGUMENT_ID = 59;
+    int VEC2_ARGUMENT_ID = 60;
 
     /**
      * {@code minecraft:vec3}
      */
-    int VEC3_ARGUMENT_ID = 60;
+    int VEC3_ARGUMENT_ID = 61;
+
+    /**
+     * {@code minecraft:word}
+     */
+    int WORD_ARGUMENT_ID = 62;
 
     /**
      * Identifier to protocol ID lookup table.
@@ -345,6 +355,7 @@ public interface ArgumentTypeIds {
             Key.key("function"),
             Key.key("game_profile"),
             Key.key("gamemode"),
+            Key.key("greedy_string"),
             Key.key("heightmap"),
             Key.key("hex_color"),
             Key.key("int_range"),
@@ -366,6 +377,7 @@ public interface ArgumentTypeIds {
             Key.key("operation"),
             Key.key("particle"),
             Key.key("pattern"),
+            Key.key("quoted_string"),
             Key.key("resource"),
             Key.key("resource_location"),
             Key.key("resource_or_tag"),
@@ -374,7 +386,6 @@ public interface ArgumentTypeIds {
             Key.key("score_holder"),
             Key.key("scoreboard_slot"),
             Key.key("slot_source"),
-            Key.key("string"),
             Key.key("style"),
             Key.key("swing_animation"),
             Key.key("swizzle"),
@@ -385,7 +396,8 @@ public interface ArgumentTypeIds {
             Key.key("time"),
             Key.key("uuid"),
             Key.key("vec2"),
-            Key.key("vec3")
+            Key.key("vec3"),
+            Key.key("word")
         },
         new int[] {
             ANGLE_ARGUMENT_ID,
@@ -408,6 +420,7 @@ public interface ArgumentTypeIds {
             FUNCTION_ARGUMENT_ID,
             GAME_PROFILE_ARGUMENT_ID,
             GAMEMODE_ARGUMENT_ID,
+            GREEDY_STRING_ARGUMENT_ID,
             HEIGHTMAP_ARGUMENT_ID,
             HEX_COLOR_ARGUMENT_ID,
             INT_RANGE_ARGUMENT_ID,
@@ -429,6 +442,7 @@ public interface ArgumentTypeIds {
             OPERATION_ARGUMENT_ID,
             PARTICLE_ARGUMENT_ID,
             PATTERN_ARGUMENT_ID,
+            QUOTED_STRING_ARGUMENT_ID,
             RESOURCE_ARGUMENT_ID,
             RESOURCE_LOCATION_ARGUMENT_ID,
             RESOURCE_OR_TAG_ARGUMENT_ID,
@@ -437,7 +451,6 @@ public interface ArgumentTypeIds {
             SCORE_HOLDER_ARGUMENT_ID,
             SCOREBOARD_SLOT_ARGUMENT_ID,
             SLOT_SOURCE_ARGUMENT_ID,
-            STRING_ARGUMENT_ID,
             STYLE_ARGUMENT_ID,
             SWING_ANIMATION_ARGUMENT_ID,
             SWIZZLE_ARGUMENT_ID,
@@ -448,7 +461,8 @@ public interface ArgumentTypeIds {
             TIME_ARGUMENT_ID,
             UUID_ARGUMENT_ID,
             VEC2_ARGUMENT_ID,
-            VEC3_ARGUMENT_ID
+            VEC3_ARGUMENT_ID,
+            WORD_ARGUMENT_ID
         }
     );
 

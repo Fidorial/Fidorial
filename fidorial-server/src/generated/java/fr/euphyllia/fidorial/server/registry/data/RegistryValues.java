@@ -18,6 +18,8 @@ import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
+import fr.fidorial.registry.data.DispenseBehavior;
+import fr.fidorial.registry.data.DispenseBehaviorType;
 import fr.fidorial.registry.data.Fluid;
 import fr.fidorial.registry.data.FrogVariant;
 import fr.fidorial.registry.data.GameEvent;
@@ -99,6 +101,8 @@ public final class RegistryValues {
         factories.put(RegistryKey.DAMAGE_TYPE.key(), DamageTypeValue::new);
         factories.put(RegistryKey.DECORATED_POT_PATTERN.key(), DecoratedPotPatternValue::new);
         factories.put(RegistryKey.DEBUG_SUBSCRIPTION.key(), DebugSubscriptionValue::new);
+        factories.put(RegistryKey.DISPENSE_BEHAVIOR.key(), DispenseBehaviorValue::new);
+        factories.put(RegistryKey.DISPENSE_BEHAVIOR_TYPE.key(), DispenseBehaviorTypeValue::new);
         factories.put(RegistryKey.FROG_VARIANT.key(), FrogVariantValue::new);
         factories.put(RegistryKey.FLUID.key(), FluidValue::new);
         factories.put(RegistryKey.GAME_EVENT.key(), GameEventValue::new);
@@ -283,6 +287,24 @@ public final class RegistryValues {
      */
     public record DebugSubscriptionValue(Key key) implements DebugSubscription {
         public DebugSubscriptionValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:dispense_behavior} entry.
+     */
+    public record DispenseBehaviorValue(Key key) implements DispenseBehavior {
+        public DispenseBehaviorValue {
+            Objects.requireNonNull(key, "key");
+        }
+    }
+
+    /**
+     * A {@code minecraft:dispense_behavior_type} entry.
+     */
+    public record DispenseBehaviorTypeValue(Key key) implements DispenseBehaviorType {
+        public DispenseBehaviorTypeValue {
             Objects.requireNonNull(key, "key");
         }
     }

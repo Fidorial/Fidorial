@@ -1,8 +1,8 @@
 package fr.euphyllia.fidorial.server.network;
 
-import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.auth.MojangChatSigningKeys;
 import fr.euphyllia.fidorial.auth.MojangSessionService;
+import fr.euphyllia.fidorial.auth.SessionKeyExchange;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
@@ -10,7 +10,7 @@ import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
-import java.security.KeyPair;
+import java.time.Duration;
 
 /**
  * The network listener, the protocol and the authentication of players.
@@ -26,7 +26,7 @@ public final class NetworkModule implements ServerModule {
     private final boolean headless;
     private final RegistryModule registries;
     private final ProtocolMap protocolMap = ProtocolMap.load();
-    private final KeyPair keyPair = EncryptionUtils.generateServerKeyPair();
+    private final SessionKeyExchange.ServerSideFactory keyExchanges;
     private final MojangSessionService sessionService = new MojangSessionService();
     private final MojangChatSigningKeys chatSigningKeys = new MojangChatSigningKeys();
     private final NettyServer listener;
@@ -40,6 +40,8 @@ public final class NetworkModule implements ServerModule {
         this.config = config;
         this.headless = headless;
         this.registries = registries;
+        this.keyExchanges = new SessionKeyExchange.ServerSideFactory(
+                Duration.ofSeconds(config.network().keyRotationPeriodSeconds()));
         this.listener = new NettyServer(server, config.network().port());
     }
 
@@ -66,8 +68,11 @@ public final class NetworkModule implements ServerModule {
         return protocolMap;
     }
 
-    public KeyPair keyPair() {
-        return keyPair;
+    /**
+     * The server side of the login key exchanges, holding the server's X25519 key pair.
+     */
+    public SessionKeyExchange.ServerSideFactory keyExchanges() {
+        return keyExchanges;
     }
 
     public MojangSessionService sessionService() {

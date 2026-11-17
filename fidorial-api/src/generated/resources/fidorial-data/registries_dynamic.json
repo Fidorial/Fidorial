@@ -13550,6 +13550,18 @@
         }
       },
       {
+        "id": "minecraft:fire",
+        "data": {
+          "break_sound": {
+            "sound_id": "minecraft:block.fire.extinguish"
+          },
+          "fall_sound": "minecraft:block.wool.fall",
+          "hit_sound": "minecraft:block.wool.hit",
+          "place_sound": "minecraft:block.wool.place",
+          "step_sound": "minecraft:block.wool.step"
+        }
+      },
+      {
         "id": "minecraft:flowering_azalea",
         "data": {
           "break_sound": "minecraft:block.flowering_azalea.break",
@@ -15516,6 +15528,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "scrape",
             "sound": "minecraft:item.axe.scrape"
@@ -15577,6 +15590,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "scrape",
             "sound": "minecraft:item.axe.scrape",
@@ -15646,6 +15660,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "scrape",
             "sound": "minecraft:item.axe.scrape",
@@ -16477,6 +16492,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "wax_off",
             "sound": "minecraft:item.axe.wax_off"
@@ -16555,6 +16571,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "wax_off",
             "sound": "minecraft:item.axe.wax_off",
@@ -16643,6 +16660,7 @@
                 }
               ]
             },
+            "consume_on_use": false,
             "item_damage_per_use": 1,
             "particle": "wax_off",
             "sound": "minecraft:item.axe.wax_off",
@@ -16733,6 +16751,1008 @@
             "item_damage_per_use": 1,
             "loot": "minecraft:till/rooted_dirt",
             "sound": "minecraft:item.hoe.till"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:honeycomb",
+        "data": [
+          {
+            "block_state_provider": {
+              "type": "minecraft:rule_based",
+              "rules": [
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_block"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_block"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:cut_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_cut_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_cut_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_cut_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_cut_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_cut_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_cut_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_cut_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:cut_copper_slab"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_cut_copper_slab",
+                      "properties": {
+                        "type": "bottom",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_cut_copper_slab"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_cut_copper_slab",
+                      "properties": {
+                        "type": "bottom",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_cut_copper_slab"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_cut_copper_slab",
+                      "properties": {
+                        "type": "bottom",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_cut_copper_slab"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_cut_copper_slab",
+                      "properties": {
+                        "type": "bottom",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:cut_copper_stairs"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_cut_copper_stairs",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "shape": "straight",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_cut_copper_stairs"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_cut_copper_stairs",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "shape": "straight",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_cut_copper_stairs"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_cut_copper_stairs",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "shape": "straight",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_cut_copper_stairs"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_cut_copper_stairs",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "shape": "straight",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:chiseled_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_chiseled_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_chiseled_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_chiseled_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_chiseled_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_chiseled_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_chiseled_copper"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_chiseled_copper"
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_trapdoor"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_trapdoor",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "open": "false",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_trapdoor"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_trapdoor",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "open": "false",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_trapdoor"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_trapdoor",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "open": "false",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_trapdoor"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_trapdoor",
+                      "properties": {
+                        "facing": "north",
+                        "half": "bottom",
+                        "open": "false",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_bars"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_bars",
+                      "properties": {
+                        "east": "false",
+                        "north": "false",
+                        "south": "false",
+                        "waterlogged": "false",
+                        "west": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_bars"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_bars",
+                      "properties": {
+                        "east": "false",
+                        "north": "false",
+                        "south": "false",
+                        "waterlogged": "false",
+                        "west": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_bars"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_bars",
+                      "properties": {
+                        "east": "false",
+                        "north": "false",
+                        "south": "false",
+                        "waterlogged": "false",
+                        "west": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_bars"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_bars",
+                      "properties": {
+                        "east": "false",
+                        "north": "false",
+                        "south": "false",
+                        "waterlogged": "false",
+                        "west": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_grate"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_grate",
+                      "properties": {
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_grate"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_grate",
+                      "properties": {
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_grate"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_grate",
+                      "properties": {
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_grate"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_grate",
+                      "properties": {
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_bulb"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_bulb",
+                      "properties": {
+                        "lit": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_bulb"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_bulb",
+                      "properties": {
+                        "lit": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_bulb"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_bulb",
+                      "properties": {
+                        "lit": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_bulb"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_bulb",
+                      "properties": {
+                        "lit": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_golem_statue"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_golem_statue",
+                      "properties": {
+                        "copper_golem_pose": "standing",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_golem_statue"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_golem_statue",
+                      "properties": {
+                        "copper_golem_pose": "standing",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_golem_statue"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_golem_statue",
+                      "properties": {
+                        "copper_golem_pose": "standing",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_golem_statue"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_golem_statue",
+                      "properties": {
+                        "copper_golem_pose": "standing",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:lightning_rod"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_lightning_rod",
+                      "properties": {
+                        "facing": "up",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_lightning_rod"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_lightning_rod",
+                      "properties": {
+                        "facing": "up",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_lightning_rod"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_lightning_rod",
+                      "properties": {
+                        "facing": "up",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_lightning_rod"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_lightning_rod",
+                      "properties": {
+                        "facing": "up",
+                        "powered": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_lantern"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_lantern",
+                      "properties": {
+                        "hanging": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_lantern"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_lantern",
+                      "properties": {
+                        "hanging": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_lantern"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_lantern",
+                      "properties": {
+                        "hanging": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_lantern"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_lantern",
+                      "properties": {
+                        "hanging": "false",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_chain"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_chain",
+                      "properties": {
+                        "axis": "y",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_chain"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_chain",
+                      "properties": {
+                        "axis": "y",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_chain"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_chain",
+                      "properties": {
+                        "axis": "y",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_chain"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_chain",
+                      "properties": {
+                        "axis": "y",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "item_damage_per_use": 1,
+            "particle": "wax_on",
+            "sound": "minecraft:item.honeycomb.wax_on"
+          },
+          {
+            "block_state_provider": {
+              "type": "minecraft:rule_based",
+              "rules": [
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_chest"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_chest",
+                      "properties": {
+                        "type": "single",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_chest"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_chest",
+                      "properties": {
+                        "type": "single",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_chest"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_chest",
+                      "properties": {
+                        "type": "single",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_chest"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_chest",
+                      "properties": {
+                        "type": "single",
+                        "facing": "north",
+                        "waterlogged": "false"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "item_damage_per_use": 1,
+            "particle": "wax_on",
+            "sound": "minecraft:item.honeycomb.wax_on",
+            "transform_type": "copper_chest",
+            "update_from_neighbors": false
+          },
+          {
+            "block_state_provider": {
+              "type": "minecraft:rule_based",
+              "rules": [
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:copper_door"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_copper_door",
+                      "properties": {
+                        "facing": "north",
+                        "half": "lower",
+                        "hinge": "left",
+                        "open": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:exposed_copper_door"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_exposed_copper_door",
+                      "properties": {
+                        "facing": "north",
+                        "half": "lower",
+                        "hinge": "left",
+                        "open": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:weathered_copper_door"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_weathered_copper_door",
+                      "properties": {
+                        "facing": "north",
+                        "half": "lower",
+                        "hinge": "left",
+                        "open": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if_true": {
+                    "type": "minecraft:matching_blocks",
+                    "blocks": "minecraft:oxidized_copper_door"
+                  },
+                  "then": {
+                    "type": "minecraft:copy_properties",
+                    "source": {
+                      "id": "minecraft:waxed_oxidized_copper_door",
+                      "properties": {
+                        "facing": "north",
+                        "half": "lower",
+                        "hinge": "left",
+                        "open": "false",
+                        "powered": "false"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "item_damage_per_use": 1,
+            "particle": "wax_on",
+            "sound": "minecraft:item.honeycomb.wax_on",
+            "update_from_neighbors": false
           }
         ]
       },
@@ -17983,7 +19003,9 @@
         "minecraft:starve",
         "minecraft:wither"
       ],
-      "minecraft:bypasses_cooldown": [],
+      "minecraft:bypasses_cooldown": [
+        "minecraft:generic_kill"
+      ],
       "minecraft:bypasses_effects": [
         "minecraft:starve"
       ],
@@ -18050,6 +19072,12 @@
         "minecraft:player_attack",
         "minecraft:player_explosion",
         "minecraft:spear"
+      ],
+      "minecraft:cannot_hurt_perching_ender_dragon": [
+        "minecraft:arrow",
+        "minecraft:thrown",
+        "minecraft:trident",
+        "minecraft:wind_charge"
       ],
       "minecraft:damages_helmet": [
         "minecraft:falling_anvil",
@@ -18440,6 +19468,337 @@
         "data": {
           "asset_id": "minecraft:snort_pottery_pattern"
         }
+      }
+    ],
+    "tags": {}
+  },
+  "minecraft:dispense_behavior": {
+    "entries": [
+      {
+        "id": "minecraft:armor_stand",
+        "data": [
+          {
+            "type": "minecraft:place_armor_stand"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:boat",
+        "data": [
+          {
+            "type": "minecraft:place_boat"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:bone_meal",
+        "data": [
+          {
+            "type": "minecraft:grow_plant"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:brush",
+        "data": [
+          {
+            "type": "minecraft:brush_armadillo"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:carved_pumpkin",
+        "data": [
+          {
+            "type": "minecraft:spawn_golem_from_carved_pumpkin"
+          },
+          {
+            "type": "minecraft:equip"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:chest",
+        "data": [
+          {
+            "type": "minecraft:equip_chest"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:default",
+        "data": [
+          {
+            "type": "minecraft:equip_sulfur_cube"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:default_projectile",
+        "data": [
+          {
+            "type": "minecraft:shoot_projectile",
+            "offset": [
+              0.0,
+              0.1,
+              0.0
+            ],
+            "power": 1.1,
+            "scale": 0.699999988079071,
+            "uncertainty": 6.0
+          }
+        ]
+      },
+      {
+        "id": "minecraft:dropper",
+        "data": [
+          {
+            "type": "minecraft:insert_into_container"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:empty_bucket",
+        "data": [
+          {
+            "type": "minecraft:fill_bucket"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:equipment",
+        "data": [
+          {
+            "type": "minecraft:equip"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:filled_bucket",
+        "data": [
+          {
+            "type": "minecraft:empty_bucket"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:fire_charge",
+        "data": [
+          {
+            "type": "minecraft:shoot_projectile",
+            "offset": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "power": 1.0,
+            "scale": 1.0,
+            "sound": {
+              "pitch": {
+                "type": "minecraft:trapezoid",
+                "max": 1.2,
+                "min": 0.8,
+                "plateau": 0.0
+              },
+              "sound": "minecraft:entity.blaze.shoot",
+              "volume": 2.0
+            },
+            "uncertainty": 6.6666665
+          }
+        ]
+      },
+      {
+        "id": "minecraft:firework_rocket",
+        "data": [
+          {
+            "type": "minecraft:shoot_projectile",
+            "offset": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "power": 0.5,
+            "scale": 0.5000099999997474,
+            "sound": {
+              "pitch": 1.2,
+              "sound": "minecraft:entity.firework_rocket.shoot",
+              "volume": 1.0
+            },
+            "uncertainty": 1.0
+          }
+        ]
+      },
+      {
+        "id": "minecraft:flint_and_steel",
+        "data": [
+          {
+            "type": "minecraft:ignite"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:glass_bottle",
+        "data": [
+          {
+            "type": "minecraft:fill_bottle"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:glowstone",
+        "data": [
+          {
+            "type": "minecraft:charge_respawn_anchor"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:honeycomb",
+        "data": [
+          {
+            "type": "minecraft:transform_block",
+            "transformer": "minecraft:honeycomb"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:minecart",
+        "data": [
+          {
+            "type": "minecraft:place_minecart"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:potion",
+        "data": [
+          {
+            "type": "minecraft:convert_to_mud"
+          },
+          {
+            "type": "minecraft:drop_item"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:shears",
+        "data": [
+          {
+            "type": "minecraft:shear"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:shulker_box",
+        "data": [
+          {
+            "type": "minecraft:place_block"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:spawn_egg",
+        "data": [
+          {
+            "type": "minecraft:spawn_mob"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:thrown_potion",
+        "data": [
+          {
+            "type": "minecraft:shoot_projectile",
+            "offset": [
+              0.0,
+              0.1,
+              0.0
+            ],
+            "power": 1.375,
+            "scale": 0.699999988079071,
+            "uncertainty": 3.0
+          }
+        ]
+      },
+      {
+        "id": "minecraft:tnt",
+        "data": [
+          {
+            "type": "minecraft:equip_sulfur_cube"
+          },
+          {
+            "type": "minecraft:spawn_tnt"
+          }
+        ]
+      },
+      {
+        "id": "minecraft:wind_charge",
+        "data": [
+          {
+            "type": "minecraft:shoot_projectile",
+            "offset": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "power": 1.0,
+            "scale": 1.0,
+            "sound": {
+              "pitch": {
+                "type": "minecraft:uniform",
+                "max_exclusive": 0.5,
+                "min_inclusive": 0.33333334
+              },
+              "sound": "minecraft:entity.wind_charge.throw",
+              "volume": 0.5
+            },
+            "uncertainty": 6.6666665
+          }
+        ]
+      },
+      {
+        "id": "minecraft:wither_skeleton_skull",
+        "data": [
+          {
+            "type": "minecraft:spawn_wither_from_wither_skeleton_skull"
+          },
+          {
+            "type": "minecraft:equip"
+          }
+        ]
       }
     ],
     "tags": {}

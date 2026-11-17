@@ -222,6 +222,11 @@ public final class BlockSoundSetKeys {
     public static final TypedKey<BlockSoundSet> DRIPSTONE_BLOCK = create("dripstone_block");
 
     /**
+     * Key for {@code minecraft:fire}.
+     */
+    public static final TypedKey<BlockSoundSet> FIRE = create("fire");
+
+    /**
      * Key for {@code minecraft:flowering_azalea}.
      */
     public static final TypedKey<BlockSoundSet> FLOWERING_AZALEA = create("flowering_azalea");
@@ -739,6 +744,7 @@ public final class BlockSoundSetKeys {
         DEEPSLATE_TILES,
         DRIED_GHAST,
         DRIPSTONE_BLOCK,
+        FIRE,
         FLOWERING_AZALEA,
         FROGLIGHT,
         FROGSPAWN,

@@ -247,14 +247,18 @@ public final class CommandTreeSerializer {
             final A argument,
             final ArgumentTypeRegistrar<A, S> registrar
     ) {
-        if (NetworkArgumentIds.hasId(registrar)) {
-            final int id = NetworkArgumentIds.getId(registrar);
-            buf.writeVarInt(id);
+        final S spec = registrar.access(argument);
+        final int specificId = registrar.networkId(spec);
+        if (specificId >= 0) {
+            buf.writeVarInt(specificId);
+        } else if (NetworkArgumentIds.hasId(registrar)) {
+            buf.writeVarInt(NetworkArgumentIds.getId(registrar));
         } else {
-            buf.writeVarInt(ArgumentTypeIds.STRING_ARGUMENT_ID);
+            // Unknown to the client: sent as a greedy string, which carries no properties.
+            buf.writeVarInt(ArgumentTypeIds.GREEDY_STRING_ARGUMENT_ID);
+            return;
         }
 
-        final S spec = registrar.access(argument);
         registrar.serialize(spec, buf);
     }
 

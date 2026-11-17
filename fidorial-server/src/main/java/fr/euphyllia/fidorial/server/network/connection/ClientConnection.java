@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.network.connection;
 import com.google.common.base.Preconditions;
 import com.google.common.net.InetAddresses;
 import fr.euphyllia.fidorial.auth.EncryptionUtils;
+import fr.euphyllia.fidorial.auth.SessionKeys;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.chat.FilterType;
 import fr.euphyllia.fidorial.server.chat.IdentifiedSignedMessage;
@@ -73,7 +74,6 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -294,17 +294,20 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         context().channel().eventLoop().execute(task);
     }
 
-    public void installEncryption(final SecretKey key) throws GeneralSecurityException {
-        context().pipeline()
-                .addBefore(
-                        "frame-decoder",
-                        "cipher-decoder",
-                        new CipherDecoder(EncryptionUtils.createStreamCipher(Cipher.DECRYPT_MODE, key)));
-        context().pipeline()
-                .addBefore(
-                        "frame-decoder",
-                        "cipher-encoder",
-                        new CipherEncoder(EncryptionUtils.createStreamCipher(Cipher.ENCRYPT_MODE, key)));
+    /**
+     * Switches encryption on, with the keys agreed on during the login.
+     *
+     * @param keys the keys of the session
+     * @param ivs  the initialization vectors drawn from the session's integrity digest
+     * @throws GeneralSecurityException if a cipher cannot be created
+     */
+    public void installEncryption(final SessionKeys keys, final SessionKeys.InitializationVectors ivs)
+            throws GeneralSecurityException {
+        // The server is side A of the exchange: it reads what B (the client) sends and writes towards B.
+        final Cipher decrypt = EncryptionUtils.createStreamCipher(Cipher.DECRYPT_MODE, keys.streamBToA(), ivs.clientToServer());
+        final Cipher encrypt = EncryptionUtils.createStreamCipher(Cipher.ENCRYPT_MODE, keys.streamAToB(), ivs.serverToClient());
+        context().pipeline().addBefore("frame-decoder", "cipher-decoder", new CipherDecoder(decrypt));
+        context().pipeline().addBefore("frame-decoder", "cipher-encoder", new CipherEncoder(encrypt));
     }
 
     public void installCompression(final int threshold) {

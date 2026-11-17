@@ -46,7 +46,7 @@ public final class ArgumentTypes {
         register(new DoubleArgumentRegistrar(), ArgumentTypeIds.DOUBLE_ARGUMENT_ID);
         register(new IntegerArgumentRegistrar(), ArgumentTypeIds.INTEGER_ARGUMENT_ID);
         register(new LongArgumentRegistrar(), ArgumentTypeIds.LONG_ARGUMENT_ID);
-        register(new StringArgumentRegistrar(), ArgumentTypeIds.STRING_ARGUMENT_ID);
+        register(new StringArgumentRegistrar(), ArgumentTypeIds.QUOTED_STRING_ARGUMENT_ID);
         register(new EntityArgument.Info(), ArgumentTypeIds.ENTITY_ARGUMENT_ID);
         register(new PlayerProfileArgument.Info(), ArgumentTypeIds.GAME_PROFILE_ARGUMENT_ID);
         register(new BlockPositionArgument.Info(), ArgumentTypeIds.BLOCK_POS_ARGUMENT_ID);

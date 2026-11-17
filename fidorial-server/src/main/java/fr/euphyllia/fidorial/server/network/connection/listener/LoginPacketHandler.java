@@ -1,8 +1,8 @@
 package fr.euphyllia.fidorial.server.network.connection.listener;
 
-import com.google.common.base.Preconditions;
-import fr.euphyllia.fidorial.auth.EncryptionUtils;
 import fr.euphyllia.fidorial.auth.GameProfile;
+import fr.euphyllia.fidorial.auth.SessionKeyExchange;
+import fr.euphyllia.fidorial.auth.SessionKeys;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration.ProxyForwarding;
@@ -28,10 +28,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
-import javax.crypto.SecretKey;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,7 +45,7 @@ public final class LoginPacketHandler implements LoginPacketListener {
     private final ClientConnection connection;
     private final FidorialServer server;
 
-    private byte @Nullable [] verifyToken;
+    private @Nullable SessionKeyExchange keyExchange;
     private @Nullable String pendingUsername;
     private int velocityTransactionId = -1;
     private boolean encryptionRequested = false;
@@ -52,8 +53,9 @@ public final class LoginPacketHandler implements LoginPacketListener {
     private boolean loginComplete = false;
 
     // Since 26.4-snapshot-5 encryption and compression are negotiated: the server announces them,
-    // the client acknowledges, and only then are they switched on (vanilla ServerLoginPacketListenerImpl).
-    private @Nullable SecretKey pendingSecretKey;
+    // the client acknowledges, and only then are they switched on.
+    private @Nullable SessionKeys pendingSessionKeys;
+    private SessionKeys.@Nullable InitializationVectors pendingIvs;
     private @Nullable GameProfile pendingProfile;
     private int compressionThreshold = -1;
 
@@ -138,53 +140,65 @@ public final class LoginPacketHandler implements LoginPacketListener {
         }
     }
 
+    /**
+     * Starts the key exchange (an X25519 agreement since 26.4-snapshot-9).
+     *
+     * @param shouldAuthenticate whether the client must join through Mojang's session server; false
+     *                           for an encrypted offline mode connection
+     */
     private void sendEncryptionRequest(final boolean shouldAuthenticate) {
         this.encryptionRequested = true;
-        this.verifyToken = EncryptionUtils.generateVerifyToken();
-        final byte[] publicKey = server.network().keyPair().getPublic().getEncoded();
-        Preconditions.checkState(publicKey != null, "The server public key has no encoded form");
-        connection.send(new ClientboundKeyPacket("", publicKey, verifyToken, shouldAuthenticate));
+        final SessionKeyExchange exchange = server.network().keyExchanges().create(
+                SessionKeyExchange.SERVER_NAME, VersionConstants.PROTOCOL_VERSION, shouldAuthenticate);
+        this.keyExchange = exchange;
+        connection.send(new ClientboundKeyPacket(
+                exchange.salt(), exchange.serverName(), exchange.encodedPublicKey(), exchange.authenticationRequested()));
     }
 
     @Override
     public void handleKey(final ServerboundKeyPacket packet) {
-        if (!encryptionRequested || keyReceived || loginComplete) {
+        final SessionKeyExchange exchange = this.keyExchange;
+        final String username = pendingUsername;
+        if (!encryptionRequested || keyReceived || loginComplete || exchange == null || username == null) {
             connection.close();
             return;
         }
         this.keyReceived = true;
-        try {
-            final byte[] token = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedToken());
-            if (!Arrays.equals(token, verifyToken)) {
-                disconnect(Component.translatable("disconnect.loginFailedInfo.invalidSession"));
-                return;
-            }
-            final byte[] sharedSecret = EncryptionUtils.decryptRsa(server.network().keyPair().getPrivate(), packet.encryptedSecret());
-            // Kept aside: encryption is switched on once the client answers apply_options.
-            this.pendingSecretKey = EncryptionUtils.toAesKey(sharedSecret);
+        this.keyExchange = null;
 
-            final String serverHash = EncryptionUtils.computeServerHash(
-                    "", sharedSecret, server.network().keyPair().getPublic());
-            final String username = pendingUsername;
-            if (username == null) {
-                disconnect(Component.translatable("disconnect.packetError"));
-                return;
-            }
-            Thread.startVirtualThread(() -> authenticate(username, serverHash));
-        } catch (final Exception e) {
-            LOGGER.warn("Encryption failed for {}", pendingUsername, e);
+        final SessionKeys keys;
+        final byte[] integrityDigest;
+        try {
+            final PublicKey clientKey = SessionKeyExchange.decodePublicKey(packet.clientKey());
+            keys = exchange.createSessionKeys(clientKey, username);
+            integrityDigest = keys.computeIntegrityDigest();
+        } catch (final GeneralSecurityException | RuntimeException e) {
+            LOGGER.warn("Key exchange failed for {}", username, e);
             disconnect(Component.translatable("disconnect.packetError"));
+            return;
         }
+        if (!MessageDigest.isEqual(integrityDigest, packet.signature())) {
+            LOGGER.warn("Key exchange signature mismatch for {}, potential tampering detected", username);
+            disconnect(Component.translatable("disconnect.packetError"));
+            return;
+        }
+        // Kept aside: encryption is switched on once the client answers apply_options.
+        this.pendingSessionKeys = keys;
+        this.pendingIvs = SessionKeys.initializationVectors(integrityDigest);
+
+        if (!exchange.authenticationRequested()) {
+            // Encrypted offline mode: the client did not join through Mojang, there is nothing to check.
+            applyEncryption(offlineProfile(username));
+            return;
+        }
+        final String serverHash = keys.computeKeysAuthenticationDigest();
+        Thread.startVirtualThread(() -> authenticate(username, serverHash));
     }
 
     private void authenticate(final String username, final String serverHash) {
         try {
             final Optional<GameProfile> profile = server.network().sessionService().hasJoined(username, serverHash);
             connection.execute(() -> {
-                if (!server.config().network().onlineMode()) {
-                    applyEncryption(offlineProfile(username));
-                    return;
-                }
                 if (profile.isEmpty()) {
                     disconnect(Component.translatable("disconnect.loginFailedInfo.invalidSession"));
                 } else {
@@ -207,17 +221,19 @@ public final class LoginPacketHandler implements LoginPacketListener {
 
     @Override
     public void handleOptionsApplied(final ServerboundOptionsAppliedPacket packet) {
-        final SecretKey key = this.pendingSecretKey;
+        final SessionKeys keys = this.pendingSessionKeys;
+        final SessionKeys.InitializationVectors ivs = this.pendingIvs;
         final GameProfile profile = this.pendingProfile;
-        if (key == null || profile == null) {
+        if (keys == null || ivs == null || profile == null) {
             LOGGER.warn("options_applied rejected for {}: no pending encryption", pendingUsername);
             disconnect(Component.translatable("disconnect.packetError"));
             return;
         }
-        this.pendingSecretKey = null;
+        this.pendingSessionKeys = null;
+        this.pendingIvs = null;
         this.pendingProfile = null;
         try {
-            connection.installEncryption(key);
+            connection.installEncryption(keys, ivs);
         } catch (final Exception e) {
             LOGGER.warn("Encryption failed for {}", pendingUsername, e);
             disconnect(Component.translatable("disconnect.packetError"));

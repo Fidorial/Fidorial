@@ -266,6 +266,18 @@ public sealed class PacketBuffer permits CodecAwarePacketBuffer {
         return VarInts.readByteArray(buf, maxLength);
     }
 
+    /**
+     * Reads exactly {@code length} bytes, without a size prefix.
+     */
+    public byte[] readFixedByteArray(final int length) {
+        if (length > buf.readableBytes()) {
+            throw new DecoderException("Expected " + length + " bytes, only " + buf.readableBytes() + " readable");
+        }
+        final byte[] data = new byte[length];
+        buf.readBytes(data);
+        return data;
+    }
+
     public byte @Nullable [] readOptionalFixedByteArray(final int length) {
         if (!readBoolean()) {
             return null;

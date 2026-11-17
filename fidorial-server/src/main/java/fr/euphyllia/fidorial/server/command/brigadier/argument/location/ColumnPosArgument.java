@@ -31,6 +31,15 @@ public final class ColumnPosArgument implements ArgumentType<ColumnPositionResol
 
     @Override
     public ColumnPositionResolver parse(final StringReader reader) throws CommandSyntaxException {
+        if (reader.canRead() && reader.peek() == '^') {
+            // Local coordinates are accepted since 26.4-snapshot-9.
+            final LocalColumnCoords coords = LocalColumnCoords.parse(reader);
+            return source -> {
+                final Location loc = coords.resolve(source);
+                return ColumnPosition.column(loc.blockX(), loc.blockZ());
+            };
+        }
+
         final int start = reader.getCursor();
         final BlockCoordinate x = BlockCoordinate.parse(reader);
         PositionParsing.separator(reader, start, PositionParsing.INCOMPLETE_2D);

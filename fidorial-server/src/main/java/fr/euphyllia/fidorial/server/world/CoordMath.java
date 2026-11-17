@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world;
 
+import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.math.Location;
 
 public final class CoordMath {
@@ -40,5 +41,30 @@ public final class CoordMath {
         final double z = lz * left + uz * up + fz * forwards;
 
         return origin.offset(x, y, z);
+    }
+
+    /**
+     * Applies local coordinates on the horizontal plane only ({@code ^left ^forwards}): only the yaw
+     * of the origin is taken into account and the height is left unchanged. Used by the
+     * two-dimensional local coordinates accepted.
+     *
+     * @param origin   the position and rotation the coordinates are relative to
+     * @param left     the distance to the left
+     * @param forwards the distance forwards
+     * @return the resulting location
+     */
+    @SinceMinecraft("26.4-snapshot-9")
+    public static Location applyLocalHorizontalCoords(final Location origin, final double left, final double forwards) {
+        final double yaw = Math.toRadians(origin.yaw());
+
+        // forward vector, flattened on the horizontal plane
+        final double fx = Math.cos(yaw + Math.PI / 2);
+        final double fz = Math.sin(yaw + Math.PI / 2);
+
+        // left vector: -(forwards x up), with up = (0, 1, 0)
+        final double lx = fz;
+        final double lz = -fx;
+
+        return origin.offset(fx * forwards + lx * left, 0, fz * forwards + lz * left);
     }
 }

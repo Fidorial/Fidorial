@@ -3,68 +3,34 @@ package fr.euphyllia.fidorial.auth;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
 
+/**
+ * The stream cipher of an encrypted connection.
+ *
+ * <p>Since 26.4-snapshot-9 each direction has its own key and initialization vector, both coming
+ * from the {@link SessionKeyExchange}; before, one shared secret served as key and IV of both.</p>
+ */
 public final class EncryptionUtils {
+
+    private static final String STREAM_ALGORITHM = "AES/CFB8/NoPadding";
 
     private EncryptionUtils() {
     }
 
-    public static KeyPair generateServerKeyPair() {
-        try {
-            final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
-            gen.initialize(1024);
-            return gen.generateKeyPair();
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalStateException("RSA indisponible", e);
-        }
-    }
-
-    public static byte[] generateVerifyToken() {
-        final byte[] token = new byte[4];
-        new SecureRandom().nextBytes(token);
-        return token;
-    }
-
-    public static byte[] decryptRsa(final PrivateKey key, final byte[] data) throws GeneralSecurityException {
-        final Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key);
-        return cipher.doFinal(data);
-    }
-
-    public static SecretKey toAesKey(final byte[] sharedSecret) {
-        return new SecretKeySpec(sharedSecret, "AES");
-    }
-
-    public static Cipher createStreamCipher(final int mode, final SecretKey key) throws GeneralSecurityException {
-        final Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
-        cipher.init(mode, key, new IvParameterSpec(key.getEncoded()));
+    /**
+     * Creates the cipher of one direction of a connection.
+     *
+     * @param mode {@link Cipher#ENCRYPT_MODE} or {@link Cipher#DECRYPT_MODE}
+     * @param key  the AES key of that direction
+     * @param iv   the initialization vector of that direction
+     * @return the initialized cipher
+     * @throws GeneralSecurityException if AES/CFB8 is not available or the key is invalid
+     */
+    public static Cipher createStreamCipher(final int mode, final SecretKey key, final IvParameterSpec iv)
+            throws GeneralSecurityException {
+        final Cipher cipher = Cipher.getInstance(STREAM_ALGORITHM);
+        cipher.init(mode, key, iv);
         return cipher;
-    }
-
-    public static String computeServerHash(final String serverId, final byte[] sharedSecret, final PublicKey publicKey) {
-        final byte[] encodedKey = publicKey.getEncoded();
-        if (encodedKey == null) {
-            throw new IllegalArgumentException("The public key has no encoded form");
-        }
-        try {
-            final MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            digest.update(serverId.getBytes(StandardCharsets.ISO_8859_1));
-            digest.update(sharedSecret);
-            digest.update(encodedKey);
-            return new BigInteger(digest.digest()).toString(16);
-        } catch (final Exception e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

@@ -14,6 +14,17 @@ public interface ArgumentTypeRegistrar<T extends ArgumentType<?>, I extends Argu
 
     I access(T argument);
 
+    /**
+     * The network id of an argument whose type is split into several protocol argument types, such
+     * as the string arguments since 26.4-snapshot-9.
+     *
+     * @param spec the argument
+     * @return its network id, or {@code -1} to use the id the registrar was registered with
+     */
+    default int networkId(final I spec) {
+        return -1;
+    }
+
     interface Spec<T extends ArgumentType<?>> {
 
         T instantiate();

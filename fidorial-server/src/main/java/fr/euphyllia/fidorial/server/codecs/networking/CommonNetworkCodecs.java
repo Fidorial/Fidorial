@@ -95,6 +95,18 @@ public final class CommonNetworkCodecs {
         }
 
         /**
+         * Exactly {@code length} bytes, without a size prefix.
+         */
+        public static NetworkCodec<PacketBuffer, byte[]> fixedByteArray(final int length) {
+            return NetworkCodec.of(buf -> buf.readFixedByteArray(length), (buf, data) -> {
+                if (data.length != length) {
+                    throw new IllegalArgumentException("Expected " + length + " bytes, got " + data.length);
+                }
+                buf.writeRawBytes(data);
+            });
+        }
+
+        /**
          * A VarInt size followed by the elements.
          */
         public static <B extends PacketBuffer, T> NetworkCodec<B, List<T>> prefixedList(final NetworkCodec<B, T> element, final int maxSize) {

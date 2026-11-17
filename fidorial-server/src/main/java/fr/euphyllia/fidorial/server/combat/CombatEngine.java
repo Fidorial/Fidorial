@@ -230,7 +230,9 @@ public final class CombatEngine implements CombatService {
             return false;
         }
 
-        final boolean withinInvulnerability = !hasDamageTag(source, DamageTypeTagKeys.BYPASSES_INVULNERABILITY)
+        // The damage cooldown is skipped by the damage types of #bypasses_cooldown. Since 26.4-snapshot-9
+        // the tag holds generic_kill, so /kill no longer fails on an entity that was just hurt.
+        final boolean withinInvulnerability = !hasDamageTag(source, DamageTypeTagKeys.BYPASSES_COOLDOWN)
                 && victim.invulnerableTicks() > AbstractLivingEntity.INVULNERABILITY_OVERRIDE_THRESHOLD;
 
         float incoming = amount;

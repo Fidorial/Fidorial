@@ -5,19 +5,36 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType.StringType;
 import fr.euphyllia.fidorial.server.command.brigadier.packet.registry.ArgumentTypeRegistrar;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
+import fr.euphyllia.fidorial.server.registry.data.ArgumentTypeIds;
 
+/**
+ * Brigadier's string arguments.
+ *
+ * <p>Since 26.4-snapshot-9 the protocol has one argument type per kind of string,
+ * {@code minecraft:word}, {@code minecraft:quoted_string} and {@code minecraft:greedy_string},
+ * none with properties, instead of a single {@code minecraft:string} followed by the kind.</p>
+ */
 public final class StringArgumentRegistrar
         implements ArgumentTypeRegistrar<StringArgumentType, StringArgumentRegistrar.Spec> {
 
     @Override
     public void serialize(final Spec spec, final PacketBuffer buf) {
-        buf.writeVarInt(spec.stringType().ordinal());
+        // The kind of string is carried by the network id alone.
     }
 
     @Override
     public Spec deserialize(final PacketBuffer buf) {
-        final StringType stringType = StringType.values()[buf.readVarInt()];
-        return new Spec(stringType);
+        // Nothing tells the kinds apart past the network id; fall back on a quoted string.
+        return new Spec(StringType.QUOTABLE_PHRASE);
+    }
+
+    @Override
+    public int networkId(final Spec spec) {
+        return switch (spec.stringType()) {
+            case SINGLE_WORD -> ArgumentTypeIds.WORD_ARGUMENT_ID;
+            case QUOTABLE_PHRASE -> ArgumentTypeIds.QUOTED_STRING_ARGUMENT_ID;
+            case GREEDY_PHRASE -> ArgumentTypeIds.GREEDY_STRING_ARGUMENT_ID;
+        };
     }
 
     @Override

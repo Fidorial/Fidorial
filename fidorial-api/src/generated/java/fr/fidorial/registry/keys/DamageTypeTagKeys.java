@@ -90,6 +90,11 @@ public final class DamageTypeTagKeys {
     public static final TagKey<DamageType> CAN_BREAK_ARMOR_STAND = create("can_break_armor_stand");
 
     /**
+     * Tag {@code #minecraft:cannot_hurt_perching_ender_dragon}.
+     */
+    public static final TagKey<DamageType> CANNOT_HURT_PERCHING_ENDER_DRAGON = create("cannot_hurt_perching_ender_dragon");
+
+    /**
      * Tag {@code #minecraft:damages_helmet}.
      */
     public static final TagKey<DamageType> DAMAGES_HELMET = create("damages_helmet");

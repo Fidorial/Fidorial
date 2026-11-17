@@ -22,6 +22,8 @@ import fr.fidorial.registry.data.CustomStat;
 import fr.fidorial.registry.data.DamageType;
 import fr.fidorial.registry.data.DebugSubscription;
 import fr.fidorial.registry.data.DecoratedPotPattern;
+import fr.fidorial.registry.data.DispenseBehavior;
+import fr.fidorial.registry.data.DispenseBehaviorType;
 import fr.fidorial.registry.data.Fluid;
 import fr.fidorial.registry.data.FrogVariant;
 import fr.fidorial.registry.data.GameEvent;
@@ -178,6 +180,16 @@ public record RegistryKey<T>(Key key) {
      * Registry key for {@code minecraft:debug_subscription}.
      */
     public static final RegistryKey<DebugSubscription> DEBUG_SUBSCRIPTION = of("debug_subscription");
+
+    /**
+     * Registry key for {@code minecraft:dispense_behavior}.
+     */
+    public static final RegistryKey<DispenseBehavior> DISPENSE_BEHAVIOR = of("dispense_behavior");
+
+    /**
+     * Registry key for {@code minecraft:dispense_behavior_type}.
+     */
+    public static final RegistryKey<DispenseBehaviorType> DISPENSE_BEHAVIOR_TYPE = of("dispense_behavior_type");
 
     /**
      * Registry key for {@code minecraft:dimension_type}.

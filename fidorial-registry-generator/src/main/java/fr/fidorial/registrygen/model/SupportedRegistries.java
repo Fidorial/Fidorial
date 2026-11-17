@@ -64,6 +64,8 @@ public final class SupportedRegistries {
             registry("minecraft:dialog", "Dialog", RegistrySync.DYNAMIC).bind("fr.fidorial.dialog.DialogDefinition"),
             registry("minecraft:decorated_pot_pattern", "DecoratedPotPattern", RegistrySync.DYNAMIC),
             registry("minecraft:debug_subscription", "DebugSubscription", RegistrySync.FROZEN),
+            registry("minecraft:dispense_behavior", "DispenseBehavior", RegistrySync.DYNAMIC),
+            registry("minecraft:dispense_behavior_type", "DispenseBehaviorType", RegistrySync.FROZEN),
             DIMENSION_TYPE,
             registry("minecraft:enchantment", "Enchantment", RegistrySync.DYNAMIC).bind("fr.fidorial.item.enchantment.EnchantmentDefinition"),
             ENTITY_TYPE,

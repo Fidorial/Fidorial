@@ -24,6 +24,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("custom_stat"), customStat()),
         Map.entry(Key.key("data_component_type"), dataComponentType()),
         Map.entry(Key.key("debug_subscription"), debugSubscription()),
+        Map.entry(Key.key("dispense_behavior_type"), dispenseBehaviorType()),
         Map.entry(Key.key("entity_type"), entityType()),
         Map.entry(Key.key("fluid"), fluid()),
         Map.entry(Key.key("game_event"), gameEvent()),
@@ -51,6 +52,7 @@ public final class FrozenRegistries {
         Map.entry(Key.key("custom_stat"), customStatTags()),
         Map.entry(Key.key("data_component_type"), dataComponentTypeTags()),
         Map.entry(Key.key("debug_subscription"), debugSubscriptionTags()),
+        Map.entry(Key.key("dispense_behavior_type"), dispenseBehaviorTypeTags()),
         Map.entry(Key.key("entity_type"), entityTypeTags()),
         Map.entry(Key.key("fluid"), fluidTags()),
         Map.entry(Key.key("game_event"), gameEventTags()),
@@ -8403,6 +8405,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("additional_trade_cost"));
         entries.add(Key.key("block_transformer"));
         entries.add(Key.key("villager_food"));
+        entries.add(Key.key("dispense_behavior"));
         entries.add(Key.key("stored_enchantments"));
         entries.add(Key.key("dye"));
         entries.add(Key.key("dyed_color"));
@@ -8486,7 +8489,7 @@ public final class FrozenRegistries {
      * @return {@code minecraft:data_component_type}, indexed by network ID
      */
     private static List<Key> dataComponentType() {
-        final List<Key> entries = new ArrayList<>(122);
+        final List<Key> entries = new ArrayList<>(123);
         dataComponentType0(entries);
         return List.copyOf(entries);
     }
@@ -8530,6 +8533,49 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:debug_subscription}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> debugSubscriptionTags() {
+        return Map.of();
+    }
+
+    private static void dispenseBehaviorType0(final List<Key> entries) {
+        entries.add(Key.key("brush_armadillo"));
+        entries.add(Key.key("charge_respawn_anchor"));
+        entries.add(Key.key("convert_to_mud"));
+        entries.add(Key.key("drop_item"));
+        entries.add(Key.key("empty_bucket"));
+        entries.add(Key.key("equip"));
+        entries.add(Key.key("equip_chest"));
+        entries.add(Key.key("equip_sulfur_cube"));
+        entries.add(Key.key("fill_bottle"));
+        entries.add(Key.key("fill_bucket"));
+        entries.add(Key.key("grow_plant"));
+        entries.add(Key.key("ignite"));
+        entries.add(Key.key("insert_into_container"));
+        entries.add(Key.key("place_armor_stand"));
+        entries.add(Key.key("place_boat"));
+        entries.add(Key.key("place_minecart"));
+        entries.add(Key.key("place_block"));
+        entries.add(Key.key("shear"));
+        entries.add(Key.key("shoot_projectile"));
+        entries.add(Key.key("spawn_golem_from_carved_pumpkin"));
+        entries.add(Key.key("spawn_mob"));
+        entries.add(Key.key("spawn_tnt"));
+        entries.add(Key.key("spawn_wither_from_wither_skeleton_skull"));
+        entries.add(Key.key("transform_block"));
+    }
+
+    /**
+     * @return {@code minecraft:dispense_behavior_type}, indexed by network ID
+     */
+    private static List<Key> dispenseBehaviorType() {
+        final List<Key> entries = new ArrayList<>(24);
+        dispenseBehaviorType0(entries);
+        return List.copyOf(entries);
+    }
+
+    /**
+     * @return the tags of {@code minecraft:dispense_behavior_type}, keyed by tag identifier
+     */
+    private static Map<Key, List<Key>> dispenseBehaviorTypeTags() {
         return Map.of();
     }
 
@@ -12986,7 +13032,6 @@ public final class FrozenRegistries {
         entries.add(Key.key("block.bubble_column.upwards_inside"));
         entries.add(Key.key("block.bubble_column.whirlpool_ambient"));
         entries.add(Key.key("block.bubble_column.whirlpool_inside"));
-        entries.add(Key.key("ui.hud.bubble_pop"));
         entries.add(Key.key("item.bucket.empty"));
         entries.add(Key.key("item.bucket.empty_axolotl"));
         entries.add(Key.key("item.bucket.empty_fish"));
@@ -13022,10 +13067,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("entity.camel.dash_ready"));
         entries.add(Key.key("entity.camel.death"));
         entries.add(Key.key("entity.camel.eat"));
+        entries.add(Key.key("entity.camel.hurt"));
     }
 
     private static void soundEvent1(final List<Key> entries) {
-        entries.add(Key.key("entity.camel.hurt"));
         entries.add(Key.key("entity.camel.saddle"));
         entries.add(Key.key("entity.camel.sit"));
         entries.add(Key.key("entity.camel.stand"));
@@ -13225,10 +13270,10 @@ public final class FrozenRegistries {
         entries.add(Key.key("entity.drowned.death"));
         entries.add(Key.key("entity.drowned.death_water"));
         entries.add(Key.key("entity.drowned.hurt"));
+        entries.add(Key.key("entity.drowned.hurt_water"));
     }
 
     private static void soundEvent2(final List<Key> entries) {
-        entries.add(Key.key("entity.drowned.hurt_water"));
         entries.add(Key.key("entity.drowned.shoot"));
         entries.add(Key.key("entity.drowned.step"));
         entries.add(Key.key("entity.drowned.swim"));
@@ -13390,6 +13435,7 @@ public final class FrozenRegistries {
         entries.add(Key.key("entity.happy_ghast.death"));
         entries.add(Key.key("entity.happy_ghast.hurt"));
         entries.add(Key.key("entity.happy_ghast.riding"));
+        entries.add(Key.key("ui.hud.bubble_pop"));
         entries.add(Key.key("block.trial_spawner.spawn_mob"));
         entries.add(Key.key("block.trial_spawner.about_to_spawn_item"));
         entries.add(Key.key("block.trial_spawner.spawn_item"));

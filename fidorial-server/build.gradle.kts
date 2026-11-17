@@ -275,9 +275,9 @@ tasks.withType<GenerateBlockEntityTypeBlocksTask>().configureEach {
 
 fidorialRegistryGenerator {
     minecraftVersion.set(providers.gradleProperty("minecraftVersion"))
-    prismarineMinecraftData.set("26.4-snapshot-8")
+    prismarineMinecraftData.set("26.4-snapshot-10")
     prismarineDataRepository.set("Fidorial/minecraft-data") // PrismarineJS/minecraft-data
-    prismarineDataRef.set("ver/26.4-snapshot-8") // master
+    prismarineDataRef.set("ver/26.4-snapshot-10") // master
 
     generatedPackage.set(
         "fr.euphyllia.fidorial.server",

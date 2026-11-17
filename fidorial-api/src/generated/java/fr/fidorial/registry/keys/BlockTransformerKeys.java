@@ -22,6 +22,11 @@ public final class BlockTransformerKeys {
     public static final TypedKey<BlockTransformer> HOE = create("hoe");
 
     /**
+     * Key for {@code minecraft:honeycomb}.
+     */
+    public static final TypedKey<BlockTransformer> HONEYCOMB = create("honeycomb");
+
+    /**
      * Key for {@code minecraft:shovel}.
      */
     public static final TypedKey<BlockTransformer> SHOVEL = create("shovel");
@@ -29,6 +34,7 @@ public final class BlockTransformerKeys {
     private static final List<TypedKey<BlockTransformer>> VALUES = List.of(
         AXE,
         HOE,
+        HONEYCOMB,
         SHOVEL
     );
 
