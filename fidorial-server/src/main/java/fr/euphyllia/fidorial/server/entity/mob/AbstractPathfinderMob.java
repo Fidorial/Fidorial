@@ -400,9 +400,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
         if (consumeJumpRequest()) {
             if (canSwimUp) {
-                velocityY += SWIM_UP_VELOCITY;
+                velocityY = swimUpVelocity(velocityY, inLava);
             } else if (onGround && jumpDelay == 0) {
-                velocityY = Math.max(JUMP_VELOCITY, velocityY);
+                velocityY = Math.max(jumpVelocity(), velocityY);
                 jumpDelay = JUMP_DELAY_TICKS;
             }
         }
@@ -434,13 +434,13 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         if ((blockedX || blockedZ) && walking && velocityY <= 0.0) {
             if (canSwimUp) {
                 // too high a bank to step onto: swim up along it
-                velocityY += SWIM_UP_VELOCITY;
+                velocityY = swimUpVelocity(velocityY, inLava);
             } else if (onGround && jumpDelay == 0 && waypoint != null && waypoint.y() > y
                     && !isBoxBlocked(x, y + 1.0, z)) {
                 // too high a block to step onto: jump onto it, if there is room above. Only on the
                 // way up: against the corner of a wall at its own height, a mob slides along it
                 // rather than hopping on the spot
-                velocityY = JUMP_VELOCITY;
+                velocityY = jumpVelocity();
                 jumpDelay = JUMP_DELAY_TICKS;
                 moved = collide(x, y, z, velocityX, velocityY, velocityZ, stepHeight(), onGround);
                 blockedX = isBlocked(moved.x(), velocityX);
@@ -646,6 +646,24 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     protected void onStep() {
+    }
+
+    /**
+     * {@return how fast this mob goes up when it jumps off the ground}
+     */
+    protected double jumpVelocity() {
+        return JUMP_VELOCITY;
+    }
+
+    /**
+     * {@return how fast this mob goes up after a jump in a fluid deep enough to swim in}: a little
+     * faster each tick it keeps jumping
+     *
+     * @param velocityY how fast it went up before
+     * @param inLava    {@code true} in lava, {@code false} in water
+     */
+    protected double swimUpVelocity(final double velocityY, final boolean inLava) {
+        return velocityY + SWIM_UP_VELOCITY;
     }
 
     /**

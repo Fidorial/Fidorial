@@ -959,6 +959,56 @@ public final class SoundEvents {
      */
     public static final Sound.Type SLIME_DEATH_SMALL = of("entity.slime.death_small");
 
+    // --- Magma cube ---
+    /**
+     * The {@code minecraft:entity.magma_cube.jump} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_JUMP = of("entity.magma_cube.jump");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.squish} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_SQUISH = of("entity.magma_cube.squish");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.squish_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_SQUISH_SMALL = of("entity.magma_cube.squish_small");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_HURT = of("entity.magma_cube.hurt");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.hurt_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_HURT_SMALL = of("entity.magma_cube.hurt_small");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_DEATH = of("entity.magma_cube.death");
+
+    /**
+     * The {@code minecraft:entity.magma_cube.death_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type MAGMA_CUBE_DEATH_SMALL = of("entity.magma_cube.death_small");
+
     // --- Spider ---
     /**
      * The {@code minecraft:entity.spider.ambient} sound event.
