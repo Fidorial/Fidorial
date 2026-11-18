@@ -41,7 +41,6 @@ public class Navigation implements Navigator {
      */
     private static final int REPATH_COOLDOWN_TICKS = 10;
 
-    private static final double REPATH_TARGET_MOVED_SQ = 2.0 * 2.0;
     private static final int MAX_NODES = 768;
 
     /**
@@ -234,10 +233,6 @@ public class Navigation implements Navigator {
 
     public @Nullable PathPenalty pathPenalty() {
         return pathPenalty;
-    }
-
-    public void tick(final double x, final double z) {
-        tick(x, 0.0, z, false);
     }
 
     /**

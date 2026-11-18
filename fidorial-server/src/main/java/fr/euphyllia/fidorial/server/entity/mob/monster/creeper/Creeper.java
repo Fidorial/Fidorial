@@ -106,11 +106,6 @@ public final class Creeper extends AbstractMonster {
     }
 
     @Override
-    public boolean picksPlayersByItself() {
-        return false;
-    }
-
-    @Override
     public double movementSpeed() {
         return MOVEMENT_SPEED;
     }

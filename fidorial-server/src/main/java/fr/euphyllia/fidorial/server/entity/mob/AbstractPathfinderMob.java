@@ -110,6 +110,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private double stepDistance;
     private double swimSpeed;
     private int jumpDelay;
+    /**
+     * How fast this mob moves the way it faces this tick, with no path to follow.
+     */
+    private double forwardSpeed;
     private boolean horizontalCollision;
 
     protected AbstractPathfinderMob(final int entityId, final UUID uuid, final EntityType type,
@@ -154,8 +158,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         tickNoActionTime(currentTick);
         tickAmbientSound();
         setMoveSpeed(0.0);
+        forwardSpeed = 0.0;
         goals.tick();
         tickBehaviours(currentTick);
+        tickMoveControl();
 
         final Location before = location();
         applyPhysics();
@@ -172,12 +178,12 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
 
     /**
      * {@return {@code true} if this mob goes after the nearest player without any goal asking for
-     * it}, as mobs did before they had goals to pick their target. A mob that picks its targets as
-     * Vanilla does, with {@link NearestAttackableTargetGoal}
-     * and the like, answers {@code false}.
+     * it}: within its follow range, and after whoever hits it. Only the mobs plugins define do; the
+     * others pick their targets with goals, {@link NearestAttackableTargetGoal} and the like, or
+     * have none.
      */
     public boolean picksPlayersByItself() {
-        return true;
+        return false;
     }
 
     /**
@@ -190,7 +196,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double reach = halfWidth() + MELEE_REACH + halfWidthOf(entity);
         return Math.abs(self.x() - other.x()) < reach
                 && Math.abs(self.z() - other.z()) < reach
-                && self.y() < other.y() + heightOf(entity)
+                & self.y() < other.y() + boxHeightOf(entity)
                 && other.y() < self.y() + height();
     }
 
@@ -218,7 +224,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         return entity instanceof final AbstractMovingMob mob ? mob.width() / 2.0 : DEFAULT_TARGET_WIDTH / 2.0;
     }
 
-    private static double heightOf(final AbstractLivingEntity entity) {
+    /**
+     * {@return the height of the box of a living entity}
+     */
+    public static double boxHeightOf(final AbstractLivingEntity entity) {
         return switch (entity) {
             case final AbstractMovingMob mob -> mob.height();
             case final ServerPlayer player -> player.isSneaking() ? SNEAKING_PLAYER_HEIGHT : DEFAULT_TARGET_HEIGHT;
@@ -344,6 +353,8 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         // a goal that sets the speed every tick wins over the speed asked along the path
         final double speed = moveSpeed() > 0.0 ? moveSpeed() : navigation.headingSpeed();
         final var waypoint = navigation.heading();
+        // a mob that hops around moves the way it faces, with no path
+        final boolean forward = waypoint == null && forwardSpeed > 0.0;
         boolean walking = false;
         if (swimming) {
             if (risesWhileSwimming()) {
@@ -382,6 +393,8 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                     yaw = rotateTowards(yaw, (float) Math.toDegrees(Math.atan2(dz, dx)) - 90.0f, MAX_TURN);
                     walking = true;
                 }
+            } else if (forward) {
+                walking = true;
             }
         }
 
@@ -395,8 +408,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         }
 
         if (walking) {
-            final double push = inWater || inLava ? FLUID_ACCELERATION : onGround ? speed : AIR_ACCELERATION;
-            final double acceleration = push * Math.min(1.0, speed * INPUT_SCALE);
+            final double walkSpeed = forward ? forwardSpeed : speed;
+            final double push = inWater || inLava ? FLUID_ACCELERATION : onGround ? walkSpeed : AIR_ACCELERATION;
+            final double acceleration = push * Math.min(1.0, walkSpeed * INPUT_SCALE);
             final double radians = Math.toRadians(yaw);
             velocityX -= Math.sin(radians) * acceleration;
             velocityZ += Math.cos(radians) * acceleration;
@@ -632,6 +646,24 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     protected void onStep() {
+    }
+
+    /**
+     * Moves this mob the way it faces this tick, as fast as given, when it follows no path; set
+     * again every tick, from {@link #tickMoveControl()}, by the mobs that do not walk along paths.
+     *
+     * @param speed how fast, {@code 0} to stand still
+     */
+    protected final void setForwardSpeed(final double speed) {
+        this.forwardSpeed = speed;
+    }
+
+    /**
+     * Called every tick once the goals had their say and before this mob moves: a mob that moves on
+     * its own, rather than along paths, turns and sets its {@linkplain #setForwardSpeed forward speed}
+     * here.
+     */
+    protected void tickMoveControl() {
     }
 
     /**

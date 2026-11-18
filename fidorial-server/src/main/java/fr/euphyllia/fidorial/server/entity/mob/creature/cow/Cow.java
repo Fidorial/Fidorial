@@ -17,8 +17,6 @@ import fr.fidorial.registry.keys.CowVariantKeys;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -63,14 +61,6 @@ public final class Cow extends AbstractCow implements Category.Neutral {
      */
     public static boolean canSpawn(final ServerWorld world, final int x, final int y, final int z) {
         return checkAnimalSpawnRules(world, x, y, z);
-    }
-
-    private TypedKey<CowSoundVariant> randomSoundVariant() {
-        final List<TypedKey<CowSoundVariant>> voices =
-                new ArrayList<>(server().registries().registry(RegistryKey.COW_SOUND_VARIANT).keys());
-        return voices.isEmpty()
-                ? CowSoundVariantKeys.CLASSIC
-                : voices.get(ThreadLocalRandom.current().nextInt(voices.size()));
     }
 
     public TypedKey<CowVariant> variant() {

@@ -339,6 +339,22 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         }
     }
 
+    /**
+     * Plays the cry of this mob as it dies, at the volume and pitch of its voice.
+     */
+    public final void playDeathSound() {
+        final Sound.Type sound = deathSound();
+        if (sound != null) {
+            playSound(sound, soundVolume(), voicePitch());
+        }
+    }
+
+    /**
+     * Tells this mob, then the behaviours plugins gave it, that a hit took some of its health.
+     *
+     * @param source what hit it
+     * @param amount the health it lost, past its armor and absorption
+     */
     public final void notifyHurt(final DamageSource source, final float amount) {
         onHurt(source, amount);
         dispatch(behaviour -> behaviour.onHurt(source, amount), "onHurt");

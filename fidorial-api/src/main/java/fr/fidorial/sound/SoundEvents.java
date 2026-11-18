@@ -895,6 +895,70 @@ public final class SoundEvents {
      */
     public static final Sound.Type SILVERFISH_DEATH = of("entity.silverfish.death");
 
+    // --- Slime ---
+    /**
+     * The {@code minecraft:entity.slime.attack} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_ATTACK = of("entity.slime.attack");
+
+    /**
+     * The {@code minecraft:entity.slime.jump} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_JUMP = of("entity.slime.jump");
+
+    /**
+     * The {@code minecraft:entity.slime.jump_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_JUMP_SMALL = of("entity.slime.jump_small");
+
+    /**
+     * The {@code minecraft:entity.slime.squish} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_SQUISH = of("entity.slime.squish");
+
+    /**
+     * The {@code minecraft:entity.slime.squish_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_SQUISH_SMALL = of("entity.slime.squish_small");
+
+    /**
+     * The {@code minecraft:entity.slime.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_HURT = of("entity.slime.hurt");
+
+    /**
+     * The {@code minecraft:entity.slime.hurt_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_HURT_SMALL = of("entity.slime.hurt_small");
+
+    /**
+     * The {@code minecraft:entity.slime.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_DEATH = of("entity.slime.death");
+
+    /**
+     * The {@code minecraft:entity.slime.death_small} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SLIME_DEATH_SMALL = of("entity.slime.death_small");
+
     // --- Spider ---
     /**
      * The {@code minecraft:entity.spider.ambient} sound event.

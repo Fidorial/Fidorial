@@ -284,11 +284,6 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     }
 
     @Override
-    public boolean picksPlayersByItself() {
-        return false;
-    }
-
-    @Override
     public float walkTargetValue(final int x, final int y, final int z) {
         return 0.0f;
     }

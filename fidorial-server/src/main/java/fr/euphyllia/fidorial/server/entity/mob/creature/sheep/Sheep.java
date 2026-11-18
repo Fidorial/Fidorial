@@ -193,11 +193,6 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
         return MOVEMENT_SPEED;
     }
 
-    @Override
-    protected double defaultFollowRange() {
-        return 0.0;
-    }
-
     public DyeColor color() {
         return color;
     }

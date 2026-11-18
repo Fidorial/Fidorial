@@ -40,8 +40,6 @@ public final class IceBall extends AbstractEntity {
     private static final float BREAK_VOLUME = 0.5f;
     private static final double DRAG = 0.99;
 
-    private static final int AIM_ROUNDS = 4;
-
     private static final double MAX_STEP = 0.25;
     private static final double HIT_MARGIN = 0.125;
     private static final int MAX_LIFETIME_TICKS = 200;

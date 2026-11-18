@@ -24,6 +24,15 @@ public final class PluginMob extends AbstractPathfinderMob {
         return Optional.of(definition);
     }
 
+    /**
+     * {@return {@code true}}: a mob a plugin defines has no goals to pick its target, it goes after
+     * the nearest player in its follow range and fights back
+     */
+    @Override
+    public boolean picksPlayersByItself() {
+        return true;
+    }
+
     @Override
     public Sound.Source soundSource() {
         return definition.soundSource();

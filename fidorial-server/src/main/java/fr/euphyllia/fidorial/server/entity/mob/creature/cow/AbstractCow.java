@@ -109,11 +109,6 @@ public abstract class AbstractCow extends AbstractAnimal {
     }
 
     @Override
-    protected final double defaultFollowRange() {
-        return 0.0;
-    }
-
-    @Override
     public final boolean isFood(final ItemStack stack) {
         return server().registries().registry(RegistryKey.ITEM).isTagged(stack.id(), ItemTagKeys.COW_FOOD);
     }

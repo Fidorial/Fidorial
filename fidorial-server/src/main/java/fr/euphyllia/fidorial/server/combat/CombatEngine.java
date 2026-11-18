@@ -287,11 +287,17 @@ public final class CombatEngine implements CombatService {
             EnchantmentEngine.postAttack(victim, source, dealt, MELEE_ATTACKS.contains(source.type()));
         }
 
+        // a hit within the cooldown only deals what it adds to the last one: it makes no sound
         if (victim.isDead()) {
+            if (!withinInvulnerability && victim instanceof final AbstractMob mob) {
+                mob.playDeathSound();
+            }
             die(victim, source.causingEntity());
         } else if (victim instanceof final AbstractMob mob) {
-            mob.playHurtSound();
-            mob.onHurt(source, dealt);
+            if (!withinInvulnerability && !hasDamageTag(source, DamageTypeTagKeys.NO_HURT_SOUND)) {
+                mob.playHurtSound();
+            }
+            mob.notifyHurt(source, dealt);
             aggro(mob, source.causingEntity());
         }
         return true;
@@ -423,6 +429,9 @@ public final class CombatEngine implements CombatService {
         victim.setAbsorptionAmount(0f);
         victim.setHealth(0f);
         syncHealth(victim);
+        if (victim instanceof final AbstractMob mob) {
+            mob.playDeathSound();
+        }
         die(victim, killer);
     }
 

@@ -226,11 +226,6 @@ public class Zombie extends AbstractMonster {
     }
 
     @Override
-    public final boolean picksPlayersByItself() {
-        return false;
-    }
-
-    @Override
     public final boolean isBaby() {
         return baby;
     }

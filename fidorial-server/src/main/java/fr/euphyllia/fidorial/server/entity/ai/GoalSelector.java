@@ -129,10 +129,6 @@ public class GoalSelector implements Goals {
         return List.copyOf(result);
     }
 
-    public boolean isRunning(final Goal goal) {
-        return running.contains(goal);
-    }
-
     public DebugValues.@Nullable GoalSelectorInfo debugSnapshot() {
         if (goals.isEmpty()) {
             return null;

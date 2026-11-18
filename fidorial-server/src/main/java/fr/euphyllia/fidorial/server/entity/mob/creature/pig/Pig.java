@@ -152,11 +152,6 @@ public final class Pig extends AbstractAnimal implements Category.Neutral {
         return MOVEMENT_SPEED;
     }
 
-    @Override
-    protected double defaultFollowRange() {
-        return 0.0;
-    }
-
     public TypedKey<PigVariant> variant() {
         return variant;
     }

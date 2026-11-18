@@ -232,11 +232,6 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
     }
 
     @Override
-    protected double defaultFollowRange() {
-        return 0.0;
-    }
-
-    @Override
     protected double fallDrag() {
         return FLUTTER_FALL_DRAG;
     }
