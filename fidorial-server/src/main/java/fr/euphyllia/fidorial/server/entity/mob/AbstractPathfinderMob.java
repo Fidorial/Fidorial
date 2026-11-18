@@ -196,7 +196,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         final double reach = halfWidth() + MELEE_REACH + halfWidthOf(entity);
         return Math.abs(self.x() - other.x()) < reach
                 && Math.abs(self.z() - other.z()) < reach
-                & self.y() < other.y() + boxHeightOf(entity)
+                && self.y() < other.y() + boxHeightOf(entity)
                 && other.y() < self.y() + height();
     }
 

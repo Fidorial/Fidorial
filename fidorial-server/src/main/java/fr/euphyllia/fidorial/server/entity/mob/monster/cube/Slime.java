@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.cube;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
@@ -98,6 +99,10 @@ public final class Slime extends AbstractCubeMob {
      * {@return {@code true} if a chunk is a slime chunk}: one chunk in ten, picked by the seed of the
      * worlds
      */
+    @SuppressFBWarnings(
+            value = "DMI_RANDOM_USED_ONLY_ONCE",
+            justification = "The first number of a Random seeded by the chunk is what makes it a slime chunk."
+    )
     public static boolean isSlimeChunk(final int chunkX, final int chunkZ) {
         final long seed = FidorialServer.getInstance().worlds().manager().levelData().seed;
         // the products of ints wrap around on purpose: the slime chunks depend on it
