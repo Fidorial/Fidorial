@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.entity.mob.water_creature.Axolotl;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.entity.mob.monster.Drowned;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
@@ -36,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * the water and only cares about what is in it; at night it comes ashore and hunts like a zombie.
  * Water does not change it; powder snow turns it into a zombie.
  */
-public final class Drowned extends Zombie {
+public final class DrownedImpl extends ZombieImpl implements Drowned {
 
     public static final float MAX_HEALTH = 20f;
 
@@ -52,7 +53,7 @@ public final class Drowned extends Zombie {
     private boolean searchingForLand;
     private boolean sentSwimming;
 
-    public Drowned(final int entityId, final Location location) {
+    public DrownedImpl(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
@@ -60,7 +61,7 @@ public final class Drowned extends Zombie {
      * @param spawned {@code true} for a drowned that spawns, with the random traits of a zombie that
      *                does
      */
-    public Drowned(final int entityId, final Location location, final boolean spawned) {
+    public DrownedImpl(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.DROWNED, location, spawned, false);
         navigation.setSwims(true);
 
@@ -122,6 +123,7 @@ public final class Drowned extends Zombie {
     /**
      * {@return {@code true} while this drowned swims up at night, looking for the shore}
      */
+    @Override
     public boolean isSearchingForLand() {
         return searchingForLand;
     }
@@ -187,8 +189,8 @@ public final class Drowned extends Zombie {
     }
 
     @Override
-    protected Zombie frozenForm(final int entityId, final Location location) {
-        return new Zombie(entityId, location, false);
+    protected ZombieImpl frozenForm(final int entityId, final Location location) {
+        return new ZombieImpl(entityId, location, false);
     }
 
     @Override

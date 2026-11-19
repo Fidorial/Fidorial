@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.ItemEntity;
+import fr.fidorial.entity.mob.creature.Sheep;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.DyeColor;
 import fr.fidorial.item.ItemStack;
@@ -48,7 +49,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * and breeds when fed wheat. Its wool is sheared and grows back when it grazes, takes the colour of
  * a dye, and comes in the colours of the biome it spawned in.
  */
-public final class Sheep extends AbstractAnimal implements Category.Neutral {
+public final class SheepImpl extends AbstractAnimal implements Category.Neutral, Sheep {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -95,7 +96,7 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
      * Spawns a sheep as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an adult,
      * of one of the colours of the biome.
      */
-    public Sheep(final int entityId, final Location location) {
+    public SheepImpl(final int entityId, final Location location) {
         this(entityId, location, false);
         this.color = randomColor(BlockView.biomeAt(serverWorld(),
                 (int) Math.floor(location.x()), (int) Math.floor(location.y()), (int) Math.floor(location.z())));
@@ -104,7 +105,7 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
     /**
      * Creates a white sheep, as vanilla does before it sets up a sheep.
      */
-    public Sheep(final int entityId, final Location location, final boolean baby) {
+    public SheepImpl(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.SHEEP, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.LAND_ANIMAL);
 
@@ -193,19 +194,23 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
         return MOVEMENT_SPEED;
     }
 
+    @Override
     public DyeColor color() {
         return color;
     }
 
+    @Override
     public void setColor(final DyeColor color) {
         this.color = color;
         sendToTrackers(woolMetadata());
     }
 
+    @Override
     public boolean isSheared() {
         return sheared;
     }
 
+    @Override
     public void setSheared(final boolean sheared) {
         this.sheared = sheared;
         sendToTrackers(woolMetadata());
@@ -214,6 +219,7 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
     /**
      * {@return {@code true} while this sheep has its head down, grazing}
      */
+    @Override
     public boolean isGrazing() {
         return eatBlockGoal.eatAnimationTick() > 0;
     }
@@ -267,6 +273,7 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
         return super.interact(player, hand);
     }
 
+    @Override
     public boolean readyForShearing() {
         return !sheared && !isBaby();
     }
@@ -275,6 +282,7 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
      * Shears this sheep, as in Vanilla: one to three blocks of its wool fall from its back one by
      * one, and it stays bare until it grazes.
      */
+    @Override
     public void shear() {
         final Location at = location();
         sendToTrackers(new ClientboundSoundPacket(
@@ -316,9 +324,9 @@ public final class Sheep extends AbstractAnimal implements Category.Neutral {
     }
 
     @Override
-    protected @Nullable Sheep createOffspring(final AbstractAnimal partner) {
-        final Sheep baby = new Sheep(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final Sheep other) {
+    protected @Nullable SheepImpl createOffspring(final AbstractAnimal partner) {
+        final SheepImpl baby = new SheepImpl(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final SheepImpl other) {
             baby.color = DyeColors.mix(color, other.color);
         }
         return baby;

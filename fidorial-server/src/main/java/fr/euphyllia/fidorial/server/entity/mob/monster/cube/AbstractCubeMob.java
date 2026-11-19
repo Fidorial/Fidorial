@@ -14,6 +14,7 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.entity.mob.monster.CubeMob;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -33,7 +34,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>A cube that may hurt hurts the players that touch it, as long as it can see them.</p>
  */
-public abstract class AbstractCubeMob extends AbstractPathfinderMob implements Category.Monster {
+public abstract class AbstractCubeMob extends AbstractPathfinderMob implements Category.Monster, CubeMob {
 
     public static final int MIN_SIZE = 1;
     public static final int MAX_SIZE = 127;
@@ -106,6 +107,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
     /**
      * {@return the size of this cube, from 1 to 127}
      */
+    @Override
     public final int size() {
         return size;
     }
@@ -113,6 +115,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
     /**
      * {@return {@code true} for a cube of size 1}
      */
+    @Override
     public final boolean isTiny() {
         return size <= MIN_SIZE;
     }
@@ -123,6 +126,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
      *
      * @param healed {@code true} to give it its full new health
      */
+    @Override
     public void setSize(final int size, final boolean healed) {
         final int actual = Math.clamp(size, MIN_SIZE, MAX_SIZE);
         final boolean changed = actual != this.size;

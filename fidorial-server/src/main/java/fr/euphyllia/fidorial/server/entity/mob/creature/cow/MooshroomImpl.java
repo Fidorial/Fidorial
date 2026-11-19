@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.ItemEntity;
+import fr.fidorial.entity.mob.creature.Mooshroom;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.SuspiciousStewEffects;
@@ -40,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * with mushroom stew, turns into a cow when sheared, and changes colour when lightning strikes it.
  * A brown one that ate a flower gives a suspicious stew next.
  */
-public final class Mooshroom extends AbstractCow implements Category.Neutral {
+public final class MooshroomImpl extends AbstractCow implements Category.Neutral, Mooshroom {
 
     /** Mooshroom entity data: its colour, after the 18 entries every ageable mob has. */
     private static final int MD_VARIANT = 18;
@@ -60,11 +61,11 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
      * adult.
      */
 
-    public Mooshroom(final int entityId, final Location location) {
+    public MooshroomImpl(final int entityId, final Location location) {
         this(entityId, location, false);
     }
 
-    public Mooshroom(final int entityId, final Location location, final boolean baby) {
+    public MooshroomImpl(final int entityId, final Location location, final boolean baby) {
         super(entityId, EntityTypes.MOOSHROOM, location, baby);
     }
 
@@ -79,10 +80,12 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
                 && isBrightEnoughToSpawn(world, x, y, z);
     }
 
+    @Override
     public Variant variant() {
         return variant;
     }
 
+    @Override
     public void setVariant(final Variant variant) {
         this.variant = variant;
         sendToTrackers(variantMetadata());
@@ -193,6 +196,7 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
      * Shears this mooshroom, as in Vanilla: it becomes a cow of the same age, and its five
      * mushrooms fall from its back one by one.
      */
+    @Override
     public void shear() {
         final Location at = location();
         sendToTrackers(new ClientboundSoundPacket(
@@ -202,7 +206,7 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
         final double top = at.y() + height();
         final Variant sheared = variant;
 
-        convertTo(new Cow(server().entities().ids().allocate(), at, false));
+        convertTo(new MooshroomImpl(server().entities().ids().allocate(), at, false));
 
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < MUSHROOMS_WHEN_SHEARED; i++) {
@@ -213,15 +217,15 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
     }
 
     @Override
-    protected @Nullable Mooshroom createOffspring(final AbstractAnimal partner) {
-        final Mooshroom baby = new Mooshroom(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final Mooshroom other) {
+    protected @Nullable MooshroomImpl createOffspring(final AbstractAnimal partner) {
+        final MooshroomImpl baby = new MooshroomImpl(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final MooshroomImpl other) {
             baby.variant = offspringVariant(other);
         }
         return baby;
     }
 
-    private Variant offspringVariant(final Mooshroom partner) {
+    private Variant offspringVariant(final MooshroomImpl partner) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         if (variant == partner.variant && random.nextInt(MUTATION_CHANCE) == 0) {
             return variant == Variant.BROWN ? Variant.RED : Variant.BROWN;
@@ -232,7 +236,7 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
     @Override
     public void saveAdditional(final CompoundBinaryTag.Builder tag) {
         super.saveAdditional(tag);
-        tag.putString("Type", variant.savedName());
+        tag.putString("Type", savedName(variant));
         final SuspiciousStewEffects effects = stewEffects;
         if (effects != null) {
             ItemStackCodecs.SUSPICIOUS_STEW_EFFECTS_CODEC.encodeStart(BinaryTagOps.binaryTagOps(), effects)
@@ -243,7 +247,7 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
     @Override
     public void loadAdditional(final CompoundBinaryTag tag) {
         super.loadAdditional(tag);
-        this.variant = Variant.bySavedName(tag.getString("Type"));
+        this.variant = variantBySavedName(tag.getString("Type"));
         final BinaryTag saved = tag.get("stew_effects");
         this.stewEffects = saved == null
                 ? null
@@ -251,37 +255,16 @@ public final class Mooshroom extends AbstractCow implements Category.Neutral {
     }
 
     /**
-     * The colour of a mooshroom, in the order of vanilla's ids.
+     * {@return the name a colour is saved under}
      */
-    public enum Variant {
-        RED(ItemKeys.RED_MUSHROOM),
-        BROWN(ItemKeys.BROWN_MUSHROOM);
+    private static String savedName(final Variant variant) {
+        return variant.name().toLowerCase(Locale.ROOT);
+    }
 
-        private final TypedKey<Item> mushroom;
-
-        Variant(final TypedKey<Item> mushroom) {
-            this.mushroom = mushroom;
-        }
-
-        /**
-         * {@return the mushroom that grows on a mooshroom of this colour}
-         */
-        public TypedKey<Item> mushroom() {
-            return mushroom;
-        }
-
-        /**
-         * {@return the name vanilla saves this colour under}
-         */
-        public String savedName() {
-            return name().toLowerCase(Locale.ROOT);
-        }
-
-        /**
-         * {@return the colour saved under a name, red if the name is unknown}
-         */
-        public static Variant bySavedName(final String name) {
-            return BROWN.savedName().equals(name) ? BROWN : RED;
-        }
+    /**
+     * {@return the colour saved under a name, red if the name is unknown}
+     */
+    private static Variant variantBySavedName(final String name) {
+        return savedName(Variant.BROWN).equals(name) ? Variant.BROWN : Variant.RED;
     }
 }

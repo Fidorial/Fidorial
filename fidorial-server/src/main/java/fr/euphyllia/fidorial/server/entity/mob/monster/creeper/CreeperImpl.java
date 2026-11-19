@@ -24,6 +24,7 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.entity.ai.Goal;
+import fr.fidorial.entity.mob.monster.Creeper;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
@@ -53,10 +54,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * away from cats and ocelots, explodes on its own once lit with flint and steel or a fire charge,
  * and, charged by lightning, explodes twice as far and leaves the head of the mobs it kills.
  */
-public final class Creeper extends AbstractMonster {
+public final class CreeperImpl extends AbstractMonster implements Creeper {
 
     public static final float MAX_HEALTH = 20f;
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(Creeper.class);
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(CreeperImpl.class);
 
     private static final double MOVEMENT_SPEED = 0.25;
     private static final double STROLL_SPEED_MODIFIER = 0.8;
@@ -82,7 +83,7 @@ public final class Creeper extends AbstractMonster {
     private boolean ignited;
     private boolean droppedSkulls;
 
-    public Creeper(final int entityId, final Location location) {
+    public CreeperImpl(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.CREEPER, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new SwellGoal(2));
@@ -152,7 +153,11 @@ public final class Creeper extends AbstractMonster {
      * Blows this creeper up: everything around is hurt and pushed, blocks break if mobs may grief,
      * and the creeper is gone without leaving anything.
      */
-    private void explode() {
+    @Override
+    public void explode() {
+        if (isRemoved() || isDead()) {
+            return;
+        }
         final float power = explosionRadius * (powered ? POWERED_EXPLOSION_MULTIPLIER : 1.0f);
         // TODO: the effects of the creeper linger in a cloud, once there are effect clouds
         Explosion.explode(serverWorld(), location(), power, this);
@@ -179,13 +184,37 @@ public final class Creeper extends AbstractMonster {
     /**
      * {@return how far this creeper has swollen, in ticks}
      */
+    @Override
     public int swell() {
         return swell;
+    }
+
+    @Override
+    public int fuseTicks() {
+        return maxSwell;
+    }
+
+    @Override
+    public void setFuseTicks(final int ticks) {
+        // saved as a short
+        this.maxSwell = Math.clamp(ticks, 1, Short.MAX_VALUE);
+    }
+
+    @Override
+    public int explosionRadius() {
+        return explosionRadius;
+    }
+
+    @Override
+    public void setExplosionRadius(final int radius) {
+        // saved as a byte
+        this.explosionRadius = Math.clamp(radius, 0, Byte.MAX_VALUE);
     }
 
     /**
      * {@return {@code true} if lightning charged this creeper}
      */
+    @Override
     public boolean isPowered() {
         return powered;
     }
@@ -193,6 +222,7 @@ public final class Creeper extends AbstractMonster {
     /**
      * Charges this creeper, as lightning does, or takes its charge away.
      */
+    @Override
     public void setPowered(final boolean powered) {
         if (this.powered == powered) {
             return;
@@ -205,6 +235,7 @@ public final class Creeper extends AbstractMonster {
     /**
      * {@return {@code true} once this creeper was lit: it then swells until it explodes}
      */
+    @Override
     public boolean isIgnited() {
         return ignited;
     }
@@ -212,6 +243,7 @@ public final class Creeper extends AbstractMonster {
     /**
      * Lights this creeper: it swells until it explodes, whatever happens around it.
      */
+    @Override
     public void ignite() {
         if (ignited) {
             return;

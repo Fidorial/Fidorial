@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractMonster;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.mob.monster.Endermite;
 import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
 import net.kyori.adventure.key.Key;
@@ -27,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * around when it is hurt. Unless it is persistent, it lives two minutes and then vanishes. Its
  * steps make no sound.
  */
-public final class Endermite extends AbstractMonster {
+public final class EndermiteImpl extends AbstractMonster implements Endermite {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -43,10 +44,6 @@ public final class Endermite extends AbstractMonster {
 
     private static final double LOOK_DISTANCE = 8.0;
     /**
-     * An endermite vanishes after this many ticks, two minutes.
-     */
-    private static final int MAX_LIFE = 2400;
-    /**
      * An endermite does not spawn by itself within this distance of a player in survival or
      * adventure.
      */
@@ -60,7 +57,7 @@ public final class Endermite extends AbstractMonster {
     /**
      * Creates an endermite as one that spawns, with the random traits of one.
      */
-    public Endermite(final int entityId, final Location location) {
+    public EndermiteImpl(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ENDERMITE, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new ClimbOnTopOfPowderSnowGoal(this, 1));
@@ -104,8 +101,14 @@ public final class Endermite extends AbstractMonster {
     /**
      * {@return how many ticks this endermite has lived, its time as a persistent one left out}
      */
+    @Override
     public int life() {
         return life;
+    }
+
+    @Override
+    public void setLife(final int ticks) {
+        this.life = Math.max(0, ticks);
     }
 
     @Override

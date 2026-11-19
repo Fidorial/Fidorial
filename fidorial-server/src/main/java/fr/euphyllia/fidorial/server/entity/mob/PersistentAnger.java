@@ -75,6 +75,26 @@ public final class PersistentAnger {
     }
 
     /**
+     * {@return how many ticks are left before the anger runs out, {@code 0} when the mob is not
+     * angry}
+     */
+    public long remainingTicks() {
+        return endTime > 0L ? Math.max(0L, endTime - gameTime()) : 0L;
+    }
+
+    /**
+     * Makes the mob angry at a living entity for a while, and go after it.
+     *
+     * @param entity the entity to hold a grudge against
+     * @param ticks  how long the anger lasts, if nothing starts it over
+     */
+    public void provoke(final AbstractLivingEntity entity, final long ticks) {
+        angryAt = entity.uuid();
+        remainAngryFor(ticks);
+        mob.setTarget(entity);
+    }
+
+    /**
      * Makes the anger last a random time from now, between the bounds given at creation.
      */
     public void start() {

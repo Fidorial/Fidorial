@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.block;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
-import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.Silverfish;
+import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.SilverfishImpl;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -93,7 +93,7 @@ public final class InfestedBlocks {
             return;
         }
         final FidorialServer server = FidorialServer.getInstance();
-        final Silverfish silverfish = Silverfish.leavingBlock(server.entities().ids().allocate(),
+        final SilverfishImpl silverfish = SilverfishImpl.leavingBlock(server.entities().ids().allocate(),
                 Location.of(world, position.blockX() + 0.5, position.blockY(), position.blockZ() + 0.5, 0f, 0f));
         server.entities().spawn(silverfish);
         silverfish.spawnAnimation();

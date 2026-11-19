@@ -25,12 +25,12 @@ final class DrownedGoToWaterGoal implements Goal {
     private static final int VERTICAL_SPREAD = 8;
     private static final int VERTICAL_OFFSET = 2;
 
-    private final Drowned drowned;
+    private final DrownedImpl drowned;
     private final int priority;
     private final double speedModifier;
     private @Nullable Position water;
 
-    DrownedGoToWaterGoal(final Drowned drowned, final int priority, final double speedModifier) {
+    DrownedGoToWaterGoal(final DrownedImpl drowned, final int priority, final double speedModifier) {
         this.drowned = drowned;
         this.priority = priority;
         this.speedModifier = speedModifier;

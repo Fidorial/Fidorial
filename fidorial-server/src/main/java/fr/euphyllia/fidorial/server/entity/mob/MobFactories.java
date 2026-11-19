@@ -2,7 +2,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
-import fr.euphyllia.fidorial.server.entity.mob.ambient.Bat;
+import fr.euphyllia.fidorial.server.entity.mob.ambient.BatImpl;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Allay;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Armadillo;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Bee;
@@ -30,11 +30,11 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.Turtle;
 import fr.euphyllia.fidorial.server.entity.mob.creature.WanderingTrader;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Wolf;
 import fr.euphyllia.fidorial.server.entity.mob.creature.ZombieHorse;
-import fr.euphyllia.fidorial.server.entity.mob.creature.chicken.Chicken;
-import fr.euphyllia.fidorial.server.entity.mob.creature.cow.Cow;
-import fr.euphyllia.fidorial.server.entity.mob.creature.cow.Mooshroom;
-import fr.euphyllia.fidorial.server.entity.mob.creature.pig.Pig;
-import fr.euphyllia.fidorial.server.entity.mob.creature.sheep.Sheep;
+import fr.euphyllia.fidorial.server.entity.mob.creature.chicken.ChickenImpl;
+import fr.euphyllia.fidorial.server.entity.mob.creature.cow.CowImpl;
+import fr.euphyllia.fidorial.server.entity.mob.creature.cow.MooshroomImpl;
+import fr.euphyllia.fidorial.server.entity.mob.creature.pig.PigImpl;
+import fr.euphyllia.fidorial.server.entity.mob.creature.sheep.SheepImpl;
 import fr.euphyllia.fidorial.server.entity.mob.misc.CopperGolem;
 import fr.euphyllia.fidorial.server.entity.mob.misc.IronGolem;
 import fr.euphyllia.fidorial.server.entity.mob.misc.SnowGolem;
@@ -71,18 +71,18 @@ import fr.euphyllia.fidorial.server.entity.mob.monster.Zoglin;
 import fr.euphyllia.fidorial.server.entity.mob.monster.ZombieNautilus;
 import fr.euphyllia.fidorial.server.entity.mob.monster.ZombieVillager;
 import fr.euphyllia.fidorial.server.entity.mob.monster.ZombifiedPiglin;
-import fr.euphyllia.fidorial.server.entity.mob.monster.creeper.Creeper;
-import fr.euphyllia.fidorial.server.entity.mob.monster.cube.MagmaCube;
-import fr.euphyllia.fidorial.server.entity.mob.monster.cube.Slime;
-import fr.euphyllia.fidorial.server.entity.mob.monster.enderman.Enderman;
-import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.Endermite;
-import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.Silverfish;
-import fr.euphyllia.fidorial.server.entity.mob.monster.spider.CaveSpider;
-import fr.euphyllia.fidorial.server.entity.mob.monster.spider.Spider;
-import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.Drowned;
-import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.Frostbite;
-import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.Husk;
-import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.Zombie;
+import fr.euphyllia.fidorial.server.entity.mob.monster.creeper.CreeperImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.cube.MagmaCubeImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.cube.SlimeImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.enderman.EndermanImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.SilverfishImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.spider.CaveSpiderImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.spider.SpiderImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.DrownedImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.FrostbiteImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.HuskImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.ZombieImpl;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Axolotl;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Cod;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Dolphin;
@@ -106,7 +106,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.ALLAY.key(), Allay::new),
             Map.entry(EntityTypes.ARMADILLO.key(), Armadillo::new),
             Map.entry(EntityTypes.AXOLOTL.key(), Axolotl::new),
-            Map.entry(EntityTypes.BAT.key(), Bat::new),
+            Map.entry(EntityTypes.BAT.key(), BatImpl::new),
             Map.entry(EntityTypes.BEE.key(), Bee::new),
             Map.entry(EntityTypes.BLAZE.key(), Blaze::new),
             Map.entry(EntityTypes.BOGGED.key(), Bogged::new),
@@ -114,24 +114,24 @@ public final class MobFactories {
             Map.entry(EntityTypes.CAMEL.key(), Camel::new),
             Map.entry(EntityTypes.CAMEL_HUSK.key(), CamelHusk::new),
             Map.entry(EntityTypes.CAT.key(), Cat::new),
-            Map.entry(EntityTypes.CAVE_SPIDER.key(), CaveSpider::new),
-            Map.entry(EntityTypes.CHICKEN.key(), Chicken::new),
+            Map.entry(EntityTypes.CAVE_SPIDER.key(), CaveSpiderImpl::new),
+            Map.entry(EntityTypes.CHICKEN.key(), ChickenImpl::new),
             Map.entry(EntityTypes.COD.key(), Cod::new),
             Map.entry(EntityTypes.COPPER_GOLEM.key(), CopperGolem::new),
-            Map.entry(EntityTypes.COW.key(), Cow::new),
+            Map.entry(EntityTypes.COW.key(), CowImpl::new),
             Map.entry(EntityTypes.CREAKING.key(), Creaking::new),
-            Map.entry(EntityTypes.CREEPER.key(), Creeper::new),
+            Map.entry(EntityTypes.CREEPER.key(), CreeperImpl::new),
             Map.entry(EntityTypes.DOLPHIN.key(), Dolphin::new),
             Map.entry(EntityTypes.DONKEY.key(), Donkey::new),
-            Map.entry(EntityTypes.DROWNED.key(), Drowned::new),
+            Map.entry(EntityTypes.DROWNED.key(), DrownedImpl::new),
             Map.entry(EntityTypes.ELDER_GUARDIAN.key(), ElderGuardian::new),
             Map.entry(EntityTypes.ENDER_DRAGON.key(), EnderDragon::new),
-            Map.entry(EntityTypes.ENDERMAN.key(), Enderman::new),
-            Map.entry(EntityTypes.ENDERMITE.key(), Endermite::new),
+            Map.entry(EntityTypes.ENDERMAN.key(), EndermanImpl::new),
+            Map.entry(EntityTypes.ENDERMITE.key(), EndermiteImpl::new),
             Map.entry(EntityTypes.EVOKER.key(), Evoker::new),
             Map.entry(EntityTypes.FOX.key(), Fox::new),
             Map.entry(EntityTypes.FROG.key(), Frog::new),
-            Map.entry(EntityTypes.FROSTBITE.key(), Frostbite::new),
+            Map.entry(EntityTypes.FROSTBITE.key(), FrostbiteImpl::new),
             Map.entry(EntityTypes.GHAST.key(), Ghast::new),
             Map.entry(EntityTypes.GIANT.key(), Giant::new),
             Map.entry(EntityTypes.GLOW_SQUID.key(), GlowSquid::new),
@@ -140,12 +140,12 @@ public final class MobFactories {
             Map.entry(EntityTypes.HAPPY_GHAST.key(), HappyGhast::new),
             Map.entry(EntityTypes.HOGLIN.key(), Hoglin::new),
             Map.entry(EntityTypes.HORSE.key(), Horse::new),
-            Map.entry(EntityTypes.HUSK.key(), Husk::new),
+            Map.entry(EntityTypes.HUSK.key(), HuskImpl::new),
             Map.entry(EntityTypes.ILLUSIONER.key(), Illusioner::new),
             Map.entry(EntityTypes.IRON_GOLEM.key(), IronGolem::new),
             Map.entry(EntityTypes.LLAMA.key(), Llama::new),
-            Map.entry(EntityTypes.MAGMA_CUBE.key(), MagmaCube::new),
-            Map.entry(EntityTypes.MOOSHROOM.key(), Mooshroom::new),
+            Map.entry(EntityTypes.MAGMA_CUBE.key(), MagmaCubeImpl::new),
+            Map.entry(EntityTypes.MOOSHROOM.key(), MooshroomImpl::new),
             Map.entry(EntityTypes.MULE.key(), Mule::new),
             Map.entry(EntityTypes.NAUTILUS.key(), Nautilus::new),
             Map.entry(EntityTypes.OCELOT.key(), Ocelot::new),
@@ -153,7 +153,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.PARCHED.key(), Parched::new),
             Map.entry(EntityTypes.PARROT.key(), Parrot::new),
             Map.entry(EntityTypes.PHANTOM.key(), Phantom::new),
-            Map.entry(EntityTypes.PIG.key(), Pig::new),
+            Map.entry(EntityTypes.PIG.key(), PigImpl::new),
             Map.entry(EntityTypes.PIGLIN.key(), Piglin::new),
             Map.entry(EntityTypes.PIGLIN_BRUTE.key(), PiglinBrute::new),
             Map.entry(EntityTypes.PILLAGER.key(), Pillager::new),
@@ -162,15 +162,15 @@ public final class MobFactories {
             Map.entry(EntityTypes.RABBIT.key(), Rabbit::new),
             Map.entry(EntityTypes.RAVAGER.key(), Ravager::new),
             Map.entry(EntityTypes.SALMON.key(), Salmon::new),
-            Map.entry(EntityTypes.SHEEP.key(), Sheep::new),
+            Map.entry(EntityTypes.SHEEP.key(), SheepImpl::new),
             Map.entry(EntityTypes.SHULKER.key(), Shulker::new),
-            Map.entry(EntityTypes.SILVERFISH.key(), Silverfish::new),
+            Map.entry(EntityTypes.SILVERFISH.key(), SilverfishImpl::new),
             Map.entry(EntityTypes.SKELETON.key(), Skeleton::new),
             Map.entry(EntityTypes.SKELETON_HORSE.key(), SkeletonHorse::new),
-            Map.entry(EntityTypes.SLIME.key(), Slime::new),
+            Map.entry(EntityTypes.SLIME.key(), SlimeImpl::new),
             Map.entry(EntityTypes.SNIFFER.key(), Sniffer::new),
             Map.entry(EntityTypes.SNOW_GOLEM.key(), SnowGolem::new),
-            Map.entry(EntityTypes.SPIDER.key(), Spider::new),
+            Map.entry(EntityTypes.SPIDER.key(), SpiderImpl::new),
             Map.entry(EntityTypes.SQUID.key(), Squid::new),
             Map.entry(EntityTypes.STRAY.key(), Stray::new),
             Map.entry(EntityTypes.STRIDER.key(), Strider::new),
@@ -189,7 +189,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.WITHER_SKELETON.key(), WitherSkeleton::new),
             Map.entry(EntityTypes.WOLF.key(), Wolf::new),
             Map.entry(EntityTypes.ZOGLIN.key(), Zoglin::new),
-            Map.entry(EntityTypes.ZOMBIE.key(), Zombie::new),
+            Map.entry(EntityTypes.ZOMBIE.key(), ZombieImpl::new),
             Map.entry(EntityTypes.ZOMBIE_HORSE.key(), ZombieHorse::new),
             Map.entry(EntityTypes.ZOMBIE_NAUTILUS.key(), ZombieNautilus::new),
             Map.entry(EntityTypes.ZOMBIE_VILLAGER.key(), ZombieVillager::new),

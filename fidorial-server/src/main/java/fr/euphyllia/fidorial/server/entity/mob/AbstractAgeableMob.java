@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.entity.mob.Ageable;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
@@ -21,7 +22,7 @@ import java.util.UUID;
  * A mob that is born a baby and grows up, with vanilla's age: negative for a baby, counting up to
  * {@code 0}; positive for an adult that cannot breed yet, counting down to {@code 0}.
  */
-public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
+public abstract class AbstractAgeableMob extends AbstractPathfinderMob implements Ageable {
 
     /**
      * The age of a newborn: it grows up in 20 minutes.
@@ -68,6 +69,7 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
         return age < 0;
     }
 
+    @Override
     public final void setBaby(final boolean baby) {
         setAge(baby ? BABY_START_AGE : 0);
     }
@@ -76,10 +78,12 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
      * {@return the age of this mob in ticks}: negative until it grows up, positive while it cannot
      * breed again, {@code 0} otherwise
      */
+    @Override
     public final int age() {
         return age;
     }
 
+    @Override
     public final void setAge(final int newAge) {
         final boolean wasBaby = age < 0;
         this.age = newAge;
@@ -139,10 +143,12 @@ public abstract class AbstractAgeableMob extends AbstractPathfinderMob {
     /**
      * {@return {@code true} if a golden dandelion stopped this baby from growing}
      */
+    @Override
     public final boolean isAgeLocked() {
         return ageLocked;
     }
 
+    @Override
     public final void setAgeLocked(final boolean ageLocked) {
         if (this.ageLocked != ageLocked) {
             this.ageLocked = ageLocked;

@@ -16,6 +16,7 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.FarmAnimalVariants;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.mob.creature.Pig;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -40,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * carrot on a stick, panics when hurt, breeds when fed, and leaves porkchops. Its colour comes from
  * the biome it spawned in; its voice is classic, mini or big.
  */
-public final class Pig extends AbstractAnimal implements Category.Neutral {
+public final class PigImpl extends AbstractAnimal implements Category.Neutral, Pig {
 
     public static final float MAX_HEALTH = 10f;
 
@@ -88,7 +89,7 @@ public final class Pig extends AbstractAnimal implements Category.Neutral {
      * the variant of the biome, with a random voice.
      */
 
-    public Pig(final int entityId, final Location location) {
+    public PigImpl(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 PigVariantKeys.TEMPERATE, PigVariantKeys.WARM, PigVariantKeys.COLD);
@@ -99,7 +100,7 @@ public final class Pig extends AbstractAnimal implements Category.Neutral {
      * Creates a temperate pig with the classic voice, as vanilla does before it sets up a pig: a
      * newborn keeps that voice.
      */
-    public Pig(final int entityId, final Location location, final boolean baby) {
+    public PigImpl(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.PIG, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.LAND_ANIMAL);
 
@@ -152,19 +153,23 @@ public final class Pig extends AbstractAnimal implements Category.Neutral {
         return MOVEMENT_SPEED;
     }
 
+    @Override
     public TypedKey<PigVariant> variant() {
         return variant;
     }
 
+    @Override
     public void setVariant(final TypedKey<PigVariant> variant) {
         this.variant = variant;
         sendToTrackers(variantMetadata());
     }
 
+    @Override
     public TypedKey<PigSoundVariant> soundVariant() {
         return soundVariant;
     }
 
+    @Override
     public void setSoundVariant(final TypedKey<PigSoundVariant> soundVariant) {
         this.soundVariant = soundVariant;
         sendToTrackers(variantMetadata());
@@ -191,9 +196,9 @@ public final class Pig extends AbstractAnimal implements Category.Neutral {
     }
 
     @Override
-    protected @Nullable Pig createOffspring(final AbstractAnimal partner) {
-        final Pig baby = new Pig(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final Pig other) {
+    protected @Nullable PigImpl createOffspring(final AbstractAnimal partner) {
+        final PigImpl baby = new PigImpl(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final PigImpl other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;

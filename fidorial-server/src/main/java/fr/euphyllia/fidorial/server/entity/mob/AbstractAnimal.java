@@ -8,6 +8,8 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.entity.mob.Animal;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
@@ -24,16 +26,12 @@ import java.util.concurrent.ThreadLocalRandom;
  * A farm animal as vanilla's {@code Animal}: it is fed to fall in love or to grow faster, breeds
  * with one of its kind, and makes its ambient sound now and then.
  */
-public abstract class AbstractAnimal extends AbstractAgeableMob {
+public abstract class AbstractAnimal extends AbstractAgeableMob implements Animal {
 
     /**
      * For how long an animal that just bred cannot breed again.
      */
     public static final int PARENT_AGE_AFTER_BREEDING = 6000;
-    /**
-     * For how long a fed animal looks for a partner.
-     */
-    public static final int LOVE_TICKS = 600;
     /**
      * The lowest light, sky and block light together, animals spawn in: vanilla wants more than 8.
      */
@@ -104,6 +102,7 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
     /**
      * {@return {@code true} if this animal eats an item}: it then falls in love, or grows faster
      */
+    @Override
     public abstract boolean isFood(ItemStack stack);
 
     /**
@@ -139,10 +138,12 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         return inLove <= 0;
     }
 
+    @Override
     public final boolean isInLove() {
         return inLove > 0;
     }
 
+    @Override
     public final int inLoveTime() {
         return inLove;
     }
@@ -152,7 +153,8 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
      *
      * @param cause the player who fed it, if any
      */
-    public final void setInLove(final @Nullable ServerPlayer cause) {
+    @Override
+    public final void setInLove(final @Nullable Player cause) {
         this.inLove = LOVE_TICKS;
         if (cause != null) {
             this.loveCause = cause.uuid();
@@ -160,6 +162,7 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
         sendToTrackers(new ClientboundEntityEventPacket(entityId(), ENTITY_EVENT_LOVE_HEARTS));
     }
 
+    @Override
     public final void resetLove() {
         this.inLove = 0;
     }
@@ -167,6 +170,7 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
     /**
      * {@return the player who made this animal fall in love last, {@code null} if unknown}
      */
+    @Override
     public final @Nullable UUID loveCause() {
         return loveCause;
     }
@@ -184,6 +188,7 @@ public abstract class AbstractAnimal extends AbstractAgeableMob {
      * {@return {@code true} while this animal runs away from what hurt it}; no animal breeds with it
      * meanwhile
      */
+    @Override
     public boolean isPanicking() {
         return false;
     }

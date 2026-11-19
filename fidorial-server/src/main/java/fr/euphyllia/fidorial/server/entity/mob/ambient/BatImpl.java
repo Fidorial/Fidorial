@@ -18,6 +18,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.entity.mob.ambient.Bat;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
@@ -35,7 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * The bat: it hangs from the ceiling of caves until a player comes near, then flutters about at
  * random, and now and then hangs again from a block above it.
  */
-public final class Bat extends AbstractFlyingMob implements Category.Ambient {
+public final class BatImpl extends AbstractFlyingMob implements Category.Ambient, Bat {
 
     public static final float MAX_HEALTH = 6f;
 
@@ -103,7 +104,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     private boolean resting = true;
     private @Nullable BlockPosition wanderTarget;
 
-    public Bat(final int entityId, final Location location) {
+    public BatImpl(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.BAT, location, MAX_HEALTH);
     }
 
@@ -163,6 +164,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
     /**
      * {@return {@code true} if this bat hangs from a block}
      */
+    @Override
     public boolean isResting() {
         return resting;
     }
@@ -172,6 +174,7 @@ public final class Bat extends AbstractFlyingMob implements Category.Ambient {
      *
      * @param resting {@code true} to hang
      */
+    @Override
     public void setResting(final boolean resting) {
         if (this.resting == resting) {
             return;

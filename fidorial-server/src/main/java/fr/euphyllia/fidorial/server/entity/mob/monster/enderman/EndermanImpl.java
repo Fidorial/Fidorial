@@ -22,7 +22,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.mob.AngerableMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.mob.PersistentAnger;
-import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.Endermite;
+import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteImpl;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
@@ -35,8 +35,12 @@ import fr.euphyllia.fidorial.server.world.block.BlockSurvival;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.fidorial.combat.DamageSource;
+import fr.fidorial.entity.Entity;
+import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.ai.Goal;
+import fr.fidorial.entity.mob.monster.Enderman;
+import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
@@ -52,6 +56,7 @@ import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.ItemTagKeys;
 import fr.fidorial.sound.SoundEvents;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.farming.FarmingWorld;
 import net.kyori.adventure.key.Key;
@@ -63,6 +68,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -82,7 +88,7 @@ import java.util.function.BooleanSupplier;
  * one it carries down; it drops that block when it dies, and does not despawn while it carries
  * one.</p>
  */
-public final class Enderman extends AbstractMonster implements AngerableMob {
+public final class EndermanImpl extends AbstractMonster implements AngerableMob, Enderman {
 
     public static final float MAX_HEALTH = 40f;
 
@@ -166,7 +172,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     /**
      * Creates an enderman as one that spawns, with the random traits of one.
      */
-    public Enderman(final int entityId, final Location location) {
+    public EndermanImpl(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ENDERMAN, location, MAX_HEALTH);
         navigation.setPathPenalty(AVOIDS_WATER);
         goals.add(new FloatGoal(this, 0));
@@ -179,7 +185,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
         goals.add(new TakeBlockGoal());
         goals.add(new LookForPlayerGoal());
         goals.add(new HurtByTargetGoal(this, 2));
-        goals.add(new NearestAttackableTargetGoal<>(this, 3, Endermite.class, true));
+        goals.add(new NearestAttackableTargetGoal<>(this, 3, EndermiteImpl.class, true));
         goals.add(new ResetUniversalAngerTargetGoal<>(this, 4, false));
         // every mob that spawns notices its targets from a little closer or further than the others
         final ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -187,6 +193,15 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
         final double second = random.nextDouble();
         followRangeAttribute.put(RANDOM_SPAWN_BONUS, FOLLOW_RANGE_SPREAD * (first - second),
                 MobAttribute.Operation.ADD_MULTIPLIED_BASE);
+    }
+
+    public EndermanImpl(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth, @Nullable final BlockState carriedBlock, final boolean creepy, final boolean staredAt, final int age, final int targetChangeTime) {
+        super(entityId, uuid, type, location, maxHealth);
+        this.carriedBlock = carriedBlock;
+        this.creepy = creepy;
+        this.staredAt = staredAt;
+        this.age = age;
+        this.targetChangeTime = targetChangeTime;
     }
 
     /**
@@ -205,8 +220,19 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     /**
      * {@return the block this enderman carries, {@code null} if it carries none}
      */
-    public @Nullable BlockState carriedBlock() {
+    public @Nullable BlockState carriedBlockState() {
         return carriedBlock;
+    }
+
+    @Override
+    public Optional<BlockData> carriedBlock() {
+        final BlockState carried = carriedBlock;
+        return carried == null ? Optional.empty() : Optional.ofNullable(server().registries().blockStates().resolve(carried));
+    }
+
+    @Override
+    public void setCarriedBlock(final @Nullable BlockData block) {
+        setCarriedBlockState(block == null ? null : server().registries().blockStates().toBlockState(block));
     }
 
     /**
@@ -214,7 +240,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
      *
      * @param block the block, {@code null} for none
      */
-    public void setCarriedBlock(final @Nullable BlockState block) {
+    public void setCarriedBlockState(final @Nullable BlockState block) {
         final BlockState carried = block == null || block.isAir() ? null : block;
         if (Objects.equals(carried, carriedBlock)) {
             return;
@@ -226,7 +252,8 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     /**
      * {@return {@code true} while this enderman has a target}: it then opens its mouth and screams
      */
-    public boolean isCreepy() {
+    @Override
+    public boolean isScreaming() {
         return creepy;
     }
 
@@ -234,6 +261,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
      * {@return {@code true} once a player provoked this enderman by staring at it}, until it gives
      * up its target; the client of that player plays the sound of the stare
      */
+    @Override
     public boolean hasBeenStaredAt() {
         return staredAt;
     }
@@ -387,7 +415,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
         followRangeAttribute.remove(RANDOM_SPAWN_BONUS);
         super.loadAdditional(tag);
         MobAttribute.load(tag, followRangeAttribute);
-        setCarriedBlock(tag.get(TAG_CARRIED_BLOCK) instanceof final CompoundBinaryTag block ? readBlockState(block) : null);
+        setCarriedBlockState(tag.get(TAG_CARRIED_BLOCK) instanceof final CompoundBinaryTag block ? readBlockState(block) : null);
         anger.load(tag);
     }
 
@@ -426,12 +454,16 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
      * {@return {@code true} if a player stares at the eyes of this enderman}, unless the player wears
      * a carved pumpkin or another item of the {@code minecraft:gaze_disguise_equipment} tag
      */
-    public boolean isBeingStaredBy(final ServerPlayer player) {
-        final ItemStack head = player.equipment(EquipmentSlot.HEAD);
+    @Override
+    public boolean isBeingStaredBy(final Player player) {
+        if (!(player instanceof final ServerPlayer starer)) {
+            return false;
+        }
+        final ItemStack head = starer.equipment(EquipmentSlot.HEAD);
         if (!head.isEmpty() && server().registries().registry(RegistryKey.ITEM).isTagged(head.id(), ItemTagKeys.GAZE_DISGUISE_EQUIPMENT)) {
             return false;
         }
-        return Targeting.isLookedAt(player, this, STARE_CONE, location().y() + eyeHeight());
+        return Targeting.isLookedAt(starer, this, STARE_CONE, location().y() + eyeHeight());
     }
 
     /**
@@ -465,7 +497,8 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     /**
      * Tries to teleport somewhere within 32 blocks across and up or down.
      */
-    private boolean teleportRandomly() {
+    @Override
+    public boolean teleportRandomly() {
         if (isDead() || isRemoved()) {
             return false;
         }
@@ -479,7 +512,8 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
     /**
      * Tries to teleport near an entity: 16 blocks closer to it, give or take a little.
      */
-    private boolean teleportTowards(final AbstractLivingEntity entity) {
+    @Override
+    public boolean teleportTowards(final Entity entity) {
         final Location at = location();
         final Location other = entity.location();
         double dx = at.x() - other.x();
@@ -641,7 +675,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
         private int teleportTime;
 
         LookForPlayerGoal() {
-            super(Enderman.this, 1, false);
+            super(EndermanImpl.this, 1, false);
         }
 
         private boolean isAngerInducing(final ServerPlayer player) {
@@ -655,7 +689,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
             ServerPlayer nearest = null;
             double nearestSq = Double.MAX_VALUE;
             for (final ServerPlayer player : server().players().online()) {
-                if (!Targeting.test(Enderman.this, player, range, true, true) || !isAngerInducing(player)) {
+                if (!Targeting.test(EndermanImpl.this, player, range, true, true) || !isAngerInducing(player)) {
                     continue;
                 }
                 final Location other = player.location();
@@ -696,7 +730,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
                 return true;
             }
             // once it attacks, it keeps after the player wherever they go
-            if (targetMob != null && Targeting.canAttack(Enderman.this, targetMob)) {
+            if (targetMob != null && Targeting.canAttack(EndermanImpl.this, targetMob)) {
                 return true;
             }
             return super.shouldContinue();
@@ -781,7 +815,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
             }
             if (server().worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
-                setCarriedBlock(defaultState(state.name()));
+                setCarriedBlockState(defaultState(state.name()));
             }
         }
 
@@ -880,7 +914,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
             if (canPlace(world, position, placed)
                     && server().worlds().blockEdits().set(world, position, placed, true)) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, position);
-                setCarriedBlock(null);
+                setCarriedBlockState(null);
             }
         }
 
@@ -900,7 +934,7 @@ public final class Enderman extends AbstractMonster implements AngerableMob {
         private boolean isEmpty(final ServerWorld world, final BlockPosition position) {
             final AtomicBoolean found = new AtomicBoolean(false);
             world.entityManager().forEachNear(position.chunk(), 2.0, entity -> {
-                if (!found.get() && entity != Enderman.this && !entity.isRemoved() && overlaps(entity, position)) {
+                if (!found.get() && entity != EndermanImpl.this && !entity.isRemoved() && overlaps(entity, position)) {
                     found.set(true);
                 }
             });

@@ -16,6 +16,7 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.FarmAnimalVariants;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.mob.creature.Chicken;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -43,7 +44,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * comes from the biome it spawned in, and so does the colour of its eggs; its voice is classic or
  * picky.
  */
-public final class Chicken extends AbstractAnimal implements Category.Neutral {
+public final class ChickenImpl extends AbstractAnimal implements Category.Neutral, Chicken {
 
     public static final float MAX_HEALTH = 4f;
 
@@ -105,7 +106,7 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
      * Spawns a chicken as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an
      * adult, of the variant of the biome, with a random voice.
      */
-    public Chicken(final int entityId, final Location location) {
+    public ChickenImpl(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 ChickenVariantKeys.TEMPERATE, ChickenVariantKeys.WARM, ChickenVariantKeys.COLD);
@@ -116,7 +117,7 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
      * Creates a temperate chicken with the classic voice, as vanilla does before it sets up a
      * chicken: a newborn keeps that voice.
      */
-    public Chicken(final int entityId, final Location location, final boolean baby) {
+    public ChickenImpl(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.CHICKEN, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.WADING_ANIMAL);
 
@@ -170,6 +171,7 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
     /**
      * {@return the egg this chicken lays}: brown for the warm variant, blue for the cold one
      */
+    @Override
     public TypedKey<Item> egg() {
         if (variant.equals(ChickenVariantKeys.WARM)) {
             return ItemKeys.BROWN_EGG;
@@ -180,10 +182,12 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
     /**
      * {@return in how many ticks this chicken lays its next egg}
      */
+    @Override
     public int eggTime() {
         return eggTime;
     }
 
+    @Override
     public void setEggTime(final int ticks) {
         this.eggTime = ticks;
     }
@@ -192,10 +196,12 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
      * {@return {@code true} if a baby zombie rides this chicken}: it then lays no egg and leaves 10
      * experience points
      */
+    @Override
     public boolean isChickenJockey() {
         return chickenJockey;
     }
 
+    @Override
     public void setChickenJockey(final boolean chickenJockey) {
         // TODO: a chicken jockey despawns far from players, once mobs despawn; nothing rides it yet
         this.chickenJockey = chickenJockey;
@@ -236,19 +242,23 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
         return FLUTTER_FALL_DRAG;
     }
 
+    @Override
     public TypedKey<ChickenVariant> variant() {
         return variant;
     }
 
+    @Override
     public void setVariant(final TypedKey<ChickenVariant> variant) {
         this.variant = variant;
         sendToTrackers(variantMetadata());
     }
 
+    @Override
     public TypedKey<ChickenSoundVariant> soundVariant() {
         return soundVariant;
     }
 
+    @Override
     public void setSoundVariant(final TypedKey<ChickenSoundVariant> soundVariant) {
         this.soundVariant = soundVariant;
         sendToTrackers(variantMetadata());
@@ -273,9 +283,9 @@ public final class Chicken extends AbstractAnimal implements Category.Neutral {
     }
 
     @Override
-    protected @Nullable Chicken createOffspring(final AbstractAnimal partner) {
-        final Chicken baby = new Chicken(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final Chicken other) {
+    protected @Nullable ChickenImpl createOffspring(final AbstractAnimal partner) {
+        final ChickenImpl baby = new ChickenImpl(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final ChickenImpl other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;

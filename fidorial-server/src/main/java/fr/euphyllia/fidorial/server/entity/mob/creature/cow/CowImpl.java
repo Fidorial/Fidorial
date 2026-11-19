@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.FarmAnimalVariants;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.mob.creature.Cow;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
@@ -23,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * The cow : what every {@linkplain AbstractCow cow} does, in the colour of the biome
  * it spawned in, with a classic or a moody voice.
  */
-public final class Cow extends AbstractCow implements Category.Neutral {
+public final class CowImpl extends AbstractCow implements Category.Neutral, Cow {
 
 
     private static final int MD_VARIANT = 18;
@@ -41,7 +42,7 @@ public final class Cow extends AbstractCow implements Category.Neutral {
      * Spawns a cow as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an adult, of
      * the variant of the biome, with a random voice.
      */
-    public Cow(final int entityId, final Location location) {
+    public CowImpl(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 CowVariantKeys.TEMPERATE, CowVariantKeys.WARM, CowVariantKeys.COLD);
@@ -52,7 +53,7 @@ public final class Cow extends AbstractCow implements Category.Neutral {
      * Creates a temperate cow with the classic voice, as vanilla does before it sets up a cow: a
      * newborn keeps that voice.
      */
-    public Cow(final int entityId, final Location location, final boolean baby) {
+    public CowImpl(final int entityId, final Location location, final boolean baby) {
         super(entityId, EntityTypes.COW, location, baby);
     }
 
@@ -63,26 +64,26 @@ public final class Cow extends AbstractCow implements Category.Neutral {
         return checkAnimalSpawnRules(world, x, y, z);
     }
 
+    @Override
     public TypedKey<CowVariant> variant() {
         return variant;
     }
 
+    @Override
     public void setVariant(final TypedKey<CowVariant> variant) {
         this.variant = variant;
         sendToTrackers(variantMetadata());
     }
 
+    @Override
     public TypedKey<CowSoundVariant> soundVariant() {
         return soundVariant;
     }
 
+    @Override
     public void setSoundVariant(final TypedKey<CowSoundVariant> soundVariant) {
         this.soundVariant = soundVariant;
         sendToTrackers(variantMetadata());
-    }
-
-    public int variantNetworkId() {
-        return server().registries().registry(RegistryKey.COW_VARIANT).networkId(variant);
     }
 
     private ClientboundSetEntityMetadataPacket variantMetadata() {
@@ -99,14 +100,15 @@ public final class Cow extends AbstractCow implements Category.Neutral {
     }
 
     @Override
-    protected @Nullable Cow createOffspring(final AbstractAnimal partner) {
-        final Cow baby = new Cow(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final Cow other) {
+    protected @Nullable CowImpl createOffspring(final AbstractAnimal partner) {
+        final CowImpl baby = new CowImpl(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final CowImpl other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;
     }
 
+    @Override
     protected boolean isMoody() {
         return soundVariant.equals(CowSoundVariantKeys.MOODY);
     }

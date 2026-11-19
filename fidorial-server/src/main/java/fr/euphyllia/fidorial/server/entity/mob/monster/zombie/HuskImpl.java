@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity.mob.monster.zombie;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.fidorial.entity.mob.monster.Husk;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -12,21 +13,21 @@ import net.kyori.adventure.sound.Sound;
  * The husk, the zombie of the deserts: the sun does not burn it, its bare hands leave its target
  * hungry, and water or powder snow turns it into a zombie. It spawns under the open sky.
  */
-public final class Husk extends Zombie {
+public final class HuskImpl extends ZombieImpl implements Husk {
 
     public static final float MAX_HEALTH = 20f;
 
     private static final double BABY_EYE_HEIGHT = 0.825;
     private static final int HUNGER_TICKS_PER_DIFFICULTY = 140;
 
-    public Husk(final int entityId, final Location location) {
+    public HuskImpl(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
     /**
      * @param spawned {@code true} for a husk that spawns, with the random traits of a zombie that does
      */
-    public Husk(final int entityId, final Location location, final boolean spawned) {
+    public HuskImpl(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.HUSK, location, spawned);
     }
 
@@ -76,8 +77,8 @@ public final class Husk extends Zombie {
     }
 
     @Override
-    protected Zombie drownedForm(final int entityId, final Location location) {
-        return new Zombie(entityId, location, false);
+    protected ZombieImpl drownedForm(final int entityId, final Location location) {
+        return new ZombieImpl(entityId, location, false);
     }
 
     @Override
@@ -86,8 +87,8 @@ public final class Husk extends Zombie {
     }
 
     @Override
-    protected Zombie frozenForm(final int entityId, final Location location) {
-        return new Zombie(entityId, location, false);
+    protected ZombieImpl frozenForm(final int entityId, final Location location) {
+        return new ZombieImpl(entityId, location, false);
     }
 
     @Override

@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.ai.Goal;
+import fr.fidorial.entity.mob.monster.Silverfish;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -42,7 +43,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * blocks nearby. With nothing to do it slips into a stone block next to it, which becomes an
  * infested block. Its steps make no sound.
  */
-public final class Silverfish extends AbstractMonster {
+public final class SilverfishImpl extends AbstractMonster implements Silverfish {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -73,11 +74,11 @@ public final class Silverfish extends AbstractMonster {
     /**
      * Creates a silverfish as one that spawns, with the random traits of one.
      */
-    public Silverfish(final int entityId, final Location location) {
+    public SilverfishImpl(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
-    private Silverfish(final int entityId, final Location location, final boolean spawned) {
+    private SilverfishImpl(final int entityId, final Location location, final boolean spawned) {
         super(entityId, UUID.randomUUID(), EntityTypes.SILVERFISH, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new ClimbOnTopOfPowderSnowGoal(this, 1));
@@ -95,8 +96,8 @@ public final class Silverfish extends AbstractMonster {
      * Creates a silverfish coming out of an infested block, without the random traits of one that
      * spawns.
      */
-    public static Silverfish leavingBlock(final int entityId, final Location location) {
-        return new Silverfish(entityId, location, false);
+    public static SilverfishImpl leavingBlock(final int entityId, final Location location) {
+        return new SilverfishImpl(entityId, location, false);
     }
 
     /**
@@ -210,6 +211,11 @@ public final class Silverfish extends AbstractMonster {
         return server().workers().regionizer().isOwnedByCurrentThread(world().key(), position.chunk());
     }
 
+    @Override
+    public void wakeUpFriends() {
+        wakeUpFriends.notifyHurt();
+    }
+
     /**
      * A second after this silverfish was hurt, wakes the silverfish hiding in the blocks around:
      * up to 5 blocks up or down and 10 across, the nearest first, stopping after each with one
@@ -314,7 +320,7 @@ public final class Silverfish extends AbstractMonster {
         private static final Set<Flag> FLAGS = Set.of(Flag.MOVE);
         private static final int[][] DIRECTIONS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
 
-        private final RandomStrollGoal stroll = new RandomStrollGoal(Silverfish.this, PRIORITY, Silverfish.this::movementSpeed)
+        private final RandomStrollGoal stroll = new RandomStrollGoal(SilverfishImpl.this, PRIORITY, SilverfishImpl.this::movementSpeed)
                 .interval(STROLL_INTERVAL);
         private @Nullable BlockPosition mergeInto;
 
@@ -368,7 +374,7 @@ public final class Silverfish extends AbstractMonster {
             final BlockState infested = state == null ? null : InfestedBlocks.infested(state);
             if (infested != null && server().worlds().blockEdits().set(world, position, infested, true)) {
                 spawnAnimation();
-                server().entities().despawn(Silverfish.this);
+                server().entities().despawn(SilverfishImpl.this);
             }
         }
 

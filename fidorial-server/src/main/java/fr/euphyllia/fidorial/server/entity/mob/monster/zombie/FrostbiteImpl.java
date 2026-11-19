@@ -20,6 +20,7 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.entity.projectile.IceBall;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.fidorial.entity.mob.monster.Frostbite;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -41,7 +42,7 @@ import java.util.function.IntSupplier;
  * hits, and one in four holds an ice ball it throws at a target that is out of reach, 5 blocks away
  * or further. Powder snow does not change it; water turns it into a zombie.
  */
-public final class Frostbite extends Zombie {
+public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
 
     public static final float MAX_HEALTH = 24f;
 
@@ -78,7 +79,7 @@ public final class Frostbite extends Zombie {
     private boolean ranged;
     private float rangedAttackUncertainty = -1f;
 
-    public Frostbite(final int entityId, final Location location) {
+    public FrostbiteImpl(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
@@ -86,7 +87,7 @@ public final class Frostbite extends Zombie {
      * @param spawned {@code true} for a frostbite that spawns, with the random traits of a zombie
      *                that does, and an ice ball in its hand one time out of four
      */
-    public Frostbite(final int entityId, final Location location, final boolean spawned) {
+    public FrostbiteImpl(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.FROSTBITE, location, spawned, false);
         setBaseMaxHealth(MAX_HEALTH);
         if (spawned) {
@@ -132,6 +133,7 @@ public final class Frostbite extends Zombie {
      * {@return {@code true} if this frostbite holds an ice ball}: it then throws it, again and
      * again, at a target it cannot hit with its fists
      */
+    @Override
     public boolean holdsIceBall() {
         return holdsIceBall;
     }
@@ -139,6 +141,7 @@ public final class Frostbite extends Zombie {
     /**
      * Gives this frostbite an ice ball to throw, or takes it away.
      */
+    @Override
     public void setHoldsIceBall(final boolean holdsIceBall) {
         this.holdsIceBall = holdsIceBall;
     }
@@ -146,6 +149,7 @@ public final class Frostbite extends Zombie {
     /**
      * {@return {@code true} while this frostbite throws ice balls rather than using its fists}
      */
+    @Override
     public boolean isRanged() {
         return ranged;
     }
@@ -156,6 +160,7 @@ public final class Frostbite extends Zombie {
      * @param uncertainty {@code 0} for throws that go straight at the target, a negative value to
      *                    follow the difficulty again
      */
+    @Override
     public void setRangedAttackUncertainty(final float uncertainty) {
         this.rangedAttackUncertainty = uncertainty;
     }
@@ -263,8 +268,8 @@ public final class Frostbite extends Zombie {
     }
 
     @Override
-    protected Zombie drownedForm(final int entityId, final Location location) {
-        return new Zombie(entityId, location, false);
+    protected ZombieImpl drownedForm(final int entityId, final Location location) {
+        return new ZombieImpl(entityId, location, false);
     }
 
     @Override
@@ -335,9 +340,9 @@ public final class Frostbite extends Zombie {
      */
     private static final class ThrowGoal extends RangedAttackGoal {
 
-        private final Frostbite frostbite;
+        private final FrostbiteImpl frostbite;
 
-        private ThrowGoal(final Frostbite frostbite, final int priority, final double speedModifier,
+        private ThrowGoal(final FrostbiteImpl frostbite, final int priority, final double speedModifier,
                           final IntSupplier attackIntervalMin, final IntSupplier attackIntervalMax) {
             super(frostbite, priority, speedModifier, attackIntervalMin, attackIntervalMax, ATTACK_RADIUS,
                     frostbite::throwIceBall);

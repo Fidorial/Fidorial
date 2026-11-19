@@ -28,6 +28,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
+import fr.fidorial.entity.mob.monster.Zombie;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
@@ -54,7 +55,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>The husk, the drowned and the frostbite are zombies too; they change the hooks of this class.</p>
  */
-public class Zombie extends AbstractMonster {
+public class ZombieImpl extends AbstractMonster implements Zombie {
 
     public static final float MAX_HEALTH = 20f;
 
@@ -125,7 +126,7 @@ public class Zombie extends AbstractMonster {
      * Creates a zombie as one that spawns: a baby one time out of twenty, and, the harder the game
      * is where it stands, the more likely one that breaks doors or leads the others.
      */
-    public Zombie(final int entityId, final Location location) {
+    public ZombieImpl(final int entityId, final Location location) {
         this(entityId, EntityTypes.ZOMBIE, location, true);
     }
 
@@ -133,11 +134,11 @@ public class Zombie extends AbstractMonster {
      * @param spawned {@code true} for a zombie that spawns, with the random traits of one;
      *                {@code false} for a plain adult, as the one another mob turns into
      */
-    public Zombie(final int entityId, final Location location, final boolean spawned) {
+    public ZombieImpl(final int entityId, final Location location, final boolean spawned) {
         this(entityId, EntityTypes.ZOMBIE, location, spawned);
     }
 
-    protected Zombie(final int entityId, final EntityType type, final Location location, final boolean spawned) {
+    protected ZombieImpl(final int entityId, final EntityType type, final Location location, final boolean spawned) {
         this(entityId, type, location, spawned, true);
     }
 
@@ -146,8 +147,8 @@ public class Zombie extends AbstractMonster {
      *                plain zombie does; {@code false} for a kind that adds goals of its own for
      *                that, and only shares with the others the way they look around
      */
-    protected Zombie(final int entityId, final EntityType type, final Location location, final boolean spawned,
-                     final boolean behaves) {
+    protected ZombieImpl(final int entityId, final EntityType type, final Location location, final boolean spawned,
+                         final boolean behaves) {
         super(entityId, UUID.randomUUID(), type, location, MAX_HEALTH);
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
                 .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT);
@@ -233,6 +234,7 @@ public class Zombie extends AbstractMonster {
     /**
      * Makes this zombie a baby, or an adult again.
      */
+    @Override
     public final void setBaby(final boolean baby) {
         if (this.baby == baby) {
             return;
@@ -246,10 +248,12 @@ public class Zombie extends AbstractMonster {
      * {@return {@code true} if this zombie leads the others}: it has more health, calls for
      * reinforcements far more often and breaks doors
      */
+    @Override
     public final boolean isLeader() {
         return maxHealthAttribute.has(LEADER_ZOMBIE_BONUS);
     }
 
+    @Override
     public final boolean canBreakDoors() {
         return canBreakDoors;
     }
@@ -257,6 +261,7 @@ public class Zombie extends AbstractMonster {
     /**
      * Lets this zombie break the wooden doors in its way, which it only does on hard difficulty.
      */
+    @Override
     public final void setCanBreakDoors(final boolean canBreakDoors) {
         if (this.canBreakDoors == canBreakDoors) {
             return;
@@ -273,6 +278,7 @@ public class Zombie extends AbstractMonster {
      * {@return the chance, between {@code 0} and {@code 1}, that this zombie calls a reinforcement
      * when it is hurt on hard difficulty}
      */
+    @Override
     public final double reinforcementChance() {
         return reinforcementsAttribute.value();
     }
@@ -280,6 +286,7 @@ public class Zombie extends AbstractMonster {
     /**
      * Sets how likely this zombie calls for reinforcements, whatever was rolled for it.
      */
+    @Override
     public final void setReinforcementChance(final double chance) {
         reinforcementsAttribute.setBase(chance);
         reinforcementsAttribute.remove(LEADER_ZOMBIE_BONUS);
@@ -391,8 +398,8 @@ public class Zombie extends AbstractMonster {
     /**
      * {@return the zombie this one turns into after a while under water, not yet in the world}
      */
-    protected Zombie drownedForm(final int entityId, final Location location) {
-        return new Drowned(entityId, location, false);
+    protected ZombieImpl drownedForm(final int entityId, final Location location) {
+        return new DrownedImpl(entityId, location, false);
     }
 
     /**
@@ -412,8 +419,8 @@ public class Zombie extends AbstractMonster {
     /**
      * {@return the zombie this one turns into after a while in powder snow, not yet in the world}
      */
-    protected Zombie frozenForm(final int entityId, final Location location) {
-        return new Frostbite(entityId, location, false);
+    protected ZombieImpl frozenForm(final int entityId, final Location location) {
+        return new FrostbiteImpl(entityId, location, false);
     }
 
     /**
@@ -426,6 +433,7 @@ public class Zombie extends AbstractMonster {
     /**
      * {@return {@code true} while this zombie shakes under water, about to turn into another}
      */
+    @Override
     public final boolean isUnderWaterConverting() {
         return drowning.isConverting();
     }
@@ -433,6 +441,7 @@ public class Zombie extends AbstractMonster {
     /**
      * {@return {@code true} while this zombie shakes in powder snow, about to turn into another}
      */
+    @Override
     public final boolean isFreezeConverting() {
         return freezing.isConverting();
     }
@@ -441,6 +450,7 @@ public class Zombie extends AbstractMonster {
      * Sets for how many ticks this zombie has had its eyes under water; it starts to turn into its
      * drowned form at 600.
      */
+    @Override
     public final void setInWaterTime(final int ticks) {
         drowning.setAfflictionTime(ticks);
     }
@@ -449,6 +459,7 @@ public class Zombie extends AbstractMonster {
      * Sets for how many ticks this zombie has been in powder snow; it starts to turn into its frozen
      * form at 140.
      */
+    @Override
     public final void setFreezingTime(final int ticks) {
         freezing.setAfflictionTime(ticks);
     }
@@ -508,7 +519,7 @@ public class Zombie extends AbstractMonster {
      * Turns this zombie into another, as vanilla converts it: the new one is a baby if this one is,
      * breaks doors if this one does, and gets attributes of its own.
      */
-    private void convertInto(final Zombie converted, final Sound.Type sound) {
+    private void convertInto(final ZombieImpl converted, final Sound.Type sound) {
         converted.setBaby(baby);
         if (canBreakDoors) {
             converted.setCanBreakDoors(true);
@@ -577,7 +588,7 @@ public class Zombie extends AbstractMonster {
 
             final AbstractMob created = MobFactories.create(type(), server().entities().ids().allocate(),
                     Location.of(world, x + 0.5, y, z + 0.5, 0f, 0f));
-            if (!(created instanceof final Zombie reinforcement)) {
+            if (!(created instanceof final ZombieImpl reinforcement)) {
                 return false;
             }
             reinforcement.setTarget(enemy);
