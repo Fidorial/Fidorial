@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.listener;
 
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundCustomQueryAnswerPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundHelloPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
@@ -17,4 +18,6 @@ public interface LoginPacketListener extends PacketListener {
     void handleLoginAcknowledged(ServerboundLoginAcknowledgedPacket packet);
 
     void handleOptionsApplied(ServerboundOptionsAppliedPacket packet);
+
+    void handleCookieResponse(ServerboundCookieResponsePacket packet);
 }

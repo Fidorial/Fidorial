@@ -18,6 +18,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configur
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundUpdateTagsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.ConfigurationPacketListener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundAcceptCodeOfConductPacket;
@@ -132,6 +133,11 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
         awaitingCodeOfConduct = false;
         LOGGER.info("{} acknowledged the Code of Conduct", connection.username());
         proceedToKnownPacks();
+    }
+
+    @Override
+    public void handleCookieResponse(final ServerboundCookieResponsePacket packet) {
+        connection.handleCookieResponse(packet);
     }
 
     @Override

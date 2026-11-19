@@ -52,6 +52,7 @@ public final class DefaultPermissions {
                 command("tick", "Freeze, step or change the tick rate of the game."),
                 command("time", "Change the time of a world."),
                 command("tps", "View per-region TPS."),
+                command("transfer", "Send players to another server."),
                 command("weather", "Change the weather."),
                 command("whitelist", "Manage the whitelist."),
                 command("posteffect", "Manage the active post effects on a player."),

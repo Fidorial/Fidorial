@@ -18,20 +18,25 @@ import fr.euphyllia.fidorial.server.network.connection.listener.PlayPacketHandle
 import fr.euphyllia.fidorial.server.network.connection.listener.StatusPacketHandler;
 import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.ConfigurationClientboundPackets;
+import fr.euphyllia.fidorial.server.network.protocol.catalog.LoginClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayClientboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundClearDialogPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundCookieRequestPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundPostEffectsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundShowDialogPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundStoreCookiePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundTransferPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.configuration.ClientboundResetChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundLoginDisconnectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDeleteMessagePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisconnectPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerChatPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
 import fr.euphyllia.fidorial.server.network.serialization.util.CipherDecoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CipherEncoder;
@@ -82,6 +87,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SequencedCollection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -124,6 +130,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private @Nullable List<Class<? extends ServerboundPacket>> exemptPackets;
 
     private int clientProtocol;
+    private boolean transferred;
     private @Nullable String username;
     private @Nullable PlayerProfile profile;
     private @Nullable ServerPlayer player;
@@ -137,6 +144,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private final LastSeenMessages lastSeenMessages = new LastSeenMessages();
     private final AtomicInteger nextGlobalChatIndex = new AtomicInteger();
     private volatile List<Key> postEffects = List.of();
+    private final Map<Key, CompletableFuture<Optional<byte[]>>> pendingCookies = new ConcurrentHashMap<>();
 
     private volatile long pendingKeepAliveId;
     private volatile int latencyMillis;
@@ -436,6 +444,7 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         if (keepAliveTask != null) {
             keepAliveTask.cancel(false);
         }
+        cancelCookieRequests();
         try {
             listener.onDisconnect();
         } catch (final Throwable t) {
@@ -514,6 +523,20 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     public void setClientProtocol(final int clientProtocol) {
         this.clientProtocol = clientProtocol;
+    }
+
+    /**
+     * Checks whether the client arrived through a transfer from another server, that is with the
+     * transfer intention ({@code 3}) in its handshake.
+     *
+     * @return {@code true} if this connection is a transfer
+     */
+    public boolean transferred() {
+        return transferred;
+    }
+
+    public void setTransferred(final boolean transferred) {
+        this.transferred = transferred;
     }
 
     public @Nullable String username() {
@@ -737,6 +760,123 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
                     "{} cannot be shown a dialog of foreign type {}; build it with fr.fidorial.dialog.Dialog.",
                     username, dialog.getClass().getName());
         }
+    }
+
+    /**
+     * Tells the client to leave this server and connect to another one, as {@code /transfer} does.
+     *
+     * <p>The client disconnects on its own once it receives the packet, then logs in to the target with
+     * the transfer intention, which the target must accept.</p>
+     *
+     * @param host the hostname or IP address of the target server
+     * @param port the port of the target server
+     * @return {@code true} if the packet was sent, {@code false} if the connection is in neither the
+     * configuration nor the play phase
+     */
+    public boolean transfer(final String host, final int port) {
+        if (!isInPlayState() && this.state != ConnectionState.CONFIGURATION) {
+            return false;
+        }
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.TRANSFER : ConfigurationClientboundPackets.TRANSFER;
+        LOGGER.debug("Transferring {} to {}:{}", username == null ? "<unknown>" : username, host, port);
+        send(new ClientboundTransferPacket(packetKey, host, port, Map.of()));
+        return true;
+    }
+
+    /**
+     * Stores a cookie on the client. The client keeps it for its current session only, through
+     * transfers to other servers, and forgets it when it disconnects.
+     *
+     * @param key     the identifier of the cookie
+     * @param payload the content of the cookie, at most {@link fr.fidorial.entity.player.Player#MAX_COOKIE_SIZE} bytes
+     * @return {@code true} if the packet was sent, {@code false} if the connection is in neither the
+     * configuration nor the play phase
+     */
+    public boolean storeCookie(final Key key, final byte[] payload) {
+        if (!isInPlayState() && this.state != ConnectionState.CONFIGURATION) {
+            return false;
+        }
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.STORE_COOKIE : ConfigurationClientboundPackets.STORE_COOKIE;
+        send(new ClientboundStoreCookiePacket(packetKey, key, payload));
+        return true;
+    }
+
+    /**
+     * Asks the client for a cookie. Asking again for a cookie still awaited shares the answer of the
+     * first request, rather than asking the client twice.
+     *
+     * @param key the identifier of the cookie
+     * @return a future completed on the network thread with the content of the cookie, or with an empty
+     * optional if the client has none; it completes exceptionally if the client disconnects first, or if
+     * it cannot be asked (closed connection, or between two phases)
+     */
+    public CompletableFuture<Optional<byte[]>> requestCookie(final Key key) {
+        if (state == ConnectionState.MOCK_PLAY) {
+            return CompletableFuture.completedFuture(Optional.empty());
+        }
+        final CompletableFuture<Optional<byte[]>> request = new CompletableFuture<>();
+        final CompletableFuture<Optional<byte[]>> pending = pendingCookies.putIfAbsent(key, request);
+        if (pending != null) {
+            return pending.thenApply(ClientConnection::copyCookie);
+        }
+        if (isActive()) {
+            execute(() -> sendCookieRequest(key, request));
+        } else {
+            abandonCookieRequest(key, request);
+        }
+        return request.thenApply(ClientConnection::copyCookie);
+    }
+
+    private void sendCookieRequest(final Key key, final CompletableFuture<Optional<byte[]>> request) {
+        final @Nullable Key packetKey = switch (state) {
+            case LOGIN -> LoginClientboundPackets.COOKIE_REQUEST;
+            case CONFIGURATION -> ConfigurationClientboundPackets.COOKIE_REQUEST;
+            case PLAY -> PlayClientboundPackets.COOKIE_REQUEST;
+            case HANDSHAKE, STATUS, MOCK_PLAY -> null;
+        };
+        final @Nullable ChannelFuture written = packetKey == null ? null : write(new ClientboundCookieRequestPacket(packetKey, key), false);
+        if (written == null) {
+            // Closed, or between two phases: the client would never answer.
+            abandonCookieRequest(key, request);
+            return;
+        }
+        written.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+    }
+
+    private void abandonCookieRequest(final Key key, final CompletableFuture<Optional<byte[]>> request) {
+        if (pendingCookies.remove(key, request)) {
+            request.cancel(false);
+        }
+    }
+
+    private void cancelCookieRequests() {
+        for (final Key key : pendingCookies.keySet()) {
+            final CompletableFuture<Optional<byte[]>> request = pendingCookies.remove(key);
+            if (request != null) {
+                request.cancel(false);
+            }
+        }
+    }
+
+    private static Optional<byte[]> copyCookie(final Optional<byte[]> cookie) {
+        return cookie.map(byte[]::clone);
+    }
+
+    /**
+     * Hands the answer of the client to whoever asked for the cookie. A cookie the server did not ask for
+     * ends the connection.
+     *
+     * @param packet the answer of the client
+     */
+    public void handleCookieResponse(final ServerboundCookieResponsePacket packet) {
+        final CompletableFuture<Optional<byte[]>> request = pendingCookies.remove(packet.key());
+        if (request == null) {
+            LOGGER.warn("{} sent the cookie {} without being asked for it",
+                    username == null ? "<unknown>" : username, packet.key().asString());
+            disconnect(Component.translatable("multiplayer.disconnect.unexpected_query"));
+            return;
+        }
+        request.complete(Optional.ofNullable(packet.payload()));
     }
 
     @Override

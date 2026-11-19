@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.LoginServerboundPac
 import fr.euphyllia.fidorial.server.network.protocol.catalog.PlayServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundAcceptCodeOfConductPacket;
@@ -80,7 +81,8 @@ public class ServerboundPackets {
                 .register(LoginServerboundPackets.KEY, ServerboundKeyPacket.DECODER)
                 .register(LoginServerboundPackets.CUSTOM_QUERY_ANSWER, ServerboundCustomQueryAnswerPacket.DECODER)
                 .register(LoginServerboundPackets.LOGIN_ACKNOWLEDGED, ServerboundLoginAcknowledgedPacket.DECODER)
-                .register(LoginServerboundPackets.OPTIONS_APPLIED, ServerboundOptionsAppliedPacket.DECODER);
+                .register(LoginServerboundPackets.OPTIONS_APPLIED, ServerboundOptionsAppliedPacket.DECODER)
+                .register(LoginServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER);
 
         on(ConnectionState.CONFIGURATION)
                 .register(ConfigurationServerboundPackets.SELECT_KNOWN_PACKS, ServerboundSelectKnownPacksPacket.DECODER)
@@ -88,7 +90,8 @@ public class ServerboundPackets {
                 .register(ConfigurationServerboundPackets.CUSTOM_CLICK_ACTION, ServerboundCustomClickActionPacket.DECODER)
                 .register(ConfigurationServerboundPackets.RESOURCE_PACK, ServerboundResourcePackPacket.DECODER)
                 .register(ConfigurationServerboundPackets.FINISH_CONFIGURATION, ServerboundFinishConfigurationPacket.DECODER)
-                .register(ConfigurationServerboundPackets.ACCEPT_CODE_OF_CONDUCT, ServerboundAcceptCodeOfConductPacket.DECODER);
+                .register(ConfigurationServerboundPackets.ACCEPT_CODE_OF_CONDUCT, ServerboundAcceptCodeOfConductPacket.DECODER)
+                .register(ConfigurationServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER);
 
         on(ConnectionState.PLAY)
                 .register(PlayServerboundPackets.PLAYER_LOADED, ServerboundPlayerLoadedPacket.DECODER)
@@ -124,7 +127,8 @@ public class ServerboundPackets {
                 .register(PlayServerboundPackets.PLAYER_ABILITIES, ServerboundPlayerAbilitiesPacket.DECODER)
                 .register(PlayServerboundPackets.SET_GAME_RULE, ServerboundSetGameRulePacket.DECODER)
                 .register(PlayServerboundPackets.CONFIGURATION_ACKNOWLEDGED, ServerboundAcknowledgeConfigurationPacket.DECODER)
-                .register(PlayServerboundPackets.DEBUG_SUBSCRIPTION_REQUEST, ServerboundDebugSubscriptionRequestPacket.DECODER);
+                .register(PlayServerboundPackets.DEBUG_SUBSCRIPTION_REQUEST, ServerboundDebugSubscriptionRequestPacket.DECODER)
+                .register(PlayServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER);
     }
 
     private ServerboundPackets() {

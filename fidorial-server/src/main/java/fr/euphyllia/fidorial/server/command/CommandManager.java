@@ -39,6 +39,7 @@ import fr.euphyllia.fidorial.server.command.defaults.TeleportCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TickCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TimeCommand;
 import fr.euphyllia.fidorial.server.command.defaults.TpsCommand;
+import fr.euphyllia.fidorial.server.command.defaults.TransferCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WeatherCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WhitelistCommand;
 import fr.euphyllia.fidorial.server.command.fidorial.PluginsCommand;
@@ -123,6 +124,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(EffectCommand.create());
         registerInternal(EnchantCommand.create());
         registerInternal(TeleportCommand.create(), Set.of("tp"));
+        registerInternal(TransferCommand.create());
 
         registerInternal(PluginsCommand.create(),  Set.of("pl", "plugin"));
     }

@@ -301,6 +301,12 @@
   "commands.enchant.failed.incompatible" : "<red><arg:0> n'accepte pas cet enchantement",
   "commands.enchant.failed.level" : "<red>Le niveau <arg:0> dépasse le niveau maximal de cet enchantement, <arg:1>",
 
+  "commands.transfer.success.single" : "Transfert de <arg:0> vers <arg:1>:<arg:2>",
+  "commands.transfer.success.multiple" : "Transfert de <arg:0> joueurs vers <arg:1>:<arg:2>",
+  "commands.transfer.error.no_players" : "Vous devez indiquer au moins un joueur à transférer",
+  "console.commands.transfer.error.no_players" : "Vous devez indiquer au moins un joueur à transférer",
+  "console.permissions.requires.player" : "Un joueur est requis pour exécuter cette commande ici",
+
   "commands.tick.query.percentiles" : "Percentiles : P50 : <arg:0> ms, P95 : <arg:1> ms, P99 : <arg:2> ms. Échantillon : <arg:3>",
   "commands.tick.query.rate.running" : "Vitesse des ticks cible : <arg:0> par seconde.\nTemps moyen par tick : <arg:1> ms (cible : <arg:2> ms)",
   "commands.tick.rate.success" : "La vitesse des ticks cible a été définie à <arg:0> par seconde",

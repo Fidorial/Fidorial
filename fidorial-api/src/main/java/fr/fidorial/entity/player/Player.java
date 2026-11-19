@@ -7,6 +7,7 @@ import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.RespawnPoint;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerJoinEvent;
+import fr.fidorial.event.player.PlayerLoginAttemptEvent;
 import fr.fidorial.event.player.PlayerQuitEvent;
 import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
@@ -28,10 +29,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.SequencedCollection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Represents a player currently connected to the server.
@@ -111,6 +114,73 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @since 0.1.0
      */
     void kick(Component reason);
+
+    /**
+     * Sends this player to another server, as {@code /transfer} does.
+     *
+     * <p>The client leaves this server on its own and connects to {@code host}:{@code port}, telling it
+     * that it is being transferred. The target server must accept transfers,
+     * or the player is turned away there.</p>
+     *
+     * @param host the hostname or IP address of the target server
+     * @param port the port of the target server, from {@code 1} to {@code 65535}
+     * @throws IllegalArgumentException if {@code host} is null or {@code port} is out of range
+     * @since 0.1.0
+     */
+    void transfer(String host, int port);
+
+    /**
+     * Checks whether this player joined through a transfer from another server, rather than by
+     * connecting directly.
+     *
+     * <p>Anything can claim to be a transfer: when it matters, check where the player comes from with
+     * your own means.</p>
+     *
+     * @return {@code true} if the client announced a transfer when it connected
+     * @since 0.1.0
+     */
+    boolean isTransferred();
+
+    /**
+     * The most bytes a cookie can hold, as the client allows.
+     *
+     * @since 0.1.0
+     */
+    int MAX_COOKIE_SIZE = 5120;
+
+    /**
+     * Stores a cookie on this player's client, replacing any cookie stored under the same key.
+     *
+     * <p>The client keeps its cookies for the current session only: they follow the player through
+     * {@linkplain #transfer(String, int) transfers}, so the next server can {@linkplain #retrieveCookie(Key)
+     * read them back}, and are lost when the player disconnects. The client can send back anything, so
+     * sign a cookie (an HMAC with a secret shared by your servers, for instance) when you need to trust
+     * it.</p>
+     *
+     * @param key     the identifier of the cookie
+     * @param payload the content of the cookie, at most {@link #MAX_COOKIE_SIZE} bytes; it is copied
+     * @throws IllegalArgumentException if {@code key} or {@code payload} is null, or if the payload is
+     *                                  larger than {@link #MAX_COOKIE_SIZE} bytes
+     * @since 0.1.0
+     */
+    void storeCookie(Key key, byte[] payload);
+
+    /**
+     * Asks this player's client for a cookie, stored by this server or by the one that transferred the
+     * player here.
+     *
+     * <p>The future completes on the network thread: do not block it, and hand any work on the world over
+     * to the right thread. To check a cookie before the player joins, use
+     * {@link PlayerLoginAttemptEvent#retrieveCookie(Key, Consumer)}
+     * instead.</p>
+     *
+     * @param key the identifier of the cookie
+     * @return a future completed with the content of the cookie, or with an empty optional if the client
+     * has none; it completes exceptionally if the player disconnects before answering
+     * @throws IllegalArgumentException if {@code key} is null
+     * @since 0.1.0
+     */
+    CompletableFuture<Optional<byte[]>> retrieveCookie(Key key);
 
     /**
      * {@return the inventory this player carries; call {@link #updateInventory()} after changing it}

@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.auth.SessionKeys;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration.ProxyForwarding;
+import fr.euphyllia.fidorial.server.events.player.PlayerLoginAttemptEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.connection.ConnectionState;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundApplyOptionsPacket;
@@ -16,6 +17,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.Cl
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ClientboundSetupCompressionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.login.ConnectionOptions;
 import fr.euphyllia.fidorial.server.network.protocol.packet.listener.LoginPacketListener;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundCustomQueryAnswerPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundHelloPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.ServerboundKeyPacket;
@@ -24,6 +26,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.login.Se
 import fr.euphyllia.fidorial.server.network.protocol.proxy.VelocityForwarding;
 import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerLoginAttemptEvent;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 
 public final class LoginPacketHandler implements LoginPacketListener {
 
@@ -58,6 +62,11 @@ public final class LoginPacketHandler implements LoginPacketListener {
     private SessionKeys.@Nullable InitializationVectors pendingIvs;
     private @Nullable GameProfile pendingProfile;
     private int compressionThreshold = -1;
+
+    // Cookies asked for by the listeners of the login attempt event: the decision waits for their answers.
+    private int pendingCookieChecks;
+    private boolean cookieCheckFailed;
+    private @Nullable Runnable afterCookieChecks;
 
     public LoginPacketHandler(final ClientConnection connection) {
         this.connection = connection;
@@ -268,7 +277,8 @@ public final class LoginPacketHandler implements LoginPacketListener {
         final boolean authenticated = server.config().network().onlineMode() || behindVelocity();
         final String address = connection.remoteAddress();
 
-        final PlayerLoginAttemptEvent attempt = new PlayerLoginAttemptEvent(playerProfile, address, authenticated);
+        final PlayerLoginAttemptEvent attempt = new PlayerLoginAttemptEventImpl(
+                playerProfile, address, authenticated, connection.transferred(), this::requestLoginCookie);
 
         loginRefusal(playerProfile, connection.remoteInetAddress()).ifPresent(attempt::refuse);
 
@@ -280,17 +290,64 @@ public final class LoginPacketHandler implements LoginPacketListener {
             connection.execute(() -> disconnect(Component.translatable("multiplayer.disconnect.generic")));
             return;
         }
-        connection.execute(() -> {
-            if (!connection.isActive()) {
-                return;
+        connection.execute(() -> afterCookieChecks(() -> decideLogin(event, profile, playerProfile)));
+    }
+
+    private void decideLogin(final PlayerLoginAttemptEvent event, final GameProfile profile, final PlayerProfile playerProfile) {
+        if (!connection.isActive()) {
+            return;
+        }
+        if (cookieCheckFailed) {
+            LOGGER.info("Login refused for {} ({}): a cookie could not be checked", playerProfile.name(), playerProfile.uuid());
+            disconnect(Component.translatable("multiplayer.disconnect.generic"));
+            return;
+        }
+        if (event.isCancelled()) {
+            LOGGER.info("Login refused for {} ({})", playerProfile.name(), playerProfile.uuid());
+            disconnect(event.refusal().orElseGet(() -> Component.translatable("multiplayer.disconnect.generic")));
+            return;
+        }
+        completeLogin(profile, playerProfile);
+    }
+
+    /**
+     * Asks the client for a cookie on behalf of a listener of the login attempt event. The decision on the
+     * login waits for the answer; a cookie that cannot be checked (the action throws, or the client cannot
+     * be asked) refuses the connection.
+     */
+    private void requestLoginCookie(final Key key, final Consumer<Optional<byte[]>> action) {
+        pendingCookieChecks++;
+        connection.requestCookie(key).whenComplete((cookie, failure) -> {
+            if (failure != null) {
+                cookieCheckFailed = true;
+            } else {
+                try {
+                    action.accept(cookie);
+                } catch (final Throwable t) {
+                    LOGGER.error("Checking the cookie {} of {} failed", key.asString(), pendingUsername, t);
+                    cookieCheckFailed = true;
+                }
             }
-            if (event.isCancelled()) {
-                LOGGER.info("Login refused for {} ({})", playerProfile.name(), playerProfile.uuid());
-                disconnect(event.refusal().orElseGet(() -> Component.translatable("multiplayer.disconnect.generic")));
-                return;
+            pendingCookieChecks--;
+            final Runnable next = afterCookieChecks;
+            if (pendingCookieChecks == 0 && next != null) {
+                afterCookieChecks = null;
+                next.run();
             }
-            completeLogin(profile, playerProfile);
         });
+    }
+
+    private void afterCookieChecks(final Runnable next) {
+        if (pendingCookieChecks == 0) {
+            next.run();
+        } else {
+            afterCookieChecks = next;
+        }
+    }
+
+    @Override
+    public void handleCookieResponse(final ServerboundCookieResponsePacket packet) {
+        connection.handleCookieResponse(packet);
     }
 
     private Optional<Component> loginRefusal(final PlayerProfile profile, @Nullable final InetAddress address) {
@@ -303,7 +360,8 @@ public final class LoginPacketHandler implements LoginPacketListener {
 
     private void completeLogin(final GameProfile profile, final PlayerProfile playerProfile) {
         this.loginComplete = true;
-        LOGGER.info("Authenticated: {} ({})", profile.name(), profile.uuid());
+        LOGGER.info("Authenticated: {} ({}){}", profile.name(), profile.uuid(),
+                connection.transferred() ? ", transferred from another server" : "");
         connection.setProfile(playerProfile);
         server.players().offline().remember(playerProfile);
         connection.send(new ClientboundLoginFinishedPacket(profile, loginFinishedOptions()));

@@ -53,10 +53,11 @@ public record ServerConfiguration(
             int compressionThreshold,
             boolean useIoUring,
             boolean enforceSecureChat,
+            boolean acceptsTransfers,
             ProxyForwarding proxy
     ) {
         static final Network DEFAULTS = new Network(
-                25565, true, false, 60, 256, false, true, new ProxyForwarding.None());
+                25565, true, false, 60, 256, false, true, false, new ProxyForwarding.None());
 
         static final Codec<Network> CODEC = configRecord(Network.class, DEFAULTS)
                 .field("port", Network::port, commented(Codec.intRange(1, 65535),
@@ -74,6 +75,9 @@ public record ServerConfiguration(
                         "Whether the server should attempt to use IO_Uring for network transport when it's available"))
                 .field("enforce-secure-chat", Network::enforceSecureChat, commented(Codec.BOOL,
                         "Whether secure chat is enforced on this server"))
+                .field("accepts-transfers", Network::acceptsTransfers, commented(Codec.BOOL, """
+                        Whether players sent here by another server with /transfer (or a transfer packet) may join.
+                        When false, they are disconnected with 'transfers disabled'"""))
                 .field("proxy", Network::proxy, commented(ProxyForwarding.CODEC,
                         "Configuration for Velocity proxies"))
                 .build();

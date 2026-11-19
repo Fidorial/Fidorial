@@ -2,11 +2,13 @@ package fr.euphyllia.fidorial.testplugin;
 
 import fr.euphyllia.fidorial.testplugin.command.ApiTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.BiomeCommand;
+import fr.euphyllia.fidorial.testplugin.command.CookieTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.CustomMobCommand;
 import fr.euphyllia.fidorial.testplugin.command.DialogCommand;
 import fr.euphyllia.fidorial.testplugin.command.EffectTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.ItemCommand;
 import fr.euphyllia.fidorial.testplugin.command.PregenCommand;
+import fr.euphyllia.fidorial.testplugin.command.TransferTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
 import fr.euphyllia.fidorial.testplugin.dialog.TestDialogs;
 import fr.euphyllia.fidorial.testplugin.effect.TestEffects;
@@ -19,6 +21,7 @@ import fr.euphyllia.fidorial.testplugin.recipe.TestRecipes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestChatTypes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestDimensionTypes;
+import fr.euphyllia.fidorial.testplugin.transfer.TransferTickets;
 import fr.euphyllia.fidorial.testplugin.worldgen.GeneratorSettings;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
@@ -76,6 +79,7 @@ public final class TestPlugin implements Plugin {
     private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
 
     private final AtomicLong eventCount = new AtomicLong();
+    private final TransferTickets transferTickets = TransferTickets.fromSystemProperty();
     public @Nullable ComponentLogger logger;
     public @Nullable Server server;
     private @Nullable PluginContext context;
@@ -119,6 +123,10 @@ public final class TestPlugin implements Plugin {
 
     public long eventCount() {
         return eventCount.get();
+    }
+
+    public TransferTickets transferTickets() {
+        return transferTickets;
     }
 
     @Override
@@ -405,10 +413,28 @@ public final class TestPlugin implements Plugin {
         final boolean cancelLogin = false;
         events.subscribe(PlayerLoginAttemptEvent.class, e -> {
             eventCount.incrementAndGet();
-            logger.info("[TestPlugin][event] login attempt de {} (auth={})", e.profile().name(), e.authenticated());
+            logger.info("[TestPlugin][event] login attempt de {} (auth={}, transferred={})",
+                    e.profile().name(), e.authenticated(), e.transferred());
             if (!cancelLogin) return;
             e.setCancelled(cancelLogin);
             e.refuse(Component.text("Server under maintenance", NamedTextColor.RED));
+        });
+
+        // A player transferred here by /testtransfer carries a signed ticket: the login waits for the cookie.
+        final boolean requireTransferTicket = false;
+        if (transferTickets.usesDefaultSecret()) {
+            logger.warn("[TestPlugin] Transfer tickets are signed with the default secret: "
+                    + "start every server with -Dfidorial.test.transfer-secret=<the same secret>");
+        }
+        events.subscribe(PlayerLoginAttemptEvent.class, e -> {
+            if (!e.transferred()) return;
+            e.retrieveCookie(TransferTickets.COOKIE, cookie -> {
+                final TransferTickets.Verdict verdict = transferTickets.verify(cookie, e.profile().uuid());
+                logger.info("[TestPlugin][event] {} was transferred here, ticket: {}", e.profile().name(), verdict);
+                if (verdict != TransferTickets.Verdict.VALID && requireTransferTicket) {
+                    e.refuse(Component.text("Join through the lobby (transfer ticket " + verdict + ")", NamedTextColor.RED));
+                }
+            });
         });
 
         final boolean lockPvp = false;
@@ -434,5 +460,7 @@ public final class TestPlugin implements Plugin {
         registry.register(context.meta(), new CustomMobCommand(this).create());
         registry.register(context.meta(), new ItemCommand(this).create());
         registry.register(context.meta(), new EffectTestCommand(this).create());
+        registry.register(context.meta(), new TransferTestCommand(this).create());
+        registry.register(context.meta(), new CookieTestCommand(this).create());
     }
 }

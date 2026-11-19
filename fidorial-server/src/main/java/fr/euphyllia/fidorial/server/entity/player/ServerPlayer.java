@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.player;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.debug.DebugSubscriptionState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
@@ -105,6 +106,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.SequencedCollection;
 import java.util.Set;
@@ -1053,6 +1055,33 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public void kick(final Component reason) {
         connection.disconnect(reason);
+    }
+
+    @Override
+    public void transfer(final String host, final int port) {
+        Preconditions.checkArgument(host != null, "The host to transfer a player to must not be null");
+        Preconditions.checkArgument(port >= 1 && port <= 65535, "The port to transfer a player to must be between 1 and 65535, got %s", port);
+        connection.transfer(host, port);
+    }
+
+    @Override
+    public boolean isTransferred() {
+        return connection.transferred();
+    }
+
+    @Override
+    public void storeCookie(final Key key, final byte[] payload) {
+        Preconditions.checkArgument(key != null, "The key of a cookie must not be null");
+        Preconditions.checkArgument(payload != null, "The payload of a cookie must not be null");
+        Preconditions.checkArgument(payload.length <= MAX_COOKIE_SIZE,
+                "A cookie holds at most %s bytes, got %s", MAX_COOKIE_SIZE, payload.length);
+        connection.storeCookie(key, payload.clone());
+    }
+
+    @Override
+    public CompletableFuture<Optional<byte[]>> retrieveCookie(final Key key) {
+        Preconditions.checkArgument(key != null, "The key of a cookie must not be null");
+        return connection.requestCookie(key);
     }
 
     @Override

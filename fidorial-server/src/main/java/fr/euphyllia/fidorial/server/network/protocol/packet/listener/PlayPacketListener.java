@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.listener;
 
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcceptTeleportationPacket;
@@ -104,4 +105,6 @@ public interface PlayPacketListener extends PacketListener {
     void handleMovePlayerStatusOnly(ServerboundMovePlayerStatusOnlyPacket packet);
 
     void handleDebugSubscriptionRequest(ServerboundDebugSubscriptionRequestPacket packet);
+
+    void handleCookieResponse(ServerboundCookieResponsePacket packet);
 }
