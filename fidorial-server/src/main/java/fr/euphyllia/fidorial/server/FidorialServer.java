@@ -108,7 +108,7 @@ public final class FidorialServer implements Server {
             maps = modules.add(new MapModule(this));
             commands = modules.add(new CommandModule(this, headless, registries, services));
             network = modules.add(new NetworkModule(this, config, headless, registries));
-            plugins = modules.add(new PluginModule(this, config, events, services, registries));
+            plugins = modules.add(new PluginModule(this, config, events, services, registries, network.messaging()));
         } catch (final Throwable t) {
             modules.shutdown(); // releases the threads of the modules already built
             throw t;

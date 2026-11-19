@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.testplugin.command.CustomMobCommand;
 import fr.euphyllia.fidorial.testplugin.command.DialogCommand;
 import fr.euphyllia.fidorial.testplugin.command.EffectTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.ItemCommand;
+import fr.euphyllia.fidorial.testplugin.command.MessagingTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.PregenCommand;
 import fr.euphyllia.fidorial.testplugin.command.TransferTestCommand;
 import fr.euphyllia.fidorial.testplugin.command.WorldgenCommand;
@@ -462,5 +463,6 @@ public final class TestPlugin implements Plugin {
         registry.register(context.meta(), new EffectTestCommand(this).create());
         registry.register(context.meta(), new TransferTestCommand(this).create());
         registry.register(context.meta(), new CookieTestCommand(this).create());
+        registry.register(context.meta(), new MessagingTestCommand(this, context.messenger()).create());
     }
 }

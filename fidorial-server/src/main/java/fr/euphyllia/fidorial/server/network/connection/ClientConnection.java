@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.ClientboundPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.ServerboundPackets;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundClearDialogPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundCookieRequestPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundPostEffectsPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPopPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundResourcePackPushPacket;
@@ -37,7 +38,9 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundKeepAlivePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundPlayerChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.serialization.CodecAwarePacketBuffer;
+import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.network.serialization.util.CipherDecoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CipherEncoder;
 import fr.euphyllia.fidorial.server.network.serialization.util.CompressionDecoder;
@@ -52,11 +55,13 @@ import fr.fidorial.entity.player.profile.PlayerProfile;
 import fr.fidorial.event.player.PlayerJoinEvent;
 import fr.fidorial.event.player.PlayerRespawnEvent;
 import fr.fidorial.math.Location;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.protocol.PacketListener;
 import fr.fidorial.protocol.ServerboundPacket;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -67,6 +72,7 @@ import net.kyori.adventure.chat.ChatType;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.dialog.DialogLike;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.pointer.Pointers;
 import net.kyori.adventure.pointer.PointersSupplier;
@@ -82,13 +88,16 @@ import javax.crypto.Cipher;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SequencedCollection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,6 +116,10 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
 
     private static final int KEEP_ALIVE_INTERVAL_SECONDS = 10;
     private static final int LATENCY_SMOOTHING = 3;
+    private static final Key BRAND_CHANNEL = Key.key("brand");
+    private static final int MAX_BRAND_LENGTH = 256;
+    // Bounds what a client can make the server remember: as many channels as Velocity lets a client register.
+    private static final int MAX_PLUGIN_CHANNELS = 1024;
 
     private static final PointersSupplier<ClientConnection> pointers = PointersSupplier.<ClientConnection>builder()
             .resolving(Identity.NAME, connection -> {
@@ -145,6 +158,9 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
     private final AtomicInteger nextGlobalChatIndex = new AtomicInteger();
     private volatile List<Key> postEffects = List.of();
     private final Map<Key, CompletableFuture<Optional<byte[]>>> pendingCookies = new ConcurrentHashMap<>();
+    // The plugin message channels the client, and the proxy in front of the server, announced.
+    private final Set<Key> pluginChannels = ConcurrentHashMap.newKeySet();
+    private volatile @Nullable String clientBrand;
 
     private volatile long pendingKeepAliveId;
     private volatile int latencyMillis;
@@ -877,6 +893,121 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
             return;
         }
         request.complete(Optional.ofNullable(packet.payload()));
+    }
+
+    /**
+     * Handles a plugin message: the channels the other side announces or withdraws and the brand of the
+     * client are kept here, every other message goes to the listeners of its channel once the player is in
+     * the game.
+     *
+     * @param packet the message
+     */
+    public void handlePluginMessage(final ServerboundCustomPayloadPacket packet) {
+        final Key channel = packet.channel();
+        if (channel.equals(PluginMessenger.REGISTER)) {
+            int ignored = 0;
+            for (final Key announced : readChannelList(packet.data())) {
+                if (pluginChannels.size() >= MAX_PLUGIN_CHANNELS && !pluginChannels.contains(announced)) {
+                    ignored++;
+                } else {
+                    pluginChannels.add(announced);
+                }
+            }
+            if (ignored > 0) {
+                LOGGER.warn("{} announced more than {} plugin message channels: {} ignored",
+                        username == null ? "<unknown>" : username, MAX_PLUGIN_CHANNELS, ignored);
+            }
+        } else if (channel.equals(PluginMessenger.UNREGISTER)) {
+            pluginChannels.removeAll(readChannelList(packet.data()));
+        } else if (channel.equals(BRAND_CHANNEL)) {
+            clientBrand = readBrand(packet.data());
+        } else {
+            final ServerPlayer receiver = player;
+            if (receiver == null) {
+                LOGGER.debug("{} sent a plugin message on {} before joining the game",
+                        username == null ? "<unknown>" : username, channel.asString());
+                return;
+            }
+            server.network().messaging().dispatch(receiver, channel, packet.data());
+        }
+    }
+
+    /**
+     * Sends a plugin message, to the client or to the proxy reading the connection.
+     *
+     * @param channel the channel of the message
+     * @param data    the content of the message, which must not change afterwards
+     * @return {@code true} if the packet was sent, {@code false} if the connection is in neither the
+     * configuration nor the play phase
+     */
+    public boolean sendPluginMessage(final Key channel, final byte[] data) {
+        if (!isInPlayState() && this.state != ConnectionState.CONFIGURATION) {
+            return false;
+        }
+        final Key packetKey = isInPlayState() ? PlayClientboundPackets.CUSTOM_PAYLOAD : ConfigurationClientboundPackets.CUSTOM_PAYLOAD;
+        send(new ClientboundCustomPayloadPacket(packetKey, channel, data));
+        return true;
+    }
+
+    /**
+     * Announces channels the server listens to, or withdraws them.
+     *
+     * @param type     {@link PluginMessenger#REGISTER} or {@link PluginMessenger#UNREGISTER}
+     * @param channels the channels; nothing is sent when there are none
+     */
+    public void sendChannelList(final Key type, final Collection<Key> channels) {
+        if (channels.isEmpty()) {
+            return;
+        }
+        final String list = String.join("\0", channels.stream().map(Key::asString).toList());
+        sendPluginMessage(type, list.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Gets the plugin message channels the client, and the proxy in front of the server, announced.
+     *
+     * @return the channels, as they are now
+     */
+    public Set<Key> pluginChannels() {
+        return Set.copyOf(pluginChannels);
+    }
+
+    /**
+     * Gets the brand the client announced.
+     *
+     * @return the brand, or empty if the client did not announce one
+     */
+    public Optional<String> clientBrand() {
+        return Optional.ofNullable(clientBrand);
+    }
+
+    /**
+     * Reads the channels of an announcement: their names, separated by a null character. Names that are
+     * not valid channels are skipped.
+     */
+    private List<Key> readChannelList(final byte[] data) {
+        final List<Key> channels = new ArrayList<>();
+        for (final String name : new String(data, StandardCharsets.UTF_8).split("\0")) {
+            if (name.isEmpty()) {
+                continue;
+            }
+            try {
+                channels.add(Key.key(name));
+            } catch (final InvalidKeyException invalid) {
+                LOGGER.debug("{} announced an invalid plugin message channel: {}",
+                        username == null ? "<unknown>" : username, name);
+            }
+        }
+        return channels;
+    }
+
+    private @Nullable String readBrand(final byte[] data) {
+        try {
+            return new PacketBuffer(Unpooled.wrappedBuffer(data)).readString(MAX_BRAND_LENGTH);
+        } catch (final RuntimeException malformed) {
+            LOGGER.debug("{} announced a malformed brand", username == null ? "<unknown>" : username, malformed);
+            return null;
+        }
     }
 
     @Override

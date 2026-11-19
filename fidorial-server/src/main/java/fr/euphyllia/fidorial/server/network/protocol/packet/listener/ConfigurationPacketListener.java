@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.network.protocol.packet.listener;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundAcceptCodeOfConductPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundFinishConfigurationPacket;
@@ -23,4 +24,6 @@ public interface ConfigurationPacketListener extends PacketListener {
     void handleAcceptCodeOfConduct(ServerboundAcceptCodeOfConductPacket packet);
 
     void handleCookieResponse(ServerboundCookieResponsePacket packet);
+
+    void handleCustomPayload(ServerboundCustomPayloadPacket packet);
 }

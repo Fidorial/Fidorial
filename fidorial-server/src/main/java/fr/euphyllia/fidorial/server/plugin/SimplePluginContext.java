@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.plugin;
 
 import fr.fidorial.Server;
 import fr.fidorial.event.EventBus;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.plugin.PluginContext;
 import fr.fidorial.plugin.PluginMeta;
 import fr.fidorial.service.ServiceRegistry;
@@ -22,6 +23,7 @@ final class SimplePluginContext implements PluginContext, AutoCloseable {
     private final Server server;
     private final EventBus events;
     private final ServiceRegistry services;
+    private final PluginMessenger messenger;
     private final Path dataFolder;
     private final Path jarPath;
     private final ComponentLogger logger;
@@ -29,11 +31,13 @@ final class SimplePluginContext implements PluginContext, AutoCloseable {
     private boolean jarOpenFailed;
 
     SimplePluginContext(final PluginMeta meta, final Server server, final EventBus events,
-                        final ServiceRegistry services, final Path dataFolder, final Path jarPath) {
+                        final ServiceRegistry services, final PluginMessenger messenger, final Path dataFolder,
+                        final Path jarPath) {
         this.meta = meta;
         this.server = server;
         this.events = events;
         this.services = services;
+        this.messenger = messenger;
         this.dataFolder = dataFolder;
         this.jarPath = jarPath;
         this.logger = ComponentLogger.logger("plugin/" + meta.id());
@@ -57,6 +61,11 @@ final class SimplePluginContext implements PluginContext, AutoCloseable {
     @Override
     public ServiceRegistry services() {
         return services;
+    }
+
+    @Override
+    public PluginMessenger messenger() {
+        return messenger;
     }
 
     @Override

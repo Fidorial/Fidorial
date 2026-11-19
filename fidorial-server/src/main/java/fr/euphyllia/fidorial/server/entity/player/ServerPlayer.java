@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.EquipmentEnchantments;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
+import fr.euphyllia.fidorial.server.network.messaging.PluginChannelRegistry;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundClearTitlesPacket;
@@ -63,6 +64,7 @@ import fr.fidorial.item.component.WrittenBookContent;
 import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.permission.PermissionResolver;
 import fr.fidorial.permission.PermissionState;
 import fr.fidorial.permission.PermissionStateHolder;
@@ -1082,6 +1084,27 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     public CompletableFuture<Optional<byte[]>> retrieveCookie(final Key key) {
         Preconditions.checkArgument(key != null, "The key of a cookie must not be null");
         return connection.requestCookie(key);
+    }
+
+    @Override
+    public void sendPluginMessage(final Key channel, final byte[] data) {
+        Preconditions.checkArgument(channel != null, "The channel of a plugin message must not be null");
+        Preconditions.checkArgument(data != null, "The data of a plugin message must not be null");
+        Preconditions.checkArgument(data.length <= PluginMessenger.MAX_SENT_SIZE,
+                "A plugin message holds at most %s bytes, got %s", PluginMessenger.MAX_SENT_SIZE, data.length);
+        Preconditions.checkArgument(!PluginChannelRegistry.isReserved(channel),
+                "The channel %s is handled by the server", channel.asString());
+        connection.sendPluginMessage(channel, data.clone());
+    }
+
+    @Override
+    public Set<Key> pluginChannels() {
+        return connection.pluginChannels();
+    }
+
+    @Override
+    public Optional<String> clientBrand() {
+        return connection.clientBrand();
     }
 
     @Override

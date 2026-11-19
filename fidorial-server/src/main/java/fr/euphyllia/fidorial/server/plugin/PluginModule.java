@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.events.SimpleEventBus;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
+import fr.euphyllia.fidorial.server.network.messaging.PluginChannelRegistry;
 import fr.euphyllia.fidorial.server.permission.DefaultPermissions;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.euphyllia.fidorial.server.spark.SparkService;
@@ -37,10 +38,11 @@ public final class PluginModule implements ServerModule, PluginManager {
 
     public PluginModule(
             final FidorialServer server, final ServerConfiguration config, final SimpleEventBus events,
-            final ServiceRegistry services, final RegistryModule registries) {
+            final ServiceRegistry services, final RegistryModule registries, final PluginChannelRegistry messaging) {
         this.registries = registries;
         this.spark = config.spark().enabled() ? new SparkService(server, config.spark().path()) : null;
-        this.manager = new JavaPluginManager(server, events, services, registries, config.general().pluginsPath());
+        this.manager = new JavaPluginManager(
+                server, events, services, registries, messaging, config.general().pluginsPath());
     }
 
     @Override

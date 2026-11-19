@@ -59,6 +59,7 @@ module fr.fidorial {
     exports fr.fidorial.inventory;
     exports fr.fidorial.map;
     exports fr.fidorial.math;
+    exports fr.fidorial.messaging;
     exports fr.fidorial.permission;
     exports fr.fidorial.plugin;
     exports fr.fidorial.recipe;

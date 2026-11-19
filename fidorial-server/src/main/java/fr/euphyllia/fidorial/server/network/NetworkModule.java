@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.auth.SessionKeyExchange;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.configuration.ServerConfiguration;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
+import fr.euphyllia.fidorial.server.network.messaging.PluginChannelRegistry;
 import fr.euphyllia.fidorial.server.network.protocol.ProtocolMap;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
@@ -30,6 +31,7 @@ public final class NetworkModule implements ServerModule {
     private final MojangSessionService sessionService = new MojangSessionService();
     private final MojangChatSigningKeys chatSigningKeys = new MojangChatSigningKeys();
     private final NettyServer listener;
+    private final PluginChannelRegistry messaging;
 
     /**
      * @param headless whether the port must not be bound
@@ -43,6 +45,7 @@ public final class NetworkModule implements ServerModule {
         this.keyExchanges = new SessionKeyExchange.ServerSideFactory(
                 Duration.ofSeconds(config.network().keyRotationPeriodSeconds()));
         this.listener = new NettyServer(server, config.network().port());
+        this.messaging = new PluginChannelRegistry(server);
     }
 
     @Override
@@ -81,5 +84,12 @@ public final class NetworkModule implements ServerModule {
 
     public MojangChatSigningKeys chatSigningKeys() {
         return chatSigningKeys;
+    }
+
+    /**
+     * The plugin message channels the server listens to.
+     */
+    public PluginChannelRegistry messaging() {
+        return messaging;
     }
 }

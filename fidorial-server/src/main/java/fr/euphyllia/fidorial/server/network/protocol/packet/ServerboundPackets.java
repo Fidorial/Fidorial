@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.network.protocol.catalog.StatusServerboundPa
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundAcceptCodeOfConductPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundFinishConfigurationPacket;
@@ -91,7 +92,8 @@ public class ServerboundPackets {
                 .register(ConfigurationServerboundPackets.RESOURCE_PACK, ServerboundResourcePackPacket.DECODER)
                 .register(ConfigurationServerboundPackets.FINISH_CONFIGURATION, ServerboundFinishConfigurationPacket.DECODER)
                 .register(ConfigurationServerboundPackets.ACCEPT_CODE_OF_CONDUCT, ServerboundAcceptCodeOfConductPacket.DECODER)
-                .register(ConfigurationServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER);
+                .register(ConfigurationServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER)
+                .register(ConfigurationServerboundPackets.CUSTOM_PAYLOAD, ServerboundCustomPayloadPacket.DECODER);
 
         on(ConnectionState.PLAY)
                 .register(PlayServerboundPackets.PLAYER_LOADED, ServerboundPlayerLoadedPacket.DECODER)
@@ -128,7 +130,8 @@ public class ServerboundPackets {
                 .register(PlayServerboundPackets.SET_GAME_RULE, ServerboundSetGameRulePacket.DECODER)
                 .register(PlayServerboundPackets.CONFIGURATION_ACKNOWLEDGED, ServerboundAcknowledgeConfigurationPacket.DECODER)
                 .register(PlayServerboundPackets.DEBUG_SUBSCRIPTION_REQUEST, ServerboundDebugSubscriptionRequestPacket.DECODER)
-                .register(PlayServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER);
+                .register(PlayServerboundPackets.COOKIE_RESPONSE, ServerboundCookieResponsePacket.DECODER)
+                .register(PlayServerboundPackets.CUSTOM_PAYLOAD, ServerboundCustomPayloadPacket.DECODER);
     }
 
     private ServerboundPackets() {

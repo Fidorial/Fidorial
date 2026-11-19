@@ -13,6 +13,8 @@ import fr.fidorial.inventory.EnderChestInventory;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.messaging.PluginMessage;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.keys.AttributeKeys;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.SequencedCollection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -181,6 +184,41 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
      * @since 0.1.0
      */
     CompletableFuture<Optional<byte[]>> retrieveCookie(Key key);
+
+    /**
+     * Sends a plugin message to this player's client, or to the proxy in front of the server, which reads
+     * it on the player's connection.
+     *
+     * <p>Any channel works, without declaring it first. The other side ignores the channels it does not
+     * listen to: {@link #pluginChannels()} tells which ones it announced.</p>
+     *
+     * @param channel the channel
+     * @param data    the content of the message, at most {@link PluginMessenger#MAX_SENT_SIZE} bytes; it is
+     *                copied
+     * @throws IllegalArgumentException if {@code channel} or {@code data} is null, if the data is too large,
+     *                                  or if the channel is {@link PluginMessenger#REGISTER} or
+     *                                  {@link PluginMessenger#UNREGISTER}
+     * @see PluginMessage#reply(byte[])
+     * @since 0.1.0
+     */
+    void sendPluginMessage(Key channel, byte[] data);
+
+    /**
+     * Gets the channels this player's client, and the proxy in front of the server, announced they listen
+     * to.
+     *
+     * @return the channels, as they are now
+     * @since 0.1.0
+     */
+    Set<Key> pluginChannels();
+
+    /**
+     * Gets the brand the client announced: the name it gives itself, such as that of its mod loader.
+     *
+     * @return the brand, or empty if the client did not announce one
+     * @since 0.1.0
+     */
+    Optional<String> clientBrand();
 
     /**
      * {@return the inventory this player carries; call {@link #updateInventory()} after changing it}

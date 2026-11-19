@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import fr.euphyllia.fidorial.bootstrap.Artifact;
 import fr.euphyllia.fidorial.bootstrap.BootstrapException;
 import fr.euphyllia.fidorial.server.events.SimpleEventBus;
+import fr.euphyllia.fidorial.server.network.messaging.PluginChannelRegistry;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.fidorial.Server;
 import fr.fidorial.permission.PermissionDefinition;
@@ -52,6 +53,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
     private final Server server;
     private final SimpleEventBus events;
     private final ServiceRegistry services;
+    private final PluginChannelRegistry messaging;
     private final Path pluginsFolder;
 
     private final Map<String, Loaded> plugins = new LinkedHashMap<>();
@@ -66,11 +68,13 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             final SimpleEventBus events,
             final ServiceRegistry services,
             final RegistryModule registries,
+            final PluginChannelRegistry messaging,
             final Path pluginsFolder
     ) {
         this.server = server;
         this.events = events;
         this.services = services;
+        this.messaging = messaging;
         this.registries = registries;
         this.permissions = registries.permissions();
         this.pluginsFolder = pluginsFolder;
@@ -135,6 +139,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
                 loaded.enabled = false;
                 events.unsubscribeAll(loaded.plugin);
                 services.unregisterAll(loaded.plugin);
+                messaging.unregisterAll(loaded.plugin);
                 registries.unregisterAll(loaded.plugin);
                 removePluginPermissions(loaded.meta.id());
             }
@@ -302,7 +307,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             }
             plugin = (Plugin) mainClass.getDeclaredConstructor().newInstance();
             context = new SimplePluginContext(
-                    meta, server, events, services,
+                    meta, server, events, services, messaging.scopedTo(plugin),
                     pluginsFolder.resolve(meta.id()), candidate.jarPath());
             registerDescriptorPermissions(meta);
 
@@ -336,6 +341,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         }
         events.unsubscribeAll(plugin);
         services.unregisterAll(plugin);
+        messaging.unregisterAll(plugin);
         registries.unregisterAll(plugin);
         removePluginPermissions(pluginId);
         if (context != null) {

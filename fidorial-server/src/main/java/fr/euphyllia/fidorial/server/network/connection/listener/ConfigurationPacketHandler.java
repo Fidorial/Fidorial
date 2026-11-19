@@ -20,6 +20,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.listener.Configurati
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundAcceptCodeOfConductPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.configuration.ServerboundFinishConfigurationPacket;
@@ -138,6 +139,11 @@ public final class ConfigurationPacketHandler implements ConfigurationPacketList
     @Override
     public void handleCookieResponse(final ServerboundCookieResponsePacket packet) {
         connection.handleCookieResponse(packet);
+    }
+
+    @Override
+    public void handleCustomPayload(final ServerboundCustomPayloadPacket packet) {
+        connection.handlePluginMessage(packet);
     }
 
     @Override

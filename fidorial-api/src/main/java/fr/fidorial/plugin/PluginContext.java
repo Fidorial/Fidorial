@@ -2,6 +2,7 @@ package fr.fidorial.plugin;
 
 import fr.fidorial.Server;
 import fr.fidorial.event.EventBus;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.service.ServiceRegistry;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -52,6 +53,16 @@ public interface PluginContext {
      * @since 0.1.0
      */
     ServiceRegistry services();
+
+    /**
+     * Gets the plugin messenger of this plugin.
+     *
+     * <p>The channels it listens to are released when the plugin is disabled.</p>
+     *
+     * @return the plugin-bound messenger
+     * @since 0.1.0
+     */
+    PluginMessenger messenger();
 
     /**
      * {@return the logger of this plugin, named {@code plugin/<id>}}

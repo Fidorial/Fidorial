@@ -43,6 +43,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.listener.PlayPacketL
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundClientInformationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCookieResponsePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomClickActionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundCustomPayloadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.common.ServerboundResourcePackPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcceptTeleportationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundAcknowledgeConfigurationPacket;
@@ -121,6 +122,7 @@ import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
+import fr.fidorial.messaging.PluginMessenger;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -225,6 +227,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 other.connection().send(new ClientboundPlayerInfoUpdatePacket(
                         player.profile(), player.gameMode().id(), player.ping(), connection.chatSession()));
             }
+            // Before the join event, so that the proxy knows the channels of the plugins answering it.
+            connection.sendChannelList(PluginMessenger.REGISTER, server.network().messaging().channels());
             server.events().post(new PlayerJoinEvent(player));
             LOGGER.info("{} logged with uuid {}", player.name(), player.uuid());
         });
@@ -1327,6 +1331,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
     @Override
     public void handleCookieResponse(final ServerboundCookieResponsePacket packet) {
         connection.handleCookieResponse(packet);
+    }
+
+    @Override
+    public void handleCustomPayload(final ServerboundCustomPayloadPacket packet) {
+        connection.handlePluginMessage(packet);
     }
 
     @Override
