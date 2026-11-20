@@ -497,7 +497,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
         if (convertsInWater()) {
             if (drowning.tick(settings.convertsInWater() && isEyeInWater())) {
                 if (!convertInto(drownedForm(server().entities().ids().allocate(), location()), drownedSound())) {
-                    freezing.reset();
+                    drowning.reset();
                 }
                 return;
             }
@@ -509,7 +509,9 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
         }
         if (convertsWhenFreezing()) {
             if (freezing.tick(settings.convertsInPowderSnow() && isInPowderSnow())) {
-                convertInto(frozenForm(server().entities().ids().allocate(), location()), frozenSound());
+                if (!convertInto(frozenForm(server().entities().ids().allocate(), location()), frozenSound())) {
+                    freezing.reset();
+                }
                 return;
             }
             if (sentFreezing != freezing.isConverting()) {
