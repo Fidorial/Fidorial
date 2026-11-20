@@ -101,7 +101,7 @@ public final class ServerWorld implements World {
     private final ForcedChunks forcedChunks;
     private final GameRuleOverrides gameRuleValues;
     private final WorldWeather weather;
-    private final WorldConfiguration configuration;
+    private volatile WorldConfiguration configuration;
     private final WorldPaths paths;
 
     private final ConcurrentChainedLong2ReferenceHashTable<@Nullable ChunkColumn> loaded =

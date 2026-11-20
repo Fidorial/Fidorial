@@ -12,9 +12,10 @@ import fr.fidorial.world.World;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.commented;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.configRecord;
 
-public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone redstone) {
+public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone redstone, Mobs mobs) {
 
-    public static final WorldConfiguration DEFAULTS = new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS, Redstone.DEFAULTS);
+    public static final WorldConfiguration DEFAULTS =
+            new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS, Redstone.DEFAULTS, Mobs.DEFAULTS);
 
     public static final Codec<WorldConfiguration> CODEC = codec(DEFAULTS, true);
 
@@ -34,6 +35,9 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone re
                         "World storage settings"))
                 .field("redstone", WorldConfiguration::redstone, commented(Redstone.codec(defaults.redstone(), writeDefaults),
                         "Redstone settings"))
+                .field("mobs", WorldConfiguration::mobs, commented(Mobs.codec(defaults.mobs(), writeDefaults),
+                        "What the mobs of the world may do, mob by mob.\n"
+                                + "The settings letting a mob change blocks only narrow the mob_griefing game rule, which must allow it too"))
                 .build();
     }
 
@@ -131,6 +135,77 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone re
                                     + "then those two blocks away, horizontal before vertical in each group. inward is the reverse,\n"
                                     + "vertical-first puts vertical neighbours before horizontal ones"))
                     .build();
+        }
+    }
+
+    public record Mobs(Creeper creeper, Enderman enderman, Silverfish silverfish, Zombie zombie) {
+
+        public static final Mobs DEFAULTS = new Mobs(Creeper.DEFAULTS, Enderman.DEFAULTS, Silverfish.DEFAULTS, Zombie.DEFAULTS);
+
+        static Codec<Mobs> codec(final Mobs defaults, final boolean writeDefaults) {
+            return configRecord(Mobs.class, defaults, writeDefaults)
+                    .field("creeper", Mobs::creeper, commented(Creeper.codec(defaults.creeper(), writeDefaults),
+                            "Creepers"))
+                    .field("enderman", Mobs::enderman, commented(Enderman.codec(defaults.enderman(), writeDefaults),
+                            "Endermen"))
+                    .field("silverfish", Mobs::silverfish, commented(Silverfish.codec(defaults.silverfish(), writeDefaults),
+                            "Silverfish"))
+                    .field("zombie", Mobs::zombie, commented(Zombie.codec(defaults.zombie(), writeDefaults),
+                            "Zombies, husks, drowned and frostbites"))
+                    .build();
+        }
+
+        public record Creeper(boolean explosionsBreakBlocks) {
+
+            public static final Creeper DEFAULTS = new Creeper(true);
+
+            static Codec<Creeper> codec(final Creeper defaults, final boolean writeDefaults) {
+                return configRecord(Creeper.class, defaults, writeDefaults)
+                        .field("explosions-break-blocks", Creeper::explosionsBreakBlocks, commented(Codec.BOOL,
+                                "Whether creeper explosions break blocks. They hurt and push entities either way"))
+                        .build();
+            }
+        }
+
+        public record Enderman(boolean movesBlocks) {
+
+            public static final Enderman DEFAULTS = new Enderman(true);
+
+            static Codec<Enderman> codec(final Enderman defaults, final boolean writeDefaults) {
+                return configRecord(Enderman.class, defaults, writeDefaults)
+                        .field("moves-blocks", Enderman::movesBlocks, commented(Codec.BOOL,
+                                "Whether endermen pick blocks up and put them down elsewhere.\n"
+                                        + "An enderman already carrying a block keeps it when this is false"))
+                        .build();
+            }
+        }
+
+        public record Silverfish(boolean hidesInBlocks) {
+
+            public static final Silverfish DEFAULTS = new Silverfish(true);
+
+            static Codec<Silverfish> codec(final Silverfish defaults, final boolean writeDefaults) {
+                return configRecord(Silverfish.class, defaults, writeDefaults)
+                        .field("hides-in-blocks", Silverfish::hidesInBlocks, commented(Codec.BOOL,
+                                "Whether silverfish slip into stone and the like, turning them into infested blocks"))
+                        .build();
+            }
+        }
+
+        public record Zombie(boolean breaksDoors, boolean convertsInWater, boolean convertsInPowderSnow) {
+
+            public static final Zombie DEFAULTS = new Zombie(true, true, true);
+
+            static Codec<Zombie> codec(final Zombie defaults, final boolean writeDefaults) {
+                return configRecord(Zombie.class, defaults, writeDefaults)
+                        .field("breaks-doors", Zombie::breaksDoors, commented(Codec.BOOL,
+                                "Whether the zombies able to break wooden doors do so, which they only do on hard difficulty"))
+                        .field("converts-in-water", Zombie::convertsInWater, commented(Codec.BOOL,
+                                "Whether a zombie kept under water turns into a drowned, and a husk or a frostbite into a zombie"))
+                        .field("converts-in-powder-snow", Zombie::convertsInPowderSnow, commented(Codec.BOOL,
+                                "Whether a zombie kept in powder snow turns into a frostbite, and a husk or a drowned into a zombie"))
+                        .build();
+            }
         }
     }
 }

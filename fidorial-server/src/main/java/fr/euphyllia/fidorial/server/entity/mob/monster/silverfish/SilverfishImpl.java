@@ -342,7 +342,8 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
                 return false;
             }
             final ThreadLocalRandom random = ThreadLocalRandom.current();
-            if (mobGriefing() && random.nextInt(MERGE_CHANCE) == 0) {
+            if (mobGriefing() && serverWorld().configuration().mobs().silverfish().hidesInBlocks()
+                    && random.nextInt(MERGE_CHANCE) == 0) {
                 final int[] direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
                 final Location at = location();
                 final BlockPosition position = Position.block(

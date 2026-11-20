@@ -585,6 +585,14 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
         return serverWorld().gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING);
     }
 
+    /**
+     * {@return {@code true} if this enderman may pick blocks up and put them down}: the game rule and
+     * the settings of its world both allow it
+     */
+    private boolean movesBlocks() {
+        return mobGriefing() && serverWorld().configuration().mobs().enderman().movesBlocks();
+    }
+
     private boolean owns(final BlockPosition position) {
         return server().workers().regionizer().isOwnedByCurrentThread(world().key(), position.chunk());
     }
@@ -789,7 +797,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
 
         @Override
         public boolean canStart() {
-            return carriedBlock == null && mobGriefing() && ThreadLocalRandom.current().nextInt(CHANCE) == 0;
+            return carriedBlock == null && movesBlocks() && ThreadLocalRandom.current().nextInt(CHANCE) == 0;
         }
 
         @Override
@@ -887,7 +895,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
 
         @Override
         public boolean canStart() {
-            return carriedBlock != null && mobGriefing() && ThreadLocalRandom.current().nextInt(CHANCE) == 0;
+            return carriedBlock != null && movesBlocks() && ThreadLocalRandom.current().nextInt(CHANCE) == 0;
         }
 
         @Override

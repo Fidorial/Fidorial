@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.zombie;
 
+import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
@@ -114,7 +115,8 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
 
     private final ConversionTimer drowning = new ConversionTimer("InWaterTime", 600, "DrownedConversionTime", 300);
     private final ConversionTimer freezing = new ConversionTimer("FreezingTime", 140, "FrostbiteConversionTime", 300);
-    private final BreakDoorGoal breakDoorGoal = new BreakDoorGoal(this, 1);
+    private final BreakDoorGoal breakDoorGoal =
+            new BreakDoorGoal(this, 1, () -> serverWorld().configuration().mobs().zombie().breaksDoors());
     private final boolean burnsInDaylight;
 
     private boolean baby;
@@ -491,8 +493,9 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
     }
 
     private void tickConversions() {
+        final WorldConfiguration.Mobs.Zombie settings = serverWorld().configuration().mobs().zombie();
         if (convertsInWater()) {
-            if (drowning.tick(isEyeInWater())) {
+            if (drowning.tick(settings.convertsInWater() && isEyeInWater())) {
                 if (!convertInto(drownedForm(server().entities().ids().allocate(), location()), drownedSound())) {
                     freezing.reset();
                 }
@@ -505,7 +508,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
             }
         }
         if (convertsWhenFreezing()) {
-            if (freezing.tick(isInPowderSnow())) {
+            if (freezing.tick(settings.convertsInPowderSnow() && isInPowderSnow())) {
                 convertInto(frozenForm(server().entities().ids().allocate(), location()), frozenSound());
                 return;
             }

@@ -164,7 +164,8 @@ public final class CreeperImpl extends AbstractMonster implements Creeper {
         final ServerWorld world = serverWorld();
         final MobExplodeEvent event = server().events().post(new MobExplodeEventImpl(this,
                 explosionRadius * (powered ? POWERED_EXPLOSION_MULTIPLIER : 1.0f),
-                world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)));
+                world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)
+                        && world.configuration().mobs().creeper().explosionsBreakBlocks()));
         if (event.isCancelled()) {
             defuse();
             return;

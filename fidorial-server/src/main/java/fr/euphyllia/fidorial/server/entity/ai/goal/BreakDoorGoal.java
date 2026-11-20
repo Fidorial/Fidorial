@@ -22,6 +22,7 @@ import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BooleanSupplier;
 
 public final class BreakDoorGoal implements Goal {
 
@@ -42,14 +43,26 @@ public final class BreakDoorGoal implements Goal {
 
     private final AbstractPathfinderMob mob;
     private final int priority;
+    private final BooleanSupplier allowed;
 
     private @Nullable BlockPosition door;
     private int progress;
     private int sentStage = NO_DESTROY_STAGE;
 
-    public BreakDoorGoal(final AbstractPathfinderMob mob, final int priority) {
+    /**
+     * @param mob      the mob breaking doors
+     * @param priority the priority of the goal
+     * @param allowed  whether the settings of the world of the mob let it break doors, on top of the
+     *                 {@code mob_griefing} game rule
+     */
+    public BreakDoorGoal(final AbstractPathfinderMob mob, final int priority, final BooleanSupplier allowed) {
         this.mob = mob;
         this.priority = priority;
+        this.allowed = allowed;
+    }
+
+    private boolean mayBreakDoors(final ServerWorld world) {
+        return world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING) && allowed.getAsBoolean();
     }
 
     public static boolean isBreakableDoor(final BlockState state) {
@@ -78,8 +91,7 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null || !isHardDifficulty()) {
             return false;
         }
-        if (!(mob.world() instanceof final ServerWorld world)
-                || !world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)) {
+        if (!(mob.world() instanceof final ServerWorld world) || !mayBreakDoors(world)) {
             return false;
         }
         final BlockPosition found = findDoor();
@@ -96,7 +108,7 @@ public final class BreakDoorGoal implements Goal {
         if (mob.target() == null || pos == null || !(mob.world() instanceof final ServerWorld world)) {
             return false;
         }
-        if (!world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING) || !isHardDifficulty()) {
+        if (!mayBreakDoors(world) || !isHardDifficulty()) {
             return false;
         }
         final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
