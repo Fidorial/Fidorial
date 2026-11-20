@@ -152,9 +152,10 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
             return true;
         }
         if (item.equals(ItemKeys.SHEARS) && readyForShearing()) {
-            shear();
-            server().debug().gameEvents().emit(world(), GameEventKeys.SHEAR, location());
-            wearItem(player, slot);
+            if (shearIntoCow()) {
+                server().debug().gameEvents().emit(world(), GameEventKeys.SHEAR, location());
+                wearItem(player, slot);
+            }
             return true;
         }
         if (variant == Variant.BROWN && !isBaby()) {
@@ -193,20 +194,31 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
     }
 
     /**
-     * Shears this mooshroom, as in Vanilla: it becomes a cow of the same age, and its five
-     * mushrooms fall from its back one by one.
+     * Shears this mooshroom: it becomes a cow of the same age, and its five mushrooms fall from its
+     * back one by one.
      */
     @Override
     public void shear() {
+        shearIntoCow();
+    }
+
+    /**
+     * Shears this mooshroom into a cow, once the plugins agreed.
+     *
+     * @return {@code false} if a plugin kept it as it is
+     */
+    private boolean shearIntoCow() {
         final Location at = location();
-        sendToTrackers(new ClientboundSoundPacket(
-                Sound.sound(SoundEvents.MOOSHROOM_SHEAR, Sound.Source.PLAYER, 1.0f, 1.0f), at.x(), at.y(), at.z()));
-        // TODO: the explosion particle, once particles exist
         final ServerWorld world = serverWorld();
         final double top = at.y() + height();
         final Variant sheared = variant;
 
-        convertTo(new MooshroomImpl(server().entities().ids().allocate(), at, false));
+        if (!convertTo(new CowImpl(server().entities().ids().allocate(), at, false))) {
+            return false;
+        }
+        sendToTrackers(new ClientboundSoundPacket(
+                Sound.sound(SoundEvents.MOOSHROOM_SHEAR, Sound.Source.PLAYER, 1.0f, 1.0f), at.x(), at.y(), at.z()));
+        // TODO: the explosion particle, once particles exist
 
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int i = 0; i < MUSHROOMS_WHEN_SHEARED; i++) {
@@ -214,6 +226,7 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
                     random.nextDouble() * 0.2 - 0.1, 0.2, random.nextDouble() * 0.2 - 0.1,
                     ItemEntity.DEFAULT_PICKUP_DELAY, null);
         }
+        return true;
     }
 
     @Override

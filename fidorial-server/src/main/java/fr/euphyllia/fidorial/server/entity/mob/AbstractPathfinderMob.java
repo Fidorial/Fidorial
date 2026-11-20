@@ -7,6 +7,8 @@ import fr.euphyllia.fidorial.server.entity.ai.Navigation;
 import fr.euphyllia.fidorial.server.entity.ai.goal.NearestAttackableTargetGoal;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobConvertEventImpl;
+import fr.euphyllia.fidorial.server.events.mob.MobTeleportEventImpl;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
@@ -16,6 +18,7 @@ import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.effect.MobEffectInstance;
+import fr.fidorial.event.mob.MobConvertEvent;
 import fr.fidorial.item.component.SwingAnimation;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
@@ -591,13 +594,14 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     }
 
     /**
-     * Turns this mob into another, as vanilla converts a mob: the new one takes its place with its
-     * speed, its fire, its effects, its age if both grow up, and whether a player hit it; it starts
-     * at full health. This mob is gone afterwards.
+     * Turns this mob into another, once the plugins agreed through a {@link MobConvertEvent}: the
+     * new one takes its place with its speed, its fire, its effects, its age if both grow up, and
+     * whether a player hit it; it starts at full health. This mob is gone afterwards.
      *
      * @param replacement the new mob, created where this one stands and not yet in the world
+     * @return {@code false} if a plugin kept this mob as it is
      */
-    protected final void convertTo(final AbstractPathfinderMob replacement) {
+    protected final boolean convertTo(final AbstractPathfinderMob replacement) {
         replacement.setVelocity(velocityX(), velocityY(), velocityZ());
         replacement.setOnGround(onGround());
         replacement.setFireTicks(fireTicks());
@@ -610,6 +614,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         if (this instanceof final AbstractAgeableMob from && replacement instanceof final AbstractAgeableMob to) {
             to.copyAgeFrom(from);
         }
+        if (server().events().post(new MobConvertEventImpl(this, replacement)).isCancelled()) {
+            return false;
+        }
         world().scheduler().execute(world().key(), location().chunk(), () -> {
             server().entities().spawn(replacement);
             for (final MobEffectInstance effect : activeEffects()) {
@@ -617,6 +624,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             }
             server().entities().despawn(this);
         });
+        return true;
     }
 
     /**
@@ -726,6 +734,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                                  final boolean showParticles, final Predicate<BlockState> avoids) {
         if (avoids.test(ground) || isBoxBlocked(x, y, z) || boxHolds(x, y, z, avoids)
                 || !canRandomlyTeleportTo(x, y, z)) {
+            return false;
+        }
+        final Location from = location();
+        if (server().events().post(new MobTeleportEventImpl(this, from, from.with(x, y, z))).isCancelled()) {
             return false;
         }
         teleportTo(x, y, z);

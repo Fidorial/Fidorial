@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.events.mob.MobBlockChanges;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -139,10 +140,14 @@ public final class EatBlockGoal implements Goal {
      */
     private void replace(final ServerWorld world, final BlockPosition pos, final BlockState eaten,
                          final TypedKey<BlockType> replacement) {
+        final BlockState after = BlockState.withoutProperties(replacement);
+        if (!MobBlockChanges.allowed(mob, pos, eaten, after)) {
+            return;
+        }
         final var server = mob.server();
         server.players().broadcastNear(world, pos.blockX() + 0.5, pos.blockY() + 0.5, pos.blockZ() + 0.5,
                 new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos,
                         server.registries().blockStates().networkId(eaten), false), null);
-        server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(replacement), true);
+        server.worlds().blockEdits().set(world, pos, after, true);
     }
 }

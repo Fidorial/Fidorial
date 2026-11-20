@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.Cat;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Goat;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Ocelot;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobExplodeEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
@@ -25,6 +26,7 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.monster.Creeper;
+import fr.fidorial.event.mob.MobExplodeEvent;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
@@ -34,6 +36,7 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
+import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.ItemTagKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -158,10 +161,32 @@ public final class CreeperImpl extends AbstractMonster implements Creeper {
         if (isRemoved() || isDead()) {
             return;
         }
-        final float power = explosionRadius * (powered ? POWERED_EXPLOSION_MULTIPLIER : 1.0f);
-        // TODO: the effects of the creeper linger in a cloud, once there are effect clouds
-        Explosion.explode(serverWorld(), location(), power, this);
+        final ServerWorld world = serverWorld();
+        final MobExplodeEvent event = server().events().post(new MobExplodeEventImpl(this,
+                explosionRadius * (powered ? POWERED_EXPLOSION_MULTIPLIER : 1.0f),
+                world.gameRuleValues().getBoolean(GameRuleKeys.MOB_GRIEFING)));
+        if (event.isCancelled()) {
+            defuse();
+            return;
+        }
+        if (event.power() > 0.0f) {
+            // TODO: the effects of the creeper linger in a cloud, once there are effect clouds
+            Explosion.explode(world, location(), event.power(), this, event.breaksBlocks());
+        }
         server().entities().despawn(this);
+    }
+
+    /**
+     * Puts this creeper out: it shrinks back, and has to be lit again to explode.
+     */
+    private void defuse() {
+        swell = 0;
+        setSwellDir(-1);
+        if (ignited) {
+            ignited = false;
+            sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
+                    ClientboundSetEntityMetadataPacket.Entry.ofBoolean(MD_IGNITED, false)));
+        }
     }
 
     /**

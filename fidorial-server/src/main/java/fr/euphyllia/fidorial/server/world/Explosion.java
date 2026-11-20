@@ -79,10 +79,17 @@ public final class Explosion {
     }
 
     public static void explode(final ServerWorld world, final Location center, final float power, final AbstractEntity source) {
+        explode(world, center, power, source, breaksBlocks(world, source));
+    }
+
+    /**
+     * Blows up a point, breaking the blocks around or not whatever the game rules say.
+     */
+    public static void explode(final ServerWorld world, final Location center, final float power,
+                               final AbstractEntity source, final boolean breaksBlocks) {
         final FidorialServer server = FidorialServer.getInstance();
         final List<BlockPosition> toDestroy = collectExplodedBlocks(world, center, power);
         damageEntities(server, world, center, power, source);
-        final boolean breaksBlocks = breaksBlocks(world, source);
         if (breaksBlocks) {
             destroyBlocks(server, world, toDestroy, power);
         }

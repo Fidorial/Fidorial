@@ -9,6 +9,7 @@ import fr.euphyllia.fidorial.server.entity.ai.GoalSelector;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobTargetEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityPositionSyncPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundMoveEntityPosPacket;
@@ -29,6 +30,7 @@ import fr.fidorial.entity.ai.Goals;
 import fr.fidorial.entity.ai.Navigator;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.mob.MobDefinition;
+import fr.fidorial.event.mob.MobTargetEvent;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
@@ -182,10 +184,26 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
         return target;
     }
 
+    /**
+     * Sets the target of this mob; a new one goes to the plugins first, through a
+     * {@link MobTargetEvent}.
+     */
     @Override
     public final void setTarget(final @Nullable LivingEntity target) {
-        this.target = target instanceof final AbstractLivingEntity living && living != this ? living : null;
-        onTargetSet(this.target);
+        AbstractLivingEntity next = asTarget(target);
+        if (next != null && next != this.target) {
+            final MobTargetEvent event = server().events().post(new MobTargetEventImpl(this, this.target, next));
+            if (event.isCancelled()) {
+                return;
+            }
+            next = asTarget(event.target());
+        }
+        this.target = next;
+        onTargetSet(next);
+    }
+
+    private @Nullable AbstractLivingEntity asTarget(final @Nullable LivingEntity target) {
+        return target instanceof final AbstractLivingEntity living && living != this ? living : null;
     }
 
     /**

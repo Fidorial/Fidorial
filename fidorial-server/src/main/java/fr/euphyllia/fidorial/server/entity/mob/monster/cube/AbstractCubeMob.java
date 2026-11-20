@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.CubeSplitEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.fidorial.combat.DamageSource;
@@ -15,6 +16,7 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.mob.monster.CubeMob;
+import fr.fidorial.event.mob.CubeSplitEvent;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -351,7 +353,11 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
         final Location at = location();
         final double offset = width() / 2.0;
         final int halfSize = size / 2;
-        final int count = 2 + random.nextInt(3);
+        final CubeSplitEvent event = server().events().post(new CubeSplitEventImpl(this, 2 + random.nextInt(3), halfSize));
+        if (event.isCancelled()) {
+            return;
+        }
+        final int count = event.count();
         for (int i = 0; i < count; i++) {
             // two by two, around where it lay
             final int column = i % 2;

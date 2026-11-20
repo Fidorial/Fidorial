@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.entity.ai.goal;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.events.mob.MobBlockChanges;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockDestructionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
@@ -155,6 +156,11 @@ public final class BreakDoorGoal implements Goal {
         }
 
         clearDestroyStage();
+        if (!MobBlockChanges.allowed(mob, pos, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+            // the door holds: the mob starts over
+            progress = 0;
+            return;
+        }
         final BlockData data = state.data();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);

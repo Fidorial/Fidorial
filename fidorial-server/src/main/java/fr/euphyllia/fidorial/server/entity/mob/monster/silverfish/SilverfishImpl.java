@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.entity.ai.goal.RandomStrollGoal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMonster;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobBlockChanges;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
@@ -291,7 +292,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
 
         private void wake(final ServerWorld world, final BlockPosition position, final BlockState state) {
             if (mobGriefing()) {
-                if (server().worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
+                if (MobBlockChanges.change(SilverfishImpl.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                     world.sendToChunkViewers(position.chunkX(), position.chunkZ(), new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, position,
                             server().registries().blockStates().networkId(state), false));
@@ -301,7 +302,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
             } else {
                 final BlockState host = InfestedBlocks.host(state);
                 if (host != null) {
-                    server().worlds().blockEdits().set(world, position, host, true);
+                    MobBlockChanges.change(SilverfishImpl.this, world, position, state, host);
                 }
             }
         }
@@ -372,7 +373,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
             final ServerWorld world = serverWorld();
             final BlockState state = BlockView.blockAt(world, position.blockX(), position.blockY(), position.blockZ());
             final BlockState infested = state == null ? null : InfestedBlocks.infested(state);
-            if (infested != null && server().worlds().blockEdits().set(world, position, infested, true)) {
+            if (state != null && infested != null && MobBlockChanges.change(SilverfishImpl.this, world, position, state, infested)) {
                 spawnAnimation();
                 server().entities().despawn(SilverfishImpl.this);
             }

@@ -54,6 +54,7 @@ module fr.fidorial {
     exports fr.fidorial.entity;
     exports fr.fidorial.event.entity;
     exports fr.fidorial.event.farming;
+    exports fr.fidorial.event.mob;
     exports fr.fidorial.event.player;
     exports fr.fidorial.event.redstone;
     exports fr.fidorial.event.server;

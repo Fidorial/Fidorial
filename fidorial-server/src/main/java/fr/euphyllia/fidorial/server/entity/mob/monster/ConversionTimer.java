@@ -57,6 +57,14 @@ public final class ConversionTimer {
         return false;
     }
 
+    /**
+     * Counts from nothing again, as if the mob had just left what converts it.
+     */
+    public void reset() {
+        afflictionTime = -1;
+        converting = false;
+    }
+
     public boolean isConverting() {
         return converting;
     }

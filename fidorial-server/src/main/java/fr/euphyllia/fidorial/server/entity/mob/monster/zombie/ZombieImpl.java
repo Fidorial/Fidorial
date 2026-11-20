@@ -493,7 +493,9 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
     private void tickConversions() {
         if (convertsInWater()) {
             if (drowning.tick(isEyeInWater())) {
-                convertInto(drownedForm(server().entities().ids().allocate(), location()), drownedSound());
+                if (!convertInto(drownedForm(server().entities().ids().allocate(), location()), drownedSound())) {
+                    freezing.reset();
+                }
                 return;
             }
             if (sentDrowning != drowning.isConverting()) {
@@ -516,20 +518,25 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
     }
 
     /**
-     * Turns this zombie into another, as vanilla converts it: the new one is a baby if this one is,
-     * breaks doors if this one does, and gets attributes of its own.
+     * Turns this zombie into another: the new one is a baby if this one is, breaks doors if this one
+     * does, and gets attributes of its own.
+     *
+     * @return {@code false} if a plugin kept this zombie as it is
      */
-    private void convertInto(final ZombieImpl converted, final Sound.Type sound) {
+    private boolean convertInto(final ZombieImpl converted, final Sound.Type sound) {
         converted.setBaby(baby);
         if (canBreakDoors) {
             converted.setCanBreakDoors(true);
         }
         converted.rollAttributes(localDifficulty().specialMultiplier(), false);
-        convertTo(converted);
+        if (!convertTo(converted)) {
+            return false;
+        }
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final float first = random.nextFloat();
         final float second = random.nextFloat();
         converted.playPositionalSound(sound, CONVERSION_VOLUME, (first - second) * 0.2f + 1.0f);
+        return true;
     }
 
     @Override

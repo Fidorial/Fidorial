@@ -24,6 +24,7 @@ import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.mob.PersistentAnger;
 import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteImpl;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobBlockChanges;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
@@ -813,7 +814,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
                     || !isReachable((int) Math.floor(at.x()), (int) Math.floor(at.z()), y, x, z)) {
                 return;
             }
-            if (server().worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
+            if (MobBlockChanges.change(EndermanImpl.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
                 setCarriedBlockState(defaultState(state.name()));
             }
@@ -911,8 +912,9 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
             }
             final ServerWorld world = serverWorld();
             final BlockState placed = withSnowAbove(carried, world, x, y, z);
-            if (canPlace(world, position, placed)
-                    && server().worlds().blockEdits().set(world, position, placed, true)) {
+            final BlockState there = BlockView.blockAt(world, x, y, z);
+            if (there != null && canPlace(world, position, placed)
+                    && MobBlockChanges.change(EndermanImpl.this, world, position, there, placed)) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, position);
                 setCarriedBlockState(null);
             }
