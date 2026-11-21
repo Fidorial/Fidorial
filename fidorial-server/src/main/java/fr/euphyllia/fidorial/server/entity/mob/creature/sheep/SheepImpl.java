@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.entity.ai.goal.RandomStrollGoal;
 import fr.euphyllia.fidorial.server.entity.ai.goal.TemptGoal;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractAnimal;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobShearEventImpl;
 import fr.euphyllia.fidorial.server.item.DyeColors;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
@@ -251,6 +252,9 @@ public final class SheepImpl extends AbstractAnimal implements Category.Neutral,
         final TypedKey<Item> item = held.id();
         if (item.equals(ItemKeys.SHEARS)) {
             if (readyForShearing()) {
+                if (server().events().post(new MobShearEventImpl(this, player, held)).isCancelled()) {
+                    return false;
+                }
                 shear();
                 server().debug().gameEvents().emit(world(), GameEventKeys.SHEAR, location());
                 wearItem(player, slot);

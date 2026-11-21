@@ -1,11 +1,15 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.cube;
 
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.item.ServerItemEntity;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobShearEventImpl;
+import fr.euphyllia.fidorial.server.events.mob.SulfurCubeKickEventImpl;
+import fr.euphyllia.fidorial.server.events.mob.SulfurCubeSwallowEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEquipmentPacket;
@@ -18,10 +22,13 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.monster.SulfurCube;
+import fr.fidorial.event.mob.SulfurCubeKickEvent;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.item.ItemStack;
+import fr.fidorial.math.FinePosition;
 import fr.fidorial.math.Location;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.data.DamageType;
@@ -43,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BooleanSupplier;
@@ -192,7 +198,7 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
 
     @Override
     public void setSwallowedItem(final ItemStack stack) {
-        Objects.requireNonNull(stack, "stack");
+        Preconditions.checkArgument(stack != null, "the swallowed item cannot be null, use an empty stack to take it away");
         final ItemStack kept = stack.isEmpty() ? ItemStack.EMPTY : stack.withCount(1);
         final ItemStack previous = swallowed;
         swallowed = kept;
@@ -250,13 +256,16 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
     }
 
     /**
-     Swallows one of an item: an adult that already holds another spits it out first; a baby, or
-     * an adult that already holds the same item, does nothing.
+     * Swallows one of an item a player gives, once the plugins agreed: an adult that already holds
+     * another spits it out first; a baby, or an adult that already holds the same item, does nothing.
      *
      * @return {@code true} if this cube swallowed it
      */
-    private boolean swallow(final ItemStack stack) {
+    private boolean swallow(final ItemStack stack, final ServerPlayer giver) {
         if (isBaby() || (hasSwallowedItem() && swallowed.id().equals(stack.id()))) {
+            return false;
+        }
+        if (server().events().post(new SulfurCubeSwallowEventImpl(this, stack.withCount(1), giver, null)).isCancelled()) {
             return false;
         }
         if (hasSwallowedItem()) {
@@ -320,13 +329,16 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
             return super.interact(player, hand);
         }
         if (held.id().equals(ItemKeys.SHEARS) && readyForShearing()) {
+            if (server().events().post(new MobShearEventImpl(this, player, held)).isCancelled()) {
+                return false;
+            }
             shear();
             server().debug().gameEvents().emit(world(), GameEventKeys.SHEAR, location());
             wearItem(player, slot);
             return true;
         }
         if (isSwallowable(held)) {
-            if (!swallow(held)) {
+            if (!swallow(held, player)) {
                 return false;
             }
             consumeItem(player, slot);
@@ -354,15 +366,24 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
         final double pushX = across > 1.0E-7 ? dx / across * kept * speed : 0.0;
         final double pushZ = across > 1.0E-7 ? dz / across * kept * speed : 0.0;
         final double pushY = onGround() ? kept * VERTICAL_PUSH * speed : 0.0;
+        dealContactDamage(player);
+        if (pushX == 0.0 && pushY == 0.0 && pushZ == 0.0) {
+            return;
+        }
+        final SulfurCubeKickEvent event = server().events().post(new SulfurCubeKickEventImpl(
+                this, player, SulfurCubeKickEvent.Cause.PUSH, Position.fine(pushX, pushY, pushZ)));
+        if (event.isCancelled()) {
+            return;
+        }
+        final FinePosition push = event.push();
         final Sound.Type pushSound = sounds.push();
         final double threshold = sounds.pushImpulseThreshold();
         if (pushSound != null && pushSoundCooldown <= 0
-                && pushX * pushX + pushY * pushY + pushZ * pushZ > threshold * threshold) {
+                && push.x() * push.x() + push.y() * push.y() + push.z() * push.z() > threshold * threshold) {
             pushSoundCooldown = (int) (sounds.pushCooldown() * 20.0f);
             playSound(pushSound, 1.0f, 1.0f);
         }
-        addVelocity(pushX, pushY, pushZ);
-        dealContactDamage(player);
+        addVelocity(push.x(), push.y(), push.z());
     }
 
     private void addVelocity(final double x, final double y, final double z) {
@@ -413,16 +434,26 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
         final Location at = location();
         final Location from = source.position() != null ? source.position()
                 : source.directEntity() != null ? source.directEntity().location() : attacker.location();
-        sendFlying(attacker, from.x() - at.x(), from.z() - at.z(), damage, BASE_KNOCKBACK, false);
+        FinePosition push = flyingSpeed(attacker, from.x() - at.x(), from.z() - at.z(), damage, BASE_KNOCKBACK, false);
         if (strength > BASE_KNOCKBACK) {
             final double yaw = Math.toRadians(attacker.location().yaw());
-            sendFlying(attacker, Math.sin(yaw), -Math.cos(yaw), damage, strength - BASE_KNOCKBACK, true);
+            final FinePosition extra = flyingSpeed(attacker, Math.sin(yaw), -Math.cos(yaw), damage, strength - BASE_KNOCKBACK, true);
+            push = Position.fine(push.x() + extra.x(), push.y() + extra.y(), push.z() + extra.z());
+        }
+        final SulfurCubeKickEvent event = server().events().post(
+                new SulfurCubeKickEventImpl(this, attacker, SulfurCubeKickEvent.Cause.HIT, push));
+        if (!event.isCancelled()) {
+            addVelocity(event.push().x(), event.push().y(), event.push().z());
+            final Sound.Type hit = sounds.hit();
+            if (hit != null) {
+                playSound(hit, 1.0f, 1.0f);
+            }
         }
         return true;
     }
 
     /**
-     * Sends this cube away from a direction.
+     * {@return the speed a hit gives this cube, away from a direction}
      *
      * @param attacker   who hit it
      * @param towardsX   where the hit came from, across, from this cube
@@ -431,8 +462,8 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
      * @param power      how hard the hit pushes
      * @param fromEffect {@code true} for the extra push of a sprint or a weapon
      */
-    private void sendFlying(final Entity attacker, final double towardsX, final double towardsZ, final float damage,
-                            final double power, final boolean fromEffect) {
+    private FinePosition flyingSpeed(final Entity attacker, final double towardsX, final double towardsZ, final float damage,
+                                     final double power, final boolean fromEffect) {
         final Location feet = attacker.location();
         final double eyeX = feet.x();
         final double eyeY = feet.y() + eyeHeightOf(attacker);
@@ -489,10 +520,7 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
         powerX = Math.clamp(powerX, -MAX_KNOCKBACK_POWER, MAX_KNOCKBACK_POWER);
         powerY = Math.clamp(powerY, -MAX_KNOCKBACK_POWER, MAX_KNOCKBACK_POWER);
         final Direction away = normalized(directionX, 0.0, directionZ);
-        addVelocity(-away.x() * powerX, powerY * VERTICAL_KNOCKBACK_SCALE, -away.z() * powerX);
-        if (sounds.hit() != null) {
-            playSound(sounds.hit(), 1.0f, 1.0f);
-        }
+        return Position.fine(-away.x() * powerX, powerY * VERTICAL_KNOCKBACK_SCALE, -away.z() * powerX);
     }
 
     private static Direction normalized(final double x, final double y, final double z) {
@@ -600,6 +628,9 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
                 return;
             }
             final ItemStack stack = drop.item();
+            if (server().events().post(new SulfurCubeSwallowEventImpl(this, stack.withCount(1), null, drop)).isCancelled()) {
+                continue;
+            }
             setSwallowedItem(stack);
             playSound(SoundEvents.SULFUR_CUBE_ABSORB, 1.0f, 1.0f);
             sendToTrackers(new ClientboundTakeItemEntityPacket(drop.entityId(), entityId(), 1));

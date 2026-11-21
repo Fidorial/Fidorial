@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractAnimal;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.mob.MobShearEventImpl;
 import fr.euphyllia.fidorial.server.item.SuspiciousFlowers;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
@@ -152,6 +153,9 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
             return true;
         }
         if (item.equals(ItemKeys.SHEARS) && readyForShearing()) {
+            if (server().events().post(new MobShearEventImpl(this, player, held)).isCancelled()) {
+                return false;
+            }
             if (shearIntoCow()) {
                 server().debug().gameEvents().emit(world(), GameEventKeys.SHEAR, location());
                 wearItem(player, slot);
