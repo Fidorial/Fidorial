@@ -300,7 +300,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
      * hurts it with no living entity to blame nine times out of ten.
      */
     @Override
-    public boolean takeHit(final DamageSource source, final BooleanSupplier hurt) {
+    public boolean takeHit(final DamageSource source, final float amount, final double knockback, final BooleanSupplier hurt) {
         if (server().registries().registry(RegistryKey.DAMAGE_TYPE).isTagged(source.type(), DamageTypeTagKeys.IS_PROJECTILE)) {
             repeatedlyTryToTeleport();
             return false;

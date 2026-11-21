@@ -367,12 +367,26 @@ public abstract class AbstractMob extends AbstractLivingEntity {
      * Takes a hit: {@code hurt} deals it the usual way and tells whether it hurt. A mob that dodges
      * some hits, or does something whether a hit hurt it or not, overrides this.
      *
-     * @param source what hits this mob
-     * @param hurt   deals the hit
+     * @param source    what hits this mob
+     * @param amount    the damage of the hit
+     * @param knockback how hard the hit pushes this mob
+     * @param hurt      deals the hit
      * @return {@code true} if the hit hurt this mob
      */
-    public boolean takeHit(final DamageSource source, final BooleanSupplier hurt) {
+    public boolean takeHit(final DamageSource source, final float amount, final double knockback, final BooleanSupplier hurt) {
         return hurt.getAsBoolean();
+    }
+
+    /**
+     * Pushes this mob away from what hit it, its own way.
+     *
+     * @param source   what hit this mob
+     * @param damage   the damage of the hit
+     * @param strength how hard the hit pushes, as it would push any mob
+     * @return {@code false} to be pushed the usual way
+     */
+    public boolean knockBack(final DamageSource source, final float damage, final double strength) {
+        return false;
     }
 
     /**

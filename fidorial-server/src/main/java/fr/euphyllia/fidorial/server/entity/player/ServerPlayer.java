@@ -185,6 +185,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private long ticksLived;
     private long lastLevelUpTick = -LEVEL_UP_SOUND_INTERVAL_TICKS;
     private volatile double fallDistance;
+    private volatile double knownSpeed;
     private final AtomicInteger ticksSinceLastAttack = new AtomicInteger(MAX_TRACKED_ATTACK_TICKS);
     private volatile int airSupply = MAX_AIR_SUPPLY;
     private volatile int lastTeleportId;
@@ -525,6 +526,21 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     public double fallDistance() {
         return fallDistance;
+    }
+
+    /**
+     * {@return how far this player went with its last move, in blocks}, as its client told it; a
+     * move that only turns it counts for nothing
+     */
+    public double knownSpeed() {
+        return knownSpeed;
+    }
+
+    /**
+     * Records the last move of this player, as its client told it.
+     */
+    public void setKnownMovement(final double dx, final double dy, final double dz) {
+        knownSpeed = Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     public void setFallDistance(final double fallDistance) {

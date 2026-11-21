@@ -315,20 +315,27 @@ public abstract class AbstractCubeMob extends AbstractAgeableMob implements Cate
     }
 
     private void hurtTouchingPlayers() {
-        final Location at = location();
-        final double half = halfWidth();
         for (final ServerPlayer player : server().players().online()) {
-            if (!player.world().equals(world()) || player.isDead() || player.gameMode() == GameMode.SPECTATOR) {
-                continue;
-            }
-            final Location other = player.location();
-            final double reach = halfWidthOf(player) + TOUCH_REACH + half;
-            if (Math.abs(other.x() - at.x()) < reach && Math.abs(other.z() - at.z()) < reach
-                    && other.y() - TOUCH_REACH_Y < at.y() + height()
-                    && at.y() < other.y() + boxHeightOf(player) + TOUCH_REACH_Y) {
+            if (isTouchedBy(player)) {
                 dealDamage(player);
             }
         }
+    }
+
+    /**
+     * {@return {@code true} if a player touches this cube}: a living player who is no spectator,
+     * whose box grown by a block across and half a block up and down meets the box of the cube
+     */
+    protected final boolean isTouchedBy(final ServerPlayer player) {
+        if (!player.world().equals(world()) || player.isDead() || player.gameMode() == GameMode.SPECTATOR) {
+            return false;
+        }
+        final Location at = location();
+        final Location other = player.location();
+        final double reach = halfWidthOf(player) + TOUCH_REACH + halfWidth();
+        return Math.abs(other.x() - at.x()) < reach && Math.abs(other.z() - at.z()) < reach
+                && other.y() - TOUCH_REACH_Y < at.y() + height()
+                && at.y() < other.y() + boxHeightOf(player) + TOUCH_REACH_Y;
     }
 
     /**

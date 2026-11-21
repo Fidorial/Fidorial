@@ -34,10 +34,10 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
     private static final double GRAVITY = 0.08;
     private static final double VERTICAL_DRAG = 0.98;
     /**
-     * What is left of the horizontal speed of a mob after a tick on the ground: the
-     * slipperiness of an ordinary block, {@code 0.6}, times {@code 0.91}.
+     * What is left of the horizontal speed of a mob after a tick on the ground, before the air
+     * drag: the slipperiness of an ordinary block.
      */
-    private static final double GROUND_FRICTION = 0.6 * 0.91;
+    private static final double GROUND_SLIPPERINESS = 0.6;
     private static final double AIR_FRICTION = 0.91;
     /**
      * How much a mob accelerates in the air and in water or lava for a full input.
@@ -451,12 +451,13 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             }
         }
         final boolean blockedHorizontally = blockedX || blockedZ;
-        if (blockedX) velocityX = 0.0;
-        if (blockedZ) velocityZ = 0.0;
+        final double restitution = bounciness();
+        if (blockedX) velocityX = restitution > 0.0 ? -velocityX * restitution : 0.0;
+        if (blockedZ) velocityZ = restitution > 0.0 ? -velocityZ * restitution : 0.0;
 
         if (moved.y() != velocityY) {
             onGround = velocityY < 0.0;
-            velocityY = 0.0;
+            velocityY = bounceBack(velocityY, moved.y(), onGround, restitution);
         } else {
             onGround = false;
         }
@@ -480,7 +481,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             velocityX *= WATER_DRAG;
             velocityY *= WATER_DRAG;
             velocityZ *= WATER_DRAG;
-            velocityY = sinkInFluid(velocityY, wasFalling);
+            velocityY = sinkInFluid(velocityY, wasFalling) + liftInFluid(waterDepth);
             if (blockedHorizontally && !isBoxBlocked(newX + velocityX, y + 0.6, newZ + velocityZ)) {
                 // against a bank it can climb: hop out of the water
                 velocityY = LEAVE_FLUID_VELOCITY;
@@ -494,12 +495,14 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 velocityY = sinkInFluid(velocityY * SHALLOW_LAVA_VERTICAL_DRAG, wasFalling);
             }
             velocityY -= GRAVITY / 4.0;
+            velocityY += liftInFluid(lavaDepth);
             if (blockedHorizontally && !isBoxBlocked(newX + velocityX, y + 0.6, newZ + velocityZ)) {
                 velocityY = LEAVE_FLUID_VELOCITY;
             }
         } else {
-            velocityY = (velocityY - GRAVITY) * VERTICAL_DRAG;
-            final double friction = wasOnGround ? GROUND_FRICTION : AIR_FRICTION;
+            final double airDrag = modifiedFriction(AIR_FRICTION, airDragModifier());
+            velocityY = (velocityY - GRAVITY) * verticalDrag(airDrag);
+            final double friction = wasOnGround ? modifiedFriction(GROUND_SLIPPERINESS, frictionModifier()) * airDrag : airDrag;
             velocityX *= friction;
             velocityZ *= friction;
         }
@@ -528,6 +531,84 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
+    }
+
+    /**
+     * {@return the vertical speed of a mob once it hit the ground or a ceiling}: none, unless it
+     * bounces; then it goes back the other way, minus what it lost to gravity and drag over the part
+     * of the tick it moved
+     *
+     * @param velocityY   how fast it went up or down
+     * @param movedY      how far it went before it hit
+     * @param landed      {@code true} if it hit the ground
+     * @param restitution how much of its speed it keeps when it bounces
+     */
+    private double bounceBack(final double velocityY, final double movedY, final boolean landed, final double restitution) {
+        // a mob that falls no faster than the gravity pulls it settles on the ground
+        if (restitution <= 0.0 || (landed && -velocityY <= GRAVITY)) {
+            return 0.0;
+        }
+        final double portion = movedY / velocityY;
+        final double gravityCompensation = portion * GRAVITY;
+        final double drag = 1.0 + portion * (verticalDrag(modifiedFriction(AIR_FRICTION, airDragModifier())) - 1.0);
+        return (gravityCompensation - velocityY) * drag * restitution;
+    }
+
+    /**
+     * {@return what is left of the vertical speed of this mob after a tick in the air}
+     *
+     * @param airDrag what is left of its horizontal speed
+     */
+    private double verticalDrag(final double airDrag) {
+        return omnidirectionalAirMover() ? airDrag : modifiedFriction(VERTICAL_DRAG, airDragModifier());
+    }
+
+    /**
+     * {@return a friction once a modifier changed how much speed it takes}: {@code 1} keeps it,
+     * {@code 0} takes none, {@code 2} twice as much
+     */
+    private static double modifiedFriction(final double friction, final double modifier) {
+        return modifier == 1.0 ? friction : Math.clamp(1.0 - (1.0 - friction) * modifier, 0.0, 1.0);
+    }
+
+    /**
+     * {@return how much of the speed the slipperiness of the ground takes from this mob}: {@code 1}
+     * for all of it
+     */
+    protected double frictionModifier() {
+        return 1.0;
+    }
+
+    /**
+     * {@return how much of the speed the air takes from this mob}: {@code 1} for all of it
+     */
+    protected double airDragModifier() {
+        return 1.0;
+    }
+
+    /**
+     * {@return {@code true} if the air slows this mob down as much up and down as across}, as it
+     * slows a ball
+     */
+    protected boolean omnidirectionalAirMover() {
+        return false;
+    }
+
+    /**
+     * {@return how much of its speed this mob keeps when it bounces off a block}: none for most
+     */
+    protected double bounciness() {
+        return 0.0;
+    }
+
+    /**
+     * {@return how much faster this mob goes up each tick in a fluid that it does not swim in}:
+     * nothing for most, a little for one that floats
+     *
+     * @param depth how deep in the fluid this mob is
+     */
+    protected double liftInFluid(final double depth) {
+        return 0.0;
     }
 
     /**

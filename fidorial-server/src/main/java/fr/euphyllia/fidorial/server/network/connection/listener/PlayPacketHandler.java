@@ -1010,6 +1010,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 return;
             }
             trackFall(previous, current, wasOnGround, isOnGround);
+            moving.setKnownMovement(current.x() - previous.x(), current.y() - previous.y(), current.z() - previous.z());
             moving.setLocation(current);
             moving.setOnGround(isOnGround);
 

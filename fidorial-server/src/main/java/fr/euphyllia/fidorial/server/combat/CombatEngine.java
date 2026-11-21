@@ -182,7 +182,7 @@ public final class CombatEngine implements CombatService {
             final double knockback) {
         if (victim instanceof final AbstractMob mob) {
             // a mob may dodge the hit, or act whether it hurt or not
-            return mob.takeHit(source, () -> applyUnchecked(victim, source, amount, knockback));
+            return mob.takeHit(source, amount, knockback, () -> applyUnchecked(victim, source, amount, knockback));
         }
         return applyUnchecked(victim, source, amount, knockback);
     }
@@ -273,7 +273,8 @@ public final class CombatEngine implements CombatService {
         syncHealth(victim);
         server.debug().gameEvents().emit(victim.world(), GameEventKeys.ENTITY_DAMAGE, victim.location());
 
-        if (event.knockback() > 0.0) {
+        if (event.knockback() > 0.0
+                && !(victim instanceof final AbstractMob mob && mob.knockBack(source, amount, event.knockback()))) {
             final Location origin = knockbackOrigin(source, victim);
             if (origin != null) {
                 knockback(victim, event.knockback(), origin.x(), origin.z());

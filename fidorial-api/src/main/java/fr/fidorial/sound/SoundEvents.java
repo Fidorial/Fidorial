@@ -1018,6 +1018,27 @@ public final class SoundEvents {
     public static final Sound.Type SULFUR_CUBE_JUMP = of("entity.sulfur_cube.jump");
 
     /**
+     * The {@code minecraft:entity.sulfur_cube.absorb} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_ABSORB = of("entity.sulfur_cube.absorb");
+
+    /**
+     * The {@code minecraft:entity.sulfur_cube.eject} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_EJECT = of("entity.sulfur_cube.eject");
+
+    /**
+     * The {@code minecraft:entity.sulfur_cube.bounce} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_BOUNCE = of("entity.sulfur_cube.bounce");
+
+    /**
      * The {@code minecraft:entity.sulfur_cube.squish} sound event.
      *
      * @since 0.1.0

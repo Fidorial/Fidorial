@@ -169,7 +169,10 @@ public final class MobAttribute {
             this.savedName = savedName;
         }
 
-        private static @Nullable Operation bySavedName(final String name) {
+        /**
+         * {@return the operation saved under a name, {@code null} for none}
+         */
+        public static @Nullable Operation bySavedName(final String name) {
             for (final Operation operation : values()) {
                 if (operation.savedName.equals(name)) {
                     return operation;
