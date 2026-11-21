@@ -17,8 +17,11 @@ import java.util.function.Predicate;
  * Makes a mob follow a player who holds something it likes: the closest such player
  * within the tempt range, whom it walks up to and then watches. Once the player puts
  * the item away or leaves, the mob waits five seconds before it lets itself be tempted again.
+ *
+ * <p>A mob that does not walk along paths moves its own way through {@link #navigateTowards} and
+ * {@link #stopNavigation}.</p>
  */
-public final class TemptGoal implements Goal {
+public class TemptGoal implements Goal {
 
     /**
      * Vanilla's {@code tempt_range} attribute of the animals.
@@ -98,7 +101,7 @@ public final class TemptGoal implements Goal {
     @Override
     public void stop() {
         tempter = null;
-        mob.navigation().stop();
+        stopNavigation();
         calmDown = CALM_DOWN_TICKS;
         running = false;
     }
@@ -111,10 +114,24 @@ public final class TemptGoal implements Goal {
         }
         mob.setLookTarget(player, LOOK_YAW_SPEED, AbstractMovingMob.MAX_HEAD_PITCH);
         if (mob.distanceSqTo(player) < stopDistance * stopDistance) {
-            mob.navigation().stop();
+            stopNavigation();
         } else {
-            mob.navigation().moveTo(mob.location(), player.location(), speed);
+            navigateTowards(player);
         }
+    }
+
+    /**
+     * Stops the mob, close enough to the player or no longer tempted.
+     */
+    protected void stopNavigation() {
+        mob.navigation().stop();
+    }
+
+    /**
+     * Moves the mob towards the player who tempts it.
+     */
+    protected void navigateTowards(final ServerPlayer player) {
+        mob.navigation().moveTo(mob.location(), player.location(), speed);
     }
 
     public boolean isRunning() {

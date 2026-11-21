@@ -24,7 +24,6 @@ import fr.euphyllia.fidorial.server.entity.mob.creature.Rabbit;
 import fr.euphyllia.fidorial.server.entity.mob.creature.SkeletonHorse;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Sniffer;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Strider;
-import fr.euphyllia.fidorial.server.entity.mob.creature.SulfurCube;
 import fr.euphyllia.fidorial.server.entity.mob.creature.TraderLlama;
 import fr.euphyllia.fidorial.server.entity.mob.creature.Turtle;
 import fr.euphyllia.fidorial.server.entity.mob.creature.WanderingTrader;
@@ -74,6 +73,7 @@ import fr.euphyllia.fidorial.server.entity.mob.monster.ZombifiedPiglin;
 import fr.euphyllia.fidorial.server.entity.mob.monster.creeper.CreeperImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.cube.MagmaCubeImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.cube.SlimeImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.cube.SulfurCubeImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.enderman.EndermanImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.SilverfishImpl;
@@ -174,7 +174,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.SQUID.key(), Squid::new),
             Map.entry(EntityTypes.STRAY.key(), Stray::new),
             Map.entry(EntityTypes.STRIDER.key(), Strider::new),
-            Map.entry(EntityTypes.SULFUR_CUBE.key(), SulfurCube::new),
+            Map.entry(EntityTypes.SULFUR_CUBE.key(), SulfurCubeImpl::new),
             Map.entry(EntityTypes.TADPOLE.key(), Tadpole::new),
             Map.entry(EntityTypes.TRADER_LLAMA.key(), TraderLlama::new),
             Map.entry(EntityTypes.TROPICAL_FISH.key(), TropicalFish::new),

@@ -3,7 +3,8 @@ package fr.euphyllia.fidorial.server.entity.mob.monster.cube;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.ai.Targeting;
-import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
+import fr.euphyllia.fidorial.server.entity.ai.goal.TemptGoal;
+import fr.euphyllia.fidorial.server.entity.mob.AbstractAgeableMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
@@ -17,6 +18,7 @@ import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.entity.mob.monster.CubeMob;
 import fr.fidorial.event.mob.CubeSplitEvent;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.keys.MobEffectKeys;
 import fr.fidorial.sound.SoundEvents;
@@ -27,19 +29,20 @@ import net.kyori.adventure.sound.Sound;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 
 /**
  * A cube that hops around: the slime and its kin. It does not walk along paths: it faces a way,
  * then hops that way now and then, a little more often when it goes after something. Its size,
  * from 1 to 127, sets how big it is, its health, its speed and how loud it is; a big one splits
- * into 2 to 4 cubes of half its size once dead.
+ * into cubes of half its size once dead, 2 to 4 unless a kind says otherwise.
+ *
+ * <p>Like every mob that grows up, a cube has an age; a baby is half as big as its size says.</p>
  *
  * <p>A cube that may hurt hurts the players that touch it, as long as it can see them.</p>
  */
-public abstract class AbstractCubeMob extends AbstractPathfinderMob implements Category.Monster, CubeMob {
+public abstract class AbstractCubeMob extends AbstractAgeableMob implements Category.Monster, CubeMob {
 
-    public static final int MIN_SIZE = 1;
-    public static final int MAX_SIZE = 127;
     public static final int MAX_NATURAL_SIZE = 4;
 
     private static final int MD_SIZE = 18;
@@ -58,6 +61,15 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
      * How far a cube turns each tick towards the way it wants to go, in degrees.
      */
     private static final float MAX_TURN = 90.0f;
+
+    /**
+     * How big a baby cube is, next to an adult of the same size.
+     */
+    private static final double BABY_SCALE = 0.5;
+    /**
+     * How far a cube turns each tick towards what it goes after, in degrees.
+     */
+    private static final float TURN_SPEED = 10.0f;
 
     private static final String TAG_SIZE = "Size";
     private static final String TAG_WAS_ON_GROUND = "wasOnGround";
@@ -78,7 +90,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
      *                random size first; {@code false} for one read back or split off another
      */
     protected AbstractCubeMob(final int entityId, final EntityType type, final Location location, final boolean spawned) {
-        super(entityId, UUID.randomUUID(), type, location, 1f);
+        super(entityId, UUID.randomUUID(), type, location, 1f, false);
         // the way it first wants to go comes out of its yaw read as radians
         this.wantedYaw = (float) (180.0 * yaw() / Math.PI);
         goals.add(new FloatGoal());
@@ -93,7 +105,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
                     MobAttribute.Operation.ADD_MULTIPLIED_BASE);
             setSpawnSize();
         } else {
-            setSize(MIN_SIZE, true);
+            resize(MIN_SIZE, true);
         }
     }
 
@@ -130,6 +142,10 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
      */
     @Override
     public void setSize(final int size, final boolean healed) {
+        resize(size, healed);
+    }
+
+    private void resize(final int size, final boolean healed) {
         final int actual = Math.clamp(size, MIN_SIZE, MAX_SIZE);
         final boolean changed = actual != this.size;
         this.size = actual;
@@ -154,7 +170,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
      * Gives a cube that spawns a random size: 1, 2 or 4, the bigger more often where the difficulty
      * is high.
      */
-    private void setSpawnSize() {
+    protected void setSpawnSize() {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         int scale = random.nextInt(3);
         final Location at = location();
@@ -176,23 +192,17 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
     }
 
     @Override
-    public double width() {
+    protected double adultWidth() {
         return type().width() * size;
     }
 
-    @Override
-    protected double halfWidth() {
-        return width() / 2.0;
-    }
-
-    @Override
-    public double height() {
+    protected double adultHeight() {
         return type().height() * size;
     }
 
     @Override
     public double eyeHeight() {
-        return baseEyeHeight() * size;
+        return baseEyeHeight() * size * (isBaby() ? BABY_SCALE : 1.0);
     }
 
     /**
@@ -349,11 +359,15 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
     }
 
     private void split() {
+        final int initialCount = splitCount();
+        if (initialCount <= 0) {
+            return;
+        }
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final Location at = location();
         final double offset = width() / 2.0;
         final int halfSize = size / 2;
-        final CubeSplitEvent event = server().events().post(new CubeSplitEventImpl(this, 2 + random.nextInt(3), halfSize));
+        final CubeSplitEvent event = server().events().post(new CubeSplitEventImpl(this, initialCount, halfSize));
         if (event.isCancelled()) {
             return;
         }
@@ -367,6 +381,7 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
             final AbstractCubeMob cube = newSplitCube(server().entities().ids().allocate(),
                     Location.of(at.world(), at.x() + dx, at.y() + 0.5, at.z() + dz, random.nextFloat() * 360.0f, 0f));
             cube.setSize(halfSize, true);
+            setUpSplitCube(cube);
             cube.setAbsorptionAmount(absorptionAmount());
             if (isPersistenceRequired()) {
                 cube.setPersistenceRequired(true);
@@ -376,6 +391,28 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
                 cube.addEffect(effect);
             }
         }
+    }
+
+    /**
+     * {@return how many cubes this one splits into once dead}: 2 to 4
+     */
+    protected int splitCount() {
+        return 2 + ThreadLocalRandom.current().nextInt(3);
+    }
+
+    /**
+     * Finishes a cube split off this one, already of half its size and at full health.
+     */
+    protected void setUpSplitCube(final AbstractCubeMob cube) {
+    }
+
+    /**
+     * Turns this cube towards a point, ten degrees a tick at most.
+     */
+    protected final void turnTowards(final Location other) {
+        final Location at = location();
+        final float towards = (float) Math.toDegrees(Math.atan2(other.z() - at.z(), other.x() - at.x())) - 90.0f;
+        setRotation(rotateTowards(yaw(), towards, TURN_SPEED), 0f);
     }
 
     @Override
@@ -410,7 +447,6 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
     protected final class AttackGoal implements Goal {
 
         private static final int TIRED_TICKS = 300;
-        private static final float TURN_SPEED = 10.0f;
         private static final Set<Flag> FLAGS = Set.of(Flag.LOOK);
 
         private final int priority;
@@ -451,12 +487,45 @@ public abstract class AbstractCubeMob extends AbstractPathfinderMob implements C
         public void tick() {
             final AbstractLivingEntity target = target();
             if (target != null) {
-                final Location at = location();
-                final Location other = target.location();
-                final float towards = (float) Math.toDegrees(Math.atan2(other.z() - at.z(), other.x() - at.x())) - 90.0f;
-                setRotation(rotateTowards(yaw(), towards, TURN_SPEED), 0f);
+                turnTowards(target.location());
             }
             setDirection(yaw(), canDealDamage());
+        }
+    }
+
+    /**
+     * Makes a cube follow a player who holds something it likes: it turns towards them, ten degrees
+     * a tick, and hops their way three times as often. It does not move by itself: it only steers
+     * the hops that its other goals ask for.
+     */
+    protected final class CubeTemptGoal extends TemptGoal {
+
+        private static final Set<Flag> FLAGS = Set.of(Flag.LOOK);
+
+        /**
+         * @param temptingItems the items the cube follows
+         * @param range         how far the cube notices such an item, in blocks
+         * @param stopDistance  how close to the player the cube stops steering
+         */
+        public CubeTemptGoal(final int priority, final Predicate<ItemStack> temptingItems,
+                             final double range, final double stopDistance) {
+            super(AbstractCubeMob.this, priority, 1.0, temptingItems, range, stopDistance);
+        }
+
+        @Override
+        public Set<Flag> flags() {
+            return FLAGS;
+        }
+
+        @Override
+        protected void stopNavigation() {
+            setWantedMovement(0.0);
+        }
+
+        @Override
+        protected void navigateTowards(final ServerPlayer player) {
+            turnTowards(player.location());
+            setDirection(yaw(), true);
         }
     }
 

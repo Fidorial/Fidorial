@@ -1009,6 +1009,70 @@ public final class SoundEvents {
      */
     public static final Sound.Type MAGMA_CUBE_DEATH_SMALL = of("entity.magma_cube.death_small");
 
+    // --- Sulfur cube ---
+    /**
+     * The {@code minecraft:entity.sulfur_cube.jump} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_JUMP = of("entity.sulfur_cube.jump");
+
+    /**
+     * The {@code minecraft:entity.sulfur_cube.squish} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_SQUISH = of("entity.sulfur_cube.squish");
+
+    /**
+     * The {@code minecraft:entity.sulfur_cube.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_HURT = of("entity.sulfur_cube.hurt");
+
+    /**
+     * The {@code minecraft:entity.sulfur_cube.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SULFUR_CUBE_DEATH = of("entity.sulfur_cube.death");
+
+    /**
+     * The {@code minecraft:entity.small_sulfur_cube.jump} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SMALL_SULFUR_CUBE_JUMP = of("entity.small_sulfur_cube.jump");
+
+    /**
+     * The {@code minecraft:entity.small_sulfur_cube.squish} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SMALL_SULFUR_CUBE_SQUISH = of("entity.small_sulfur_cube.squish");
+
+    /**
+     * The {@code minecraft:entity.small_sulfur_cube.hurt} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SMALL_SULFUR_CUBE_HURT = of("entity.small_sulfur_cube.hurt");
+
+    /**
+     * The {@code minecraft:entity.small_sulfur_cube.death} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SMALL_SULFUR_CUBE_DEATH = of("entity.small_sulfur_cube.death");
+
+    /**
+     * The {@code minecraft:entity.small_sulfur_cube.eat} sound event.
+     *
+     * @since 0.1.0
+     */
+    public static final Sound.Type SMALL_SULFUR_CUBE_EAT = of("entity.small_sulfur_cube.eat");
+
     // --- Spider ---
     /**
      * The {@code minecraft:entity.spider.ambient} sound event.

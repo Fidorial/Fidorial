@@ -1,17 +1,20 @@
 package fr.fidorial.entity.mob.monster;
 
-import fr.fidorial.entity.mob.Mob;
+import fr.fidorial.entity.mob.Ageable;
 
 /**
- * A cube that hops around: a slime or a magma cube. Its size sets how big it is, its health, its
- * speed and how hard it hits; a cube bigger than 1 splits into 2 to 4 cubes of half its size once
- * dead.
+ * A cube that hops around: a slime, a magma cube or a sulfur cube. Its size sets how big it is,
+ * its health, its speed and how hard it hits; a cube bigger than 1 splits into cubes of half its
+ * size once dead.
+ *
+ * <p>A cube has an age like the animals: a baby is half as big as its size says. Only sulfur cubes
+ * are born babies and grow up.</p>
  *
  * <p>Like every entity, change it from the region thread owning its chunk.</p>
  *
  * @since 0.1.0
  */
-public interface CubeMob extends Mob {
+public interface CubeMob extends Ageable {
 
     /**
      * The smallest size of a cube.

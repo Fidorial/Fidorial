@@ -4,8 +4,8 @@ import fr.fidorial.entity.mob.monster.CubeMob;
 import fr.fidorial.event.Cancellable;
 
 /**
- * Fired when a slime or a magma cube bigger than the smallest dies and is about to split into
- * smaller ones, half its size.
+ * Fired when a cube bigger than the smallest (a slime, a magma cube or a sulfur cube) dies and is
+ * about to split into smaller ones, half its size.
  *
  * <p>Cancelling it, or setting the count to {@code 0}, leaves nothing behind.</p>
  *
@@ -22,7 +22,8 @@ public interface CubeSplitEvent extends MobEvent, Cancellable {
     CubeMob mob();
 
     /**
-     * {@return how many cubes it splits into}: between {@code 2} and {@code 4} at first
+     * {@return how many cubes it splits into}: at first between {@code 2} and {@code 4} for a slime or a
+     * magma cube, {@code 2} for a sulfur cube
      *
      * @since 0.1.0
      */
