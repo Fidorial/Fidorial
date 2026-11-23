@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.entity.mob;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
+import fr.euphyllia.fidorial.server.world.block.BlockStepping;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.math.Location;
 
@@ -45,6 +46,7 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         }
 
         if (isDead()) {
+            driftWithCurrents();
             stopTinyVelocities();
             final Location falling = location();
             applyFlightPhysics();
@@ -56,6 +58,7 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         tickDamageMemory();
         tickNoActionTime(currentTick);
         tickAmbientSound();
+        driftWithCurrents();
         stopTinyVelocities();
 
         goals.tick();
@@ -163,6 +166,9 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
             newY = y + moved.y();
             newZ = z + moved.z();
             setOnGround(isBoxBlocked(newX, newY - 0.001, newZ));
+            if (onGround() && !isDead()) {
+                BlockStepping.walkedOn(serverWorld(), this, collisionShapes(), newX, newY, newZ, halfWidth(), height());
+            }
 
             velocityY = (velocityY - gravity()) * verticalDrag();
             final double horizontalDrag = horizontalDrag(wasOnGround);
@@ -181,6 +187,9 @@ public abstract class AbstractFlyingMob extends AbstractMovingMob {
         if (newX != x || newY != y || newZ != z
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
+        }
+        if (isFlightEnabled()) {
+            riseWithBubbles();
         }
     }
 }

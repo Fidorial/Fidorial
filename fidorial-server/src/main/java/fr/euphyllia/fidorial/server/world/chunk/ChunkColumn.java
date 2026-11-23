@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
+import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -18,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public final class ChunkColumn {
@@ -41,6 +43,10 @@ public final class ChunkColumn {
 
     private volatile boolean lightPopulated;
     private @Nullable ChunkLightData lightData;
+    /**
+     * The ticks read with this column that are not scheduled yet.
+     */
+    private final AtomicReference<ChunkTicks> pendingTicks = new AtomicReference<>(ChunkTicks.NONE);
 
     public ChunkColumn(final int chunkX, final int chunkZ, final int minY, final int height, final BlockState fillBlock, final @UnknownNullability TypedKey<BiomeDefinition> fillBiome) {
         this.chunkX = chunkX;
@@ -167,6 +173,31 @@ public final class ChunkColumn {
 
     public int blockEntityCount() {
         return blockEntities.size();
+    }
+
+    /**
+     * {@return the ticks read with this column that are not scheduled yet}: saved again with it
+     * until then
+     */
+    public ChunkTicks pendingTicks() {
+        return pendingTicks.get();
+    }
+
+    /**
+     * Sets the ticks read with this column, to schedule once it is loaded.
+     *
+     * @param ticks the ticks, all of blocks of this column
+     */
+    public void setPendingTicks(final ChunkTicks ticks) {
+        pendingTicks.set(ticks);
+    }
+
+    /**
+     * {@return the ticks read with this column}, which are no longer pending: whoever takes them
+     * schedules them
+     */
+    public ChunkTicks takePendingTicks() {
+        return pendingTicks.getAndSet(ChunkTicks.NONE);
     }
 
     public @Nullable BlockEntity blockEntity(final int localX, final int worldY, final int localZ) {

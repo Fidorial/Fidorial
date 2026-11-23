@@ -330,7 +330,7 @@ public final class PistonBaseBlock implements RedstoneBehaviour {
         final List<BlockData> affected = new ArrayList<>(toPush.size() + toDestroy.size());
         final BlockData air = Redstone.air();
 
-        // the blocks in the way break, furthest first; only those taking part in farming drop anything yet
+        // the blocks in the way break and drop what they give, furthest first
         for (int index = toDestroy.size() - 1; index >= 0; index--) {
             final BlockPosition destroyed = toDestroy.get(index);
             final BlockData state = world.blockAt(destroyed);

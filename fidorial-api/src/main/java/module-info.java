@@ -83,6 +83,7 @@ module fr.fidorial {
     exports fr.fidorial.world.generation;
     exports fr.fidorial.world.redstone;
     exports fr.fidorial.world.structure;
+    exports fr.fidorial.world.tick;
     exports fr.fidorial.world.time;
     exports fr.fidorial.world.weather;
     exports fr.fidorial.world;

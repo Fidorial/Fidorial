@@ -673,8 +673,9 @@ public final class FarmingTests {
                     set(world, cane, "minecraft:sugar_cane");
                 })
                 .waitUntil(() -> sunlit(world, crop), "The field should see the sky")
-                .execute(() -> set(world, Position.block(10, Y, 9), "minecraft:water"))
-                .waitUntil(() -> is(world, crop, BlockTypeKeys.WATER), "The stream should take the place of the wheat")
+                // falling straight into the wheat: on the ground, water heads for the stream instead
+                .execute(() -> set(world, crop.relative(BlockFace.UP), "minecraft:water"))
+                .waitUntil(() -> is(world, crop, BlockTypeKeys.WATER), "The water should take the place of the wheat")
                 .waitUntil(() -> dropped(world, ItemKeys.WHEAT) == 1, "Washed away wheat should drop its harvest")
                 .execute(() -> helper.assertBlockAt(cane, BlockTypeKeys.SUGAR_CANE))
                 .build();

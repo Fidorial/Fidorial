@@ -21,6 +21,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositio
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.fluid.BubbleColumnBlock;
+import fr.euphyllia.fidorial.server.world.fluid.FluidCurrents;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.inventory.PlayerInventory;
@@ -285,10 +287,12 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
             return;
         }
 
+        driftWithCurrents(world, before);
         move(world, before, inside.isFluid());
         if (isRemoved()) {
             return;
         }
+        riseWithBubbles(world);
 
         final boolean moved = !location().equals(before);
         final int mergeInterval = moved ? MERGE_INTERVAL_MOVING : MERGE_INTERVAL_STILL;
@@ -300,6 +304,33 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         }
         if (!isRemoved()) {
             syncToClients();
+        }
+    }
+
+    /**
+     * Lets the bubble columns this item goes through push it, once it moved.
+     */
+    private void riseWithBubbles(final ServerWorld world) {
+        final Location at = location();
+        velocityY = BubbleColumnBlock.push(world, at.x() - HALF_WIDTH, at.y(), at.z() - HALF_WIDTH,
+                at.x() + HALF_WIDTH, at.y() + HEIGHT, at.z() + HALF_WIDTH, velocityY);
+    }
+
+    /**
+     * Lets the currents of the water and lava this item is in push it, before it moves.
+     */
+    @SuppressWarnings("NonAtomicVolatileUpdate") // only written by the owning region thread
+    private void driftWithCurrents(final ServerWorld world, final Location at) {
+        if (!FidorialServer.isInitialized()) {
+            return;
+        }
+        final FluidCurrents.Impulse impulse = FidorialServer.getInstance().worlds().fluids().currents().push(world,
+                at.x() - HALF_WIDTH, at.y(), at.z() - HALF_WIDTH, at.x() + HALF_WIDTH, at.y() + HEIGHT, at.z() + HALF_WIDTH,
+                velocityX, velocityZ);
+        if (!impulse.isNone()) {
+            velocityX += impulse.x();
+            velocityY += impulse.y();
+            velocityZ += impulse.z();
         }
     }
 

@@ -2,7 +2,6 @@ package fr.fidorial.world.block;
 
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import fr.fidorial.world.fluid.FluidType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -81,7 +80,8 @@ public interface BlockData {
      * @since 0.1.0
      */
     default boolean isFluid() {
-        return FluidType.byBlockKey(key()) != null;
+        final TypedKey<BlockType> name = key();
+        return name.equals(BlockTypeKeys.WATER) || name.equals(BlockTypeKeys.LAVA);
     }
 
     /**

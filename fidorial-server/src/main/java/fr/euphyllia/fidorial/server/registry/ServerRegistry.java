@@ -36,8 +36,9 @@ import java.util.stream.Stream;
  * <p>
  * Reads go through an immutable snapshot, replaced as a whole on every change.
  * <p>
- * Tags come in layers: the vanilla tags, never changed; the base tags, the vanilla ones with the
- * data packs applied; and the effective tags, the base ones with the changes of plugins on top.
+ * Tags come in layers: the built-in tags, those of the game and of Fidorial, never changed; the
+ * base tags, the built-in ones with the data packs applied; and the effective tags, the base ones
+ * with the changes of plugins on top.
  *
  * @param <T> the value type
  */
@@ -77,7 +78,7 @@ public sealed class ServerRegistry<T> implements Registry<T> permits WritableSer
     }
 
     /**
-     * {@return the tags of the vanilla data, without data packs or plugins}
+     * {@return the built-in tags, those of the game and of Fidorial, without data packs or plugins}
      */
     final Map<Key, List<Key>> vanillaTags() {
         return vanillaTags;

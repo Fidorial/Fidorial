@@ -9,10 +9,10 @@
  * except that it may conduct power: conduction comes from the shape of the block, not from a
  * behaviour.</p>
  *
- * <p>The simulation itself, the order updates spread in, scheduled ticks and how signals are
- * resolved, is the {@link RedstoneEngine}
- * {@linkplain ServiceRegistry service}: a plugin can replace it, or wrap the
- * built-in one, without touching the behaviours.</p>
+ * <p>The simulation itself, the order updates spread in and how signals are resolved, is the
+ * {@link RedstoneEngine} {@linkplain ServiceRegistry service}: a plugin can replace it, or wrap
+ * the built-in one, without touching the behaviours. Scheduled ticks belong to the world, whatever
+ * the engine: see {@link ScheduledTicks}.</p>
  *
  * <h2>Threading</h2>
  * <p>Reading signals is allowed from any thread. Changing blocks, and everything a behaviour is
@@ -25,3 +25,4 @@ package fr.fidorial.world.redstone;
 
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.block.BlockBehaviour;
+import fr.fidorial.world.tick.ScheduledTicks;

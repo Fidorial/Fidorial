@@ -140,6 +140,14 @@ public final class DrownedImpl extends ZombieImpl implements Drowned {
         return sentSwimming;
     }
 
+    /**
+     * {@return {@code true} unless this drowned swims}: a swimming drowned goes against the current
+     */
+    @Override
+    protected boolean isPushedByFluid() {
+        return !isSwimming();
+    }
+
     @Override
     protected boolean wantsToSwim() {
         if (searchingForLand) {

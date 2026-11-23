@@ -12,6 +12,7 @@ import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
+import fr.fidorial.world.tick.ScheduledTicks;
 import fr.fidorial.world.time.DayNightCycle;
 import fr.fidorial.world.weather.WeatherManager;
 import net.kyori.adventure.audience.ForwardingAudience;
@@ -95,6 +96,13 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     RegionizedScheduler scheduler();
+
+    /**
+     * {@return the ticks blocks and fluids scheduled in this world}, saved with their chunks
+     *
+     * @since 0.1.0
+     */
+    ScheduledTicks ticks();
 
     /**
      * Gets a chunk, loading or generating it when needed.

@@ -9,6 +9,8 @@ import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.farming.Harvests;
+import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
@@ -518,6 +520,9 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
             return;
         }
         final BlockData state = blockAt(position);
+        if (state != null && FluidEngine.holdsOwnWater(engine.blockStates().toBlockState(state))) {
+            world.ticks().scheduleFluidTick(position, FluidType.WATER.fluidKey(), FluidEngine.tickDelay(world, FluidType.WATER));
+        }
         final RedstoneBehaviour behaviour = behaviour(state);
         if (state == null || behaviour == null) {
             return;
@@ -541,17 +546,17 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
 
     @Override
     public void scheduleTick(final BlockPosition position, final TypedKey<BlockType> block, final int delay, final TickPriority priority) {
-        engine.ticks().schedule(world, position, block, delay, priority);
+        world.ticks().scheduleBlockTick(position, block, delay, priority);
     }
 
     @Override
     public boolean hasScheduledTick(final BlockPosition position, final TypedKey<BlockType> block) {
-        return engine.ticks().hasScheduledTick(world, position, block);
+        return world.ticks().hasBlockTick(position, block);
     }
 
     @Override
     public boolean willTickThisTick(final BlockPosition position, final TypedKey<BlockType> block) {
-        return engine.ticks().willTickThisTick(world, position, block);
+        return world.ticks().willBlockTickThisTick(position, block);
     }
 
     @Override

@@ -2,51 +2,63 @@ package fr.euphyllia.fidorial.server.world.fluid;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import fr.fidorial.world.fluid.FluidState;
-import fr.fidorial.world.fluid.FluidType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
-public class FluidBlockCodec {
+/**
+ * The fluid a block holds, and the fluid block holding a fluid.
+ */
+public final class FluidBlockCodec {
 
     private static final String LEVEL = "level";
-    private static final int FALLING_OFFSET = 8;
 
     private FluidBlockCodec() {
+        throw new UnsupportedOperationException("FluidBlockCodec cannot be instantiated.");
     }
 
-    public static FluidState fromBlock(@Nullable final BlockState block) {
+    /**
+     * {@return the fluid a block holds}: the fluid of a fluid block, the water source of a
+     * waterlogged block or of a block always under water, none for any other block
+     *
+     * @param block the block, {@code null} for one that is not loaded
+     */
+    public static FluidStateImpl fromBlock(final @Nullable BlockState block) {
         if (block == null) {
-            return FluidState.empty();
+            return FluidStateImpl.empty();
         }
         final FluidType type = FluidType.byBlockKey(block.name());
-        if (type == null) {
-            return FluidState.empty();
+        if (type != null) {
+            return FluidStateImpl.ofBlockLevel(type, level(block));
         }
-        final String raw = block.properties().get(LEVEL);
-        int level = 0;
-        if (raw != null) {
-            try {
-                level = Integer.parseInt(raw);
-            } catch (final NumberFormatException _) {
-            }
-        }
-        if (level >= FALLING_OFFSET) {
-            return FluidState.fallingFluid(type);
-        }
-        return new FluidState(type, level, false);
+        return block.isWater() ? FluidStateImpl.source(FluidType.WATER) : FluidStateImpl.empty();
     }
 
-    public static BlockState toBlock(final FluidState state) {
-        if (state.type() == null) {
+    /**
+     * {@return the level of a fluid block}, {@code 0}, a source, when it cannot be read
+     */
+    private static int level(final BlockState block) {
+        final String raw = block.properties().get(LEVEL);
+        if (raw == null) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(raw);
+        } catch (final NumberFormatException _) {
+            return 0;
+        }
+    }
+
+    /**
+     * {@return the fluid block holding a fluid}, air for no fluid
+     *
+     * @param state the fluid
+     */
+    public static BlockState toBlock(final FluidStateImpl state) {
+        final FluidType type = state.type();
+        if (type == null) {
             return BlockState.withoutProperties(BlockTypeKeys.AIR);
         }
-        final int level = state.falling() ? FALLING_OFFSET : clamp(state.level());
-        return BlockState.withProperties(state.type().blockKey(), Map.of(LEVEL, String.valueOf(level)));
-    }
-
-    private static int clamp(final int level) {
-        return Math.clamp(level, 0, 7);
+        return BlockState.withProperties(type.blockKey(), Map.of(LEVEL, Integer.toString(state.blockLevel())));
     }
 }

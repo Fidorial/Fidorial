@@ -1,12 +1,16 @@
 package fr.euphyllia.fidorial.server.entity.physics;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.CollisionShape;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.fidorial.math.BlockPosition;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Moves the box of an entity through the blocks of a world the way Vanilla does.
@@ -29,6 +33,11 @@ public final class BlockCollider {
      * How close two faces must be to count as touching, in blocks.
      */
     private static final double EPSILON = 1.0E-7;
+
+    /**
+     * How thick the slab under the feet of an entity in which it looks for what it rests on.
+     */
+    private static final double SUPPORT_DEPTH = 1.0E-6;
 
     private static final int X = 0;
     private static final int Y = 1;
@@ -166,6 +175,88 @@ public final class BlockCollider {
             }
         }
         return false;
+    }
+
+    /**
+     * {@return the block an entity on the ground rests on, {@code null} for none}: of the blocks
+     * whose shape reaches the bottom of its box, the one whose center is the nearest to where the
+     * entity stands, the highest, then the southernmost, then the easternmost when two are as near
+     *
+     * @param box the box of the entity
+     * @param x   where the entity stands along the x axis
+     * @param y   the height of the feet of the entity
+     * @param z   where the entity stands along the z axis
+     */
+    @SuppressFBWarnings(
+            value = "FE_FLOATING_POINT_EQUALITY",
+            justification = "Exact floating-point comparison is intentional."
+    )
+    public static @Nullable BlockPosition supportingBlock(final ServerWorld world, final Shapes shapes, final Box box,
+                                                          final double x, final double y, final double z) {
+        final double bottom = box.minY() - SUPPORT_DEPTH;
+        final int fromX = floor(box.minX() - EPSILON);
+        final int toX = floor(box.maxX() + EPSILON);
+        final int fromY = floor(bottom - EPSILON) - 1;
+        final int toY = floor(box.minY() + EPSILON);
+        final int fromZ = floor(box.minZ() - EPSILON);
+        final int toZ = floor(box.maxZ() + EPSILON);
+        BlockPosition nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (int bx = fromX; bx <= toX; bx++) {
+            for (int bz = fromZ; bz <= toZ; bz++) {
+                final ChunkColumn column = world.loadedColumn(bx >> 4, bz >> 4);
+                if (column == null) {
+                    continue;
+                }
+                for (int by = Math.max(fromY, world.minY()); by <= toY && by < world.minY() + world.height(); by++) {
+                    final CollisionShape shape = shapes.shapeOf(column.getBlock(bx & 15, by, bz & 15));
+                    if (!reaches(shape, bx, by, bz, box, bottom)) {
+                        continue;
+                    }
+                    final double dx = bx + 0.5 - x;
+                    final double dy = by + 0.5 - y;
+                    final double dz = bz + 0.5 - z;
+                    final double distance = dx * dx + dy * dy + dz * dz;
+                    if (distance < nearestDistance || (distance == nearestDistance && isAfter(bx, by, bz, nearest))) {
+                        nearest = Position.block(bx, by, bz);
+                        nearestDistance = distance;
+                    }
+                }
+            }
+        }
+        return nearest;
+    }
+
+    /**
+     * {@return {@code true} if a box of a shape overlaps the thin slab right under the feet of an
+     * entity}
+     */
+    private static boolean reaches(final CollisionShape shape, final int x, final int y, final int z, final Box box,
+                                   final double bottom) {
+        for (int index = 0; index < shape.boxCount(); index++) {
+            if (x + shape.minX(index) < box.maxX() && x + shape.maxX(index) > box.minX()
+                    && y + shape.minY(index) < box.minY() && y + shape.maxY(index) > bottom
+                    && z + shape.minZ(index) < box.maxZ() && z + shape.maxZ(index) > box.minZ()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * {@return {@code true} if a block comes after another, by height, then z, then x}
+     */
+    private static boolean isAfter(final int x, final int y, final int z, final @Nullable BlockPosition other) {
+        if (other == null) {
+            return true;
+        }
+        if (y != other.blockY()) {
+            return y > other.blockY();
+        }
+        if (z != other.blockZ()) {
+            return z > other.blockZ();
+        }
+        return x > other.blockX();
     }
 
     /**

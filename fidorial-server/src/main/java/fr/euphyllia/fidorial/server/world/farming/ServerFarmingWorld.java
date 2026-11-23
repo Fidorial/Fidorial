@@ -335,12 +335,9 @@ public final class ServerFarmingWorld implements FarmingWorld {
     @Override
     public void scheduleTick(final BlockPosition position, final int delay) {
         final BlockData state = blockAt(position);
-        if (state == null) {
-            return;
+        if (state != null) {
+            world.ticks().scheduleBlockTick(position, state.key(), delay);
         }
-        final TypedKey<BlockType> block = state.key();
-        engine.regionizer().executeDelayed(world.key(), position.chunk(),
-                () -> engine.runTick(world, position, block), Math.max(1, delay));
     }
 
     @Override

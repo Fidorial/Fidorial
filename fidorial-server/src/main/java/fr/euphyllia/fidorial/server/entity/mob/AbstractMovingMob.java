@@ -21,6 +21,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositio
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.fluid.BubbleColumnBlock;
+import fr.euphyllia.fidorial.server.world.fluid.FluidCurrents;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
@@ -634,6 +636,41 @@ public abstract class AbstractMovingMob extends AbstractMob implements Mob {
      */
     public final boolean isInLava() {
         return lavaHeight() > 0.0;
+    }
+
+    /**
+     * {@return {@code true} if the currents of water and lava push this mob}
+     */
+    protected boolean isPushedByFluid() {
+        return true;
+    }
+
+    /**
+     * Lets the currents of the water and lava this mob is in push it, before it moves.
+     */
+    protected final void driftWithCurrents() {
+        if (!isPushedByFluid()) {
+            return;
+        }
+        final Location at = location();
+        final double half = halfWidth();
+        final FluidCurrents.Impulse impulse = server().worlds().fluids().currents().push(serverWorld(),
+                at.x() - half, at.y(), at.z() - half, at.x() + half, at.y() + height(), at.z() + half,
+                velocityX(), velocityZ());
+        if (!impulse.isNone()) {
+            setVelocity(velocityX() + impulse.x(), velocityY() + impulse.y(), velocityZ() + impulse.z());
+        }
+    }
+
+    /**
+     * Lets the bubble columns this mob goes through push it, once it moved.
+     */
+    protected final void riseWithBubbles() {
+        final Location at = location();
+        final double half = halfWidth();
+        setVelocity(velocityX(), BubbleColumnBlock.push(serverWorld(),
+                        at.x() - half, at.y(), at.z() - half, at.x() + half, at.y() + height(), at.z() + half, velocityY()),
+                velocityZ());
     }
 
     /**

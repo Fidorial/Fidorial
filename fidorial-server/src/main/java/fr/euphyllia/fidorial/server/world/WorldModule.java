@@ -26,16 +26,15 @@ import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
 import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
+import fr.euphyllia.fidorial.server.world.tick.ScheduledTickEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherEngine;
 import fr.fidorial.event.EventBus;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.gamerule.GameRules;
-import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
-import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.DimensionTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
@@ -43,10 +42,13 @@ import fr.fidorial.world.World;
 import fr.fidorial.world.WorldManager;
 import fr.fidorial.world.WorldSpec;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
+import fr.fidorial.world.farming.FarmingBehaviour;
 import fr.fidorial.world.farming.FarmingEngine;
+import fr.fidorial.world.farming.FarmingWorld;
 import fr.fidorial.world.fluid.FluidManager;
-import fr.fidorial.world.fluid.FluidType;
+import fr.fidorial.world.redstone.RedstoneBehaviour;
 import fr.fidorial.world.redstone.RedstoneEngine;
 import fr.fidorial.world.redstone.RedstoneWorld;
 import fr.fidorial.world.structure.StructureManager;
@@ -77,6 +79,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final StructureService structures;
     private final WeatherEngine weather;
     private final FluidEngine fluids;
+    private final ScheduledTickEngine ticks;
     private final FidorialGameRules gameRules;
     private final DayNightThread dayNight;
     private final ServerTickRates tickRates;
@@ -104,7 +107,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.structures = new StructureService(
                 config.worlds().path().resolve("datapacks"), new RegistryBlockValidator(registries.blocks()));
         this.weather = new WeatherEngine(manager);
-        this.fluids = new FluidEngine(manager, scheduler.regionizer(), registries.blockStates());
+        this.fluids = new FluidEngine(scheduler.regionizer(), registries.blockStates(), world -> redstone().world(world));
+        this.ticks = new ScheduledTickEngine(manager, scheduler.regionizer());
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
         this.tickRates = new ServerTickRates(scheduler.regionizer(), dayNight, weather);
@@ -119,7 +123,6 @@ public final class WorldModule implements ServerModule, WorldManager {
                 registries.blockStates(),
                 (world, pos, stateId) -> world.sendToChunkViewers(
                         pos.chunk().key(), new ClientboundBlockUpdatePacket(pos, stateId)),
-                fluids::notifyBlockChanged,
                 light::queueBlockChange);
         this.regionizer = scheduler.regionizer();
         this.redstone = new FidorialRedstoneEngine(
@@ -134,18 +137,21 @@ public final class WorldModule implements ServerModule, WorldManager {
         manager.setStructureService(structures);
         manager.setChunkLoader(scheduler.chunkWorker());
         manager.setLightDispatcher(light);
-        manager.setChunkReadListener(movingPistons::resume);
+        manager.setChunkReadListener((world, column) -> {
+            movingPistons.resume(world, column);
+            ticks.resume(world, column);
+        });
+        manager.setTicks(ticks);
+        ticks.setBlockRunner(this::runBlockTick);
+        ticks.setFluidRunner(fluids::tick);
         manager.setEntityBridge(entities.ids()::allocate, entities.spawnBridge());
         manager.setDefaultWorld(config.worlds().defaultWorld());
         manager.setDefaultGenerator(new ServiceBackedChunkGenerator(
                 services, FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));
-        fluids.setLightHook(light::queueBlockChange);
         fluids.setDebugEvents(debug.gameEvents());
         blockEdits.setDebugEvents(debug.gameEvents());
         blockEdits.setRedstoneNotifier(this::redstoneBlockChanged);
         blockEdits.setChangeListener(this::farmingBlockChanged);
-        fluids.setRedstoneHook(this::fluidBlockChanged);
-        fluids.setWashHook(this::washedAway);
         players.blockViewers().setListener(this::viewersChanged);
         gameRules.addListener(this::syncGameRule);
     }
@@ -174,6 +180,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();
+        // the order of a game tick: block ticks, fluid ticks, then block events
+        regionizer.registerTickHandler(ticks);
         regionizer.registerTickHandler(redstone.tickHandler());
         // after the scheduled ticks and the block events, where vanilla ticks its block entities
         regionizer.registerTickHandler(movingPistons);
@@ -292,6 +300,13 @@ public final class WorldModule implements ServerModule, WorldManager {
         return fluids;
     }
 
+    /**
+     * {@return the ticks scheduled in every world}
+     */
+    public ScheduledTickEngine ticks() {
+        return ticks;
+    }
+
     @Override
     public FidorialGameRules gameRules() {
         return gameRules;
@@ -361,27 +376,27 @@ public final class WorldModule implements ServerModule, WorldManager {
     }
 
     /**
-     * Fluids write their blocks themselves: both redstone and farming are told of what they changed.
+     * Runs a due block tick: the tick of the redstone behaviour of the block, in the redstone of
+     * the engine in effect, then that of its farming behaviour, if it has either.
      */
-    private void fluidBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
-                                   final BlockState current) {
-        redstoneBlockChanged(world, pos, previous, current);
-        farmingBlockChanged(world, pos, previous, current);
-    }
-
-    /**
-     * Tells whether a fluid uproots a block: one taking part in farming and tagged as washed away
-     * by fluids. Water carries its harvest off, lava leaves nothing of it.
-     */
-    private boolean washedAway(final ServerWorld world, final BlockPosition pos, final BlockState block, final FluidType fluid) {
-        if (registries.farming().behaviourOrNull(block.name()) == null
-                || !registries.registry(RegistryKey.BLOCK).isTagged(block.name(), BlockTypeTagKeys.WASHED_AWAY_BY_FLUIDS)) {
-            return false;
+    private void runBlockTick(final ServerWorld world, final BlockPosition pos, final TypedKey<BlockType> block) {
+        final RedstoneWorld redstoneWorld = redstone().world(world);
+        final BlockData state = redstoneWorld.blockAt(pos);
+        if (state == null || !state.key().equals(block)) {
+            return; // unloaded, or replaced since: the tick is dropped
         }
-        if (fluid == FluidType.WATER) {
-            farming().world(world).harvest(pos, null, ItemStack.EMPTY);
+        final RedstoneBehaviour behaviour = registries.redstone().behaviourOrNull(block);
+        if (behaviour != null) {
+            behaviour.tick(redstoneWorld, pos, state);
         }
-        return true;
+        final FarmingBehaviour plant = registries.farming().behaviourOrNull(block);
+        if (plant != null) {
+            final FarmingWorld farmingWorld = farming().world(world);
+            final BlockData still = farmingWorld.blockAt(pos);
+            if (still != null && still.key().equals(block)) {
+                plant.tick(farmingWorld, pos, still);
+            }
+        }
     }
 
     private void farmingBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,

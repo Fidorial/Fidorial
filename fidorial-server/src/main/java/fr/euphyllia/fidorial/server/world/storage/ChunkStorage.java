@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
+import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 import net.kyori.adventure.key.Key;
@@ -45,7 +46,7 @@ public final class ChunkStorage implements AutoCloseable {
     }
 
     private <R extends @Nullable Object> R withRegion(final Dimension dim, final int chunkX, final int chunkZ,
-                             final RegionFileCache.RegionAction<R> action) throws IOException {
+                                                      final RegionFileCache.RegionAction<R> action) throws IOException {
         final int rx = RegionConstants.chunkToRegion(chunkX);
         final int rz = RegionConstants.chunkToRegion(chunkZ);
         return regions.with(dim.id(), rx, rz, paths.regionDir(dim).resolve(RegionConstants.fileName(rx, rz)), action);
@@ -90,9 +91,17 @@ public final class ChunkStorage implements AutoCloseable {
                 (rx, rz) -> regions.peek(dim.id(), rx, rz));
     }
 
-    public void save(final Dimension dim, final ChunkColumn chunk) throws IOException {
+    /**
+     * Writes a chunk to its region file.
+     *
+     * @param dim       the dimension of the chunk
+     * @param chunk     the chunk
+     * @param scheduled the ticks scheduled for its blocks and fluids
+     * @throws IOException if the region file cannot be written
+     */
+    public void save(final Dimension dim, final ChunkColumn chunk, final ChunkTicks scheduled) throws IOException {
         chunk.setLastUpdate(System.currentTimeMillis() / 50L);
-        final CompoundBinaryTag nbt = serializer.toNbt(chunk);
+        final CompoundBinaryTag nbt = serializer.toNbt(chunk, scheduled);
         withRegion(dim, chunk.chunkX(), chunk.chunkZ(), rf -> {
             rf.writeChunk(chunk.chunkX(), chunk.chunkZ(), nbt, compression.apply(dim.id()));
             return null;

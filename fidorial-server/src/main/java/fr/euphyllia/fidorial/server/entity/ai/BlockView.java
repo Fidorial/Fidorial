@@ -5,6 +5,9 @@ import fr.euphyllia.fidorial.server.world.ServerChunk;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
+import fr.euphyllia.fidorial.server.world.fluid.FluidStateImpl;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
@@ -16,7 +19,6 @@ import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class BlockView {
 
@@ -61,11 +63,11 @@ public class BlockView {
     /**
      * {@return the height the water of a block reaches, {@link Double#NaN} if it holds none}
      *
-     * <p>As in Vanilla, a source fills 8/9 of its block, flowing water loses 1/9 per level, and water
-     * under water fills the whole block.</p>
+     * <p>A source fills 8/9 of its block, flowing water 1/9 less per level, falling water 8/9 too,
+     * and water under water fills the whole block.</p>
      */
     public static double waterSurface(final ServerWorld world, final int x, final int y, final int z) {
-        return surface(world, x, y, z, BlockState::isWater);
+        return surface(world, x, y, z, FluidType.WATER);
     }
 
     /**
@@ -73,32 +75,18 @@ public class BlockView {
      * {@link #waterSurface} for water
      */
     public static double lavaSurface(final ServerWorld world, final int x, final int y, final int z) {
-        return surface(world, x, y, z, BlockState::isLava);
+        return surface(world, x, y, z, FluidType.LAVA);
     }
 
-    private static double surface(final ServerWorld world, final int x, final int y, final int z,
-                                  final Predicate<BlockState> holds) {
-        final BlockState state = blockAt(world, x, y, z);
-        if (state == null || !holds.test(state)) {
+    private static double surface(final ServerWorld world, final int x, final int y, final int z, final FluidType type) {
+        final FluidStateImpl fluid = FluidBlockCodec.fromBlock(blockAt(world, x, y, z));
+        if (fluid.type() != type) {
             return Double.NaN;
         }
-        final BlockState above = blockAt(world, x, y + 1, z);
-        if (above != null && holds.test(above)) {
+        if (FluidBlockCodec.fromBlock(blockAt(world, x, y + 1, z)).type() == type) {
             return y + 1.0;
         }
-        int level = 0;
-        // only the fluid blocks themselves have a fluid level: a waterlogged light has a level of light
-        if (state.name().equals(BlockTypeKeys.WATER) || state.isLava()) {
-            final String property = state.properties().get("level");
-            if (property != null) {
-                try {
-                    level = Integer.parseInt(property);
-                } catch (final NumberFormatException ignored) {
-                    level = 0;
-                }
-            }
-        }
-        return level >= 8 ? y + 1.0 : y + (8 - level) / 9.0;
+        return y + fluid.ownHeight();
     }
 
     public static boolean isPowderSnow(final BlockState state) {

@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.world.storage.RegionRecompressor;
 import fr.euphyllia.fidorial.server.world.storage.WorldPathsImpl;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.WorldFileFixer;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
+import fr.euphyllia.fidorial.server.world.tick.ScheduledTickEngine;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
@@ -65,6 +66,7 @@ public final class ServerWorldManager implements AutoCloseable {
     private final Map<Key, ServerWorld> worlds = new ConcurrentHashMap<>();
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
     private volatile ServerWorld.@Nullable ChunkReadListener chunkReadListener;
+    private volatile @Nullable ScheduledTickEngine ticks;
     private final BlockStateRegistry blockStates;
     private volatile @Nullable ChunkGenerator defaultGenerator;
     private volatile @Nullable AsyncChunkLoader chunkLoader;
@@ -166,6 +168,9 @@ public final class ServerWorldManager implements AutoCloseable {
         }
         if (chunkReadListener != null) {
             world.setChunkReadListener(chunkReadListener);
+        }
+        if (ticks != null) {
+            world.setTicks(ticks);
         }
         restoreTime(world);
         restoreWeather(world);
@@ -321,6 +326,18 @@ public final class ServerWorldManager implements AutoCloseable {
         this.chunkReadListener = listener;
         for (final ServerWorld world : worlds.values()) {
             world.setChunkReadListener(listener);
+        }
+    }
+
+    /**
+     * Sets the scheduled ticks of every world.
+     *
+     * @param worldTicks the scheduled ticks
+     */
+    public void setTicks(final ScheduledTickEngine worldTicks) {
+        this.ticks = worldTicks;
+        for (final ServerWorld world : worlds.values()) {
+            world.setTicks(worldTicks);
         }
     }
 

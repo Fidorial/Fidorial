@@ -21,7 +21,6 @@ public final class BlockEditService {
 
     private final BlockStateRegistry blockRegistry;
     private final BlockChangeBroadcaster broadcaster;
-    private final FluidNotifier fluidNotifier;
     private final LightNotifier lightNotifier;
 
     /**
@@ -42,12 +41,10 @@ public final class BlockEditService {
     public BlockEditService(
             final BlockStateRegistry blockRegistry,
             final BlockChangeBroadcaster broadcaster,
-            final FluidNotifier fluidNotifier,
             final LightNotifier lightNotifier
     ) {
         this.blockRegistry = blockRegistry;
         this.broadcaster = broadcaster;
-        this.fluidNotifier = fluidNotifier;
         this.lightNotifier = lightNotifier;
     }
 
@@ -77,8 +74,8 @@ public final class BlockEditService {
     }
 
     /**
-     * Changes a block, then tells the players that see it, the fluids, the light and, unless told
-     * not to, redstone.
+     * Changes a block, then tells the players that see it, the light and, unless told not to, the
+     * block updates, which wake the fluids around up.
      *
      * @param world          the world of the block
      * @param pos            where the block is
@@ -92,8 +89,8 @@ public final class BlockEditService {
     }
 
     /**
-     * Changes a block, then tells the fluids, the light and, unless told not to, the players that
-     * see it and redstone.
+     * Changes a block, then tells the light and, unless told not to, the players that see it and the
+     * block updates, which wake the fluids around up.
      *
      * @param world          the world of the block
      * @param pos            where the block is
@@ -120,7 +117,6 @@ public final class BlockEditService {
         if (visible) {
             broadcast(world, pos, state);
         }
-        fluidNotifier.notifyBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
         lightNotifier.onBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
 
         final DebugGameEvents events = debugEvents;
@@ -138,8 +134,8 @@ public final class BlockEditService {
 
     /**
      * Writes a block that only changes properties neither light nor fluids depend on, such as the
-     * power of redstone dust: players see it, but light is not checked again, fluids are not woken
-     * up and redstone is not told. Thousands of dust may change power in one game tick, and each of
+     * power of redstone dust: players see it, but light is not checked again and no block update
+     * follows. Thousands of dust may change power in one game tick, and each of
      * those checks would cost more than the change itself.
      *
      * @param world the world
@@ -236,11 +232,6 @@ public final class BlockEditService {
     @FunctionalInterface
     public interface BlockChangeBroadcaster {
         void broadcast(ServerWorld world, BlockPosition pos, int stateId);
-    }
-
-    @FunctionalInterface
-    public interface FluidNotifier {
-        void notifyBlockChanged(Key world, int x, int y, int z);
     }
 
     @FunctionalInterface

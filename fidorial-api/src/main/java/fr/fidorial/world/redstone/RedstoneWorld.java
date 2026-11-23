@@ -6,6 +6,7 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.tick.ScheduledTicks;
 
 /**
  * A world as the redstone engine drives it: the signals of {@link SignalGetter}, plus changing
@@ -40,7 +41,8 @@ public interface RedstoneWorld extends SignalGetter {
 
     /**
      * Removes a block that can no longer stand, such as redstone dust whose support was removed,
-     * telling its neighbours. A waterlogged block leaves its water behind.
+     * telling its neighbours. The block drops what it gives when broken by hand, unless the
+     * {@code block_drops} game rule forbids it. A waterlogged block leaves its water behind.
      *
      * @param position where the block is
      * @return {@code false} if there was nothing to remove, or its chunk is not loaded
@@ -105,6 +107,10 @@ public interface RedstoneWorld extends SignalGetter {
      * Schedules a call to {@link RedstoneBehaviour#tick(RedstoneWorld, BlockPosition, BlockData)},
      * once {@code delay} game ticks have elapsed. The tick only runs if the block is still of type
      * {@code block} by then.
+     *
+     * <p>Whatever the engine, the tick goes through the {@linkplain World#ticks() ticks of the
+     * world}, which saves it with its chunk: an engine of a plugin hands it to
+     * {@link ScheduledTicks#scheduleBlockTick(BlockPosition, TypedKey, int, TickPriority)}.</p>
      *
      * <p>A block holds at most one pending tick per block type: scheduling another one before the
      * first ran does nothing.</p>

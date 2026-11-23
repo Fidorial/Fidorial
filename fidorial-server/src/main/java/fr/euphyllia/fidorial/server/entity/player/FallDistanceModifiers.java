@@ -4,6 +4,8 @@ import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
+import fr.euphyllia.fidorial.server.world.fluid.FluidStateImpl;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.fidorial.annotation.SinceMinecraft;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TypedKey;
@@ -11,8 +13,6 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.block.BlockType;
-import fr.fidorial.world.fluid.FluidState;
-import fr.fidorial.world.fluid.FluidType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -157,9 +157,8 @@ final class FallDistanceModifiers {
         if (above != null && fluidOf(above) == type) {
             return 1.0;
         }
-        final FluidState fluid = FluidBlockCodec.fromBlock(state);
-        final int amount = fluid.isEmpty() ? 8 : 8 - fluid.effectiveLevel();
-        return amount / 9.0;
+        final FluidStateImpl fluid = FluidBlockCodec.fromBlock(state);
+        return (fluid.isEmpty() ? FluidStateImpl.FULL : fluid.amount()) / 9.0;
     }
 
     /**

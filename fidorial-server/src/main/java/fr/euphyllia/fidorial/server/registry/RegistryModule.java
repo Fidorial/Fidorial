@@ -18,6 +18,8 @@ import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.farming.BuiltinFarming;
 import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingRegistry;
+import fr.euphyllia.fidorial.server.world.fluid.BubbleColumnBlock;
+import fr.euphyllia.fidorial.server.world.fluid.FluidBlock;
 import fr.euphyllia.fidorial.server.world.loot.BlockLootTables;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
 import fr.fidorial.entity.mob.MobRegistry;
@@ -69,6 +71,9 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     public RegistryModule(final Path datapacksFolder) {
         this.datapacksFolder = datapacksFolder;
         VanillaRedstone.attach(redstone, registries.registry(RegistryKey.BLOCK));
+        redstone.attachVanilla(FluidBlock.WATER.key(), FluidBlock.WATER);
+        redstone.attachVanilla(FluidBlock.LAVA.key(), FluidBlock.LAVA);
+        redstone.attachVanilla(BubbleColumnBlock.KEY, BubbleColumnBlock.INSTANCE);
     }
 
     @Override

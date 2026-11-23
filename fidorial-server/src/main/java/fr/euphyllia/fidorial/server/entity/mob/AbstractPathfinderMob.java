@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.BlockStepping;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
@@ -322,6 +323,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
             justification = "Exact floating-point comparison is intentional."
     )
     private void applyPhysics() {
+        driftWithCurrents();
         final Location current = location();
         final double x = current.x();
         final double y = current.y();
@@ -523,6 +525,9 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
         setVelocity(velocityX, velocityY, velocityZ);
         setOnGround(onGround);
         setYaw(yaw);
+        if (onGround && !isDead()) {
+            BlockStepping.walkedOn(serverWorld(), this, collisionShapes(), newX, newY, newZ, halfWidth(), height());
+        }
         if (!isDead()) {
             tickLookControl(waypoint != null, walked * walked > 2.5E-7);
         }
@@ -531,6 +536,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
                 || yaw() != current.yaw() || pitch() != current.pitch()) {
             setLocation(current.with(newX, newY, newZ, yaw(), pitch()));
         }
+        riseWithBubbles();
     }
 
     /**

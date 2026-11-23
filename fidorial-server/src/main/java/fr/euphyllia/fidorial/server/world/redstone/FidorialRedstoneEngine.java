@@ -27,8 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The server's {@link RedstoneEngine}, a port of the vanilla one: signals resolved the vanilla way,
- * block updates run one chain at a time in vanilla order, scheduled ticks with priorities, and
- * block events run after them.
+ * block updates run one chain at a time in the order of the game, and block events run after the
+ * scheduled ticks of the world.
  *
  * <p>It drives the behaviours of the {@link FidorialRedstoneRegistry}, and writes blocks through the
  * {@link BlockEditService}, so that players, light and fluids follow every change it makes. What
@@ -55,7 +55,6 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
     private final BlockStateRegistry blockStates;
     private final FidorialRedstoneRegistry registry;
     private final BlockEditService blockEdits;
-    private final RedstoneBlockTicks ticks;
     private final RedstoneBlockEvents events;
     private final RegionTickHandler tickHandler;
     private final ThreadLocal<NeighborUpdater> updaters =
@@ -79,13 +78,8 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
         this.blockStates = blockStates;
         this.registry = registry;
         this.blockEdits = blockEdits;
-        this.ticks = new RedstoneBlockTicks(this, worlds, regionizer);
         this.events = new RedstoneBlockEvents(this, worlds, regionizer);
-        // vanilla's order within a game tick: scheduled ticks, then block events
-        this.tickHandler = (world, sectionX, sectionZ, currentTick) -> {
-            ticks.tick(world, sectionX, sectionZ, currentTick);
-            events.tick(world, sectionX, sectionZ, currentTick);
-        };
+        this.tickHandler = events::tick;
     }
 
     @Override
@@ -113,28 +107,11 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
     }
 
     /**
-     * {@return the handler running the scheduled ticks then the block events, to register on the
-     * regionizer}
+     * {@return the handler running the block events, to register on the regionizer after the
+     * scheduled ticks}
      */
     public RegionTickHandler tickHandler() {
         return tickHandler;
-    }
-
-    void runTick(final ServerWorld world, final BlockPosition position, final TypedKey<BlockType> block) {
-        final ServerRedstoneWorld view = view(world);
-        final BlockData state = view.blockAt(position);
-        if (state == null || !state.key().equals(block)) {
-            return; // unloaded, or replaced since: vanilla drops the tick too
-        }
-        final RedstoneBehaviour behaviour = registry.behaviourOrNull(block);
-        if (behaviour == null) {
-            return;
-        }
-        try {
-            behaviour.tick(view, position, state);
-        } catch (final RuntimeException exception) {
-            LOGGER.error("The redstone behaviour of {} failed to tick at {} in {}", block, position, world.key(), exception);
-        }
     }
 
     /**
@@ -205,9 +182,6 @@ public final class FidorialRedstoneEngine implements RedstoneEngine {
         return created;
     }
 
-    RedstoneBlockTicks ticks() {
-        return ticks;
-    }
 
     RedstoneBlockEvents events() {
         return events;

@@ -5,7 +5,8 @@ import fr.fidorial.world.World;
 
 /**
  * The redstone simulation, registered as a {@linkplain ServiceRegistry service}: how signals are
- * resolved, the order block updates spread in, and scheduled ticks.
+ * resolved and the order block updates spread in. The ticks blocks schedule belong to the world,
+ * whatever the engine.
  *
  * @since 0.1.0
  */

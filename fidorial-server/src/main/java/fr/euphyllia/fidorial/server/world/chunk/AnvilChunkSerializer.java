@@ -2,14 +2,19 @@ package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.VersionConstants;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
+import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
+import fr.euphyllia.fidorial.server.world.tick.PendingTick;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
+import fr.fidorial.world.redstone.TickPriority;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -22,8 +27,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 public class AnvilChunkSerializer {
+
+    private static final TickPriority[] PRIORITIES = TickPriority.values();
+
+    /**
+     * The priorities are saved from {@code -3}, the most urgent, to {@code 3}: normal is {@code 0}.
+     */
+    private static final int NORMAL_PRIORITY = TickPriority.NORMAL.ordinal();
 
     private final int dataVersion;
 
@@ -35,7 +48,15 @@ public class AnvilChunkSerializer {
         this.dataVersion = dataVersion;
     }
 
-    public CompoundBinaryTag toNbt(final ChunkColumn chunk) {
+    /**
+     * Writes a chunk.
+     *
+     * @param chunk     the chunk
+     * @param scheduled the ticks scheduled for its blocks and fluids, saved after those it was read
+     *                  with and that are not scheduled yet
+     * @return its data
+     */
+    public CompoundBinaryTag toNbt(final ChunkColumn chunk, final ChunkTicks scheduled) {
         final CompoundBinaryTag.Builder root = CompoundBinaryTag.builder();
         root.putInt("DataVersion", dataVersion);
         root.putInt("xPos", chunk.chunkX());
@@ -71,9 +92,63 @@ public class AnvilChunkSerializer {
         root.put("Heightmaps", heightmaps.build());
 
         root.put("block_entities", blockEntitiesToNbt(chunk));
-        root.put("block_ticks", ListBinaryTag.empty());
-        root.put("fluid_ticks", ListBinaryTag.empty());
+        final ChunkTicks ticks = chunk.pendingTicks().and(scheduled);
+        root.put("block_ticks", ticksToNbt(ticks.blocks(), block -> block.key().asString()));
+        root.put("fluid_ticks", ticksToNbt(ticks.fluids(), fluid -> fluid.fluidKey().key().asString()));
         return root.build();
+    }
+
+    private static <T> ListBinaryTag ticksToNbt(final List<PendingTick<T>> ticks, final Function<T, String> id) {
+        if (ticks.isEmpty()) {
+            return ListBinaryTag.empty();
+        }
+        final ListBinaryTag.Builder<BinaryTag> list = ListBinaryTag.builder();
+        for (final PendingTick<T> tick : ticks) {
+            list.add(CompoundBinaryTag.builder()
+                    .putString("i", id.apply(tick.type()))
+                    .putInt("x", tick.position().blockX())
+                    .putInt("y", tick.position().blockY())
+                    .putInt("z", tick.position().blockZ())
+                    .putInt("t", tick.delay())
+                    .putInt("p", tick.priority().ordinal() - NORMAL_PRIORITY)
+                    .build());
+        }
+        return list.build();
+    }
+
+    private static ChunkTicks ticksFromNbt(final CompoundBinaryTag root, final int chunkX, final int chunkZ) {
+        return new ChunkTicks(
+                ticksFromNbt(root.getList("block_ticks"), chunkX, chunkZ, key -> TypedKey.withRegistry(RegistryKey.BLOCK, key)),
+                ticksFromNbt(root.getList("fluid_ticks"), chunkX, chunkZ,
+                        key -> FluidType.byFluidKey(TypedKey.withRegistry(RegistryKey.FLUID, key))));
+    }
+
+    /**
+     * Reads ticks, leaving out those of another chunk, those of unknown priority, and those whose
+     * id cannot be read or names nothing ticking.
+     */
+    private static <T> List<PendingTick<T>> ticksFromNbt(final ListBinaryTag list, final int chunkX, final int chunkZ,
+                                                         final Function<Key, @Nullable T> type) {
+        final List<PendingTick<T>> ticks = new ArrayList<>();
+        for (final BinaryTag tag : list) {
+            if (!(tag instanceof final CompoundBinaryTag compound)) {
+                continue;
+            }
+            final String id = compound.getString("i");
+            final int x = compound.getInt("x");
+            final int z = compound.getInt("z");
+            final int priority = compound.getInt("p") + NORMAL_PRIORITY;
+            if (id.isEmpty() || !Key.parseable(id) || x >> 4 != chunkX || z >> 4 != chunkZ
+                    || priority < 0 || priority >= PRIORITIES.length) {
+                continue;
+            }
+            final T ticked = type.apply(Key.key(id));
+            if (ticked != null) {
+                ticks.add(new PendingTick<>(Position.block(x, compound.getInt("y"), z), ticked, compound.getInt("t"),
+                        PRIORITIES[priority]));
+            }
+        }
+        return ticks;
     }
 
     /**
@@ -227,6 +302,7 @@ public class AnvilChunkSerializer {
         }
 
         blockEntitiesFromNbt(root, chunk);
+        chunk.setPendingTicks(ticksFromNbt(root, chunkX, chunkZ));
 
         if (root.contains("LightHeightmap") && root.getBoolean("isLightOn")) {
             light.restoreHeightmap(root.getIntArray("LightHeightmap"));

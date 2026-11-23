@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.debug.DebugSubscriptionState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
+import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.events.player.PlayerOpenInventoryEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
@@ -43,6 +44,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.serialization.util.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.BlockStepping;
 import fr.fidorial.attribute.AttributeModifier;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
@@ -134,6 +136,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
     private static final double EYE_HEIGHT = 1.62;
     private static final double SNEAKING_EYE_HEIGHT = 1.27;
+    private static final double HALF_WIDTH = 0.3;
+    private static final double HEIGHT = 1.8;
     private static final int[] ARMOR_SLOTS = {
             PlayerInventory.FEET, PlayerInventory.LEGS, PlayerInventory.CHEST, PlayerInventory.HEAD
     };
@@ -838,7 +842,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         if (ticksSinceLastAttack.get() < MAX_TRACKED_ATTACK_TICKS) {
             ticksSinceLastAttack.incrementAndGet();
         }
-        if (isDead() || awaitingRespawn || isInvulnerableToDamage()) {
+        if (isDead() || awaitingRespawn) {
+            return;
+        }
+        if (onGround && gameMode != GameMode.SPECTATOR && world() instanceof final ServerWorld serverWorld) {
+            final Location at = location();
+            BlockStepping.walkedOn(serverWorld, this, BlockCollider.Shapes.DEFAULT, at.x(), at.y(), at.z(), HALF_WIDTH, HEIGHT);
+        }
+        if (isInvulnerableToDamage()) {
             return;
         }
         tickVoid();

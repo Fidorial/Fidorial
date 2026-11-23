@@ -198,8 +198,8 @@ public interface FarmingWorld extends BlockGetter {
 
     /**
      * Schedules a call to {@link FarmingBehaviour#tick}, once {@code delay} game ticks have
-     * elapsed. The tick only runs if the block is still of the same type by then, and is lost if
-     * the server stops before.
+     * elapsed, through the {@linkplain World#ticks() ticks of the world}: saved with its chunk. The
+     * tick only runs if the block is still of the same type by then.
      *
      * @param position the block to tick
      * @param delay    the number of game ticks to wait, {@code 1} for the next tick

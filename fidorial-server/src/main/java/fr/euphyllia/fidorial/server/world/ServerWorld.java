@@ -30,6 +30,9 @@ import fr.euphyllia.fidorial.server.world.light.WorldLightManager;
 import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
+import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
+import fr.euphyllia.fidorial.server.world.tick.ScheduledTickEngine;
+import fr.euphyllia.fidorial.server.world.tick.WorldScheduledTicks;
 import fr.euphyllia.fidorial.server.world.time.WorldClocks;
 import fr.euphyllia.fidorial.server.world.time.WorldTimeEngine;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
@@ -54,6 +57,7 @@ import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.entity.EntitySpawnBridge;
+import fr.fidorial.world.tick.ScheduledTicks;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterable;
 import it.unimi.dsi.fastutil.longs.LongIterator;
@@ -96,6 +100,7 @@ public final class ServerWorld implements World {
     private final WorldLightManager lightManager;
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
     private volatile @Nullable ChunkReadListener chunkReadListener;
+    private volatile @Nullable WorldScheduledTicks ticks;
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
     private final ForcedChunks forcedChunks;
@@ -574,6 +579,15 @@ public final class ServerWorld implements World {
         }
     }
 
+    /**
+     * Writes a chunk with the ticks scheduled for its blocks and fluids.
+     */
+    private void save(final ChunkColumn chunk) throws IOException {
+        final WorldScheduledTicks scheduled = ticks;
+        storage.save(dimension, chunk,
+                scheduled == null ? ChunkTicks.NONE : scheduled.ticks().pendingIn(this, chunk.chunkX(), chunk.chunkZ()));
+    }
+
     public void markDirty(final int chunkX, final int chunkZ) {
         dirty.add(ChunkPos.chunkKey(chunkX, chunkZ));
     }
@@ -676,7 +690,7 @@ public final class ServerWorld implements World {
                     final long k = it.nextLong();
                     final ChunkColumn chunk = loaded.get(k);
                     if (chunk != null) {
-                        storage.save(dimension, chunk);
+                        save(chunk);
                     }
                     dirty.remove(k);
                 }
@@ -699,7 +713,7 @@ public final class ServerWorld implements World {
                 while (columns.hasNext()) {
                     final ChunkColumn column = columns.next();
                     if (column != null) {
-                        storage.save(dimension, column);
+                        save(column);
                     }
                 }
                 dirty.clear();
@@ -803,7 +817,7 @@ public final class ServerWorld implements World {
                 if (dirty.remove(k)) {
                     final ChunkColumn chunk = loaded.get(k);
                     if (chunk != null) {
-                        storage.save(dimension, chunk);
+                        save(chunk);
                     }
                 }
                 unloadChunkEntities(chunkX, chunkZ);
@@ -906,6 +920,30 @@ public final class ServerWorld implements World {
     @FunctionalInterface
     public interface ChunkReadListener {
         void chunkRead(ServerWorld world, ChunkColumn column);
+    }
+
+    /**
+     * Sets the scheduled ticks of every world, which this world schedules its ticks in and saves
+     * with its chunks.
+     *
+     * @param worldTicks the scheduled ticks of every world
+     */
+    public void setTicks(final ScheduledTickEngine worldTicks) {
+        this.ticks = new WorldScheduledTicks(this, worldTicks);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalStateException if the ticks of the worlds are not set yet
+     */
+    @Override
+    public ScheduledTicks ticks() {
+        final WorldScheduledTicks scheduled = ticks;
+        if (scheduled == null) {
+            throw new IllegalStateException("The scheduled ticks of " + key().asString() + " are not set up yet");
+        }
+        return scheduled;
     }
 
     private CompletableFuture<@Nullable Void> lightFlushFuture(final LongIterable chunkKeys) {
