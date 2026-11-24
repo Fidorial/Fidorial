@@ -23,7 +23,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The boss bars of {@code /tpsbar}: one per player, refreshed every second with the TPS, MSPT and
- * thread load of the region the player stands in, their ping and the memory of the server.
+ * thread load of the region the player stands in, their ping and the memory of the server. The
+ * MSPT is split in two: the ticks alone, as spark measures them, and the tasks the region ran
+ * between them, which {@code /tps} counts in its MSPT.
  *
  * <p>The bars are refreshed on a thread of their own rather than on the region threads, so they keep
  * moving while the region they describe is lagging. The refresh only runs while a bar is enabled.</p>
@@ -137,6 +139,7 @@ public final class TpsBarManager {
 
         final Component tps;
         final Component mspt;
+        final Component tasks;
         final Component thread;
         final float progress;
         final BossBar.Color color;
@@ -144,17 +147,22 @@ public final class TpsBarManager {
             // the region was just created and has not ticked enough to be measured
             tps = Component.text(UNAVAILABLE, NamedTextColor.GRAY);
             mspt = Component.text(UNAVAILABLE, NamedTextColor.GRAY);
+            tasks = Component.text(UNAVAILABLE, NamedTextColor.GRAY);
             thread = Component.text(UNAVAILABLE, NamedTextColor.GRAY);
             progress = 0.0F;
             color = BossBar.Color.WHITE;
         } else {
             final Level tpsLevel = Level.ofTps(region.tps());
             final Level msptLevel = Level.ofMspt(region.msptAvg());
+            // the ticks alone, then the tasks the region ran between them: both share the thread
+            final double tickMspt = region.tickMsptAvg();
+            final double tasksMspt = Math.max(0.0, region.msptAvg() - tickMspt);
             tps = Component.text(format1(region.tps()), tpsLevel.color());
-            mspt = Component.text(format2(region.msptAvg()), msptLevel.color());
+            mspt = Component.text(format2(tickMspt), Level.ofMspt(tickMspt).color());
+            tasks = Component.text(format2(tasksMspt), Level.ofMspt(tasksMspt).color());
             thread = Component.text(format1(region.cpuPercent()),
                     Level.ofThreadPercent(region.cpuPercent()).color());
-            // the bar fills up with the share of the tick budget used
+            // the bar fills up with the share of the tick budget used, tasks included
             progress = (float) Math.clamp(region.msptAvg() / TICK_BUDGET_MS, 0.0, 1.0);
             color = Level.worst(tpsLevel, msptLevel).barColor();
         }
@@ -167,7 +175,8 @@ public final class TpsBarManager {
                 Component.text(ping, Level.ofPing(ping).color()),
                 Component.text(format1(memory.usedGb()) + "/" + format1(memory.maxGb()),
                         Level.ofMemoryPercent(memory.usedPercent()).color()),
-                thread);
+                thread,
+                tasks);
 
         // boss bar names are sent as they are, so translate them for the player here
         bar.name(GlobalTranslator.render(title, player.locale()));

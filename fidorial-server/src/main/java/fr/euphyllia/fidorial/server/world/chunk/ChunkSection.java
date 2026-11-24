@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.chunk;
 import fr.euphyllia.fidorial.server.world.light.BlockLightProperties;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
+import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
 import java.util.function.Predicate;
@@ -17,6 +18,11 @@ public final class ChunkSection {
     private final PalettedContainer<TypedKey<BiomeDefinition>> biomes;
     private int nonAirCount;
     private int fluidCount;
+    /**
+     * The last answer of {@link #mayContain}. A plain field holding an immutable record: a thread
+     * reads either a whole answer or none, and a missed one is only worked out again.
+     */
+    private @Nullable PaletteCheck paletteCheck;
 
     public ChunkSection(final int sectionY, final BlockState fillBlock, final TypedKey<BiomeDefinition> fillBiome) {
         this.sectionY = sectionY;
@@ -100,8 +106,36 @@ public final class ChunkSection {
         return blocks.contains(BlockLightProperties::hasEmission);
     }
 
+    /**
+     * Whether a block of this section may pass a test, worked out from the palette and remembered
+     * until the palette grows or the test changes: a cheap check to skip a whole section before
+     * looking at its blocks one by one.
+     * <p>
+     * It may answer {@code true} for a block that is gone from the section, as the palette keeps
+     * the states it held, but never {@code false} for a block that is there.
+     *
+     * @param test    the test, run on each state of the palette; pass the same instance every time,
+     *                so that the answer is remembered
+     * @param version a number that changes whenever the test may answer differently for a state
+     * @return {@code false} if no block of this section passes the test
+     */
+    public boolean mayContain(final Predicate<BlockState> test, final int version) {
+        final int paletteSize = blocks.paletteSize();
+        final PaletteCheck last = paletteCheck;
+        if (last != null && last.test() == test && last.version() == version && last.paletteSize() == paletteSize) {
+            return last.result();
+        }
+        // a palette that grows in the meantime is caught on the next call, by its size
+        final boolean result = blocks.contains(test);
+        paletteCheck = new PaletteCheck(test, version, paletteSize, result);
+        return result;
+    }
+
     public void recomputeCounts() {
         this.nonAirCount = blocks.count(state -> !state.isAir());
         this.fluidCount = blocks.count(BlockState::isFluid);
+    }
+
+    private record PaletteCheck(Predicate<BlockState> test, int version, int paletteSize, boolean result) {
     }
 }

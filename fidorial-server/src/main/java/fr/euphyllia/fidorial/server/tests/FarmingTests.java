@@ -6,6 +6,9 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.farming.SweetBerryBushBlock;
+import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.gamerule.VanillaGameRules;
 import fr.euphyllia.fidorial.server.world.loot.BlockLootTables;
 import fr.fidorial.entity.Entity;
@@ -57,6 +60,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Farming: soil being tilled, wetted, dried and trampled, plants growing on random ticks and
@@ -961,6 +965,120 @@ public final class FarmingTests {
                     // 200 ticks, 3 picks each, one in four landing on lapis: 150 on average
                     helper.assertTrue(picked.get() >= 90 && picked.get() <= 230,
                             "About 150 random ticks should reach a quarter of a section in 200 ticks, got " + picked.get());
+                })
+                .build();
+    }
+
+    @ScenarioTest
+    public static void aChunkListsTheSectionsWhereAPlantMayBe(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition wart = Position.block(8, Y, 8);
+        // a test of its own, so that the tests and plugins changing the farming registry meanwhile do
+        // not make the chunk work its answer out again
+        final Predicate<BlockState> isWart = state -> state.name().equals(BlockTypeKeys.NETHER_WART);
+        helper.sequence()
+                .execute(() -> {
+                    prepare(world);
+                    final ChunkColumn column = Objects.requireNonNull(
+                            ((ServerWorld) world).loadedColumn(wart.chunkX(), wart.chunkZ()), "the chunk should be loaded");
+                    final int index = (wart.blockY() >> 4) - column.minSectionY();
+                    final int above = index + 1;
+                    helper.assertFalse(lists(column.sectionsThatMayContain(isWart, 0), index),
+                            "No section should hold nether wart yet");
+
+                    set(world, wart.relative(BlockFace.DOWN), "minecraft:soul_sand");
+                    set(world, wart, "minecraft:nether_wart");
+                    helper.assertTrue(lists(column.sectionsThatMayContain(isWart, 0), index),
+                            "The section of the nether wart just set should be listed");
+
+                    final ChunkSection old = column.sections()[above];
+                    helper.assertFalse(lists(column.sectionsThatMayContain(isWart, 0), above),
+                            "The section above should not be listed before it is replaced");
+                    final BlockState wartState = server().registries().blockStates().toBlockState(state("minecraft:nether_wart"));
+                    column.putSection(new ChunkSection(old.sectionY(), wartState, old.getBiome(0, 0, 0)));
+                    try {
+                        helper.assertTrue(lists(column.sectionsThatMayContain(isWart, 0), above),
+                                "A section put in place of another should be listed");
+                    } finally {
+                        column.putSection(old);
+                    }
+                })
+                .build();
+    }
+
+    private static boolean lists(final int[] sections, final int index) {
+        for (final int section : sections) {
+            if (section == index) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @ScenarioTest(timeoutTicks = 400)
+    public static void aPlantSetInASectionWithNothingToFarmGetsRandomTicks(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition soil = Position.block(8, SOIL, 8);
+        final BlockPosition wart = soil.relative(BlockFace.UP);
+        final AtomicInteger waited = new AtomicInteger();
+        helper.sequence()
+                .execute(() -> {
+                    prepare(world);
+                    // stone in the section of the wart to come, so that the engine looks at it and
+                    // remembers it has nothing to farm
+                    set(world, wart.relative(BlockFace.UP, 4), "minecraft:stone");
+                    world.gameRules().setInt(GameRuleKeys.RANDOM_TICK_SPEED, 4096);
+                    world.setChunkForceLoaded(0, 0, true);
+                })
+                .waitUntil(() -> waited.incrementAndGet() > 20, "Waiting one second")
+                .execute(() -> {
+                    set(world, soil, "minecraft:soul_sand");
+                    set(world, wart, "minecraft:nether_wart");
+                })
+                .waitUntil(() -> age(world, wart) == 3,
+                        "Nether wart set in a section that had nothing to farm should ripen on its own")
+                .execute(() -> {
+                    world.setChunkForceLoaded(0, 0, false);
+                    world.gameRules().setInt(GameRuleKeys.RANDOM_TICK_SPEED, 0);
+                })
+                .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 400)
+    public static void aBehaviourAttachedLaterReachesTheBlocksAlreadyThere(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final Plugin owner = owner();
+        final AtomicInteger picked = new AtomicInteger();
+        final AtomicInteger waited = new AtomicInteger();
+        // coal blocks count the random ticks they get: no other test farms with them
+        final FarmingBehaviour counting = new FarmingBehaviour() {
+            @Override
+            public boolean ticksRandomly(final BlockData state) {
+                return true;
+            }
+
+            @Override
+            public void randomTick(final FarmingWorld farming, final BlockPosition position, final BlockData state) {
+                if (farming.world() == world) {
+                    picked.incrementAndGet();
+                }
+            }
+        };
+        helper.sequence()
+                .execute(() -> {
+                    prepare(world);
+                    set(world, Position.block(8, Y, 8), "minecraft:coal_block");
+                    world.gameRules().setInt(GameRuleKeys.RANDOM_TICK_SPEED, 4096);
+                    world.setChunkForceLoaded(0, 0, true);
+                })
+                // the engine remembers that the section of the coal has nothing to farm
+                .waitUntil(() -> waited.incrementAndGet() > 20, "Waiting one second")
+                .execute(() -> registry().attach(BlockTypeKeys.COAL_BLOCK, counting, owner))
+                .waitUntil(() -> picked.get() > 0, "A behaviour attached to a block already set should get its random ticks")
+                .execute(() -> {
+                    registry().detachAll(owner);
+                    world.setChunkForceLoaded(0, 0, false);
+                    world.gameRules().setInt(GameRuleKeys.RANDOM_TICK_SPEED, 0);
                 })
                 .build();
     }

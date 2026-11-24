@@ -344,12 +344,21 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
         LOGGER.info("Region workers stopped");
     }
 
+    /**
+     * The tick performance of a region over the last few seconds.
+     *
+     * @param msptAvg     the average time per tick, in milliseconds, counting the tasks the region
+     *                    ran between two ticks
+     * @param tickMsptAvg the average time of the ticks alone, in milliseconds: what is left of
+     *                    {@code msptAvg} is the time of the tasks run between them
+     */
     public record RegionTpsSnapshot(
             Key world,
             int sectionX,
             int sectionZ,
             double tps,
             double msptAvg,
+            double tickMsptAvg,
             double cpuPercent,
             int queuedTasks,
             int tickets)
@@ -399,6 +408,8 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
         private final Object tpsLock = new Object();
         private final TickData tickData = new TickData(TPS_WINDOW_NS);
+        /** The same ticks without the tasks run between them, to tell the two apart. */
+        private final TickData tickOnlyData = new TickData(TPS_WINDOW_NS);
 
         volatile @Nullable Thread tickingThread;
 
@@ -610,8 +621,20 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
             intermediateTimeNS = 0L;
             intermediateTimeCpuNS = 0L;
 
+            final TickTime tickOnly = new TickTime(
+                    time.previousTickStart(),
+                    scheduledStart,
+                    tickStart,
+                    tickStartCpu,
+                    tickEnd,
+                    tickEndCpu,
+                    0L,
+                    0L,
+                    cpuMeasured);
+
             synchronized (tpsLock) {
                 tickData.addDataFrom(time);
+                tickOnlyData.addDataFrom(tickOnly);
             }
 
             return tickEnd - tickStart;
@@ -619,13 +642,17 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
 
         @Nullable RegionTpsSnapshot snapshot() {
             final TickData.TickReportData report;
+            final TickData.TickReportData tickOnlyReport;
             synchronized (tpsLock) {
-                report = tickData.generateTickReport(null, System.nanoTime(), TICK_INTERVAL_NS);
+                final long now = System.nanoTime();
+                report = tickData.generateTickReport(null, now, TICK_INTERVAL_NS);
+                tickOnlyReport = tickOnlyData.generateTickReport(null, now, TICK_INTERVAL_NS);
             }
-            if (report == null || report.collectedTicks() < 2) return null;
+            if (report == null || tickOnlyReport == null || report.collectedTicks() < 2) return null;
 
             final double tps = report.tpsData().segmentAll().average();
             final double msptAvg = report.timePerTickData().segmentAll().average() / 1_000_000.0;
+            final double tickMsptAvg = tickOnlyReport.timePerTickData().segmentAll().average() / 1_000_000.0;
 
             return new RegionTpsSnapshot(
                     key.world(),
@@ -633,6 +660,7 @@ public final class ThreadedRegionRegionizer implements RegionizedScheduler {
                     key.sectionZ(),
                     Math.min(tps, 20.0),
                     msptAvg,
+                    tickMsptAvg,
                     report.utilisation() * 100.0,
                     queuedTaskCount(),
                     tickets.get());

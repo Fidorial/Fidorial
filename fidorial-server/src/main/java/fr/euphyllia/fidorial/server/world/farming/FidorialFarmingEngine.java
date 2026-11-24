@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -43,7 +44,9 @@ import java.util.function.Supplier;
  * within {@value #TICK_DISTANCE} chunks of a player, and to its force-loaded chunks: in each of
  * their sections, as many blocks as the {@code random_tick_speed} game rule says are picked at
  * random, and those whose {@link FarmingBehaviour} asks for it are ticked. Which chunks tick is
- * worked out again every second.</p>
+ * worked out again every second. A section whose palette holds no block with a behaviour, such as
+ * one of stone underground, is skipped without picking any block, and each chunk remembers which of
+ * its sections are left, so that a chunk with nothing to farm costs a single check.</p>
  *
  * <p>A region only ticks while something keeps it awake, and a player only keeps awake the region
  * they stand in. So that a field lying across the border of two regions grows evenly, the engine
@@ -86,6 +89,10 @@ public final class FidorialFarmingEngine implements FarmingEngine {
     private final Map<Key, ServerFarmingWorld> views = new ConcurrentHashMap<>();
     private final Map<RegionKey, TickingChunks> regions = new ConcurrentHashMap<>();
     private final Map<RegionKey, Lease> leases = new ConcurrentHashMap<>();
+    /**
+     * One instance, so that the sections remember what it answered for them.
+     */
+    private final Predicate<BlockState> farmable;
 
     /**
      * @param players the players online, whatever their world
@@ -106,6 +113,7 @@ public final class FidorialFarmingEngine implements FarmingEngine {
         this.blockEdits = blockEdits;
         this.registries = registries;
         this.players = players;
+        this.farmable = state -> registry.behaviourOrNull(state.name()) != null;
     }
 
     @Override
@@ -166,10 +174,16 @@ public final class FidorialFarmingEngine implements FarmingEngine {
             return;
         }
         final ServerFarmingWorld view = view(world);
+        // read before the palettes are checked, so that a later change is seen next tick
+        final int behavioursVersion = registry.behavioursVersion();
         for (final long chunk : ticking.chunks()) {
             final ChunkColumn column = world.loadedColumn(unpackX(chunk), unpackZ(chunk));
-            if (column != null) {
-                randomTicks(view, column, speed);
+            if (column == null) {
+                continue;
+            }
+            final int[] farmed = column.sectionsThatMayContain(farmable, behavioursVersion);
+            if (farmed.length != 0) {
+                randomTicks(view, column, farmed, speed);
             }
         }
     }
@@ -272,11 +286,17 @@ public final class FidorialFarmingEngine implements FarmingEngine {
         }
     }
 
-    private void randomTicks(final ServerFarmingWorld view, final ChunkColumn column, final int speed) {
+    /**
+     * @param farmed the indices of the sections of the column that may hold a block to farm
+     */
+    private void randomTicks(final ServerFarmingWorld view, final ChunkColumn column, final int[] farmed,
+                             final int speed) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         final int originX = column.chunkX() << 4;
         final int originZ = column.chunkZ() << 4;
-        for (final ChunkSection section : column.sections()) {
+        final ChunkSection[] sections = column.sections();
+        for (final int index : farmed) {
+            final ChunkSection section = sections[index];
             if (section == null || section.isEmpty()) {
                 continue;
             }

@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
 
 /**
@@ -31,6 +32,10 @@ import java.util.function.BiPredicate;
 public final class FidorialFarmingRegistry implements FarmingRegistry {
 
     private final Declarations<TypedKey<BlockType>, FarmingBehaviour> behaviours = new Declarations<>();
+    /**
+     * Bumped after every change to {@link #behaviours}, so that what is worked out from them can be kept.
+     */
+    private final AtomicInteger behavioursVersion = new AtomicInteger();
     private final Declarations<TypedKey<Item>, TypedKey<BlockType>> seeds = new Declarations<>();
     private final Declarations<TypedKey<Item>, Boolean> fertilizers = new Declarations<>();
     private final Declarations<TypedKey<Item>, Boolean> hoes = new Declarations<>();
@@ -66,6 +71,7 @@ public final class FidorialFarmingRegistry implements FarmingRegistry {
         Preconditions.checkArgument(behaviour != null, "The behaviour passed to FarmingRegistry.attach() must not be null");
         Preconditions.checkArgument(owner != null, "The owner passed to FarmingRegistry.attach() must not be null");
         behaviours.declare(block, behaviour, owner);
+        behavioursVersion.incrementAndGet();
     }
 
     /**
@@ -74,19 +80,23 @@ public final class FidorialFarmingRegistry implements FarmingRegistry {
      */
     public void attachBuiltin(final TypedKey<BlockType> block, final FarmingBehaviour behaviour) {
         behaviours.declare(block, behaviour, null);
+        behavioursVersion.incrementAndGet();
     }
 
     @Override
     public boolean detach(final TypedKey<BlockType> block, final Plugin owner) {
         Preconditions.checkArgument(block != null, "The block passed to FarmingRegistry.detach() must not be null");
         Preconditions.checkArgument(owner != null, "The owner passed to FarmingRegistry.detach() must not be null");
-        return behaviours.release(block, owner);
+        final boolean released = behaviours.release(block, owner);
+        behavioursVersion.incrementAndGet();
+        return released;
     }
 
     @Override
     public void detachAll(final Plugin owner) {
         Preconditions.checkArgument(owner != null, "The owner passed to FarmingRegistry.detachAll() must not be null");
         behaviours.releaseAll(owner);
+        behavioursVersion.incrementAndGet();
         seeds.releaseAll(owner);
         fertilizers.releaseAll(owner);
         hoes.releaseAll(owner);
@@ -104,6 +114,16 @@ public final class FidorialFarmingRegistry implements FarmingRegistry {
      */
     public @Nullable FarmingBehaviour behaviourOrNull(final TypedKey<BlockType> block) {
         return behaviours.get(block);
+    }
+
+    /**
+     * {@return a number that changes after every change to the behaviours in effect}
+     * <p>
+     * What is worked out from the behaviours, read after this number, stays right for as long as it
+     * does not change.
+     */
+    public int behavioursVersion() {
+        return behavioursVersion.get();
     }
 
     @Override

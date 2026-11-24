@@ -14,17 +14,23 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public final class ChunkColumn {
 
     public static final Key FULL_STATUS = Key.key("full");
+
+    private static final int[] NO_SECTIONS = new int[0];
+    private static final AtomicIntegerFieldUpdater<ChunkColumn> PALETTES_VERSION =
+            AtomicIntegerFieldUpdater.newUpdater(ChunkColumn.class, "palettesVersion");
 
     private final int chunkX;
     private final int chunkZ;
@@ -47,6 +53,17 @@ public final class ChunkColumn {
      * The ticks read with this column that are not scheduled yet.
      */
     private final AtomicReference<ChunkTicks> pendingTicks = new AtomicReference<>(ChunkTicks.NONE);
+    /**
+     * Bumped after a section is replaced or the palette of a section grows: what is worked out from
+     * the palettes stays right for as long as it does not change.
+     */
+    @SuppressWarnings("unused") // written through PALETTES_VERSION
+    private volatile int palettesVersion;
+    /**
+     * The last answer of {@link #sectionsThatMayContain}. A plain field holding an immutable record:
+     * a thread reads either a whole answer or none, and a missed one is only worked out again.
+     */
+    private @Nullable SectionsCheck sectionsCheck;
 
     public ChunkColumn(final int chunkX, final int chunkZ, final int minY, final int height, final BlockState fillBlock, final @UnknownNullability TypedKey<BiomeDefinition> fillBiome) {
         this.chunkX = chunkX;
@@ -93,11 +110,46 @@ public final class ChunkColumn {
         final int idx = s.sectionY() - minSectionY;
         if (idx >= 0 && idx < sectionCount) {
             sections[idx] = s;
+            PALETTES_VERSION.incrementAndGet(this);
             synchronized (heightmaps) {
                 heightmaps.clear();
                 heightmapsCached = false;
             }
         }
+    }
+
+    /**
+     * The sections in which a block may pass a test, as {@link ChunkSection#mayContain} tells,
+     * remembered until a section is replaced, the palette of one grows, or the test changes: so that
+     * a chunk with nothing of interest costs a single check.
+     * <p>
+     * A section listed may hold no such block, or be empty, but a section holding one is always
+     * listed.
+     *
+     * @param test    the test, run on each state of the palettes; pass the same instance every time,
+     *                so that the answer is remembered
+     * @param version a number that changes whenever the test may answer differently for a state
+     * @return the indices in {@link #sections()} of the sections listed, in ascending order; shared,
+     * so not to be changed
+     */
+    public int[] sectionsThatMayContain(final Predicate<BlockState> test, final int version) {
+        // read before the palettes, so that a palette growing in the meantime is caught next call
+        final int palettes = palettesVersion;
+        final SectionsCheck last = sectionsCheck;
+        if (last != null && last.test() == test && last.version() == version && last.palettes() == palettes) {
+            return last.sections();
+        }
+        final int[] found = new int[sectionCount];
+        int count = 0;
+        for (int i = 0; i < sectionCount; i++) {
+            final ChunkSection section = sections[i];
+            if (section != null && section.mayContain(test, version)) {
+                found[count++] = i;
+            }
+        }
+        final int[] result = count == 0 ? NO_SECTIONS : Arrays.copyOf(found, count);
+        sectionsCheck = new SectionsCheck(test, version, palettes, result);
+        return result;
     }
 
     public boolean setBiome(final int localX, final int worldY, final int localZ, final TypedKey<BiomeDefinition> biome) {
@@ -240,7 +292,11 @@ public final class ChunkColumn {
             return;
         }
 
+        final int paletteSize = s.blocks().paletteSize();
         final BlockState previous = s.setBlock(localX, worldY & 15, localZ, state);
+        if (s.blocks().paletteSize() != paletteSize) {
+            PALETTES_VERSION.incrementAndGet(this);
+        }
         if (previous != state) {
             updateHeightmaps(localX, worldY, localZ, state);
         }
@@ -401,5 +457,8 @@ public final class ChunkColumn {
             }
         }
         return minSectionY - 1;
+    }
+
+    private record SectionsCheck(Predicate<BlockState> test, int version, int palettes, int[] sections) {
     }
 }

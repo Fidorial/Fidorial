@@ -94,8 +94,7 @@ public final class PalettedContainer<T> {
             final Object2IntOpenHashMap<T> map = new Object2IntOpenHashMap<>(grown.length * 2);
             map.defaultReturnValue(-1);
             for (int i = 0; i < grown.length; i++) {
-                @SuppressWarnings("unchecked")
-                final T entry = (T) grown[i];
+                @SuppressWarnings("unchecked") final T entry = (T) grown[i];
                 map.putIfAbsent(entry, i);
             }
             lookup = map;
@@ -180,16 +179,14 @@ public final class PalettedContainer<T> {
         // the fields may not match each other until validated
         final int di = peekIndex(index);
         if (stamp != 0L && lock.validate(stamp) && di >= 0 && di < pal.length) {
-            @SuppressWarnings("unchecked")
-            final T v = (T) pal[di];
+            @SuppressWarnings("unchecked") final T v = (T) pal[di];
             return v;
         }
 
         final long rs = lock.readLock();
         try {
             final long[] locked = data;
-            @SuppressWarnings("unchecked")
-            final T v = (T) paletteArray[locked == null ? 0 : read(locked, bits, valuesPerLong, index)];
+            @SuppressWarnings("unchecked") final T v = (T) paletteArray[locked == null ? 0 : read(locked, bits, valuesPerLong, index)];
             return v;
         } finally {
             lock.unlockRead(rs);
@@ -201,8 +198,7 @@ public final class PalettedContainer<T> {
         try {
             final int idx = indexOf(value);
             long[] d = data;
-            @SuppressWarnings("unchecked")
-            final T previous = (T) paletteArray[d == null ? 0 : read(d, bits, valuesPerLong, index)];
+            @SuppressWarnings("unchecked") final T previous = (T) paletteArray[d == null ? 0 : read(d, bits, valuesPerLong, index)];
             if (d == null) {
                 if (idx == 0) {
                     return previous;
@@ -223,8 +219,7 @@ public final class PalettedContainer<T> {
             final Object[] pal = paletteArray;
             final long[] d = data;
             if (d == null) {
-                @SuppressWarnings("unchecked")
-                final T only = (T) pal[0];
+                @SuppressWarnings("unchecked") final T only = (T) pal[0];
                 final BitSet result = new BitSet(size);
                 if (test.test(only)) {
                     result.set(0, size);
@@ -235,8 +230,7 @@ public final class PalettedContainer<T> {
             final long[] hit = new long[pal.length];
             int matched = 0;
             for (int i = 0; i < pal.length; i++) {
-                @SuppressWarnings("unchecked")
-                final T value = (T) pal[i];
+                @SuppressWarnings("unchecked") final T value = (T) pal[i];
                 if (test.test(value)) {
                     hit[i] = 1L;
                     matched++;
@@ -280,9 +274,17 @@ public final class PalettedContainer<T> {
     }
 
     private List<T> paletteList() {
-        @SuppressWarnings("unchecked")
-        final T[] pal = (T[]) paletteArray;
+        @SuppressWarnings("unchecked") final T[] pal = (T[]) paletteArray;
         return Arrays.asList(pal);
+    }
+
+    /**
+     * {@return the number of entries of the palette, read without locking}
+     * <p>
+     * The palette only grows, so as long as this does not change, neither does the palette.
+     */
+    public int paletteSize() {
+        return paletteArray.length;
     }
 
     public boolean isSingleValue() {
