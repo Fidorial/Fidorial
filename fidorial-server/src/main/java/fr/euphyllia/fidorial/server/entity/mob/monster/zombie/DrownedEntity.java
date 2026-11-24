@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * the water and only cares about what is in it; at night it comes ashore and hunts like a zombie.
  * Water does not change it; powder snow turns it into a zombie.
  */
-public final class DrownedImpl extends ZombieImpl implements Drowned {
+public final class DrownedEntity extends ZombieEntity implements Drowned {
 
     public static final float MAX_HEALTH = 20f;
 
@@ -53,7 +53,7 @@ public final class DrownedImpl extends ZombieImpl implements Drowned {
     private boolean searchingForLand;
     private boolean sentSwimming;
 
-    public DrownedImpl(final int entityId, final Location location) {
+    public DrownedEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
@@ -61,7 +61,7 @@ public final class DrownedImpl extends ZombieImpl implements Drowned {
      * @param spawned {@code true} for a drowned that spawns, with the random traits of a zombie that
      *                does
      */
-    public DrownedImpl(final int entityId, final Location location, final boolean spawned) {
+    public DrownedEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.DROWNED, location, spawned, false);
         navigation.setSwims(true);
 
@@ -197,8 +197,8 @@ public final class DrownedImpl extends ZombieImpl implements Drowned {
     }
 
     @Override
-    protected ZombieImpl frozenForm(final int entityId, final Location location) {
-        return new ZombieImpl(entityId, location, false);
+    protected ZombieEntity frozenForm(final int entityId, final Location location) {
+        return new ZombieEntity(entityId, location, false);
     }
 
     @Override

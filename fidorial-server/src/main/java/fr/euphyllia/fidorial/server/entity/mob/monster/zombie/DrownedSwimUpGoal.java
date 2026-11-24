@@ -22,12 +22,12 @@ final class DrownedSwimUpGoal implements Goal {
     private static final int VERTICAL = 8;
     private static final double CLOSE_TO_DESTINATION_SQ = 4.0;
 
-    private final DrownedImpl drowned;
+    private final DrownedEntity drowned;
     private final int priority;
     private final double speedModifier;
     private boolean stuck;
 
-    DrownedSwimUpGoal(final DrownedImpl drowned, final int priority, final double speedModifier) {
+    DrownedSwimUpGoal(final DrownedEntity drowned, final int priority, final double speedModifier) {
         this.drowned = drowned;
         this.priority = priority;
         this.speedModifier = speedModifier;

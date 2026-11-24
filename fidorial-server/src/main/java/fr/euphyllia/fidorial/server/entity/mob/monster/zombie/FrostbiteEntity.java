@@ -42,7 +42,7 @@ import java.util.function.IntSupplier;
  * hits, and one in four holds an ice ball it throws at a target that is out of reach, 5 blocks away
  * or further. Powder snow does not change it; water turns it into a zombie.
  */
-public final class FrostbiteEntity extends ZombieImpl implements Frostbite {
+public final class FrostbiteEntity extends ZombieEntity implements Frostbite {
 
     public static final float MAX_HEALTH = 24f;
 
@@ -273,8 +273,8 @@ public final class FrostbiteEntity extends ZombieImpl implements Frostbite {
     }
 
     @Override
-    protected ZombieImpl drownedForm(final int entityId, final Location location) {
-        return new ZombieImpl(entityId, location, false);
+    protected ZombieEntity drownedForm(final int entityId, final Location location) {
+        return new ZombieEntity(entityId, location, false);
     }
 
     @Override

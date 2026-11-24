@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * around when it is hurt. Unless it is persistent, it lives two minutes and then vanishes. Its
  * steps make no sound.
  */
-public final class EndermiteImpl extends AbstractMonster implements Endermite {
+public final class EndermiteEntity extends AbstractMonster implements Endermite {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -57,7 +57,7 @@ public final class EndermiteImpl extends AbstractMonster implements Endermite {
     /**
      * Creates an endermite as one that spawns, with the random traits of one.
      */
-    public EndermiteImpl(final int entityId, final Location location) {
+    public EndermiteEntity(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ENDERMITE, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new ClimbOnTopOfPowderSnowGoal(this, 1));

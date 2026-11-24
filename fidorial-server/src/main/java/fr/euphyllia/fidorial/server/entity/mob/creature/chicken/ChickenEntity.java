@@ -44,7 +44,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * comes from the biome it spawned in, and so does the colour of its eggs; its voice is classic or
  * picky.
  */
-public final class ChickenImpl extends AbstractAnimal implements Category.Neutral, Chicken {
+public final class ChickenEntity extends AbstractAnimal implements Category.Neutral, Chicken {
 
     public static final float MAX_HEALTH = 4f;
 
@@ -106,7 +106,7 @@ public final class ChickenImpl extends AbstractAnimal implements Category.Neutra
      * Spawns a chicken as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an
      * adult, of the variant of the biome, with a random voice.
      */
-    public ChickenImpl(final int entityId, final Location location) {
+    public ChickenEntity(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 ChickenVariantKeys.TEMPERATE, ChickenVariantKeys.WARM, ChickenVariantKeys.COLD);
@@ -117,7 +117,7 @@ public final class ChickenImpl extends AbstractAnimal implements Category.Neutra
      * Creates a temperate chicken with the classic voice, as vanilla does before it sets up a
      * chicken: a newborn keeps that voice.
      */
-    public ChickenImpl(final int entityId, final Location location, final boolean baby) {
+    public ChickenEntity(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.CHICKEN, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.WADING_ANIMAL);
 
@@ -283,9 +283,9 @@ public final class ChickenImpl extends AbstractAnimal implements Category.Neutra
     }
 
     @Override
-    protected @Nullable ChickenImpl createOffspring(final AbstractAnimal partner) {
-        final ChickenImpl baby = new ChickenImpl(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final ChickenImpl other) {
+    protected @Nullable ChickenEntity createOffspring(final AbstractAnimal partner) {
+        final ChickenEntity baby = new ChickenEntity(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final ChickenEntity other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;

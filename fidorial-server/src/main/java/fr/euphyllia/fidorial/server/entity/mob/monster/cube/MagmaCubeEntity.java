@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * wears three points of armor per size, and hurts what it touches even when tiny, two points harder
  * than a slime.
  */
-public final class MagmaCubeImpl extends AbstractCubeMob implements MagmaCube {
+public final class MagmaCubeEntity extends AbstractCubeMob implements MagmaCube {
 
     private static final double BASE_EYE_HEIGHT = 0.325;
     private static final double TARGET_HEIGHT_RANGE = 4.0;
@@ -51,11 +51,11 @@ public final class MagmaCubeImpl extends AbstractCubeMob implements MagmaCube {
     /**
      * Creates a magma cube as one that spawns, with the random traits of one and a random size.
      */
-    public MagmaCubeImpl(final int entityId, final Location location) {
+    public MagmaCubeEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
-    private MagmaCubeImpl(final int entityId, final Location location, final boolean spawned) {
+    private MagmaCubeEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.MAGMA_CUBE, location, spawned);
         goals.add(new AttackGoal(2));
         goals.add(new NearestAttackableTargetGoal<>(this, 1, ServerPlayer.class, TARGET_INTERVAL, true,
@@ -65,7 +65,7 @@ public final class MagmaCubeImpl extends AbstractCubeMob implements MagmaCube {
 
     @Override
     protected AbstractCubeMob newSplitCube(final int entityId, final Location location) {
-        return new MagmaCubeImpl(entityId, location, false);
+        return new MagmaCubeEntity(entityId, location, false);
     }
 
     /**

@@ -42,7 +42,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * with mushroom stew, turns into a cow when sheared, and changes colour when lightning strikes it.
  * A brown one that ate a flower gives a suspicious stew next.
  */
-public final class MooshroomImpl extends AbstractCow implements Category.Neutral, Mooshroom {
+public final class MooshroomEntity extends AbstractCow implements Category.Neutral, Mooshroom {
 
     /** Mooshroom entity data: its colour, after the 18 entries every ageable mob has. */
     private static final int MD_VARIANT = 18;
@@ -62,11 +62,11 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
      * adult.
      */
 
-    public MooshroomImpl(final int entityId, final Location location) {
+    public MooshroomEntity(final int entityId, final Location location) {
         this(entityId, location, false);
     }
 
-    public MooshroomImpl(final int entityId, final Location location, final boolean baby) {
+    public MooshroomEntity(final int entityId, final Location location, final boolean baby) {
         super(entityId, EntityTypes.MOOSHROOM, location, baby);
     }
 
@@ -217,7 +217,7 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
         final double top = at.y() + height();
         final Variant sheared = variant;
 
-        if (!convertTo(new CowImpl(server().entities().ids().allocate(), at, false))) {
+        if (!convertTo(new CowEntity(server().entities().ids().allocate(), at, false))) {
             return false;
         }
         sendToTrackers(new ClientboundSoundPacket(
@@ -234,15 +234,15 @@ public final class MooshroomImpl extends AbstractCow implements Category.Neutral
     }
 
     @Override
-    protected @Nullable MooshroomImpl createOffspring(final AbstractAnimal partner) {
-        final MooshroomImpl baby = new MooshroomImpl(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final MooshroomImpl other) {
+    protected @Nullable MooshroomEntity createOffspring(final AbstractAnimal partner) {
+        final MooshroomEntity baby = new MooshroomEntity(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final MooshroomEntity other) {
             baby.variant = offspringVariant(other);
         }
         return baby;
     }
 
-    private Variant offspringVariant(final MooshroomImpl partner) {
+    private Variant offspringVariant(final MooshroomEntity partner) {
         final ThreadLocalRandom random = ThreadLocalRandom.current();
         if (variant == partner.variant && random.nextInt(MUTATION_CHANCE) == 0) {
             return variant == Variant.BROWN ? Variant.RED : Variant.BROWN;

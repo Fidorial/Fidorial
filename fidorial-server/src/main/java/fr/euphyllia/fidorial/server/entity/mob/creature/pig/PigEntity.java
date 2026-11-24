@@ -41,7 +41,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * carrot on a stick, panics when hurt, breeds when fed, and leaves porkchops. Its colour comes from
  * the biome it spawned in; its voice is classic, mini or big.
  */
-public final class PigImpl extends AbstractAnimal implements Category.Neutral, Pig {
+public final class PigEntity extends AbstractAnimal implements Category.Neutral, Pig {
 
     public static final float MAX_HEALTH = 10f;
 
@@ -89,7 +89,7 @@ public final class PigImpl extends AbstractAnimal implements Category.Neutral, P
      * the variant of the biome, with a random voice.
      */
 
-    public PigImpl(final int entityId, final Location location) {
+    public PigEntity(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 PigVariantKeys.TEMPERATE, PigVariantKeys.WARM, PigVariantKeys.COLD);
@@ -100,7 +100,7 @@ public final class PigImpl extends AbstractAnimal implements Category.Neutral, P
      * Creates a temperate pig with the classic voice, as vanilla does before it sets up a pig: a
      * newborn keeps that voice.
      */
-    public PigImpl(final int entityId, final Location location, final boolean baby) {
+    public PigEntity(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.PIG, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.LAND_ANIMAL);
 
@@ -196,9 +196,9 @@ public final class PigImpl extends AbstractAnimal implements Category.Neutral, P
     }
 
     @Override
-    protected @Nullable PigImpl createOffspring(final AbstractAnimal partner) {
-        final PigImpl baby = new PigImpl(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final PigImpl other) {
+    protected @Nullable PigEntity createOffspring(final AbstractAnimal partner) {
+        final PigEntity baby = new PigEntity(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final PigEntity other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;

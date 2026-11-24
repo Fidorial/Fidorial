@@ -34,7 +34,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * <p>It spawns in the slime chunks below a height of 40, and in the swamps at night between the
  * heights of 50 and 70, the more often the fuller the moon.</p>
  */
-public final class SlimeImpl extends AbstractCubeMob implements Slime {
+public final class SlimeEntity extends AbstractCubeMob implements Slime {
 
     private static final double BASE_EYE_HEIGHT = 0.325;
     private static final double TARGET_HEIGHT_RANGE = 4.0;
@@ -55,11 +55,11 @@ public final class SlimeImpl extends AbstractCubeMob implements Slime {
     /**
      * Creates a slime as one that spawns, with the random traits of one and a random size.
      */
-    public SlimeImpl(final int entityId, final Location location) {
+    public SlimeEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
-    private SlimeImpl(final int entityId, final Location location, final boolean spawned) {
+    private SlimeEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.SLIME, location, spawned);
         goals.add(new AttackGoal(2));
         goals.add(new NearestAttackableTargetGoal<>(this, 1, ServerPlayer.class, TARGET_INTERVAL, true,
@@ -69,7 +69,7 @@ public final class SlimeImpl extends AbstractCubeMob implements Slime {
 
     @Override
     protected AbstractCubeMob newSplitCube(final int entityId, final Location location) {
-        return new SlimeImpl(entityId, location, false);
+        return new SlimeEntity(entityId, location, false);
     }
 
     /**

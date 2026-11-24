@@ -23,7 +23,7 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractPathfinderMob;
 import fr.euphyllia.fidorial.server.entity.mob.AngerableMob;
 import fr.euphyllia.fidorial.server.entity.mob.MobAttribute;
 import fr.euphyllia.fidorial.server.entity.mob.PersistentAnger;
-import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.endermite.EndermiteEntity;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.events.mob.MobBlockChanges;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
@@ -90,7 +90,7 @@ import java.util.function.BooleanSupplier;
  * one it carries down; it drops that block when it dies, and does not despawn while it carries
  * one.</p>
  */
-public final class EndermanImpl extends AbstractMonster implements AngerableMob, Enderman {
+public final class EndermanEntity extends AbstractMonster implements AngerableMob, Enderman {
 
     public static final float MAX_HEALTH = 40f;
 
@@ -174,7 +174,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
     /**
      * Creates an enderman as one that spawns, with the random traits of one.
      */
-    public EndermanImpl(final int entityId, final Location location) {
+    public EndermanEntity(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.ENDERMAN, location, MAX_HEALTH);
         navigation.setPathPenalty(AVOIDS_WATER);
         goals.add(new FloatGoal(this, 0));
@@ -187,7 +187,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
         goals.add(new TakeBlockGoal());
         goals.add(new LookForPlayerGoal());
         goals.add(new HurtByTargetGoal(this, 2));
-        goals.add(new NearestAttackableTargetGoal<>(this, 3, EndermiteImpl.class, true));
+        goals.add(new NearestAttackableTargetGoal<>(this, 3, EndermiteEntity.class, true));
         goals.add(new ResetUniversalAngerTargetGoal<>(this, 4, false));
         // every mob that spawns notices its targets from a little closer or further than the others
         final ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -197,7 +197,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
                 MobAttribute.Operation.ADD_MULTIPLIED_BASE);
     }
 
-    public EndermanImpl(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth, @Nullable final BlockState carriedBlock, final boolean creepy, final boolean staredAt, final int age, final int targetChangeTime) {
+    public EndermanEntity(final int entityId, final UUID uuid, final EntityType type, final Location location, final float maxHealth, @Nullable final BlockState carriedBlock, final boolean creepy, final boolean staredAt, final int age, final int targetChangeTime) {
         super(entityId, uuid, type, location, maxHealth);
         this.carriedBlock = carriedBlock;
         this.creepy = creepy;
@@ -685,7 +685,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
         private int teleportTime;
 
         LookForPlayerGoal() {
-            super(EndermanImpl.this, 1, false);
+            super(EndermanEntity.this, 1, false);
         }
 
         private boolean isAngerInducing(final ServerPlayer player) {
@@ -699,7 +699,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
             ServerPlayer nearest = null;
             double nearestSq = Double.MAX_VALUE;
             for (final ServerPlayer player : server().players().online()) {
-                if (!Targeting.test(EndermanImpl.this, player, range, true, true) || !isAngerInducing(player)) {
+                if (!Targeting.test(EndermanEntity.this, player, range, true, true) || !isAngerInducing(player)) {
                     continue;
                 }
                 final Location other = player.location();
@@ -740,7 +740,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
                 return true;
             }
             // once it attacks, it keeps after the player wherever they go
-            if (targetMob != null && Targeting.canAttack(EndermanImpl.this, targetMob)) {
+            if (targetMob != null && Targeting.canAttack(EndermanEntity.this, targetMob)) {
                 return true;
             }
             return super.shouldContinue();
@@ -823,7 +823,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
                     || !isReachable((int) Math.floor(at.x()), (int) Math.floor(at.z()), y, x, z)) {
                 return;
             }
-            if (MobBlockChanges.change(EndermanImpl.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+            if (MobBlockChanges.change(EndermanEntity.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
                 setCarriedBlockState(defaultState(state.name()));
             }
@@ -923,7 +923,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
             final BlockState placed = withSnowAbove(carried, world, x, y, z);
             final BlockState there = BlockView.blockAt(world, x, y, z);
             if (there != null && canPlace(world, position, placed)
-                    && MobBlockChanges.change(EndermanImpl.this, world, position, there, placed)) {
+                    && MobBlockChanges.change(EndermanEntity.this, world, position, there, placed)) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, position);
                 setCarriedBlockState(null);
             }
@@ -945,7 +945,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
         private boolean isEmpty(final ServerWorld world, final BlockPosition position) {
             final AtomicBoolean found = new AtomicBoolean(false);
             world.entityManager().forEachNear(position.chunk(), 2.0, entity -> {
-                if (!found.get() && entity != EndermanImpl.this && !entity.isRemoved() && overlaps(entity, position)) {
+                if (!found.get() && entity != EndermanEntity.this && !entity.isRemoved() && overlaps(entity, position)) {
                     found.set(true);
                 }
             });

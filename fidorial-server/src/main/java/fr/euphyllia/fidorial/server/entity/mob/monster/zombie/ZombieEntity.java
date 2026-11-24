@@ -56,7 +56,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>The husk, the drowned and the frostbite are zombies too; they change the hooks of this class.</p>
  */
-public class ZombieImpl extends AbstractMonster implements Zombie {
+public class ZombieEntity extends AbstractMonster implements Zombie {
 
     public static final float MAX_HEALTH = 20f;
 
@@ -128,7 +128,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
      * Creates a zombie as one that spawns: a baby one time out of twenty, and, the harder the game
      * is where it stands, the more likely one that breaks doors or leads the others.
      */
-    public ZombieImpl(final int entityId, final Location location) {
+    public ZombieEntity(final int entityId, final Location location) {
         this(entityId, EntityTypes.ZOMBIE, location, true);
     }
 
@@ -136,11 +136,11 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
      * @param spawned {@code true} for a zombie that spawns, with the random traits of one;
      *                {@code false} for a plain adult, as the one another mob turns into
      */
-    public ZombieImpl(final int entityId, final Location location, final boolean spawned) {
+    public ZombieEntity(final int entityId, final Location location, final boolean spawned) {
         this(entityId, EntityTypes.ZOMBIE, location, spawned);
     }
 
-    protected ZombieImpl(final int entityId, final EntityType type, final Location location, final boolean spawned) {
+    protected ZombieEntity(final int entityId, final EntityType type, final Location location, final boolean spawned) {
         this(entityId, type, location, spawned, true);
     }
 
@@ -149,8 +149,8 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
      *                plain zombie does; {@code false} for a kind that adds goals of its own for
      *                that, and only shares with the others the way they look around
      */
-    protected ZombieImpl(final int entityId, final EntityType type, final Location location, final boolean spawned,
-                         final boolean behaves) {
+    protected ZombieEntity(final int entityId, final EntityType type, final Location location, final boolean spawned,
+                           final boolean behaves) {
         super(entityId, UUID.randomUUID(), type, location, MAX_HEALTH);
         this.burnsInDaylight = server().registries().registry(RegistryKey.ENTITY_TYPE)
                 .isTagged(type.key(), EntityTypeTagKeys.BURN_IN_DAYLIGHT);
@@ -400,8 +400,8 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
     /**
      * {@return the zombie this one turns into after a while under water, not yet in the world}
      */
-    protected ZombieImpl drownedForm(final int entityId, final Location location) {
-        return new DrownedImpl(entityId, location, false);
+    protected ZombieEntity drownedForm(final int entityId, final Location location) {
+        return new DrownedEntity(entityId, location, false);
     }
 
     /**
@@ -421,7 +421,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
     /**
      * {@return the zombie this one turns into after a while in powder snow, not yet in the world}
      */
-    protected ZombieImpl frozenForm(final int entityId, final Location location) {
+    protected ZombieEntity frozenForm(final int entityId, final Location location) {
         return new FrostbiteEntity(entityId, location, false);
     }
 
@@ -528,7 +528,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
      *
      * @return {@code false} if a plugin kept this zombie as it is
      */
-    private boolean convertInto(final ZombieImpl converted, final Sound.Type sound) {
+    private boolean convertInto(final ZombieEntity converted, final Sound.Type sound) {
         converted.setBaby(baby);
         if (canBreakDoors) {
             converted.setCanBreakDoors(true);
@@ -600,7 +600,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
 
             final AbstractMob created = MobFactories.create(type(), server().entities().ids().allocate(),
                     Location.of(world, x + 0.5, y, z + 0.5, 0f, 0f));
-            if (!(created instanceof final ZombieImpl reinforcement)) {
+            if (!(created instanceof final ZombieEntity reinforcement)) {
                 return false;
             }
             reinforcement.setTarget(enemy);

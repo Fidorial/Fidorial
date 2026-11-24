@@ -42,7 +42,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * gives up the one it chases. It keeps away from the armadillos. On hard difficulty, the harder the
  * game is where it spawns, the more likely it carries an effect that never runs out.
  */
-public class SpiderImpl extends AbstractMonster implements Spider {
+public class SpiderEntity extends AbstractMonster implements Spider {
 
     public static final float MAX_HEALTH = 16f;
 
@@ -85,7 +85,7 @@ public class SpiderImpl extends AbstractMonster implements Spider {
     /**
      * Creates a spider as one that spawns, with the random traits of one.
      */
-    public SpiderImpl(final int entityId, final Location location) {
+    public SpiderEntity(final int entityId, final Location location) {
         this(entityId, EntityTypes.SPIDER, location, MAX_HEALTH);
         finalizeSpawn();
     }
@@ -93,7 +93,7 @@ public class SpiderImpl extends AbstractMonster implements Spider {
     /**
      * Creates a spider of another kind, without the random traits of one that spawns.
      */
-    protected SpiderImpl(final int entityId, final EntityType type, final Location location, final float maxHealth) {
+    protected SpiderEntity(final int entityId, final EntityType type, final Location location, final float maxHealth) {
         super(entityId, UUID.randomUUID(), type, location, maxHealth);
         navigation.setClimbsWalls(width());
         goals.add(new FloatGoal(this, 1));
@@ -281,7 +281,7 @@ public class SpiderImpl extends AbstractMonster implements Spider {
     private final class SpiderAttackGoal extends MeleeAttackGoal {
 
         private SpiderAttackGoal(final int priority) {
-            super(SpiderImpl.this, priority, 1.0, true);
+            super(SpiderEntity.this, priority, 1.0, true);
         }
 
         @Override

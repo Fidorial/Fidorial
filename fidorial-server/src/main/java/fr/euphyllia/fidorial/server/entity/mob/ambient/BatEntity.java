@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * The bat: it hangs from the ceiling of caves until a player comes near, then flutters about at
  * random, and now and then hangs again from a block above it.
  */
-public final class BatImpl extends AbstractFlyingMob implements Category.Ambient, Bat {
+public final class BatEntity extends AbstractFlyingMob implements Category.Ambient, Bat {
 
     public static final float MAX_HEALTH = 6f;
 
@@ -105,7 +105,7 @@ public final class BatImpl extends AbstractFlyingMob implements Category.Ambient
     private boolean resting = true;
     private @Nullable BlockPosition wanderTarget;
 
-    public BatImpl(final int entityId, final Location location) {
+    public BatEntity(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.BAT, location, MAX_HEALTH);
     }
 

@@ -70,7 +70,7 @@ import java.util.function.BooleanSupplier;
  *
  * <p>It stays in a peaceful world, and sounds like a neutral mob.</p>
  */
-public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube {
+public final class SulfurCubeEntity extends AbstractCubeMob implements SulfurCube {
 
     private static final double BASE_EYE_HEIGHT = 0.175;
     private static final float HEALTH_PER_SIZE = 4.0f;
@@ -148,11 +148,11 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
     /**
      * Creates an adult sulfur cube as one that spawns.
      */
-    public SulfurCubeImpl(final int entityId, final Location location) {
+    public SulfurCubeEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
-    private SulfurCubeImpl(final int entityId, final Location location, final boolean spawned) {
+    private SulfurCubeEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.SULFUR_CUBE, location, spawned);
         goals.add(new CubeTemptGoal(TEMPT_PRIORITY, this::isTempting, TEMPT_RANGE, TEMPT_STOP_DISTANCE));
         goals.add(new SearchForItemsGoal());
@@ -161,7 +161,7 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
 
     @Override
     protected AbstractCubeMob newSplitCube(final int entityId, final Location location) {
-        return new SulfurCubeImpl(entityId, location, false);
+        return new SulfurCubeEntity(entityId, location, false);
     }
 
     /**
@@ -894,7 +894,7 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
                     }
                 }
             });
-            return found.stream().min(Comparator.comparingDouble(SulfurCubeImpl.this::distanceSqTo)).orElse(null);
+            return found.stream().min(Comparator.comparingDouble(SulfurCubeEntity.this::distanceSqTo)).orElse(null);
         }
     }
 }

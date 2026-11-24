@@ -50,7 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * and breeds when fed wheat. Its wool is sheared and grows back when it grazes, takes the colour of
  * a dye, and comes in the colours of the biome it spawned in.
  */
-public final class SheepImpl extends AbstractAnimal implements Category.Neutral, Sheep {
+public final class SheepEntity extends AbstractAnimal implements Category.Neutral, Sheep {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -97,7 +97,7 @@ public final class SheepImpl extends AbstractAnimal implements Category.Neutral,
      * Spawns a sheep as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an adult,
      * of one of the colours of the biome.
      */
-    public SheepImpl(final int entityId, final Location location) {
+    public SheepEntity(final int entityId, final Location location) {
         this(entityId, location, false);
         this.color = randomColor(BlockView.biomeAt(serverWorld(),
                 (int) Math.floor(location.x()), (int) Math.floor(location.y()), (int) Math.floor(location.z())));
@@ -106,7 +106,7 @@ public final class SheepImpl extends AbstractAnimal implements Category.Neutral,
     /**
      * Creates a white sheep, as vanilla does before it sets up a sheep.
      */
-    public SheepImpl(final int entityId, final Location location, final boolean baby) {
+    public SheepEntity(final int entityId, final Location location, final boolean baby) {
         super(entityId, UUID.randomUUID(), EntityTypes.SHEEP, location, MAX_HEALTH, baby);
         navigation.setPathPenalty(PathPenalty.LAND_ANIMAL);
 
@@ -328,9 +328,9 @@ public final class SheepImpl extends AbstractAnimal implements Category.Neutral,
     }
 
     @Override
-    protected @Nullable SheepImpl createOffspring(final AbstractAnimal partner) {
-        final SheepImpl baby = new SheepImpl(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final SheepImpl other) {
+    protected @Nullable SheepEntity createOffspring(final AbstractAnimal partner) {
+        final SheepEntity baby = new SheepEntity(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final SheepEntity other) {
             baby.color = DyeColors.mix(color, other.color);
         }
         return baby;

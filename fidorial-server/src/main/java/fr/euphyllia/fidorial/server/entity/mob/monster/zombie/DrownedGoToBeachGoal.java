@@ -16,9 +16,9 @@ final class DrownedGoToBeachGoal extends MoveToBlockGoal {
     private static final int VERTICAL_SEARCH_RANGE = 2;
     private static final int DEPTH_BELOW_SEA_LEVEL = 3;
 
-    private final DrownedImpl drowned;
+    private final DrownedEntity drowned;
 
-    DrownedGoToBeachGoal(final DrownedImpl drowned, final int priority, final double speedModifier) {
+    DrownedGoToBeachGoal(final DrownedEntity drowned, final int priority, final double speedModifier) {
         super(drowned, priority, speedModifier, SEARCH_RANGE, VERTICAL_SEARCH_RANGE);
         this.drowned = drowned;
     }

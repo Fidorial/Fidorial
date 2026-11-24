@@ -10,7 +10,7 @@ import fr.fidorial.registry.keys.MobEffectKeys;
  * The cave spider: a smaller spider with 12 health, whose bite poisons for 7 seconds on normal
  * difficulty and 15 on hard. It spawns without any of the random traits of a spider.
  */
-public final class CaveSpiderImpl extends SpiderImpl {
+public final class CaveSpiderEntity extends SpiderEntity {
 
     public static final float MAX_HEALTH = 12f;
 
@@ -21,7 +21,7 @@ public final class CaveSpiderImpl extends SpiderImpl {
     private static final int NORMAL_POISON_TICKS = 7 * 20;
     private static final int HARD_POISON_TICKS = 15 * 20;
 
-    public CaveSpiderImpl(final int entityId, final Location location) {
+    public CaveSpiderEntity(final int entityId, final Location location) {
         super(entityId, EntityTypes.CAVE_SPIDER, location, MAX_HEALTH);
     }
 

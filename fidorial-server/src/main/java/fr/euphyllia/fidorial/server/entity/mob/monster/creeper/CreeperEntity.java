@@ -57,10 +57,10 @@ import java.util.concurrent.ThreadLocalRandom;
  * away from cats and ocelots, explodes on its own once lit with flint and steel or a fire charge,
  * and, charged by lightning, explodes twice as far and leaves the head of the mobs it kills.
  */
-public final class CreeperImpl extends AbstractMonster implements Creeper {
+public final class CreeperEntity extends AbstractMonster implements Creeper {
 
     public static final float MAX_HEALTH = 20f;
-    private static final ComponentLogger LOGGER = ComponentLogger.logger(CreeperImpl.class);
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(CreeperEntity.class);
 
     private static final double MOVEMENT_SPEED = 0.25;
     private static final double STROLL_SPEED_MODIFIER = 0.8;
@@ -86,7 +86,7 @@ public final class CreeperImpl extends AbstractMonster implements Creeper {
     private boolean ignited;
     private boolean droppedSkulls;
 
-    public CreeperImpl(final int entityId, final Location location) {
+    public CreeperEntity(final int entityId, final Location location) {
         super(entityId, UUID.randomUUID(), EntityTypes.CREEPER, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new SwellGoal(2));

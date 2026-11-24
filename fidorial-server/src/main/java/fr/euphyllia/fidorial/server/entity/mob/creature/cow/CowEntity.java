@@ -24,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * The cow : what every {@linkplain AbstractCow cow} does, in the colour of the biome
  * it spawned in, with a classic or a moody voice.
  */
-public final class CowImpl extends AbstractCow implements Category.Neutral, Cow {
+public final class CowEntity extends AbstractCow implements Category.Neutral, Cow {
 
 
     private static final int MD_VARIANT = 18;
@@ -42,7 +42,7 @@ public final class CowImpl extends AbstractCow implements Category.Neutral, Cow 
      * Spawns a cow as vanilla does out of nowhere, with a spawn egg or {@code /summon}: an adult, of
      * the variant of the biome, with a random voice.
      */
-    public CowImpl(final int entityId, final Location location) {
+    public CowEntity(final int entityId, final Location location) {
         this(entityId, location, false);
         this.variant = FarmAnimalVariants.forBiome(serverWorld(), location,
                 CowVariantKeys.TEMPERATE, CowVariantKeys.WARM, CowVariantKeys.COLD);
@@ -53,7 +53,7 @@ public final class CowImpl extends AbstractCow implements Category.Neutral, Cow 
      * Creates a temperate cow with the classic voice, as vanilla does before it sets up a cow: a
      * newborn keeps that voice.
      */
-    public CowImpl(final int entityId, final Location location, final boolean baby) {
+    public CowEntity(final int entityId, final Location location, final boolean baby) {
         super(entityId, EntityTypes.COW, location, baby);
     }
 
@@ -100,9 +100,9 @@ public final class CowImpl extends AbstractCow implements Category.Neutral, Cow 
     }
 
     @Override
-    protected @Nullable CowImpl createOffspring(final AbstractAnimal partner) {
-        final CowImpl baby = new CowImpl(server().entities().ids().allocate(), birthLocation(), true);
-        if (partner instanceof final CowImpl other) {
+    protected @Nullable CowEntity createOffspring(final AbstractAnimal partner) {
+        final CowEntity baby = new CowEntity(server().entities().ids().allocate(), birthLocation(), true);
+        if (partner instanceof final CowEntity other) {
             baby.variant = ThreadLocalRandom.current().nextBoolean() ? variant : other.variant;
         }
         return baby;

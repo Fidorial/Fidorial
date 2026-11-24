@@ -44,7 +44,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * blocks nearby. With nothing to do it slips into a stone block next to it, which becomes an
  * infested block. Its steps make no sound.
  */
-public final class SilverfishImpl extends AbstractMonster implements Silverfish {
+public final class SilverfishEntity extends AbstractMonster implements Silverfish {
 
     public static final float MAX_HEALTH = 8f;
 
@@ -75,11 +75,11 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
     /**
      * Creates a silverfish as one that spawns, with the random traits of one.
      */
-    public SilverfishImpl(final int entityId, final Location location) {
+    public SilverfishEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
-    private SilverfishImpl(final int entityId, final Location location, final boolean spawned) {
+    private SilverfishEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, UUID.randomUUID(), EntityTypes.SILVERFISH, location, MAX_HEALTH);
         goals.add(new FloatGoal(this, 1));
         goals.add(new ClimbOnTopOfPowderSnowGoal(this, 1));
@@ -97,8 +97,8 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
      * Creates a silverfish coming out of an infested block, without the random traits of one that
      * spawns.
      */
-    public static SilverfishImpl leavingBlock(final int entityId, final Location location) {
-        return new SilverfishImpl(entityId, location, false);
+    public static SilverfishEntity leavingBlock(final int entityId, final Location location) {
+        return new SilverfishEntity(entityId, location, false);
     }
 
     /**
@@ -292,7 +292,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
 
         private void wake(final ServerWorld world, final BlockPosition position, final BlockState state) {
             if (mobGriefing()) {
-                if (MobBlockChanges.change(SilverfishImpl.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+                if (MobBlockChanges.change(SilverfishEntity.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
                     world.sendToChunkViewers(position.chunkX(), position.chunkZ(), new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, position,
                             server().registries().blockStates().networkId(state), false));
@@ -302,7 +302,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
             } else {
                 final BlockState host = InfestedBlocks.host(state);
                 if (host != null) {
-                    MobBlockChanges.change(SilverfishImpl.this, world, position, state, host);
+                    MobBlockChanges.change(SilverfishEntity.this, world, position, state, host);
                 }
             }
         }
@@ -321,7 +321,7 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
         private static final Set<Flag> FLAGS = Set.of(Flag.MOVE);
         private static final int[][] DIRECTIONS = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
 
-        private final RandomStrollGoal stroll = new RandomStrollGoal(SilverfishImpl.this, PRIORITY, SilverfishImpl.this::movementSpeed)
+        private final RandomStrollGoal stroll = new RandomStrollGoal(SilverfishEntity.this, PRIORITY, SilverfishEntity.this::movementSpeed)
                 .interval(STROLL_INTERVAL);
         private @Nullable BlockPosition mergeInto;
 
@@ -374,9 +374,9 @@ public final class SilverfishImpl extends AbstractMonster implements Silverfish 
             final ServerWorld world = serverWorld();
             final BlockState state = BlockView.blockAt(world, position.blockX(), position.blockY(), position.blockZ());
             final BlockState infested = state == null ? null : InfestedBlocks.infested(state);
-            if (state != null && infested != null && MobBlockChanges.change(SilverfishImpl.this, world, position, state, infested)) {
+            if (state != null && infested != null && MobBlockChanges.change(SilverfishEntity.this, world, position, state, infested)) {
                 spawnAnimation();
-                server().entities().despawn(SilverfishImpl.this);
+                server().entities().despawn(SilverfishEntity.this);
             }
         }
 

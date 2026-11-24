@@ -8,9 +8,9 @@ import fr.euphyllia.fidorial.server.entity.ai.goal.ZombieAttackGoal;
  */
 final class DrownedAttackGoal extends ZombieAttackGoal {
 
-    private final DrownedImpl drowned;
+    private final DrownedEntity drowned;
 
-    DrownedAttackGoal(final DrownedImpl drowned, final int priority, final double speedModifier,
+    DrownedAttackGoal(final DrownedEntity drowned, final int priority, final double speedModifier,
                       final boolean followsUnseenTarget) {
         super(drowned, priority, speedModifier, followsUnseenTarget);
         this.drowned = drowned;
