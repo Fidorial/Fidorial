@@ -52,6 +52,8 @@ public final class DefaultPermissions {
                 command("tick", "Freeze, step or change the tick rate of the game."),
                 command("time", "Change the time of a world."),
                 command("tps", "View per-region TPS."),
+                command("tpsbar", "Toggle a live bar showing the TPS, MSPT, ping, memory and thread load."),
+                command("tpsbar.others", "Toggle the TPS bar of other players."),
                 command("transfer", "Send players to another server."),
                 command("weather", "Change the weather."),
                 command("whitelist", "Manage the whitelist."),

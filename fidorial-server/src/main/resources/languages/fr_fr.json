@@ -36,6 +36,13 @@
   "command.tps.line" : " - <arg:0> [<arg:1>,<arg:2>] (chunks <arg:3>,<arg:4>) : <arg:5> TPS, <arg:6> ms/tick, <arg:7> % CPU, <arg:8> tâche(s), <arg:9> ticket(s)",
   "command.tps.more" : "   ... et <arg:0> autre(s) région(s)",
 
+  "command.tpsbar.title" : "<gray>TPS</gray> <arg:0> <dark_gray>|</dark_gray> <gray>MSPT</gray> <arg:1> <dark_gray>|</dark_gray> <gray>Ping</gray> <arg:2><gray> ms</gray> <dark_gray>|</dark_gray> <gray>RAM</gray> <arg:3><gray> Go</gray> <dark_gray>|</dark_gray> <gray>Thread</gray> <arg:4><gray> %</gray>",
+  "command.tpsbar.enabled" : "<green>Barre de performances activée.",
+  "command.tpsbar.disabled" : "<red>Barre de performances désactivée.",
+  "command.tpsbar.enabled.other" : "Barre de performances activée pour <arg:0>.",
+  "command.tpsbar.disabled.other" : "Barre de performances désactivée pour <arg:0>.",
+  "command.tpsbar.not_player" : "<red>Une cible est requise lorsque la commande n'est pas exécutée par un joueur",
+
   "command.plugins.none" : "Aucun plugin installé.",
   "command.plugins.list" : "Plugins (<arg:0>, <green><arg:1> activé(s)</green>, <red><arg:2> désactivé(s)</red>) : <arg:3>",
   "command.plugins.hover.enabled" : "<green>Activé</green><newline><gray>Version <arg:0><newline>Cliquez pour les détails",

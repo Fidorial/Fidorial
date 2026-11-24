@@ -43,6 +43,7 @@ import fr.euphyllia.fidorial.server.command.defaults.TransferCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WeatherCommand;
 import fr.euphyllia.fidorial.server.command.defaults.WhitelistCommand;
 import fr.euphyllia.fidorial.server.command.fidorial.PluginsCommand;
+import fr.euphyllia.fidorial.server.command.fidorial.TpsBarCommand;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.common.ClientboundCommandsPacket;
 import fr.fidorial.command.CommandRegistry;
@@ -127,6 +128,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(TransferCommand.create());
 
         registerInternal(PluginsCommand.create(),  Set.of("pl", "plugin"));
+        registerInternal(TpsBarCommand.create());
     }
 
     public void registerInternal(final LiteralCommandNode<CommandSource> command) {

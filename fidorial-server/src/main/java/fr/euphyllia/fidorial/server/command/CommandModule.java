@@ -4,6 +4,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.adventure.ClickCallbackManager;
+import fr.euphyllia.fidorial.server.command.fidorial.utils.TpsBarManager;
 import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
@@ -29,6 +30,7 @@ public final class CommandModule implements ServerModule, CommandRegistry {
     private final CommandManager manager = new CommandManager();
     private final ClickCallbackManager clickCallbacks = new ClickCallbackManager();
     private final ConsoleSender console;
+    private final TpsBarManager tpsBars;
 
     /**
      * @param headless whether the interactive console must not be started
@@ -39,6 +41,7 @@ public final class CommandModule implements ServerModule, CommandRegistry {
         this.server = server;
         this.headless = headless;
         this.console = new ConsoleSender(server, registries.permissions(), services);
+        this.tpsBars = new TpsBarManager(server);
     }
 
     @Override
@@ -58,6 +61,7 @@ public final class CommandModule implements ServerModule, CommandRegistry {
     public void stop() {
         Quietly.run("commands", manager::shutdown);
         Quietly.run("click callbacks", clickCallbacks::close);
+        Quietly.run("tps bars", tpsBars::shutdown);
     }
 
     public CommandManager manager() {
@@ -70,6 +74,13 @@ public final class CommandModule implements ServerModule, CommandRegistry {
 
     public ClickCallbackManager clickCallbacks() {
         return clickCallbacks;
+    }
+
+    /**
+     * {@return the boss bars of {@code /tpsbar}}
+     */
+    public TpsBarManager tpsBars() {
+        return tpsBars;
     }
 
     // ---- CommandRegistry API, backed by the command manager

@@ -63,7 +63,7 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 - Folia-inspired regionized scheduler: the world is split into independent regions (32×32 chunks by default,
   configurable with `threading.region-section-shift`), each ticking at 20 TPS on its own thread
 - Brigadier commands, in game and in an interactive console with completion and highlighting: `/gamemode` (`/gm`),
-  `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
+  `/weather` (`/w`), `/time`, `/gamerule`, `/summon`, `/tps`, `/tpsbar`, `/op`, `/deop`, `/bossbar`, `/stop` (`/s`)
 - Permission system with operator list and plugin-declared nodes
 - Plugin API based on JPMS modules, with [Adventure](https://docs.advntr.dev/) for all text
 - Scenario test harness running against a real server

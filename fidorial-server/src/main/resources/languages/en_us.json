@@ -36,6 +36,13 @@
   "command.tps.line" : " - <arg:0> ['<arg:1>',<arg:2>] (chunks <arg:3>,<arg:4>): <arg:5> TPS, <arg:6> ms/tick, <arg:7>% CPU, <arg:8> task(s), <arg:9> ticket(s)",
   "command.tps.more" : "   ... and <arg:0> other region(s)",
 
+  "command.tpsbar.title" : "<gray>TPS</gray> <arg:0> <dark_gray>|</dark_gray> <gray>MSPT</gray> <arg:1> <dark_gray>|</dark_gray> <gray>Ping</gray> <arg:2><gray> ms</gray> <dark_gray>|</dark_gray> <gray>RAM</gray> <arg:3><gray> GB</gray> <dark_gray>|</dark_gray> <gray>Thread</gray> <arg:4><gray>%</gray>",
+  "command.tpsbar.enabled" : "<green>Performance bar enabled.",
+  "command.tpsbar.disabled" : "<red>Performance bar disabled.",
+  "command.tpsbar.enabled.other" : "Performance bar enabled for <arg:0>.",
+  "command.tpsbar.disabled.other" : "Performance bar disabled for <arg:0>.",
+  "command.tpsbar.not_player" : "<red>A target is required when the command is not run by a player",
+
   "command.plugins.none" : "No plugin installed.",
   "command.plugins.list" : "Plugins (<arg:0>, <green><arg:1> enabled</green>, <red><arg:2> disabled</red>): <arg:3>",
   "command.plugins.hover.enabled" : "<green>Enabled</green><newline><gray>Version <arg:0><newline>Click for details",
