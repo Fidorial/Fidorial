@@ -11,7 +11,6 @@ import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.events.mob.CubeSplitEventImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.ai.Goal;
@@ -345,7 +344,7 @@ public abstract class AbstractCubeMob extends AbstractAgeableMob implements Cate
         if (isDead() || !isWithinMeleeRange(target) || !hasLineOfSightTo(target)) {
             return;
         }
-        if (server().entities().combat().damage(target, DamageSource.mobAttack(this), attackDamage())) {
+        if (server().entities().combat().attack(this, target)) {
             final ThreadLocalRandom random = ThreadLocalRandom.current();
             final float first = random.nextFloat();
             final float second = random.nextFloat();

@@ -17,7 +17,7 @@ import fr.euphyllia.fidorial.server.entity.mob.misc.Villager;
 import fr.euphyllia.fidorial.server.entity.mob.monster.LocalDifficulty;
 import fr.euphyllia.fidorial.server.entity.mob.monster.ZombifiedPiglin;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.entity.projectile.IceBall;
+import fr.euphyllia.fidorial.server.entity.projectile.IceBallEntity;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.mob.monster.Frostbite;
@@ -209,7 +209,7 @@ public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
         final double velocityY = (dy / length + triangle(random, spread)) * THROW_SPEED;
         final double velocityZ = (dz / length + triangle(random, spread)) * THROW_SPEED;
 
-        final IceBall ball = new IceBall(server().entities().ids().allocate(),
+        final IceBallEntity ball = new IceBallEntity(server().entities().ids().allocate(),
                 Location.of(world(), self.x(), fromY, self.z(), yaw(), pitch()), this, velocityX, velocityY, velocityZ);
         server().entities().spawn(ball);
         playSound(SoundEvents.FROSTBITE_THROW, 1.0f, 0.4f / (random.nextFloat() * 0.4f + 0.8f));

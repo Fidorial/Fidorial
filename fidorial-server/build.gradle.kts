@@ -313,6 +313,10 @@ fidorialRegistryGenerator {
         layout.projectDirectory.file("src/generated/resources/fidorial-data/block_mining.json"),
     )
 
+    itemCombatDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/item_combat.json"),
+    )
+
     blockSupportDataset.set(
         layout.projectDirectory.file("src/generated/resources/fidorial-data/block_support.json"),
     )

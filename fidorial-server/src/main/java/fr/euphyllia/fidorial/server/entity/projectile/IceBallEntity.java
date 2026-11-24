@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.entity.projectile;
 
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
+import fr.euphyllia.fidorial.server.combat.Hitboxes;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
-import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
@@ -14,11 +15,9 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositio
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.math.Location;
 import fr.fidorial.sound.SoundEvents;
-import fr.fidorial.world.ChunkPos;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -31,7 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>It is never saved with the chunk: an ice ball only lives for a few seconds.</p>
  */
-public final class IceBall extends AbstractEntity {
+public final class IceBallEntity extends AbstractEntity {
 
     private static final double DAMAGE_PER_SPEED = 1.3;
 
@@ -44,8 +43,6 @@ public final class IceBall extends AbstractEntity {
     private static final double HIT_MARGIN = 0.125;
     private static final int MAX_LIFETIME_TICKS = 200;
 
-    private static final double PLAYER_WIDTH = 0.6;
-    private static final double PLAYER_HEIGHT = 1.8;
 
     /** Entity event of a thrown item breaking: the client plays the break particles. */
     private static final byte ENTITY_EVENT_BREAK = 3;
@@ -57,7 +54,7 @@ public final class IceBall extends AbstractEntity {
     private double velocityZ;
     private int age;
 
-    public IceBall(final int entityId, final Location location, final @Nullable AbstractLivingEntity owner,
+    public IceBallEntity(final int entityId, final Location location, final @Nullable AbstractLivingEntity owner,
                    final double velocityX, final double velocityY, final double velocityZ) {
         super(entityId, UUID.randomUUID(), EntityTypes.ICE_BALL, location);
         this.owner = owner;
@@ -123,7 +120,7 @@ public final class IceBall extends AbstractEntity {
             final AbstractLivingEntity hit = findHit(world, x, y, z);
             if (hit != null) {
                 moveTo(world, from, x, y, z);
-                server().entities().combat().damage(hit, DamageSource.thrown(this, owner), damage());
+                server().entities().combat().damage(hit, DamageSourceFactoryImpl.INSTANCE.thrown(this, owner), damage());
                 shatter();
                 return;
             }
@@ -144,13 +141,7 @@ public final class IceBall extends AbstractEntity {
     }
 
     private void moveTo(final ServerWorld world, final Location from, final double x, final double y, final double z) {
-        final Location to = from.with(x, y, z);
-        setLocation(to);
-        final ChunkPos fromChunk = from.chunk();
-        final ChunkPos toChunk = to.chunk();
-        if (!fromChunk.equals(toChunk)) {
-            world.entityMoved(this, fromChunk, toChunk);
-        }
+        moveWithin(world, from.with(x, y, z));
     }
 
     private @Nullable AbstractLivingEntity findHit(final ServerWorld world, final double x, final double y, final double z) {
@@ -169,28 +160,7 @@ public final class IceBall extends AbstractEntity {
         if (living instanceof final ServerPlayer player && player.gameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        return isInside(living, x, y, z);
-    }
-
-    private static boolean isInside(final AbstractLivingEntity entity, final double x, final double y, final double z) {
-        final double width;
-        final double height;
-        if (entity instanceof final AbstractMovingMob mob) {
-            width = mob.width();
-            height = mob.height();
-        } else if (entity instanceof ServerPlayer) {
-            width = PLAYER_WIDTH;
-            height = PLAYER_HEIGHT;
-        } else {
-            width = entity.type().width();
-            height = entity.type().height();
-        }
-        final Location location = entity.location();
-        final double half = width / 2.0 + HIT_MARGIN;
-        return Math.abs(x - location.x()) <= half
-                && Math.abs(z - location.z()) <= half
-                && y >= location.y() - HIT_MARGIN
-                && y <= location.y() + height + HIT_MARGIN;
+        return Hitboxes.contains(living, HIT_MARGIN, x, y, z);
     }
 
     private void shatter() {

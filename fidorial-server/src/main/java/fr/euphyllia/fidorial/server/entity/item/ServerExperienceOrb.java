@@ -410,13 +410,7 @@ public final class ServerExperienceOrb extends AbstractEntity implements Experie
         y += moved.y();
         final double newZ = z + moved.z();
         if (x != from.x() || y != from.y() || newZ != from.z()) {
-            final Location to = from.with(x, y, newZ);
-            setLocation(to);
-            final ChunkPos fromChunk = from.chunk();
-            final ChunkPos toChunk = to.chunk();
-            if (!fromChunk.equals(toChunk)) {
-                world.entityMoved(this, fromChunk, toChunk);
-            }
+            moveWithin(world, from.with(x, y, newZ));
         }
     }
 

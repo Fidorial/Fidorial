@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.mob.ambient;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.Category;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
@@ -327,7 +328,7 @@ public final class BatImpl extends AbstractFlyingMob implements Category.Ambient
             return;
         }
         igniteForTicks(LAVA_FIRE_TICKS);
-        if (damage(DamageSource.lava(), LAVA_DAMAGE)) {
+        if (damage(DamageSourceFactoryImpl.INSTANCE.lava(), LAVA_DAMAGE)) {
             playSound(SoundEvents.GENERIC_BURN, LAVA_BURN_VOLUME, 2.0f + ThreadLocalRandom.current().nextFloat() * 0.4f);
         }
     }

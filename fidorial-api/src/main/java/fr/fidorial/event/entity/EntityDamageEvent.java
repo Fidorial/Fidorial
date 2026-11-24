@@ -9,93 +9,60 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Fired before an entity takes damage, once invulnerability frames have been cleared but before
- * armor, absorption and knockback are applied.
+ * the shield, armor, Resistance, enchantments, absorption and knockback are applied.
  *
  * @since 0.1.0
  */
-public class EntityDamageEvent implements Event, Cancellable {
-
-    private final LivingEntity entity;
-    private final DamageSource source;
-    private float damage;
-    private double knockback;
-    private boolean cancelled;
-
-    /**
-     * Creates an event.
-     *
-     * @param entity    the entity about to be hurt
-     * @param source    the origin of the hit
-     * @param damage    the damage about to be dealt, in half-hearts
-     * @param knockback the horizontal knockback strength about to be applied
-     * @since 0.1.0
-     */
-    public EntityDamageEvent(
-            final LivingEntity entity, final DamageSource source, final float damage, final double knockback) {
-        this.entity = entity;
-        this.source = source;
-        this.damage = damage;
-        this.knockback = knockback;
-    }
+public interface EntityDamageEvent extends Event, Cancellable {
 
     /**
      * {@return the entity about to be hurt}
      *
      * @since 0.1.0
      */
-    public LivingEntity entity() {
-        return entity;
-    }
+    LivingEntity entity();
 
     /**
-     * @return the origin of the hit, carrying the damage type and the entities involved
+     * {@return the origin of the hit, carrying the damage type and the entities involved}
+     *
+     * @since 0.1.0
      */
-    public DamageSource source() {
-        return source;
-    }
+    DamageSource source();
 
     /**
-     * @return the entity that caused the damage, or {@code null} for environmental damage
+     * {@return the entity that caused the damage, or {@code null} for environmental damage}
+     *
+     * @since 0.1.0
      */
-    public @Nullable Entity damager() {
-        return source.causingEntity();
-    }
+    @Nullable Entity damager();
 
     /**
-     * @return the damage about to be dealt, in half-hearts, before armor and absorption
+     * {@return the damage about to be dealt, in half-hearts, before any reduction}
+     *
+     * @since 0.1.0
      */
-    public float damage() {
-        return damage;
-    }
+    float damage();
 
     /**
+     * Changes the damage about to be dealt.
+     *
      * @param damage the damage to deal instead; {@code <= 0} makes the hit harmless
+     * @since 0.1.0
      */
-    public void setDamage(final float damage) {
-        this.damage = damage;
-    }
+    void setDamage(float damage);
 
     /**
-     * @return the horizontal knockback strength about to be applied
+     * {@return the horizontal knockback strength about to be applied}
+     *
+     * @since 0.1.0
      */
-    public double knockback() {
-        return knockback;
-    }
+    double knockback();
 
     /**
+     * Changes the knockback about to be applied.
+     *
      * @param knockback the knockback strength to apply instead; {@code 0} disables it
+     * @since 0.1.0
      */
-    public void setKnockback(final double knockback) {
-        this.knockback = knockback;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(final boolean cancelled) {
-        this.cancelled = cancelled;
-    }
+    void setKnockback(double knockback);
 }

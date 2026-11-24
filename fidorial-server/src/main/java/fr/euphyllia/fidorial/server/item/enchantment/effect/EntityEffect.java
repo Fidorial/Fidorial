@@ -3,11 +3,12 @@ package fr.euphyllia.fidorial.server.item.enchantment.effect;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.entity.projectile.ArrowProjectileEntity;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectInstance;
@@ -91,8 +92,11 @@ public interface EntityEffect {
 
     private static EntityEffect ignite(final LevelValue duration) {
         return (context, item, affected) -> {
+            final int ticks = (int) Math.floor(duration.at(context.level()) * 20.0f);
             if (affected instanceof final AbstractLivingEntity living) {
-                living.igniteForTicks((int) Math.floor(duration.at(context.level()) * 20.0f));
+                living.igniteForTicks(ticks);
+            } else if (affected instanceof final ArrowProjectileEntity arrow) {
+                arrow.igniteForTicks(ticks);
             }
         };
     }
@@ -103,7 +107,7 @@ public interface EntityEffect {
                 return;
             }
             final float damage = FloatSource.between(context.random(), min.at(context.level()), max.at(context.level()));
-            FidorialServer.getInstance().entities().combat().damage(living, DamageSource.of(type, item.owner()), damage);
+            FidorialServer.getInstance().entities().combat().damage(living, DamageSourceFactoryImpl.INSTANCE.of(type, item.owner()), damage);
         };
     }
 

@@ -1,11 +1,11 @@
 package fr.euphyllia.fidorial.server.tests;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V1_21_11.level.V4660;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.Subscription;
@@ -169,11 +169,11 @@ public final class GameRuleTests {
                 .execute(() -> {
                     rules.setBoolean(GameRuleKeys.FALL_DAMAGE, false);
                     try {
-                        hurtWhileDisabled.set(player.damage(DamageSource.fall(), 4f));
+                        hurtWhileDisabled.set(player.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 4f));
                     } finally {
                         rules.removeOverride(GameRuleKeys.FALL_DAMAGE);
                     }
-                    hurtWhileEnabled.set(player.damage(DamageSource.fall(), 4f));
+                    hurtWhileEnabled.set(player.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 4f));
                 })
                 .execute(() -> helper.assertTrue(!hurtWhileDisabled.get(), "Expected no fall damage with fall_damage=false"))
                 .execute(() -> helper.assertTrue(hurtWhileEnabled.get(), "Expected fall damage with fall_damage=true"))
@@ -241,9 +241,9 @@ public final class GameRuleTests {
                 .execute(() -> helper.assertTrue(other.scheduler().execute(other.key(), new ChunkPos(0, 0), () -> {
                     other.gameRules().setBoolean(GameRuleKeys.FALL_DAMAGE, false);
                     try {
-                        final boolean hurtWhenDisabled = player.damage(DamageSource.fall(), 4f);
+                        final boolean hurtWhenDisabled = player.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 4f);
                         other.gameRules().setBoolean(GameRuleKeys.FALL_DAMAGE, true);
-                        hurtWhenOverriddenToTrue.set(player.damage(DamageSource.fall(), 4f));
+                        hurtWhenOverriddenToTrue.set(player.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 4f));
                         hurt.complete(hurtWhenDisabled);
                     } catch (final RuntimeException e) {
                         hurt.completeExceptionally(e);

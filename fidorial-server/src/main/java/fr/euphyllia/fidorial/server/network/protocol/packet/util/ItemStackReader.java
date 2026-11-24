@@ -1,12 +1,13 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.util;
 
+import fr.euphyllia.fidorial.server.codecs.item.ServerComponents;
+
 import fr.euphyllia.fidorial.server.codecs.item.component.DataComponentNetworkCodecs;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.data.DataComponentMap;
 import fr.fidorial.item.data.DataComponentType;
-import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.Item;
@@ -49,7 +50,7 @@ public class ItemStackReader {
         for (int i = 0; i < removedCount; i++) {
             final TypedKey<DataComponentType<?>> key = registries.registry(RegistryKey.DATA_COMPONENT_TYPE).byNetworkId(buf.readVarInt());
             if (key != null) {
-                final DataComponentType<?> type = DataComponentTypes.byKey(key);
+                final DataComponentType<?> type = ServerComponents.byKey(key);
                 if (type != null) {
                     components.remove(type);
                 }
@@ -80,7 +81,7 @@ public class ItemStackReader {
             return;
         }
 
-        final DataComponentType<?> type = DataComponentTypes.byKey(key);
+        final DataComponentType<?> type = ServerComponents.byKey(key);
         if (type == null || !DataComponentNetworkCodecs.hasCodec(type)) {
             LOGGER.debug("Skipping component {}: not modelled here ({} bytes)", key, length);
             return;

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.bootstrap;
 
+import fr.euphyllia.fidorial.server.combat.ItemCombatData;
 import fr.euphyllia.fidorial.server.debug.DebugChannels;
 import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeBlocks;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
@@ -123,6 +124,7 @@ public final class GameBootstrap {
         BlockCollision.bootstrap(registry);
         BlockItems.bootstrap();
         BlockMining.bootstrap();
+        ItemCombatData.bootstrap();
         registerBlockBehaviours(registry);
         LOGGER.debug("{} blocks defined in code", registry.definedCount());
         return registry;

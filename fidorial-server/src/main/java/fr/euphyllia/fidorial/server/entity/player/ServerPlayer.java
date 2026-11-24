@@ -1,6 +1,10 @@
 package fr.euphyllia.fidorial.server.entity.player;
 
 import com.google.common.base.Preconditions;
+import fr.euphyllia.fidorial.server.combat.CombatAttributes;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
+import fr.euphyllia.fidorial.server.combat.ItemUse;
+import fr.euphyllia.fidorial.server.combat.UseCooldowns;
 import fr.euphyllia.fidorial.server.debug.DebugSubscriptionState;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
@@ -11,10 +15,12 @@ import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.EquipmentEnchantments;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.messaging.PluginChannelRegistry;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBossEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundClearTitlesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundContainerClosePacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundCooldownPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundDisguisedChatPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundEntityEventPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundGameEventPacket;
@@ -27,6 +33,8 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetActionBarTextPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMotionPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEquipmentPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetExperiencePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
@@ -41,12 +49,12 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundTabListPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateAttributesPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundUpdateMobEffectPacket;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.network.serialization.util.nbt.ComponentResolver;
 import fr.euphyllia.fidorial.server.util.annotations.NeedsToBeRevisited;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockStepping;
 import fr.fidorial.attribute.AttributeModifier;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.RespawnPoint;
@@ -105,6 +113,7 @@ import java.net.InetAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -119,7 +128,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.ToDoubleFunction;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -131,6 +139,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     public static final int MAX_AIR_SUPPLY = 300;
     public static final int MD_MAIN_HAND = 15; // Main hand (0: left, 1: right)
+    /** The hand states of a living entity: whether it uses an item, and with which hand. */
+    public static final int MD_LIVING_FLAGS = 8;
+    /** The yellow hearts of a player. */
+    public static final int MD_ABSORPTION = 17;
+    private static final EquipmentSlot[] SYNCED_EQUIPMENT = {
+            EquipmentSlot.MAIN_HAND, EquipmentSlot.OFF_HAND,
+            EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD
+    };
     public static final int MD_DISPLAYED_SKIN_PARTS =
             16; // The Displayed Skin Parts bit mask that is sent in Client Information
     private static final int MAX_TRACKED_ATTACK_TICKS = 100;
@@ -138,9 +154,6 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private static final double SNEAKING_EYE_HEIGHT = 1.27;
     private static final double HALF_WIDTH = 0.3;
     private static final double HEIGHT = 1.8;
-    private static final int[] ARMOR_SLOTS = {
-            PlayerInventory.FEET, PlayerInventory.LEGS, PlayerInventory.CHEST, PlayerInventory.HEAD
-    };
     private static final int VOID_MARGIN = 64;
     /** A player takes one orb every other tick. */
     private static final int TAKE_EXPERIENCE_DELAY_TICKS = 2;
@@ -202,6 +215,14 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     private int nextWindowId = 1;
     private Locale locale;
     private final AtomicReference<DebugSubscriptionState> debugSubscriptions = new AtomicReference<>(DebugSubscriptionState.EMPTY);
+    private final ItemUse itemUse = new ItemUse();
+    private final UseCooldowns useCooldowns = new UseCooldowns();
+    private final Map<EquipmentSlot, ItemStack> sentEquipment = new EnumMap<>(EquipmentSlot.class);
+    private byte sentLivingFlags;
+    private ItemStack lastMainHand = ItemStack.EMPTY;
+    private double impulseX;
+    private double impulseY;
+    private double impulseZ;
 
     public ServerPlayer(
             final int entityId,
@@ -608,17 +629,142 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     @Override
     public double armor() {
-        return 0;
+        return attributeValue(AttributeKeys.ARMOR);
     }
 
     @Override
     public double armorToughness() {
-        return 0;
+        return attributeValue(AttributeKeys.ARMOR_TOUGHNESS);
     }
 
     @Override
     public double knockbackResistance() {
-        return 0;
+        return attributeValue(AttributeKeys.KNOCKBACK_RESISTANCE);
+    }
+
+    /**
+     * Puts a stack in a slot this player wears or holds; their client learns of it with the next
+     * changes of their inventory.
+     *
+     * @param slot  the slot; {@link EquipmentSlot#BODY} and {@link EquipmentSlot#SADDLE} are ignored
+     * @param stack the stack
+     */
+    public void setEquipment(final EquipmentSlot slot, final ItemStack stack) {
+        final int index = slot == EquipmentSlot.MAIN_HAND ? selectedSlot : PlayerInventory.slotOf(slot);
+        if (index < 0 || index >= inventory.size()) {
+            return;
+        }
+        inventory.set(index, stack);
+    }
+
+    @Override
+    public void setAbsorptionAmount(final float absorption) {
+        final float before = absorptionAmount();
+        super.setAbsorptionAmount(absorption);
+        if (Float.compare(before, absorptionAmount()) != 0) {
+            final ClientboundSetEntityMetadataPacket packet = ClientboundSetEntityMetadataPacket.of(entityId(),
+                    ClientboundSetEntityMetadataPacket.Entry.ofFloat(MD_ABSORPTION, absorptionAmount()));
+            sendToTrackers(packet);
+            connection.send(packet);
+        }
+    }
+
+    /**
+     * {@return the item this player is using: a raised shield, a drawn bow...}
+     */
+    public ItemUse itemUse() {
+        return itemUse;
+    }
+
+    /**
+     * {@return {@code true} while the items of a cooldown group cannot be used}
+     *
+     * @param group the cooldown group, the id of the item for most items
+     */
+    public boolean isCoolingDown(final Key group) {
+        return useCooldowns.isCoolingDown(group, ticksLived);
+    }
+
+    /**
+     * Keeps this player from using the items of a cooldown group for a while.
+     *
+     * @param group the cooldown group, the id of the item for most items
+     * @param ticks how long
+     */
+    public void startCooldown(final Key group, final int ticks) {
+        if (ticks <= 0) {
+            return;
+        }
+        useCooldowns.start(group, ticks, ticksLived);
+        connection.send(new ClientboundCooldownPacket(group, ticks));
+    }
+
+    /**
+     * {@return the ticks this player has lived}
+     */
+    public long ticksLived() {
+        return ticksLived;
+    }
+
+    /**
+     * Tells the viewers whether this player uses an item, and with which hand, if that changed.
+     */
+    public void syncLivingFlags() {
+        final byte flags = itemUse.flags();
+        if (flags != sentLivingFlags) {
+            sentLivingFlags = flags;
+            sendToTrackers(ClientboundSetEntityMetadataPacket.of(entityId(),
+                    ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_LIVING_FLAGS, flags)));
+        }
+    }
+
+    /**
+     * {@return the velocity the server last gave this player along the x axis, by a knockback this tick}
+     */
+    public double impulseX() {
+        return impulseX;
+    }
+
+    /**
+     * {@return the velocity the server last gave this player along the y axis, by a knockback this tick}
+     */
+    public double impulseY() {
+        return impulseY;
+    }
+
+    /**
+     * {@return the velocity the server last gave this player along the z axis, by a knockback this tick}
+     */
+    public double impulseZ() {
+        return impulseZ;
+    }
+
+    /**
+     * Adds to the velocity of this player, as an explosion or a smash attack throws them; their
+     * client moves them itself.
+     */
+    public void addImpulse(final double x, final double y, final double z) {
+        this.impulseX += x;
+        this.impulseY += y;
+        this.impulseZ += z;
+        connection.send(new ClientboundAddEntityMotionPacket(entityId(), new PositionData.VelocityVec3D(x, y, z)));
+    }
+
+    /**
+     * Sends the health of this player to their client.
+     */
+    public void sendHealth() {
+        connection.send(new ClientboundSetHealthPacket(health(), 20, 5.0f));
+    }
+
+    /**
+     * Gives this player a velocity, which their client takes over.
+     */
+    public void push(final double x, final double y, final double z) {
+        this.impulseX = x;
+        this.impulseY = y;
+        this.impulseZ = z;
+        connection.send(new ClientboundSetEntityMotionPacket(entityId(), new PositionData.VelocityVec3D(x, y, z)));
     }
 
     public boolean isInvulnerableToDamage() {
@@ -797,6 +943,8 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         resendExperience();
         clearEffectsSilently();
         this.ticksSinceLastAttack.set(MAX_TRACKED_ATTACK_TICKS);
+        itemUse.stop();
+        useCooldowns.clear();
     }
 
     @Override
@@ -837,14 +985,25 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
         syncExperience();
         tickMenu();
+        impulseX = 0.0;
+        impulseY = 0.0;
+        impulseZ = 0.0;
+        tickHeldItem();
         tickLiving(currentTick);
         equipmentEnchantments.tick(!isDead() && !awaitingRespawn);
         if (ticksSinceLastAttack.get() < MAX_TRACKED_ATTACK_TICKS) {
             ticksSinceLastAttack.incrementAndGet();
         }
+        syncEquipment();
         if (isDead() || awaitingRespawn) {
+            if (itemUse.isUsing()) {
+                itemUse.stop();
+            }
+            syncLivingFlags();
             return;
         }
+        connection.server().entities().combat().items().tickUse(this);
+        syncLivingFlags();
         if (onGround && gameMode != GameMode.SPECTATOR && world() instanceof final ServerWorld serverWorld) {
             final Location at = location();
             BlockStepping.walkedOn(serverWorld, this, BlockCollider.Shapes.DEFAULT, at.x(), at.y(), at.z(), HALF_WIDTH, HEIGHT);
@@ -875,7 +1034,7 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         playSound(Sound.sound(
                 damage > SMALL_FALL_THRESHOLD ? SoundEvents.PLAYER_BIG_FALL : SoundEvents.PLAYER_SMALL_FALL,
                 Sound.Source.PLAYER, 1.0f, 1.0f));
-        damage(DamageSource.fall(), damage);
+        damage(DamageSourceFactoryImpl.INSTANCE.fall(), damage);
         return damage;
     }
 
@@ -1232,34 +1391,15 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
 
     /**
      * {@return the value of an attribute: its base, vanilla's default unless a plugin set it, with the
-     * modifiers of the equipped enchantments applied the vanilla way}
+     * modifiers of what the player wears and holds, of their effects and of the equipped enchantments
+     * applied the vanilla way}
      *
      * @param attribute the attribute
      */
+    @Override
     public double attributeValue(final TypedKey<Attribute> attribute) {
-        final double base = baseValue(attribute);
-        final Map<Key, AttributeModifier> modifiers = attributeModifiers.get(attribute);
-        if (modifiers == null || modifiers.isEmpty()) {
-            return base;
-        }
-        double added = base;
-        for (final AttributeModifier modifier : modifiers.values()) {
-            if (modifier.operation() == AttributeModifier.Operation.ADD_VALUE) {
-                added += modifier.amount();
-            }
-        }
-        double value = added;
-        for (final AttributeModifier modifier : modifiers.values()) {
-            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) {
-                value += added * modifier.amount();
-            }
-        }
-        for (final AttributeModifier modifier : modifiers.values()) {
-            if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
-                value *= 1.0 + modifier.amount();
-            }
-        }
-        return value;
+        final Map<Key, AttributeModifier> enchantments = attributeModifiers.get(attribute);
+        return CombatAttributes.value(attribute, baseValue(attribute), this, enchantments == null ? Map.of() : enchantments);
     }
 
     /**
@@ -1325,8 +1465,57 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         viewer.send(new ClientboundRotateHeadPacket(entityId(), location().yaw()));
         viewer.send(ClientboundSetEntityMetadataPacket.of(
                 entityId(),
-                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_DISPLAYED_SKIN_PARTS, connection().displayedSkinParts())));
+                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_DISPLAYED_SKIN_PARTS, connection().displayedSkinParts()),
+                ClientboundSetEntityMetadataPacket.Entry.ofByte(MD_LIVING_FLAGS, itemUse.flags()),
+                ClientboundSetEntityMetadataPacket.Entry.ofFloat(MD_ABSORPTION, absorptionAmount())));
+        final Map<EquipmentSlot, ItemStack> worn = new EnumMap<>(EquipmentSlot.class);
+        for (final EquipmentSlot slot : SYNCED_EQUIPMENT) {
+            final ItemStack stack = equipment(slot);
+            if (!stack.isEmpty()) {
+                worn.put(slot, stack);
+            }
+        }
+        if (!worn.isEmpty()) {
+            viewer.send(new ClientboundSetEquipmentPacket(entityId(), worn));
+        }
         sendBurningTo(viewer);
+    }
+
+    /**
+     * Shows the viewers what this player now wears and holds, if that changed.
+     */
+    private void syncEquipment() {
+        Map<EquipmentSlot, ItemStack> changed = null;
+        for (final EquipmentSlot slot : SYNCED_EQUIPMENT) {
+            final ItemStack stack = equipment(slot);
+            final ItemStack sent = sentEquipment.getOrDefault(slot, ItemStack.EMPTY);
+            if (!stack.equals(sent)) {
+                if (changed == null) {
+                    changed = new EnumMap<>(EquipmentSlot.class);
+                }
+                changed.put(slot, stack);
+                sentEquipment.put(slot, stack);
+            }
+        }
+        if (changed != null) {
+            sendToTrackers(new ClientboundSetEquipmentPacket(entityId(), changed));
+        }
+    }
+
+    /**
+     * Restarts the attack cooldown when another item comes into the main hand, and stops using an
+     * item that left its hand.
+     */
+    private void tickHeldItem() {
+        final ItemStack held = heldItem();
+        if (!held.id().equals(lastMainHand.id())) {
+            resetAttackCooldown();
+        }
+        lastMainHand = held;
+        final EquipmentSlot hand = itemUse.hand();
+        if (hand != null && !equipment(hand).id().equals(itemUse.item().id())) {
+            itemUse.stop();
+        }
     }
 
     @Override
@@ -1439,22 +1628,12 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
         }
     }
 
-    private double armorFromInventory(final ToDoubleFunction<ItemStack> value) {
-        double total = 0.0;
-        for (final int slot : ARMOR_SLOTS) {
-            if (slot < inventory.size()) {
-                total += value.applyAsDouble(inventory.get(slot));
-            }
-        }
-        return total;
-    }
-
     private void tickVoid() {
         final int floor = world() instanceof final ServerWorld serverWorld
                 ? serverWorld.minY() - VOID_MARGIN
                 : -VOID_MARGIN;
         if (location().y() < floor) {
-            damage(DamageSource.outOfWorld(), VOID_DAMAGE);
+            damage(DamageSourceFactoryImpl.INSTANCE.outOfWorld(), VOID_DAMAGE);
         }
     }
 
@@ -1509,9 +1688,9 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public void heal(final float amount) {
         final float before = health();
-        Player.super.heal(amount);
+        super.heal(amount);
         if (health() != before) {
-            connection.send(new ClientboundSetHealthPacket(health(), 20, 5.0f));
+            sendHealth();
         }
     }
 

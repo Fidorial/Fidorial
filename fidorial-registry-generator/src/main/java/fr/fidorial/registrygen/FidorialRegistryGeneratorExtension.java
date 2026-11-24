@@ -115,6 +115,13 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract RegularFileProperty getBlockMiningDataset();
 
     /**
+     * Where the {@code generateItemCombat} task writes the default combat components of every
+     * item. The task only runs when this is set, and needs {@code "--reports"} among the data
+     * generator arguments.
+     */
+    public abstract RegularFileProperty getItemCombatDataset();
+
+    /**
      * Where the {@code generateBlockSupport} task writes, for each block state, whether it conducts
      * redstone power and which faces hold other blocks. The task only runs when this and
      * {@link #getPrismarineMinecraftData()} are set, and needs {@code "--server"} among the data

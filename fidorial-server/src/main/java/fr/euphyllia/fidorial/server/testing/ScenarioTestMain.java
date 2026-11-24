@@ -30,7 +30,14 @@ final class ScenarioTestMain {
         }
 
         final FidorialServer server = new FidorialServer(true);
-        server.start();
+        try {
+            server.start();
+        } catch (final Throwable failure) {
+            LOGGER.error("The server could not start, no scenario test was run", failure);
+            server.shutdown();
+            System.exit(1);
+            return;
+        }
 
         final ScenarioTestRunner runner = new ScenarioTestRunner();
         final List<ScenarioTestInstance> tests =

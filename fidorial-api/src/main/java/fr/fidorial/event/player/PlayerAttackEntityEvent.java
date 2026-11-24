@@ -1,132 +1,94 @@
 package fr.fidorial.event.player;
 
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.player.Player;
 import fr.fidorial.event.Cancellable;
+import fr.fidorial.item.ItemStack;
 
 /**
  * Fired when a player swings at an entity, before any damage is applied.
  *
  * @since 0.1.0
  */
-public final class PlayerAttackEntityEvent implements PlayerEvent, Cancellable {
-
-    private final Player player;
-    private final Entity target;
-    private final float attackStrength;
-    private final boolean critical;
-
-    private float damage;
-    private double knockback;
-    private boolean sweeping;
-    private boolean cancelled;
-
-    /**
-     * Creates an event.
-     *
-     * @param player         the attacking player
-     * @param target         the entity being hit
-     * @param damage         the damage about to be dealt, in half-hearts
-     * @param knockback      the horizontal knockback strength about to be applied
-     * @param attackStrength the attack cooldown charge of the swing
-     * @param critical       whether the swing is a critical hit
-     * @param sweeping       whether the swing also hits the entities around the target
-     * @since 0.1.0
-     */
-    public PlayerAttackEntityEvent(
-            final Player player,
-            final Entity target,
-            final float damage,
-            final double knockback,
-            final float attackStrength,
-            final boolean critical,
-            final boolean sweeping) {
-        this.player = player;
-        this.target = target;
-        this.damage = damage;
-        this.knockback = knockback;
-        this.attackStrength = attackStrength;
-        this.critical = critical;
-        this.sweeping = sweeping;
-    }
-
-    @Override
-    public Player player() {
-        return player;
-    }
+public interface PlayerAttackEntityEvent extends PlayerEvent, Cancellable {
 
     /**
      * {@return the entity being hit}
      *
      * @since 0.1.0
      */
-    public Entity target() {
-        return target;
-    }
+    Entity target();
 
     /**
-     * @return the damage about to be dealt, in half-hearts, critical already applied
+     * {@return the item the player swings, {@link ItemStack#EMPTY} for a bare hand}
+     *
+     * @since 0.1.0
      */
-    public float damage() {
-        return damage;
-    }
+    ItemStack weapon();
 
     /**
+     * {@return the damage about to be dealt, in half-hearts, cooldown, critical hit, smash attack
+     * and enchantments already applied}
+     *
+     * @since 0.1.0
+     */
+    float damage();
+
+    /**
+     * Changes the damage about to be dealt.
+     *
      * @param damage the damage to deal instead; {@code <= 0} makes the hit harmless
+     * @since 0.1.0
      */
-    public void setDamage(final float damage) {
-        this.damage = damage;
-    }
+    void setDamage(float damage);
 
     /**
-     * @return the horizontal knockback strength about to be applied
+     * {@return the extra knockback strength the swing adds to the push every hit gives}
+     *
+     * @since 0.1.0
      */
-    public double knockback() {
-        return knockback;
-    }
+    double knockback();
 
     /**
-     * @param knockback the knockback strength to apply instead; {@code 0} disables it
+     * Changes the extra knockback of the swing.
+     *
+     * @param knockback the extra knockback to apply instead; {@code 0} keeps only the push every hit gives
+     * @since 0.1.0
      */
-    public void setKnockback(final double knockback) {
-        this.knockback = knockback;
-    }
+    void setKnockback(double knockback);
 
     /**
-     * @return the attack cooldown charge of this swing, between {@code 0.2} and {@code 1}
+     * {@return the attack cooldown charge of this swing, between {@code 0} and {@code 1}}
+     *
+     * @since 0.1.0
      */
-    public float attackStrength() {
-        return attackStrength;
-    }
+    float attackStrength();
 
     /**
-     * @return {@code true} when this swing landed as a critical hit
+     * {@return {@code true} when this swing landed as a critical hit}
+     *
+     * @since 0.1.0
      */
-    public boolean isCritical() {
-        return critical;
-    }
+    boolean isCritical();
 
     /**
-     * @return {@code true} when this swing also hits the entities around the target
+     * {@return {@code true} when this swing is a smash attack of a mace}
+     *
+     * @since 0.1.0
      */
-    public boolean isSweeping() {
-        return sweeping;
-    }
+    boolean isSmash();
 
     /**
+     * {@return {@code true} when this swing also hits the entities around the target}
+     *
+     * @since 0.1.0
+     */
+    boolean isSweeping();
+
+    /**
+     * Keeps the swing on its target, or lets it sweep.
+     *
      * @param sweeping {@code false} to keep the hit on the primary target only
+     * @since 0.1.0
      */
-    public void setSweeping(final boolean sweeping) {
-        this.sweeping = sweeping;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(final boolean cancelled) {
-        this.cancelled = cancelled;
-    }
+    void setSweeping(boolean sweeping);
 }

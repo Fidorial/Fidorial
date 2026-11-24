@@ -51,6 +51,7 @@ module fr.fidorial {
     exports fr.fidorial.entity.mob.ambient;
     exports fr.fidorial.entity.mob.creature;
     exports fr.fidorial.entity.mob.monster;
+    exports fr.fidorial.entity.projectile;
     exports fr.fidorial.entity;
     exports fr.fidorial.event.entity;
     exports fr.fidorial.event.farming;

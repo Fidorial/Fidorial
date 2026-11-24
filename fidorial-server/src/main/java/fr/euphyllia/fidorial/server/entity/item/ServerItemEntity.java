@@ -418,13 +418,7 @@ public final class ServerItemEntity extends AbstractEntity implements ItemEntity
         velocityZ = vz;
 
         if (x != from.x() || y != from.y() || z != from.z()) {
-            final Location to = from.with(x, y, z);
-            setLocation(to);
-            final ChunkPos fromChunk = from.chunk();
-            final ChunkPos toChunk = to.chunk();
-            if (!fromChunk.equals(toChunk)) {
-                world.entityMoved(this, fromChunk, toChunk);
-            }
+            moveWithin(world, from.with(x, y, z));
         }
     }
 

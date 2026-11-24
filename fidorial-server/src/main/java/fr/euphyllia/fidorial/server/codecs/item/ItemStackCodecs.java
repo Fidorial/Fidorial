@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
@@ -12,6 +13,8 @@ import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.adventure.NbtCodecs;
 import fr.euphyllia.fidorial.server.codecs.item.component.WrittenBookTexts;
+import fr.euphyllia.fidorial.server.combat.ChargedProjectiles;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.MapItemDecorations;
@@ -247,6 +250,22 @@ public final class ItemStackCodecs {
         }
     };
 
+    /**
+     * A stack as it is saved: its item, its count and the components that differ from the item's.
+     */
+    public static final MapCodec<ItemStack> ITEM_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            ReferenceCodecs.key(RegistryKey.ITEM).fieldOf("id").forGetter(ItemStack::id),
+            Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::count),
+            COMPONENT_MAP_CODEC.optionalFieldOf("components", DataComponentMap.EMPTY).forGetter(ItemStack::components)
+    ).apply(instance, ItemStack::new));
+
+    static {
+        // Charged projectiles are stacks themselves: their codec needs the stack codec above.
+        register(ChargedProjectiles.TYPE, ITEM_CODEC.codec()
+                .listOf()
+                .xmap(ChargedProjectiles::new, ChargedProjectiles::items));
+    }
+
     private ItemStackCodecs() {
         throw new UnsupportedOperationException("ItemStackCodecs cannot be instantiated.");
     }
@@ -402,7 +421,7 @@ public final class ItemStackCodecs {
             return null;
         }
 
-        final DataComponentType<?> type = DataComponentTypes.byKey(Key.key(rawKey));
+        final DataComponentType<?> type = ServerComponents.byKey(Key.key(rawKey));
         if (type == null) {
             LOGGER.warn("Skipping unmodelled component: {}", rawKey);
         }

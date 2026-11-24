@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
+import fr.euphyllia.fidorial.server.combat.CombatAttributes;
+import fr.fidorial.attribute.AttributeModifier;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -71,24 +73,8 @@ public final class MobAttribute {
      * {@return the value of the attribute, its modifiers applied}
      */
     public double value() {
-        double sum = base;
-        for (final Modifier modifier : modifiers.values()) {
-            if (modifier.operation() == Operation.ADD_VALUE) {
-                sum += modifier.amount();
-            }
-        }
-        double value = sum;
-        for (final Modifier modifier : modifiers.values()) {
-            if (modifier.operation() == Operation.ADD_MULTIPLIED_BASE) {
-                value += sum * modifier.amount();
-            }
-        }
-        for (final Modifier modifier : modifiers.values()) {
-            if (modifier.operation() == Operation.ADD_MULTIPLIED_TOTAL) {
-                value *= 1.0 + modifier.amount();
-            }
-        }
-        return value;
+        return CombatAttributes.apply(base, modifiers.values(), modifier -> modifier.operation().operation,
+                Modifier::amount);
     }
 
     /**
@@ -159,14 +145,16 @@ public final class MobAttribute {
      * How a modifier changes the value of an attribute.
      */
     public enum Operation {
-        ADD_VALUE("add_value"),
-        ADD_MULTIPLIED_BASE("add_multiplied_base"),
-        ADD_MULTIPLIED_TOTAL("add_multiplied_total");
+        ADD_VALUE("add_value", AttributeModifier.Operation.ADD_VALUE),
+        ADD_MULTIPLIED_BASE("add_multiplied_base", AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+        ADD_MULTIPLIED_TOTAL("add_multiplied_total", AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
         private final String savedName;
+        private final AttributeModifier.Operation operation;
 
-        Operation(final String savedName) {
+        Operation(final String savedName, final AttributeModifier.Operation operation) {
             this.savedName = savedName;
+            this.operation = operation;
         }
 
         /**

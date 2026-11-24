@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.entity.mob.monster.cube;
 
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.item.ServerItemEntity;
@@ -400,7 +401,7 @@ public final class SulfurCubeImpl extends AbstractCubeMob implements SulfurCube 
     private void dealContactDamage(final AbstractLivingEntity target) {
         for (final SulfurCubeArchetypes.ContactDamage damage : contactDamages) {
             final Entity credited = damage.attributeToSource() || target instanceof ServerPlayer ? this : null;
-            server().entities().combat().damage(target, DamageSource.of(damage.type(), credited), damage.sample());
+            server().entities().combat().damage(target, DamageSourceFactoryImpl.INSTANCE.of(damage.type(), credited), damage.sample());
         }
     }
 

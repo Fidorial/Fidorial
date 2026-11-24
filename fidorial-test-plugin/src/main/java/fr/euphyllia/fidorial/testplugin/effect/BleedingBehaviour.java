@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.testplugin.effect;
 
-import fr.fidorial.combat.DamageSource;
+import fr.fidorial.combat.CombatService;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectInstance;
 
@@ -20,6 +20,7 @@ final class BleedingBehaviour extends PeriodicEffectBehaviour {
 
     @Override
     protected void pulse(final LivingEntity entity, final MobEffectInstance effect) {
-        entity.damage(DamageSource.generic(), DAMAGE);
+        entity.server().services().find(CombatService.class)
+                .ifPresent(combat -> entity.damage(combat.sources().generic(), DAMAGE));
     }
 }

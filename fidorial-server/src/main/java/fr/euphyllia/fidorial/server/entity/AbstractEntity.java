@@ -81,6 +81,21 @@ public abstract class AbstractEntity implements Entity {
         this.location = location;
     }
 
+    /**
+     * Moves this entity within its world, and tells the world when it changed chunk.
+     *
+     * @param world the world of this entity
+     * @param to    where it goes
+     */
+    protected final void moveWithin(final ServerWorld world, final Location to) {
+        final ChunkPos fromChunk = location().chunk();
+        setLocation(to);
+        final ChunkPos toChunk = to.chunk();
+        if (!fromChunk.equals(toChunk)) {
+            world.entityMoved(this, fromChunk, toChunk);
+        }
+    }
+
     @Override
     public final boolean isRemoved() {
         return removed.get();

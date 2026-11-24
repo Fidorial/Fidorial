@@ -1,22 +1,32 @@
 package fr.euphyllia.fidorial.server.entity;
 
+import fr.euphyllia.fidorial.server.combat.CombatAttributes;
+import fr.euphyllia.fidorial.server.combat.CombatEffects;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.effect.FidorialMobEffectRegistry;
 import fr.euphyllia.fidorial.server.entity.effect.MobEffectInstanceImpl;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
+import fr.fidorial.combat.CombatService;
 import fr.fidorial.combat.DamageSource;
+import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.effect.MobEffectBehaviour;
 import fr.fidorial.entity.effect.MobEffectInstance;
 import fr.fidorial.event.entity.EntityEffectEvent;
+import fr.fidorial.inventory.EquipmentSlot;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
 import fr.fidorial.registry.data.MobEffect;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.EntityTypeTagKeys;
 import fr.fidorial.registry.keys.MobEffectKeys;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -55,6 +65,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     private volatile boolean sentBurning;
     private final AtomicInteger invulnerableTicks = new AtomicInteger();
     private final AtomicInteger deathTicks = new AtomicInteger(-1);
+    private long livingTicks;
     private final Map<TypedKey<MobEffect>, MobEffectInstanceImpl> effects = new ConcurrentHashMap<>();
 
     protected AbstractLivingEntity(
@@ -169,7 +180,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
      * Deals the damage of one second of burning.
      */
     protected void burn() {
-        damage(DamageSource.onFire(), BURN_DAMAGE);
+        damage(DamageSourceFactoryImpl.INSTANCE.onFire(), BURN_DAMAGE);
     }
 
     /**
@@ -243,6 +254,72 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     }
 
 
+    /**
+     * {@return the base value of an attribute of this entity, before any modifier}; {@code 0}
+     * unless a subclass knows better
+     *
+     * @param attribute the attribute
+     */
+    protected double baseAttribute(final TypedKey<Attribute> attribute) {
+        return 0.0;
+    }
+
+    @Override
+    public double attributeValue(final TypedKey<Attribute> attribute) {
+        return CombatAttributes.value(attribute, baseAttribute(attribute), this, Map.of());
+    }
+
+    @Override
+    public double armor() {
+        return attributeValue(AttributeKeys.ARMOR);
+    }
+
+    @Override
+    public double armorToughness() {
+        return attributeValue(AttributeKeys.ARMOR_TOUGHNESS);
+    }
+
+    @Override
+    public double knockbackResistance() {
+        return attributeValue(AttributeKeys.KNOCKBACK_RESISTANCE);
+    }
+
+    @Override
+    public ItemStack equipment(final EquipmentSlot slot) {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public boolean damage(final DamageSource source, final float amount) {
+        return server().services()
+                .find(CombatService.class)
+                .map(combat -> combat.damage(this, source, amount))
+                .orElse(false);
+    }
+
+    @Override
+    public void kill(final @Nullable Entity killer) {
+        server().services().find(CombatService.class).ifPresent(combat -> combat.kill(this, killer));
+    }
+
+    @Override
+    public void heal(final float amount) {
+        if (amount <= 0f || isDead()) {
+            return;
+        }
+        setHealth(Math.min(maxHealth(), health() + amount));
+    }
+
+    @Override
+    public boolean isDead() {
+        return health <= 0f;
+    }
+
+    @Override
+    public boolean isAlive() {
+        return !isDead() && !isRemoved();
+    }
+
     public final boolean isDying() {
         return deathTicks.get() >= 0;
     }
@@ -254,6 +331,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
     }
 
     protected void tickLiving(final long currentTick) {
+        livingTicks++;
         invulnerableTicks.updateAndGet(ticks -> ticks > 0 ? ticks - 1 : 0);
         if (deathTicks.get() > 0 && deathTicks.decrementAndGet() == 0) {
             onDeathAnimationFinished();
@@ -289,6 +367,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
         final MobEffectInstanceImpl applied = MobEffectInstanceImpl.of(event.effect());
         effects.put(applied.type(), applied);
         onEffectUpdated(applied);
+        CombatEffects.onApplied(this, applied);
         dispatch(applied, MobEffectBehaviour::onApplied, "onApplied");
         return true;
     }
@@ -335,6 +414,7 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             return false;
         }
         onEffectRemoved(current);
+        CombatEffects.onRemoved(this, current);
         dispatch(current, MobEffectBehaviour::onRemoved, "onRemoved");
         return true;
     }
@@ -381,6 +461,10 @@ public abstract class AbstractLivingEntity extends AbstractEntity implements Liv
             if (!registry.isEffect(effect.type())) {
                 removeEffect(effect.type(), EntityEffectEvent.Action.REMOVED);
                 continue;
+            }
+            CombatEffects.onTick(this, effect, livingTicks);
+            if (isRemoved() || isDead()) {
+                return;
             }
             dispatch(effect, MobEffectBehaviour::onTick, "onTick");
             if (isRemoved() || isDead()) {

@@ -1,8 +1,12 @@
 package fr.euphyllia.fidorial.server.codecs.item.component;
 
+import fr.euphyllia.fidorial.server.combat.ChargedProjectiles;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.ItemStackReader;
+import fr.euphyllia.fidorial.server.network.protocol.packet.util.ItemStackWriter;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistries;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.component.ItemLore;
 import fr.fidorial.item.component.SuspiciousStewEffects;
@@ -36,6 +40,8 @@ public class DataComponentNetworkCodecs {
 
     private static final int MAX_STEW_EFFECTS = 256;
 
+    private static final int MAX_CHARGED_PROJECTILES = 64;
+
     public interface Codec<T> {
 
         void write(PacketBuffer buf, ServerRegistries registries, T value);
@@ -61,6 +67,7 @@ public class DataComponentNetworkCodecs {
         register(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, booleanCodec());
         register(DataComponentTypes.WRITTEN_BOOK_CONTENT, writtenBookContentCodec());
         register(DataComponentTypes.SUSPICIOUS_STEW_EFFECTS, suspiciousStewEffectsCodec());
+        register(ChargedProjectiles.TYPE, chargedProjectilesCodec());
     }
 
     private DataComponentNetworkCodecs() {
@@ -168,6 +175,34 @@ public class DataComponentNetworkCodecs {
                 }
 
                 return new ItemLore(lines);
+            }
+        };
+    }
+
+    private static Codec<ChargedProjectiles> chargedProjectilesCodec() {
+        return new Codec<>() {
+            @Override
+            public void write(final PacketBuffer buf, final ServerRegistries registries, final ChargedProjectiles value) {
+                buf.writeVarInt(value.items().size());
+                for (final ItemStack stack : value.items()) {
+                    ItemStackWriter.writeSlot(buf, stack, registries);
+                }
+            }
+
+            @Override
+            public ChargedProjectiles read(final PacketBuffer buf, final ServerRegistries registries) {
+                final int size = buf.readVarInt();
+                if (size < 0 || size > MAX_CHARGED_PROJECTILES) {
+                    throw new DecoderException("Implausible number of charged projectiles: " + size);
+                }
+                final List<ItemStack> items = new ArrayList<>(size);
+                for (int index = 0; index < size; index++) {
+                    final ItemStack stack = ItemStackReader.readSlot(buf, registries);
+                    if (!stack.isEmpty()) {
+                        items.add(stack);
+                    }
+                }
+                return new ChargedProjectiles(items);
             }
         };
     }

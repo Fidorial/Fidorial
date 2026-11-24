@@ -15,7 +15,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockStepping;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.effect.MobEffectInstance;
@@ -210,8 +209,7 @@ public abstract class AbstractPathfinderMob extends AbstractMovingMob {
      * @return {@code true} if the entity was hurt
      */
     public boolean attack(final AbstractLivingEntity target) {
-        final float damage = attackDamage();
-        return damage > 0f && server().entities().combat().damage(target, DamageSource.mobAttack(this), damage);
+        return server().entities().combat().attack(this, target);
     }
 
     /**

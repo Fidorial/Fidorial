@@ -10,8 +10,10 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.entity.LivingEntity;
 import fr.fidorial.entity.player.Player;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.data.DamageType;
+import fr.fidorial.registry.data.Item;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
@@ -101,12 +103,33 @@ public interface Condition {
                             && (thundering == null || thundering == world.weather().isThundering());
                 };
             }
+            case "match_tool" -> {
+                final Predicate<ItemStack> predicate = itemPredicate(EffectJson.object(object, "predicate"));
+                yield context -> predicate.test(context.tool());
+            }
             case "random_chance_with_enchanted_bonus", "killed_by_player", "entity_scores", "match_block",
-                 "match_tool", "table_bonus", "survives_explosion", "location_check", "time_check",
+                 "table_bonus", "survives_explosion", "location_check", "time_check",
                  "int_value_check", "float_value_check", "enchantment_active_check", "environment_attribute_check" ->
                     throw new UnsupportedEffectException("the condition minecraft:" + type + " is not supported");
             default -> throw new IllegalArgumentException("Unknown condition type " + object.get("type"));
         };
+    }
+
+    /**
+     * The item predicate of {@code match_tool}: only its {@code items} member is understood.
+     */
+    private static Predicate<ItemStack> itemPredicate(final JsonObject predicate) {
+        for (final String member : predicate.keySet()) {
+            if (!"items".equals(member)) {
+                throw new UnsupportedEffectException("the item predicate member '" + member + "' is not supported");
+            }
+        }
+        final JsonElement items = predicate.get("items");
+        if (items == null) {
+            return stack -> !stack.isEmpty();
+        }
+        final KeyMatcher<Item> matcher = KeyMatcher.parse(RegistryKey.ITEM, items);
+        return stack -> !stack.isEmpty() && matcher.test(stack.id());
     }
 
     private static List<Condition> terms(final JsonObject object) {

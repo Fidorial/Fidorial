@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server.world.farming;
 
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.combat.ItemWear;
+import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -9,9 +11,7 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
-import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
-import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.TagKey;
@@ -467,22 +467,10 @@ public final class ServerFarmingWorld implements FarmingWorld {
         for (final ItemStack stack : tillage.drops(random())) {
             dropItem(position.relative(face), stack);
         }
-        if (player.gameMode() != GameMode.CREATIVE) {
-            player.inventory().set(slot, worn(held));
+        if (player instanceof final ServerPlayer wearer) {
+            ItemWear.hurt(wearer, ItemWear.handOf(slot), 1);
         }
         return true;
-    }
-
-    /**
-     * {@return a tool after one more use: one point closer to breaking, or gone once it broke}
-     */
-    private static ItemStack worn(final ItemStack tool) {
-        final int durability = ItemDefaults.maxDamage(tool.id(), tool);
-        if (durability <= 0) {
-            return tool; // a tool that never wears
-        }
-        final int damage = tool.getOrDefault(DataComponentTypes.DAMAGE, 0) + 1;
-        return damage >= durability ? ItemStack.EMPTY : tool.with(DataComponentTypes.DAMAGE, damage);
     }
 
     @Override

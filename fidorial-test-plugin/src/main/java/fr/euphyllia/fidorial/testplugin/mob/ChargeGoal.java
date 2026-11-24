@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.testplugin.mob;
 
 import fr.fidorial.combat.CombatService;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.ai.Goal;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.entity.player.Player;
@@ -162,7 +161,10 @@ public final class ChargeGoal implements Goal {
         mob.playSound(IMPACT_SOUND, 1.0f, 1.0f);
 
         final float damage = Math.max(1f, mob.attackDamage());
-        if (!target.damage(DamageSource.mobAttack(mob), damage)) {
+        final boolean hurt = combat()
+                .map(service -> target.damage(service.sources().mobAttack(mob), damage))
+                .orElse(false);
+        if (!hurt) {
             return;
         }
 

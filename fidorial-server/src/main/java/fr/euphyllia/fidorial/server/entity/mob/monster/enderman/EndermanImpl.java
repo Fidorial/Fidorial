@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.enderman;
 
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
@@ -279,7 +280,7 @@ public final class EndermanImpl extends AbstractMonster implements AngerableMob,
         }
         super.tick(currentTick);
         if (!isRemoved() && !isDead() && (isInWater() || isInRain())) {
-            damage(DamageSource.drown(), WATER_DAMAGE);
+            damage(DamageSourceFactoryImpl.INSTANCE.drown(), WATER_DAMAGE);
         }
     }
 

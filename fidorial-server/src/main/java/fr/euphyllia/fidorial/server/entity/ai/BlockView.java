@@ -71,6 +71,14 @@ public class BlockView {
     }
 
     /**
+     * {@return {@code true} if a point is under the surface of the water of its block}
+     */
+    public static boolean isInWater(final ServerWorld world, final double x, final double y, final double z) {
+        final double surface = waterSurface(world, (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+        return !Double.isNaN(surface) && y < surface;
+    }
+
+    /**
      * {@return the height the lava of a block reaches, {@link Double#NaN} if it holds none}, as
      * {@link #waterSurface} for water
      */

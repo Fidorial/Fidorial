@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.tests;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.item.ServerItemEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
@@ -13,7 +14,6 @@ import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.FidorialEnchantments;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
-import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemStack;
@@ -191,10 +191,11 @@ public final class EnchantmentTests {
         armored.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE, EnchantmentKeys.PROTECTION, 4));
         falling.inventory().set(PlayerInventory.FEET, enchanted(ItemKeys.IRON_BOOTS, EnchantmentKeys.FEATHER_FALLING, 4));
 
-        armored.damage(DamageSource.mobAttack(null), 10f);
-        falling.damage(DamageSource.fall(), 10f);
-        bare.damage(DamageSource.fall(), 10f);
-        approx(helper, armored.maxHealth() - armored.health(), 8.4f, "Protection IV takes 16% off");
+        armored.damage(DamageSourceFactoryImpl.INSTANCE.mobAttack(null), 10f);
+        falling.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 10f);
+        bare.damage(DamageSourceFactoryImpl.INSTANCE.fall(), 10f);
+        // the 6 armor points of the chestplate take 4.8% of a 10 damage hit, then Protection IV 16% of the rest
+        approx(helper, armored.maxHealth() - armored.health(), 7.9968f, "Iron armor then Protection IV");
         approx(helper, falling.maxHealth() - falling.health(), 5.2f, "Feather Falling IV takes 48% off a fall");
         approx(helper, bare.maxHealth() - bare.health(), 10f, "No enchantment, no protection");
     }
@@ -227,7 +228,7 @@ public final class EnchantmentTests {
         // Level VII: 15% per level, so every hit is returned.
         player.inventory().set(PlayerInventory.CHEST, enchanted(ItemKeys.IRON_CHESTPLATE, EnchantmentKeys.THORNS, 7));
         final AbstractMob pig = pig(helper, 1.5);
-        server().entities().combat().damage(player, DamageSource.mobAttack(pig), 1f);
+        server().entities().combat().damage(player, DamageSourceFactoryImpl.INSTANCE.mobAttack(pig), 1f);
         helper.assertTrue(pig.health() < pig.maxHealth(), "Thorns should have hurt the pig, it has " + pig.health());
     }
 

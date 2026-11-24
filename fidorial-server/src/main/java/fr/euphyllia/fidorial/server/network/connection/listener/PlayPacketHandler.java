@@ -34,7 +34,6 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundRotateHeadPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetEntityMetadataPacket.Entry;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHealthPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSetHeldSlotPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundStartConfigurationPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSwingAnimationPacket;
@@ -113,6 +112,7 @@ import fr.fidorial.event.player.PlayerUseItemEvent;
 import fr.fidorial.event.server.GameRuleChangeEvent;
 import fr.fidorial.gamerule.GameRuleDefinition;
 import fr.fidorial.inventory.EnderChestInventory;
+import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.item.ItemDefaults;
@@ -657,6 +657,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 acting.updateInventory();
                 return;
             }
+            if (server.entities().combat().items().use(acting, offHand ? EquipmentSlot.OFF_HAND : EquipmentSlot.MAIN_HAND)) {
+                return;
+            }
             server.maps().useEmptyMap(acting, offHand);
         });
         connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
@@ -860,6 +863,14 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAction(final ServerboundPlayerActionPacket packet) {
         final ServerPlayer acting = playerOrThrow();
         final int status = packet.status();
+        if (status == ServerboundPlayerActionPacket.STAB) {
+            acting.execute(() -> server.entities().combat().stab(acting));
+            return;
+        }
+        if (status == ServerboundPlayerActionPacket.RELEASE_USE_ITEM) {
+            acting.execute(() -> server.entities().combat().items().release(acting));
+            return;
+        }
         if (status == ServerboundPlayerActionPacket.SWAP_ITEM_WITH_OFFHAND) {
             acting.execute(() -> swapHands(acting));
             return;
@@ -1404,7 +1415,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 ClientboundRespawnPacket.KEEP_NOTHING,
                 describeGenerator(world) instanceof ChunkGeneratorConfig.Flat));
         connection.send(player.abilitiesPacket());
-        connection.send(new ClientboundSetHealthPacket(player.health(), 20, 5.0f));
+        player.sendHealth();
         player.resendAttributeBases();
         connection.send(new ClientboundGameEventPacket(ClientboundGameEventPacket.START_WAITING_FOR_CHUNKS, 0f));
 

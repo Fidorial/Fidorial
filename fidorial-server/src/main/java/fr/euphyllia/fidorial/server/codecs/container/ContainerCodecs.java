@@ -3,14 +3,11 @@ package fr.euphyllia.fidorial.server.codecs.container;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import fr.euphyllia.fidorial.server.codecs.ReferenceCodecs;
 import fr.euphyllia.fidorial.server.codecs.item.ItemStackCodecs;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.item.ItemStack;
-import fr.fidorial.item.data.DataComponentMap;
-import fr.fidorial.registry.RegistryKey;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
@@ -38,15 +35,9 @@ public final class ContainerCodecs {
     private record SlotEntry(int slot, ItemStack stack) {
     }
 
-    public static final MapCodec<ItemStack> ITEM_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            ReferenceCodecs.key(RegistryKey.ITEM).fieldOf("id").forGetter(ItemStack::id),
-            Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::count),
-            ItemStackCodecs.COMPONENT_MAP_CODEC.optionalFieldOf("components", DataComponentMap.EMPTY).forGetter(ItemStack::components)
-    ).apply(instance, ItemStack::new));
-
     private static final MapCodec<SlotEntry> SLOT_ENTRY_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Codec.BYTE.fieldOf("Slot").forGetter(e -> (byte) e.slot()),
-            ITEM_CODEC.forGetter(SlotEntry::stack)
+            ItemStackCodecs.ITEM_CODEC.forGetter(SlotEntry::stack)
     ).apply(instance, (slot, stack) -> new SlotEntry(slot & 0xFF, stack)));
 
     public static <C extends Container> Codec<C> containerCodec(final Supplier<C> factory) {
@@ -104,12 +95,12 @@ public final class ContainerCodecs {
     }
 
     public static Optional<ItemStack> readItem(final BinaryTag tag) {
-        return ITEM_CODEC.codec().parse(BinaryTagOps.binaryTagOps(), tag)
+        return ItemStackCodecs.ITEM_CODEC.codec().parse(BinaryTagOps.binaryTagOps(), tag)
                 .resultOrPartial(msg -> LOGGER.warn("Dropped invalid item: {}", msg));
     }
 
     public static BinaryTag writeItem(final ItemStack stack) throws IOException {
-        return ITEM_CODEC.codec().encodeStart(BinaryTagOps.binaryTagOps(), stack)
+        return ItemStackCodecs.ITEM_CODEC.codec().encodeStart(BinaryTagOps.binaryTagOps(), stack)
                 .getOrThrow(msg -> new IOException("Failed to encode item: " + msg));
     }
 }

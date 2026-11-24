@@ -1,14 +1,12 @@
 package fr.fidorial.combat;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.entity.Entity;
-import fr.fidorial.entity.player.Player;
+import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.DamageType;
-import fr.fidorial.registry.keys.DamageTypeKeys;
 import org.jspecify.annotations.Nullable;
-
 
 /**
  * Describes where a hit came from.
@@ -18,227 +16,80 @@ import org.jspecify.annotations.Nullable;
  * credited with the kill (the shooter), while {@link #directEntity()} is what actually touched the
  * victim (the arrow). For a melee hit both are the same entity.</p>
  *
+ * <p>Sources are immutable and created by the server: get them from
+ * {@link CombatService#sources()}.</p>
+ *
+ * @see DamageSourceFactory
  * @since 0.1.0
  */
-public final class DamageSource {
-
-    private final TypedKey<DamageType> type;
-    private final @Nullable Entity causingEntity;
-    private final @Nullable Entity directEntity;
-    private final @Nullable Location position;
-
-    private DamageSource(
-            final TypedKey<DamageType> type,
-            final @Nullable Entity causingEntity,
-            final @Nullable Entity directEntity,
-            final @Nullable Location position) {
-        Preconditions.checkArgument(type != null, "The type of a damage source must not be null");
-        this.type = type;
-        this.causingEntity = causingEntity;
-        this.directEntity = directEntity;
-        this.position = position;
-    }
+public interface DamageSource {
 
     /**
-     * @param type the {@code minecraft:damage_type} to report to the client
-     * @return an environmental source with no entity attached
-     * @since 0.1.0
-     */
-    public static DamageSource of(final TypedKey<DamageType> type) {
-        return new DamageSource(type, null, null, null);
-    }
-
-    /**
-     * @param type   the {@code minecraft:damage_type} to report to the client
-     * @param source the entity responsible for the hit
-     * @since 0.1.0
-     */
-    public static DamageSource of(final TypedKey<DamageType> type, final @Nullable Entity source) {
-        return new DamageSource(type, source, source, null);
-    }
-
-    /**
-     * @param type    the {@code minecraft:damage_type} to report to the client
-     * @param causing the entity credited with the kill, typically the shooter
-     * @param direct  the entity that physically hit the victim, typically the projectile
-     * @since 0.1.0
-     */
-    public static DamageSource of(
-            final TypedKey<DamageType> type, final @Nullable Entity causing, final @Nullable Entity direct) {
-        return new DamageSource(type, causing, direct, null);
-    }
-
-    /**
-     * Creates a source for damage radiating from a point, such as an explosion.
-     *
-     * @param type     the {@code minecraft:damage_type} to report to the client
-     * @param position the point the damage radiated from, used by the client for the hit direction
-     * @return the source
-     * @since 0.1.0
-     */
-    public static DamageSource at(final TypedKey<DamageType> type, final Location position) {
-        return new DamageSource(type, null, null, position);
-    }
-
-    /**
-     * {@return a source for damage dealt by a player melee hit}
-     *
-     * @param attacker the attacking player
-     * @since 0.1.0
-     */
-    public static DamageSource playerAttack(final Player attacker) {
-        return of(DamageTypeKeys.PLAYER_ATTACK, attacker);
-    }
-
-    /**
-     * {@return a source for damage dealt by a mob melee hit}
-     *
-     * @param attacker the attacking mob, or {@code null}
-     * @since 0.1.0
-     */
-    public static DamageSource mobAttack(final @Nullable Entity attacker) {
-        return of(DamageTypeKeys.MOB_ATTACK, attacker);
-    }
-
-    /**
-     * {@return a source for damage dealt by falling}
+     * {@return the registry key of the damage type backing this source}
      *
      * @since 0.1.0
      */
-    public static DamageSource fall() {
-        return of(DamageTypeKeys.FALL);
-    }
+    TypedKey<DamageType> type();
 
     /**
-     * {@return a source for damage dealt by drowning}
+     * {@return the entity credited with the damage, or {@code null} for environmental damage}
      *
      * @since 0.1.0
      */
-    public static DamageSource drown() {
-        return of(DamageTypeKeys.DROWN);
-    }
+    @Nullable Entity causingEntity();
 
     /**
-     * {@return a source for damage dealt by standing in lava}
+     * {@return the entity that dealt the hit directly, or {@code null} for environmental damage}
      *
      * @since 0.1.0
      */
-    public static DamageSource lava() {
-        return of(DamageTypeKeys.LAVA);
-    }
+    @Nullable Entity directEntity();
 
     /**
-     * {@return a source for damage dealt by standing in fire}
+     * {@return the origin used to orient the hurt animation and the knockback, or {@code null} to
+     * derive it from {@link #directEntity()}}
      *
      * @since 0.1.0
      */
-    public static DamageSource inFire() {
-        return of(DamageTypeKeys.IN_FIRE);
-    }
+    @Nullable Location position();
 
     /**
-     * {@return a source for damage dealt by burning}
+     * {@return the item the hit was dealt with: the weapon of a melee hit, the bow or crossbow that
+     * shot an arrow, the thrown trident; {@link ItemStack#EMPTY} when there is none}
      *
      * @since 0.1.0
      */
-    public static DamageSource onFire() {
-        return of(DamageTypeKeys.ON_FIRE);
-    }
+    ItemStack weapon();
 
     /**
-     * {@return a source for damage dealt by touching a cactus}
+     * {@return {@code true} if the damage type of this source is in a damage type tag}
+     *
+     * @param tag the tag, for instance {@code DamageTypeTagKeys.BYPASSES_ARMOR}
+     * @since 0.1.0
+     */
+    boolean is(TagKey<DamageType> tag);
+
+    /**
+     * {@return {@code true} if the entity credited with the hit is the one that touched the
+     * victim, as for a melee hit}
      *
      * @since 0.1.0
      */
-    public static DamageSource cactus() {
-        return of(DamageTypeKeys.CACTUS);
-    }
+    boolean isDirect();
 
     /**
-     * {@return a source for damage dealt by starving}
+     * {@return a copy of this source whose hit comes from {@code position}}
      *
+     * @param position the point the damage comes from, used for the hurt animation and the knockback
      * @since 0.1.0
      */
-    public static DamageSource starve() {
-        return of(DamageTypeKeys.STARVE);
-    }
+    DamageSource withPosition(Location position);
 
     /**
-     * {@return a source for damage dealt by falling out of the world}
+     * {@return a copy of this source dealt with {@code weapon}}
      *
+     * @param weapon the item the hit was dealt with, {@link ItemStack#EMPTY} for none
      * @since 0.1.0
      */
-    public static DamageSource outOfWorld() {
-        return of(DamageTypeKeys.OUT_OF_WORLD);
-    }
-
-    /**
-     * {@return a source for damage dealt by freezing, as in powder snow or under the Freezing effect}
-     *
-     * @since 0.1.0
-     */
-    public static DamageSource freeze() {
-        return of(DamageTypeKeys.FREEZE);
-    }
-
-    /**
-     * {@return a source for damage dealt by a thrown projectile, such as a snowball or an ice ball}
-     *
-     * @param projectile the projectile that hit, or {@code null} if it is unknown
-     * @param thrower    the entity that threw it, or {@code null} if there is none
-     * @since 0.1.0
-     */
-    public static DamageSource thrown(final @Nullable Entity projectile, final @Nullable Entity thrower) {
-        return of(DamageTypeKeys.THROWN, thrower, projectile);
-    }
-
-    /**
-     * {@return a source for damage dealt by an unspecified cause}
-     *
-     * @since 0.1.0
-     */
-    public static DamageSource generic() {
-        return of(DamageTypeKeys.GENERIC);
-    }
-
-    /**
-     * @return the registry key of the damage type backing this source
-     */
-    public TypedKey<DamageType> type() {
-        return type;
-    }
-
-    /**
-     * @return the entity credited with the damage, or {@code null} for environmental damage
-     */
-    public @Nullable Entity causingEntity() {
-        return causingEntity;
-    }
-
-    /**
-     * @return the entity that dealt the hit directly, or {@code null} for environmental damage
-     */
-    public @Nullable Entity directEntity() {
-        return directEntity;
-    }
-
-    /**
-     * @return the origin used to orient the hurt animation, or {@code null} to derive it from
-     * {@link #directEntity()}
-     */
-    public @Nullable Location position() {
-        return position;
-    }
-
-    /**
-     * @return the source with {@code position} attached, used to orient the hurt animation
-     */
-    public DamageSource withPosition(final Location position) {
-        return new DamageSource(type, causingEntity, directEntity, position);
-    }
-
-    @Override
-    public String toString() {
-        return "DamageSource[" + type.key() + (causingEntity == null ? "" : " by " + causingEntity) + "]";
-    }
+    DamageSource withWeapon(ItemStack weapon);
 }

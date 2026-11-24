@@ -1,16 +1,15 @@
 package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMovingMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundAddEntityMotionPacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundExplodePacket;
 import fr.euphyllia.fidorial.server.network.protocol.packet.util.LocationPositionData;
-import fr.euphyllia.fidorial.server.network.protocol.packet.util.PositionData;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.combat.DamageSource;
@@ -258,15 +257,9 @@ public final class Explosion {
                     return;
                 }
                 final double kept = 1.0 - Math.clamp(player.attributeValue(AttributeKeys.EXPLOSION_KNOCKBACK_RESISTANCE), 0.0, 1.0);
-                // the client moves its player itself
-                player.connection().send(new ClientboundAddEntityMotionPacket(player.entityId(),
-                        new PositionData.VelocityVec3D(x * kept, y * kept, z * kept)));
+                FidorialServer.getInstance().entities().combat().addVelocity(player, x * kept, y * kept, z * kept);
             }
-            case final AbstractMovingMob mob -> {
-                if (!mob.isRemoved() && !mob.isDead()) {
-                    mob.setVelocity(mob.velocityX() + x, mob.velocityY() + y, mob.velocityZ() + z);
-                }
-            }
+            case final AbstractMovingMob mob -> FidorialServer.getInstance().entities().combat().addVelocity(mob, x, y, z);
             default -> {
 
             }
@@ -279,8 +272,8 @@ public final class Explosion {
      */
     private static DamageSource damageSource(final AbstractEntity source, final Location center) {
         return source instanceof final AbstractLivingEntity living
-                ? DamageSource.of(DamageTypeKeys.PLAYER_EXPLOSION, living, source).withPosition(center)
-                : DamageSource.of(DamageTypeKeys.EXPLOSION, null, source).withPosition(center);
+                ? DamageSourceFactoryImpl.INSTANCE.of(DamageTypeKeys.PLAYER_EXPLOSION, living, source).withPosition(center)
+                : DamageSourceFactoryImpl.INSTANCE.of(DamageTypeKeys.EXPLOSION, null, source).withPosition(center);
     }
 
     private static float getExposure(final ServerWorld world, final Location center, final AbstractEntity entity) {

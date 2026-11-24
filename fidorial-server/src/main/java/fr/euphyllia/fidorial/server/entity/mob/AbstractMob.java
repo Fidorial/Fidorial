@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob;
 
+import fr.euphyllia.fidorial.server.combat.ItemWear;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.PlayerInventories;
@@ -15,10 +16,11 @@ import fr.fidorial.entity.mob.MobBehaviour;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.EquipmentSlotGroup;
 import fr.fidorial.inventory.PlayerInventory;
-import fr.fidorial.item.ItemDefaults;
 import fr.fidorial.item.ItemStack;
-import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.Location;
+import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.Attribute;
+import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.ChunkPos;
@@ -328,6 +330,21 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         return 0f;
     }
 
+    /**
+     * The base of {@code minecraft:attack_damage} is the {@linkplain #attackDamage() attack damage}
+     * of this kind of mob, and that of {@code minecraft:max_health} its maximum health.
+     */
+    @Override
+    protected double baseAttribute(final TypedKey<Attribute> attribute) {
+        if (attribute.equals(AttributeKeys.ATTACK_DAMAGE)) {
+            return attackDamage();
+        }
+        if (attribute.equals(AttributeKeys.MAX_HEALTH)) {
+            return maxHealth();
+        }
+        return super.baseAttribute(attribute);
+    }
+
     protected float soundVolume() {
         return 1.0f;
     }
@@ -458,20 +475,11 @@ public abstract class AbstractMob extends AbstractLivingEntity {
     }
 
     /**
-     * Wears the tool of a hand by one use; it is gone once it breaks. A creative player wears nothing.
+     * Wears the tool of a hand by one use, less with Unbreaking; it is gone once it breaks. A
+     * creative player wears nothing.
      */
     protected static void wearItem(final ServerPlayer player, final int slot) {
-        if (player.gameMode() == GameMode.CREATIVE) {
-            return;
-        }
-        // TODO: Unbreaking, and the sound and particles of a tool that breaks
-        final ItemStack tool = player.inventory().get(slot);
-        final int durability = ItemDefaults.maxDamage(tool.id(), tool);
-        if (durability <= 0) {
-            return;
-        }
-        final int damage = tool.getOrDefault(DataComponentTypes.DAMAGE, 0) + 1;
-        player.inventory().set(slot, damage >= durability ? ItemStack.EMPTY : tool.with(DataComponentTypes.DAMAGE, damage));
+        ItemWear.hurt(player, ItemWear.handOf(slot), 1);
     }
 
     /**
