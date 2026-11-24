@@ -42,7 +42,7 @@ import java.util.function.IntSupplier;
  * hits, and one in four holds an ice ball it throws at a target that is out of reach, 5 blocks away
  * or further. Powder snow does not change it; water turns it into a zombie.
  */
-public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
+public final class FrostbiteEntity extends ZombieImpl implements Frostbite {
 
     public static final float MAX_HEALTH = 24f;
 
@@ -79,7 +79,7 @@ public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
     private boolean ranged;
     private float rangedAttackUncertainty = -1f;
 
-    public FrostbiteImpl(final int entityId, final Location location) {
+    public FrostbiteEntity(final int entityId, final Location location) {
         this(entityId, location, true);
     }
 
@@ -87,7 +87,7 @@ public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
      * @param spawned {@code true} for a frostbite that spawns, with the random traits of a zombie
      *                that does, and an ice ball in its hand one time out of four
      */
-    public FrostbiteImpl(final int entityId, final Location location, final boolean spawned) {
+    public FrostbiteEntity(final int entityId, final Location location, final boolean spawned) {
         super(entityId, EntityTypes.FROSTBITE, location, spawned, false);
         setBaseMaxHealth(MAX_HEALTH);
         if (spawned) {
@@ -173,15 +173,20 @@ public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
 
     /**
      * {@return {@code true} if this frostbite throws at its target rather than walking up to it}:
-     * with an ice ball in its hand, when the target is 5 blocks away or further, 3 once it throws,
-     * or closer but out of the reach of its fists with no way to it
+     * with an ice ball in its hand and the target within 16 blocks, when the target is 5 blocks away
+     * or further, 3 once it throws, or closer but out of the reach of its fists with no way to it.
+     * Since 26.4-pre-1 a target further than 16 blocks is walked up to instead.
      */
     private boolean shouldThrow() {
         final AbstractLivingEntity target = target();
         if (!holdsIceBall || target == null || target.isDead() || target.isRemoved()) {
             return false;
         }
-        if (distanceSqTo(target) >= (ranged ? MELEE_MODE_DISTANCE_SQ : RANGED_MODE_DISTANCE_SQ)) {
+        final double distanceSq = distanceSqTo(target);
+        if (distanceSq > ATTACK_RADIUS * ATTACK_RADIUS) {
+            return false;
+        }
+        if (distanceSq >= (ranged ? MELEE_MODE_DISTANCE_SQ : RANGED_MODE_DISTANCE_SQ)) {
             return true;
         }
         return !isWithinMeleeRange(target) && navigation.isGoalOutOfReach();
@@ -340,9 +345,9 @@ public final class FrostbiteImpl extends ZombieImpl implements Frostbite {
      */
     private static final class ThrowGoal extends RangedAttackGoal {
 
-        private final FrostbiteImpl frostbite;
+        private final FrostbiteEntity frostbite;
 
-        private ThrowGoal(final FrostbiteImpl frostbite, final int priority, final double speedModifier,
+        private ThrowGoal(final FrostbiteEntity frostbite, final int priority, final double speedModifier,
                           final IntSupplier attackIntervalMin, final IntSupplier attackIntervalMax) {
             super(frostbite, priority, speedModifier, attackIntervalMin, attackIntervalMax, ATTACK_RADIUS,
                     frostbite::throwIceBall);

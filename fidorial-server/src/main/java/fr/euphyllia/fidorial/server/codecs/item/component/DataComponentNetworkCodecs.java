@@ -183,9 +183,16 @@ public class DataComponentNetworkCodecs {
         return new Codec<>() {
             @Override
             public void write(final PacketBuffer buf, final ServerRegistries registries, final ChargedProjectiles value) {
-                buf.writeVarInt(value.items().size());
+                // each projectile is an item template: its item, its count, then its components
+                final List<ItemStack> sent = new ArrayList<>(value.items().size());
                 for (final ItemStack stack : value.items()) {
-                    ItemStackWriter.writeSlot(buf, stack, registries);
+                    if (!stack.isEmpty() && ItemStackWriter.networkId(stack, registries) >= 0) {
+                        sent.add(stack);
+                    }
+                }
+                buf.writeVarInt(sent.size());
+                for (final ItemStack stack : sent) {
+                    ItemStackWriter.writeTemplate(buf, stack, registries);
                 }
             }
 
@@ -197,10 +204,7 @@ public class DataComponentNetworkCodecs {
                 }
                 final List<ItemStack> items = new ArrayList<>(size);
                 for (int index = 0; index < size; index++) {
-                    final ItemStack stack = ItemStackReader.readSlot(buf, registries);
-                    if (!stack.isEmpty()) {
-                        items.add(stack);
-                    }
+                    items.add(ItemStackReader.readTemplate(buf, registries));
                 }
                 return new ChargedProjectiles(items);
             }

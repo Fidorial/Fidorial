@@ -176,10 +176,6 @@ public final class CombatEngine implements CombatService {
         return DamageSourceFactoryImpl.INSTANCE;
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Melee
-    // ------------------------------------------------------------------------------------------
-
     @Override
     public boolean attack(final LivingEntity attacker, final Entity target) {
         if (attacker instanceof final ServerPlayer player) {
@@ -624,10 +620,6 @@ public final class CombatEngine implements CombatService {
                         0.1f, 0f, 0.1f, 0.2f, count), null);
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Damage
-    // ------------------------------------------------------------------------------------------
-
     @Override
     public boolean damage(final LivingEntity target, final DamageSource source, final float amount) {
         if (!(target instanceof final AbstractLivingEntity victim)) {
@@ -880,10 +872,6 @@ public final class CombatEngine implements CombatService {
         return damage - soaked;
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Shields
-    // ------------------------------------------------------------------------------------------
-
     @Override
     public boolean isBlocking(final LivingEntity entity) {
         return blockingItem(entity) != null;
@@ -1025,10 +1013,6 @@ public final class CombatEngine implements CombatService {
         return Math.toDegrees(Math.acos(cos));
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Death protection
-    // ------------------------------------------------------------------------------------------
-
     /**
      * Saves an entity from a lethal hit with an item that protects from death held in a hand: the
      * item is used up, the entity is left with one health point and the effects of the item.
@@ -1082,10 +1066,6 @@ public final class CombatEngine implements CombatService {
             }
         }
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Knockback
-    // ------------------------------------------------------------------------------------------
 
     @Override
     public void knockback(final LivingEntity target, final double strength, final double fromX, final double fromZ) {
@@ -1184,10 +1164,6 @@ public final class CombatEngine implements CombatService {
     private static float yawOf(final AbstractLivingEntity entity) {
         return entity instanceof final AbstractMovingMob mob ? mob.yaw() : entity.location().yaw();
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Death
-    // ------------------------------------------------------------------------------------------
 
     // FIXME: the caller may not own the victim: a hit across a region border changes it from another thread
     @Override
@@ -1338,10 +1314,6 @@ public final class CombatEngine implements CombatService {
             pathfinder.setTarget(player);
         }
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Packets
-    // ------------------------------------------------------------------------------------------
 
     private void broadcastHurt(final AbstractLivingEntity victim, final DamageSource source) {
         if (server.registries().registry(RegistryKey.DAMAGE_TYPE).contains(source.type())) {

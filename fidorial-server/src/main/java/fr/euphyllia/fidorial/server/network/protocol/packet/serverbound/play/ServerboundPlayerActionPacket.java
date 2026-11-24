@@ -18,8 +18,12 @@ public record ServerboundPlayerActionPacket(int status, BlockPosition position, 
     public static final int DROP_ALL_ITEMS = 4;
     public static final int DROP_ITEM = 5;
     public static final int RELEASE_USE_ITEM = 6;
-    public static final int SWAP_ITEM_WITH_OFFHAND = 7;
-    public static final int STAB = 8;
+    /**
+     * Stops using an item without its effect, e.g. pausing while drawing a bow. Since 26.4-pre-1.
+     */
+    public static final int CANCEL_USE_ITEM = 7;
+    public static final int SWAP_ITEM_WITH_OFFHAND = 8;
+    public static final int STAB = 9;
 
     private static final NetworkDecoder<PacketBuffer, BlockPosition> POSITION = PacketBuffer::readPosition;
 

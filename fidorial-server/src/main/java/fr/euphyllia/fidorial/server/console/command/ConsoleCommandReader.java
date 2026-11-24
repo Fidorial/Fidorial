@@ -25,11 +25,18 @@ public class ConsoleCommandReader {
 
     private final CommandManager commandManager;
     private final BooleanSupplier serverRunning;
+    private final BooleanSupplier serverStarted;
     private final AtomicBoolean started = new AtomicBoolean(false);
 
-    public ConsoleCommandReader(final CommandManager commandManager, final BooleanSupplier serverRunning) {
+    /**
+     * @param serverRunning whether the server is starting or running: the console is read as long as it is
+     * @param serverStarted whether the server has fully started: commands typed before are rejected
+     */
+    public ConsoleCommandReader(
+            final CommandManager commandManager, final BooleanSupplier serverRunning, final BooleanSupplier serverStarted) {
         this.commandManager = commandManager;
         this.serverRunning = serverRunning;
+        this.serverStarted = serverStarted;
     }
 
     public void start() {
@@ -67,6 +74,12 @@ public class ConsoleCommandReader {
 
                 line = line.stripTrailing();
                 if (line.isBlank()) continue;
+
+                // Since 26.4-pre-1 console commands are rejected while the server is starting.
+                if (!serverStarted.getAsBoolean()) {
+                    LOGGER.warn("Rejecting command '{}', the server has not started", line);
+                    continue;
+                }
 
                 commandManager.dispatchAsync(FidorialServer.getInstance().commands().console().commandSource(), line);
             }

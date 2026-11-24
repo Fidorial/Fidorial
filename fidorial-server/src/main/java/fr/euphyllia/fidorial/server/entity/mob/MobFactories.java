@@ -80,7 +80,7 @@ import fr.euphyllia.fidorial.server.entity.mob.monster.silverfish.SilverfishImpl
 import fr.euphyllia.fidorial.server.entity.mob.monster.spider.CaveSpiderImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.spider.SpiderImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.DrownedImpl;
-import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.FrostbiteImpl;
+import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.FrostbiteEntity;
 import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.HuskImpl;
 import fr.euphyllia.fidorial.server.entity.mob.monster.zombie.ZombieImpl;
 import fr.euphyllia.fidorial.server.entity.mob.water_creature.Axolotl;
@@ -131,7 +131,7 @@ public final class MobFactories {
             Map.entry(EntityTypes.EVOKER.key(), Evoker::new),
             Map.entry(EntityTypes.FOX.key(), Fox::new),
             Map.entry(EntityTypes.FROG.key(), Frog::new),
-            Map.entry(EntityTypes.FROSTBITE.key(), FrostbiteImpl::new),
+            Map.entry(EntityTypes.FROSTBITE.key(), FrostbiteEntity::new),
             Map.entry(EntityTypes.GHAST.key(), Ghast::new),
             Map.entry(EntityTypes.GIANT.key(), Giant::new),
             Map.entry(EntityTypes.GLOW_SQUID.key(), GlowSquid::new),

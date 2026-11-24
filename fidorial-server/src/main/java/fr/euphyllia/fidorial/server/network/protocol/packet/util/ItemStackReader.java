@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.network.protocol.packet.util;
 
 import fr.euphyllia.fidorial.server.codecs.item.ServerComponents;
-
 import fr.euphyllia.fidorial.server.codecs.item.component.DataComponentNetworkCodecs;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistries;
@@ -32,12 +31,36 @@ public class ItemStackReader {
             return ItemStack.EMPTY;
         }
 
+        final TypedKey<Item> item = readItem(buf, registries);
+        return new ItemStack(item, count, readComponents(buf, registries));
+    }
+
+    /**
+     * Reads a stack the way the item lists of components carry it, such as the projectiles a
+     * crossbow is loaded with: its item, its count, then its components, with no leading count.
+     */
+    public static ItemStack readTemplate(final PacketBuffer buf, final ServerRegistries registries) {
+        final TypedKey<Item> item = readItem(buf, registries);
+        final int count = buf.readVarInt();
+        if (count <= 0) {
+            throw new DecoderException("Implausible item count in a template: " + count);
+        }
+        return new ItemStack(item, count, readComponents(buf, registries));
+    }
+
+    private static TypedKey<Item> readItem(final PacketBuffer buf, final ServerRegistries registries) {
         final int itemId = buf.readVarInt();
         final TypedKey<Item> item = registries.registry(RegistryKey.ITEM).byNetworkId(itemId);
         if (item == null) {
             throw new DecoderException("Unknown item network id: " + itemId);
         }
+        return item;
+    }
 
+    /**
+     * Reads the components a stack adds to and removes from those of its item.
+     */
+    private static DataComponentMap readComponents(final PacketBuffer buf, final ServerRegistries registries) {
         final int addedCount = boundedCount(buf.readVarInt(), "components to add");
         final int removedCount = boundedCount(buf.readVarInt(), "components to remove");
 
@@ -57,9 +80,7 @@ public class ItemStackReader {
             }
         }
 
-        final DataComponentMap built = components.build();
-
-        return new ItemStack(item, count, built);
+        return components.build();
     }
 
     private static void readComponent(final PacketBuffer buf,

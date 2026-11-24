@@ -37,12 +37,7 @@ public final class ItemStackWriter {
             return;
         }
 
-        final ItemDefinition definition = definition(stack);
-        final ItemStack wire = definition == null
-                ? stack
-                : new ItemStack(definition.networkType(), stack.count(),
-                FidorialItemRegistry.withDefaults(definition, stack.components()));
-
+        final ItemStack wire = wire(stack);
         final int itemId = registries.registry(RegistryKey.ITEM).networkId(wire.id());
         if (itemId < 0) {
             LOGGER.warn("Item {} is not in the item registry; sending an empty slot instead", stack.id());
@@ -50,11 +45,50 @@ public final class ItemStackWriter {
             return;
         }
 
+        buf.writeVarInt(wire.count());
+        buf.writeVarInt(itemId);
+        writeComponents(buf, wire, registries);
+    }
+
+    /**
+     * Writes a stack the way the item lists of components carry it, such as the projectiles a
+     * crossbow is loaded with: its item, its count, then its components. Unlike a slot it has no
+     * leading count and is never empty.
+     *
+     * @throws IllegalArgumentException if the stack is empty or its item is not in the registry
+     */
+    public static void writeTemplate(final PacketBuffer buf, final ItemStack stack, final ServerRegistries registries) {
+        if (stack.isEmpty()) {
+            throw new IllegalArgumentException("An empty stack cannot be written as a template");
+        }
+        final ItemStack wire = wire(stack);
+        final int itemId = registries.registry(RegistryKey.ITEM).networkId(wire.id());
+        if (itemId < 0) {
+            throw new IllegalArgumentException("Item " + stack.id() + " is not in the item registry");
+        }
+        buf.writeVarInt(itemId);
+        buf.writeVarInt(wire.count());
+        writeComponents(buf, wire, registries);
+    }
+
+    /**
+     * {@return the stack as clients know it: an item defined by the server is sent as its network type}
+     */
+    private static ItemStack wire(final ItemStack stack) {
+        final ItemDefinition definition = definition(stack);
+        return definition == null
+                ? stack
+                : new ItemStack(definition.networkType(), stack.count(),
+                FidorialItemRegistry.withDefaults(definition, stack.components()));
+    }
+
+    /**
+     * Writes the components a stack adds to and removes from those of its item.
+     */
+    private static void writeComponents(final PacketBuffer buf, final ItemStack wire, final ServerRegistries registries) {
         final List<Map.Entry<DataComponentType<?>, Object>> added = encodableAdditions(wire, registries);
         final List<Integer> removed = encodableRemovals(wire, registries);
 
-        buf.writeVarInt(wire.count());
-        buf.writeVarInt(itemId);
         buf.writeVarInt(added.size());
         buf.writeVarInt(removed.size());
 

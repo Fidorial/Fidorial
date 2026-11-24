@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.command.fidorial.utils.TpsBarManager;
 import fr.euphyllia.fidorial.server.console.command.ConsoleCommandReader;
 import fr.euphyllia.fidorial.server.lifecycle.Quietly;
 import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
+import fr.euphyllia.fidorial.server.lifecycle.ServerState;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
 import fr.fidorial.command.CommandRegistry;
@@ -53,7 +54,7 @@ public final class CommandModule implements ServerModule, CommandRegistry {
     public void start() {
         if (!headless) {
             console.setLocale(Locale.getDefault());
-            new ConsoleCommandReader(manager, server::isRunning).start();
+            new ConsoleCommandReader(manager, server::isRunning, () -> server.state() == ServerState.RUNNING).start();
         }
     }
 
@@ -82,8 +83,6 @@ public final class CommandModule implements ServerModule, CommandRegistry {
     public TpsBarManager tpsBars() {
         return tpsBars;
     }
-
-    // ---- CommandRegistry API, backed by the command manager
 
     @Override
     public void register(final String namespace, final LiteralCommandNode<CommandSource> command, final Set<String> aliases) {

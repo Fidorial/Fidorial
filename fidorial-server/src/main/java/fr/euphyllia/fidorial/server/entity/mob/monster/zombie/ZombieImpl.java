@@ -422,7 +422,7 @@ public class ZombieImpl extends AbstractMonster implements Zombie {
      * {@return the zombie this one turns into after a while in powder snow, not yet in the world}
      */
     protected ZombieImpl frozenForm(final int entityId, final Location location) {
-        return new FrostbiteImpl(entityId, location, false);
+        return new FrostbiteEntity(entityId, location, false);
     }
 
     /**

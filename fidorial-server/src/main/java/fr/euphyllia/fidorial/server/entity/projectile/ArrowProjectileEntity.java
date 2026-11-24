@@ -136,10 +136,6 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
         this.pickupItem = pickupItem.isEmpty() ? pickupItem : pickupItem.withCount(1);
     }
 
-    // ------------------------------------------------------------------------------------------
-    // API
-    // ------------------------------------------------------------------------------------------
-
     @Override
     public @Nullable Entity owner() {
         return owner;
@@ -325,10 +321,6 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
         final double second = random.nextDouble();
         return deviation * (first - second);
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Ticking
-    // ------------------------------------------------------------------------------------------
 
     @Override
     public void tick(final long currentTick) {
@@ -526,14 +518,40 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
                         low = middle;
                     }
                 }
-                final double bx = x + dx * high;
-                final double by = y + dy * high;
-                final double bz = z + dz * high;
-                return new BlockHit(low, Position.block((int) Math.floor(bx), (int) Math.floor(by), (int) Math.floor(bz)));
+                return new BlockHit(low, hitBlock(world, x + dx * high, y + dy * high, z + dz * high, dx, dy, dz));
             }
             previous = at;
         }
         return null;
+    }
+
+    /**
+     * {@return the block a projectile touched at a point}: the point lies on a face of the block, up
+     * to {@link #POINT} in front of it, so it can round to the free block in front, such as the air
+     * above the ground an arrow lands on. A projectile stuck in a free block falls again at once.
+     */
+    private static BlockPosition hitBlock(final ServerWorld world, final double x, final double y, final double z,
+                                          final double dx, final double dy, final double dz) {
+        final double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        final double nudge = length > 0.0 ? 2.0 * POINT / length : 0.0;
+        // a little further along the flight is inside the block, unless the projectile grazed it
+        final BlockPosition ahead = Position.block((int) Math.floor(x + dx * nudge), (int) Math.floor(y + dy * nudge),
+                (int) Math.floor(z + dz * nudge));
+        if (!isFree(world, ahead)) {
+            return ahead;
+        }
+        for (final double offsetX : new double[]{-POINT, POINT}) {
+            for (final double offsetY : new double[]{-POINT, POINT}) {
+                for (final double offsetZ : new double[]{-POINT, POINT}) {
+                    final BlockPosition around = Position.block((int) Math.floor(x + offsetX),
+                            (int) Math.floor(y + offsetY), (int) Math.floor(z + offsetZ));
+                    if (!isFree(world, around)) {
+                        return around;
+                    }
+                }
+            }
+        }
+        return ahead;
     }
 
     private static boolean solidAt(final ServerWorld world, final double x, final double y, final double z) {
@@ -577,10 +595,6 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
         }
         return !pierced.contains(entity.entityId());
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Hits
-    // ------------------------------------------------------------------------------------------
 
     /**
      * What becomes of a projectile once it hit an entity.
@@ -731,10 +745,6 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
         combat().playAt(this, sound, volume, pitch);
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Pickup
-    // ------------------------------------------------------------------------------------------
-
     private void offerToPlayers(final ServerWorld world) {
         if (wobble > 0 || (!stuck && !throughBlocks)) {
             return;
@@ -793,10 +803,6 @@ public abstract class ArrowProjectileEntity extends AbstractEntity implements Ar
         player.connection().send(new ClientboundTakeItemEntityPacket(entityId(), player.entityId(), 1));
         discard();
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Movement and network
-    // ------------------------------------------------------------------------------------------
 
     private void moveTo(final ServerWorld world, final Location from, final double x, final double y, final double z) {
         moveWithin(world, from.with(x, y, z));

@@ -871,6 +871,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
             acting.execute(() -> server.entities().combat().items().release(acting));
             return;
         }
+        if (status == ServerboundPlayerActionPacket.CANCEL_USE_ITEM) {
+            acting.execute(() -> server.entities().combat().items().cancel(acting));
+            return;
+        }
         if (status == ServerboundPlayerActionPacket.SWAP_ITEM_WITH_OFFHAND) {
             acting.execute(() -> swapHands(acting));
             return;

@@ -181,9 +181,18 @@ public final class RangedWeapons {
         }
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Bow
-    // ------------------------------------------------------------------------------------------
+    /**
+     * Stops using the item of a player without its effect: a drawn bow lowers without shooting, a
+     * crossbow being loaded stays empty, a readied trident is not thrown. Since 26.4-pre-1.
+     */
+    public void cancel(final ServerPlayer player) {
+        final ItemUse use = player.itemUse();
+        if (!use.isUsing()) {
+            return;
+        }
+        use.stop();
+        player.syncLivingFlags();
+    }
 
     /**
      * {@return how hard a bow drawn for some ticks shoots, between {@code 0} and {@code 1}}
@@ -213,10 +222,6 @@ public final class RangedWeapons {
         combat.playAt(player, SoundEventKeys.ENTITY_ARROW_SHOOT.key(), 1.0f,
                 1.0f / (random.nextFloat() * 0.4f + 1.2f) + power * 0.5f);
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Crossbow
-    // ------------------------------------------------------------------------------------------
 
     /**
      * {@return the ticks a crossbow takes to load: a second and a quarter, less with Quick Charge}
@@ -282,10 +287,6 @@ public final class RangedWeapons {
         return 1.0f / (ThreadLocalRandom.current().nextFloat() * 0.5f + 1.8f) + high;
     }
 
-    // ------------------------------------------------------------------------------------------
-    // Trident
-    // ------------------------------------------------------------------------------------------
-
     private void releaseTrident(final ServerPlayer player, final EquipmentSlot hand, final ItemStack trident,
                                 final int ticks) {
         if (ticks < TRIDENT_MIN_USE_TICKS || isAboutToBreak(trident) || hasEnchantment(trident, EnchantmentKeys.RIPTIDE)) {
@@ -322,10 +323,6 @@ public final class RangedWeapons {
         final ItemEnchantments enchantments = stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.EMPTY);
         return enchantments.levels().containsKey(enchantment);
     }
-
-    // ------------------------------------------------------------------------------------------
-    // Shooting
-    // ------------------------------------------------------------------------------------------
 
     /**
      * The ammunition of a shot.
