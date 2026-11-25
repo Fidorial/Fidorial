@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server.world.generation.terrain;
 
 import fr.euphyllia.fidorial.server.world.generation.biome.JitteredBiomeGrid;
 
+import java.util.BitSet;
+
 /**
  * The biomes of a chunk and of a margin of one cell around it, one per cell of 4 by 4 by 4 blocks, and the biome
  * of each block worked out from them: a block takes the biome of the nearest of the eight cell corners around it,
@@ -139,7 +141,7 @@ public final class NoiseBiomeGrid {
      * Marks the biomes of the chunk itself, the cells of the margin left out: the biomes its sections are saved
      * with.
      */
-    public void collectOwn(final java.util.BitSet out) {
+    public void collectOwn(final BitSet out) {
         if (uniform) {
             out.set(cells[0]);
             return;
@@ -154,7 +156,7 @@ public final class NoiseBiomeGrid {
     }
 
     private static char[] distinctOf(final char[] cells) {
-        final java.util.BitSet seen = new java.util.BitSet();
+        final BitSet seen = new BitSet();
         for (final char cell : cells) {
             seen.set(cell);
         }

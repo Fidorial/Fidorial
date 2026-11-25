@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.world.generation;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import org.jspecify.annotations.Nullable;
 
@@ -46,6 +47,6 @@ public record NoiseSettings(String id, int minY, int height, int seaLevel, JsonE
      */
     public JsonElement routed(final String name) {
         final JsonElement function = router.get(name);
-        return function == null ? new com.google.gson.JsonPrimitive(0.0) : function;
+        return function == null ? new JsonPrimitive(0.0) : function;
     }
 }

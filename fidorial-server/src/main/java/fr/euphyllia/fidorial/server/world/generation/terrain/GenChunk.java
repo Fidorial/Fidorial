@@ -4,6 +4,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.generation.block.StatePalette;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * A chunk while it is being generated: one {@code char} per block, numbered by the {@link StatePalette} of the
@@ -156,7 +157,7 @@ public final class GenChunk {
     /**
      * {@return the height of the top block of a column matching a test, plus one; {@code minY} for none}
      */
-    public int top(final int x, final int z, final java.util.function.Predicate<BlockState> occupies) {
+    public int top(final int x, final int z, final Predicate<BlockState> occupies) {
         for (int section = sections.length - 1; section >= 0; section--) {
             final char[] blocks = sections[section];
             final int base = minY + (section << 4);

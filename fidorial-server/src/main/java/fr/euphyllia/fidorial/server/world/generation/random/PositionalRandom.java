@@ -1,5 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation.random;
 
+import net.kyori.adventure.key.Key;
+
 /**
  * Hands out streams tied to a block position or to a name, all derived from one 128-bit seed. Asking twice for
  * the same position or the same name gives two streams that produce the same values, whatever was asked in
@@ -20,10 +22,10 @@ public record PositionalRandom(long low, long high) {
     }
 
     /**
-     * {@return a fresh stream for a name, usually a namespaced identifier}
+     * {@return a fresh stream for a namespaced identifier}
      */
-    public XoroshiroSource named(final String name) {
-        final long[] hash = Seeds.ofName(name);
+    public XoroshiroSource named(final Key id) {
+        final long[] hash = Seeds.ofName(id);
         return new XoroshiroSource(hash[0] ^ low, hash[1] ^ high);
     }
 

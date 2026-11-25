@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -31,7 +32,6 @@ import java.util.Set;
 public final class WorldgenData {
 
     private static final String BUNDLED = "/fidorial-data/worldgen.json";
-    private static final String DEFAULT_NAMESPACE = "minecraft:";
     private static final char TAG_MARK = '#';
 
     /**
@@ -48,9 +48,6 @@ public final class WorldgenData {
         PLACED_FEATURE("placed_features", "worldgen/placed_feature"),
         BLOCK_STATE_PROVIDER("block_state_providers", "worldgen/block_state_provider"),
         PROCESSOR_LIST("processor_lists", "worldgen/processor_list"),
-        /**
-         * The structure templates the features place, in base 64: they come with the server only.
-         */
         BIOME("biomes", "worldgen/biome"),
         BIOME_PARAMETERS("biome_parameters", null),
         FEATURE_TAG("tags/feature", "tags/worldgen/feature"),
@@ -142,7 +139,7 @@ public final class WorldgenData {
      */
     public static String normalize(final String id) {
         final String trimmed = id.startsWith(String.valueOf(TAG_MARK)) ? id.substring(1) : id;
-        return trimmed.indexOf(':') >= 0 ? trimmed : DEFAULT_NAMESPACE + trimmed;
+        return Key.key(trimmed).asString();
     }
 
     /**

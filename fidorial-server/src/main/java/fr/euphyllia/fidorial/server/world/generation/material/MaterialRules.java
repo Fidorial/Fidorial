@@ -15,10 +15,13 @@ import fr.euphyllia.fidorial.server.world.generation.noise.NoiseField;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import fr.fidorial.registry.keys.BlockTypeKeys;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +37,9 @@ import java.util.Set;
 public final class MaterialRules {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(MaterialRules.class);
+
+    private static final Key CLAY_BANDS_RANDOM = Key.key("clay_bands");
+    private static final Key ORE_RANDOM = Key.key("ore");
 
     /**
      * A compiled rule.
@@ -79,22 +85,22 @@ public final class MaterialRules {
      * {@return the layers of the badlands for a world, bottom first: terracotta with bands of colours}
      */
     public static BlockState[] clayBands(final PositionalRandom random, final BlockLookup blocks) {
-        final XoroshiroSource draw = random.named("minecraft:clay_bands");
-        final BlockState plain = blocks.state("minecraft:terracotta");
+        final XoroshiroSource draw = random.named(CLAY_BANDS_RANDOM);
+        final BlockState plain = blocks.state(BlockTypeKeys.TERRACOTTA);
         final BlockState[] bands = new BlockState[192];
-        java.util.Arrays.fill(bands, plain);
+        Arrays.fill(bands, plain);
         for (int i = 0; i < bands.length; i++) {
             i += draw.nextInt(5) + 1;
             if (i < bands.length) {
-                bands[i] = blocks.state("minecraft:orange_terracotta");
+                bands[i] = blocks.state(BlockTypeKeys.ORANGE_TERRACOTTA);
             }
         }
-        paintBands(draw, bands, 1, blocks.state("minecraft:yellow_terracotta"));
-        paintBands(draw, bands, 2, blocks.state("minecraft:brown_terracotta"));
-        paintBands(draw, bands, 1, blocks.state("minecraft:red_terracotta"));
+        paintBands(draw, bands, 1, blocks.state(BlockTypeKeys.YELLOW_TERRACOTTA));
+        paintBands(draw, bands, 2, blocks.state(BlockTypeKeys.BROWN_TERRACOTTA));
+        paintBands(draw, bands, 1, blocks.state(BlockTypeKeys.RED_TERRACOTTA));
         final int whiteCount = draw.nextInt(15 - 9 + 1) + 9;
-        final BlockState white = blocks.state("minecraft:white_terracotta");
-        final BlockState lightGray = blocks.state("minecraft:light_gray_terracotta");
+        final BlockState white = blocks.state(BlockTypeKeys.WHITE_TERRACOTTA);
+        final BlockState lightGray = blocks.state(BlockTypeKeys.LIGHT_GRAY_TERRACOTTA);
         int painted = 0;
         for (int start = 0; painted < whiteCount && start < bands.length; start += draw.nextInt(16) + 4) {
             bands[start] = white;
@@ -183,7 +189,7 @@ public final class MaterialRules {
         final Density density = program.compile(object.get("density"));
         final Density richness = program.compile(object.get("richness"));
         final Density gap = program.compile(object.get("filler_gap"));
-        final PositionalRandom random = worldRandom.named("minecraft:ore").splitPositional();
+        final PositionalRandom random = worldRandom.named(ORE_RANDOM).splitPositional();
         return () -> {
             final int x = context.x;
             final int y = context.y;
@@ -335,7 +341,7 @@ public final class MaterialRules {
     }
 
     private Condition noiseThreshold(final JsonObject object) {
-        final NoiseField noise = program.noise(object.get("noise").getAsString());
+        final NoiseField noise = program.noise(Key.key(object.get("noise").getAsString()));
         final double min = object.get("min_threshold").getAsDouble();
         final double max = object.get("max_threshold").getAsDouble();
         final boolean is3d = object.has("is_3d") && object.get("is_3d").getAsBoolean();
@@ -361,7 +367,7 @@ public final class MaterialRules {
     private Condition verticalGradient(final JsonObject object) {
         final int trueAtAndBelow = heights.resolve(object.get("true_at_and_below"));
         final int falseAtAndAbove = heights.resolve(object.get("false_at_and_above"));
-        final PositionalRandom random = worldRandom.named(WorldgenData.normalize(object.get("random_name").getAsString())).splitPositional();
+        final PositionalRandom random = worldRandom.named(Key.key(object.get("random_name").getAsString())).splitPositional();
         return new BlockCondition() {
             @Override
             boolean compute() {

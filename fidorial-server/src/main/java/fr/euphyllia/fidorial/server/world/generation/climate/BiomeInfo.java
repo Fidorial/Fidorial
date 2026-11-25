@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
+import net.kyori.adventure.key.Key;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +26,17 @@ public record BiomeInfo(int index, TypedKey<BiomeDefinition> key, float temperat
                         boolean hasPrecipitation, List<String> carvers, List<List<String>> features) {
 
     /**
+     * The temperature modifier of the biomes whose water freezes in patches.
+     */
+    private static final Key FROZEN_MODIFIER = Key.key("frozen");
+
+    /**
      * Reads the generation part of a biome definition.
      */
     static BiomeInfo read(final int index, final TypedKey<BiomeDefinition> key, final JsonObject definition) {
         final float temperature = definition.has("temperature") ? definition.get("temperature").getAsFloat() : 0.5F;
         final boolean frozen = definition.has("temperature_modifier")
-                && definition.get("temperature_modifier").getAsString().endsWith("frozen");
+                && Key.key(definition.get("temperature_modifier").getAsString()).equals(FROZEN_MODIFIER);
         final float downfall = definition.has("downfall") ? definition.get("downfall").getAsFloat() : 0.5F;
         final boolean precipitation = !definition.has("has_precipitation") || definition.get("has_precipitation").getAsBoolean();
         final List<String> carvers = new ArrayList<>();

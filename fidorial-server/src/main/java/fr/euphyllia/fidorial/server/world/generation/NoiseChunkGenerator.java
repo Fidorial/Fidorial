@@ -37,6 +37,9 @@ import fr.euphyllia.fidorial.server.world.structure.FutureCache;
 import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
+import fr.fidorial.registry.keys.BiomeKeys;
+import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
@@ -65,6 +68,17 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     private static final int TERRAIN_CACHE = 1024;
     private static final int CARVER_BIOME_CACHE = 1 << 16;
     private static final int PROTECTED_TOP = 7;
+
+    private static final Key AQUIFER_RANDOM = Key.key( "aquifer");
+    private static final Key SURFACE_NOISE = Key.key( "surface");
+    private static final Key SURFACE_SECONDARY_NOISE = Key.key( "surface_secondary");
+    private static final Key CLAY_BANDS_OFFSET_NOISE = Key.key( "clay_bands_offset");
+    private static final Key BADLANDS_SURFACE_NOISE = Key.key( "badlands_surface");
+    private static final Key BADLANDS_PILLAR_NOISE = Key.key( "badlands_pillar");
+    private static final Key BADLANDS_PILLAR_ROOF_NOISE = Key.key( "badlands_pillar_roof");
+    private static final Key ICEBERG_SURFACE_NOISE = Key.key( "iceberg_surface");
+    private static final Key ICEBERG_PILLAR_NOISE = Key.key( "iceberg_pillar");
+    private static final Key ICEBERG_PILLAR_ROOF_NOISE = Key.key( "iceberg_pillar_roof");
 
     /**
      * What the generator reads from the server.
@@ -166,25 +180,25 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
 
         this.materialSystem = new MaterialContext.MaterialSystem(settings.seaLevel(),
                 program.compile(settings.routed("chunk_surface_level")),
-                program.noise("minecraft:surface"), program.noise("minecraft:surface_secondary"),
-                program.noise("minecraft:clay_bands_offset"), worldRandom, biomes,
+                program.noise(SURFACE_NOISE), program.noise(SURFACE_SECONDARY_NOISE),
+                program.noise(CLAY_BANDS_OFFSET_NOISE), worldRandom, biomes,
                 MaterialRules.clayBands(worldRandom, blocks));
 
         this.terrain = new TerrainBuilder.Shared(finalDensity, aquifers, globalFluid,
-                worldRandom.named("minecraft:aquifer").splitPositional(), blocks, biomes, biomeClimate, settings.seaLevel(),
-                blocks.tag("minecraft:uncarvable"),
-                new TerrainBuilder.ExtensionNoises(program.noise("minecraft:badlands_surface"),
-                        program.noise("minecraft:badlands_pillar"), program.noise("minecraft:badlands_pillar_roof")),
-                new TerrainBuilder.ExtensionNoises(program.noise("minecraft:iceberg_surface"),
-                        program.noise("minecraft:iceberg_pillar"), program.noise("minecraft:iceberg_pillar_roof")),
+                worldRandom.named(AQUIFER_RANDOM).splitPositional(), blocks, biomes, biomeClimate, settings.seaLevel(),
+                BlockTypeTagKeys.UNCARVABLE,
+                new TerrainBuilder.ExtensionNoises(program.noise(BADLANDS_SURFACE_NOISE),
+                        program.noise(BADLANDS_PILLAR_NOISE), program.noise(BADLANDS_PILLAR_ROOF_NOISE)),
+                new TerrainBuilder.ExtensionNoises(program.noise(ICEBERG_SURFACE_NOISE),
+                        program.noise(ICEBERG_PILLAR_NOISE), program.noise(ICEBERG_PILLAR_ROOF_NOISE)),
                 worldRandom,
-                indexOf("minecraft:eroded_badlands"), indexOf("minecraft:frozen_ocean"), indexOf("minecraft:deep_frozen_ocean"));
+                indexOf(BiomeKeys.ERODED_BADLANDS), indexOf(BiomeKeys.FROZEN_OCEAN), indexOf(BiomeKeys.DEEP_FROZEN_OCEAN));
 
         this.workers = ThreadLocal.withInitial(Worker::new);
     }
 
-    private int indexOf(final String biome) {
-        final BiomeInfo info = biomes.find(biome);
+    private int indexOf(final TypedKey<BiomeDefinition> biome) {
+        final BiomeInfo info = biomes.find(biome.key().asString());
         return info == null ? -1 : info.index();
     }
 
@@ -435,7 +449,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
             }
             for (int i = 0; i < blocks.length; i++) {
                 final BlockState state = palette.state(blocks[i]);
-                final TypedKey<fr.fidorial.registry.data.BlockEntityType> type = state.blockEntityType();
+                final TypedKey<BlockEntityType> type = state.blockEntityType();
                 if (type == null) {
                     continue;
                 }

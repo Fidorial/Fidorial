@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.world.generation.value;
 
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import net.kyori.adventure.key.Key;
 
 /**
  * Small helpers shared by the value sources.
@@ -15,8 +16,15 @@ public final class Values {
      * {@return the {@code type} of a definition, without the default namespace}
      */
     public static String type(final JsonObject object) {
-        final String type = object.get("type").getAsString();
-        return type.startsWith("minecraft:") ? type.substring("minecraft:".length()) : type;
+        return typeName(object.get("type").getAsString());
+    }
+
+    /**
+     * {@return a type identifier read from the data, without its namespace when it is the default one}
+     */
+    public static String typeName(final String id) {
+        final Key key = Key.key(id);
+        return key.namespace().equals(Key.MINECRAFT_NAMESPACE) ? key.value() : key.asString();
     }
 
     /**

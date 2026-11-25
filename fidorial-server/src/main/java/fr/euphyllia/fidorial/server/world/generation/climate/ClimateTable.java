@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Picks a biome from a point of the climate: temperature, humidity, continentalness, erosion, depth and
@@ -53,7 +54,7 @@ public final class ClimateTable<T> {
      * @param list    the report
      * @param mapping turns a biome identifier into what the table points to
      */
-    public static <T> ClimateTable<T> fromReport(final JsonElement list, final java.util.function.Function<String, T> mapping) {
+    public static <T> ClimateTable<T> fromReport(final JsonElement list, final Function<String, T> mapping) {
         final JsonArray entries = list.getAsJsonObject().getAsJsonArray("biomes");
         final List<Leaf<T>> leaves = new ArrayList<>(entries.size());
         for (final JsonElement entry : entries) {

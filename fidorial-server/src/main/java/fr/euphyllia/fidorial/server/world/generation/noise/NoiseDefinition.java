@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * The parameters of a named noise, as a data pack writes them: the first octave, how many octaves, their
@@ -169,8 +170,8 @@ public record NoiseDefinition(double baseAmplitude, int baseOctave, int octaveCo
         return build(name -> new LegacyRandom(name.hashCode() ^ first), name -> new LegacyRandom(name.hashCode() ^ second));
     }
 
-    private OctaveStack build(final java.util.function.Function<String, BitRandom> first,
-                              final java.util.function.Function<String, BitRandom> second) {
+    private OctaveStack build(final Function<String, BitRandom> first,
+                              final Function<String, BitRandom> second) {
         final List<Octave> octaves = octaves(baseAmplitude, scaling != Scaling.NONE);
         double totalWeight = totalWeight(octaves);
         double scale = scaleFor(totalWeight, octaves);

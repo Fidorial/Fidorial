@@ -9,6 +9,8 @@ import fr.euphyllia.fidorial.server.world.generation.noise.BlendedTerrainNoise;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseDefinition;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseField;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
+import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.util.HashMap;
@@ -32,14 +34,14 @@ import java.util.Set;
 public final class DensityProgram {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(DensityProgram.class);
-    private static final String TERRAIN_SEED = "minecraft:terrain";
+    private static final Key TERRAIN_SEED = Key.key( "terrain");
 
     private final WorldgenData data;
     private final HeightContext heights;
     private final PositionalRandom random;
     private final Map<String, Density> named = new HashMap<>();
     private final Set<String> compiling = new HashSet<>();
-    private final Map<String, NoiseField> noises = new HashMap<>();
+    private final Map<Key, NoiseField> noises = new HashMap<>();
     private final Map<Density, Density> columnCaches = new IdentityHashMap<>();
     private final Set<String> warned = new HashSet<>();
     private final ThreadLocal<DensityContext> contexts = ThreadLocal.withInitial(this::newContext);
@@ -78,14 +80,13 @@ public final class DensityProgram {
     /**
      * {@return the noise of an identifier, built once from the world seed}
      */
-    public synchronized NoiseField noise(final String id) {
-        final String key = WorldgenData.normalize(id);
-        final NoiseField known = noises.get(key);
+    public synchronized NoiseField noise(final Key id) {
+        final NoiseField known = noises.get(id);
         if (known != null) {
             return known;
         }
-        final NoiseField created = NoiseDefinition.parse(data.get(WorldgenData.Section.NOISE, key)).create(random.named(key));
-        noises.put(key, created);
+        final NoiseField created = NoiseDefinition.parse(data.get(WorldgenData.Section.NOISE, id.asString())).create(random.named(id));
+        noises.put(id, created);
         return created;
     }
 
@@ -153,11 +154,6 @@ public final class DensityProgram {
         return columnCaches.computeIfAbsent(child, value -> new DensityNodes.Cache(value, cacheSlots++));
     }
 
-    private static String typeOf(final JsonObject object) {
-        final String type = object.get("type").getAsString();
-        return type.startsWith("minecraft:") ? type.substring("minecraft:".length()) : type;
-    }
-
     private Density field(final JsonObject object, final String name) {
         return compile(object.get(name));
     }
@@ -167,7 +163,7 @@ public final class DensityProgram {
     }
 
     private Density inline(final JsonObject object) {
-        final String type = typeOf(object);
+        final String type = Values.type(object);
         return switch (type) {
             case "constant" -> constant(object.get("value").getAsFloat());
             case "add", "sub", "mul", "div", "min", "max" ->
@@ -240,17 +236,17 @@ public final class DensityProgram {
                 final Density shiftZ = optional(object, "shift_z");
                 final double xzScale = object.get("xz_scale").getAsDouble();
                 final double yScale = object.get("y_scale").getAsDouble();
-                final DensityNodes.Noise noise = new DensityNodes.Noise(noise(object.get("noise").getAsString()), xzScale, yScale,
-                        shiftX, shiftY, shiftZ);
+                final DensityNodes.Noise noise = new DensityNodes.Noise(noise(Key.key(object.get("noise").getAsString())), xzScale,
+                        yScale, shiftX, shiftY, shiftZ);
                 final int axes = noise.axes();
                 yield new DensityNodes.Noise(noise.noise, xzScale, yScale, adopt(shiftX, axes), adopt(shiftY, axes), adopt(shiftZ, axes));
             }
             case "shift_a" ->
-                    new DensityNodes.Shift(noise(object.get("noise").getAsString()), DensityNodes.Shift.Kind.A);
+                    new DensityNodes.Shift(noise(Key.key(object.get("noise").getAsString())), DensityNodes.Shift.Kind.A);
             case "shift_b" ->
-                    new DensityNodes.Shift(noise(object.get("noise").getAsString()), DensityNodes.Shift.Kind.B);
+                    new DensityNodes.Shift(noise(Key.key(object.get("noise").getAsString())), DensityNodes.Shift.Kind.B);
             case "shift" ->
-                    new DensityNodes.Shift(noise(object.get("noise").getAsString()), DensityNodes.Shift.Kind.ALL);
+                    new DensityNodes.Shift(noise(Key.key(object.get("noise").getAsString())), DensityNodes.Shift.Kind.ALL);
             case "old_blended_noise" -> new DensityNodes.Blended(new BlendedTerrainNoise(random.named(TERRAIN_SEED),
                     object.get("xz_scale").getAsDouble(), object.get("y_scale").getAsDouble(),
                     object.get("xz_factor").getAsDouble(), object.get("y_factor").getAsDouble(),

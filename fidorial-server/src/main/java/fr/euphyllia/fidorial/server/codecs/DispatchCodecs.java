@@ -5,6 +5,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
+import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -13,9 +14,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public final class DispatchCodecs {
-
-    private static final String DEFAULT_NAMESPACE = "minecraft:";
-
     private DispatchCodecs() {
     }
 
@@ -52,7 +50,8 @@ public final class DispatchCodecs {
                 if (type != null) {
                     final Optional<String> id = ops.getStringValue(type).result();
                     if (id.isPresent()) {
-                        final String name = id.get().startsWith(DEFAULT_NAMESPACE) ? id.get().substring(DEFAULT_NAMESPACE.length()) : id.get();
+                        final Key key = Key.parseable(id.get()) ? Key.key(id.get()) : null;
+                        final String name = key != null && key.namespace().equals(Key.MINECRAFT_NAMESPACE) ? key.value() : id.get();
                         for (final Variant<T> v : variants) {
                             if (v.id().equals(id.get()) || v.id().equals(name)) {
                                 return v.codec().decode(ops, input);

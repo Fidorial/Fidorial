@@ -4,11 +4,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
+import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockType;
+import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -27,7 +31,7 @@ public final class BlockLookup {
 
     private final BiPredicate<TypedKey<BlockType>, TagKey<BlockType>> tagged;
     private final Map<String, TagKey<BlockType>> tags = new ConcurrentHashMap<>();
-    private final Map<String, BlockState> defaults = new ConcurrentHashMap<>();
+    private final Map<TypedKey<BlockType>, BlockState> defaults = new ConcurrentHashMap<>();
 
     public final BlockState air;
     public final BlockState caveAir;
@@ -40,18 +44,18 @@ public final class BlockLookup {
      */
     public BlockLookup(final BiPredicate<TypedKey<BlockType>, TagKey<BlockType>> tagged) {
         this.tagged = tagged;
-        this.air = state("minecraft:air");
-        this.caveAir = state("minecraft:cave_air");
-        this.water = state("minecraft:water");
-        this.lava = state("minecraft:lava");
-        this.stone = state("minecraft:stone");
+        this.air = state(BlockTypeKeys.AIR);
+        this.caveAir = state(BlockTypeKeys.CAVE_AIR);
+        this.water = state(BlockTypeKeys.WATER);
+        this.lava = state(BlockTypeKeys.LAVA);
+        this.stone = state(BlockTypeKeys.STONE);
     }
 
     /**
      * {@return the typed key of a block identifier}
      */
     public static TypedKey<BlockType> key(final String id) {
-        return TypedKey.withRegistry(RegistryKey.BLOCK, WorldgenData.normalize(id));
+        return TypedKey.withRegistry(RegistryKey.BLOCK, Key.key(id));
     }
 
     /**
@@ -59,18 +63,26 @@ public final class BlockLookup {
      *
      * @throws IllegalArgumentException if the block does not exist
      */
-    public BlockState state(final String id) {
-        final String normalized = WorldgenData.normalize(id);
-        final BlockState known = defaults.get(normalized);
+    public BlockState state(final TypedKey<BlockType> block) {
+        final BlockState known = defaults.get(block);
         if (known != null) {
             return known;
         }
-        final BlockState found = BlockStates.defaultStateOf(key(normalized));
+        final BlockState found = BlockStates.defaultStateOf(block);
         if (found == null) {
-            throw new IllegalArgumentException("Unknown block " + normalized);
+            throw new IllegalArgumentException("Unknown block " + block.key().asString());
         }
-        defaults.put(normalized, found);
+        defaults.put(block, found);
         return found;
+    }
+
+    /**
+     * {@return the default state of a block named in the data}
+     *
+     * @throws IllegalArgumentException if the block does not exist
+     */
+    public BlockState state(final String id) {
+        return state(key(id));
     }
 
     /**
@@ -145,21 +157,17 @@ public final class BlockLookup {
      * {@return {@code true} for water itself, still or flowing}
      */
     public boolean isWaterBlock(final BlockState state) {
-        return state.name().equals(water.name());
+        return FluidType.byBlockKey(state.name()) == FluidType.WATER;
     }
 
     public boolean isLavaBlock(final BlockState state) {
-        return state.name().equals(lava.name());
+        return FluidType.byBlockKey(state.name()) == FluidType.LAVA;
     }
 
     /**
-     * {@return {@code true} for a source block of water or lava, or a waterlogged block}
+     * {@return {@code true} for a source of water or lava, or a block holding a source of water}
      */
     public boolean isSource(final BlockState state) {
-        final String level = state.properties().get("level");
-        if (state.name().equals(water.name()) || state.name().equals(lava.name())) {
-            return "0".equals(level);
-        }
-        return state.isWaterlogged();
+        return FluidBlockCodec.fromBlock(state).isSource();
     }
 }
