@@ -15,8 +15,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * Merges tag files into the built-in tags of a registry: those of Fidorial into the tags of the
- * game, then those of the data packs into both.
+ * Merges the tag files of the data packs, the bundled ones first, into the vanilla tags of a registry.
  * <p>
  * A tag file adds to the tag of the same name, or replaces it when it says {@code replace}.
  * Entries and nested tags that do not exist are skipped, with a warning when they are required.
@@ -58,8 +57,8 @@ final class TagResolver {
      * @param entries  whether the registry holds an entry
      * @param files    the tag files, by tag, in order
      */
-    static Map<Key, List<Key>> resolve(final Key registry, final Map<Key, List<Key>> base, final Predicate<Key> entries,
-                                       final Map<Key, List<TagFile>> files) {
+    private static Map<Key, List<Key>> resolve(final Key registry, final Map<Key, List<Key>> base, final Predicate<Key> entries,
+                                               final Map<Key, List<TagFile>> files) {
         final TagResolver resolver = new TagResolver(registry, base, entries, files);
         final Map<Key, List<Key>> tags = new LinkedHashMap<>(base);
         for (final Key tag : files.keySet()) {

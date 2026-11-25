@@ -50,6 +50,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(RegistryModule.class);
 
     private final Path datapacksFolder;
+    private final DatapackLoader datapackLoader = new DatapackLoader();
     private final ServerRegistries registries = ServerRegistries.load();
     private final FidorialEnchantments enchantments = new FidorialEnchantments(registries);
     private final FidorialBlockRegistry blocks = GameBootstrap.blockRegistry();
@@ -90,7 +91,9 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         try {
             reloadDatapacks();
         } catch (final IOException failure) {
-            LOGGER.error("[datapacks] Unable to read {}", datapacksFolder, failure);
+            LOGGER.error("[datapacks] Unable to read {}, only the bundled datapacks are loaded", datapacksFolder, failure);
+            datapacks = datapackLoader.bundled();
+            registries.applyDatapackTags(datapacks);
         }
 
         final VanillaRecipeLoader loader = new VanillaRecipeLoader(registries.registry(RegistryKey.ITEM)::contains);
@@ -122,7 +125,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
      * @throws IOException if the data packs cannot be read
      */
     public void reloadDatapacks() throws IOException {
-        datapacks = DatapackLoader.load(datapacksFolder);
+        datapacks = datapackLoader.load(datapacksFolder);
         registries.applyDatapackTags(datapacks);
     }
 

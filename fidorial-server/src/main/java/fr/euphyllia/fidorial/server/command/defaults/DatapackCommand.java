@@ -10,7 +10,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +46,7 @@ public final class DatapackCommand {
         final List<Component> names = new ArrayList<>(packs.size());
         for (final Datapack pack : packs) {
             final Component details = Component.text()
-                    .append(description(pack))
+                    .append(pack.description())
                     .append(Component.newline())
                     .append(Component.translatable("command.datapack.list.details",
                             Component.text(pack.templates()), Component.text(pack.structures()), Component.text(pack.structureSets())))
@@ -57,14 +56,6 @@ public final class DatapackCommand {
         context.getSource().sendMessage(Component.translatable("command.datapack.list",
                 Component.text(packs.size()), Component.join(JoinConfiguration.commas(true), names)));
         return packs.size();
-    }
-
-    private static Component description(final Datapack pack) {
-        try {
-            return GsonComponentSerializer.gson().deserialize(pack.descriptionJson());
-        } catch (final RuntimeException invalid) {
-            return Component.text(pack.descriptionJson());
-        }
     }
 
     private static int reload(final CommandContext<CommandSource> context) {
