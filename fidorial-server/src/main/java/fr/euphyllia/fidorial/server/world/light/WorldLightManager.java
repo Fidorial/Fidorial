@@ -113,6 +113,9 @@ public class WorldLightManager {
     }
 
     public int skyLight(final int x, final int y, final int z) {
+        if (!access.hasSkylight()) {
+            return 0;
+        }
         final ChunkLightData data = access.lightAt(x >> 4, z >> 4);
         return data == null ? 0 : data.get(LightType.SKY, x, y, z);
     }
@@ -122,6 +125,7 @@ public class WorldLightManager {
         if (data == null) {
             return 0;
         }
-        return Math.max(data.get(LightType.BLOCK, x, y, z), data.get(LightType.SKY, x, y, z));
+        final int sky = access.hasSkylight() ? data.get(LightType.SKY, x, y, z) : 0;
+        return Math.max(data.get(LightType.BLOCK, x, y, z), sky);
     }
 }

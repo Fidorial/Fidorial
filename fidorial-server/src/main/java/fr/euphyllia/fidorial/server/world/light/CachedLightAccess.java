@@ -75,6 +75,11 @@ final class CachedLightAccess implements LightAccess {
     }
 
     @Override
+    public boolean hasSkylight() {
+        return delegate.hasSkylight();
+    }
+
+    @Override
     public BlockState blockAt(final int x, final int y, final int z) {
         final BlockColumnAccess col = columnAt(x >> 4, z >> 4);
         return col != null ? col.blockAt(x & 15, y, z & 15) : delegate.blockAt(x, y, z);

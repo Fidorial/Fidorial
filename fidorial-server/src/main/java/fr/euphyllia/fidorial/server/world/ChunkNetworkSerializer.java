@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world;
 
+import fr.euphyllia.fidorial.server.codecs.networking.NetworkEncoder;
 import fr.euphyllia.fidorial.server.network.serialization.PacketBuffer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
@@ -22,32 +23,56 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 
 public final class ChunkNetworkSerializer {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ChunkNetworkSerializer.class);
     private static final boolean BIKINI_BOTTOM = Boolean.getBoolean("Fidorial.bikiniBottom");
 
-    private final BlockStateRegistry blockRegistry;
-    private final ServerRegistry<BiomeDefinition> biomes;
     private final ServerRegistry<BlockEntityType> blockEntityTypes;
-    private static final int MAX_INDIRECT_BIOME_BITS = 8;
+    private final NetworkEncoder<PacketBuffer, PalettedContainer<BlockState>> blockStates;
+    private final NetworkEncoder<PacketBuffer, PalettedContainer<TypedKey<BiomeDefinition>>> biomeStates;
 
     private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
 
     public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
-        this.blockRegistry = blockRegistry;
-        this.biomes = biomes;
         this.blockEntityTypes = blockEntityTypes;
+        // the client reads anything wider as registry ids
+        this.blockStates = palettedContainer(8, () -> BitPacking.bitsFor(blockRegistry.size(), 1), blockRegistry::networkId);
+        this.biomeStates = palettedContainer(8, () -> BitPacking.bitsFor(biomes.size(), 1), biome -> biomeId(biomes, biome));
     }
 
-    private int biomeId(final TypedKey<BiomeDefinition> biome) {
+    private static int biomeId(final ServerRegistry<BiomeDefinition> biomes, final TypedKey<BiomeDefinition> biome) {
         final int id = biomes.networkId(biome);
         if (id >= 0) {
             return id;
         }
         final int fallback = biomes.networkId(FALLBACK_BIOME);
         return Math.max(fallback, 0);
+    }
+
+    private static <T> NetworkEncoder<PacketBuffer, PalettedContainer<T>> palettedContainer(final int maxPaletteBits, final IntSupplier registryBits, final ToIntFunction<T> networkId) {
+        return (buf, container) -> {
+            final PalettedContainer.PackedSnapshot<T> snap = container.packedSnapshot();
+            final List<T> palette = snap.palette();
+            if (palette.size() == 1) {
+                buf.writeByte(0);
+                buf.writeVarInt(networkId.applyAsInt(palette.getFirst()));
+            } else if (snap.bits() <= maxPaletteBits) {
+                buf.writeByte(snap.bits());
+                buf.writeVarInt(palette.size());
+                for (final T value : palette) {
+                    buf.writeVarInt(networkId.applyAsInt(value));
+                }
+                writeLongs(buf, snap.data(), snap.bits(), container.size());
+            } else {
+                final int bits = registryBits.getAsInt();
+                buf.writeByte(bits);
+                writeLongs(buf, container.packedGlobal(bits, networkId), bits, container.size());
+            }
+        };
     }
 
     public void writeChunk(final PacketBuffer p, final ByteBufAllocator alloc, final ChunkColumn chunk, final boolean hasSkylight) {
@@ -123,54 +148,10 @@ public final class ChunkNetworkSerializer {
     }
 
     private void writeSection(final PacketBuffer sp, final ChunkSection section) {
-        final PalettedContainer.PackedSnapshot<BlockState> snap = section.blocks().packedSnapshot();
-
-        sp.writeShort(section.nonAirCount());   // nonEmptyBlockCount
-        sp.writeShort(section.fluidCount());    // fluidCount
-
-        if (snap.palette().size() == 1) {
-            sp.writeByte(0);           // bitsPerEntry = 0 (single value)
-            sp.writeVarInt(blockRegistry.networkId(snap.palette().getFirst()));
-        } else {
-            sp.writeByte(snap.bits());
-            sp.writeVarInt(snap.palette().size());
-            for (final BlockState state : snap.palette()) {
-                sp.writeVarInt(blockRegistry.networkId(state));
-            }
-            writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BLOCK_COUNT);
-        }
-
-        writeBiomes(sp, section.biomes());
-    }
-
-    private void writeBiomes(final PacketBuffer sp, final PalettedContainer<TypedKey<BiomeDefinition>> container) {
-        final PalettedContainer.PackedSnapshot<TypedKey<BiomeDefinition>> snap = container.packedSnapshot();
-        final List<TypedKey<BiomeDefinition>> palette = snap.palette();
-
-        if (palette.size() == 1) {
-            sp.writeByte(0);
-            sp.writeVarInt(biomeId(palette.getFirst()));
-            return;
-        }
-
-        if (snap.bits() <= MAX_INDIRECT_BIOME_BITS) {
-            sp.writeByte(snap.bits());
-            sp.writeVarInt(palette.size());
-            for (final TypedKey<BiomeDefinition> biome : palette) {
-                sp.writeVarInt(biomeId(biome));
-            }
-            writeLongs(sp, snap.data(), snap.bits(), ChunkSection.BIOME_COUNT);
-            return;
-        }
-
-        final PalettedContainer.PalettedContainerSnapshot<TypedKey<BiomeDefinition>> full = container.snapshot();
-        final int directBits = BitPacking.bitsFor(biomes.size(), 1);
-        sp.writeByte(directBits);
-        final int[] global = new int[ChunkSection.BIOME_COUNT];
-        for (int i = 0; i < global.length; i++) {
-            global[i] = biomeId(full.get(i));
-        }
-        writeLongs(sp, BitPacking.pack(global, directBits), directBits, ChunkSection.BIOME_COUNT);
+        sp.writeShort(section.nonAirCount());
+        sp.writeShort(section.fluidCount());
+        blockStates.write(sp, section.blocks());
+        biomeStates.write(sp, section.biomes());
     }
 
     public byte[] buildBiomes(final ByteBufAllocator alloc, final ChunkColumn chunk) {
@@ -178,7 +159,7 @@ public final class ChunkNetworkSerializer {
         try {
             final PacketBuffer out = new PacketBuffer(buffer);
             for (final ChunkSection section : chunk.sections()) {
-                writeBiomes(out, section.biomes());
+                biomeStates.write(out, section.biomes());
             }
             final byte[] encoded = new byte[buffer.readableBytes()];
             buffer.readBytes(encoded);
