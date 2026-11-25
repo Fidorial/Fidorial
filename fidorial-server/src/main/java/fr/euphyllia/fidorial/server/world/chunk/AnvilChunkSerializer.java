@@ -215,10 +215,10 @@ public class AnvilChunkSerializer {
         final CompoundBinaryTag.Builder c = CompoundBinaryTag.builder();
         c.putByte("Y", (byte) section.sectionY());
 
-        if (blockLight != null) {
+        if (blockLight != null && !ChunkLightData.isAllZero(blockLight)) {
             c.putByteArray("BlockLight", blockLight);
         }
-        if (skyLight != null) {
+        if (skyLight != null && !ChunkLightData.isAllZero(skyLight)) {
             c.putByteArray("SkyLight", skyLight);
         }
 

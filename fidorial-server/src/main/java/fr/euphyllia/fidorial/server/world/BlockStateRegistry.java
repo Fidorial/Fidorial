@@ -54,6 +54,11 @@ public final class BlockStateRegistry {
         }
     }
 
+    /// Returns the amount of block states with a unique network id.
+    public int size() {
+        return stateByNetworkId.length;
+    }
+
     public int networkId(final BlockState state) {
         final BlockData data = resolve(state);
         return data == null ? AIR_NETWORK_ID : data.networkId();

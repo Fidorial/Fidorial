@@ -296,6 +296,10 @@ public final class PalettedContainer<T> {
         }
     }
 
+    public int size() {
+        return size;
+    }
+
     public int bitsPerEntry() {
         final long stamp = lock.readLock();
         try {

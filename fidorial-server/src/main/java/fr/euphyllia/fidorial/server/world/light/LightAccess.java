@@ -25,6 +25,8 @@ public interface LightAccess {
 
     boolean sectionHasEmissiveBlocks(final int chunkX, final int sectionY, final int chunkZ);
 
+    boolean hasSkylight();
+
     default ColumnSnapshot snapshotAt(final int chunkX, final int chunkZ) {
         return new ColumnSnapshot(
                 lightAt(chunkX, chunkZ),

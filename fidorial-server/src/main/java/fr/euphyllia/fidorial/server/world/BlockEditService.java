@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world;
 import fr.euphyllia.fidorial.server.debug.DebugGameEvents;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.light.BlockLightProperties;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.keys.GameEventKeys;
 import net.kyori.adventure.key.Key;
@@ -117,13 +118,15 @@ public final class BlockEditService {
         if (visible) {
             broadcast(world, pos, state);
         }
-        lightNotifier.onBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
+        if (BlockLightProperties.opacity(previous) != BlockLightProperties.opacity(state) || BlockLightProperties.emission(previous) != BlockLightProperties.emission(state)) {
+            lightNotifier.onBlockChanged(world.dimension().id(), pos.blockX(), pos.blockY(), pos.blockZ());
+        }
 
         final DebugGameEvents events = debugEvents;
-        if (events != null && previous != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
+        if (events != null && !previous.isAir() && !state.isAir() && !previous.equals(state)) {
             events.emit(world, GameEventKeys.BLOCK_CHANGE, pos);
         }
-        if (previous != null && !previous.equals(state)) {
+        if (!previous.equals(state)) {
             if (notifyRedstone) {
                 redstoneNotifier.blockChanged(world, pos, previous, state);
             }

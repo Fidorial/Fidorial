@@ -1093,6 +1093,11 @@ public final class ServerWorld implements World {
         }
 
         @Override
+        public boolean hasSkylight() {
+            return dimensionType.hasSkylight();
+        }
+
+        @Override
         public ColumnSnapshot snapshotAt(final int chunkX, final int chunkZ) {
             final ChunkColumn column = loadedColumn(chunkX, chunkZ);
             if (column == null) {
