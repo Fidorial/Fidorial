@@ -237,8 +237,17 @@ public abstract sealed class Carver permits Carver.Cave, Carver.Canyon {
                 yaw += yawChange * 0.1F;
                 pitchChange *= 0.9F;
                 yawChange *= 0.75F;
-                pitchChange += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 2.0F;
-                yawChange += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 4.0F;
+                final float pitchRandom1 = random.nextFloat();
+                final float pitchRandom2 = random.nextFloat();
+                final float pitchRandom3 = random.nextFloat();
+
+                pitchChange += (pitchRandom1 - pitchRandom2) * pitchRandom3 * 2.0F;
+
+                final float yawRandom1 = random.nextFloat();
+                final float yawRandom2 = random.nextFloat();
+                final float yawRandom3 = random.nextFloat();
+
+                yawChange += (yawRandom1 - yawRandom2) * yawRandom3 * 4.0F;
                 if (step == split && thickness > 1.0F) {
                     tunnel(chunkX, chunkZ, random.nextLong(), x, y, z, horizontalMultiplier, verticalMultiplier,
                             random.nextFloat() * 0.5F + 0.5F, yaw - (float) (Math.PI / 2), pitch / 3.0F, step, steps, 1.0, mask, skip);
@@ -331,8 +340,17 @@ public abstract sealed class Carver permits Carver.Cave, Carver.Canyon {
                 yaw += yawChange * 0.05F;
                 pitchChange *= 0.8F;
                 yawChange *= 0.5F;
-                pitchChange += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 2.0F;
-                yawChange += (random.nextFloat() - random.nextFloat()) * random.nextFloat() * 4.0F;
+                final float pitchRandom1 = random.nextFloat();
+                final float pitchRandom2 = random.nextFloat();
+                final float pitchRandom3 = random.nextFloat();
+
+                pitchChange += (pitchRandom1 - pitchRandom2) * pitchRandom3 * 2.0F;
+
+                final float yawRandom1 = random.nextFloat();
+                final float yawRandom2 = random.nextFloat();
+                final float yawRandom3 = random.nextFloat();
+
+                yawChange += (yawRandom1 - yawRandom2) * yawRandom3 * 4.0F;
                 if (random.nextInt(4) != 0) {
                     if (!canReach(chunkX, chunkZ, x, z, step, distance, thickness)) {
                         return;
