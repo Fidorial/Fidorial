@@ -128,6 +128,6 @@ public final class JitteredBiomeGrid {
         final double offsetY = offset(state);
         state = step(state, seed);
         final double offsetZ = offset(state);
-        return square(towardsX + offsetX) + square(towardsY + offsetY) + square(towardsZ + offsetZ);
+        return square(towardsZ + offsetZ) + square(towardsY + offsetY) + square(towardsX + offsetX);
     }
 }
