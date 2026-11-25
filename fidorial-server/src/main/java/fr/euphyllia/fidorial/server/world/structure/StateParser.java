@@ -78,12 +78,13 @@ public final class StateParser {
     }
 
     public static @Nullable Parsed parseNbt(final CompoundBinaryTag compound) {
-        final TypedKey<BlockType> key = block(compound.getString("Name"));
+        final boolean older = compound.keySet().contains("Name");
+        final TypedKey<BlockType> key = block(compound.getString(older ? "Name" : "id"));
         if (key == null) {
             return null;
         }
         final Map<String, String> properties = new LinkedHashMap<>();
-        final CompoundBinaryTag props = compound.getCompound("Properties");
+        final CompoundBinaryTag props = compound.getCompound(older ? "Properties" : "properties");
         for (final String name : props.keySet()) {
             final BinaryTag value = props.get(name);
             if (value instanceof final StringBinaryTag string) {
