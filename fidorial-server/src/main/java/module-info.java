@@ -48,6 +48,7 @@ module fr.fidorial.server {
     requires com.github.spotbugs.annotations;
 
     opens fr.euphyllia.fidorial.server.tests to fr.fidorial;
+    opens fr.euphyllia.fidorial.server.tests.lighting to fr.fidorial;
 
     provides fr.fidorial.command.argument.Arguments with FidorialArguments;
     provides fr.fidorial.command.serializers.MessageComponentSerializer with MessageComponentSerializerImpl;
