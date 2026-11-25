@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 
 public final class DispatchCodecs {
 
+    private static final String DEFAULT_NAMESPACE = "minecraft:";
+
     private DispatchCodecs() {
     }
 
@@ -50,8 +52,9 @@ public final class DispatchCodecs {
                 if (type != null) {
                     final Optional<String> id = ops.getStringValue(type).result();
                     if (id.isPresent()) {
+                        final String name = id.get().startsWith(DEFAULT_NAMESPACE) ? id.get().substring(DEFAULT_NAMESPACE.length()) : id.get();
                         for (final Variant<T> v : variants) {
-                            if (v.id().equals(id.get())) {
+                            if (v.id().equals(id.get()) || v.id().equals(name)) {
                                 return v.codec().decode(ops, input);
                             }
                         }
