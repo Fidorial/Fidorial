@@ -109,6 +109,13 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract RegularFileProperty getLootTablesDataset();
 
     /**
+     * Where the {@code generateWorldgen} task writes the world generation dataset: noises, density functions,
+     * noise settings, material rules, carvers, features and biome parameters. The task only runs when this is
+     * set, and needs both {@code "--server"} and {@code "--reports"} among the data generator arguments.
+     */
+    public abstract RegularFileProperty getWorldgenDataset();
+
+    /**
      * Where the {@code generateBlockMining} task writes block hardness and tool rules. The task
      * only runs when this and {@link #getPrismarineMinecraftData()} are set.
      */

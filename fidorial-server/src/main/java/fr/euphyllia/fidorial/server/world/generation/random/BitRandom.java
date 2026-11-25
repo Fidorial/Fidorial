@@ -10,6 +10,10 @@ public abstract class BitRandom {
     private static final float FLOAT_UNIT = 0x1.0p-24F;
     private static final double DOUBLE_UNIT = 0x1.0p-53;
 
+    // the polar method draws two normal values at a time; the second one waits here
+    private double spareGaussian;
+    private boolean hasSpareGaussian;
+
     /**
      * {@return the next {@code bits} random bits, right-aligned}
      *
@@ -23,6 +27,36 @@ public abstract class BitRandom {
      * @param seed the new seed
      */
     public abstract void setSeed(long seed);
+
+    /**
+     * Forgets the normal value kept by {@link #nextGaussian()}; implementations call it when they are re-seeded.
+     */
+    protected final void dropSpareGaussian() {
+        this.hasSpareGaussian = false;
+    }
+
+    /**
+     * {@return a value of the standard normal distribution}: pairs of uniform points are drawn in the square
+     * around the origin until one falls inside the unit circle, which gives two values; the second is kept for
+     * the next call.
+     */
+    public double nextGaussian() {
+        if (hasSpareGaussian) {
+            hasSpareGaussian = false;
+            return spareGaussian;
+        }
+        while (true) {
+            final double u = 2.0 * nextDouble() - 1.0;
+            final double v = 2.0 * nextDouble() - 1.0;
+            final double radius = u * u + v * v;
+            if (radius < 1.0 && radius != 0.0) {
+                final double scale = Math.sqrt(-2.0 * Math.log(radius) / radius);
+                spareGaussian = v * scale;
+                hasSpareGaussian = true;
+                return u * scale;
+            }
+        }
+    }
 
     public int nextInt() {
         return next(32);

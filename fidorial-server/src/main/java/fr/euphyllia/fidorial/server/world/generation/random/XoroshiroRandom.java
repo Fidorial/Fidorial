@@ -2,9 +2,6 @@ package fr.euphyllia.fidorial.server.world.generation.random;
 
 public final class XoroshiroRandom extends BitRandom {
 
-    private static final long SILVER_RATIO_64 = 7640891576956012809L;
-    private static final long GOLDEN_RATIO_64 = -7046029254386353131L;
-
     private long low;
     private long high;
 
@@ -12,22 +9,39 @@ public final class XoroshiroRandom extends BitRandom {
         setSeed(seed);
     }
 
-    private static long mixStafford13(final long value) {
-        long mixed = (value ^ value >>> 30) * -4658895280553007687L;
-        mixed = (mixed ^ mixed >>> 27) * -7723592293110705685L;
-        return mixed ^ mixed >>> 31;
-    }
-
     @Override
     public void setSeed(final long seed) {
-        final long unmixedLow = seed ^ SILVER_RATIO_64;
-        final long unmixedHigh = unmixedLow + GOLDEN_RATIO_64;
-        this.low = mixStafford13(unmixedLow);
-        this.high = mixStafford13(unmixedHigh);
+        reseed(seed);
+        dropSpareGaussian();
+    }
+
+    /**
+     * Restarts the stream from a seed but keeps the normal value left by {@link #nextGaussian()}: the decorations of
+     * a chunk share it from one feature to the next.
+     */
+    private void reseed(final long seed) {
+        final long unmixedLow = seed ^ Seeds.SILVER_RATIO_64;
+        final long unmixedHigh = unmixedLow + Seeds.GOLDEN_RATIO_64;
+        this.low = Seeds.mix(unmixedLow);
+        this.high = Seeds.mix(unmixedHigh);
         if ((low | high) == 0L) {
-            this.low = GOLDEN_RATIO_64;
-            this.high = SILVER_RATIO_64;
+            this.low = Seeds.GOLDEN_RATIO_64;
+            this.high = Seeds.SILVER_RATIO_64;
         }
+    }
+
+    /**
+     * {@return a factory of positional streams seeded from the next two raw outputs}
+     */
+    public PositionalRandom splitPositional() {
+        return new PositionalRandom(nextRaw(), nextRaw());
+    }
+
+    /**
+     * {@return an independent stream seeded from the next two raw outputs}
+     */
+    public XoroshiroSource split() {
+        return new XoroshiroSource(nextRaw(), nextRaw());
     }
 
     private long nextRaw() {
@@ -54,11 +68,11 @@ public final class XoroshiroRandom extends BitRandom {
      * @return the decoration seed, to derive the per-feature seeds from
      */
     public long setDecorationSeed(final long seed, final int blockX, final int blockZ) {
-        setSeed(seed);
+        reseed(seed);
         final long xScale = nextLong() | 1L;
         final long zScale = nextLong() | 1L;
         final long result = blockX * xScale + blockZ * zScale ^ seed;
-        setSeed(result);
+        reseed(result);
         return result;
     }
 
@@ -70,6 +84,6 @@ public final class XoroshiroRandom extends BitRandom {
      * @param step           the generation step
      */
     public void setFeatureSeed(final long decorationSeed, final int index, final int step) {
-        setSeed(decorationSeed + index + 10000L * step);
+        reseed(decorationSeed + index + 10000L * step);
     }
 }

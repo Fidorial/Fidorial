@@ -329,6 +329,10 @@ fidorialRegistryGenerator {
         layout.projectDirectory.file("src/generated/resources/fidorial-data/block_items.json"),
     )
 
+    worldgenDataset.set(
+        layout.projectDirectory.file("src/generated/resources/fidorial-data/worldgen.json"),
+    )
+
     registries.set(
         mapOf(
             "minecraft:command_argument_type" to "ArgumentType",

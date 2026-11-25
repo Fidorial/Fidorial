@@ -22,6 +22,7 @@ import fr.fidorial.registrygen.model.RegistrySync;
 import fr.fidorial.registrygen.model.RegistryTypeDefinition;
 import fr.fidorial.registrygen.model.SupportedRegistries;
 import fr.fidorial.registrygen.task.GenerateReportsTask;
+import fr.fidorial.registrygen.task.GenerateWorldgenTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
@@ -65,6 +66,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String BLOCK_COLLISION_TASK_NAME = "generateBlockCollision";
     public static final String BLOCK_ITEMS_TASK_NAME = "generateBlockItems";
     public static final String BLOCK_ENTITY_TYPE_BLOCKS_TASK_NAME = "generateBlockEntityTypeBlocks";
+    public static final String WORLDGEN_TASK_NAME = "generateWorldgen";
 
     private final JavaToolchainService javaToolchainService;
 
@@ -104,11 +106,12 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
         final TaskProvider<GenerateBlockItemsTask> blockItemsTask = registerBlockItemsTask(project, extension, reportsTask);
         final TaskProvider<GenerateBlockEntityTypeBlocksTask> blockEntityTypeBlocksTask =
                 registerBlockEntityTypeBlocksTask(project, extension, reportsTask, prismarineTask);
+        final TaskProvider<GenerateWorldgenTask> worldgenTask = registerWorldgenTask(project, extension, reportsTask);
 
         registerLifecycleTask(project, registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                 entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask, lootTablesTask,
                 blockMiningTask, registryValuesTask, blockSupportTask, blockCollisionTask, blockItemsTask,
-                blockEntityTypeBlocksTask, itemCombatTask);
+                blockEntityTypeBlocksTask, itemCombatTask, worldgenTask);
     }
 
     private static void configureDefaults(final Project project, final FidorialRegistryGeneratorExtension extension) {
@@ -463,7 +466,8 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                                               final TaskProvider<GenerateBlockCollisionTask> blockCollisionTask,
                                               final TaskProvider<GenerateBlockItemsTask> blockItemsTask,
                                               final TaskProvider<GenerateBlockEntityTypeBlocksTask> blockEntityTypeBlocksTask,
-                                              final TaskProvider<GenerateItemCombatTask> itemCombatTask) {
+                                              final TaskProvider<GenerateItemCombatTask> itemCombatTask,
+                                              final TaskProvider<GenerateWorldgenTask> worldgenTask) {
 
         project.getTasks().register("generateAll", task -> {
             task.setGroup("fidorial registry generation");
@@ -471,7 +475,28 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
             task.dependsOn(registriesTask, packetsTask, blockStatesTask, itemPropertiesTask,
                     entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask,
                     lootTablesTask, blockMiningTask, registryValuesTask, blockSupportTask,
-                    blockCollisionTask, blockItemsTask, blockEntityTypeBlocksTask, itemCombatTask);
+                    blockCollisionTask, blockItemsTask, blockEntityTypeBlocksTask, itemCombatTask,
+                    worldgenTask);
+        });
+    }
+
+    private static TaskProvider<GenerateWorldgenTask> registerWorldgenTask(final Project project,
+                                                                           final FidorialRegistryGeneratorExtension extension,
+                                                                           final TaskProvider<GenerateReportsTask> reportsTask) {
+
+        return project.getTasks().register(WORLDGEN_TASK_NAME, GenerateWorldgenTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Bundles the world generation data of the game into the dataset the server loads.");
+            task.dependsOn(reportsTask);
+
+            task.onlyIf("fidorialRegistryGenerator.worldgenDataset is set", _ -> extension.getWorldgenDataset().isPresent());
+
+            task.getGameDataDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/data")));
+            task.getReportsDirectory().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(directory -> directory.dir("generated/reports")));
+
+            task.getWorldgenDataset().set(extension.getWorldgenDataset());
         });
     }
 

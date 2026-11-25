@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.math;
 
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 
 import java.util.List;
 
@@ -21,9 +22,7 @@ public final class LegacyRandom extends BitRandom {
     }
 
     public static long positionSeed(final int x, final int y, final int z) {
-        long l = (x * 3129871L) ^ (long) z * 116129781L ^ (long) y;
-        l = l * l * 42317861L + l * 11L;
-        return l >> 16;
+        return Seeds.ofPosition(x, y, z);
     }
 
     public static LegacyRandom atPosition(final int x, final int y, final int z) {
@@ -33,6 +32,7 @@ public final class LegacyRandom extends BitRandom {
     @Override
     public void setSeed(final long newSeed) {
         this.seed = (newSeed ^ MULTIPLIER) & MASK;
+        dropSpareGaussian();
     }
 
     public void setLargeFeatureSeed(final long worldSeed, final int chunkX, final int chunkZ) {

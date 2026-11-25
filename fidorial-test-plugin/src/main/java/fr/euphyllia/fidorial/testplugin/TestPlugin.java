@@ -23,7 +23,6 @@ import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestChatTypes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestDimensionTypes;
 import fr.euphyllia.fidorial.testplugin.transfer.TransferTickets;
-import fr.euphyllia.fidorial.testplugin.worldgen.GeneratorSettings;
 import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandRegistry;
@@ -50,7 +49,6 @@ import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServicePriority;
 import fr.fidorial.status.ServerStatus;
 import fr.fidorial.world.World;
-import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.resource.ResourcePackInfo;
@@ -150,25 +148,25 @@ public final class TestPlugin implements Plugin {
         TestEffects.registerAll(context.server().registries().effects(), this, context.logger());
         TestEnchantments.registerAll(context.server().registries(), this, context.logger());
 
-        final long seed = resolveSeed(context.logger());
-        this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
+//        final long seed = resolveSeed(context.logger());
+//        this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
 
-        context.services().register(WorldGenerator.class, generator, this);
-        context.logger().info(
-                "[TestPlugin] Overworld generator saving (seed={}, sea level={})",
-                seed,
-                generator.settings().seaLevel());
+        //context.services().register(WorldGenerator.class, generator, this);
+//        context.logger().info(
+//                "[TestPlugin] Overworld generator saving (seed={}, sea level={})",
+//                seed,
+//                generator.settings().seaLevel());
 
-        final int[] spawn = generator.findSpawn(0, 0, 4000, -64, 319);
-        if (spawn == null) {
-            context.logger().warn("[TestPlugin] No spawn point found near the origin.");
-        } else {
-            context.logger().info(
-                    "[TestPlugin] Spawn point coordinates: spawn-x={} spawn-y={} spawn-z={}",
-                    spawn[0] + 0.5,
-                    spawn[1],
-                    spawn[2] + 0.5);
-        }
+//        final int[] spawn = generator.findSpawn(0, 0, 4000, -64, 319);
+//        if (spawn == null) {
+//            context.logger().warn("[TestPlugin] No spawn point found near the origin.");
+//        } else {
+//            context.logger().info(
+//                    "[TestPlugin] Spawn point coordinates: spawn-x={} spawn-y={} spawn-z={}",
+//                    spawn[0] + 0.5,
+//                    spawn[1],
+//                    spawn[2] + 0.5);
+//        }
 
         logger.info(
                 "[TestPlugin] onLoad OK - id={} version={} dataFolder={}",
