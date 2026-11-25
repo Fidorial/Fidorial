@@ -2,9 +2,9 @@ package fr.euphyllia.fidorial.server.datapack;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.fidorial.world.structure.Datapack;
 import net.kyori.adventure.key.Key;
@@ -12,54 +12,71 @@ import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.JarURLConnection;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public final class DatapackLoader {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(DatapackLoader.class);
+    private static final String BUNDLED = "datapacks";
     private static final String MCMETA = "pack.mcmeta";
+    private static final String DATA = "data";
     private static final String WORLDGEN = "worldgen/";
     private static final String BLOCK_TAGS = "block";
     private static final String LEGACY_BLOCK_TAGS = "blocks";
 
-    private DatapackLoader() {
+    private final List<RawPack> bundled;
+
+    /**
+     * @throws IllegalStateException if the bundled packs cannot be read
+     */
+    public DatapackLoader() {
+        this.bundled = readBundled();
     }
 
-    public static DatapackContents load(final Path folder) throws IOException {
+    /**
+     * {@return the bundled packs, then those of {@code folder}, by name}
+     *
+     * @throws IOException if {@code folder} cannot be listed
+     */
+    public DatapackContents load(final Path folder) throws IOException {
         Files.createDirectories(folder);
 
         final List<Path> candidates;
         try (final Stream<Path> stream = Files.list(folder)) {
             candidates = stream
-                    .filter(path -> Files.isDirectory(path) || String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT).endsWith(".zip"))
-                    .sorted(Comparator.comparing(path -> String.valueOf(path.getFileName()).toLowerCase(Locale.ROOT)))
+                    .filter(path -> Files.isDirectory(path) || name(path).toLowerCase(Locale.ROOT).endsWith(".zip"))
+                    .sorted(Comparator.comparing(path -> name(path).toLowerCase(Locale.ROOT)))
                     .toList();
         }
 
-        final Builder builder = new Builder();
+        final Builder builder = bundledBuilder();
         for (final Path candidate : candidates) {
             try {
-                final RawPack pack = Files.isDirectory(candidate) ? readFolder(candidate) : readZip(candidate);
+                final RawPack pack = read(candidate);
                 if (pack == null) {
                     LOGGER.warn("[datapacks] {} has no pack.mcmeta, it is not a datapack and is skipped", candidate.getFileName());
                     continue;
                 }
                 builder.add(pack);
+            } catch (final IllegalArgumentException | JsonParseException invalid) {
+                LOGGER.warn("[datapacks] {} is skipped: {}", candidate.getFileName(), invalid.getMessage());
             } catch (final IOException | RuntimeException failure) {
                 LOGGER.error("[datapacks] Unable to read {}", candidate.getFileName(), failure);
             }
@@ -67,10 +84,71 @@ public final class DatapackLoader {
         return builder.build();
     }
 
-    private record RawPack(String id, Path source, String description, boolean overlays, Map<String, byte[]> files) {
+    /**
+     * {@return the bundled packs alone}
+     */
+    public DatapackContents bundled() {
+        return bundledBuilder().build();
     }
 
-    private static @Nullable RawPack readFolder(final Path folder) throws IOException {
+    private Builder bundledBuilder() {
+        final Builder builder = new Builder();
+        bundled.forEach(builder::add);
+        return builder;
+    }
+
+    private record RawPack(String id, Path source, DatapackManifest manifest, Map<String, byte[]> files) {
+    }
+
+    private static List<RawPack> readBundled() {
+        final URL root = DatapackLoader.class.getResource("/" + BUNDLED + "/");
+        Preconditions.checkState(root != null, "The server has no bundled datapacks");
+        try {
+            if (root.openConnection() instanceof final JarURLConnection connection) {
+                final Path jar = Path.of(connection.getJarFileURL().toURI());
+                try (final FileSystem files = FileSystems.newFileSystem(jar)) {
+                    return readBundled(files.getPath(BUNDLED), _ -> jar);
+                }
+            }
+            return readBundled(Path.of(root.toURI()), UnaryOperator.identity());
+        } catch (final IOException | URISyntaxException failure) {
+            throw new IllegalStateException("Unable to read the bundled datapacks", failure);
+        }
+    }
+
+    /**
+     * @param source the file to report for a pack folder
+     */
+    private static List<RawPack> readBundled(final Path folder, final UnaryOperator<Path> source) throws IOException {
+        final List<RawPack> packs = new ArrayList<>();
+        try (final Stream<Path> children = Files.list(folder)) {
+            for (final Path child : (Iterable<Path>) children.filter(Files::isDirectory).sorted()::iterator) {
+                final String id = name(child);
+                final RawPack pack = readRoot(child, id, source.apply(child));
+                Preconditions.checkState(pack != null, "Bundled datapack %s has no %s", id, MCMETA);
+                packs.add(pack);
+            }
+        }
+        return List.copyOf(packs);
+    }
+
+    /**
+     * {@return a pack of the world folder: a folder or a zip, {@code null} if it has no {@code pack.mcmeta}}
+     */
+    private static @Nullable RawPack read(final Path candidate) throws IOException {
+        final String id = "file/" + name(candidate);
+        if (Files.isDirectory(candidate)) {
+            return readRoot(candidate, id, candidate);
+        }
+        try (final FileSystem zip = FileSystems.newFileSystem(candidate)) {
+            return readRoot(zip.getPath("/"), id, candidate);
+        }
+    }
+
+    /**
+     * @param folder holds {@code pack.mcmeta}, or a single folder that does
+     */
+    private static @Nullable RawPack readRoot(final Path folder, final String id, final Path source) throws IOException {
         Path root = folder;
         if (!Files.isRegularFile(root.resolve(MCMETA))) {
             root = nestedRoot(folder);
@@ -78,20 +156,23 @@ public final class DatapackLoader {
                 return null;
             }
         }
+        final DatapackManifest manifest = DatapackManifest.CODEC
+                .parse(JsonOps.INSTANCE, JsonParser.parseString(stripBom(Files.readString(root.resolve(MCMETA), StandardCharsets.UTF_8))))
+                .getOrThrow(message -> new IllegalArgumentException("invalid " + MCMETA + " of " + id + ": " + message));
+
         final Map<String, byte[]> files = new LinkedHashMap<>();
-        final Path data = root.resolve("data");
+        final Path data = root.resolve(DATA);
         if (Files.isDirectory(data)) {
             try (final Stream<Path> walk = Files.walk(data)) {
                 for (final Path file : (Iterable<Path>) walk.filter(Files::isRegularFile)::iterator) {
-                    final String relative = "data/" + data.relativize(file).toString().replace('\\', '/');
+                    final String relative = DATA + "/" + data.relativize(file).toString().replace('\\', '/');
                     if (isRelevant(relative)) {
                         files.put(relative, Files.readAllBytes(file));
                     }
                 }
             }
         }
-        final String mcmeta = Files.readString(root.resolve(MCMETA), StandardCharsets.UTF_8);
-        return rawPack("file/" + folder.getFileName(), folder, mcmeta, files);
+        return new RawPack(id, source, manifest, files);
     }
 
     private static @Nullable Path nestedRoot(final Path folder) throws IOException {
@@ -104,64 +185,8 @@ public final class DatapackLoader {
         return null;
     }
 
-    private static @Nullable RawPack readZip(final Path zip) throws IOException {
-        try (final ZipFile file = new ZipFile(zip.toFile(), StandardCharsets.UTF_8)) {
-            String prefix = "";
-            ZipEntry mcmeta = file.getEntry(MCMETA);
-            if (mcmeta == null) {
-                final Enumeration<? extends ZipEntry> entries = file.entries();
-                while (entries.hasMoreElements()) {
-                    final ZipEntry entry = entries.nextElement();
-                    final String name = entry.getName();
-                    if (name.endsWith("/" + MCMETA) && name.indexOf('/') == name.length() - MCMETA.length() - 1) {
-                        mcmeta = entry;
-                        prefix = name.substring(0, name.length() - MCMETA.length());
-                        break;
-                    }
-                }
-            }
-            if (mcmeta == null) {
-                return null;
-            }
-            final Map<String, byte[]> files = new LinkedHashMap<>();
-            final Enumeration<? extends ZipEntry> entries = file.entries();
-            while (entries.hasMoreElements()) {
-                final ZipEntry entry = entries.nextElement();
-                if (entry.isDirectory() || !entry.getName().startsWith(prefix)) {
-                    continue;
-                }
-                final String relative = entry.getName().substring(prefix.length());
-                if (isRelevant(relative)) {
-                    try (final InputStream in = file.getInputStream(entry)) {
-                        Preconditions.checkState(in != null, "%s lists %s but cannot read it", zip, entry.getName());
-                        files.put(relative, in.readAllBytes());
-                    }
-                }
-            }
-            final String meta;
-            try (final InputStream in = file.getInputStream(mcmeta)) {
-                Preconditions.checkState(in != null, "%s lists %s but cannot read it", zip, mcmeta.getName());
-                meta = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-            }
-            return rawPack("file/" + zip.getFileName(), zip, meta, files);
-        }
-    }
-
-    private static RawPack rawPack(final String id, final Path source, final String mcmeta, final Map<String, byte[]> files) {
-        String description = "\"\"";
-        boolean overlays = false;
-        try {
-            final JsonObject root = JsonParser.parseString(stripBom(mcmeta)).getAsJsonObject();
-            final JsonObject pack = root.getAsJsonObject("pack");
-            if (pack != null && pack.has("description")) {
-                description = pack.get("description").toString();
-            }
-            overlays = root.has("overlays") && root.getAsJsonObject("overlays").has("entries")
-                    && !root.getAsJsonObject("overlays").getAsJsonArray("entries").isEmpty();
-        } catch (final RuntimeException invalid) {
-            LOGGER.warn("[datapacks] pack.mcmeta of {} is not valid JSON", id);
-        }
-        return new RawPack(id, source, description, overlays, files);
+    private static String name(final Path path) {
+        return String.valueOf(path.getFileName());
     }
 
     private static boolean isRelevant(final String path) {
@@ -219,11 +244,11 @@ public final class DatapackLoader {
             packs.add(new Datapack(
                     pack.id(),
                     pack.source(),
-                    pack.description(),
+                    pack.manifest().pack().description(),
                     counts.getOrDefault(ResourceKind.TEMPLATE, 0),
                     counts.getOrDefault(ResourceKind.STRUCTURE, 0),
                     counts.getOrDefault(ResourceKind.STRUCTURE_SET, 0)));
-            if (pack.overlays()) {
+            if (!pack.manifest().overlays().isEmpty()) {
                 LOGGER.info("[datapacks] {} declares overlays; overlays are not supported, the base content is used", pack.id());
             }
             LOGGER.info("[datapacks] Loaded {} ({} template(s), {} structure(s), {} structure set(s))",
@@ -244,14 +269,18 @@ public final class DatapackLoader {
                 LOGGER.warn("[datapacks] {}: '{}' is not a valid tag location, file skipped", pack, path);
                 return;
             }
+            final JsonElement element;
             try {
-                final JsonElement element = JsonParser.parseString(stripBom(new String(content, StandardCharsets.UTF_8)));
-                tags.computeIfAbsent(registry.equals(LEGACY_BLOCK_TAGS) ? BLOCK_TAGS : registry, _ -> new LinkedHashMap<>())
-                        .computeIfAbsent(key, _ -> new ArrayList<>())
-                        .add(TagFile.parse(element));
-            } catch (final RuntimeException invalid) {
-                LOGGER.warn("[datapacks] {}: tag {} is invalid ({})", pack, path, invalid.getMessage());
+                element = JsonParser.parseString(stripBom(new String(content, StandardCharsets.UTF_8)));
+            } catch (final JsonParseException invalid) {
+                LOGGER.warn("[datapacks] {}: tag {} is not valid JSON ({})", pack, path, invalid.getMessage());
+                return;
             }
+            TagFile.CODEC.parse(JsonOps.INSTANCE, element)
+                    .ifSuccess(file -> tags.computeIfAbsent(registry.equals(LEGACY_BLOCK_TAGS) ? BLOCK_TAGS : registry, _ -> new LinkedHashMap<>())
+                            .computeIfAbsent(key, _ -> new ArrayList<>())
+                            .add(file))
+                    .ifError(error -> LOGGER.warn("[datapacks] {}: tag {} is invalid ({})", pack, path, error.message()));
         }
 
         /**

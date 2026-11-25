@@ -1,35 +1,31 @@
 package fr.euphyllia.fidorial.server.datapack;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
+import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public record TagFile(boolean replace, List<Entry> values) {
+    public static final Codec<TagFile> CODEC = RecordCodec.builder(TagFile.class)
+            .field("replace", TagFile::replace, Codec.BOOL, false)
+            .required("values", TagFile::values, Entry.CODEC.listOf())
+            .build();
 
     public record Entry(String reference, boolean required) {
+        private static final Codec<Entry> OBJECT_CODEC = RecordCodec.builder(Entry.class)
+                .keys(RecordCodec.KeyStyle.UNCHECKED)
+                .required("id", Entry::reference, Codec.STRING)
+                .field("required", Entry::required, Codec.BOOL, true)
+                .build();
+
+        /// A reference alone, or an object with an `id` and whether it is `required`.
+        public static final Codec<Entry> CODEC = Codec.either(Codec.STRING, OBJECT_CODEC).xmap(
+                either -> either.map(reference -> new Entry(reference, true), entry -> entry),
+                entry -> entry.required() ? Either.left(entry.reference()) : Either.right(entry));
 
         public boolean isTag() {
             return reference.startsWith("#");
         }
-    }
-
-    public static TagFile parse(final JsonElement element) {
-        final JsonObject object = element.getAsJsonObject();
-        final boolean replace = object.has("replace") && object.get("replace").getAsBoolean();
-        final List<Entry> entries = new ArrayList<>();
-        if (object.has("values")) {
-            for (final JsonElement value : object.getAsJsonArray("values")) {
-                if (value.isJsonPrimitive()) {
-                    entries.add(new Entry(value.getAsString(), true));
-                } else if (value.isJsonObject()) {
-                    final JsonObject entry = value.getAsJsonObject();
-                    entries.add(new Entry(entry.get("id").getAsString(),
-                            !entry.has("required") || entry.get("required").getAsBoolean()));
-                }
-            }
-        }
-        return new TagFile(replace, entries);
     }
 }
