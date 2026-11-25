@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.world.biome.BiomeDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
