@@ -19,6 +19,9 @@ public final class FeatureKinds {
         OreKinds.register(parsers);
         TerrainKinds.register(parsers);
         WaterKinds.register(parsers);
+        PlantKinds.register(parsers);
+        SpeleothemKinds.register(parsers);
+        CaveKinds.register(parsers);
         return parsers;
     }
 }
