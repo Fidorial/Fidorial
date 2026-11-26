@@ -190,23 +190,36 @@ public final class WorldModule implements ServerModule, WorldManager {
      * the default ones for a new world, or the flat cobblestone of a world saved flat}
      */
     private ChunkGenerator overworldGenerator() {
-        final LevelData saved = manager.levelData();
         final Key overworld = Dimension.OVERWORLD.id();
-        final String savedType = saved.savedGeneratorType(overworld);
-        final Key type = Key.parseable(savedType) ? Key.key(savedType) : null;
-        if (FLAT_GENERATOR.equals(type)) {
+        if (FLAT_GENERATOR.equals(savedGeneratorType(overworld))) {
             return FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
         }
-        Key settings = NoiseTerrainService.OVERWORLD;
-        Key preset = NoiseTerrainService.OVERWORLD;
-        final Key savedSettings = saved.savedNoiseSettings(overworld);
-        final Key savedPreset = saved.savedBiomePreset(overworld);
-        if (NOISE_GENERATOR.equals(type) && savedSettings != null && savedPreset != null
+        return noiseGenerator(overworld, NoiseTerrainService.OVERWORLD);
+    }
+
+    /**
+     * {@return the generator of a dimension made from noise}: the noise settings and biome preset saved for it when
+     * this server knows them, the given ones otherwise
+     *
+     * @param defaults the key of both the noise settings and the biome preset of a new save
+     */
+    private ChunkGenerator noiseGenerator(final Key dimension, final Key defaults) {
+        final LevelData saved = manager.levelData();
+        Key settings = defaults;
+        Key preset = defaults;
+        final Key savedSettings = saved.savedNoiseSettings(dimension);
+        final Key savedPreset = saved.savedBiomePreset(dimension);
+        if (NOISE_GENERATOR.equals(savedGeneratorType(dimension)) && savedSettings != null && savedPreset != null
                 && noiseTerrains.knows(savedSettings, savedPreset)) {
             settings = savedSettings;
             preset = savedPreset;
         }
         return noiseTerrains.newGenerator(settings, preset, saved.seed);
+    }
+
+    private @Nullable Key savedGeneratorType(final Key dimension) {
+        final String type = manager.levelData().savedGeneratorType(dimension);
+        return Key.parseable(type) ? Key.key(type) : null;
     }
 
     @Override
@@ -231,6 +244,7 @@ public final class WorldModule implements ServerModule, WorldManager {
             tickRates.setFrozen(true);
         }
         overworld.spawnLocation();
+        manager.theNether(noiseGenerator(Dimension.THE_NETHER.id(), NoiseTerrainService.NETHER));
         manager.theEnd(registries.registry(RegistryKey.DIMENSION_TYPE).get(DimensionTypeKeys.THE_END));
         weather.start();
         dayNight.start();

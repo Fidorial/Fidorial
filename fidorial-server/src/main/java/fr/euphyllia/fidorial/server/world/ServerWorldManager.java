@@ -363,6 +363,15 @@ public final class ServerWorldManager implements AutoCloseable {
     }
 
     /**
+     * Registers the nether of this save, generated from the same seed as the overworld.
+     *
+     * @param generator what generates its chunks
+     */
+    public ServerWorld theNether(final ChunkGenerator generator) {
+        return registerDimension(Dimension.THE_NETHER, generator);
+    }
+
+    /**
      * Registers the End of this save, generated from the same seed as the overworld.
      *
      * @param dimensionType the dimension type of the End, as the registries define it: its height is the one

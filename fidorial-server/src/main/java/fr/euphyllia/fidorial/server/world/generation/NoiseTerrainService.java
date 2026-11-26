@@ -31,7 +31,10 @@ public final class NoiseTerrainService implements NoiseTerrains {
      */
     public static final Key OVERWORLD = Key.key("overworld");
 
-    private static final Key NETHER_SETTINGS = Key.key("nether");
+    /**
+     * The noise settings and biome preset of the nether.
+     */
+    public static final Key NETHER = Key.key("nether");
     private static final Key END_SETTINGS = Key.key("end");
     private static final int KEPT_TERRAINS = 4;
 
@@ -99,7 +102,7 @@ public final class NoiseTerrainService implements NoiseTerrains {
     }
 
     DimensionTypeDefinition dimensionType(final Key settingsKey) {
-        if (settingsKey.equals(NETHER_SETTINGS)) {
+        if (settingsKey.equals(NETHER)) {
             return dimensionTypes.apply(DimensionTypeKeys.THE_NETHER.key());
         }
         if (settingsKey.equals(END_SETTINGS)) {
