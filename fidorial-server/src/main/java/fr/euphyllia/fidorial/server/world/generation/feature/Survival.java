@@ -88,6 +88,15 @@ public final class Survival {
         named.put(BlockTypeKeys.SPORE_BLOSSOM, (region, id, x, y, z) ->
                 states.sturdyCenter(region.id(x, y + 1, z), BlockFace.DOWN) && !states.has(region.id(x, y, z), StateFlags.WATER));
         named.put(BlockTypeKeys.MANGROVE_PROPAGULE, this::propagule);
+        named.put(BlockTypeKeys.CRIMSON_FUNGUS, groundTag(BlockTypeTagKeys.SUPPORTS_CRIMSON_FUNGUS));
+        named.put(BlockTypeKeys.WARPED_FUNGUS, groundTag(BlockTypeTagKeys.SUPPORTS_WARPED_FUNGUS));
+        named.put(BlockTypeKeys.CRIMSON_ROOTS, groundTag(BlockTypeTagKeys.SUPPORTS_CRIMSON_ROOTS));
+        named.put(BlockTypeKeys.WARPED_ROOTS, groundTag(BlockTypeTagKeys.SUPPORTS_WARPED_ROOTS));
+        named.put(BlockTypeKeys.NETHER_SPROUTS, groundTag(BlockTypeTagKeys.SUPPORTS_NETHER_SPROUTS));
+        named.put(BlockTypeKeys.SOUL_FIRE, groundTag(BlockTypeTagKeys.SOUL_FIRE_BASE_BLOCKS));
+        // a fire next to a block that burns stays too, but the server does not know which blocks burn: decorations
+        // only set fire on solid ground anyway
+        named.put(BlockTypeKeys.FIRE, (region, id, x, y, z) -> states.sturdy(region.id(x, y - 1, z), BlockFace.UP));
     }
 
     /**

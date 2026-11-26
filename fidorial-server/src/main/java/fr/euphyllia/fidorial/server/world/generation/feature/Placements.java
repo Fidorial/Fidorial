@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
 import fr.euphyllia.fidorial.server.world.generation.value.HeightSource;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
 
 import java.util.ArrayList;
@@ -130,6 +131,7 @@ final class Placements {
                 };
             }
             case "environment_scan" -> environmentScan(library, object);
+            case "count_on_every_layer" -> countOnEveryLayer(object);
             case "noise_threshold_count" -> {
                 final double level = object.get("noise_level").getAsDouble();
                 final int below = object.get("below_noise").getAsInt();
@@ -179,6 +181,62 @@ final class Placements {
                 };
             }
         };
+    }
+
+    /**
+     * {@return a step that spreads positions over the floors of a column, layer after layer}: each round draws
+     * positions in the chunk and keeps those whose column has a floor of that layer, counting down from the top;
+     * the rounds stop at the first one that finds no floor. The count is drawn again before every attempt.
+     */
+    private static Placement countOnEveryLayer(final JsonObject object) {
+        final IntSource count = IntSource.parse(object.get("count"));
+        return (run, random, x, y, z, out) -> {
+            final DecorationRegion region = run.region();
+            int layer = 0;
+            boolean found;
+            do {
+                found = false;
+                for (int i = 0; i < count.sample(random); i++) {
+                    final int px = random.nextInt(16) + x;
+                    final int pz = random.nextInt(16) + z;
+                    final int floor = floorOfLayer(region, px, region.height(Heightmap.MOTION_BLOCKING, px, pz), pz, layer);
+                    if (floor != Integer.MAX_VALUE) {
+                        out.accept(px, floor, pz);
+                        found = true;
+                    }
+                }
+                layer++;
+            } while (found);
+        };
+    }
+
+    /**
+     * {@return the height just above a floor of a column}: going down from a height, a floor is a block that is
+     * neither empty nor bedrock with an empty block above it, and the layers count the floors met;
+     * {@link Integer#MAX_VALUE} when the column has fewer floors
+     */
+    private static int floorOfLayer(final DecorationRegion region, final int x, final int top, final int z, final int layer) {
+        final StateFlags states = region.states();
+        int floors = 0;
+        char above = region.id(x, top, z);
+        for (int height = top; height >= region.minY() + 1; height--) {
+            final char below = region.id(x, height - 1, z);
+            if (isEmpty(states, above) && !isEmpty(states, below) && !states.is(below, BlockTypeKeys.BEDROCK)) {
+                if (floors == layer) {
+                    return height;
+                }
+                floors++;
+            }
+            above = below;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    /**
+     * {@return {@code true} for air and for the blocks of water and lava themselves}
+     */
+    private static boolean isEmpty(final StateFlags states, final char id) {
+        return states.isAir(id) || states.isWaterBlock(id) || states.isLavaBlock(id);
     }
 
     private static Placement environmentScan(final FeatureLibrary library, final JsonObject object) {
