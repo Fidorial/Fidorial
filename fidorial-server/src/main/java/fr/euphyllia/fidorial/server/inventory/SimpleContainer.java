@@ -1,5 +1,6 @@
-package fr.fidorial.inventory;
+package fr.euphyllia.fidorial.server.inventory;
 
+import fr.fidorial.inventory.Container;
 import fr.fidorial.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
@@ -9,10 +10,8 @@ import java.util.Arrays;
  * A {@link Container} backed by an array, the base of the built-in inventories.
  *
  * <p>Instances are not thread-safe; touch them from the region thread owning their holder.</p>
- *
- * @since 0.1.0
  */
-public abstract class SimpleContainer implements Container {
+public class SimpleContainer implements Container {
 
     private final ItemStack[] slots;
 
@@ -21,9 +20,8 @@ public abstract class SimpleContainer implements Container {
      *
      * @param size the number of slots
      * @throws IllegalArgumentException if {@code size} is negative
-     * @since 0.1.0
      */
-    protected SimpleContainer(final int size) {
+    public SimpleContainer(final int size) {
         if (size < 0) {
             throw new IllegalArgumentException("A container cannot have a negative size: " + size);
         }

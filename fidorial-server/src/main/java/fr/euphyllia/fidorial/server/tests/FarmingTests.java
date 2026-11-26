@@ -5,6 +5,7 @@ import fr.euphyllia.fidorial.server.command.defaults.GameRuleCommand;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
 import fr.euphyllia.fidorial.server.world.block.farming.SweetBerryBushBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
@@ -815,9 +816,9 @@ public final class FarmingTests {
                     prepare(world);
                     set(world, log, "minecraft:jungle_log");
                     // clicked against the east face of the log
-                    final BlockPlaceContext context = new BlockPlaceContext(pod, BlockFace.EAST,
+                    final BlockPlaceContext context = new ServerBlockPlaceContext(pod, BlockFace.EAST,
                             Location.of(world, pod.blockX() + 2.5, Y, pod.blockZ() + 0.5, 90f, 0f),
-                            server().registries().blockStates().view((ServerWorld) world), 0.5f);
+                            server().registries().blockStates().view((ServerWorld) world), 0.5f, false);
                     final BlockData placed = server().registries().blocks().behaviour(BlockTypeKeys.COCOA).orElseThrow().placementState(context);
                     helper.assertTrue(placed instanceof final Directional hanging && hanging.getFacing() == BlockFace.WEST,
                             "A pod placed against the east face of a log should face the log");

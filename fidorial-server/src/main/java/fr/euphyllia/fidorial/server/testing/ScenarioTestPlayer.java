@@ -2,14 +2,14 @@ package fr.euphyllia.fidorial.server.testing;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
+import fr.euphyllia.fidorial.server.inventory.ServerPlayerInventory;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.entity.player.PlayerAbilities;
 import fr.fidorial.entity.player.profile.PlayerProfile;
-import fr.fidorial.inventory.EnderChestInventory;
-import fr.fidorial.inventory.PlayerInventory;
 import fr.fidorial.math.Location;
 
 import java.nio.charset.StandardCharsets;
@@ -24,8 +24,8 @@ final class ScenarioTestPlayer {
         final ServerPlayer player = new ServerPlayer(
                 server.entities().ids().allocate(),
                 profile,
-                new PlayerInventory(),
-                new EnderChestInventory(),
+                new ServerPlayerInventory(),
+                new ServerEnderChestInventory(),
                 gameMode,
                 connection,
                 location,

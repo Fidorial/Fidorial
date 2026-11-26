@@ -10,22 +10,62 @@ import org.jspecify.annotations.Nullable;
  * Where and how a player is placing a block, handed to
  * {@link BlockBehaviour#placementState(BlockPlaceContext)}.
  *
- * @param pos         the position the block is placed at
- * @param clickedFace the face of the neighbouring block the player clicked
- * @param placer      the location and orientation of the player
- * @param world       read access to the surrounding blocks
- * @param cursorY     the height of the click on the clicked face, from {@code 0} to {@code 1}
+ * <p>The server makes it; the default methods work out what most blocks need from the rest.</p>
+ *
  * @since 0.1.0
  */
-public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Location placer, BlockGetter world, float cursorY) {
+public interface BlockPlaceContext {
+
+    /**
+     * {@return the position the block is placed at}
+     *
+     * @since 0.1.0
+     */
+    BlockPosition pos();
+
+    /**
+     * {@return the face of the neighbouring block the player clicked}
+     *
+     * @since 0.1.0
+     */
+    BlockFace clickedFace();
+
+    /**
+     * {@return the location and orientation of the player}
+     *
+     * @since 0.1.0
+     */
+    Location placer();
+
+    /**
+     * {@return read access to the surrounding blocks}
+     *
+     * @since 0.1.0
+     */
+    BlockGetter world();
+
+    /**
+     * {@return the height of the click on the clicked face, from {@code 0} to {@code 1}}
+     *
+     * @since 0.1.0
+     */
+    float cursorY();
+
+    /**
+     * {@return {@code true} when the player sneaks while placing the block: a chest then stays alone,
+     * unless it is placed against the side of another chest, which it joins}
+     *
+     * @since 0.1.0
+     */
+    boolean sneaking();
 
     /**
      * {@return the horizontal direction the player looks towards}
      *
      * @since 0.1.0
      */
-    public BlockFace horizontalFacing() {
-        return switch (Math.floorMod(Math.round(placer.yaw() / 90f), 4)) {
+    default BlockFace horizontalFacing() {
+        return switch (Math.floorMod(Math.round(placer().yaw() / 90f), 4)) {
             case 0 -> BlockFace.SOUTH;
             case 1 -> BlockFace.WEST;
             case 2 -> BlockFace.NORTH;
@@ -38,9 +78,9 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      *
      * @since 0.1.0
      */
-    public BlockFace lookingDirection() {
-        final double yaw = Math.toRadians(placer.yaw());
-        final double pitch = Math.toRadians(placer.pitch());
+    default BlockFace lookingDirection() {
+        final double yaw = Math.toRadians(placer().yaw());
+        final double pitch = Math.toRadians(placer().pitch());
         final double cosPitch = Math.cos(pitch);
 
         final double x = -Math.sin(yaw) * cosPitch;
@@ -65,11 +105,11 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      *
      * @since 0.1.0
      */
-    public boolean upperHalf() {
-        return switch (clickedFace) {
+    default boolean upperHalf() {
+        return switch (clickedFace()) {
             case UP -> false;
             case DOWN -> true;
-            default -> cursorY > 0.5f;
+            default -> cursorY() > 0.5f;
         };
     }
 
@@ -78,8 +118,8 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      *
      * @since 0.1.0
      */
-    public @Nullable BlockData replaced() {
-        return world.blockAt(pos);
+    default @Nullable BlockData replaced() {
+        return world().blockAt(pos());
     }
 
     /**
@@ -88,8 +128,8 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      * @param face the side to look at
      * @since 0.1.0
      */
-    public @Nullable BlockData relative(final BlockFace face) {
-        return world.blockAt(pos.relative(face));
+    default @Nullable BlockData relative(final BlockFace face) {
+        return world().blockAt(pos().relative(face));
     }
 
     /**
@@ -99,7 +139,7 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      * @param side the side the placed block would be attached to
      * @since 0.1.0
      */
-    public boolean canAttachTo(final BlockFace side) {
+    default boolean canAttachTo(final BlockFace side) {
         final BlockData neighbour = relative(side);
         return neighbour != null && !neighbour.isAir() && !neighbour.isFluid();
     }
@@ -109,9 +149,8 @@ public record BlockPlaceContext(BlockPosition pos, BlockFace clickedFace, Locati
      *
      * @since 0.1.0
      */
-    public boolean intoWater() {
+    default boolean intoWater() {
         final BlockData replaced = replaced();
         return replaced != null && replaced.key().equals(BlockTypeKeys.WATER) && "0".equals(replaced.get("level"));
     }
-
 }

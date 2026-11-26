@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.codecs.container;
 
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.fidorial.inventory.EnderChestInventory;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -13,7 +14,7 @@ public final class PlayerEnderChestCodec {
 
     private static final String ROOT_NAME = "";
     private static final String LIST_NAME = "EnderItems";
-    private static final Codec<EnderChestInventory> CODEC = ContainerCodecs.containerCodec(EnderChestInventory::new);
+    private static final Codec<EnderChestInventory> CODEC = ContainerCodecs.containerCodec(ServerEnderChestInventory::new);
 
     private PlayerEnderChestCodec() {
     }

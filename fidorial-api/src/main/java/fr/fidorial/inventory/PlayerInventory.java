@@ -4,7 +4,7 @@ import fr.fidorial.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The inventory a player carries.
+ * The inventory a player carries; the server makes it, plugins read and change it.
  *
  * <p>Slots are laid out as follows: the hotbar from {@value #HOTBAR_START} to {@code 8}, the main
  * inventory from {@value #MAIN_START} to {@code 35}, the armor from {@value #FEET} (feet) to
@@ -14,77 +14,77 @@ import org.jspecify.annotations.Nullable;
  * @see Player#inventory()
  * @since 0.1.0
  */
-public class PlayerInventory extends SimpleContainer {
+public interface PlayerInventory extends Container {
 
     /**
      * The number of slots of a player inventory, reserved ones included.
      *
      * @since 0.1.0
      */
-    public static final int SIZE = 46;
+    int SIZE = 46;
 
     /**
      * The first hotbar slot.
      *
      * @since 0.1.0
      */
-    public static final int HOTBAR_START = 0;
+    int HOTBAR_START = 0;
 
     /**
      * The number of hotbar slots.
      *
      * @since 0.1.0
      */
-    public static final int HOTBAR_SIZE = 9;
+    int HOTBAR_SIZE = 9;
 
     /**
      * The first slot of the main inventory, right after the hotbar.
      *
      * @since 0.1.0
      */
-    public static final int MAIN_START = 9;
+    int MAIN_START = 9;
 
     /**
      * The number of slots of the hotbar and the main inventory together, from {@value #HOTBAR_START}.
      *
      * @since 0.1.0
      */
-    public static final int STORAGE_SIZE = 36;
+    int STORAGE_SIZE = 36;
 
     /**
      * The boots slot.
      *
      * @since 0.1.0
      */
-    public static final int FEET = 36;
+    int FEET = 36;
 
     /**
      * The leggings slot.
      *
      * @since 0.1.0
      */
-    public static final int LEGS = 37;
+    int LEGS = 37;
 
     /**
      * The chestplate slot.
      *
      * @since 0.1.0
      */
-    public static final int CHEST = 38;
+    int CHEST = 38;
 
     /**
      * The helmet slot.
      *
      * @since 0.1.0
      */
-    public static final int HEAD = 39;
+    int HEAD = 39;
 
     /**
      * The off hand slot.
      *
      * @since 0.1.0
      */
-    public static final int OFF_HAND = 40;
+    int OFF_HAND = 40;
 
     /**
      * Where a piece of equipment sits in this inventory.
@@ -94,7 +94,7 @@ public class PlayerInventory extends SimpleContainer {
      *         and for the slots a player does not have
      * @since 0.1.0
      */
-    public static int slotOf(final EquipmentSlot slot) {
+    static int slotOf(final EquipmentSlot slot) {
         return switch (slot) {
             case FEET -> FEET;
             case LEGS -> LEGS;
@@ -113,7 +113,7 @@ public class PlayerInventory extends SimpleContainer {
      *         the reserved slots
      * @since 0.1.0
      */
-    public static @Nullable EquipmentSlot equipmentSlotAt(final int slot) {
+    static @Nullable EquipmentSlot equipmentSlotAt(final int slot) {
         return switch (slot) {
             case FEET -> EquipmentSlot.FEET;
             case LEGS -> EquipmentSlot.LEGS;
@@ -122,14 +122,5 @@ public class PlayerInventory extends SimpleContainer {
             case OFF_HAND -> EquipmentSlot.OFF_HAND;
             default -> null;
         };
-    }
-
-    /**
-     * Creates an empty inventory.
-     *
-     * @since 0.1.0
-     */
-    public PlayerInventory() {
-        super(SIZE);
     }
 }

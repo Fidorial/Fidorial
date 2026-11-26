@@ -17,6 +17,8 @@ import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.CrafterMenu;
+import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
+import fr.euphyllia.fidorial.server.inventory.ServerPlayerInventory;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
 import fr.euphyllia.fidorial.server.network.connection.ConnectionState;
 import fr.euphyllia.fidorial.server.network.connection.session.ChunkViewTracker;
@@ -84,6 +86,8 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
+import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
+import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
@@ -299,23 +303,26 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     private EnderChestInventory loadEnderChest(final PlayerProfile profile) {
         try {
-            return server.players().enderChestStorage().load(profile.uuid());
+            final EnderChestInventory enderChest = new ServerEnderChestInventory();
+            server.players().enderChestStorage().load(profile.uuid(), enderChest);
+            return enderChest;
         } catch (final Exception e) {
             LOGGER.error("Chargement de l'ender chest de {} impossible, conteneur vide utilise", profile.name(), e);
-            return new EnderChestInventory();
+            return new ServerEnderChestInventory();
         }
     }
 
     private PlayerInventory loadInventory(final PlayerProfile profile) {
         try {
-            final PlayerInventory inventory = server.players().inventoryStorage().load(profile.uuid());
+            final PlayerInventory inventory = new ServerPlayerInventory();
+            server.players().inventoryStorage().load(profile.uuid(), inventory);
             if (!inventory.isEmpty()) {
                 LOGGER.debug("Inventaire de {} recharge", profile.name());
             }
             return inventory;
         } catch (final Exception e) {
             LOGGER.error("Chargement de l'inventaire de {} impossible, inventaire vide utilise", profile.name(), e);
-            return new PlayerInventory();
+            return new ServerPlayerInventory();
         }
     }
 
@@ -721,6 +728,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         .post(new BlockPlaceEvent(acting, target, server.registries().blockStates().networkId(state)));
                 if (!event.isCancelled()) {
                     server.worlds().blockEdits().set(world, target, state, true);
+                    // a chest placed from a renamed item takes its name
+                    ChestBlocks.nameFromItem(world, target, held);
                     server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                     placed = true;
@@ -760,8 +769,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
             }
         }
         final ServerWorld world = serverWorld();
-        final BlockPlaceContext context = new BlockPlaceContext(
-                target, clickedFace, player.location(), blockStates.view(world), cursorY);
+        final BlockPlaceContext context = new ServerBlockPlaceContext(
+                target, clickedFace, player.location(), blockStates.view(world), cursorY, player.isSneaking());
         final BlockState placed = blockStates.placementState(state, context);
         if (placed == null) {
             return null;

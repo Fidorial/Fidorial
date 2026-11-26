@@ -8,21 +8,12 @@ import fr.fidorial.entity.player.Player;
  * @see Player#enderChest()
  * @since 0.1.0
  */
-public class EnderChestInventory extends SimpleContainer {
+public interface EnderChestInventory extends Container {
 
     /**
      * The number of slots of an ender chest.
      *
      * @since 0.1.0
      */
-    public static final int SIZE = 27;
-
-    /**
-     * Creates an empty ender chest.
-     *
-     * @since 0.1.0
-     */
-    public EnderChestInventory() {
-        super(SIZE);
-    }
+    int SIZE = 27;
 }

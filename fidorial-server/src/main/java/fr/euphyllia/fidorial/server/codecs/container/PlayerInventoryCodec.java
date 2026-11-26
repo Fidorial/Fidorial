@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.codecs.container;
 
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.inventory.ServerPlayerInventory;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.fidorial.inventory.EquipmentSlot;
 import fr.fidorial.inventory.PlayerInventory;
@@ -21,7 +22,7 @@ public final class PlayerInventoryCodec {
 
     private static final Map<Integer, String> EQUIPMENT_SLOTS = equipmentSlots();
     private static final Codec<PlayerInventory> CODEC =
-            ContainerCodecs.containerCodec(PlayerInventory::new, PlayerInventory.STORAGE_SIZE);
+            ContainerCodecs.containerCodec(ServerPlayerInventory::new, PlayerInventory.STORAGE_SIZE);
 
     private PlayerInventoryCodec() {
     }

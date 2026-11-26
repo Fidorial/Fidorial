@@ -4,6 +4,7 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.ExperienceOrb;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -256,6 +257,19 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     CompletableFuture<Boolean> setBlockStateId(BlockPosition position, int stateId);
+
+    /**
+     * Gets the chest at a position: a chest, a trapped chest or a copper chest.
+     *
+     * <p>The inventory reads and writes the block entity of the chest; to see the large chest it may
+     * be half of, as players do, use {@link ChestInventory#doubleChest()}. Use it on the thread of
+     * the region owning the position.</p>
+     *
+     * @param position the block position
+     * @return the slots of the chest, empty when there is no chest there or its chunk is not loaded
+     * @since 0.1.0
+     */
+    Optional<ChestInventory> chestAt(BlockPosition position);
 
     /**
      * {@return the block light level at a position, between {@code 0} and {@code 15}}

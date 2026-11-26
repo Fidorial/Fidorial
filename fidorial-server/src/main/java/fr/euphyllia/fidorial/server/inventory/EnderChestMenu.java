@@ -2,17 +2,14 @@ package fr.euphyllia.fidorial.server.inventory;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockEventPacket;
-import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundSoundPacket;
+import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
-import fr.fidorial.registry.data.SoundEvent;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.MenuTypeKeys;
 import fr.fidorial.registry.keys.SoundEventKeys;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
@@ -24,11 +21,13 @@ import java.util.List;
  */
 public final class EnderChestMenu extends ContainerMenu {
 
-    private final BlockPosition position;
+    private final ServerWorld world;
+    private final List<BlockPosition> block;
 
-    public EnderChestMenu(final ServerPlayer player, final int windowId, final BlockPosition position) {
+    public EnderChestMenu(final ServerPlayer player, final int windowId, final ServerWorld world, final BlockPosition position) {
         super(player, windowId, position, BlockTypeKeys.ENDER_CHEST);
-        this.position = position;
+        this.world = world;
+        this.block = List.of(position);
     }
 
     @Override
@@ -59,29 +58,15 @@ public final class EnderChestMenu extends ContainerMenu {
 
     @Override
     public void onOpened() {
-        final int viewers = server().players().blockViewers().open(player.world().key(), position);
-        lid(viewers);
-        sound(SoundEventKeys.BLOCK_ENDER_CHEST_OPEN);
+        BlockLid.open(server(), world, block, SoundEventKeys.BLOCK_ENDER_CHEST_OPEN);
     }
 
     @Override
     protected void onClosed() {
-        final int viewers = server().players().blockViewers().close(player.world().key(), position);
-        lid(viewers);
-        sound(SoundEventKeys.BLOCK_ENDER_CHEST_CLOSE);
+        BlockLid.close(server(), world, block, SoundEventKeys.BLOCK_ENDER_CHEST_CLOSE);
     }
 
     private FidorialServer server() {
         return player.connection().server();
-    }
-
-    private void lid(final int viewers) {
-        server().players().broadcast(ClientboundBlockEventPacket.chestViewers(position, viewers));
-    }
-
-    private void sound(final TypedKey<SoundEvent> sound) {
-        server().players().broadcast(new ClientboundSoundPacket(
-                Sound.sound(sound.key(), Sound.Source.BLOCK, 0.5f, 1.0f),
-                position.x() + 0.5, position.y() + 0.5, position.z() + 0.5));
     }
 }

@@ -13,14 +13,15 @@ import java.util.UUID;
 public interface PlayerInventoryStorage {
 
     /**
-     * Loads the inventory of a player.
+     * Loads the inventory of a player into the one the server hands over.
      *
-     * @param uuid the player identity
-     * @return the saved inventory, or an empty one if the player never had one
+     * @param uuid      the player identity
+     * @param inventory an empty inventory to fill with the saved one, left empty if the player never
+     *                  had one
      * @throws IOException if the inventory cannot be read
      * @since 0.1.0
      */
-    PlayerInventory load(UUID uuid) throws IOException;
+    void load(UUID uuid, PlayerInventory inventory) throws IOException;
 
     /**
      * Saves the inventory of a player.

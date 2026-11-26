@@ -1,7 +1,9 @@
 package fr.fidorial.event.player;
 
 import fr.fidorial.event.Cancellable;
+import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.inventory.Container;
+import fr.fidorial.inventory.DoubleChestInventory;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
@@ -11,7 +13,7 @@ import java.util.Optional;
 
 /**
  * Fired right before a window opens on top of the player's inventory, whatever it shows: a
- * crafting table, a crafter, an ender chest, and every window to come.
+ * crafting table, a crafter, a chest or a large chest, an ender chest, and every window to come.
  *
  * <p>Cancelling the event keeps the window closed, and leaves whatever the player had open as it
  * was.</p>
@@ -42,8 +44,9 @@ public interface PlayerOpenInventoryEvent extends PlayerEvent, Cancellable {
     Optional<BlockPosition> blockPosition();
 
     /**
-     * {@return what the window shows above the player's inventory, such as the player's ender chest
-     * or the nine slots of a crafter; changes made to it are kept}
+     * {@return what the window shows above the player's inventory, such as the player's ender chest,
+     * the nine slots of a crafter, a {@link ChestInventory} or a {@link DoubleChestInventory}; changes
+     * made to it are kept}
      *
      * @since 0.1.0
      */

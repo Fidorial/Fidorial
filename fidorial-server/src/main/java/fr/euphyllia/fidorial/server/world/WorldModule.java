@@ -18,7 +18,7 @@ import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.schedulers.tick.ServerTickRates;
-import fr.euphyllia.fidorial.server.world.block.redstone.TrappedChestBlock;
+import fr.euphyllia.fidorial.server.world.block.chest.TrappedChestBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingEngine;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;

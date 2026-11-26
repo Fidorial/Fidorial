@@ -59,12 +59,11 @@ public class NbtPlayerEnderChestStorage implements PlayerEnderChestStorage {
     }
 
     @Override
-    public EnderChestInventory load(final UUID uuid) throws IOException {
+    public void load(final UUID uuid, final EnderChestInventory enderChest) throws IOException {
         final byte[] data = readFile(fileFor(uuid));
-        if (data == null) {
-            return new EnderChestInventory();
+        if (data != null) {
+            enderChest.setContents(PlayerEnderChestCodec.decode(data).contents());
         }
-        return PlayerEnderChestCodec.decode(data);
     }
 
     @Override

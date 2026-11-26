@@ -19,7 +19,6 @@ import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,7 +34,7 @@ public abstract class ContainerMenu {
     /**
      * How far beyond their block interaction range a player keeps a block's window, as in vanilla.
      */
-    private static final double STILL_VALID_REACH_BUFFER = 4.0;
+    protected static final double STILL_VALID_REACH_BUFFER = 4.0;
 
     private static final int DRAG_START = 0;
     private static final int DRAG_ADD_SLOT = 1;
@@ -224,7 +223,7 @@ public abstract class ContainerMenu {
     protected final List<Slot> slots() {
         List<Slot> current = slots;
         if (current == null) {
-            current = Collections.unmodifiableList(new ArrayList<>(createSlots()));
+            current = List.copyOf(createSlots());
             slots = current;
         }
         return current;

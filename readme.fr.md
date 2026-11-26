@@ -41,7 +41,8 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 - Plusieurs mondes, persistance au format Anvil (region files, NBT), chargement asynchrone des chunks et streaming
   autour des joueurs
 - Overworld généré à partir de bruit : terrain modelé par des fonctions de densité, biomes multi-bruit, aquifères, règles de surface, sculpteurs, minerais, arbres, plantes, géodes, concrétions, crevasses et glace ; les plugins l'interrogent via le service `NoiseTerrains` ou fournissent leur propre `WorldGenerator` (Développé avec Claude AI, l'algorithme complet est dérivé de minecraft.wiki, mais n'est pas comme en vanilla). Aucune structure ne sera ajoutée à Fidorial pour des raisons de droits d'auteur. Si vous souhaitez en ajouter, vous devez créer un datapack vous-même.
-- Pose et casse de blocs, block entities, conteneurs et ender chests, explosions
+- Pose et casse de blocs, block entities, conteneurs, ender chests et coffres (piégés et en cuivre compris) qui
+  s'assemblent en grands coffres, avec comparateurs et loot tables, explosions
 - Simulation de l'eau et de la lave : sources, écoulement vertical prioritaire, perte de niveau propre à chaque fluide,
   interaction obsidienne/cobblestone
 - Moteur de lumière (blocs et ciel)

@@ -58,12 +58,11 @@ public class NbtPlayerInventoryStorage implements PlayerInventoryStorage {
     }
 
     @Override
-    public PlayerInventory load(final UUID uuid) throws IOException {
+    public void load(final UUID uuid, final PlayerInventory inventory) throws IOException {
         final byte[] data = readFile(fileFor(uuid));
-        if (data == null) {
-            return new PlayerInventory();
+        if (data != null) {
+            inventory.setContents(PlayerInventoryCodec.decode(data).contents());
         }
-        return PlayerInventoryCodec.decode(data);
     }
 
     @Override

@@ -14,6 +14,7 @@ import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BiomeKeys;
+import fr.fidorial.registry.keys.BlockEntityTypeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.light.LightType;
 import io.netty.buffer.ByteBuf;
@@ -23,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.ToIntFunction;
 
@@ -36,6 +38,13 @@ public final class ChunkNetworkSerializer {
     private final NetworkEncoder<PacketBuffer, PalettedContainer<TypedKey<BiomeDefinition>>> biomeStates;
 
     private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
+
+    /**
+     * The block entities clients are told nothing of but their type, as in vanilla: what a chest
+     * holds, and the loot table it has yet to roll, stay on the server.
+     */
+    private static final Set<TypedKey<BlockEntityType>> SERVER_SIDE_DATA =
+            Set.of(BlockEntityTypeKeys.CHEST, BlockEntityTypeKeys.TRAPPED_CHEST);
 
     public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
         this.blockEntityTypes = blockEntityTypes;
@@ -130,7 +139,7 @@ public final class ChunkNetworkSerializer {
             p.writeShort(blockEntity.y());
             final int networkId = blockEntityTypes.networkId(blockEntity.type());
             p.writeVarInt(networkId);
-            p.writeNbt(blockEntity.data());
+            p.writeNbt(SERVER_SIDE_DATA.contains(blockEntity.type()) ? null : blockEntity.data());
             LOGGER.debug("BlockEntity : {} protocolId : {}", blockEntity.type(), networkId);
         }
     }

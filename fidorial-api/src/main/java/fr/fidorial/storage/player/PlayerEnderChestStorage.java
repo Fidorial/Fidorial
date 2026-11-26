@@ -14,14 +14,15 @@ import java.util.UUID;
 public interface PlayerEnderChestStorage {
 
     /**
-     * Loads a player's ender chest.
+     * Loads a player's ender chest into the one the server hands over.
      *
-     * @param uuid the player identity
-     * @return the saved ender chest, or an empty one if the player never had one
+     * @param uuid       the player identity
+     * @param enderChest an empty ender chest to fill with the saved one, left empty if the player
+     *                   never had one
      * @throws IOException if the ender chest cannot be read
      * @since 0.1.0
      */
-    EnderChestInventory load(UUID uuid) throws IOException;
+    void load(UUID uuid, EnderChestInventory enderChest) throws IOException;
 
     /**
      * Saves the ender chest of a player.

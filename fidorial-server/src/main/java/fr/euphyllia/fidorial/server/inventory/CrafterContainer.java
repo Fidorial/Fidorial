@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.inventory;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
 import fr.euphyllia.fidorial.server.recipe.CraftingInputImpl;
-import fr.fidorial.inventory.SimpleContainer;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.recipe.CraftingInput;
 import net.kyori.adventure.nbt.BinaryTag;

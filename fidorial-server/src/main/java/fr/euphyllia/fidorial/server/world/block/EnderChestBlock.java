@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
@@ -73,7 +74,7 @@ public final class EnderChestBlock implements BlockBehaviour {
         if (isBlockedAbove(world, position)) {
             return true;
         }
-        serverPlayer.openMenu(new EnderChestMenu(serverPlayer, serverPlayer.allocateWindowId(), position));
+        serverPlayer.openMenu(new EnderChestMenu(serverPlayer, serverPlayer.allocateWindowId(), world, position));
         return true;
     }
 }

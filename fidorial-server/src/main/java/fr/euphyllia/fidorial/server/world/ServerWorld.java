@@ -16,6 +16,7 @@ import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.ConcurrentLongSet;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
+import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
@@ -42,11 +43,13 @@ import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionizedScheduler;
 import fr.fidorial.world.Chunk;
@@ -613,12 +616,42 @@ public final class ServerWorld implements World {
             return false;
         }
         final BlockState previous = column.getBlock(x & 15, y, z & 15);
+        CompoundBinaryTag kept = null;
         if (!previous.isAir() && !previous.name().equals(state.name())) {
-            beforeRemoved(Position.block(x, y, z), previous);
+            final BlockPosition pos = Position.block(x, y, z);
+            kept = keptBlockEntity(column, pos, previous, state);
+            if (kept == null) {
+                beforeRemoved(pos, previous);
+            }
         }
-        column.setBlock(x & 15, y, z & 15, state);
+        column.setBlock(x & 15, y, z & 15, state, kept);
         markDirty(x >> 4, z >> 4);
         return true;
+    }
+
+    /**
+     * {@return the data of the block entity at {@code pos} when the behaviour of the block being
+     * replaced hands it over to its replacement, {@code null} when the block entity goes with it}
+     */
+    private @Nullable CompoundBinaryTag keptBlockEntity(final ChunkColumn column, final BlockPosition pos,
+                                                        final BlockState previous, final BlockState state) {
+        final TypedKey<BlockEntityType> type = state.blockEntityType();
+        final BlockEntity blockEntity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
+        if (type == null || blockEntity == null || !blockEntity.type().equals(type)) {
+            return null;
+        }
+        final BlockData data = blockStates.resolve(previous);
+        final BlockData replacement = blockStates.resolve(state);
+        final BlockBehaviour behaviour = blockStates.registry().behaviour(previous.name()).orElse(null);
+        if (data == null || replacement == null || behaviour == null) {
+            return null;
+        }
+        try {
+            return behaviour.keepsBlockEntity(data, replacement) ? blockEntity.dataOrEmpty() : null;
+        } catch (final RuntimeException exception) {
+            LOGGER.error("The behaviour of {} failed while it was replaced at {}", previous.name(), pos, exception);
+            return null;
+        }
     }
 
     private void beforeRemoved(final BlockPosition pos, final BlockState previous) {
@@ -632,6 +665,11 @@ public final class ServerWorld implements World {
         } catch (final RuntimeException exception) {
             LOGGER.error("The behaviour of {} failed while it was removed at {}", previous.name(), pos, exception);
         }
+    }
+
+    @Override
+    public Optional<ChestInventory> chestAt(final BlockPosition position) {
+        return ChestBlocks.inventoryAt(this, position);
     }
 
     /**

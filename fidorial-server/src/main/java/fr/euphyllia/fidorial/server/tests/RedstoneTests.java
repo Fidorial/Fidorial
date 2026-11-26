@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.tests;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
 import fr.euphyllia.fidorial.server.world.block.redstone.ButtonBlock;
 import fr.euphyllia.fidorial.server.world.block.redstone.LeverBlock;
 import fr.fidorial.math.BlockPosition;
@@ -80,11 +81,11 @@ public final class RedstoneTests {
      * Places a block the way a player clicking {@code clickedFace} of its neighbour does.
      */
     static BlockData place(final World world, final BlockPosition position, final TypedKey<BlockType> block,
-                                   final BlockFace clickedFace, final float yaw, final float pitch) {
+                           final BlockFace clickedFace, final float yaw, final float pitch) {
         final BlockStateRegistry states = server().registries().blockStates();
-        final BlockPlaceContext context = new BlockPlaceContext(position, clickedFace,
+        final BlockPlaceContext context = new ServerBlockPlaceContext(position, clickedFace,
                 Location.of(world, position.blockX() + 0.5, position.blockY() + 1.6, position.blockZ() + 0.5, yaw, pitch),
-                states.view((ServerWorld) world), 0.5f);
+                states.view((ServerWorld) world), 0.5f, false);
         final BlockData placed = server().registries().blocks().behaviour(block).orElseThrow().placementState(context);
         Objects.requireNonNull(placed, () -> block + " cannot be placed at " + position);
         set(world, position, placed);
@@ -129,7 +130,7 @@ public final class RedstoneTests {
      * A wait counting the game ticks it took: its first try runs in the game tick of the step before.
      */
     static Runnable waitFor(final ScenarioTestHelper helper, final int[] tries, final BooleanSupplier condition,
-                                    final String message) {
+                            final String message) {
         return () -> {
             tries[0]++;
             helper.assertTrue(condition.getAsBoolean(), message);
@@ -534,8 +535,10 @@ public final class RedstoneTests {
         helper.sequence()
                 .execute(() -> {
                     helper.assertTrue(registry.behaviour(BlockTypeKeys.STONE).isEmpty(), "Stone should take no part in redstone");
-                    helper.assertTrue(registry.behaviour(BlockTypeKeys.CHEST).isEmpty(), "A chest should take no part in redstone");
+                    helper.assertTrue(registry.behaviour(BlockTypeKeys.OAK_PLANKS).isEmpty(), "Planks should take no part in redstone");
                     helper.assertTrue(registry.behaviour(BlockTypeKeys.TRAPPED_CHEST).isPresent(), "A trapped chest should");
+                    helper.assertTrue(registry.behaviour(BlockTypeKeys.CHEST).isPresent(),
+                            "A chest should too, for the comparators reading it and the chest it joins");
                     load(world, source);
                     placeOnFloor(world, output, BlockTypeKeys.REDSTONE_WIRE);
                     set(world, source, defaults(BlockTypeKeys.DIAMOND_BLOCK));

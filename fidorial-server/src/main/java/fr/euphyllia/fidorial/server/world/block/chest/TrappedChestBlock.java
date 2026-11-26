@@ -1,30 +1,32 @@
-package fr.euphyllia.fidorial.server.world.block.redstone;
+package fr.euphyllia.fidorial.server.world.block.chest;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.registry.keys.SoundEventKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
-import fr.fidorial.world.redstone.RedstoneBehaviour;
 import fr.fidorial.world.redstone.RedstoneWorld;
 import fr.fidorial.world.redstone.SignalGetter;
 
 /**
- * The trapped chest, a port of the signal of vanilla's {@code TrappedChestBlock}: as many players
- * as look into it, up to {@code 15}, is the signal it sends around it, and into the block below it.
+ * The trapped chest: a chest joining only other trapped chests, whose signal is as many players
+ * as look into it, up to {@code 15}, sent around it and into the block below it.
  *
  * <p>The players looking into a block are those the server's {@code BlockViewerTracker} counts,
- * which tells {@link #viewersChanged} when they come and go.</p>
+ * which tells {@link #viewersChanged} when they come and go. Both halves of a large trapped chest
+ * count the players looking into it.</p>
  */
-public final class TrappedChestBlock implements RedstoneBehaviour {
+public final class TrappedChestBlock extends ChestBlock {
 
     public static final TypedKey<BlockType> KEY = BlockTypeKeys.TRAPPED_CHEST;
 
     public static final TrappedChestBlock INSTANCE = new TrappedChestBlock();
 
     private TrappedChestBlock() {
+        super(KEY, ChestFamily.TRAPPED, 0, false, SoundEventKeys.BLOCK_CHEST_OPEN, SoundEventKeys.BLOCK_CHEST_CLOSE);
     }
 
     @Override
@@ -51,7 +53,7 @@ public final class TrappedChestBlock implements RedstoneBehaviour {
 
     /**
      * Tells the neighbours of the chest, and those of the block below it, that the number of players
-     * looking into it changed, what vanilla's {@code TrappedChestBlockEntity.signalOpenCount} does.
+     * looking into it changed.
      *
      * @param world    the redstone of the world of the chest
      * @param position where the chest is

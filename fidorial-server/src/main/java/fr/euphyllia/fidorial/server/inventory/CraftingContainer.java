@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.inventory;
 
 import fr.euphyllia.fidorial.server.recipe.CraftingInputImpl;
-import fr.fidorial.inventory.SimpleContainer;
 import fr.fidorial.recipe.CraftingInput;
 
 import java.util.List;

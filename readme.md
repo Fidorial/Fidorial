@@ -40,7 +40,8 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 - Multiple worlds, Anvil persistence (region files, NBT), asynchronous chunk loading and streaming around players
 - Noise-generated overworld: terrain modeled by density functions, multi-noise biomes, aquifers, surface rules, sculptors, ores, trees, plants, geodes, concretions, crevasses, and ice; plugins query it via the `NoiseTerrains` service or provide their own `WorldGenerator` (developed with Claude AI, the complete algorithm is derived from minecraft.wiki but is not the same as in vanilla). No structures will be added to Fidorial due to copyright reasons. If you wish to add any, you must create a datapack yourself.
-- Block placement and breaking, block entities, containers and ender chests, explosions
+- Block placement and breaking, block entities, containers, ender chests, and chests (trapped and copper ones
+  included) joining into large chests, with comparators and loot tables, explosions
 - Water and lava simulation: sources, downward-first flow, per-fluid drop-off, obsidian and cobblestone interaction
 - Block and sky light engine
 - Redstone: dust, torches, repeaters, comparators, observers, levers, buttons, lamps, doors, pistons and sticky

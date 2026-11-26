@@ -17,6 +17,7 @@ import fr.euphyllia.fidorial.server.world.block.EnderChestBlock;
 import fr.euphyllia.fidorial.server.world.block.FidorialBlockRegistry;
 import fr.euphyllia.fidorial.server.world.block.IcicleBlock;
 import fr.euphyllia.fidorial.server.world.block.SpeleothemBlock;
+import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.block.farming.BuiltinFarming;
 import fr.euphyllia.fidorial.server.world.block.redstone.VanillaRedstone;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
@@ -134,6 +135,7 @@ public final class GameBootstrap {
         registry.register(CraftingTableBlock.INSTANCE);
         registry.register(CrafterBlock.INSTANCE);
         registry.register(EnderChestBlock.INSTANCE);
+        ChestBlocks.ALL.forEach(registry::register);
         registry.register(ClusterBlock.AMETHYST_CLUSTER);
         registry.register(ClusterBlock.LARGE_AMETHYST_BUD);
         registry.register(ClusterBlock.MEDIUM_AMETHYST_BUD);

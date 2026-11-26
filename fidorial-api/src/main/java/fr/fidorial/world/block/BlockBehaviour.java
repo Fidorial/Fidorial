@@ -75,6 +75,23 @@ public interface BlockBehaviour {
     }
 
     /**
+     * Tells whether the block entity of the block survives it turning into another block type, as a
+     * copper chest keeps what it holds when it takes the oxidation of the chest it joins. When it
+     * does, {@link #onRemove} is not called and the data of the block entity is handed over as it
+     * is; the replacement must have a block entity of the same type.
+     *
+     * <p>Runs on the thread of the region owning the block.</p>
+     *
+     * @param state       the state being replaced
+     * @param replacement the state of another block type taking its place
+     * @return {@code true} to keep the block entity; {@code false}, the default, to remove it
+     * @since 0.1.0
+     */
+    default boolean keepsBlockEntity(final BlockData state, final BlockData replacement) {
+        return false;
+    }
+
+    /**
      * {@return the light level the state emits, from {@code 0} to {@code 15}}
      *
      * @param data the state

@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.entity.player.profile;
 import fr.euphyllia.fidorial.auth.GameProfile;
 import fr.euphyllia.fidorial.auth.MojangProfileRepository;
 import fr.euphyllia.fidorial.server.FidorialServer;
+import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
+import fr.euphyllia.fidorial.server.inventory.ServerPlayerInventory;
 import fr.fidorial.entity.player.OfflinePlayer;
 import fr.fidorial.entity.player.OfflinePlayerManager;
 import fr.fidorial.entity.player.OfflinePlayerSnapshot;
@@ -293,12 +295,11 @@ public final class FidorialOfflinePlayerManager implements OfflinePlayerManager,
                     return Optional.empty();
                 }
                 final PlayerDataStorage.PlayerData loaded = data.load(uuid);
-                return Optional.of(new OfflinePlayerSnapshot(
-                        uuid,
-                        loaded.gameMode(),
-                        server.players().inventoryStorage().load(uuid),
-                        server.players().enderChestStorage().load(uuid),
-                        false));
+                final ServerPlayerInventory inventory = new ServerPlayerInventory();
+                server.players().inventoryStorage().load(uuid, inventory);
+                final ServerEnderChestInventory enderChest = new ServerEnderChestInventory();
+                server.players().enderChestStorage().load(uuid, enderChest);
+                return Optional.of(new OfflinePlayerSnapshot(uuid, loaded.gameMode(), inventory, enderChest, false));
             } catch (final IOException e) {
                 LOGGER.error("Unable to read the saved data of {}", uuid, e);
                 return Optional.empty();
@@ -326,18 +327,10 @@ public final class FidorialOfflinePlayerManager implements OfflinePlayerManager,
     }
 
     private static PlayerInventory copyOf(final PlayerInventory source) {
-        final PlayerInventory copy = new PlayerInventory();
-        for (int slot = 0; slot < PlayerInventory.SIZE; slot++) {
-            copy.set(slot, source.get(slot));
-        }
-        return copy;
+        return ServerPlayerInventory.copyOf(source);
     }
 
     private static EnderChestInventory copyOf(final EnderChestInventory source) {
-        final EnderChestInventory copy = new EnderChestInventory();
-        for (int slot = 0; slot < EnderChestInventory.SIZE; slot++) {
-            copy.set(slot, source.get(slot));
-        }
-        return copy;
+        return ServerEnderChestInventory.copyOf(source);
     }
 }
