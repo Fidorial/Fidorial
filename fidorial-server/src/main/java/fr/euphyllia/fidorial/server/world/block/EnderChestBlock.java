@@ -74,7 +74,7 @@ public final class EnderChestBlock implements BlockBehaviour {
         if (isBlockedAbove(world, position)) {
             return true;
         }
-        serverPlayer.openMenu(new EnderChestMenu(serverPlayer, serverPlayer.allocateWindowId(), world, position));
+        serverPlayer.openMenu(EnderChestMenu.of(serverPlayer, world, position));
         return true;
     }
 }

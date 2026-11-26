@@ -5,7 +5,9 @@ import com.mojang.serialization.DataResult;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
+import fr.euphyllia.fidorial.server.inventory.HiddenEnderChestRows;
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
+import fr.fidorial.inventory.EnderChestInventory;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.resource.ResourcePackInfo;
 import net.kyori.adventure.resource.ResourcePackRequest;
@@ -34,7 +36,8 @@ public record ServerConfiguration(
         Threading threading,
         @Nullable ResourcePackRequest resourcePack,
         CodeOfConduct codeOfConduct,
-        Spark spark
+        Spark spark,
+        EnderChest enderChest
 ) {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerConfiguration.class);
@@ -223,6 +226,31 @@ public record ServerConfiguration(
                 .build();
     }
 
+    public record EnderChest(int defaultRows, HiddenEnderChestRows hiddenRows) {
+        static final EnderChest DEFAULTS = new EnderChest(EnderChestInventory.DEFAULT_ROWS, HiddenEnderChestRows.CLEAR);
+
+        private static final Codec<HiddenEnderChestRows> HIDDEN_ROWS = Codec.STRING.comapFlatMap(
+                raw -> {
+                    final HiddenEnderChestRows choice = HiddenEnderChestRows.byName(raw);
+                    return choice != null
+                            ? DataResult.success(choice)
+                            : DataResult.error(() -> "Unknown hidden-rows '" + raw + "', expected one of: " + HiddenEnderChestRows.names());
+                },
+                HiddenEnderChestRows::configName);
+
+        static final Codec<EnderChest> CODEC = configRecord(EnderChest.class, DEFAULTS)
+                .field("default-rows", EnderChest::defaultRows, commented(Codec.intRange(1, EnderChestInventory.MAX_ROWS), """
+                        The rows of the ender chest of the players granted none of the permissions
+                        fidorial.enderchest.rows.<one|two|three|four|five|six>, from 1 to 6
+                        A player granted some of them sees the most rows they give, even fewer than this"""))
+                .field("hidden-rows", EnderChest::hiddenRows, commented(HIDDEN_ROWS,
+                        "What becomes of the items of the rows a player no longer sees, once their ender chest shrinks.\n"
+                                + "Available options are: " + HiddenEnderChestRows.names() + ".\n"
+                                + "clear empties those rows when the player opens their ender chest: the items are lost, and logged.\n"
+                                + "keep keeps the items out of reach, until the player is granted those rows again"))
+                .build();
+    }
+
     private record ResourcePackSection(Optional<URI> url, String hash, Optional<UUID> id, boolean required, Component prompt) {
 
         private static final ResourcePackSection DISABLED = new ResourcePackSection(
@@ -271,7 +299,7 @@ public record ServerConfiguration(
 
     public static final ServerConfiguration DEFAULTS = new ServerConfiguration(
             Network.DEFAULTS, Status.DEFAULTS, General.DEFAULTS, WorldSettings.DEFAULTS, Threading.DEFAULTS,
-            null, CodeOfConduct.DEFAULTS, Spark.DEFAULTS);
+            null, CodeOfConduct.DEFAULTS, Spark.DEFAULTS, EnderChest.DEFAULTS);
 
     public static final Codec<ServerConfiguration> CODEC = configRecord(ServerConfiguration.class, DEFAULTS)
             .field("network", ServerConfiguration::network, commented(Network.CODEC,
@@ -292,6 +320,8 @@ public record ServerConfiguration(
                     Example files are written to 'path' on first startup"""))
             .field("spark", ServerConfiguration::spark, commented(Spark.CODEC,
                     "The built-in spark profiler"))
+            .field("ender-chest", ServerConfiguration::enderChest, commented(EnderChest.CODEC,
+                    "The size of the ender chests of players, chosen by permission"))
             .build();
 
     public static ServerConfiguration load() throws IOException {

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.permission;
 
+import fr.euphyllia.fidorial.server.inventory.EnderChestRows;
 import fr.fidorial.permission.PermissionDefinition;
 import fr.fidorial.permission.PermissionRegistry;
 
@@ -64,6 +65,7 @@ public final class DefaultPermissions {
                 PermissionDefinition.operatorOnly(
                         "minecraft.command.selector", "Use entity selectors (@a, @p, @e, @s)."),
                 PermissionDefinition.operatorOnly(DEBUG_SUBSCRIPTIONS, "Use the client debug renderers.")));
+        registry.defineAll(EnderChestRows.permissions());
     }
 
     private static PermissionDefinition command(final String name, final String description) {
