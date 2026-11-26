@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server.world;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
+import fr.euphyllia.fidorial.server.world.generation.NoiseWorldGenerator;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.service.ServiceRegistry;
@@ -12,6 +14,7 @@ import fr.fidorial.world.generation.GenerationDescriptor;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 public class ServiceBackedChunkGenerator implements ChunkGenerator {
 
@@ -31,6 +34,9 @@ public class ServiceBackedChunkGenerator implements ChunkGenerator {
         final WorldGenerator custom = services.find(WorldGenerator.class).orElse(null);
         if (custom == null) {
             return fallback.generate(chunkX, chunkZ);
+        }
+        if (custom instanceof final NoiseWorldGenerator noise) {
+            return noise.forSave().generate(chunkX, chunkZ);
         }
 
         final PluginGeneratedChunk chunk = new PluginGeneratedChunk(chunkX, chunkZ, custom.dimensionType().minY(), custom.dimensionType().height(), DEFAULT_BIOME);
@@ -77,5 +83,14 @@ public class ServiceBackedChunkGenerator implements ChunkGenerator {
     public boolean generatesStructures() {
         final WorldGenerator custom = services.find(WorldGenerator.class).orElse(null);
         return custom == null ? fallback.generatesStructures() : custom.generatesStructures();
+    }
+
+    @Override
+    public @Nullable NoiseChunkGenerator noise() {
+        final WorldGenerator custom = services.find(WorldGenerator.class).orElse(null);
+        if (custom == null) {
+            return fallback.noise();
+        }
+        return custom instanceof final NoiseWorldGenerator noise ? noise.forSave() : null;
     }
 }

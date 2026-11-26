@@ -12,6 +12,7 @@ import fr.euphyllia.fidorial.server.lifecycle.ServerModule;
 import fr.euphyllia.fidorial.server.lifecycle.ServiceRegistrar;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundBlockUpdatePacket;
 import fr.euphyllia.fidorial.server.registry.RegistryModule;
+import fr.euphyllia.fidorial.server.registry.ServerRegistry;
 import fr.euphyllia.fidorial.server.schedulers.DayNightThread;
 import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
@@ -22,6 +23,10 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingEngine;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
+import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
+import fr.euphyllia.fidorial.server.world.generation.NoiseTerrainService;
+import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
+import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
 import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
@@ -41,13 +46,16 @@ import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldManager;
 import fr.fidorial.world.WorldSpec;
+import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.farming.FarmingBehaviour;
 import fr.fidorial.world.farming.FarmingEngine;
 import fr.fidorial.world.farming.FarmingWorld;
 import fr.fidorial.world.fluid.FluidManager;
+import fr.fidorial.world.generation.NoiseTerrains;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
 import fr.fidorial.world.redstone.RedstoneEngine;
 import fr.fidorial.world.redstone.RedstoneWorld;
@@ -77,6 +85,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final PlayerList online;
     private final ServerWorldManager manager;
     private final StructureService structures;
+    private final NoiseTerrainService noiseTerrains;
     private final WeatherEngine weather;
     private final FluidEngine fluids;
     private final ScheduledTickEngine ticks;
@@ -106,6 +115,7 @@ public final class WorldModule implements ServerModule, WorldManager {
                 config.worlds().initialEnabledPacks(), WorldConfigurationContainer.load(ServerConfiguration.DIRECTORY));
         this.structures = new StructureService(
                 config.worlds().path().resolve("datapacks"), new RegistryBlockValidator(registries.blocks()));
+        this.noiseTerrains = newNoiseTerrains(registries, manager, structures);
         this.weather = new WeatherEngine(manager);
         this.fluids = new FluidEngine(scheduler.regionizer(), registries.blockStates(), world -> redstone().world(world));
         this.ticks = new ScheduledTickEngine(manager, scheduler.regionizer());
@@ -156,8 +166,24 @@ public final class WorldModule implements ServerModule, WorldManager {
         gameRules.addListener(this::syncGameRule);
     }
 
+    private static NoiseTerrainService newNoiseTerrains(final RegistryModule registries, final ServerWorldManager manager,
+                                                        final StructureService structures) {
+        final ServerRegistry<BlockType> blocks = registries.registry(RegistryKey.BLOCK);
+        final ServerRegistry<BiomeDefinition> biomes = registries.registry(RegistryKey.BIOME);
+        final ServerRegistry<DimensionTypeDefinition> dimensionTypes = registries.registry(RegistryKey.DIMENSION_TYPE);
+        final NoiseChunkGenerator.Environment environment = new NoiseChunkGenerator.Environment(
+                WorldgenData.bundled(), new BlockLookup(blocks::isTagged),
+                id -> biomes.data(TypedKey.withRegistry(RegistryKey.BIOME, id)),
+                key -> structures.registry().templateIfProvided(key));
+        return new NoiseTerrainService(environment, key -> {
+            final TypedKey<DimensionTypeDefinition> typeKey = TypedKey.withRegistry(RegistryKey.DIMENSION_TYPE, key);
+            return dimensionTypes.contains(typeKey) ? dimensionTypes.get(typeKey) : VanillaDimensionTypes.OVERWORLD;
+        }, () -> manager.levelData().seed);
+    }
+
     @Override
     public void registerServices(final ServiceRegistrar services) {
+        services.provide(NoiseTerrains.class, noiseTerrains);
         services.provide(FluidManager.class, fluids);
         services.provide(WeatherManager.class, weather);
         services.provide(GameRules.class, gameRules); // Todo : Currently, plugins cannot implement their own system.

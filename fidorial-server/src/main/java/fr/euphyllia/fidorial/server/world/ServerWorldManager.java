@@ -13,6 +13,7 @@ import fr.euphyllia.fidorial.server.world.chunk.AnvilChunkSerializer;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
+import fr.euphyllia.fidorial.server.world.generation.NoiseWorldGenerator;
 import fr.euphyllia.fidorial.server.world.generation.end.EndChunkGenerator;
 import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
@@ -397,10 +398,14 @@ public final class ServerWorldManager implements AutoCloseable {
     }
 
     public ServerWorld createWorld(final Key key, final long seed, final @Nullable WorldGenerator generator, final boolean silent) {
-        final ChunkGenerator chunkGenerator = generator != null
-                ? new PluginBackedChunkGenerator(
-                generator, FlatChunkGenerator.cobblestone(generator.dimensionType()))
-                : FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
+        final ChunkGenerator chunkGenerator;
+        if (generator instanceof final NoiseWorldGenerator noise) {
+            chunkGenerator = noise.forSeed(seed);
+        } else if (generator != null) {
+            chunkGenerator = new PluginBackedChunkGenerator(generator, FlatChunkGenerator.cobblestone(generator.dimensionType()));
+        } else {
+            chunkGenerator = FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
+        }
 
         final Dimension dim = Dimension.datapack(key, chunkGenerator.dimensionType().key());
 
@@ -411,7 +416,8 @@ public final class ServerWorldManager implements AutoCloseable {
                     "World '{}' created (seed={}, generator={})",
                     key,
                     seed,
-                    generator != null ? generator.getClass().getName() : "flat");
+                    generator == null ? "flat" : generator instanceof final NoiseWorldGenerator noise
+                            ? noise.describe() : generator.getClass().getName());
         }
         // resend worlds
         FidorialServer.getInstance().players().online().forEach(ServerPlayer::enterConfigurationPhase);

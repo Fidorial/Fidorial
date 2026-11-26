@@ -418,6 +418,13 @@ public final class StructureRegistry implements TemplateSource {
         return templates.computeIfAbsent(key, this::loadTemplate).orElse(null);
     }
 
+    /**
+     * {@return a template of the data packs, or {@code null} without reporting anything when none provides it}
+     */
+    public @Nullable StructureTemplateImpl templateIfProvided(final Key key) {
+        return contents.templates().containsKey(key) ? template(key) : null;
+    }
+
     private Optional<StructureTemplateImpl> loadTemplate(final Key key) {
         final byte[] data = contents.templates().get(key);
         if (data == null) {

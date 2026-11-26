@@ -15,6 +15,16 @@ final class CrownShapes {
     }
 
     /**
+     * {@return the difference of two draws below a bound, the first minus the second}: from {@code 1 - bound} to
+     * {@code bound - 1}, most often near zero
+     */
+    private static int spread(final BitRandom random, final int bound) {
+        final int first = random.nextInt(bound);
+        final int second = random.nextInt(bound);
+        return first - second;
+    }
+
+    /**
      * A kind of crown.
      */
     abstract static class Shape {
@@ -488,9 +498,9 @@ final class CrownShapes {
                     final int leafRadius, final int offset) {
             final BitRandom random = build.random;
             for (int i = 0; i < attempts; i++) {
-                final int dx = random.nextInt(leafRadius) - random.nextInt(leafRadius);
-                final int dy = random.nextInt(foliageHeight) - random.nextInt(foliageHeight);
-                final int dz = random.nextInt(leafRadius) - random.nextInt(leafRadius);
+                final int dx = spread(random, leafRadius);
+                final int dy = spread(random, foliageHeight);
+                final int dz = spread(random, leafRadius);
                 build.tryLeaf(a.x() + dx, a.y() + dy, a.z() + dz);
             }
         }

@@ -496,6 +496,11 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     }
 
     @Override
+    public NoiseChunkGenerator noise() {
+        return this;
+    }
+
+    @Override
     public DimensionTypeDefinition dimensionType() {
         return dimensionType;
     }

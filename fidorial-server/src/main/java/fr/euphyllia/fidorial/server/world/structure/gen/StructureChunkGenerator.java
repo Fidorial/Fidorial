@@ -3,11 +3,13 @@ package fr.euphyllia.fidorial.server.world.structure.gen;
 import fr.euphyllia.fidorial.server.world.ChunkGenerator;
 import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
 import fr.euphyllia.fidorial.server.world.structure.StructureGenerator;
 import fr.euphyllia.fidorial.server.world.structure.StructureRegistry;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.BooleanSupplier;
 
@@ -86,5 +88,10 @@ public final class StructureChunkGenerator implements ChunkGenerator {
     @Override
     public boolean generatesStructures() {
         return base.generatesStructures();
+    }
+
+    @Override
+    public @Nullable NoiseChunkGenerator noise() {
+        return base.noise();
     }
 }

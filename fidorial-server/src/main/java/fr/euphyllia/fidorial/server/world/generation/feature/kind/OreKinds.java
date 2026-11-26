@@ -237,14 +237,23 @@ final class OreKinds {
         return placed > 0;
     }
 
+    /**
+     * {@return the difference of two draws between 0 and 1, the first minus the second}
+     */
+    private static float spread(final BitRandom random) {
+        final float first = random.nextFloat();
+        final float second = random.nextFloat();
+        return first - second;
+    }
+
     private static Feature scattered(final OreSettings settings) {
         return (region, random, x, y, z) -> {
             final int tries = random.nextInt(settings.size() + 1);
             for (int i = 0; i < tries; i++) {
                 final int reach = Math.min(i, 7);
-                final int px = x + Math.round((random.nextFloat() - random.nextFloat()) * reach);
-                final int py = y + Math.round((random.nextFloat() - random.nextFloat()) * reach);
-                final int pz = z + Math.round((random.nextFloat() - random.nextFloat()) * reach);
+                final int px = x + Math.round(spread(random) * reach);
+                final int py = y + Math.round(spread(random) * reach);
+                final int pz = z + Math.round(spread(random) * reach);
                 final char current = region.id(px, py, pz);
                 for (final Target target : settings.targets()) {
                     if (target.test().test(current, py, random)) {
