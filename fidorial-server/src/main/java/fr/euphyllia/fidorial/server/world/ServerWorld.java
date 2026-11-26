@@ -89,6 +89,7 @@ public final class ServerWorld implements World {
     private static final ComponentLogger LOGGER = ComponentLogger.logger(ServerWorld.class);
 
     private final Dimension dimension;
+    private final long seed;
     private final ChunkStorage storage;
     private final EntityRegionStorage entityStorage;
     private final AnvilEntitySerializer entitySerializer;
@@ -131,6 +132,7 @@ public final class ServerWorld implements World {
 
     public ServerWorld(
             final Dimension dimension,
+            final long seed,
             final ChunkStorage storage,
             final EntityRegionStorage entityStorage,
             final AnvilEntitySerializer entitySerializer,
@@ -143,6 +145,7 @@ public final class ServerWorld implements World {
             final WorldPaths paths
     ) {
         this.dimension = dimension;
+        this.seed = seed;
         this.storage = storage;
         this.entityStorage = entityStorage;
         this.entitySerializer = entitySerializer;
@@ -169,6 +172,14 @@ public final class ServerWorld implements World {
 
     public Dimension dimension() {
         return dimension;
+    }
+
+    /**
+     * {@return the seed this world was created with}; the one of the save for its vanilla dimensions,
+     * the one given at creation for the other worlds
+     */
+    public long seed() {
+        return seed;
     }
 
     public EntityManager entityManager() {

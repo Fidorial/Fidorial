@@ -106,6 +106,9 @@
   "command.locate.structure.teleport" : "Click to teleport",
   "command.locate.structure.error" : "<red>An error occurred while searching for <arg:0>: <arg:1>",
 
+  "commands.seed.success" : "Seed: <arg:0>",
+  "commands.seed.no_world" : "<red>No world is currently available to run this command in",
+
   "command.datapack.list" : "There are <arg:0> data pack(s) enabled: <arg:1>",
   "command.datapack.list.none" : "There are no data packs. Put pack folders or .zip files in <arg:0>, then run /datapack reload",
   "command.datapack.list.details" : "<gray><arg:0> template(s), <arg:1> structure(s), <arg:2> structure set(s)",

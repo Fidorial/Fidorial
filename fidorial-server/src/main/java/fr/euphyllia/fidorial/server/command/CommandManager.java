@@ -32,6 +32,7 @@ import fr.euphyllia.fidorial.server.command.defaults.PardonIpCommand;
 import fr.euphyllia.fidorial.server.command.defaults.PlaceCommand;
 import fr.euphyllia.fidorial.server.command.defaults.PostEffectCommand;
 import fr.euphyllia.fidorial.server.command.defaults.RespawnCommand;
+import fr.euphyllia.fidorial.server.command.defaults.SeedCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SpawnPointCommand;
 import fr.euphyllia.fidorial.server.command.defaults.StopCommand;
 import fr.euphyllia.fidorial.server.command.defaults.SummonCommand;
@@ -119,6 +120,7 @@ public final class CommandManager implements CommandRegistry {
         registerInternal(ForceLoadCommand.create());
         registerInternal(PlaceCommand.create());
         registerInternal(LocateCommand.create());
+        registerInternal(SeedCommand.create());
         registerInternal(DatapackCommand.create());
         registerInternal(GameRuleCommand.create());
         registerInternal(PostEffectCommand.create());

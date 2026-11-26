@@ -69,6 +69,9 @@
   "command.weather.changed.duration" : "La météo de <arg:2> est maintenant <arg:0> pendant <arg:1> s",
   "command.weather.noweather" : "Il n'y a pas de météo dans <arg:0>",
 
+  "commands.seed.success" : "Graine : <arg:0>",
+  "commands.seed.no_world" : "<red>Aucun monde n'est disponible pour exécuter cette commande",
+
   "weather.clear" : "ensoleillé",
   "weather.rain" : "pluvieux",
   "weather.thunder" : "orageux",

@@ -156,8 +156,9 @@ public final class ServerWorldManager implements AutoCloseable {
                 : structureService.wrap(dim.id(), generator, seed, configuration.gameplay()::generateStructures);
         levelData.generators.put(dim.id(), new LevelData.DimensionGenerator(dim, effective.describeForSave()));
         final boolean overworld = Dimension.OVERWORLD.id().equals(dim.id());
-        final ServerWorld world = new ServerWorld(dim, storage, entityStorage, entitySerializer, effective, blockStates, scheduler,
-                levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration, paths.forDimension(dim));
+        final ServerWorld world = new ServerWorld(dim, seed, storage, entityStorage, entitySerializer, effective, blockStates,
+                scheduler, levelData.gameRules, overworld ? levelData.weather : new WeatherState(), configuration,
+                paths.forDimension(dim));
         if (chunkLoader != null) {
             world.setChunkLoader(chunkLoader);
         }
