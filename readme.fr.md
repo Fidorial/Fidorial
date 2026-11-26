@@ -41,8 +41,9 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 - Plusieurs mondes, persistance au format Anvil (region files, NBT), chargement asynchrone des chunks et streaming
   autour des joueurs
 - Overworld généré à partir de bruit : terrain modelé par des fonctions de densité, biomes multi-bruit, aquifères, règles de surface, sculpteurs, minerais, arbres, plantes, géodes, concrétions, crevasses et glace ; les plugins l'interrogent via le service `NoiseTerrains` ou fournissent leur propre `WorldGenerator` (Développé avec Claude AI, l'algorithme complet est dérivé de minecraft.wiki, mais n'est pas comme en vanilla). Aucune structure ne sera ajoutée à Fidorial pour des raisons de droits d'auteur. Si vous souhaitez en ajouter, vous devez créer un datapack vous-même.
-- Pose et casse de blocs, block entities, conteneurs, ender chests et coffres (piégés et en cuivre compris) qui
-  s'assemblent en grands coffres, avec comparateurs et loot tables, explosions
+- Pose et casse de blocs, block entities, conteneurs, ender chests, coffres (piégés et en cuivre compris) qui
+  s'assemblent en grands coffres, et tonneaux de 1 à 6 rangées réglées par monde (le choix des rangées est inspiré
+  de Purpur), avec comparateurs et loot tables, explosions
 - Simulation de l'eau et de la lave : sources, écoulement vertical prioritaire, perte de niveau propre à chaque fluide,
   interaction obsidienne/cobblestone
 - Moteur de lumière (blocs et ciel)
@@ -60,8 +61,8 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
   pathfinding A\* sur un pool de threads dédié
 - Combat : dégâts, knockback, mort, respawn, interrupteur PvP
 - Quatre modes de jeu, inventaire créatif, persistance par joueur de l'inventaire, de l'ender chest et des données
-- Ender chests de 1 à 6 rangées choisies par permission (`fidorial.enderchest.rows.<one…six>`), les rangées
-  qu'un joueur ne voit plus étant vidées ou gardées selon la configuration
+- Ender chests de 1 à 6 rangées choisies par permission (`fidorial.enderchest.rows.<one…six>`, inspiré de Purpur),
+  les rangées qu'un joueur ne voit plus étant vidées ou gardées selon la configuration
 - Chat, boss bars, sons et traductions (`en_us`, `fr_fr`)
 
 **Plateforme**

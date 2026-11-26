@@ -5,7 +5,7 @@ import fr.euphyllia.fidorial.server.codecs.container.PlayerEnderChestCodec;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
 import fr.euphyllia.fidorial.server.inventory.EnderChestMenu;
 import fr.euphyllia.fidorial.server.inventory.EnderChestRows;
-import fr.euphyllia.fidorial.server.inventory.HiddenEnderChestRows;
+import fr.euphyllia.fidorial.server.inventory.HiddenRows;
 import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.fidorial.entity.GameMode;
@@ -184,7 +184,7 @@ public final class EnderChestTests {
                     enderChest.set(40, ItemStack.of(ItemKeys.EMERALD, 7));
 
                     final EnderChestMenu kept = new EnderChestMenu(player, player.allocateWindowId(), (ServerWorld) world,
-                            position, 2, HiddenEnderChestRows.KEEP);
+                            position, 2, HiddenRows.KEEP);
                     helper.assertTrue(player.openMenu(kept) && kept.menuType().equals(MenuTypeKeys.GENERIC_9X2),
                             "A window of two rows should open");
                     player.closeContainer();
@@ -192,7 +192,7 @@ public final class EnderChestTests {
                             "With hidden-rows: keep, the rows no longer seen should keep their items");
 
                     final EnderChestMenu cleared = new EnderChestMenu(player, player.allocateWindowId(), (ServerWorld) world,
-                            position, 2, HiddenEnderChestRows.CLEAR);
+                            position, 2, HiddenRows.CLEAR);
                     player.openMenu(cleared);
                     player.closeContainer();
                     helper.assertTrue(enderChest.get(40).isEmpty() && enderChest.get(0).equals(ItemStack.of(ItemKeys.DIAMOND, 1)),

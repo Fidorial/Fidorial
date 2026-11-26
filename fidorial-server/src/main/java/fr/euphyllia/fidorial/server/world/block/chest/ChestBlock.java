@@ -7,10 +7,10 @@ import fr.euphyllia.fidorial.server.inventory.BlockChestInventory;
 import fr.euphyllia.fidorial.server.inventory.ChestMenu;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
 import fr.euphyllia.fidorial.server.world.redstone.Faces;
 import fr.fidorial.entity.player.Player;
 import fr.fidorial.inventory.Container;
-import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.SoundEvent;
@@ -264,17 +264,7 @@ public class ChestBlock implements BlockBehaviour, RedstoneBehaviour {
         if (!(world instanceof final ServerWorld serverWorld) || !FidorialServer.isInitialized()) {
             return;
         }
-        final BlockChestInventory chest = new BlockChestInventory(serverWorld, position);
-        final ItemStack[] contents = chest.contents();
-        // the windows still open on it must not hand the same items out a second time
-        chest.clear();
-        final FidorialServer server = FidorialServer.getInstance();
-        for (final ItemStack stack : contents) {
-            if (!stack.isEmpty()) {
-                server.entities().dropNaturally(serverWorld,
-                        position.blockX() + 0.5, position.blockY() + 0.5, position.blockZ() + 0.5, stack);
-            }
-        }
+        ContainerBlocks.spill(new BlockChestInventory(serverWorld, position));
     }
 
     @Override
@@ -301,7 +291,7 @@ public class ChestBlock implements BlockBehaviour, RedstoneBehaviour {
         if (!(world.world() instanceof final ServerWorld serverWorld) || !(state instanceof final Chest chest)) {
             return 0;
         }
-        return ChestBlocks.signal(ChestBlocks.contents(serverWorld, ChestBlocks.halves(serverWorld, position, chest)));
+        return ContainerBlocks.signal(ChestBlocks.contents(serverWorld, ChestBlocks.halves(serverWorld, position, chest)));
     }
 
     /**

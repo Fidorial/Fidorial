@@ -10,6 +10,8 @@ import fr.fidorial.entity.player.Player;
  * player no longer sees, kept hidden until they see them again or cleared when they open their
  * ender chest, is up to the server configuration.</p>
  *
+ * <p>Choosing the rows of an ender chest by permission is inspired by Purpur.</p>
+ *
  * @see Player#enderChest()
  * @since 0.1.0
  */

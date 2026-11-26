@@ -14,6 +14,7 @@ import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.MenuType;
+import fr.fidorial.registry.keys.MenuTypeKeys;
 import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
@@ -89,6 +90,24 @@ public abstract class ContainerMenu {
      */
     protected static int maxStackSize(final ItemStack stack) {
         return Math.max(1, ItemDefaults.maxStackSize(stack.id(), stack));
+    }
+
+    /**
+     * {@return the generic window of {@code rows} rows of nine slots, from {@code GENERIC_9X1} to
+     * {@code GENERIC_9X6}}
+     *
+     * @param rows from {@code 1} to {@code 6}
+     */
+    protected static TypedKey<MenuType> genericRows(final int rows) {
+        return switch (rows) {
+            case 1 -> MenuTypeKeys.GENERIC_9X1;
+            case 2 -> MenuTypeKeys.GENERIC_9X2;
+            case 3 -> MenuTypeKeys.GENERIC_9X3;
+            case 4 -> MenuTypeKeys.GENERIC_9X4;
+            case 5 -> MenuTypeKeys.GENERIC_9X5;
+            case 6 -> MenuTypeKeys.GENERIC_9X6;
+            default -> throw new IllegalArgumentException("A generic window has from 1 to 6 rows, not " + rows);
+        };
     }
 
     private static ItemStack remainderOrEmpty(final ItemStack source, final int count) {

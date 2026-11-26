@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.RecordCodec;
 import fr.euphyllia.fidorial.server.configuration.exception.InvalidConfigurationException;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
+import fr.euphyllia.fidorial.server.inventory.HiddenRows;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.redstone.DustImplementation;
 import fr.fidorial.entity.GameMode;
@@ -66,6 +67,15 @@ public final class ConfigurationCodecs {
                         : DataResult.error(() -> "Unknown region compression '" + raw + "', expected one of: " + RegionCompression.names());
             },
             RegionCompression::configName);
+
+    public static final Codec<HiddenRows> HIDDEN_ROWS = Codec.STRING.comapFlatMap(
+            raw -> {
+                final HiddenRows choice = HiddenRows.byName(raw);
+                return choice != null
+                        ? DataResult.success(choice)
+                        : DataResult.error(() -> "Unknown hidden-rows '" + raw + "', expected one of: " + HiddenRows.names());
+            },
+            HiddenRows::configName);
 
     public static final Codec<DustImplementation> DUST_IMPLEMENTATION = Codec.STRING.comapFlatMap(
             raw -> {

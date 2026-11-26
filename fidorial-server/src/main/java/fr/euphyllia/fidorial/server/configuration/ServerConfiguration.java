@@ -5,7 +5,7 @@ import com.mojang.serialization.DataResult;
 import fr.euphyllia.fidorial.server.codecs.CommonCodecs;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
 import fr.euphyllia.fidorial.server.configuration.migration.ConfigurationSchemas;
-import fr.euphyllia.fidorial.server.inventory.HiddenEnderChestRows;
+import fr.euphyllia.fidorial.server.inventory.HiddenRows;
 import fr.euphyllia.fidorial.server.moderation.CodeOfConductManager;
 import fr.fidorial.inventory.EnderChestInventory;
 import net.kyori.adventure.key.Key;
@@ -226,26 +226,17 @@ public record ServerConfiguration(
                 .build();
     }
 
-    public record EnderChest(int defaultRows, HiddenEnderChestRows hiddenRows) {
-        static final EnderChest DEFAULTS = new EnderChest(EnderChestInventory.DEFAULT_ROWS, HiddenEnderChestRows.CLEAR);
-
-        private static final Codec<HiddenEnderChestRows> HIDDEN_ROWS = Codec.STRING.comapFlatMap(
-                raw -> {
-                    final HiddenEnderChestRows choice = HiddenEnderChestRows.byName(raw);
-                    return choice != null
-                            ? DataResult.success(choice)
-                            : DataResult.error(() -> "Unknown hidden-rows '" + raw + "', expected one of: " + HiddenEnderChestRows.names());
-                },
-                HiddenEnderChestRows::configName);
+    public record EnderChest(int defaultRows, HiddenRows hiddenRows) {
+        static final EnderChest DEFAULTS = new EnderChest(EnderChestInventory.DEFAULT_ROWS, HiddenRows.CLEAR);
 
         static final Codec<EnderChest> CODEC = configRecord(EnderChest.class, DEFAULTS)
                 .field("default-rows", EnderChest::defaultRows, commented(Codec.intRange(1, EnderChestInventory.MAX_ROWS), """
                         The rows of the ender chest of the players granted none of the permissions
                         fidorial.enderchest.rows.<one|two|three|four|five|six>, from 1 to 6
                         A player granted some of them sees the most rows they give, even fewer than this"""))
-                .field("hidden-rows", EnderChest::hiddenRows, commented(HIDDEN_ROWS,
+                .field("hidden-rows", EnderChest::hiddenRows, commented(ConfigurationCodecs.HIDDEN_ROWS,
                         "What becomes of the items of the rows a player no longer sees, once their ender chest shrinks.\n"
-                                + "Available options are: " + HiddenEnderChestRows.names() + ".\n"
+                                + "Available options are: " + HiddenRows.names() + ".\n"
                                 + "clear empties those rows when the player opens their ender chest: the items are lost, and logged.\n"
                                 + "keep keeps the items out of reach, until the player is granted those rows again"))
                 .build();

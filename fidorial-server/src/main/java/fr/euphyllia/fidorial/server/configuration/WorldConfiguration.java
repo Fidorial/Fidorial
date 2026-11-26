@@ -3,19 +3,21 @@ package fr.euphyllia.fidorial.server.configuration;
 import alternate.current.wire.UpdateOrder;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs;
+import fr.euphyllia.fidorial.server.inventory.HiddenRows;
 import fr.euphyllia.fidorial.server.world.anvil.RegionCompression;
 import fr.euphyllia.fidorial.server.world.redstone.DustImplementation;
 import fr.fidorial.entity.GameMode;
+import fr.fidorial.inventory.BarrelInventory;
 import fr.fidorial.math.Location;
 import fr.fidorial.world.World;
 
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.commented;
 import static fr.euphyllia.fidorial.server.codecs.configuration.ConfigurationCodecs.configRecord;
 
-public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone redstone, Mobs mobs) {
+public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone redstone, Mobs mobs, Blocks blocks) {
 
     public static final WorldConfiguration DEFAULTS =
-            new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS, Redstone.DEFAULTS, Mobs.DEFAULTS);
+            new WorldConfiguration(Gameplay.DEFAULTS, Storage.DEFAULTS, Redstone.DEFAULTS, Mobs.DEFAULTS, Blocks.DEFAULTS);
 
     public static final Codec<WorldConfiguration> CODEC = codec(DEFAULTS, true);
 
@@ -38,7 +40,39 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone re
                 .field("mobs", WorldConfiguration::mobs, commented(Mobs.codec(defaults.mobs(), writeDefaults),
                         "What the mobs of the world may do, mob by mob.\n"
                                 + "The settings letting a mob change blocks only narrow the mob_griefing game rule, which must allow it too"))
+                .field("blocks", WorldConfiguration::blocks, commented(Blocks.codec(defaults.blocks(), writeDefaults),
+                        "Settings of the blocks of the world, block by block"))
                 .build();
+    }
+
+    public record Blocks(Barrel barrel) {
+
+        public static final Blocks DEFAULTS = new Blocks(Barrel.DEFAULTS);
+
+        static Codec<Blocks> codec(final Blocks defaults, final boolean writeDefaults) {
+            return configRecord(Blocks.class, defaults, writeDefaults)
+                    .field("barrel", Blocks::barrel, commented(Barrel.codec(defaults.barrel(), writeDefaults),
+                            "The size of the barrels"))
+                    .build();
+        }
+    }
+
+    public record Barrel(int rows, HiddenRows hiddenRows) {
+
+        public static final Barrel DEFAULTS = new Barrel(BarrelInventory.DEFAULT_ROWS, HiddenRows.CLEAR);
+
+        static Codec<Barrel> codec(final Barrel defaults, final boolean writeDefaults) {
+            return configRecord(Barrel.class, defaults, writeDefaults)
+                    .field("rows", Barrel::rows, commented(Codec.intRange(1, BarrelInventory.MAX_ROWS),
+                            "The rows of slots of every barrel of the world, from 1 to 6"))
+                    .field("hidden-rows", Barrel::hiddenRows, commented(ConfigurationCodecs.HIDDEN_ROWS,
+                            "What becomes of the items of the rows a barrel no longer shows, once rows is lowered.\n"
+                                    + "Available options are: " + HiddenRows.names() + ".\n"
+                                    + "clear empties those rows when a player opens the barrel: the items are lost, and logged.\n"
+                                    + "keep keeps the items out of reach, until rows is raised again.\n"
+                                    + "Either way, breaking a barrel spills every item it holds, those of the rows no longer shown included"))
+                    .build();
+        }
     }
 
     public record Gameplay(

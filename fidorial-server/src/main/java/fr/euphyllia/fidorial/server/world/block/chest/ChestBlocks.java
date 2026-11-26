@@ -1,18 +1,13 @@
 package fr.euphyllia.fidorial.server.world.block.chest;
 
-import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.inventory.BlockChestInventory;
 import fr.euphyllia.fidorial.server.inventory.LargeChestInventory;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
-import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
 import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.inventory.Container;
 import fr.fidorial.inventory.DoubleChestInventory;
-import fr.fidorial.item.ItemDefaults;
-import fr.fidorial.item.ItemStack;
-import fr.fidorial.item.data.DataComponentTypes;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.SoundEvent;
@@ -22,8 +17,6 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.data.type.Chest;
-import fr.fidorial.world.redstone.RedstoneWorld;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -31,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,11 +62,6 @@ public final class ChestBlocks {
 
     private static final String SINGLE_TITLE = "container.chest";
     private static final String DOUBLE_TITLE = "container.chestDouble";
-
-    /**
-     * The chests whose comparators are about to be told their contents changed.
-     */
-    private static final Set<Pending> PENDING = ConcurrentHashMap.newKeySet();
 
     private ChestBlocks() {
         throw new UnsupportedOperationException("ChestBlocks cannot be instantiated.");
@@ -126,12 +112,7 @@ public final class ChestBlocks {
      * {@return the state at a position, {@code null} when its chunk is not loaded}
      */
     public static @Nullable BlockData stateAt(final ServerWorld world, final BlockPosition position) {
-        final ChunkColumn column = world.loadedColumn(position.chunkX(), position.chunkZ());
-        if (column == null || !FidorialServer.isInitialized()) {
-            return null;
-        }
-        final BlockState state = column.getBlock(position.blockX() & 15, position.blockY(), position.blockZ() & 15);
-        return FidorialServer.getInstance().registries().blockStates().resolve(state);
+        return ContainerBlocks.stateAt(world, position);
     }
 
     /**
@@ -236,25 +217,6 @@ public final class ChestBlocks {
     }
 
     /**
-     * {@return the level a comparator reads out of a container: {@code 0} when it is empty, then from
-     * {@code 1} to {@code 15} as its slots fill up, each stack counting for how full it is}
-     */
-    public static int signal(final Container container) {
-        float fullness = 0.0f;
-        boolean any = false;
-        for (final ItemStack stack : container.contents()) {
-            if (!stack.isEmpty()) {
-                fullness += stack.count() / (float) Math.max(1, ItemDefaults.maxStackSize(stack.id(), stack));
-                any = true;
-            }
-        }
-        if (!any) {
-            return 0;
-        }
-        return Math.min(15, (int) Math.floor(fullness / container.size() * 14.0f) + 1);
-    }
-
-    /**
      * Tells the comparators reading a chest, and the other half of its large chest, that its
      * contents changed, on the thread of the region owning it. Several changes in a row tell them
      * once.
@@ -263,35 +225,9 @@ public final class ChestBlocks {
      * @param position where the chest is
      */
     public static void contentsChanged(final ServerWorld world, final BlockPosition position) {
-        if (!FidorialServer.isInitialized()) {
-            return;
-        }
-        final Pending pending = new Pending(world.key(), position);
-        if (!PENDING.add(pending)) {
-            return;
-        }
-        final boolean scheduled = world.scheduler().execute(world.key(), position.chunk(), () -> {
-            PENDING.remove(pending);
-            final RedstoneWorld redstone = FidorialServer.getInstance().worlds().redstone().world(world);
+        ContainerBlocks.contentsChanged(world, position, redstone -> {
             redstone.analogOutputChanged(position);
             chestAt(world, position).flatMap(chest -> partner(world, position, chest)).ifPresent(redstone::analogOutputChanged);
         });
-        if (!scheduled) {
-            PENDING.remove(pending);
-        }
-    }
-
-    /**
-     * Names the chest just placed at a position after the item that placed it, when that item was
-     * renamed.
-     */
-    public static void nameFromItem(final ServerWorld world, final BlockPosition position, final ItemStack item) {
-        final Component name = item.get(DataComponentTypes.CUSTOM_NAME);
-        if (name != null) {
-            inventoryAt(world, position).ifPresent(chest -> chest.setCustomName(name));
-        }
-    }
-
-    private record Pending(Key world, BlockPosition position) {
     }
 }

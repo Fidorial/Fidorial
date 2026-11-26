@@ -4,6 +4,7 @@ import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.ExperienceOrb;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.inventory.BarrelInventory;
 import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
@@ -270,6 +271,19 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     Optional<ChestInventory> chestAt(BlockPosition position);
+
+    /**
+     * Gets the barrel at a position.
+     *
+     * <p>The inventory reads and writes the block entity of the barrel, and shows the rows the
+     * configuration of this world gives barrels. Use it on the thread of the region owning the
+     * position.</p>
+     *
+     * @param position the block position
+     * @return the slots of the barrel, empty when there is no barrel there or its chunk is not loaded
+     * @since 0.1.0
+     */
+    Optional<BarrelInventory> barrelAt(BlockPosition position);
 
     /**
      * {@return the block light level at a position, between {@code 0} and {@code 15}}

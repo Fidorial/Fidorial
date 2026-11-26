@@ -85,9 +85,9 @@ import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
+import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
 import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
-import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
@@ -728,8 +728,8 @@ public final class PlayPacketHandler implements PlayPacketListener {
                         .post(new BlockPlaceEvent(acting, target, server.registries().blockStates().networkId(state)));
                 if (!event.isCancelled()) {
                     server.worlds().blockEdits().set(world, target, state, true);
-                    // a chest placed from a renamed item takes its name
-                    ChestBlocks.nameFromItem(world, target, held);
+                    // a chest or a barrel placed from a renamed item takes its name
+                    ContainerBlocks.nameFromItem(world, target, held);
                     server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_PLACE, target);
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                     placed = true;

@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.ConcurrentLongSet;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
+import fr.euphyllia.fidorial.server.world.block.BarrelBlock;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -43,6 +44,7 @@ import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
+import fr.fidorial.inventory.BarrelInventory;
 import fr.fidorial.inventory.ChestInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
@@ -670,6 +672,11 @@ public final class ServerWorld implements World {
     @Override
     public Optional<ChestInventory> chestAt(final BlockPosition position) {
         return ChestBlocks.inventoryAt(this, position);
+    }
+
+    @Override
+    public Optional<BarrelInventory> barrelAt(final BlockPosition position) {
+        return BarrelBlock.inventoryAt(this, position);
     }
 
     /**

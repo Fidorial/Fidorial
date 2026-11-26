@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.registry.data.BlockEntityTypeBlocks;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateLightProperties;
 import fr.euphyllia.fidorial.server.registry.data.ItemProperties;
+import fr.euphyllia.fidorial.server.world.block.BarrelBlock;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
@@ -136,6 +137,7 @@ public final class GameBootstrap {
         registry.register(CrafterBlock.INSTANCE);
         registry.register(EnderChestBlock.INSTANCE);
         ChestBlocks.ALL.forEach(registry::register);
+        registry.register(BarrelBlock.INSTANCE);
         registry.register(ClusterBlock.AMETHYST_CLUSTER);
         registry.register(ClusterBlock.LARGE_AMETHYST_BUD);
         registry.register(ClusterBlock.MEDIUM_AMETHYST_BUD);

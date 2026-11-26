@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.loot;
 
+import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
 import fr.euphyllia.fidorial.server.inventory.SimpleContainer;
@@ -76,15 +77,19 @@ public final class ContainerLoot {
     }
 
     /**
-     * Rolls the loot table of a container and puts the loot into its empty slots.
+     * Rolls the loot table of a container and puts the loot into its empty shown slots.
      *
-     * @param data     the data of the block entity of the container, holding its {@code Items}
-     * @param size     the number of slots of the container
-     * @param position where the container is, for the logs
+     * @param data       the data of the block entity of the container, holding its {@code Items}
+     * @param storedSize the number of slots the block entity keeps, whose items are all kept
+     * @param shownSize  the number of slots shown, the first ones, the only ones the loot goes into
+     * @param position   where the container is, for the logs
      * @return the data with the loot in its {@code Items} and without the loot table, which is
      *         forgotten even when it could not be rolled
      */
-    public static CompoundBinaryTag unpack(final CompoundBinaryTag data, final int size, final BlockPosition position) {
+    public static CompoundBinaryTag unpack(final CompoundBinaryTag data, final int storedSize, final int shownSize,
+                                           final BlockPosition position) {
+        Preconditions.checkArgument(shownSize >= 0 && shownSize <= storedSize,
+                "The container at %s shows from 0 to the %s slots it keeps, not %s", position, storedSize, shownSize);
         final Optional<Key> table = table(data);
         final CompoundBinaryTag rolled = data.remove(LOOT_TABLE).remove(LOOT_TABLE_SEED);
         final BlockLootTables tables = BlockLootTables.instance();
@@ -98,12 +103,12 @@ public final class ContainerLoot {
             LOGGER.debug("The loot table {} of the container at {} gave nothing", table.get(), position);
             return rolled;
         }
-        final Codec<SimpleContainer> codec = ContainerCodecs.containerCodec(() -> new SimpleContainer(size));
+        final Codec<SimpleContainer> codec = ContainerCodecs.containerCodec(() -> new SimpleContainer(storedSize));
         try {
             final SimpleContainer container = rolled.get(ITEMS) == null
-                    ? new SimpleContainer(size)
+                    ? new SimpleContainer(storedSize)
                     : ContainerCodecs.readList(rolled, ITEMS, codec);
-            fill(container, loot, random);
+            fill(container, shownSize, loot, random);
             return ContainerCodecs.writeList(rolled, ITEMS, codec, container);
         } catch (final IOException exception) {
             LOGGER.error("Unable to put the loot of {} into the container at {}", table.get(), position, exception);
@@ -116,12 +121,14 @@ public final class ContainerLoot {
      * ones over a few more slots.
      *
      * @param container the container
+     * @param slots     how many of its first slots may take the loot
      * @param loot      what to put in it
      * @param random    the source of randomness
      */
-    public static void fill(final Container container, final List<ItemStack> loot, final RandomGenerator random) {
+    public static void fill(final Container container, final int slots, final List<ItemStack> loot,
+                            final RandomGenerator random) {
         final List<Integer> empty = new ArrayList<>();
-        for (int slot = 0; slot < container.size(); slot++) {
+        for (int slot = 0; slot < Math.min(slots, container.size()); slot++) {
             if (container.get(slot).isEmpty()) {
                 empty.add(slot);
             }

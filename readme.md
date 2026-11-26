@@ -40,8 +40,9 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 
 - Multiple worlds, Anvil persistence (region files, NBT), asynchronous chunk loading and streaming around players
 - Noise-generated overworld: terrain modeled by density functions, multi-noise biomes, aquifers, surface rules, sculptors, ores, trees, plants, geodes, concretions, crevasses, and ice; plugins query it via the `NoiseTerrains` service or provide their own `WorldGenerator` (developed with Claude AI, the complete algorithm is derived from minecraft.wiki but is not the same as in vanilla). No structures will be added to Fidorial due to copyright reasons. If you wish to add any, you must create a datapack yourself.
-- Block placement and breaking, block entities, containers, ender chests, and chests (trapped and copper ones
-  included) joining into large chests, with comparators and loot tables, explosions
+- Block placement and breaking, block entities, containers, ender chests, chests (trapped and copper ones
+  included) joining into large chests, and barrels of 1 to 6 rows set per world (choosing the rows is inspired by
+  Purpur), with comparators and loot tables, explosions
 - Water and lava simulation: sources, downward-first flow, per-fluid drop-off, obsidian and cobblestone interaction
 - Block and sky light engine
 - Redstone: dust, torches, repeaters, comparators, observers, levers, buttons, lamps, doors, pistons and sticky
@@ -57,8 +58,8 @@ so a plugin can swap an entire subsystem without patching a single line of serve
   worker pool
 - Combat: damage, knockback, death, respawn, PvP switch
 - Four game modes, creative inventory, per-player persistence of inventory, ender chest and player data
-- Ender chests of 1 to 6 rows chosen by permission (`fidorial.enderchest.rows.<one…six>`), the rows a player no
-  longer sees cleared or kept as configured
+- Ender chests of 1 to 6 rows chosen by permission (`fidorial.enderchest.rows.<one…six>`, inspired by Purpur), the
+  rows a player no longer sees cleared or kept as configured
 - Chat, boss bars, sounds, and translations (`en_us`, `fr_fr`)
 
 **Platform**

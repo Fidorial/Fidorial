@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.redstone;
 
+import fr.euphyllia.fidorial.server.world.block.BarrelBlock;
 import fr.euphyllia.fidorial.server.world.block.chest.ChestBlock;
 import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneRegistry;
@@ -62,6 +63,7 @@ public final class VanillaRedstone {
         for (final ChestBlock chest : ChestBlocks.ALL) {
             registry.attachVanilla(chest.key(), chest);
         }
+        registry.attachVanilla(BarrelBlock.KEY, BarrelBlock.INSTANCE);
         registry.attachVanilla(PoweredNoteBlock.KEY, PoweredNoteBlock.INSTANCE);
         registry.attachVanilla(BlockTypeKeys.PISTON, PistonBaseBlock.NORMAL);
         registry.attachVanilla(BlockTypeKeys.STICKY_PISTON, PistonBaseBlock.STICKY);

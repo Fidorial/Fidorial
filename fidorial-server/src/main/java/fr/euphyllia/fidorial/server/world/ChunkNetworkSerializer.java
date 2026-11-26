@@ -40,11 +40,11 @@ public final class ChunkNetworkSerializer {
     private static final TypedKey<BiomeDefinition> FALLBACK_BIOME = BiomeKeys.PLAINS;
 
     /**
-     * The block entities clients are told nothing of but their type, as in vanilla: what a chest
-     * holds, and the loot table it has yet to roll, stay on the server.
+     * The block entities clients are told nothing of but their type, as in vanilla: what a chest or
+     * a barrel holds, and the loot table it has yet to roll, stay on the server.
      */
     private static final Set<TypedKey<BlockEntityType>> SERVER_SIDE_DATA =
-            Set.of(BlockEntityTypeKeys.CHEST, BlockEntityTypeKeys.TRAPPED_CHEST);
+            Set.of(BlockEntityTypeKeys.CHEST, BlockEntityTypeKeys.TRAPPED_CHEST, BlockEntityTypeKeys.BARREL);
 
     public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
         this.blockEntityTypes = blockEntityTypes;
