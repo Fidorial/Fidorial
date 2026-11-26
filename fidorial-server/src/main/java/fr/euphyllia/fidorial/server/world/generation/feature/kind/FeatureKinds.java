@@ -22,6 +22,8 @@ public final class FeatureKinds {
         PlantKinds.register(parsers);
         SpeleothemKinds.register(parsers);
         CaveKinds.register(parsers);
+        Trees.register(parsers);
+        LogKinds.register(parsers);
         return parsers;
     }
 }
