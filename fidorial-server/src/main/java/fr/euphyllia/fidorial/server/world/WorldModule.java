@@ -29,6 +29,8 @@ import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
 import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
+import fr.euphyllia.fidorial.server.world.storage.Dimension;
+import fr.euphyllia.fidorial.server.world.storage.LevelData;
 import fr.euphyllia.fidorial.server.world.structure.StructureService;
 import fr.euphyllia.fidorial.server.world.structure.gen.RegistryBlockValidator;
 import fr.euphyllia.fidorial.server.world.tick.ScheduledTickEngine;
@@ -79,6 +81,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class WorldModule implements ServerModule, WorldManager {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(WorldModule.class);
+
+    private static final Key FLAT_GENERATOR = Key.key("flat");
+    private static final Key NOISE_GENERATOR = Key.key("noise");
 
     private final ServiceRegistry services;
     private final RegistryModule registries;
@@ -156,8 +161,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         ticks.setFluidRunner(fluids::tick);
         manager.setEntityBridge(entities.ids()::allocate, entities.spawnBridge());
         manager.setDefaultWorld(config.worlds().defaultWorld());
-        manager.setDefaultGenerator(new ServiceBackedChunkGenerator(
-                services, FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD)));
+        manager.setDefaultGenerator(new ServiceBackedChunkGenerator(services, overworldGenerator()));
         fluids.setDebugEvents(debug.gameEvents());
         blockEdits.setDebugEvents(debug.gameEvents());
         blockEdits.setRedstoneNotifier(this::redstoneBlockChanged);
@@ -181,6 +185,30 @@ public final class WorldModule implements ServerModule, WorldManager {
         }, () -> manager.levelData().seed);
     }
 
+    /**
+     * {@return the generator of the overworld when no plugin provides one: the noise settings saved with the world,
+     * the default ones for a new world, or the flat cobblestone of a world saved flat}
+     */
+    private ChunkGenerator overworldGenerator() {
+        final LevelData saved = manager.levelData();
+        final Key overworld = Dimension.OVERWORLD.id();
+        final String savedType = saved.savedGeneratorType(overworld);
+        final Key type = Key.parseable(savedType) ? Key.key(savedType) : null;
+        if (FLAT_GENERATOR.equals(type)) {
+            return FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
+        }
+        Key settings = NoiseTerrainService.OVERWORLD;
+        Key preset = NoiseTerrainService.OVERWORLD;
+        final Key savedSettings = saved.savedNoiseSettings(overworld);
+        final Key savedPreset = saved.savedBiomePreset(overworld);
+        if (NOISE_GENERATOR.equals(type) && savedSettings != null && savedPreset != null
+                && noiseTerrains.knows(savedSettings, savedPreset)) {
+            settings = savedSettings;
+            preset = savedPreset;
+        }
+        return noiseTerrains.newGenerator(settings, preset, saved.seed);
+    }
+
     @Override
     public void registerServices(final ServiceRegistrar services) {
         services.provide(NoiseTerrains.class, noiseTerrains);
@@ -202,6 +230,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         if (overworld.generator.describeForSave() instanceof ChunkGeneratorConfig.Debug) {
             tickRates.setFrozen(true);
         }
+        overworld.spawnLocation();
         manager.theEnd(registries.registry(RegistryKey.DIMENSION_TYPE).get(DimensionTypeKeys.THE_END));
         weather.start();
         dayNight.start();

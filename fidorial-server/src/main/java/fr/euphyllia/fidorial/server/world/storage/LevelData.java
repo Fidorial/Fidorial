@@ -414,6 +414,33 @@ public final class LevelData {
                 .getString("type");
     }
 
+    /**
+     * {@return the noise settings saved for a dimension generated from noise, e.g. {@code minecraft:amplified}, or
+     * {@code null} when none is saved}
+     */
+    public @Nullable Key savedNoiseSettings(final Key dimension) {
+        return savedKey(worldGenSettings.getCompound(DIMENSIONS)
+                .getCompound(dimension.asString())
+                .getCompound("generator")
+                .getString("settings"));
+    }
+
+    /**
+     * {@return the biome preset saved for a dimension generated from noise, e.g. {@code minecraft:overworld}, or
+     * {@code null} when none is saved}
+     */
+    public @Nullable Key savedBiomePreset(final Key dimension) {
+        return savedKey(worldGenSettings.getCompound(DIMENSIONS)
+                .getCompound(dimension.asString())
+                .getCompound("generator")
+                .getCompound("biome_source")
+                .getString("preset"));
+    }
+
+    private static @Nullable Key savedKey(final String id) {
+        return id.isEmpty() || !Key.parseable(id) ? null : Key.key(id);
+    }
+
     private CompoundBinaryTag buildWorldGenSettings() {
         final CompoundBinaryTag.Builder wgs = CompoundBinaryTag.builder().put(worldGenSettings);
         wgs.putLong("seed", seed);

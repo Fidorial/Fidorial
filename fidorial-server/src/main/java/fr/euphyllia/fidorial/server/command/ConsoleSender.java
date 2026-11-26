@@ -102,7 +102,7 @@ public final class ConsoleSender implements CommandSender, PermissionStateHolder
     public CommandSource commandSource() {
         final CommandSource source = CommandSource.of(this);
         return server.worlds().manager().defaultWorld()
-                .map(world -> source.at(world.configuration().gameplay().spawn().location(world)))
+                .map(world -> source.at(world.spawnLocation()))
                 .orElse(source);
     }
 }

@@ -22,6 +22,8 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
+import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
+import fr.euphyllia.fidorial.server.world.generation.SpawnSearch;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.light.FloodFillLightEngine;
 import fr.euphyllia.fidorial.server.world.light.LightAccess;
@@ -91,6 +93,7 @@ public final class ServerWorld implements World {
     private final EntityRegionStorage entityStorage;
     private final AnvilEntitySerializer entitySerializer;
     public final ChunkGenerator generator;
+    private volatile @Nullable Location naturalSpawn;
     private final BlockStateRegistry blockStates;
     private final EntityManager entities = new EntityManager();
     private final WorldTimeEngine dayNightCycle;
@@ -1004,6 +1007,34 @@ public final class ServerWorld implements World {
 
     public WorldConfiguration configuration() {
         return configuration;
+    }
+
+    /**
+     * Gives where players join and respawn by default. The configured spawn is used, unless it was left to its
+     * default value on a world generated from noise: the spawn is then searched once, on dry ground near the origin.
+     *
+     * @return the spawn of this world
+     */
+    public Location spawnLocation() {
+        final WorldConfiguration.Gameplay.Spawn configured = configuration.gameplay().spawn();
+        final NoiseChunkGenerator noise = generator.noise();
+        if (noise == null || !configured.equals(WorldConfiguration.Gameplay.DEFAULTS.spawn())) {
+            return configured.location(this);
+        }
+        Location known = naturalSpawn;
+        if (known == null) {
+            synchronized (this) {
+                known = naturalSpawn;
+                if (known == null) {
+                    final int[] found = SpawnSearch.find(this, noise);
+                    known = found == null
+                            ? configured.location(this)
+                            : Location.of(this, found[0] + 0.5, found[1], found[2] + 0.5, configured.yaw(), configured.pitch());
+                    naturalSpawn = known;
+                }
+            }
+        }
+        return known;
     }
 
     public int blockLightAt(final int x, final int y, final int z) {

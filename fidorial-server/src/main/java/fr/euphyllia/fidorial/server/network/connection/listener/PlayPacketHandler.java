@@ -276,7 +276,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final PlayerDataStorage.PlayerData data = loadPlayerData(profile);
 
         final ServerWorld defaultWorld = worldOrDisconnect();
-        final Location defaultSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld);
+        final Location defaultSpawn = defaultWorld.spawnLocation();
 
         final Location spawn = data.lastLocation() != null ? data.lastLocation() : defaultSpawn;
 
@@ -1385,7 +1385,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         final ServerWorld defaultWorld = worldOrDisconnect();
 
-        Location requestedSpawn = defaultWorld.configuration().gameplay().spawn().location(defaultWorld); // default spawn
+        Location requestedSpawn = defaultWorld.spawnLocation(); // default spawn
         boolean usedRespawnPoint = false;
 
         final RespawnPoint point = player.respawnPoint();
