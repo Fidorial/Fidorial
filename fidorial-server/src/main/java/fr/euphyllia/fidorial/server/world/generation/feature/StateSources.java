@@ -5,9 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseDefinition;
 import fr.euphyllia.fidorial.server.world.generation.noise.OctaveStack;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;

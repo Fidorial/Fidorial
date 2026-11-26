@@ -11,8 +11,8 @@ import fr.euphyllia.fidorial.server.world.generation.density.DensityContext;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialContext;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialRules;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseField;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
-import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockType;
@@ -328,7 +328,7 @@ public final class TerrainBuilder {
         final BlockLookup blocks = shared.blocks();
         final BlockState snow = blocks.state(BlockTypeKeys.SNOW_BLOCK);
         final BlockState packedIce = blocks.state(BlockTypeKeys.PACKED_ICE);
-        final XoroshiroSource random = shared.worldRandom().at(blockX, 0, blockZ);
+        final BitRandom random = shared.worldRandom().at(blockX, 0, blockZ);
         final int maxSnowDepth = 2 + random.nextInt(4);
         final int minSnowHeight = seaLevel + 18 + random.nextInt(10);
         int snowDepth = 0;

@@ -1,11 +1,11 @@
 package fr.euphyllia.fidorial.server.world.structure.jigsaw;
 
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 import fr.euphyllia.fidorial.server.world.structure.DataProblems;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StructureRegistry;
 import fr.euphyllia.fidorial.server.world.structure.math.Box;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.math.Rotations;
 import fr.euphyllia.fidorial.server.world.structure.pool.PoolElement;
 import fr.euphyllia.fidorial.server.world.structure.pool.Projection;

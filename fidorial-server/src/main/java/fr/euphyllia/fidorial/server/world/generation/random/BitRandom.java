@@ -29,6 +29,11 @@ public abstract class BitRandom {
     public abstract void setSeed(long seed);
 
     /**
+     * {@return a factory of streams tied to positions or names, seeded from the next outputs of this stream}
+     */
+    public abstract PositionalRandom splitPositional();
+
+    /**
      * Forgets the normal value kept by {@link #nextGaussian()}; implementations call it when they are re-seeded.
      */
     protected final void dropSpareGaussian() {

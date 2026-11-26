@@ -19,10 +19,11 @@ import org.jspecify.annotations.Nullable;
  * @param materialRule  the material rule, an identifier or an inline rule
  * @param router        the noise router
  * @param spawnTarget   where players should spawn, in climate terms, {@code null} for anywhere
+ * @param legacyRandom  whether the streams of the generator come from the legacy 48-bit generator
  */
 public record NoiseSettings(String id, int minY, int height, int seaLevel, JsonElement defaultFluid,
                             @Nullable JsonObject aquifers, JsonElement materialRule, JsonObject router,
-                            @Nullable JsonElement spawnTarget) {
+                            @Nullable JsonElement spawnTarget, boolean legacyRandom) {
 
     /**
      * Reads the noise settings of an identifier.
@@ -39,7 +40,8 @@ public record NoiseSettings(String id, int minY, int height, int seaLevel, JsonE
                 object.has("aquifers") ? object.getAsJsonObject("aquifers") : null,
                 materialRule,
                 object.getAsJsonObject("noise_router"),
-                object.get("spawn_target"));
+                object.get("spawn_target"),
+                object.has("legacy_random_source") && object.get("legacy_random_source").getAsBoolean());
     }
 
     /**

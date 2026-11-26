@@ -5,12 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
-import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * The parameters of a named noise, as a data pack writes them: the first octave, how many octaves, their
@@ -34,6 +31,8 @@ public record NoiseDefinition(double baseAmplitude, int baseOctave, int octaveCo
     // one octave of gradient noise spreads its values this much, at one standard deviation
     private static final double OCTAVE_DEVIATION = 0.2702247831245211;
     private static final double TARGET_DEVIATION = 1.0 / 3.0;
+    // what building one octave takes from a stream, skipped for the octaves left out of a sequential build
+    private static final int OCTAVE_DRAWS = 262;
 
     /**
      * How the octave weights are worked out.
@@ -56,6 +55,15 @@ public record NoiseDefinition(double baseAmplitude, int baseOctave, int octaveCo
     }
 
     private record Octave(int index, double frequency, double amplitude) {
+    }
+
+    /**
+     * How the sum of the octaves is scaled.
+     *
+     * @param totalWeight the sum of the absolute weights of the octaves
+     * @param scale       the factor applied to every weight
+     */
+    private record Normalization(double totalWeight, double scale) {
     }
 
     /**
@@ -148,47 +156,88 @@ public record NoiseDefinition(double baseAmplitude, int baseOctave, int octaveCo
         return amplitude * 0.5 * TARGET_DEVIATION / expectedDeviation;
     }
 
+    private Normalization normalization(final List<Octave> octaves) {
+        final double totalWeight = totalWeight(octaves);
+        final double scale = scaleFor(totalWeight, octaves);
+        if (scaling == Scaling.LEGACY && scale != 0.0) {
+            final double legacy = legacyScale(baseAmplitude);
+            return new Normalization(totalWeight * (legacy / scale), legacy);
+        }
+        return new Normalization(totalWeight, scale);
+    }
+
     /**
      * Builds the noise.
      *
      * @param random the stream of the noise, usually named after it; two positional factories are split from it,
-     *               one per copy
+     *               one per copy, and each octave of a copy is named after its index
      */
-    public OctaveStack create(final XoroshiroSource random) {
+    public OctaveStack create(final BitRandom random) {
         final PositionalRandom first = random.splitPositional();
         final PositionalRandom second = random.splitPositional();
-        return build(first::named, second::named);
-    }
-
-    /**
-     * Builds the noise from a classic stream, as the noises with a fixed seed of the decorations do: each copy
-     * takes a seed from the stream, and an octave mixes it with the hash of its name.
-     */
-    public OctaveStack create(final LegacyRandom random) {
-        final long first = random.nextLong();
-        final long second = random.nextLong();
-        return build(name -> new LegacyRandom(name.hashCode() ^ first), name -> new LegacyRandom(name.hashCode() ^ second));
-    }
-
-    private OctaveStack build(final Function<String, BitRandom> first,
-                              final Function<String, BitRandom> second) {
         final List<Octave> octaves = octaves(baseAmplitude, scaling != Scaling.NONE);
-        double totalWeight = totalWeight(octaves);
-        double scale = scaleFor(totalWeight, octaves);
-        if (scaling == Scaling.LEGACY && scale != 0.0) {
-            final double legacy = legacyScale(baseAmplitude);
-            totalWeight *= legacy / scale;
-            scale = legacy;
-        }
+        final Normalization normalization = normalization(octaves);
 
         final OctaveStack.Builder stack = OctaveStack.builder();
         for (final Octave octave : octaves) {
             final String name = "octave_" + octave.index();
-            final float weight = (float) (scale * octave.amplitude());
-            stack.add(new PerlinOctave(first.apply(name)), octave.frequency(), weight);
-            stack.add(new PerlinOctave(second.apply(name)), octave.frequency() * SECOND_COPY_FACTOR, weight);
+            final float weight = (float) (normalization.scale() * octave.amplitude());
+            stack.add(new PerlinOctave(first.named(name)), octave.frequency(), weight);
+            stack.add(new PerlinOctave(second.named(name)), octave.frequency() * SECOND_COPY_FACTOR, weight);
         }
         // six times the expected spread: in practice the noise never leaves it
-        return stack.bound((float) (totalWeight * TARGET_DEVIATION * 6.0)).build();
+        return stack.bound((float) (normalization.totalWeight() * TARGET_DEVIATION * 6.0)).build();
+    }
+
+    /**
+     * Builds the noise the way the climate noises of the nether still are: the octaves of both copies are drawn
+     * one after the other from a single stream, and their weights halve from the widest octave without the first
+     * one being raised.
+     *
+     * @throws IllegalArgumentException when an octave is finer than octave zero, which this build cannot draw
+     */
+    public OctaveStack createSequential(final BitRandom random) {
+        final OctaveStack first = sequentialCopy(random);
+        final OctaveStack second = sequentialCopy(random);
+        final float weight = (float) (normalization(octaves(baseAmplitude, scaling != Scaling.NONE)).scale() * baseAmplitude);
+        return OctaveStack.builder()
+                .addStack(first, 1.0, weight)
+                .addStack(second, SECOND_COPY_FACTOR, weight)
+                .build();
+    }
+
+    /**
+     * {@return one copy of a sequential build}: octave zero is drawn first, then the coarser ones down to the
+     * first octave of the noise; an octave left out still uses up its draws
+     */
+    private OctaveStack sequentialCopy(final BitRandom random) {
+        final int zero = -baseOctave;
+        if (zero < octaveCount - 1) {
+            throw new IllegalArgumentException("A noise built sequentially cannot have octaves finer than octave zero");
+        }
+        final PerlinOctave[] levels = new PerlinOctave[octaveCount];
+        final PerlinOctave zeroOctave = new PerlinOctave(random);
+        if (zero < octaveCount && modifier(zero) != 0.0) {
+            levels[zero] = zeroOctave;
+        }
+        for (int index = zero - 1; index >= 0; index--) {
+            if (index < octaveCount && modifier(index) != 0.0) {
+                levels[index] = new PerlinOctave(random);
+            } else {
+                random.skip(OCTAVE_DRAWS);
+            }
+        }
+
+        final OctaveStack.Builder stack = OctaveStack.builder();
+        double frequency = Math.pow(2.0, baseOctave);
+        double weight = Math.pow(2.0, octaveCount - 1) / (Math.pow(2.0, octaveCount) - 1.0);
+        for (int index = 0; index < octaveCount; index++) {
+            if (levels[index] != null) {
+                stack.add(levels[index], frequency, (float) (weight * modifier(index)));
+            }
+            frequency *= 2.0;
+            weight /= 2.0;
+        }
+        return stack.build();
     }
 }

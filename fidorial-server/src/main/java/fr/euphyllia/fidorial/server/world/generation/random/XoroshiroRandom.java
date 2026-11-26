@@ -33,8 +33,9 @@ public final class XoroshiroRandom extends BitRandom {
     /**
      * {@return a factory of positional streams seeded from the next two raw outputs}
      */
+    @Override
     public PositionalRandom splitPositional() {
-        return new PositionalRandom(nextRaw(), nextRaw());
+        return new PositionalRandom.Xoroshiro(nextRaw(), nextRaw());
     }
 
     /**

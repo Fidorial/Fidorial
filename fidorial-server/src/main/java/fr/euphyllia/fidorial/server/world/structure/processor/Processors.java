@@ -2,11 +2,11 @@ package fr.euphyllia.fidorial.server.world.structure.processor;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 import fr.euphyllia.fidorial.server.world.structure.BlockValidator;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StateParser;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.IntProvider;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockType;

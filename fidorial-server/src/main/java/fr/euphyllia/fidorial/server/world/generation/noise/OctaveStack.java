@@ -69,6 +69,17 @@ public final class OctaveStack implements NoiseField {
         }
 
         /**
+         * Adds every layer of a stack, its frequencies multiplied by {@code frequency} and its amplitudes by
+         * {@code amplitude}.
+         */
+        public Builder addStack(final OctaveStack stack, final double frequency, final float amplitude) {
+            for (int i = 0; i < stack.layers.length; i++) {
+                add(stack.layers[i], stack.frequencies[i] * frequency, stack.amplitudes[i] * amplitude);
+            }
+            return this;
+        }
+
+        /**
          * Replaces the bound worked out from the layers, which assumes they all peak together, by an expected one.
          */
         public Builder bound(final float expected) {

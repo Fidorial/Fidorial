@@ -2,12 +2,12 @@ package fr.euphyllia.fidorial.server.world.structure.place;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StateTransforms;
 import fr.euphyllia.fidorial.server.world.structure.StructureRegistry;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.PlacedPiece;
 import fr.euphyllia.fidorial.server.world.structure.math.Box;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.math.Rotations;
 import fr.euphyllia.fidorial.server.world.structure.pool.PoolElement;
 import fr.euphyllia.fidorial.server.world.structure.pool.Projection;

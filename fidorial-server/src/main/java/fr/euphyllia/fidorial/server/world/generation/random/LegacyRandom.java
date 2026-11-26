@@ -28,6 +28,14 @@ public final class LegacyRandom extends BitRandom {
         dropSpareGaussian();
     }
 
+    /**
+     * {@return a legacy factory of streams tied to positions or names, seeded from the next output of this stream}
+     */
+    @Override
+    public PositionalRandom splitPositional() {
+        return new PositionalRandom.Legacy(nextLong());
+    }
+
     public void setLargeFeatureSeed(final long worldSeed, final int chunkX, final int chunkZ) {
         setSeed(worldSeed);
         final long a = nextLong();

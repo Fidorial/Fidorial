@@ -29,6 +29,7 @@ import fr.euphyllia.fidorial.server.world.generation.density.DensityProgram;
 import fr.euphyllia.fidorial.server.world.generation.feature.Decorator;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialContext;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialRules;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
 import fr.euphyllia.fidorial.server.world.generation.terrain.AquiferSampler;
 import fr.euphyllia.fidorial.server.world.generation.terrain.FluidLevel;
@@ -36,7 +37,6 @@ import fr.euphyllia.fidorial.server.world.generation.terrain.GenChunk;
 import fr.euphyllia.fidorial.server.world.generation.terrain.NoiseBiomeGrid;
 import fr.euphyllia.fidorial.server.world.generation.terrain.TerrainBuilder;
 import fr.euphyllia.fidorial.server.world.structure.FutureCache;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.euphyllia.fidorial.server.world.tick.PendingTick;
@@ -156,8 +156,8 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
         final BlockLookup blocks = environment.blocks();
         this.settings = NoiseSettings.read(data, settingsKey.asString());
         this.heights = new HeightContext(settings.minY(), settings.height(), settings.seaLevel());
-        this.worldRandom = PositionalRandom.ofWorld(seed);
-        this.program = new DensityProgram(data, heights, worldRandom);
+        this.worldRandom = settings.legacyRandom() ? PositionalRandom.ofLegacyWorld(seed) : PositionalRandom.ofWorld(seed);
+        this.program = new DensityProgram(data, heights, worldRandom, seed);
         this.zoom = new JitteredBiomeGrid(seed);
         this.biomeClimate = new BiomeClimate();
         // air comes first: it is the number read outside the chunks

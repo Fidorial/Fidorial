@@ -12,8 +12,8 @@ import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.generation.density.Density;
 import fr.euphyllia.fidorial.server.world.generation.density.DensityProgram;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseField;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
-import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import net.kyori.adventure.key.Key;
@@ -85,7 +85,7 @@ public final class MaterialRules {
      * {@return the layers of the badlands for a world, bottom first: terracotta with bands of colours}
      */
     public static BlockState[] clayBands(final PositionalRandom random, final BlockLookup blocks) {
-        final XoroshiroSource draw = random.named(CLAY_BANDS_RANDOM);
+        final BitRandom draw = random.named(CLAY_BANDS_RANDOM);
         final BlockState plain = blocks.state(BlockTypeKeys.TERRACOTTA);
         final BlockState[] bands = new BlockState[192];
         Arrays.fill(bands, plain);
@@ -115,7 +115,7 @@ public final class MaterialRules {
         return bands;
     }
 
-    private static void paintBands(final XoroshiroSource draw, final BlockState[] bands, final int baseWidth, final BlockState state) {
+    private static void paintBands(final BitRandom draw, final BlockState[] bands, final int baseWidth, final BlockState state) {
         final int count = draw.nextInt(15 - 6 + 1) + 6;
         for (int i = 0; i < count; i++) {
             final int width = baseWidth + draw.nextInt(3);
@@ -198,7 +198,7 @@ public final class MaterialRules {
             if (strength <= 0.0F) {
                 return null;
             }
-            final XoroshiroSource draw = random.at(x, y, z);
+            final BitRandom draw = random.at(x, y, z);
             if (draw.nextFloat() > strength) {
                 return null;
             }

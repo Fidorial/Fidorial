@@ -6,7 +6,7 @@ import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
 import fr.euphyllia.fidorial.server.world.generation.data.HeightContext;
-import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
 
@@ -27,7 +27,7 @@ public final class DecorationRegion {
     private final int maxY;
     private final DecorationChunk[] chunks;
     private final char air;
-    private @Nullable XoroshiroSource ownRandom;
+    private @Nullable BitRandom ownRandom;
 
     /**
      * @param chunks the nine chunks, the one at offset {@code (dx, dz)} at index {@code (dx + 1) * 3 + dz + 1}
@@ -89,7 +89,7 @@ public final class DecorationRegion {
     /**
      * {@return the stream of the region itself, the same for every decoration of the chunk}
      */
-    public XoroshiroSource ownRandom() {
+    public BitRandom ownRandom() {
         if (ownRandom == null) {
             ownRandom = context.regionRandoms().at(centerX << 4, 0, centerZ << 4);
         }

@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.Cli
 import fr.euphyllia.fidorial.server.world.ChunkGenerator;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 import fr.euphyllia.fidorial.server.world.structure.gen.ColumnTarget;
 import fr.euphyllia.fidorial.server.world.structure.gen.StructureChunkGenerator;
@@ -14,7 +15,6 @@ import fr.euphyllia.fidorial.server.world.structure.jigsaw.JigsawAssembler;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.PlacedPiece;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.StructureStart;
 import fr.euphyllia.fidorial.server.world.structure.math.Box;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.math.Rotations;
 import fr.euphyllia.fidorial.server.world.structure.processor.ProcessorList;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;

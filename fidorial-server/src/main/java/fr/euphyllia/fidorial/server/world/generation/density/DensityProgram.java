@@ -8,6 +8,8 @@ import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.generation.noise.BlendedTerrainNoise;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseDefinition;
 import fr.euphyllia.fidorial.server.world.generation.noise.NoiseField;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import net.kyori.adventure.key.Key;
@@ -34,11 +36,15 @@ import java.util.Set;
 public final class DensityProgram {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(DensityProgram.class);
-    private static final Key TERRAIN_SEED = Key.key( "terrain");
+    private static final Key TERRAIN_SEED = Key.key("terrain");
+    // the climate noises of the nether are built from a stream of the world seed itself, one after the other
+    private static final Key NETHER_TEMPERATURE_NOISE = Key.key("nether/temperature");
+    private static final Key NETHER_VEGETATION_NOISE = Key.key("nether/vegetation");
 
     private final WorldgenData data;
     private final HeightContext heights;
     private final PositionalRandom random;
+    private final long seed;
     private final Map<String, Density> named = new HashMap<>();
     private final Set<String> compiling = new HashSet<>();
     private final Map<Key, NoiseField> noises = new HashMap<>();
@@ -52,11 +58,13 @@ public final class DensityProgram {
      * @param data    where the named functions and noises are read
      * @param heights the vertical extent heights are resolved against
      * @param random  the positional factory of the world seed
+     * @param seed    the world seed
      */
-    public DensityProgram(final WorldgenData data, final HeightContext heights, final PositionalRandom random) {
+    public DensityProgram(final WorldgenData data, final HeightContext heights, final PositionalRandom random, final long seed) {
         this.data = data;
         this.heights = heights;
         this.random = random;
+        this.seed = seed;
     }
 
     public HeightContext heights() {
@@ -85,9 +93,24 @@ public final class DensityProgram {
         if (known != null) {
             return known;
         }
-        final NoiseField created = NoiseDefinition.parse(data.get(WorldgenData.Section.NOISE, id.asString())).create(random.named(id));
+        final NoiseDefinition definition = NoiseDefinition.parse(data.get(WorldgenData.Section.NOISE, id.asString()));
+        final NoiseField created;
+        if (id.equals(NETHER_TEMPERATURE_NOISE)) {
+            created = definition.createSequential(new LegacyRandom(seed));
+        } else if (id.equals(NETHER_VEGETATION_NOISE)) {
+            created = definition.createSequential(new LegacyRandom(seed + 1L));
+        } else {
+            created = definition.create(random.named(id));
+        }
         noises.put(id, created);
         return created;
+    }
+
+    /**
+     * {@return the stream the terrain noise is drawn from}: a legacy factory seeds it with the world seed itself
+     */
+    private BitRandom terrainRandom() {
+        return random instanceof PositionalRandom.Legacy ? new LegacyRandom(seed) : random.named(TERRAIN_SEED);
     }
 
     /**
@@ -247,7 +270,7 @@ public final class DensityProgram {
                     new DensityNodes.Shift(noise(Key.key(object.get("noise").getAsString())), DensityNodes.Shift.Kind.B);
             case "shift" ->
                     new DensityNodes.Shift(noise(Key.key(object.get("noise").getAsString())), DensityNodes.Shift.Kind.ALL);
-            case "old_blended_noise" -> new DensityNodes.Blended(new BlendedTerrainNoise(random.named(TERRAIN_SEED),
+            case "old_blended_noise" -> new DensityNodes.Blended(new BlendedTerrainNoise(terrainRandom(),
                     object.get("xz_scale").getAsDouble(), object.get("y_scale").getAsDouble(),
                     object.get("xz_factor").getAsDouble(), object.get("y_factor").getAsDouble(),
                     object.get("smear_scale_multiplier").getAsDouble()));

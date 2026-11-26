@@ -4,12 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.data.HeightContext;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.FloatSource;
 import fr.euphyllia.fidorial.server.world.generation.value.HeightSource;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Trig;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
-import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 /**
  * Digs tunnels and canyons through the terrain. A carver starts in some chunks, picked by chance, and wanders up

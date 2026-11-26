@@ -3,8 +3,8 @@ package fr.euphyllia.fidorial.server.world.generation.terrain;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.generation.density.Density;
 import fr.euphyllia.fidorial.server.world.generation.density.DensityContext;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
-import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import org.jspecify.annotations.Nullable;
 
@@ -230,7 +230,7 @@ public final class AquiferSampler {
                     final int index = index(gridX, gridY, gridZ);
                     long center = centers[index];
                     if (center == Long.MAX_VALUE) {
-                        final XoroshiroSource draw = random.at(gridX, gridY, gridZ);
+                        final BitRandom draw = random.at(gridX, gridY, gridZ);
                         final int cx = blockOfGrid(gridX, draw.nextInt(CENTER_RANGE_XZ));
                         final int cy = gridY * CELL_HEIGHT + draw.nextInt(CENTER_RANGE_Y);
                         final int cz = blockOfGrid(gridZ, draw.nextInt(CENTER_RANGE_XZ));

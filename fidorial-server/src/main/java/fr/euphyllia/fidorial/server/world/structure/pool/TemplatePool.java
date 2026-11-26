@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.pool;
 
-import fr.euphyllia.fidorial.server.world.structure.math.Box;
 import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.structure.math.Box;
 import fr.fidorial.world.structure.StructureRotation;
 import net.kyori.adventure.key.Key;
 
