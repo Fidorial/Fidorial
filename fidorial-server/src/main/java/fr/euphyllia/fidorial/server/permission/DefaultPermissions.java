@@ -46,6 +46,7 @@ public final class DefaultPermissions {
                 command("plugins", "List the plugins and see why one failed to start."),
                 command("respawn", "Respawns players stuck on the death screen, without waiting for them to click the button."),
                 command("spawnpoint", "Sets where players respawn, in the world they are currently in."),
+                command("seed", "Allows you to know the world seed"),
                 command("stop", "Stop the server."),
                 command("summon", "Summon an entity."),
                 command("teleport", "Teleport entities."),
