@@ -24,6 +24,9 @@ public final class FeatureKinds {
         CaveKinds.register(parsers);
         Trees.register(parsers);
         LogKinds.register(parsers);
+        TemplateKinds.register(parsers);
+        SculkKinds.register(parsers);
+        CrevasseKinds.register(parsers);
         return parsers;
     }
 }
