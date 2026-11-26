@@ -27,6 +27,7 @@ public final class FeatureKinds {
         TemplateKinds.register(parsers);
         SculkKinds.register(parsers);
         CrevasseKinds.register(parsers);
+        NetherKinds.register(parsers);
         return parsers;
     }
 }
