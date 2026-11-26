@@ -16,6 +16,9 @@ public final class FeatureKinds {
     public static Map<String, FeatureLibrary.Parser> parsers() {
         final Map<String, FeatureLibrary.Parser> parsers = new HashMap<>();
         BasicKinds.register(parsers);
+        OreKinds.register(parsers);
+        TerrainKinds.register(parsers);
+        WaterKinds.register(parsers);
         return parsers;
     }
 }
