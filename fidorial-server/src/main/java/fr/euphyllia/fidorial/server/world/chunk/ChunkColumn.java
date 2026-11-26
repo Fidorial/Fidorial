@@ -3,7 +3,6 @@ package fr.euphyllia.fidorial.server.world.chunk;
 import fr.euphyllia.fidorial.server.util.ConcurrentInt2ObjectMap;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
-import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;

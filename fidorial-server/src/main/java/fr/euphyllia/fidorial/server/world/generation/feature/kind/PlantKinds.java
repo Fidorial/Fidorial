@@ -1,11 +1,11 @@
 package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.feature.BlockTest;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.PlacedFeature;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateSource;
@@ -235,7 +235,7 @@ final class PlantKinds {
             boolean grown = false;
             for (int dy = 0; dy < columnMax; dy++) {
                 final int ty = y + dy + 1;
-                if (region.height(HeightmapKind.WORLD_SURFACE, x, z) < ty) {
+                if (region.height(Heightmap.WORLD_SURFACE, x, z) < ty) {
                     break;
                 }
                 if (treeAllowed.test(region, x, ty, z) && roomForTree(region, x, ty, z, space, waterAllowed, levelDistance, levelDeviation)) {
@@ -317,7 +317,7 @@ final class PlantKinds {
                             final int dx = px - x;
                             final int dz = pz - z;
                             if (dx * dx + dz * dz <= r * r) {
-                                final int py = region.height(HeightmapKind.WORLD_SURFACE, px, pz) - 1;
+                                final int py = region.height(Heightmap.WORLD_SURFACE, px, pz) - 1;
                                 if (podzolGround.test(region.id(px, py, pz))) {
                                     region.set(px, py, pz, podzol);
                                 }

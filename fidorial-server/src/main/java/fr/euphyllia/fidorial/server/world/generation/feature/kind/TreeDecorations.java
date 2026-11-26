@@ -2,10 +2,10 @@ package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateSource;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
@@ -418,7 +418,7 @@ final class TreeDecorations {
                 final char ground = context.region.id(x, y, z);
                 if ((states.isAir(above) || states.is(above, BlockTypeKeys.VINE))
                         && states.has(ground, StateFlags.FULL_COLLISION) && !states.has(ground, StateFlags.LEAVES)
-                        && context.region.height(HeightmapKind.MOTION_BLOCKING_NO_LEAVES, x, z) <= y + 1) {
+                        && context.region.height(Heightmap.MOTION_BLOCKING_NO_LEAVES, x, z) <= y + 1) {
                     context.set(x, y + 1, z, provider.pickOrKeep(context.region, random, x, y + 1, z));
                 }
             }

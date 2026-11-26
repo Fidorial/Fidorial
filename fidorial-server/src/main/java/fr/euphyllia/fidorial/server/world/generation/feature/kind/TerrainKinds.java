@@ -1,13 +1,13 @@
 package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
 import fr.euphyllia.fidorial.server.world.generation.feature.BlockTest;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateSource;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
@@ -227,7 +227,7 @@ final class TerrainKinds {
             for (int dz = 0; dz < 16; dz++) {
                 final int x = originX + dx;
                 final int z = originZ + dz;
-                final int y = region.height(HeightmapKind.MOTION_BLOCKING, x, z);
+                final int y = region.height(Heightmap.MOTION_BLOCKING, x, z);
                 final BiomeInfo biome = region.biome(x, y, z);
                 if (!coldAt(region, biome, x, y - 1, z) ? false : shouldFreezeIn(region, biome, x, y - 1, z)) {
                     region.set(x, y - 1, z, ice);

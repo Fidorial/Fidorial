@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.processor;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 
 public interface ProcessContext {
 

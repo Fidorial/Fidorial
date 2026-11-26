@@ -16,7 +16,7 @@ import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
-import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.entity.mob.ambient.Bat;

@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.place;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StateTransforms;
 import fr.euphyllia.fidorial.server.world.structure.StructureRegistry;
@@ -16,7 +17,6 @@ import fr.euphyllia.fidorial.server.world.structure.processor.ProcessorList;
 import fr.euphyllia.fidorial.server.world.structure.processor.Processors;
 import fr.euphyllia.fidorial.server.world.structure.processor.StructureProcessor;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
-import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.JigsawStructure;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;

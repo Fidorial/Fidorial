@@ -1,10 +1,10 @@
 package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.FloatSource;
@@ -602,7 +602,7 @@ final class SpeleothemKinds {
                     }
                     int y = rootY;
                     boolean leftRock = false;
-                    final int maxY = up ? region.height(HeightmapKind.WORLD_SURFACE_WG, x + dx, z + dz) : Integer.MAX_VALUE;
+                    final int maxY = up ? region.height(Heightmap.WORLD_SURFACE_WG, x + dx, z + dz) : Integer.MAX_VALUE;
                     for (int i = 0; i < height && y < maxY; i++) {
                         final int px = x + dx + wind.dx(y);
                         final int pz = z + dz + wind.dz(y);

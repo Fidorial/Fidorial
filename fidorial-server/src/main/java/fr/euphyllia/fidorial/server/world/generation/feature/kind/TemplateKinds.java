@@ -3,11 +3,11 @@ package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
 import fr.euphyllia.fidorial.server.world.generation.feature.TargetTest;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
@@ -379,7 +379,7 @@ final class TemplateKinds {
             int lowest = y;
             for (int dx = 0; dx < sizeX; dx++) {
                 for (int dz = 0; dz < sizeZ; dz++) {
-                    lowest = Math.min(lowest, region.height(HeightmapKind.OCEAN_FLOOR_WG, lowX + dx, lowZ + dz));
+                    lowest = Math.min(lowest, region.height(Heightmap.OCEAN_FLOOR_WG, lowX + dx, lowZ + dz));
                 }
             }
             final int targetY = Math.max(lowest - 15 - random.nextInt(10), region.minY() + 10);
