@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.world.structure.worldgen;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;

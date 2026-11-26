@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.world.structure.worldgen;
 
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
 

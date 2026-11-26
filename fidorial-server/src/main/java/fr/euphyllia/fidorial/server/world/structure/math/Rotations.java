@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.structure.math;
 
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.fidorial.world.structure.StructureRotation;
 
 public final class Rotations {

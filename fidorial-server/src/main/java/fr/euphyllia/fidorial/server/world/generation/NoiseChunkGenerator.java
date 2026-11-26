@@ -36,7 +36,7 @@ import fr.euphyllia.fidorial.server.world.generation.terrain.GenChunk;
 import fr.euphyllia.fidorial.server.world.generation.terrain.NoiseBiomeGrid;
 import fr.euphyllia.fidorial.server.world.generation.terrain.TerrainBuilder;
 import fr.euphyllia.fidorial.server.world.structure.FutureCache;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.euphyllia.fidorial.server.world.tick.PendingTick;

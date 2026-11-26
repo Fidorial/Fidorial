@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.XoroshiroSource;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation.climate;
 
 import fr.euphyllia.fidorial.server.world.generation.noise.SimplexNoise;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 /**
  * The temperature of a biome at a given block: frozen biomes have warmer patches, and the air gets colder with

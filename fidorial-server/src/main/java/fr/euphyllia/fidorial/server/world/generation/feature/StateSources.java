@@ -7,7 +7,7 @@ import fr.euphyllia.fidorial.server.world.generation.noise.NoiseDefinition;
 import fr.euphyllia.fidorial.server.world.generation.noise.OctaveStack;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 import java.util.ArrayList;
 import java.util.List;

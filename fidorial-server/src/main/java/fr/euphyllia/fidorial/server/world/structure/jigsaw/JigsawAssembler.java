@@ -1,10 +1,11 @@
 package fr.euphyllia.fidorial.server.world.structure.jigsaw;
 
+import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 import fr.euphyllia.fidorial.server.world.structure.DataProblems;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StructureRegistry;
 import fr.euphyllia.fidorial.server.world.structure.math.Box;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.math.Rotations;
 import fr.euphyllia.fidorial.server.world.structure.pool.PoolElement;
 import fr.euphyllia.fidorial.server.world.structure.pool.Projection;
@@ -68,7 +69,7 @@ public final class JigsawAssembler {
                                final boolean checkBiome) {
         final Map<Key, Key> aliases = new HashMap<>();
         if (!structure.aliases().isEmpty()) {
-            final LegacyRandom aliasRandom = new LegacyRandom(terrain.seed() ^ LegacyRandom.positionSeed(startX, startY, startZ));
+            final LegacyRandom aliasRandom = new LegacyRandom(terrain.seed() ^ Seeds.ofPosition(startX, startY, startZ));
             for (final PoolAliasBinding binding : structure.aliases()) {
                 binding.resolve(aliasRandom, aliases);
             }

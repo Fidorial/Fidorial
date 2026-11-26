@@ -1,7 +1,7 @@
 package fr.euphyllia.fidorial.server.world.structure.processor;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockType;
 

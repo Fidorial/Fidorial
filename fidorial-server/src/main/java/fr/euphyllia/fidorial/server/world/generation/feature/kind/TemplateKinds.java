@@ -14,7 +14,7 @@ import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.euphyllia.fidorial.server.world.structure.JsonNbt;
 import fr.euphyllia.fidorial.server.world.structure.StateTransforms;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.math.Rotations;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.fidorial.registry.RegistryKey;

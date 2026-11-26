@@ -9,7 +9,7 @@ import fr.euphyllia.fidorial.server.world.generation.value.HeightSource;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Trig;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 /**
  * Digs tunnels and canyons through the terrain. A carver starts in some chunks, picked by chance, and wanders up

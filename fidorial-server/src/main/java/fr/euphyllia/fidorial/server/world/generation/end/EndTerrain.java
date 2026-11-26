@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.world.generation.end;
 
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 /**
  * The shape of the End for a seed: which blocks are land and which are void.

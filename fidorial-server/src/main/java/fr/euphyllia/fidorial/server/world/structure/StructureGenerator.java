@@ -3,7 +3,7 @@ package fr.euphyllia.fidorial.server.world.structure;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.JigsawAssembler;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.PlacedPiece;
 import fr.euphyllia.fidorial.server.world.structure.jigsaw.StructureStart;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.place.BlockTarget;
 import fr.euphyllia.fidorial.server.world.structure.place.PiecePlacer;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.JigsawStructure;

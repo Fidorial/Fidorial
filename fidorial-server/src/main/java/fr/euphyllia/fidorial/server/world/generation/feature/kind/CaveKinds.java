@@ -11,7 +11,7 @@ import fr.euphyllia.fidorial.server.world.generation.noise.NoiseDefinition;
 import fr.euphyllia.fidorial.server.world.generation.noise.OctaveStack;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.fidorial.entity.EntityType;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;

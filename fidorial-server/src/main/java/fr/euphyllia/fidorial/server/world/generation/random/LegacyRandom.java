@@ -1,7 +1,4 @@
-package fr.euphyllia.fidorial.server.world.structure.math;
-
-import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
-import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
+package fr.euphyllia.fidorial.server.world.generation.random;
 
 import java.util.List;
 
@@ -21,12 +18,8 @@ public final class LegacyRandom extends BitRandom {
         setSeed(seed);
     }
 
-    public static long positionSeed(final int x, final int y, final int z) {
-        return Seeds.ofPosition(x, y, z);
-    }
-
     public static LegacyRandom atPosition(final int x, final int y, final int z) {
-        return new LegacyRandom(positionSeed(x, y, z));
+        return new LegacyRandom(Seeds.ofPosition(x, y, z));
     }
 
     @Override

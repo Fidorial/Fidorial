@@ -2,10 +2,11 @@ package fr.euphyllia.fidorial.server.world.structure.processor;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
+import fr.euphyllia.fidorial.server.world.generation.random.Seeds;
 import fr.euphyllia.fidorial.server.world.structure.BlockValidator;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
 import fr.euphyllia.fidorial.server.world.structure.StateParser;
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.IntProvider;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockType;
@@ -132,7 +133,7 @@ public final class Processors {
                     return;
                 }
                 final LegacyRandom random = new LegacyRandom(context.worldSeed()
-                        ^ LegacyRandom.positionSeed(context.pivotX(), context.pivotY(), context.pivotZ()));
+                        ^ Seeds.ofPosition(context.pivotX(), context.pivotY(), context.pivotZ()));
                 final int count = Math.min(limit.sample(random), processed.size());
                 if (count < 1) {
                     return;

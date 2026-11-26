@@ -1,6 +1,6 @@
 package fr.euphyllia.fidorial.server.world.structure.processor;
 
-import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
+import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 
 public interface PosRuleTest {
 
