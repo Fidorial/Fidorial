@@ -194,10 +194,7 @@ public final class StateFlags {
     }
 
     private long compute(final BlockState state) {
-        long value = 0L;
-        if (state.isAir()) {
-            return AIR;
-        }
+        long value = state.isAir() ? AIR : 0L;
         final FluidStateImpl fluid = FluidBlockCodec.fromBlock(state);
         if (fluid.type() == FluidType.WATER) {
             value |= WATER | (fluid.isSource() ? WATER_SOURCE : 0L);
