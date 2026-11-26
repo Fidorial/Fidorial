@@ -40,7 +40,12 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
 
 - Plusieurs mondes, persistance au format Anvil (region files, NBT), chargement asynchrone des chunks et streaming
   autour des joueurs
-- Générateur superflat par défaut ; les plugins fournissent le leur via le service `WorldGenerator`
+- Overworld généré par le bruit : relief façonné par les fonctions de densité, biomes multi-noise, aquifères, règles
+  de surface, carvers, minerais, arbres, plantes, géodes, spéléothèmes, sculk et crevasses de glace ; les plugins
+  l'interrogent via le service `NoiseTerrains` ou fournissent leur propre `WorldGenerator` (Réalisé avec Claude AI,
+  des erreurs entre Fidorial et Minecraft Java peuvent survenir. Toute l'algorithme a été déduite grâce à minecraft.wiki).
+  Aucune structure n'est et ne sera ajouté sur Fidorial à cause de droit d'auteur. Si vous voulez les ajouter, vous devez
+  créer vous même un datapack pour les ajouter.
 - Pose et casse de blocs, block entities, conteneurs et ender chests, explosions
 - Simulation de l'eau et de la lave : sources, écoulement vertical prioritaire, perte de niveau propre à chaque fluide,
   interaction obsidienne/cobblestone

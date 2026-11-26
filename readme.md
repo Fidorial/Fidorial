@@ -39,7 +39,12 @@ so a plugin can swap an entire subsystem without patching a single line of serve
 **World**
 
 - Multiple worlds, Anvil persistence (region files, NBT), asynchronous chunk loading and streaming around players
-- Superflat generator by default; plugins provide their own through the `WorldGenerator` service
+- Overworld generated from noise: terrain shaped by density functions, multi-noise biomes, aquifers, surface rules,
+  carvers, ores, trees, plants, geodes, dripstone, sculk and ice crevasses; plugins query it through the
+  `NoiseTerrains` service or provide their own `WorldGenerator` (Developed using Claude AI, errors between
+  Fidorial and Minecraft Java may occur. The entire algorithm was derived from minecraft.wiki)
+  No structures are or will be added to Fidorial due to copyright. If you want to add them, you must create a
+  datapack yourself to add them.
 - Block placement and breaking, block entities, containers and ender chests, explosions
 - Water and lava simulation: sources, downward-first flow, per-fluid drop-off, obsidian and cobblestone interaction
 - Block and sky light engine
