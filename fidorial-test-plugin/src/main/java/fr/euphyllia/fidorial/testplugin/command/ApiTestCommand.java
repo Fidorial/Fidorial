@@ -10,7 +10,6 @@ import fr.euphyllia.fidorial.testplugin.TestPlugin;
 import fr.euphyllia.fidorial.testplugin.command.argument.BaguetteArgument;
 import fr.euphyllia.fidorial.testplugin.terrain.HillsGenerator;
 import fr.euphyllia.fidorial.testplugin.terrain.SwamplandGenerator;
-import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.command.argument.resolvers.BlockPositionResolver;
@@ -31,6 +30,7 @@ import fr.fidorial.world.Chunk;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.WorldSpec;
+import fr.fidorial.world.generation.NoiseTerrains;
 import fr.fidorial.world.generation.WorldGenerator;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.bossbar.BossBar;
@@ -77,7 +77,7 @@ public final class ApiTestCommand {
     private final Map<UUID, Map<Key, BossBar>> playerBossBars = new ConcurrentHashMap<>();
 
     private static final List<String> GENERATOR_NAMES = List.of(
-            "swampland", "hills", "overworld"
+            "swampland", "hills", "overworld", "amplified", "large_biomes"
     );
 
     public ApiTestCommand(final TestPlugin plugin) {
@@ -636,7 +636,9 @@ public final class ApiTestCommand {
         return switch (name.toLowerCase(Locale.ROOT)) {
             case "swampland" -> new SwamplandGenerator(seed, 68, 5, 62, 110);
             case "hills" -> new HillsGenerator(seed, 64, 24, 60);
-            case "overworld" -> new OverworldGenerator(seed);
+            case "overworld", "amplified", "large_biomes" -> plugin.server().services().find(NoiseTerrains.class)
+                    .orElseThrow(() -> new IllegalStateException("No noise terrain service"))
+                    .generator(Key.key(name.toLowerCase(Locale.ROOT)), Key.key("overworld"));
             default -> throw new IllegalArgumentException("Unknown generator: " + name);
         };
     }

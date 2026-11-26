@@ -23,7 +23,6 @@ import fr.euphyllia.fidorial.testplugin.terrain.TestBiomes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestChatTypes;
 import fr.euphyllia.fidorial.testplugin.terrain.TestDimensionTypes;
 import fr.euphyllia.fidorial.testplugin.transfer.TransferTickets;
-import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
 import fr.fidorial.Server;
 import fr.fidorial.command.CommandRegistry;
 import fr.fidorial.command.CommandSender;
@@ -64,15 +63,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Locale;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class TestPlugin implements Plugin {
-
-    private static final String SEED_PROPERTY = "fidorial.worldgen.seed";
-
-    private static final long DEFAULT_SEED = 20260716L;
 
     private static final MiniMessage MM = MiniMessage.miniMessage();
     private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
@@ -83,30 +77,8 @@ public final class TestPlugin implements Plugin {
     public @Nullable Server server;
     private @Nullable PluginContext context;
     private volatile @Nullable PregenTask task;
-    private @Nullable OverworldGenerator generator;
     private @Nullable ResourcePackRequest resourcePackRequest;
     private boolean forceDisablePlugin = false;
-
-    private static long resolveSeed(final ComponentLogger logger) {
-        final String property = System.getProperty(SEED_PROPERTY);
-        if (property == null || property.isBlank()) {
-            return DEFAULT_SEED;
-        }
-        if (property.equalsIgnoreCase("random")) {
-            final long random = new Random().nextLong();
-            logger.info("[TestPlugin] Randomly selected seed: {}", random);
-            return random;
-        }
-        try {
-            return Long.parseLong(property.trim());
-        } catch (final NumberFormatException invalid) {
-            return property.hashCode();
-        }
-    }
-
-    public @Nullable OverworldGenerator generator() {
-        return generator;
-    }
 
     public PregenTask getTask() {
         return task;
@@ -147,26 +119,6 @@ public final class TestPlugin implements Plugin {
         CompanionMobs.register(context.server().registries().mobs(), this, context.logger());
         TestEffects.registerAll(context.server().registries().effects(), this, context.logger());
         TestEnchantments.registerAll(context.server().registries(), this, context.logger());
-
-//        final long seed = resolveSeed(context.logger());
-//        this.generator = new OverworldGenerator(GeneratorSettings.defaults(seed));
-
-        //context.services().register(WorldGenerator.class, generator, this);
-//        context.logger().info(
-//                "[TestPlugin] Overworld generator saving (seed={}, sea level={})",
-//                seed,
-//                generator.settings().seaLevel());
-
-//        final int[] spawn = generator.findSpawn(0, 0, 4000, -64, 319);
-//        if (spawn == null) {
-//            context.logger().warn("[TestPlugin] No spawn point found near the origin.");
-//        } else {
-//            context.logger().info(
-//                    "[TestPlugin] Spawn point coordinates: spawn-x={} spawn-y={} spawn-z={}",
-//                    spawn[0] + 0.5,
-//                    spawn[1],
-//                    spawn[2] + 0.5);
-//        }
 
         logger.info(
                 "[TestPlugin] onLoad OK - id={} version={} dataFolder={}",

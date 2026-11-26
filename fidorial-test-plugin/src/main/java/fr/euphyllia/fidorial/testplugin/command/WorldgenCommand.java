@@ -5,23 +5,32 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import fr.euphyllia.fidorial.testplugin.TestPlugin;
-import fr.euphyllia.fidorial.testplugin.worldgen.OverworldGenerator;
-import fr.euphyllia.fidorial.testplugin.worldgen.climate.ClimatePoint;
 import fr.fidorial.command.CommandSource;
 import fr.fidorial.math.Location;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.generation.NoiseTerrain;
+import fr.fidorial.world.generation.NoiseTerrains;
+import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 import static fr.fidorial.command.Commands.argument;
 import static fr.fidorial.command.Commands.literal;
 import static fr.fidorial.command.argument.Arguments.arguments;
 
+/**
+ * Exercises the {@link NoiseTerrains} API on the world the sender stands in.
+ */
 public final class WorldgenCommand {
 
     private static final int DEFAULT_RADIUS = 3000;
     private static final int STEP = 32;
+    private static final List<Key> FUNCTIONS = List.of(
+            Key.key("overworld/continents"), Key.key("overworld/erosion"),
+            Key.key("overworld/ridges_folded"), Key.key("overworld/depth"));
 
     private final TestPlugin plugin;
 
@@ -32,7 +41,7 @@ public final class WorldgenCommand {
     public LiteralCommandNode<CommandSource> create() {
         return literal("worldgen")
                 .then(literal("info").executes(this::info))
-                .then(literal("spawn").executes(this::spawn))
+                .then(literal("land").executes(this::land))
                 .then(literal("locate")
                         .then(argument("biome", arguments().resource(RegistryKey.BIOME))
                                 .executes(ctx -> locate(ctx, ctx.getArgument("biome", BiomeDefinition.class).key(), DEFAULT_RADIUS))
@@ -46,115 +55,102 @@ public final class WorldgenCommand {
 
     private int info(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
-        final OverworldGenerator generator = generator(source);
-        if (generator == null) {
-            return 0;
-        }
 
         final Location location = source.location();
-        if (location == null) {
-            plugin.msg(source, "<red>Aucun monde charge.");
+        final NoiseTerrain terrain = terrain(source, location);
+        if (terrain == null || location == null) {
             return 0;
         }
 
         final int x = (int) Math.floor(location.x());
+        final int y = (int) Math.floor(location.y());
         final int z = (int) Math.floor(location.z());
 
-        final ClimatePoint point = generator.climateAt(x, z);
-        final int ground = generator.surfaceAt(x, z, -64, 319);
-
-        plugin.msg(source, "<gold>Generation en <white>%d, %d<gold> (graine <white>%d<gold>)"
-                .formatted(x, z, generator.settings().seed()));
-        plugin.msg(source, "<gray>  biome <white>%s<gray>, sol a <white>y=%d"
-                .formatted(generator.biomeAt(x, z).key().asString(), ground));
-        plugin.msg(source, "<gray>  temperature <white>%.3f<gray> (niveau %d), humidite <white>%.3f<gray> (niveau %d)"
-                .formatted(point.temperature(), point.temperatureLevel(), point.humidity(), point.humidityLevel()));
-        plugin.msg(source, "<gray>  continentalite <white>%.3f<gray> (%s), erosion <white>%.3f<gray> (niveau %d)"
-                .formatted(point.continentalness(), continentName(point.continentLevel()),
-                        point.erosion(), point.erosionLevel()));
-        plugin.msg(source, "<gray>  weirdness <white>%.3f<gray>, pics/vallees <white>%.3f<gray> (%s)"
-                .formatted(point.weirdness(), point.peaksValleys(), peaksName(point.peaksValleysLevel())));
+        plugin.msg(source, "<gold>Generation en <white>%d, %d<gold> (graine <white>%d<gold>, reglages <white>%s<gold>)"
+                .formatted(x, z, terrain.seed(), terrain.settings().asString()));
+        plugin.msg(source, "<gray> biome here <white>%s<gray>, sol a <white>y=%d<gray>, sea level <white>%d"
+                .formatted(terrain.biomeAt(x, y, z).key().asString(), terrain.surfaceHeight(x, z), terrain.seaLevel()));
+        for (final Key function : FUNCTIONS) {
+            try {
+                plugin.msg(source, "<gray>  %s <white>%.4f".formatted(function.asString(), terrain.density(function, x, y, z)));
+            } catch (final IllegalArgumentException unknown) {
+                plugin.msg(source, "<gray>  %s <red>inconnue".formatted(function));
+            }
+        }
         return Command.SINGLE_SUCCESS;
     }
 
-    private int spawn(final CommandContext<CommandSource> ctx) {
+    private int land(final CommandContext<CommandSource> ctx) {
         final CommandSource source = ctx.getSource();
-        final OverworldGenerator generator = generator(source);
-        if (generator == null) {
+        final Location location = source.location();
+        final NoiseTerrain terrain = terrain(source, location);
+        if (terrain == null) {
             return 0;
         }
 
-        final int[] spawn = generator.findSpawn(0, 0, 4000, -64, 319);
-        if (spawn == null) {
-            plugin.msg(source, "<red>Aucune terre emergee trouvee a moins de 4000 blocs de l'origine.");
-            return 0;
+        for (int distance = 0; distance <= DEFAULT_RADIUS; distance += STEP) {
+            final int samples = Math.max(8, distance / 4);
+            for (int i = 0; i < samples; i++) {
+                final double angle = i * 2.0 * Math.PI / samples;
+                final int x = (int) (Math.cos(angle) * distance);
+                final int z = (int) (Math.sin(angle) * distance);
+                final int ground = terrain.surfaceHeight(x, z);
+                if (ground > terrain.seaLevel()) {
+                    plugin.msg(source, "<green>Land closest to the origin : <white>%d, %d, %d<green> (%s)"
+                            .formatted(x, ground, z, terrain.biomeAt(x, ground, z).key().asString()));
+                    return Command.SINGLE_SUCCESS;
+                }
+            }
         }
-        plugin.msg(source, "<green>Terre emergee la plus proche de l'origine : <white>%d, %d, %d"
-                .formatted(spawn[0], spawn[1], spawn[2]));
-        plugin.msg(source, "<gray>Renseignez <white>spawn-x=%s spawn-y=%d spawn-z=%s<gray> dans la configuration."
-                .formatted(spawn[0] + 0.5, spawn[1], spawn[2] + 0.5));
-        return Command.SINGLE_SUCCESS;
+        plugin.msg(source, "<red>No land is emerged within %d blocks of the origin.".formatted(DEFAULT_RADIUS));
+        return 0;
     }
 
     private int locate(final CommandContext<CommandSource> ctx, final TypedKey<BiomeDefinition> biome, final int radius) {
         final CommandSource source = ctx.getSource();
-        final OverworldGenerator generator = generator(source);
-        if (generator == null) {
+        final Location location = source.location();
+        final NoiseTerrain terrain = terrain(source, location);
+        if (terrain == null || location == null) {
             return 0;
         }
+        final int centreX = (int) Math.floor(location.x());
+        final int centreZ = (int) Math.floor(location.z());
 
-        final Location location = source.location();
-        final int centreX = location == null ? 0 : (int) Math.floor(location.x());
-        final int centreZ = location == null ? 0 : (int) Math.floor(location.z());
-
-        // Recherche en spirale : les anneaux les plus proches sont explores en premier, donc le
-        // premier resultat est bien le plus proche a la resolution du pas.
+        // spiral search: the closest rings come first, so the first match is the closest at this resolution
         for (int distance = 0; distance <= radius; distance += STEP) {
             final int samples = Math.max(8, distance / 4);
             for (int i = 0; i < samples; i++) {
                 final double angle = i * 2.0 * Math.PI / samples;
                 final int x = centreX + (int) (Math.cos(angle) * distance);
                 final int z = centreZ + (int) (Math.sin(angle) * distance);
-                if (!generator.biomeAt(x, z).equals(biome)) {
+                final int ground = terrain.surfaceHeight(x, z);
+                if (!terrain.biomeAt(x, ground, z).equals(biome)) {
                     continue;
                 }
-                plugin.msg(source, "<green>%s trouve a <white>%d, %d<green> (%d blocs, sol y=%d)"
-                        .formatted(biome.key().asString(), x, z, distance, generator.surfaceAt(x, z, -64, 319)));
+                plugin.msg(source, "<green>%s found at <white>%d, %d<green> (%d blocks, sol y=%d)"
+                        .formatted(biome.key().asString(), x, z, distance, ground));
                 return Command.SINGLE_SUCCESS;
             }
         }
 
-        plugin.msg(source, "<red>%s introuvable dans un rayon de %d blocs.".formatted(biome.key().asString(), radius));
+        plugin.msg(source, "<red>%s not found within a radius of %d blocks.".formatted(biome.key().asString(), radius));
         return 0;
     }
 
-    private @Nullable OverworldGenerator generator(final CommandSource source) {
-        final OverworldGenerator generator = plugin.generator();
-        if (generator == null) {
-            plugin.msg(source, "<red>Le generateur d'Overworld n'est pas actif.");
+    private @Nullable NoiseTerrain terrain(final CommandSource source, final @Nullable Location location) {
+        if (location == null) {
+            plugin.msg(source, "<red>No world loaded.");
+            return null;
         }
-        return generator;
-    }
-
-    private static String continentName(final int level) {
-        return switch (level) {
-            case 0 -> "champignonniere";
-            case 1 -> "ocean profond";
-            case 2 -> "ocean";
-            case 3 -> "cote";
-            case 4 -> "terres proches";
-            case 5 -> "terres moyennes";
-            default -> "terres lointaines";
-        };
-    }
-
-    private static String peaksName(final int level) {
-        return switch (level) {
-            case 0 -> "vallees";
-            case 1 -> "bas";
-            case 2 -> "milieu";
-            case 3 -> "hauteurs";
-            default -> "pics";
-        };
+        final NoiseTerrains terrains = plugin.server().services().find(NoiseTerrains.class).orElse(null);
+        if (terrains == null) {
+            plugin.msg(source, "<red>The grounds service is not available.");
+            return null;
+        }
+        final NoiseTerrain terrain = terrains.of(location.world()).orElse(null);
+        if (terrain == null) {
+            plugin.msg(source, "<red>This world is not generated from noise.");
+        }
+        return terrain;
     }
 }
