@@ -228,11 +228,26 @@ public interface Player extends LivingEntity, CommandSender, Identified, BossBar
     PlayerInventory inventory();
 
     /**
-     * {@return the ender chest of this player}
+     * {@return the ender chest of this player, all {@value EnderChestInventory#SIZE} of its slots,
+     * those of the rows they do not see included}
      *
+     * @see #enderChestRows()
      * @since 0.1.0
      */
     EnderChestInventory enderChest();
+
+    /**
+     * Gets how many rows of their ender chest this player sees when they open it.
+     *
+     * <p>It is the most rows one of the {@code fidorial.enderchest.rows.<one|two|three|four|five|six>}
+     * permissions granted to the player gives, fewer than the default included; a player granted
+     * none of them sees the default rows of the server configuration,
+     * {@value EnderChestInventory#DEFAULT_ROWS} unless changed.</p>
+     *
+     * @return the rows, from {@code 1} to {@value EnderChestInventory#MAX_ROWS}
+     * @since 0.1.0
+     */
+    int enderChestRows();
 
     /**
      * @return the hotbar slot ({@code 0}-{@code 8}) currently selected by this player

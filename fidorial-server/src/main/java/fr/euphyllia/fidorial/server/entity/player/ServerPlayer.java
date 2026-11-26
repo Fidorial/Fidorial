@@ -11,6 +11,7 @@ import fr.euphyllia.fidorial.server.entity.EntityTypes;
 import fr.euphyllia.fidorial.server.entity.physics.BlockCollider;
 import fr.euphyllia.fidorial.server.events.player.PlayerOpenInventoryEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
+import fr.euphyllia.fidorial.server.inventory.EnderChestRows;
 import fr.euphyllia.fidorial.server.inventory.InventoryMenu;
 import fr.euphyllia.fidorial.server.item.enchantment.EquipmentEnchantments;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
@@ -318,6 +319,11 @@ public final class ServerPlayer extends AbstractLivingEntity implements Player, 
     @Override
     public EnderChestInventory enderChest() {
         return enderChest;
+    }
+
+    @Override
+    public int enderChestRows() {
+        return EnderChestRows.of(this, connection.server().config().enderChest().defaultRows());
     }
 
     /**

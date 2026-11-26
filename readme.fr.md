@@ -60,6 +60,8 @@ veulent modifier le jeu. Ni Forge, ni Fabric, ni Mixin : un plugin s'abonne à d
   pathfinding A\* sur un pool de threads dédié
 - Combat : dégâts, knockback, mort, respawn, interrupteur PvP
 - Quatre modes de jeu, inventaire créatif, persistance par joueur de l'inventaire, de l'ender chest et des données
+- Ender chests de 1 à 6 rangées choisies par permission (`fidorial.enderchest.rows.<one…six>`), les rangées
+  qu'un joueur ne voit plus étant vidées ou gardées selon la configuration
 - Chat, boss bars, sons et traductions (`en_us`, `fr_fr`)
 
 **Plateforme**

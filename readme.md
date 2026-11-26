@@ -57,6 +57,8 @@ so a plugin can swap an entire subsystem without patching a single line of serve
   worker pool
 - Combat: damage, knockback, death, respawn, PvP switch
 - Four game modes, creative inventory, per-player persistence of inventory, ender chest and player data
+- Ender chests of 1 to 6 rows chosen by permission (`fidorial.enderchest.rows.<one…six>`), the rows a player no
+  longer sees cleared or kept as configured
 - Chat, boss bars, sounds, and translations (`en_us`, `fr_fr`)
 
 **Platform**
