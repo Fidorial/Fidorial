@@ -1,0 +1,94 @@
+package fr.euphyllia.fidorial.server.world.generation.feature.kind;
+
+import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
+import fr.euphyllia.fidorial.server.world.generation.feature.StateFlags;
+import fr.euphyllia.fidorial.server.world.generation.feature.StateSource;
+import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.BlockFace;
+
+/**
+ * Lays a pale moss carpet: a base on the ground that climbs the walls around it, and sometimes a second layer
+ * hanging on the walls above, each side kept at random.
+ */
+final class MossCarpets {
+
+    private static final BlockFace[] SIDES = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
+    private static final String[] SIDE_NAMES = {"north", "east", "south", "west"};
+
+    private MossCarpets() {
+    }
+
+    static void place(final DecorationRegion region, final int x, final int y, final int z, final BitRandom random) {
+        final StateFlags states = region.states();
+        final char plain = region.id(region.blocks().state(BlockTypeKeys.PALE_MOSS_CARPET));
+        char base = shape(region, plain, x, y, z, true);
+        region.set(x, y, z, base);
+        final char topper = topper(region, x, y, z, random);
+        if (!states.isAir(topper)) {
+            region.set(x, y + 1, z, topper);
+            base = shape(region, base, x, y, z, true);
+            region.set(x, y, z, base);
+        }
+    }
+
+    private static boolean wallAt(final DecorationRegion region, final int x, final int y, final int z, final BlockFace side) {
+        return region.states().sturdy(region.id(x + side.dx(), y, z + side.dz()), side.opposite());
+    }
+
+    /**
+     * {@return the carpet with its sides worked out from the walls around}
+     */
+    private static char shape(final DecorationRegion region, char state, final int x, final int y, final int z, boolean newSides) {
+        final StateFlags states = region.states();
+        final boolean isBase = "true".equals(states.property(state, "bottom"));
+        newSides |= isBase;
+        char above = StateSource.NONE;
+        char below = StateSource.NONE;
+        for (int i = 0; i < SIDES.length; i++) {
+            final String property = SIDE_NAMES[i];
+            String side = wallAt(region, x, y, z, SIDES[i]) ? (newSides ? "low" : states.property(state, property)) : "none";
+            if ("low".equals(side)) {
+                if (above == StateSource.NONE) {
+                    above = region.id(x, y + 1, z);
+                }
+                if (states.is(above, BlockTypeKeys.PALE_MOSS_CARPET) && !"none".equals(states.property(above, property))
+                        && !"true".equals(states.property(above, "bottom"))) {
+                    side = "tall";
+                }
+                if (!isBase) {
+                    if (below == StateSource.NONE) {
+                        below = region.id(x, y - 1, z);
+                    }
+                    if (states.is(below, BlockTypeKeys.PALE_MOSS_CARPET) && "none".equals(states.property(below, property))) {
+                        side = "none";
+                    }
+                }
+            }
+            state = states.with(state, property, side);
+        }
+        return state;
+    }
+
+    private static char topper(final DecorationRegion region, final int x, final int y, final int z, final BitRandom random) {
+        final StateFlags states = region.states();
+        final char previous = region.id(x, y + 1, z);
+        final boolean carpetAbove = states.is(previous, BlockTypeKeys.PALE_MOSS_CARPET);
+        if (carpetAbove && "true".equals(states.property(previous, "bottom"))
+                || !carpetAbove && !states.has(previous, StateFlags.REPLACEABLE)) {
+            return region.id(region.blocks().air);
+        }
+        final char hanging = states.with(region.id(region.blocks().state(BlockTypeKeys.PALE_MOSS_CARPET)), "bottom", "false");
+        char state = shape(region, hanging, x, y + 1, z, true);
+        for (final String property : SIDE_NAMES) {
+            if (!"none".equals(states.property(state, property)) && !random.nextBoolean()) {
+                state = states.with(state, property, "none");
+            }
+        }
+        boolean anySide = false;
+        for (final String property : SIDE_NAMES) {
+            anySide |= !"none".equals(states.property(state, property));
+        }
+        return anySide && state != previous ? state : region.id(region.blocks().air);
+    }
+}

@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
+import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.generation.biome.JitteredBiomeGrid;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
 import fr.euphyllia.fidorial.server.world.generation.block.StatePalette;
@@ -25,6 +26,7 @@ import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.generation.density.Density;
 import fr.euphyllia.fidorial.server.world.generation.density.DensityContext;
 import fr.euphyllia.fidorial.server.world.generation.density.DensityProgram;
+import fr.euphyllia.fidorial.server.world.generation.feature.Decorator;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialContext;
 import fr.euphyllia.fidorial.server.world.generation.material.MaterialRules;
 import fr.euphyllia.fidorial.server.world.generation.random.PositionalRandom;
@@ -36,6 +38,9 @@ import fr.euphyllia.fidorial.server.world.generation.terrain.TerrainBuilder;
 import fr.euphyllia.fidorial.server.world.structure.FutureCache;
 import fr.euphyllia.fidorial.server.world.structure.math.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
+import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
+import fr.euphyllia.fidorial.server.world.tick.PendingTick;
+import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BiomeKeys;
@@ -43,6 +48,7 @@ import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
+import fr.fidorial.world.redstone.TickPriority;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
@@ -58,10 +64,12 @@ import java.util.function.Function;
 
 /**
  * Generates a dimension from noise settings and a multi noise biome source: the terrain shaped by the density
- * functions, the aquifers, the material rules and the carvers.
+ * functions, the aquifers, the material rules and the carvers, then the features of the biomes.
  *
  * <p>Everything follows from the seed and the data: the terrain of a chunk does not depend on the chunks generated
- * before it. The terrain of a chunk is kept for a while. Safe to use from several threads.</p>
+ * before it. Decorations spread over the neighbouring chunks, so a feature crossing a chunk border may meet what an
+ * earlier neighbour already placed. The terrain of a chunk is kept for a while, since the decoration of its
+ * neighbours reads it. Safe to use from several threads.</p>
  */
 public final class NoiseChunkGenerator implements ChunkGenerator {
 
@@ -113,6 +121,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     private final FutureCache<Long, GenChunk> terrainCache = new FutureCache<>(TERRAIN_CACHE);
     private final Map<Long, Character> carverBiomes = new ConcurrentHashMap<>();
     private final ThreadLocal<Worker> workers;
+    private final Decorator decorator;
 
     /**
      * The state a thread keeps to generate chunks.
@@ -195,6 +204,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
                 indexOf(BiomeKeys.ERODED_BADLANDS), indexOf(BiomeKeys.FROZEN_OCEAN), indexOf(BiomeKeys.DEEP_FROZEN_OCEAN));
 
         this.workers = ThreadLocal.withInitial(Worker::new);
+        this.decorator = new Decorator(this);
     }
 
     private int indexOf(final TypedKey<BiomeDefinition> biome) {
@@ -341,7 +351,26 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
 
     @Override
     public ChunkColumn generate(final int chunkX, final int chunkZ) {
-        return toColumn(terrain(chunkX, chunkZ), Map.of());
+        final Decorator.Result decorated = decorator.decorate(chunkX, chunkZ);
+        final ChunkColumn column = toColumn(decorated.chunk(), decorated.blockEntities());
+        if (!decorated.fluidTicks().isEmpty()) {
+            final List<PendingTick<FluidType>> fluids = new ArrayList<>(decorated.fluidTicks().size());
+            for (final int[] tick : decorated.fluidTicks()) {
+                if (tick[0] >> 4 == chunkX && tick[2] >> 4 == chunkZ) {
+                    fluids.add(new PendingTick<>(Position.block(tick[0], tick[1], tick[2]),
+                            tick[3] == 1 ? FluidType.LAVA : FluidType.WATER, 0, TickPriority.NORMAL));
+                }
+            }
+            column.setPendingTicks(new ChunkTicks(List.of(), fluids));
+        }
+        return column;
+    }
+
+    /**
+     * {@return what the decorations of this generator share}
+     */
+    public Decorator decorator() {
+        return decorator;
     }
 
     /**

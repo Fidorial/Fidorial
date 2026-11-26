@@ -1,7 +1,5 @@
 package fr.euphyllia.fidorial.server.world.generation.random;
 
-import net.kyori.adventure.key.Key;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -45,10 +43,10 @@ public final class Seeds {
     /**
      * {@return the 128 bits of the MD5 digest of a name, as two longs read big-endian: low half first}
      */
-    public static long[] ofName(final Key id) {
+    public static long[] ofName(final String name) {
         final byte[] digest;
         try {
-            digest = MessageDigest.getInstance("MD5").digest(id.asString().getBytes(StandardCharsets.UTF_8));
+            digest = MessageDigest.getInstance("MD5").digest(name.getBytes(StandardCharsets.UTF_8));
         } catch (final NoSuchAlgorithmException missing) {
             throw new IllegalStateException("MD5 is not available in this Java runtime", missing);
         }

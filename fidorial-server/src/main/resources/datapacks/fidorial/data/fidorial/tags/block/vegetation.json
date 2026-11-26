@@ -1,0 +1,21 @@
+{
+  "values": [
+    "#minecraft:small_flowers",
+    "#minecraft:saplings",
+    "minecraft:short_grass",
+    "minecraft:tall_grass",
+    "minecraft:fern",
+    "minecraft:large_fern",
+    "minecraft:bush",
+    "minecraft:red_shrub",
+    "minecraft:firefly_bush",
+    "minecraft:sweet_berry_bush",
+    "minecraft:pink_petals",
+    "minecraft:wildflowers",
+    "minecraft:lilac",
+    "minecraft:rose_bush",
+    "minecraft:peony",
+    "minecraft:sunflower",
+    "minecraft:pitcher_plant"
+  ]
+}

@@ -25,7 +25,14 @@ public record PositionalRandom(long low, long high) {
      * {@return a fresh stream for a namespaced identifier}
      */
     public XoroshiroSource named(final Key id) {
-        final long[] hash = Seeds.ofName(id);
+        return named(id.asString());
+    }
+
+    /**
+     * {@return a fresh stream for a name}
+     */
+    public XoroshiroSource named(final String name) {
+        final long[] hash = Seeds.ofName(name);
         return new XoroshiroSource(hash[0] ^ low, hash[1] ^ high);
     }
 

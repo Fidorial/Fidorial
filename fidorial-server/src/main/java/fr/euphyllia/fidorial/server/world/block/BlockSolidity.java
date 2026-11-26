@@ -5,6 +5,8 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.world.block.BlockType;
 
+import java.util.function.Predicate;
+
 /**
  * Which blocks are solid, a rough measure of how much room a block fills that two fluid sources
  * need below the block between them to turn it into a third one.
@@ -42,10 +44,21 @@ public final class BlockSolidity {
      * @param state the block
      */
     public static boolean isSolid(final BlockState state) {
-        if (state.isTagged(ALWAYS_SOLID)) {
+        return isSolid(state, state::isTagged);
+    }
+
+    /**
+     * {@return {@code true} if a block is solid}, its tags read by the caller, such as world generation which
+     * reads them through its own lookup
+     *
+     * @param state  the block
+     * @param tagged whether the block is in a tag
+     */
+    public static boolean isSolid(final BlockState state, final Predicate<TagKey<BlockType>> tagged) {
+        if (tagged.test(ALWAYS_SOLID)) {
             return true;
         }
-        if (state.isTagged(NEVER_SOLID)) {
+        if (tagged.test(NEVER_SOLID)) {
             return false;
         }
         final CollisionShape shape = BlockCollision.shape(state);
