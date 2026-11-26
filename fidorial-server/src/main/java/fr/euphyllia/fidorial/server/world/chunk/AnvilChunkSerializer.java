@@ -6,7 +6,6 @@ import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.minecraft.V26_4.chunk.V5119;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.util.nbt.NbtMapType;
-import fr.euphyllia.fidorial.server.world.structure.worldgen.Heightmap;
 import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.euphyllia.fidorial.server.world.tick.PendingTick;
 import fr.fidorial.math.Position;

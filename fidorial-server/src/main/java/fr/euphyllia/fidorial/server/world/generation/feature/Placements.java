@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.generation.feature;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
 import fr.euphyllia.fidorial.server.world.generation.value.HeightSource;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
@@ -53,7 +54,7 @@ final class Placements {
                 yield (run, random, x, y, z, out) -> out.accept(x, height.sample(random, run.region().heights()), z);
             }
             case "heightmap" -> {
-                final HeightmapKind kind = HeightmapKind.parse(object.get("heightmap").getAsString());
+                final Heightmap kind = Heightmap.byName(object.get("heightmap").getAsString());
                 yield (run, random, x, y, z, out) -> {
                     final int height = run.region().height(kind, x, z);
                     if (height > run.region().minY()) {
@@ -110,15 +111,15 @@ final class Placements {
             case "surface_water_depth_filter" -> {
                 final int maxDepth = object.get("max_water_depth").getAsInt();
                 yield (run, random, x, y, z, out) -> {
-                    final int floor = run.region().height(HeightmapKind.OCEAN_FLOOR, x, z);
-                    final int surface = run.region().height(HeightmapKind.WORLD_SURFACE, x, z);
+                    final int floor = run.region().height(Heightmap.OCEAN_FLOOR, x, z);
+                    final int surface = run.region().height(Heightmap.WORLD_SURFACE, x, z);
                     if (surface - floor <= maxDepth) {
                         out.accept(x, y, z);
                     }
                 };
             }
             case "surface_relative_threshold_filter" -> {
-                final HeightmapKind kind = HeightmapKind.parse(object.get("heightmap").getAsString());
+                final Heightmap kind = Heightmap.byName(object.get("heightmap").getAsString());
                 final long low = object.has("min_inclusive") ? object.get("min_inclusive").getAsInt() : Integer.MIN_VALUE;
                 final long high = object.has("max_inclusive") ? object.get("max_inclusive").getAsInt() : Integer.MAX_VALUE;
                 yield (run, random, x, y, z, out) -> {

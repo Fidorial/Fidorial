@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation.feature;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
@@ -198,7 +199,7 @@ public final class DecorationRegion {
     /**
      * {@return the first free height of a column}
      */
-    public int height(final HeightmapKind kind, final int x, final int z) {
+    public int height(final Heightmap kind, final int x, final int z) {
         final DecorationChunk chunk = chunkAt(x, z);
         return chunk == null ? minY : chunk.height(kind, x & 15, z & 15);
     }

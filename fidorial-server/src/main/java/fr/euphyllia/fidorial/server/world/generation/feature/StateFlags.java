@@ -6,6 +6,7 @@ import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.block.CollisionShape;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
 import fr.euphyllia.fidorial.server.world.fluid.FluidStateImpl;
 import fr.euphyllia.fidorial.server.world.fluid.FluidType;
@@ -130,6 +131,16 @@ public final class StateFlags {
 
     public boolean hasFluid(final char id) {
         return has(id, WATER | LAVA);
+    }
+
+    /// Whether a state counts as the top of its column for a heightmap, as [Heightmap#occupies()] tells.
+    public boolean counts(final Heightmap heightmap, final char id) {
+        return switch (heightmap) {
+            case WORLD_SURFACE_WG, WORLD_SURFACE -> !isAir(id);
+            case OCEAN_FLOOR_WG, OCEAN_FLOOR -> has(id, MOTION);
+            case MOTION_BLOCKING -> has(id, MOTION) || hasFluid(id);
+            case MOTION_BLOCKING_NO_LEAVES -> has(id, MOTION_NO_LEAVES) || hasFluid(id);
+        };
     }
 
     /**

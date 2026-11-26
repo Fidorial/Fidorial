@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.world.generation.feature;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.fidorial.registry.RegistryKey;
@@ -82,7 +83,7 @@ final class BlockTests {
                 yield (region, x, y, z) -> region.canSurvive(state, x + ox, y + oy, z + oz);
             }
             case "below_heightmap" -> {
-                final HeightmapKind kind = HeightmapKind.parse(object.get("heightmap").getAsString());
+                final Heightmap kind = Heightmap.byName(object.get("heightmap").getAsString());
                 yield (region, x, y, z) -> y < region.height(kind, x, z);
             }
             case "height_range" -> {

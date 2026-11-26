@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.structure.worldgen;
 
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 

@@ -1,6 +1,5 @@
-package fr.euphyllia.fidorial.server.world.structure.worldgen;
+package fr.euphyllia.fidorial.server.world.chunk;
 
-import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 
 import java.util.Arrays;
@@ -53,9 +52,13 @@ public enum Heightmap {
         return this == OCEAN_FLOOR_WG || this == OCEAN_FLOOR;
     }
 
+    public static Heightmap byName(final String name) {
+        return valueOf(name.strip().toUpperCase(Locale.ROOT));
+    }
+
     public static Heightmap byName(final String name, final Heightmap fallback) {
         try {
-            return valueOf(name.strip().toUpperCase(Locale.ROOT));
+            return byName(name);
         } catch (final IllegalArgumentException _) {
             return fallback;
         }

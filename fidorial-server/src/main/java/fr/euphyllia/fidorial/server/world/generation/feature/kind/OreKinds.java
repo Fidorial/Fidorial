@@ -2,10 +2,10 @@ package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.generation.feature.DecorationRegion;
 import fr.euphyllia.fidorial.server.world.generation.feature.Feature;
 import fr.euphyllia.fidorial.server.world.generation.feature.FeatureLibrary;
-import fr.euphyllia.fidorial.server.world.generation.feature.HeightmapKind;
 import fr.euphyllia.fidorial.server.world.generation.feature.TargetTest;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.Trig;
@@ -97,7 +97,7 @@ final class OreKinds {
             boolean belowSurface = false;
             for (int px = xStart; px < xStart + width && !belowSurface; px++) {
                 for (int pz = zStart; pz < zStart + width; pz++) {
-                    if (region.height(HeightmapKind.OCEAN_FLOOR_WG, px, pz) >= yStart) {
+                    if (region.height(Heightmap.OCEAN_FLOOR_WG, px, pz) >= yStart) {
                         belowSurface = true;
                         break;
                     }
