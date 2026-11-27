@@ -48,7 +48,7 @@ public final class ContainerBlocks {
             return null;
         }
         final BlockState state = column.getBlock(position.blockX() & 15, position.blockY(), position.blockZ() & 15);
-        return FidorialServer.getInstance().registries().blockStates().resolve(state);
+        return state.data();
     }
 
     /**

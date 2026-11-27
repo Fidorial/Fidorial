@@ -1,8 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Powerable;
@@ -14,7 +13,7 @@ import fr.fidorial.world.block.data.Powerable;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = {"delay", "locked"})
+@BlockTrait(properties = {Names.DELAY, Names.LOCKED})
 public interface Repeater extends Directional, Powerable {
 
     @Override
@@ -34,9 +33,7 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default int getDelay() {
-        final String delay = get("delay");
-        Preconditions.checkState(delay != null, "%s has no delay property", key());
-        return Integer.parseInt(delay);
+        return get(type().range(Names.DELAY));
     }
 
     /**
@@ -47,7 +44,7 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default Repeater withDelay(final int delay) {
-        return (Repeater) with("delay", String.valueOf(delay));
+        return (Repeater) with(type().range(Names.DELAY), delay);
     }
 
     /**
@@ -57,11 +54,7 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default int getMinimumDelay() {
-        final BlockProperty property = type().property("delay");
-        if (property == null) {
-            throw new IllegalStateException("Cannot determine minimum delay");
-        }
-        return Integer.parseInt(property.values().getFirst());
+        return type().range(Names.DELAY).min();
     }
 
     /**
@@ -71,11 +64,7 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default int getMaximumDelay() {
-        final BlockProperty property = type().property("delay");
-        if (property == null) {
-            throw new IllegalStateException("Cannot determine maximum delay");
-        }
-        return Integer.parseInt(property.values().getLast());
+        return type().range(Names.DELAY).max();
     }
 
     /**
@@ -84,7 +73,7 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default boolean isLocked() {
-        return Boolean.parseBoolean(get("locked"));
+        return get(type().flag(Names.LOCKED));
     }
 
     /**
@@ -94,6 +83,6 @@ public interface Repeater extends Directional, Powerable {
      * @since 0.1.0
      */
     default Repeater withLocked(final boolean locked) {
-        return (Repeater) with("locked", String.valueOf(locked));
+        return (Repeater) with(type().flag(Names.LOCKED), locked);
     }
 }

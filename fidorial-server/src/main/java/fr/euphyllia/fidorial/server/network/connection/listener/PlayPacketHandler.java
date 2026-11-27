@@ -144,6 +144,7 @@ import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.farming.FarmingRegistry;
@@ -822,8 +823,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         if (placed == null) {
             return null;
         }
-        final BlockData data = blockStates.resolve(placed);
-        return data == null || farming.canSurvive(target, data) ? placed : null;
+        return farming.canSurvive(target, placed.data()) ? placed : null;
     }
 
     /**
@@ -863,7 +863,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         if (existing.name().equals(BlockTypeKeys.SNOW)) {
             // like vanilla: only a single layer of snow gives way
-            return "1".equals(existing.properties().get("layers"));
+            return existing.get(BlockProperties.LAYERS) == 1;
         }
         // like vanilla: a replaceable block does not give way to its own kind (grass on grass goes in front)
         return existing.isFluid() || !existing.name().equals(placing);
@@ -883,9 +883,9 @@ public final class PlayPacketHandler implements PlayPacketListener {
             LOGGER.debug("Lecture du bloc {} impossible", pos, e);
             return false;
         }
-        final BlockData data = server.registries().blockStates().resolve(state);
+        final BlockData data = state.data();
         final BlockBehaviour behaviour = server.registries().blocks().behaviour(state.name()).orElse(null);
-        return data != null && behaviour != null && behaviour.use(player, pos, data);
+        return behaviour != null && behaviour.use(player, pos, data);
     }
 
     @Override
@@ -1145,7 +1145,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
 
     private @Nullable BlockData blockDataAt(final ServerWorld world, final BlockPosition position) {
         final BlockState state = blockAt(world, position);
-        return state == null ? null : server.registries().blockStates().resolve(state);
+        return state == null ? null : state.data();
     }
 
     /**
@@ -1154,11 +1154,11 @@ public final class PlayPacketHandler implements PlayPacketListener {
      */
     private void destroy(final ServerPlayer acting, final ServerWorld world, final BlockPosition position) {
         final BlockState broken = blockAt(world, position);
-        final BlockData block = broken != null ? server.registries().blockStates().resolve(broken) : null;
-        if (broken == null || block == null || block.isAir()) {
+        if (broken == null || broken.data().isAir()) {
             // nothing left to break: the block is already gone, or its chunk is not loaded
             return;
         }
+        final BlockData block = broken.data();
         final boolean survival = acting.gameMode() != GameMode.CREATIVE;
         final ItemStack tool = acting.heldItem();
         final List<ItemStack> loot = survival ? Harvests.loot(world, block, tool) : List.of();
@@ -1169,7 +1169,7 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 Harvests.harvest(world, position, block, acting, tool);
             }
             Harvests.dropAll(world, position, event.drops());
-            server.worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
+            server.worlds().blockEdits().set(world, position, BlockState.defaultOf(BlockTypeKeys.AIR), true);
             server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
             if (survival) {
                 InfestedBlocks.afterBreak(world, position, broken, tool);

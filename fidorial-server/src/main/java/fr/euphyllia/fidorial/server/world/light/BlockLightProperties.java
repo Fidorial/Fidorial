@@ -62,9 +62,7 @@ public final class BlockLightProperties {
         if (behaviour == null) {
             return null;
         }
-        final BlockData cached = state.data();
-        final BlockData data = cached != null ? cached : behaviour.type().dataOrNull(state.properties());
-        return data == null ? null : new Resolved(behaviour, data);
+        return new Resolved(behaviour, state.data());
     }
 
     public static boolean hasEmission(final BlockState state) {

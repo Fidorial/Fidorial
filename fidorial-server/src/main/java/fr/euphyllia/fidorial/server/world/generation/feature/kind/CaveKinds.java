@@ -16,6 +16,8 @@ import fr.fidorial.entity.EntityType;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.EntityTypeKeys;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 
@@ -164,9 +166,13 @@ final class CaveKinds {
             }
         }
         if (wall != -1) {
-            return states.with(state, "facing", Facing.NAMES[Facing.OPPOSITE[wall]]);
+            return states.with(state, BlockProperties.FACING, Facing.FACES[Facing.OPPOSITE[wall]]);
         }
-        int facing = Facing.byName(states.property(state, "facing"));
+        final BlockFace current = states.get(state, BlockProperties.FACING);
+        if (current == null) {
+            return state;
+        }
+        int facing = Facing.of(current);
         if (blocked(region, x, y, z, facing)) {
             facing = Facing.OPPOSITE[facing];
         }
@@ -176,7 +182,7 @@ final class CaveKinds {
         if (blocked(region, x, y, z, facing)) {
             facing = Facing.OPPOSITE[facing];
         }
-        return states.with(state, "facing", Facing.NAMES[facing]);
+        return states.with(state, BlockProperties.FACING, Facing.FACES[facing]);
     }
 
     private static boolean blocked(final DecorationRegion region, final int x, final int y, final int z, final int side) {
@@ -363,12 +369,12 @@ final class CaveKinds {
             for (final int[] spot : crystalSpots) {
                 char crystal = crystals[random.nextInt(crystals.length)];
                 for (final int direction : Facing.ALL) {
-                    crystal = states.withIfAllowed(crystal, "facing", Facing.NAMES[direction]);
+                    crystal = states.with(crystal, BlockProperties.FACING, Facing.FACES[direction]);
                     final int px = spot[0] + Facing.DX[direction];
                     final int py = spot[1] + Facing.DY[direction];
                     final int pz = spot[2] + Facing.DZ[direction];
                     final char there = region.id(px, py, pz);
-                    crystal = states.withIfAllowed(crystal, "waterlogged", Boolean.toString(states.has(there, StateFlags.WATER_SOURCE)));
+                    crystal = states.with(crystal, BlockProperties.WATERLOGGED, states.has(there, StateFlags.WATER_SOURCE));
                     if (states.isAir(there) || states.isWaterBlock(there) && states.has(there, StateFlags.WATER_SOURCE)) {
                         setReplaceable(region, px, py, pz, crystal);
                         break;

@@ -1,8 +1,7 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -13,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "age")
+@BlockTrait(properties = Names.AGE)
 public interface Ageable extends BlockData {
 
     /**
@@ -22,9 +21,7 @@ public interface Ageable extends BlockData {
      * @since 0.1.0
      */
     default int getAge() {
-        final String age = get("age");
-        Preconditions.checkState(age != null, "%s has no age property", key());
-        return Integer.parseInt(age);
+        return get(type().range(Names.AGE));
     }
 
     /**
@@ -34,7 +31,7 @@ public interface Ageable extends BlockData {
      * @since 0.1.0
      */
     default Ageable withAge(final int age) {
-        return (Ageable) with("age", String.valueOf(age));
+        return (Ageable) with(type().range(Names.AGE), age);
     }
 
     /**
@@ -44,10 +41,6 @@ public interface Ageable extends BlockData {
      * @since 0.1.0
      */
     default int getMaximumAge() {
-        final BlockProperty property = type().property("age");
-        if (property == null) {
-            throw new IllegalStateException("Cannot determine maximum age");
-        }
-        return Integer.parseInt(property.values().getLast());
+        return type().range(Names.AGE).max();
     }
 }

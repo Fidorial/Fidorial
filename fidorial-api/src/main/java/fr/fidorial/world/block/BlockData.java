@@ -2,14 +2,13 @@ package fr.fidorial.world.block;
 
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * One state of a {@link BlockType}: the block plus a value for each of its properties.
  *
- * <p>States are immutable and shared; {@link #with(String, String)} and the {@code with...} methods
+ * <p>States are immutable and shared; {@link #with(BlockProperty, Object)} and the {@code with...} methods
  * of the traits in {@link fr.fidorial.world.block.data} return another state.</p>
  *
  * @since 0.1.0
@@ -38,31 +37,49 @@ public interface BlockData {
      */
     int networkId();
 
-    /**
-     * Gets the value of a property.
-     *
-     * @param property the property name
-     * @return the value, or {@code null} if the block has no such property
-     * @since 0.1.0
-     */
-    @Nullable String get(String property);
+    /// {@return the ordinal of this state within its block type}
+    ///
+    /// @see BlockType#stateAt(int)
+    /// @since 0.1.0
+    int ordinal();
 
-    /**
-     * {@return the state of the same block with one property changed}
-     *
-     * @param property the property name
-     * @param value    the new value
-     * @throws IllegalArgumentException if the property or value is unknown to this block
-     * @since 0.1.0
-     */
-    BlockData with(String property, String value);
+    /// {@return the value of a property in this state}
+    ///
+    /// @param property the property, declared by this block
+    /// @param <T>      the type of the values
+    /// @throws IllegalArgumentException if this block does not declare the property
+    /// @since 0.1.0
+    <T> T get(BlockProperty<T> property);
 
-    /**
-     * {@return every property value of this state, in declaration order}
-     *
-     * @since 0.1.0
-     */
-    Map<String, String> propertyMap();
+    /// {@return `true` if this block declares the property}
+    ///
+    /// @param property the property
+    /// @since 0.1.0
+    boolean has(BlockProperty<?> property);
+
+    /// {@return the value of a property in this state, or `fallback` if this block does not declare it}
+    ///
+    /// @param property the property
+    /// @param fallback the value to return when the property is missing
+    /// @param <T>      the type of the values
+    /// @since 0.1.0
+    default <T> T getOrDefault(final BlockProperty<T> property, final T fallback) {
+        return has(property) ? get(property) : fallback;
+    }
+
+    /// {@return the state of the same block with one property changed}
+    ///
+    /// @param property the property, declared by this block
+    /// @param value    one of its values
+    /// @param <T>      the type of the values
+    /// @throws IllegalArgumentException if this block does not declare the property or the value
+    /// @since 0.1.0
+    <T> BlockData with(BlockProperty<T> property, T value);
+
+    /// {@return every property value of this state, in declaration order}
+    ///
+    /// @since 0.1.0
+    List<PropertyValue<?>> values();
 
     /**
      * {@return {@code true} for any kind of air}
@@ -96,11 +113,11 @@ public interface BlockData {
         }
         final StringBuilder builder = new StringBuilder(id).append('[');
         boolean first = true;
-        for (final Map.Entry<String, String> entry : propertyMap().entrySet()) {
+        for (final PropertyValue<?> value : values()) {
             if (!first) {
                 builder.append(',');
             }
-            builder.append(entry.getKey()).append('=').append(entry.getValue());
+            builder.append(value.property().name()).append('=').append(value.valueName());
             first = false;
         }
         return builder.append(']').toString();

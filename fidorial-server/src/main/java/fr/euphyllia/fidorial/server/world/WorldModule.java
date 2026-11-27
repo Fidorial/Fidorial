@@ -126,7 +126,7 @@ public final class WorldModule implements ServerModule, WorldManager {
                 config.worlds().path().resolve("datapacks"), new RegistryBlockValidator(registries.blocks()));
         this.noiseTerrains = newNoiseTerrains(registries, manager, structures);
         this.weather = new WeatherEngine(manager);
-        this.fluids = new FluidEngine(scheduler.regionizer(), registries.blockStates(), world -> redstone().world(world));
+        this.fluids = new FluidEngine(scheduler.regionizer(), world -> redstone().world(world));
         this.ticks = new ScheduledTickEngine(manager, scheduler.regionizer());
         this.gameRules = new FidorialGameRules(manager.levelData(), events);
         this.dayNight = new DayNightThread(manager, registries.registry(RegistryKey.WORLD_CLOCK));
@@ -488,20 +488,12 @@ public final class WorldModule implements ServerModule, WorldManager {
 
     private void farmingBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
                                      final BlockState current) {
-        final BlockData before = registries.blockStates().resolve(previous);
-        final BlockData after = registries.blockStates().resolve(current);
-        if (before != null && after != null) {
-            farming().world(world).blockChanged(pos, before, after);
-        }
+        farming().world(world).blockChanged(pos, previous.data(), current.data());
     }
 
     private void redstoneBlockChanged(final ServerWorld world, final BlockPosition pos, final BlockState previous,
                                       final BlockState current) {
-        final BlockData before = registries.blockStates().resolve(previous);
-        final BlockData after = registries.blockStates().resolve(current);
-        if (before != null && after != null) {
-            redstone().world(world).blockChanged(pos, before, after);
-        }
+        redstone().world(world).blockChanged(pos, previous.data(), current.data());
     }
 
     private void viewersChanged(final Key worldKey, final BlockPosition pos, final int previous, final int current) {

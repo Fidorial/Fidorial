@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Powerable;
@@ -12,7 +12,7 @@ import fr.fidorial.world.block.data.Powerable;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "mode", allowed = {"compare", "subtract"}, exactly = true))
+@BlockTrait(values = @BlockTrait.Values(property = Names.MODE, allowed = {"compare", "subtract"}, exactly = true))
 public interface Comparator extends Directional, Powerable {
 
     @Override
@@ -31,9 +31,7 @@ public interface Comparator extends Directional, Powerable {
      * @since 0.1.0
      */
     default Mode getMode() {
-        final String mode = get("mode");
-        Preconditions.checkState(mode != null, "%s has no mode property", key());
-        return Mode.fromValue(mode);
+        return get(type().choice(Names.MODE, Mode.class));
     }
 
     /**
@@ -43,7 +41,7 @@ public interface Comparator extends Directional, Powerable {
      * @since 0.1.0
      */
     default Comparator withMode(final Mode mode) {
-        return (Comparator) with("mode", mode.value());
+        return (Comparator) with(type().choice(Names.MODE, Mode.class), mode);
     }
 
     /**

@@ -4,6 +4,8 @@ import com.google.gson.JsonObject;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Orientable;
 
 /**
  * The crowns of the trees: rows of leaves stacked over each point the trunk leaves for them, each kind with its
@@ -566,7 +568,7 @@ final class CrownShapes {
                         final char expected = build.tree.foliage().pickOrKeep(build.region, build.random, px, py, pz);
                         if (build.region.id(px, py, pz) == expected) {
                             final char log = build.tree.trunk().pickOrKeep(build.region, build.random, px, py, pz);
-                            build.setLeaf(px, py, pz, build.states.withIfAllowed(log, "axis", az == 0 ? "x" : "z"));
+                            build.setLeaf(px, py, pz, build.states.with(log, BlockProperties.AXIS, az == 0 ? Orientable.Axis.X : Orientable.Axis.Z));
                         }
                     }
                 }

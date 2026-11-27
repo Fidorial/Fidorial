@@ -151,6 +151,6 @@ public interface BlockPlaceContext {
      */
     default boolean intoWater() {
         final BlockData replaced = replaced();
-        return replaced != null && replaced.key().equals(BlockTypeKeys.WATER) && "0".equals(replaced.get("level"));
+        return replaced != null && replaced.key().equals(BlockTypeKeys.WATER) && replaced.get(BlockProperties.LEVEL_0_15) == 0;
     }
 }

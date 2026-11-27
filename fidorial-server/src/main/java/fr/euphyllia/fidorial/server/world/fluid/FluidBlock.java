@@ -180,10 +180,10 @@ public final class FluidBlock implements RedstoneBehaviour {
     }
 
     static FluidStateImpl fluidOf(final @Nullable BlockData state) {
-        return state == null ? FluidStateImpl.empty() : FluidBlockCodec.fromBlock(BlockState.withProperties(state.key(), state.propertyMap()));
+        return state == null ? FluidStateImpl.empty() : FluidBlockCodec.fromBlock(BlockState.of(state));
     }
 
     static boolean isTagged(final BlockData state, final TagKey<BlockType> tag) {
-        return BlockState.withProperties(state.key(), state.propertyMap()).isTagged(tag);
+        return BlockState.of(state).isTagged(tag);
     }
 }

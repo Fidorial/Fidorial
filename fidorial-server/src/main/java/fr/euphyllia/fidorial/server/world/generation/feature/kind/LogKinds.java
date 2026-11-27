@@ -12,6 +12,8 @@ import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Orientable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -79,11 +81,11 @@ final class LogKinds {
                 }
             }
             final Set<PlantKinds.Spot> logs = new HashSet<>();
-            final String axis = Facing.axis(direction);
+            final Orientable.Axis axis = Facing.axis(direction);
             for (int i = 0; i < logLength; i++) {
                 final int px = sx + Facing.DX[direction] * i;
                 final int pz = sz + Facing.DZ[direction] * i;
-                region.set(px, sy, pz, states.withIfAllowed(trunk.pickOrKeep(region, random, px, sy, pz), "axis", axis));
+                region.set(px, sy, pz, states.with(trunk.pickOrKeep(region, random, px, sy, pz), BlockProperties.AXIS, axis));
                 region.markAbove(px, sy, pz);
                 logs.add(new PlantKinds.Spot(px, sy, pz));
             }
@@ -191,12 +193,12 @@ final class LogKinds {
         private char faces(final StateFlags states, char state, final boolean up, final boolean west, final boolean east,
                            final boolean north, final boolean south, final boolean withUp) {
             if (withUp) {
-                state = states.withIfAllowed(state, "up", Boolean.toString(up));
+                state = states.with(state, BlockProperties.UP, up);
             }
-            state = states.withIfAllowed(state, "west", Boolean.toString(west));
-            state = states.withIfAllowed(state, "east", Boolean.toString(east));
-            state = states.withIfAllowed(state, "north", Boolean.toString(north));
-            return states.withIfAllowed(state, "south", Boolean.toString(south));
+            state = states.with(state, BlockProperties.WEST, west);
+            state = states.with(state, BlockProperties.EAST, east);
+            state = states.with(state, BlockProperties.NORTH, north);
+            return states.with(state, BlockProperties.SOUTH, south);
         }
 
         private void flatCap(final DecorationRegion region, final BitRandom random, final int x, final int y, final int z, final int height) {

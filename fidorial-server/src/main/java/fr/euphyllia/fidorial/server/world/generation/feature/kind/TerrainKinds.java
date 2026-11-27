@@ -15,6 +15,7 @@ import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockProperties;
 import net.kyori.adventure.key.Key;
 
 import java.util.Map;
@@ -247,8 +248,8 @@ final class TerrainKinds {
                 if (shouldSnow(region, biome, x, y, z)) {
                     region.set(x, y, z, snow);
                     final char below = region.id(x, y - 1, z);
-                    if (states.property(below, "snowy") != null) {
-                        region.set(x, y - 1, z, states.with(below, "snowy", "true"));
+                    if (states.get(below, BlockProperties.SNOWY) != null) {
+                        region.set(x, y - 1, z, states.with(below, BlockProperties.SNOWY, true));
                     }
                 }
             }

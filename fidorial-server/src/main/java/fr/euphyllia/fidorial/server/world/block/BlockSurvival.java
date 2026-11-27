@@ -10,7 +10,6 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.redstone.SupportType;
 
@@ -62,9 +61,8 @@ public final class BlockSurvival {
         }
         final FidorialServer server = FidorialServer.getInstance();
         if (state.name().equals(BlockTypeKeys.BROWN_MUSHROOM) || state.name().equals(BlockTypeKeys.RED_MUSHROOM)) {
-            return BlockSupport.isFaceSturdy(server.registries().blockStates().resolve(below), BlockFace.UP, SupportType.CENTER);
+            return BlockSupport.isFaceSturdy(below.data(), BlockFace.UP, SupportType.CENTER);
         }
-        final BlockData data = server.registries().blockStates().resolve(state);
-        return data == null || server.worlds().farming().world(world).canSurvive(position, data);
+        return server.worlds().farming().world(world).canSurvive(position, state.data());
     }
 }

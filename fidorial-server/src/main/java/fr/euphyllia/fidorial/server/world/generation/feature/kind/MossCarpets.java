@@ -6,6 +6,11 @@ import fr.euphyllia.fidorial.server.world.generation.feature.StateSource;
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.property.WallHeight;
+
+import java.util.List;
 
 /**
  * Lays a pale moss carpet: a base on the ground that climbs the walls around it, and sometimes a second layer
@@ -14,7 +19,8 @@ import fr.fidorial.world.BlockFace;
 final class MossCarpets {
 
     private static final BlockFace[] SIDES = {BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
-    private static final String[] SIDE_NAMES = {"north", "east", "south", "west"};
+    private static final List<BlockProperty.Choice<WallHeight>> SIDE_HEIGHTS =
+            List.of(BlockProperties.WALL_NORTH, BlockProperties.WALL_EAST, BlockProperties.WALL_SOUTH, BlockProperties.WALL_WEST);
 
     private MossCarpets() {
     }
@@ -41,31 +47,33 @@ final class MossCarpets {
      */
     private static char shape(final DecorationRegion region, char state, final int x, final int y, final int z, boolean newSides) {
         final StateFlags states = region.states();
-        final boolean isBase = "true".equals(states.property(state, "bottom"));
+        final boolean isBase = Boolean.TRUE.equals(states.get(state, BlockProperties.BOTTOM));
         newSides |= isBase;
         char above = StateSource.NONE;
         char below = StateSource.NONE;
         for (int i = 0; i < SIDES.length; i++) {
-            final String property = SIDE_NAMES[i];
-            String side = wallAt(region, x, y, z, SIDES[i]) ? (newSides ? "low" : states.property(state, property)) : "none";
-            if ("low".equals(side)) {
+            final BlockProperty.Choice<WallHeight> property = SIDE_HEIGHTS.get(i);
+            WallHeight side = wallAt(region, x, y, z, SIDES[i]) ? (newSides ? WallHeight.LOW : states.get(state, property)) : WallHeight.NONE;
+            if (side == WallHeight.LOW) {
                 if (above == StateSource.NONE) {
                     above = region.id(x, y + 1, z);
                 }
-                if (states.is(above, BlockTypeKeys.PALE_MOSS_CARPET) && !"none".equals(states.property(above, property))
-                        && !"true".equals(states.property(above, "bottom"))) {
-                    side = "tall";
+                if (states.is(above, BlockTypeKeys.PALE_MOSS_CARPET) && states.get(above, property) != WallHeight.NONE
+                        && !Boolean.TRUE.equals(states.get(above, BlockProperties.BOTTOM))) {
+                    side = WallHeight.TALL;
                 }
                 if (!isBase) {
                     if (below == StateSource.NONE) {
                         below = region.id(x, y - 1, z);
                     }
-                    if (states.is(below, BlockTypeKeys.PALE_MOSS_CARPET) && "none".equals(states.property(below, property))) {
-                        side = "none";
+                    if (states.is(below, BlockTypeKeys.PALE_MOSS_CARPET) && states.get(below, property) == WallHeight.NONE) {
+                        side = WallHeight.NONE;
                     }
                 }
             }
-            state = states.with(state, property, side);
+            if (side != null) {
+                state = states.with(state, property, side);
+            }
         }
         return state;
     }
@@ -74,20 +82,20 @@ final class MossCarpets {
         final StateFlags states = region.states();
         final char previous = region.id(x, y + 1, z);
         final boolean carpetAbove = states.is(previous, BlockTypeKeys.PALE_MOSS_CARPET);
-        if (carpetAbove && "true".equals(states.property(previous, "bottom"))
+        if (carpetAbove && Boolean.TRUE.equals(states.get(previous, BlockProperties.BOTTOM))
                 || !carpetAbove && !states.has(previous, StateFlags.REPLACEABLE)) {
             return region.id(region.blocks().air);
         }
-        final char hanging = states.with(region.id(region.blocks().state(BlockTypeKeys.PALE_MOSS_CARPET)), "bottom", "false");
+        final char hanging = states.with(region.id(region.blocks().state(BlockTypeKeys.PALE_MOSS_CARPET)), BlockProperties.BOTTOM, false);
         char state = shape(region, hanging, x, y + 1, z, true);
-        for (final String property : SIDE_NAMES) {
-            if (!"none".equals(states.property(state, property)) && !random.nextBoolean()) {
-                state = states.with(state, property, "none");
+        for (final BlockProperty.Choice<WallHeight> property : SIDE_HEIGHTS) {
+            if (states.get(state, property) != WallHeight.NONE && !random.nextBoolean()) {
+                state = states.with(state, property, WallHeight.NONE);
             }
         }
         boolean anySide = false;
-        for (final String property : SIDE_NAMES) {
-            anySide |= !"none".equals(states.property(state, property));
+        for (final BlockProperty.Choice<WallHeight> property : SIDE_HEIGHTS) {
+            anySide |= states.get(state, property) != WallHeight.NONE;
         }
         return anySide && state != previous ? state : region.id(region.blocks().air);
     }

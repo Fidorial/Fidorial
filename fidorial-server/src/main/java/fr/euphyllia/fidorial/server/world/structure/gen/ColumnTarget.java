@@ -19,7 +19,7 @@ import java.util.Set;
 public final class ColumnTarget implements BlockTarget {
 
     private static final Set<String> POSITION_KEYS = Set.of("x", "y", "z", "id", "keepPacked");
-    private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
+    private static final BlockState AIR = BlockState.defaultOf(BlockTypeKeys.AIR);
 
     private final ChunkColumn column;
     private final int minX;

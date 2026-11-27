@@ -1,6 +1,5 @@
 package fr.euphyllia.fidorial.server.world.generation;
 
-import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
@@ -9,7 +8,6 @@ import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.generation.density.Density;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
-import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.redstone.SupportType;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
@@ -52,8 +50,7 @@ public final class SpawnSearch {
         if (state.isFluid() || state.isTagged(BlockTypeTagKeys.LEAVES) || state.isTagged(BlockTypeTagKeys.LOGS)) {
             return false;
         }
-        final BlockData data = FidorialServer.getInstance().registries().blockStates().resolve(state);
-        return data != null && BlockSupport.isFaceSturdy(data, BlockFace.UP, SupportType.FULL);
+        return BlockSupport.isFaceSturdy(state.data(), BlockFace.UP, SupportType.FULL);
     }
 
     /**

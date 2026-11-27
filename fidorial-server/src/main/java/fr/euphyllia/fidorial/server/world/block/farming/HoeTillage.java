@@ -3,6 +3,8 @@ package fr.euphyllia.fidorial.server.world.block.farming;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingRegistry;
 import fr.euphyllia.fidorial.server.world.loot.BlockLootTables;
 import fr.fidorial.item.ItemStack;
@@ -10,16 +12,13 @@ import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.farming.Tillage;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.random.RandomGenerator;
 
 /**
@@ -46,11 +45,9 @@ final class HoeTillage {
      *
      * @param registry   where to declare them
      * @param definition the definition of the hoe, {@code null} when the registry has none
-     * @param blocks     the block registry, to resolve the states the rules name
      * @return how many rules were declared
      */
-    static int declare(final FidorialFarmingRegistry registry, final @Nullable JsonElement definition,
-                       final BlockRegistry blocks) {
+    static int declare(final FidorialFarmingRegistry registry, final @Nullable JsonElement definition) {
         if (definition == null || !definition.isJsonArray()) {
             LOGGER.warn("No definition of what hoes do: no block can be tilled");
             return 0;
@@ -69,7 +66,7 @@ final class HoeTillage {
             final Key loot = object.has("loot") ? Key.key(object.get("loot").getAsString()) : null;
             for (final JsonElement rule : rules.getAsJsonArray()) {
                 try {
-                    if (declare(registry, rule.getAsJsonObject(), loot, blocks)) {
+                    if (declare(registry, rule.getAsJsonObject(), loot)) {
                         declared++;
                     }
                 } catch (final RuntimeException exception) {
@@ -80,9 +77,8 @@ final class HoeTillage {
         return declared;
     }
 
-    private static boolean declare(final FidorialFarmingRegistry registry, final JsonObject rule, final @Nullable Key loot,
-                                   final BlockRegistry blocks) {
-        final BlockData tilled = state(rule.getAsJsonObject("then"), blocks);
+    private static boolean declare(final FidorialFarmingRegistry registry, final JsonObject rule, final @Nullable Key loot) {
+        final BlockData tilled = state(rule.getAsJsonObject("then"));
         final Condition condition = condition(rule.get("if_true"));
         if (tilled == null || condition == null) {
             return false;
@@ -100,22 +96,11 @@ final class HoeTillage {
     /**
      * {@return the state a rule names: a block and the values of some of its properties}
      */
-    private static @Nullable BlockData state(final @Nullable JsonObject definition, final BlockRegistry blocks) {
-        if (definition == null || !definition.has("id")) {
+    private static @Nullable BlockData state(final @Nullable JsonObject definition) {
+        if (definition == null) {
             return null;
         }
-        final BlockType type = blocks.type(TypedKey.withRegistry(RegistryKey.BLOCK, Key.key(definition.get("id").getAsString())))
-                .orElse(null);
-        if (type == null) {
-            return null;
-        }
-        final Map<String, String> values = new LinkedHashMap<>();
-        if (definition.has("properties") && definition.get("properties").isJsonObject()) {
-            for (final Map.Entry<String, JsonElement> property : definition.getAsJsonObject("properties").entrySet()) {
-                values.put(property.getKey(), property.getValue().getAsString());
-            }
-        }
-        return type.dataOrNull(values);
+        return BlockStateCodecs.STATE.parse(JsonOps.INSTANCE, definition).result().orElse(null);
     }
 
     /**

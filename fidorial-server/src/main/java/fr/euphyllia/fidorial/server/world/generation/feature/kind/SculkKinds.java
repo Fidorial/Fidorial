@@ -10,6 +10,7 @@ import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
@@ -130,7 +131,7 @@ final class SculkKinds {
             this.sculk = state(states, BlockTypeKeys.SCULK);
             this.vein = state(states, BlockTypeKeys.SCULK_VEIN);
             this.sensor = state(states, BlockTypeKeys.SCULK_SENSOR);
-            this.shrieker = states.with(state(states, BlockTypeKeys.SCULK_SHRIEKER), "can_summon", "true");
+            this.shrieker = states.with(state(states, BlockTypeKeys.SCULK_SHRIEKER), BlockProperties.CAN_SUMMON, true);
             this.air = states.palette().id(states.blocks().air);
             this.water = states.palette().id(states.blocks().water);
             this.isSculk = states.membership(Set.of(BlockTypeKeys.SCULK));
@@ -162,7 +163,7 @@ final class SculkKinds {
             }
             int faces = 0;
             for (int direction = 0; direction < 6; direction++) {
-                if ("true".equals(states.property(state, Facing.NAMES[direction]))) {
+                if (Boolean.TRUE.equals(states.get(state, Facing.FLAGS[direction]))) {
                     faces |= 1 << direction;
                 }
             }
@@ -351,7 +352,7 @@ final class SculkKinds {
             boolean any = false;
             for (int direction = 0; direction < 6; direction++) {
                 if ((faces & 1 << direction) != 0 && canAttach(x, y, z, direction)) {
-                    vein = states.with(vein, Facing.NAMES[direction], "true");
+                    vein = states.with(vein, Facing.FLAGS[direction], true);
                     any = true;
                 }
             }
@@ -359,7 +360,7 @@ final class SculkKinds {
                 return false;
             }
             if (states.hasFluid(existing)) {
-                vein = states.with(vein, "waterlogged", "true");
+                vein = states.with(vein, BlockProperties.WATERLOGGED, true);
             }
             region.set(x, y, z, vein);
             return true;
@@ -385,7 +386,7 @@ final class SculkKinds {
                     continue;
                 }
                 for (int toward = 0; toward < 6; toward++) {
-                    if (Facing.axis(toward).equals(Facing.axis(from))) {
+                    if (Facing.axis(toward) == Facing.axis(from)) {
                         continue;
                     }
                     if (!anySource && (sourceFaces & 1 << toward) != 0) {
@@ -476,11 +477,11 @@ final class SculkKinds {
             if (blocks.isVein.test(existing)) {
                 state = existing;
             } else if (states.has(existing, StateFlags.WATER_SOURCE) && !states.has(existing, StateFlags.LAVA)) {
-                state = states.with(blocks.vein, "waterlogged", "true");
+                state = states.with(blocks.vein, BlockProperties.WATERLOGGED, true);
             } else {
                 state = blocks.vein;
             }
-            return states.with(state, Facing.NAMES[face], "true");
+            return states.with(state, Facing.FLAGS[face], true);
         }
 
         private int useCharge(final Behaviour behaviour, final Cursor cursor, final BitRandom random, final boolean veins) {
@@ -510,7 +511,7 @@ final class SculkKinds {
                 if (random.nextInt(GROWTH_COST) < charge) {
                     char growth = random.nextInt(SHRIEKER_CHANCE) == 0 ? blocks.shrieker : blocks.sensor;
                     if (states.hasFluid(region.id(cursor.x, cursor.y + 1, cursor.z))) {
-                        growth = states.with(growth, "waterlogged", "true");
+                        growth = states.with(growth, BlockProperties.WATERLOGGED, true);
                     }
                     region.set(cursor.x, cursor.y + 1, cursor.z, growth);
                 }
@@ -590,9 +591,9 @@ final class SculkKinds {
             }
             char result = state;
             for (int direction = 0; direction < 6; direction++) {
-                if ("true".equals(states.property(result, Facing.NAMES[direction]))
+                if (Boolean.TRUE.equals(states.get(result, Facing.FLAGS[direction]))
                         && blocks.isSculk.test(region.id(x + Facing.DX[direction], y + Facing.DY[direction], z + Facing.DZ[direction]))) {
-                    result = states.with(result, Facing.NAMES[direction], "false");
+                    result = states.with(result, Facing.FLAGS[direction], false);
                 }
             }
             if (blocks.faces(result) == 0) {

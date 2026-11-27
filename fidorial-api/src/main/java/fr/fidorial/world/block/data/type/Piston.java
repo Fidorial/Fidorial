@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
 
@@ -13,7 +14,7 @@ import fr.fidorial.world.block.data.Directional;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "extended")
+@BlockTrait(properties = Names.EXTENDED)
 public interface Piston extends Directional {
 
     @Override
@@ -27,7 +28,7 @@ public interface Piston extends Directional {
      * @since 0.1.0
      */
     default boolean isExtended() {
-        return Boolean.parseBoolean(get("extended"));
+        return get(type().flag(Names.EXTENDED));
     }
 
     /**
@@ -37,6 +38,6 @@ public interface Piston extends Directional {
      * @since 0.1.0
      */
     default Piston withExtended(final boolean extended) {
-        return (Piston) with("extended", String.valueOf(extended));
+        return (Piston) with(type().flag(Names.EXTENDED), extended);
     }
 }

@@ -13,6 +13,10 @@ import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.EntityTypeKeys;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.property.CreakingHeartPhase;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTagTypes;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -89,8 +93,8 @@ final class TreeDecorations {
             setter.set(x, y, z, state);
         }
 
-        void vine(final int x, final int y, final int z, final String face) {
-            set(x, y, z, states.with(region.id(region.blocks().state(BlockTypeKeys.VINE)), face, "true"));
+        void vine(final int x, final int y, final int z, final BlockProperty.Flag face) {
+            set(x, y, z, states.with(region.id(region.blocks().state(BlockTypeKeys.VINE)), face, true));
         }
 
         /**
@@ -142,16 +146,16 @@ final class TreeDecorations {
     private static void trunkVines(final Context context) {
         for (final PlantKinds.Spot log : context.logs) {
             if (context.random.nextInt(3) > 0 && context.isAir(log.x() - 1, log.y(), log.z())) {
-                context.vine(log.x() - 1, log.y(), log.z(), "east");
+                context.vine(log.x() - 1, log.y(), log.z(), BlockProperties.EAST);
             }
             if (context.random.nextInt(3) > 0 && context.isAir(log.x() + 1, log.y(), log.z())) {
-                context.vine(log.x() + 1, log.y(), log.z(), "west");
+                context.vine(log.x() + 1, log.y(), log.z(), BlockProperties.WEST);
             }
             if (context.random.nextInt(3) > 0 && context.isAir(log.x(), log.y(), log.z() - 1)) {
-                context.vine(log.x(), log.y(), log.z() - 1, "south");
+                context.vine(log.x(), log.y(), log.z() - 1, BlockProperties.SOUTH);
             }
             if (context.random.nextInt(3) > 0 && context.isAir(log.x(), log.y(), log.z() + 1)) {
-                context.vine(log.x(), log.y(), log.z() + 1, "north");
+                context.vine(log.x(), log.y(), log.z() + 1, BlockProperties.NORTH);
             }
         }
     }
@@ -160,22 +164,22 @@ final class TreeDecorations {
         return context -> {
             for (final PlantKinds.Spot leaf : context.leaves) {
                 if (context.random.nextFloat() < probability && context.isAir(leaf.x() - 1, leaf.y(), leaf.z())) {
-                    hangingVine(context, leaf.x() - 1, leaf.y(), leaf.z(), "east");
+                    hangingVine(context, leaf.x() - 1, leaf.y(), leaf.z(), BlockProperties.EAST);
                 }
                 if (context.random.nextFloat() < probability && context.isAir(leaf.x() + 1, leaf.y(), leaf.z())) {
-                    hangingVine(context, leaf.x() + 1, leaf.y(), leaf.z(), "west");
+                    hangingVine(context, leaf.x() + 1, leaf.y(), leaf.z(), BlockProperties.WEST);
                 }
                 if (context.random.nextFloat() < probability && context.isAir(leaf.x(), leaf.y(), leaf.z() - 1)) {
-                    hangingVine(context, leaf.x(), leaf.y(), leaf.z() - 1, "south");
+                    hangingVine(context, leaf.x(), leaf.y(), leaf.z() - 1, BlockProperties.SOUTH);
                 }
                 if (context.random.nextFloat() < probability && context.isAir(leaf.x(), leaf.y(), leaf.z() + 1)) {
-                    hangingVine(context, leaf.x(), leaf.y(), leaf.z() + 1, "north");
+                    hangingVine(context, leaf.x(), leaf.y(), leaf.z() + 1, BlockProperties.NORTH);
                 }
             }
         };
     }
 
-    private static void hangingVine(final Context context, final int x, final int y, final int z, final String face) {
+    private static void hangingVine(final Context context, final int x, final int y, final int z, final BlockProperty.Flag face) {
         context.vine(x, y, z, face);
         int py = y - 1;
         for (int left = 4; context.isAir(x, py, z) && left > 0; left--) {
@@ -203,7 +207,7 @@ final class TreeDecorations {
                         final int pz = log.z() + Facing.DZ[opposite];
                         if (context.isAir(px, log.y(), pz)) {
                             final char state = context.states.with(
-                                    context.states.with(plain, "age", Integer.toString(random.nextInt(3))), "facing", Facing.NAMES[direction]);
+                                    context.states.with(plain, BlockProperties.AGE_0_2, random.nextInt(3)), BlockProperties.HORIZONTAL_FACING, Facing.FACES[direction]);
                             context.set(px, log.y(), pz, state);
                         }
                     }
@@ -248,7 +252,7 @@ final class TreeDecorations {
             for (final int[] spot : spots) {
                 if (context.isAir(spot[0], spot[1], spot[2]) && context.isAir(spot[0], spot[1], spot[2] + 1)) {
                     final char nest = context.states.with(context.region.id(context.region.blocks().state(BlockTypeKeys.BEE_NEST)),
-                            "facing", "south");
+                            BlockProperties.HORIZONTAL_FACING, BlockFace.SOUTH);
                     context.set(spot[0], spot[1], spot[2], nest);
                     final int bees = 2 + random.nextInt(2);
                     final ListBinaryTag.Builder<CompoundBinaryTag> list = ListBinaryTag.builder(BinaryTagTypes.COMPOUND);
@@ -445,7 +449,7 @@ final class TreeDecorations {
                 if (enclosed) {
                     final char heart = context.region.id(context.region.blocks().state(BlockTypeKeys.CREAKING_HEART));
                     context.set(spot.x(), spot.y(), spot.z(),
-                            context.states.with(context.states.with(heart, "creaking_heart_state", "dormant"), "natural", "true"));
+                            context.states.with(context.states.with(heart, BlockProperties.CREAKING_HEART_STATE, CreakingHeartPhase.DORMANT), BlockProperties.NATURAL, true));
                     return;
                 }
             }
@@ -492,10 +496,10 @@ final class TreeDecorations {
         final char moss = context.region.id(context.region.blocks().state(BlockTypeKeys.PALE_HANGING_MOSS));
         int py = y;
         while (context.isAir(x, py - 1, z) && !(context.random.nextFloat() < 0.5)) {
-            context.set(x, py, z, context.states.with(moss, "tip", "false"));
+            context.set(x, py, z, context.states.with(moss, BlockProperties.TIP, false));
             py--;
         }
-        context.set(x, py, z, context.states.with(moss, "tip", "true"));
+        context.set(x, py, z, context.states.with(moss, BlockProperties.TIP, true));
     }
 
     private static Decoration shelfMushroom(final float probability) {
@@ -574,8 +578,8 @@ final class TreeDecorations {
 
     private static void placeMushroom(final Context context, final int x, final int y, final int z, final int facing) {
         final char plain = context.region.id(context.region.blocks().state(BlockTypeKeys.SHELF_MUSHROOM));
-        final char state = context.states.with(context.states.with(plain, "age", Integer.toString(context.random.nextInt(2))),
-                "facing", Facing.NAMES[facing]);
+        final char state = context.states.with(context.states.with(plain, BlockProperties.AGE_0_1, context.random.nextInt(2)),
+                BlockProperties.HORIZONTAL_FACING, Facing.FACES[facing]);
         context.set(x, y, z, state);
     }
 }

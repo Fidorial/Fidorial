@@ -27,8 +27,6 @@ import fr.fidorial.world.redstone.TickPriority;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * The redstone of one world, as {@link FidorialRedstoneEngine} drives it.
@@ -50,10 +48,8 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
     ServerRedstoneWorld(final FidorialRedstoneEngine engine, final ServerWorld world) {
         this.engine = engine;
         this.world = world;
-        this.air = Objects.requireNonNull(engine.blockStates().resolve(BlockState.withoutProperties(BlockTypeKeys.AIR)),
-                "minecraft:air is not registered");
-        this.water = Objects.requireNonNull(engine.blockStates().resolve(BlockState.withProperties(BlockTypeKeys.WATER, Map.of("level", "0"))),
-                "minecraft:water is not registered");
+        this.air = BlockState.defaultOf(BlockTypeKeys.AIR).data();
+        this.water = BlockState.defaultOf(BlockTypeKeys.WATER).data();
     }
 
     /**
@@ -143,7 +139,7 @@ public final class ServerRedstoneWorld implements RedstoneWorld {
         if (column == null) {
             return null;
         }
-        return engine.blockStates().resolve(column.getBlock(position.blockX() & 15, y, position.blockZ() & 15));
+        return column.getBlock(position.blockX() & 15, y, position.blockZ() & 15).data();
     }
 
     private @Nullable RedstoneBehaviour behaviour(final @Nullable BlockData state) {

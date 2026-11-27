@@ -5,7 +5,6 @@ import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingRegistry;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.world.block.BlockBehaviour;
-import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.farming.FarmingBehaviour;
 import org.jspecify.annotations.Nullable;
 
@@ -83,11 +82,9 @@ public final class BuiltinFarming {
      * @param registry   where to declare it
      * @param definition the {@code minecraft:hoe} entry of the {@code minecraft:block_transformer}
      *                   registry, {@code null} when there is none
-     * @param blocks     the block registry
      * @return how many rules were declared
      */
-    public static int declareTillage(final FidorialFarmingRegistry registry, final @Nullable JsonElement definition,
-                                     final BlockRegistry blocks) {
-        return HoeTillage.declare(registry, definition, blocks);
+    public static int declareTillage(final FidorialFarmingRegistry registry, final @Nullable JsonElement definition) {
+        return HoeTillage.declare(registry, definition);
     }
 }

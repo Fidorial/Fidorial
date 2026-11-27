@@ -45,9 +45,11 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.Ageable;
+import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.type.Farmland;
 import fr.fidorial.world.farming.FarmingBehaviour;
@@ -624,7 +626,7 @@ public final class FarmingTests {
                     randomTicksUntil(helper, lower, () -> age(world, lower) == 2, "The pitcher crop should reach its third stage");
                     helper.assertBlockAt(upper, BlockTypeKeys.AIR);
                     randomTicksUntil(helper, lower, () -> age(world, lower) == 4, "The pitcher crop should ripen");
-                    helper.assertTrue("upper".equals(at(world, upper).get("half")) && age(world, upper) == 4,
+                    helper.assertTrue(at(world, upper).get(BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.UPPER && age(world, upper) == 4,
                             "A ripe pitcher crop should have a ripe upper half, has " + at(world, upper).asString());
 
                     // breaking the upper half takes the lower one with it, which holds the harvest

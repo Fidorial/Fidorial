@@ -163,4 +163,6 @@ fidorialRegistryGenerator {
 
     // FrozenRegistries is generated once, in fidorial-server, where the runtime reads it.
     frozenRegistries.set(emptyList())
+
+    generateBlockProperties = true
 }

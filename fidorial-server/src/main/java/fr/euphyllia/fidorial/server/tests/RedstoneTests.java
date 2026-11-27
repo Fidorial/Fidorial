@@ -19,6 +19,7 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.AnaloguePowerable;
@@ -347,14 +348,14 @@ public final class RedstoneTests {
         helper.sequence()
                 .execute(() -> {
                     load(world, composter);
-                    set(world, composter, defaults(BlockTypeKeys.COMPOSTER).with("level", "3"));
+                    set(world, composter, defaults(BlockTypeKeys.COMPOSTER).with(BlockProperties.LEVEL_0_8, 3));
                     // looking east: the comparator reads the composter, west of it
                     place(world, comparator, BlockTypeKeys.COMPARATOR, BlockFace.UP, -90f, 30f);
                     placeOnFloor(world, output, BlockTypeKeys.REDSTONE_WIRE);
                 })
                 .waitUntil(() -> helper.assertTrue(power(world, output) == 3,
                         "A composter at level 3 should give 3 through a comparator, gives " + power(world, output)))
-                .execute(() -> set(world, composter, defaults(BlockTypeKeys.COMPOSTER).with("level", "7")))
+                .execute(() -> set(world, composter, defaults(BlockTypeKeys.COMPOSTER).with(BlockProperties.LEVEL_0_8, 7)))
                 .waitUntil(() -> helper.assertTrue(power(world, output) == 7,
                         "The comparator should follow the composter to 7, gives " + power(world, output)))
                 .build();

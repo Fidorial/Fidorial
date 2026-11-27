@@ -12,6 +12,7 @@ import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.block.BlockProperties;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.IntArrayBinaryTag;
 import org.jspecify.annotations.Nullable;
@@ -259,10 +260,10 @@ final class EndKinds {
                         }
                         final boolean alongZ = wallX || roof;
                         final boolean alongX = wallZ || roof;
-                        BlockState state = blocks.with(bars, "north", Boolean.toString(alongZ && dz != -CAGE_REACH));
-                        state = blocks.with(state, "south", Boolean.toString(alongZ && dz != CAGE_REACH));
-                        state = blocks.with(state, "west", Boolean.toString(alongX && dx != -CAGE_REACH));
-                        state = blocks.with(state, "east", Boolean.toString(alongX && dx != CAGE_REACH));
+                        final BlockState state = bars.withIfAllowed(BlockProperties.NORTH, alongZ && dz != -CAGE_REACH)
+                                .withIfAllowed(BlockProperties.SOUTH, alongZ && dz != CAGE_REACH)
+                                .withIfAllowed(BlockProperties.WEST, alongX && dx != -CAGE_REACH)
+                                .withIfAllowed(BlockProperties.EAST, alongX && dx != CAGE_REACH);
                         region.set(pillar.centerX() + dx, pillar.height() + dy, pillar.centerZ() + dz, state);
                     }
                 }
@@ -279,8 +280,7 @@ final class EndKinds {
 
         private static final int SPREAD = 8;
         private static final int MAX_DEPTH = 4;
-        private static final String RIPE = "5";
-        private static final String[] SIDE_NAMES = {"north", "south", "west", "east"};
+        private static final int RIPE = 5;
         private static final int[] SIDES = {Facing.NORTH, Facing.SOUTH, Facing.WEST, Facing.EAST};
 
         private Chorus() {
@@ -331,7 +331,7 @@ final class EndKinds {
                 }
             }
             if (!branched) {
-                region.set(x, y + height, z, region.blocks().with(region.blocks().state(BlockTypeKeys.CHORUS_FLOWER), "age", RIPE));
+                region.set(x, y + height, z, region.blocks().state(BlockTypeKeys.CHORUS_FLOWER).withIfAllowed(BlockProperties.AGE_0_5, RIPE));
             }
         }
 
@@ -360,12 +360,11 @@ final class EndKinds {
         private static void join(final DecorationRegion region, final int x, final int y, final int z) {
             final BlockLookup blocks = region.blocks();
             BlockState plant = blocks.state(BlockTypeKeys.CHORUS_PLANT);
-            plant = blocks.with(plant, "down", Boolean.toString(isChorus(region, x, y - 1, z)
-                    || blocks.is(region.state(x, y - 1, z), BlockTypeTagKeys.SUPPORTS_CHORUS_PLANT)));
-            plant = blocks.with(plant, "up", Boolean.toString(isChorus(region, x, y + 1, z)));
-            for (int i = 0; i < SIDES.length; i++) {
-                final int side = SIDES[i];
-                plant = blocks.with(plant, SIDE_NAMES[i], Boolean.toString(isChorus(region, x + Facing.DX[side], y, z + Facing.DZ[side])));
+            plant = plant.withIfAllowed(BlockProperties.DOWN, isChorus(region, x, y - 1, z)
+                    || blocks.is(region.state(x, y - 1, z), BlockTypeTagKeys.SUPPORTS_CHORUS_PLANT));
+            plant = plant.withIfAllowed(BlockProperties.UP, isChorus(region, x, y + 1, z));
+            for (final int side : SIDES) {
+                plant = plant.withIfAllowed(Facing.FLAGS[side], isChorus(region, x + Facing.DX[side], y, z + Facing.DZ[side]));
             }
             region.set(x, y, z, plant);
         }

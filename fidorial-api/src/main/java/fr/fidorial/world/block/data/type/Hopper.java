@@ -2,6 +2,7 @@ package fr.fidorial.world.block.data.type;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
 
@@ -14,8 +15,8 @@ import fr.fidorial.world.block.data.Directional;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "enabled",
-        values = @BlockTrait.Values(property = "facing", allowed = {"down", "north", "south", "west", "east"}, exactly = true))
+@BlockTrait(properties = Names.ENABLED,
+        values = @BlockTrait.Values(property = Names.FACING, allowed = {"down", "north", "south", "west", "east"}, exactly = true))
 public interface Hopper extends Directional {
 
     /**
@@ -37,7 +38,7 @@ public interface Hopper extends Directional {
      * @since 0.1.0
      */
     default boolean isEnabled() {
-        return Boolean.parseBoolean(get("enabled"));
+        return get(type().flag(Names.ENABLED));
     }
 
     /**
@@ -49,6 +50,6 @@ public interface Hopper extends Directional {
      * @since 0.1.0
      */
     default Hopper withEnabled(final boolean enabled) {
-        return (Hopper) with("enabled", String.valueOf(enabled));
+        return (Hopper) with(type().flag(Names.ENABLED), enabled);
     }
 }

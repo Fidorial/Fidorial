@@ -220,7 +220,6 @@ public class ChestBlock implements BlockBehaviour, RedstoneBehaviour {
      */
     final Chest stateLike(final Chest source) {
         final BlockData defaults = type().defaultData();
-        Preconditions.checkArgument(defaults != null, "The block type %s has no default state", key);
         Preconditions.checkArgument(defaults instanceof Chest, "The default state of %s has none of the properties of a chest", key);
         return ((Chest) defaults).withFacing(source.getFacing()).withType(source.getType())
                 .withWaterlogged(source.isWaterlogged());

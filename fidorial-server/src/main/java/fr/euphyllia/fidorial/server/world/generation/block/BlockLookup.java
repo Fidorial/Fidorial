@@ -1,9 +1,9 @@
 package fr.euphyllia.fidorial.server.world.generation.block;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
 import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
@@ -13,9 +13,7 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
-import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
@@ -31,7 +29,6 @@ public final class BlockLookup {
 
     private final BiPredicate<TypedKey<BlockType>, TagKey<BlockType>> tagged;
     private final Map<String, TagKey<BlockType>> tags = new ConcurrentHashMap<>();
-    private final Map<TypedKey<BlockType>, BlockState> defaults = new ConcurrentHashMap<>();
 
     public final BlockState air;
     public final BlockState caveAir;
@@ -64,16 +61,7 @@ public final class BlockLookup {
      * @throws IllegalArgumentException if the block does not exist
      */
     public BlockState state(final TypedKey<BlockType> block) {
-        final BlockState known = defaults.get(block);
-        if (known != null) {
-            return known;
-        }
-        final BlockState found = BlockStates.defaultStateOf(block);
-        if (found == null) {
-            throw new IllegalArgumentException("Unknown block " + block.key().asString());
-        }
-        defaults.put(block, found);
-        return found;
+        return BlockState.defaultOf(block);
     }
 
     /**
@@ -86,48 +74,11 @@ public final class BlockLookup {
     }
 
     /**
-     * {@return a state read from data: an identifier, or an object with an {@code id} (or {@code Name}) and
-     * optional {@code properties} (or {@code Properties})}
+     * {@return a state read from data: an identifier, or an object with an {@code id} and optional {@code properties}}
      */
     public BlockState parse(final JsonElement element) {
-        if (element.isJsonPrimitive()) {
-            return state(element.getAsString());
-        }
-        final JsonObject object = element.getAsJsonObject();
-        final String id = object.has("id") ? object.get("id").getAsString() : object.get("Name").getAsString();
-        final JsonObject properties = object.has("properties") ? object.getAsJsonObject("properties")
-                : object.has("Properties") ? object.getAsJsonObject("Properties") : null;
-        BlockState state = state(id);
-        if (properties != null) {
-            final Map<String, String> values = new HashMap<>(state.properties());
-            for (final Map.Entry<String, JsonElement> property : properties.entrySet()) {
-                if (values.containsKey(property.getKey())) {
-                    values.put(property.getKey(), property.getValue().getAsString());
-                }
-            }
-            state = BlockState.withProperties(state.name(), values);
-        }
-        return state;
-    }
-
-    /**
-     * {@return a state with one property changed, or the state itself when it has no such property}
-     */
-    public BlockState with(final BlockState state, final String property, final String value) {
-        final String current = state.properties().get(property);
-        if (current == null || current.equals(value)) {
-            return state;
-        }
-        final Map<String, String> values = new HashMap<>(state.properties());
-        values.put(property, value);
-        return BlockState.withProperties(state.name(), values);
-    }
-
-    /**
-     * {@return the value of a property, or {@code null} when the state has none}
-     */
-    public static @Nullable String property(final BlockState state, final String property) {
-        return state.properties().get(property);
+        return BlockState.of(BlockStateCodecs.STATE.parse(JsonOps.INSTANCE, element)
+                .getOrThrow(message -> new IllegalArgumentException("Invalid block state " + element + ": " + message)));
     }
 
     /**

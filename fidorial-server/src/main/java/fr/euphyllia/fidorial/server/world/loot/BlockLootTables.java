@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.item.component.ItemEnchantments;
 import fr.fidorial.item.data.DataComponentTypes;
@@ -435,7 +436,7 @@ public final class BlockLootTables {
             return true;
         }
         for (final Map.Entry<String, JsonElement> property : properties.getAsJsonObject().entrySet()) {
-            final String value = state.get(property.getKey());
+            final String value = BlockStateCodecs.valueName(state, property.getKey());
             if (value == null || !matchesValue(property.getValue(), value)) {
                 return false;
             }

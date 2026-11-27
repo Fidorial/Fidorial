@@ -10,6 +10,7 @@ import com.palantir.javapoet.ParameterizedTypeName;
 import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
 import fr.fidorial.registrygen.GenerationUtils;
+import fr.fidorial.registrygen.model.BlockPropertyCatalog;
 import fr.fidorial.registrygen.model.BlockPropertyDefinition;
 import fr.fidorial.registrygen.model.BlockReportDefinition;
 import fr.fidorial.registrygen.model.PrismarineBlockLightPropertiesDefinition;
@@ -77,7 +78,7 @@ public final class BlockStateGenerator {
 
         final Packages pkgs = new Packages(blockPackage, registryDataPackage, blockTypeKeysPackage);
 
-        generateProtocolIds(blocks, pkgs, outputDirectory);
+        generateProtocolIds(blocks, BlockPropertyCatalog.of(blocks), pkgs, outputDirectory);
 
         if (!lighting.isEmpty()) {
             generateLightProperties(blocks, lighting, pkgs, outputDirectory);
@@ -88,14 +89,14 @@ public final class BlockStateGenerator {
      * Bundles every {@link ClassName}/{@link ParameterizedTypeName} the private generation
      * helpers need, resolved once per {@link #generate} call from the configured packages.
      */
-    private record Packages(ParameterizedTypeName key, ClassName blockType, ClassName blockProperty, ClassName blockRegistry,
+    private record Packages(ParameterizedTypeName key, ClassName blockType, ClassName blockProperties, ClassName blockRegistry,
                             ClassName blockTypeKeys, String dataPackage, ParameterizedTypeName lightMapType) {
 
         Packages(final String blockPackage, final String registryDataPackage, final String blockTypeKeysPackage) {
             this(
                     ParameterizedTypeName.get(ClassName.get("fr.fidorial.registry", "TypedKey"), ClassName.get(blockPackage, "BlockType")),
                     ClassName.get(blockPackage, "BlockType"),
-                    ClassName.get(blockPackage, "BlockProperty"),
+                    ClassName.get(blockPackage, BlockPropertiesGenerator.CLASS_NAME),
                     ClassName.get(blockPackage, "BlockRegistry"),
                     ClassName.get(SupportedRegistries.BLOCK.keysPackage(blockTypeKeysPackage), SupportedRegistries.BLOCK.keysClassName()),
                     registryDataPackage,
@@ -109,7 +110,8 @@ public final class BlockStateGenerator {
      * Generates {@code BlockStateIds}, registering every block type and its
      * full network state table with a {@code BlockRegistry}.
      */
-    private void generateProtocolIds(final List<BlockReportDefinition> blocks, final Packages pkgs, final Path outputDirectory) throws IOException {
+    private void generateProtocolIds(final List<BlockReportDefinition> blocks, final BlockPropertyCatalog catalog, final Packages pkgs,
+                                     final Path outputDirectory) throws IOException {
 
         final TypeSpec.Builder protocolIds = TypeSpec.classBuilder(PROTOCOL_IDS_CLASS_NAME)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
@@ -132,13 +134,14 @@ public final class BlockStateGenerator {
                 .initializer("$L", blocks.size())
                 .build());
 
-        addProtocolIdRegistrationMethods(protocolIds, blocks, pkgs);
+        addProtocolIdRegistrationMethods(protocolIds, blocks, catalog, pkgs);
 
         JavaFile.builder(pkgs.dataPackage(), protocolIds.build()).indent("    ").skipJavaLangImports(true).build().writeTo(outputDirectory);
     }
 
     private static void addProtocolIdRegistrationMethods(final TypeSpec.Builder protocolIds,
                                                          final List<BlockReportDefinition> blocks,
+                                                         final BlockPropertyCatalog catalog,
                                                          final Packages pkgs) {
 
         final ParameterSpec registryParameter = ParameterSpec.builder(pkgs.blockRegistry(), "registry", Modifier.FINAL).build();
@@ -151,7 +154,7 @@ public final class BlockStateGenerator {
             final int end = Math.min(start + NETWORK_BLOCKS_PER_METHOD, blocks.size());
             final String chunkMethodName = "register" + chunkIndex;
 
-            protocolIds.addMethod(createRegistrationChunkMethod(chunkMethodName, registryParameter, blocks.subList(start, end), pkgs));
+            protocolIds.addMethod(createRegistrationChunkMethod(chunkMethodName, registryParameter, blocks.subList(start, end), catalog, pkgs));
             chunkMethodNames.add(chunkMethodName);
 
             chunkIndex++;
@@ -201,6 +204,7 @@ public final class BlockStateGenerator {
     private static MethodSpec createRegistrationChunkMethod(final String methodName,
                                                             final ParameterSpec registryParameter,
                                                             final List<BlockReportDefinition> blocks,
+                                                            final BlockPropertyCatalog catalog,
                                                             final Packages pkgs) {
 
         final MethodSpec.Builder chunkMethod = MethodSpec.methodBuilder(methodName)
@@ -208,21 +212,32 @@ public final class BlockStateGenerator {
                 .addParameter(registryParameter);
 
         for (final BlockReportDefinition block : blocks) {
-            chunkMethod.addStatement("$N.register($L)", registryParameter, createBlockTypeInitializer(block, pkgs));
+            chunkMethod.addStatement("$N.register($L)", registryParameter, createBlockTypeInitializer(block, catalog, pkgs));
         }
 
         return chunkMethod.build();
     }
 
-    private static CodeBlock createBlockTypeInitializer(final BlockReportDefinition block, final Packages pkgs) {
+    private static CodeBlock createBlockTypeInitializer(final BlockReportDefinition block, final BlockPropertyCatalog catalog,
+                                                        final Packages pkgs) {
 
+        final int[] stateIds = block.stateIdsInOrder();
         return CodeBlock.of("$T.of($T.$N, $L, $L, $L)",
                 pkgs.blockType(),
                 pkgs.blockTypeKeys(),
                 keysFieldName(block.identifier()),
-                createPropertiesInitializer(block.properties(), pkgs),
-                createStateIdsInitializer(block.stateIdsInOrder()),
+                createPropertiesInitializer(block.properties(), catalog, pkgs),
+                consecutive(stateIds) ? CodeBlock.of("$L", stateIds[0]) : createStateIdsInitializer(stateIds),
                 block.defaultOrdinal());
+    }
+
+    private static boolean consecutive(final int[] stateIds) {
+        for (int index = 1; index < stateIds.length; index++) {
+            if (stateIds[index] != stateIds[0] + index) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -353,7 +368,8 @@ public final class BlockStateGenerator {
                 .build();
     }
 
-    private static CodeBlock createPropertiesInitializer(final List<BlockPropertyDefinition> properties, final Packages pkgs) {
+    private static CodeBlock createPropertiesInitializer(final List<BlockPropertyDefinition> properties, final BlockPropertyCatalog catalog,
+                                                         final Packages pkgs) {
 
         if (properties.isEmpty()) {
             return CodeBlock.of("$T.of()", LIST);
@@ -364,26 +380,12 @@ public final class BlockStateGenerator {
         for (int index = 0; index < properties.size(); index++) {
 
             final BlockPropertyDefinition property = properties.get(index);
-            initializer.add("new $T($S, $L)", pkgs.blockProperty(), property.name(), createValuesInitializer(property.values()));
+            initializer.add("$T.$N", pkgs.blockProperties(), catalog.entry(property).constant());
 
             initializer.add(index < properties.size() - 1 ? ",\n" : "\n");
         }
 
         return initializer.unindent().add(")").build();
-    }
-
-    private static CodeBlock createValuesInitializer(final List<String> values) {
-
-        final CodeBlock.Builder initializer = CodeBlock.builder().add("$T.of(", LIST);
-
-        for (int index = 0; index < values.size(); index++) {
-            initializer.add("$S", values.get(index));
-            if (index < values.size() - 1) {
-                initializer.add(", ");
-            }
-        }
-
-        return initializer.add(")").build();
     }
 
     private static CodeBlock createStateIdsInitializer(final int[] stateIds) {

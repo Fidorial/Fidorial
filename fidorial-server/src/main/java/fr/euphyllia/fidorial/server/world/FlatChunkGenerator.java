@@ -23,12 +23,12 @@ public final class FlatChunkGenerator implements ChunkGenerator {
     }
 
     public static FlatChunkGenerator cobblestone(final DimensionTypeDefinition dimensionType) {
-        return new FlatChunkGenerator(dimensionType, BlockState.withoutProperties(BlockTypeKeys.COBBLESTONE), BiomeKeys.PLAINS, 16);
+        return new FlatChunkGenerator(dimensionType, BlockState.defaultOf(BlockTypeKeys.COBBLESTONE), BiomeKeys.PLAINS, 16);
     }
 
     @Override
     public ChunkColumn generate(final int chunkX, final int chunkZ) {
-        final ChunkColumn chunk = new ChunkColumn(chunkX, chunkZ, dimensionType.minY(), dimensionType.height(), BlockState.withoutProperties(BlockTypeKeys.AIR), biome);
+        final ChunkColumn chunk = new ChunkColumn(chunkX, chunkZ, dimensionType.minY(), dimensionType.height(), BlockState.defaultOf(BlockTypeKeys.AIR), biome);
         for (int y = dimensionType.minY(); y < dimensionType.minY() + floorThickness; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {

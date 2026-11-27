@@ -18,7 +18,9 @@ import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.data.Orientable;
 import fr.fidorial.world.block.data.type.Piston;
 import fr.fidorial.world.block.data.type.PistonHead;
 import fr.fidorial.world.block.data.type.TechnicalPiston;
@@ -577,7 +579,7 @@ public final class PistonTests {
                 })
                 .waitUntil(() -> is(world, position, BlockTypeKeys.OAK_LOG), "The block should land as what it was saved moving")
                 .execute(() -> {
-                    helper.assertTrue("x".equals(at(world, position).get("axis")), "The block should land in the state it was saved in");
+                    helper.assertTrue(at(world, position).get(BlockProperties.AXIS) == Orientable.Axis.X, "The block should land in the state it was saved in");
                     helper.assertTrue(moving.at(world, position) == null, "Nothing should be moving once the block landed");
                 })
                 .build();

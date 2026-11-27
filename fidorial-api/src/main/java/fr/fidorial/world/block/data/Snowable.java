@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -11,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "snowy")
+@BlockTrait(properties = Names.SNOWY)
 public interface Snowable extends BlockData {
 
     /**
@@ -20,7 +21,7 @@ public interface Snowable extends BlockData {
      * @since 0.1.0
      */
     default boolean isSnowy() {
-        return Boolean.parseBoolean(get("snowy"));
+        return get(type().flag(Names.SNOWY));
     }
 
     /**
@@ -30,6 +31,6 @@ public interface Snowable extends BlockData {
      * @since 0.1.0
      */
     default Snowable withSnowy(final boolean snowy) {
-        return (Snowable) with("snowy", String.valueOf(snowy));
+        return (Snowable) with(type().flag(Names.SNOWY), snowy);
     }
 }

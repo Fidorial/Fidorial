@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.VersionConstants;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.light.ChunkLightData;
@@ -11,7 +12,9 @@ import fr.euphyllia.fidorial.server.world.tick.PendingTick;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.biome.BiomeDefinition;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.light.LightType;
 import fr.fidorial.world.redstone.TickPriority;
 import net.kyori.adventure.key.Key;
@@ -25,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Function;
 
 public class AnvilChunkSerializer {
@@ -225,7 +227,7 @@ public class AnvilChunkSerializer {
         final CompoundBinaryTag.Builder blockStates = CompoundBinaryTag.builder();
         final ListBinaryTag.Builder<BinaryTag> blockPalette = ListBinaryTag.builder();
         for (final BlockState state : section.blocks().palette()) {
-            blockPalette.add(blockStateToNbt(state));
+            blockPalette.add(BlockStateCodecs.toNbt(state.data()));
         }
         blockStates.put("palette", blockPalette.build());
         final long[] blockData = section.blocks().packedData();
@@ -247,19 +249,6 @@ public class AnvilChunkSerializer {
         }
         c.put("biomes", biomes.build());
 
-        return c.build();
-    }
-
-    private CompoundBinaryTag blockStateToNbt(final BlockState state) {
-        final CompoundBinaryTag.Builder c = CompoundBinaryTag.builder();
-        c.putString("Name", state.name().key().asString());
-        if (!state.properties().isEmpty()) {
-            final CompoundBinaryTag.Builder props = CompoundBinaryTag.builder();
-            for (final var e : state.properties().entrySet()) {
-                props.putString(e.getKey(), e.getValue());
-            }
-            c.put("Properties", props.build());
-        }
         return c.build();
     }
 
@@ -343,17 +332,7 @@ public class AnvilChunkSerializer {
     }
 
     private BlockState blockStateFromNbt(final CompoundBinaryTag c) {
-        final String name = c.getString("Name");
-        final CompoundBinaryTag props = c.getCompound("Properties");
-        if (props.keySet().isEmpty()) {
-            return BlockState.withoutProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name));
-        }
-        final Map<String, String> map = new TreeMap<>();
-        for (final String key : props.keySet()) {
-            if (props.get(key) instanceof final StringBinaryTag st) {
-                map.put(key, st.value());
-            }
-        }
-        return BlockState.withProperties(TypedKey.withRegistry(RegistryKey.BLOCK, name), map);
+        final BlockData data = BlockStateCodecs.fromNbt(c);
+        return data == null ? BlockState.defaultOf(BlockTypeKeys.AIR) : BlockState.of(data);
     }
 }

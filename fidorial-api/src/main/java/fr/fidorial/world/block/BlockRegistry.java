@@ -1,5 +1,6 @@
 package fr.fidorial.world.block;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
@@ -121,6 +122,21 @@ public interface BlockRegistry {
             }
         }
         final BlockType type = type(name).orElse(null);
-        return type == null ? null : type.data(values);
+        if (type == null) {
+            return null;
+        }
+        BlockData data = type.defaultData();
+        for (final Map.Entry<String, String> entry : values.entrySet()) {
+            final BlockProperty<?> property = type.property(entry.getKey());
+            Preconditions.checkArgument(property != null, "%s has no property '%s'", name, entry.getKey());
+            data = withParsed(data, property, entry.getValue());
+        }
+        return data;
+    }
+
+    private static <T> BlockData withParsed(final BlockData data, final BlockProperty<T> property, final String name) {
+        final T value = property.parse(name);
+        Preconditions.checkArgument(value != null, "'%s' is not a value of the property '%s'", name, property.name());
+        return data.with(property, value);
     }
 }

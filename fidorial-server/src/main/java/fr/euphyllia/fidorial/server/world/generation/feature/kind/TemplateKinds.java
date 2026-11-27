@@ -22,6 +22,7 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockEntityTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.structure.StructureRotation;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
@@ -273,8 +274,8 @@ final class TemplateKinds {
             }
             final char previous = region.id(block.x(), block.y(), block.z());
             char state = region.id(StateTransforms.rotate(region.state(block.state()), rotation));
-            if (states.has(previous, StateFlags.WATER_SOURCE) && "false".equals(states.property(state, "waterlogged"))) {
-                state = states.with(state, "waterlogged", "true");
+            if (states.has(previous, StateFlags.WATER_SOURCE) && Boolean.FALSE.equals(states.get(state, BlockProperties.WATERLOGGED))) {
+                state = states.with(state, BlockProperties.WATERLOGGED, true);
             }
             if (!region.set(block.x(), block.y(), block.z(), state)) {
                 continue;

@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -11,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "powered")
+@BlockTrait(properties = Names.POWERED)
 public interface Powerable extends BlockData {
 
     /**
@@ -20,7 +21,7 @@ public interface Powerable extends BlockData {
      * @since 0.1.0
      */
     default boolean isPowered() {
-        return Boolean.parseBoolean(get("powered"));
+        return get(type().flag(Names.POWERED));
     }
 
     /**
@@ -30,6 +31,6 @@ public interface Powerable extends BlockData {
      * @since 0.1.0
      */
     default Powerable withPowered(final boolean powered) {
-        return (Powerable) with("powered", String.valueOf(powered));
+        return (Powerable) with(type().flag(Names.POWERED), powered);
     }
 }

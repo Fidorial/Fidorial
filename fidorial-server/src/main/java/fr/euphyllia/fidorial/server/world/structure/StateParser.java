@@ -2,15 +2,13 @@ package fr.euphyllia.fidorial.server.world.structure;
 
 import com.google.common.base.Splitter;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.StringBinaryTag;
 import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -53,47 +51,11 @@ public final class StateParser {
         return key == null ? null : new Parsed(key, properties);
     }
 
-    public static @Nullable Parsed parseJson(final @Nullable JsonElement element) {
+    public static @Nullable BlockState parseJson(final @Nullable JsonElement element) {
         if (element == null || element.isJsonNull()) {
             return null;
         }
-        if (element.isJsonPrimitive()) {
-            return parseString(element.getAsString());
-        }
-        if (!element.isJsonObject()) {
-            return null;
-        }
-        final JsonObject object = element.getAsJsonObject();
-        final TypedKey<BlockType> key = block(object.has("Name") ? object.get("Name").getAsString() : null);
-        if (key == null) {
-            return null;
-        }
-        final Map<String, String> properties = new LinkedHashMap<>();
-        if (object.has("Properties") && object.get("Properties").isJsonObject()) {
-            for (final Map.Entry<String, JsonElement> entry : object.getAsJsonObject("Properties").entrySet()) {
-                properties.put(entry.getKey(), entry.getValue().getAsString());
-            }
-        }
-        return new Parsed(key, properties);
-    }
-
-    public static @Nullable Parsed parseNbt(final CompoundBinaryTag compound) {
-        final boolean older = compound.keySet().contains("Name");
-        final TypedKey<BlockType> key = block(compound.getString(older ? "Name" : "id"));
-        if (key == null) {
-            return null;
-        }
-        final Map<String, String> properties = new LinkedHashMap<>();
-        final CompoundBinaryTag props = compound.getCompound(older ? "Properties" : "properties");
-        for (final String name : props.keySet()) {
-            final BinaryTag value = props.get(name);
-            if (value instanceof final StringBinaryTag string) {
-                properties.put(name, string.value());
-            } else if (value != null) {
-                properties.put(name, value.toString());
-            }
-        }
-        return new Parsed(key, properties);
+        return BlockStateCodecs.STATE.parse(JsonOps.INSTANCE, element).result().map(BlockState::of).orElse(null);
     }
 
     public static @Nullable BlockState resolve(final @Nullable Parsed parsed, final BlockValidator validator) {

@@ -8,6 +8,10 @@ import fr.euphyllia.fidorial.server.world.generation.noise.OctaveStack;
 import fr.euphyllia.fidorial.server.world.generation.random.LegacyRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.data.Orientable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.Locale;
 final class StateSources {
 
     private static final String[] DIRECTIONS = {"down", "up", "north", "south", "west", "east"};
+    private static final BlockFace[] FACES = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
 
     private StateSources() {
     }
@@ -54,10 +59,8 @@ final class StateSources {
                 final IntSource values = IntSource.parse(object.get("values"));
                 yield (region, random, x, y, z) -> {
                     final char base = source.pickOrKeep(region, random, x, y, z);
-                    if (flags.property(base, property) == null) {
-                        return base;
-                    }
-                    return flags.with(base, property, Integer.toString(values.sample(random)));
+                    return flags.palette().state(base).type().property(property) instanceof final BlockProperty.Range range
+                            ? flags.with(base, range, values.sample(random)) : base;
                 };
             }
             case "rotated" -> {
@@ -67,9 +70,9 @@ final class StateSources {
                 yield (region, random, x, y, z) -> {
                     final int direction = fixed >= 0 ? fixed : random.nextInt(DIRECTIONS.length);
                     char state = source.pickOrKeep(region, random, x, y, z);
-                    final String axis = direction < 2 ? "y" : direction < 4 ? "z" : "x";
-                    state = flags.withIfAllowed(state, "axis", axis);
-                    return flags.withIfAllowed(state, "facing", DIRECTIONS[direction]);
+                    final Orientable.Axis axis = direction < 2 ? Orientable.Axis.Y : direction < 4 ? Orientable.Axis.Z : Orientable.Axis.X;
+                    state = flags.with(state, BlockProperties.AXIS, axis);
+                    return flags.with(state, BlockProperties.FACING, FACES[direction]);
                 };
             }
             case "random_block" -> {

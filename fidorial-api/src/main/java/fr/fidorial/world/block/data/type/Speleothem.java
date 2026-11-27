@@ -1,10 +1,8 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.data.Waterlogged;
-
-import java.util.Locale;
 
 /**
  * The block state of one piece of a speleothem: pointed dripstone, a sulfur spike or an icicle.
@@ -27,9 +25,7 @@ public interface Speleothem extends Waterlogged {
      * @since 0.1.0
      */
     default BlockFace getVerticalDirection() {
-        final String direction = get("vertical_direction");
-        Preconditions.checkState(direction != null, "%s has no vertical_direction property", key());
-        return BlockFace.valueOf(direction.toUpperCase(Locale.ROOT));
+        return get(type().choice(Names.VERTICAL_DIRECTION, BlockFace.class));
     }
 
     /**
@@ -43,7 +39,7 @@ public interface Speleothem extends Waterlogged {
         if (direction != BlockFace.UP && direction != BlockFace.DOWN) {
             throw new IllegalArgumentException("A speleothem points up or down, not " + direction);
         }
-        return (Speleothem) with("vertical_direction", direction.name().toLowerCase(Locale.ROOT));
+        return (Speleothem) with(type().choice(Names.VERTICAL_DIRECTION, BlockFace.class), direction);
     }
 
     /**
@@ -52,9 +48,7 @@ public interface Speleothem extends Waterlogged {
      * @since 0.1.0
      */
     default Thickness getThickness() {
-        final String thickness = get("thickness");
-        Preconditions.checkState(thickness != null, "%s has no thickness property", key());
-        return Thickness.fromValue(thickness);
+        return get(type().choice(Names.THICKNESS, Thickness.class));
     }
 
     /**
@@ -64,7 +58,7 @@ public interface Speleothem extends Waterlogged {
      * @since 0.1.0
      */
     default Speleothem withThickness(final Thickness thickness) {
-        return (Speleothem) with("thickness", thickness.value());
+        return (Speleothem) with(type().choice(Names.THICKNESS, Thickness.class), thickness);
     }
 
     /**

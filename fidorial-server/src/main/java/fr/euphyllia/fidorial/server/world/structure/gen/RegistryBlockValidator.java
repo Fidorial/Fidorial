@@ -1,15 +1,13 @@
 package fr.euphyllia.fidorial.server.world.structure.gen;
 
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.structure.BlockValidator;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,26 +35,6 @@ public final class RegistryBlockValidator implements BlockValidator {
         if (type == null) {
             return Optional.empty();
         }
-        final Map<String, String> valid = new HashMap<>();
-        for (final Map.Entry<String, String> entry : request.properties().entrySet()) {
-            final BlockProperty property = type.property(entry.getKey());
-            if (property != null && property.isValid(entry.getValue())) {
-                valid.put(entry.getKey(), entry.getValue());
-            }
-        }
-        BlockData data = type.dataOrNull(valid);
-        if (data == null) {
-            data = type.defaultData();
-        }
-        if (data == null) {
-            return Optional.of(BlockState.withProperties(name, valid));
-        }
-        final Map<String, String> full = new HashMap<>();
-        data.propertyMap().forEach((property, value) -> {
-            if (value != null) {
-                full.put(property, value);
-            }
-        });
-        return Optional.of(BlockState.withProperties(data.key(), full));
+        return Optional.of(BlockState.of(BlockStateCodecs.withNames(type.defaultData(), request.properties())));
     }
 }

@@ -48,7 +48,7 @@ public final class PluginBackedChunkGenerator implements ChunkGenerator {
         return switch (generator.describeForSave()) {
             case GenerationDescriptor.Flat(final TypedKey<BlockType> floorBlock, final int floorThickness, final TypedKey<BiomeDefinition> biome) ->
                     new ChunkGeneratorConfig.Flat(
-                            BlockState.withoutProperties(floorBlock), floorThickness, biome);
+                            BlockState.defaultOf(floorBlock), floorThickness, biome);
             case GenerationDescriptor.Noise(final Key settings, final Key biomeSourcePreset) ->
                     new ChunkGeneratorConfig.Noise(settings, biomeSourcePreset);
             case GenerationDescriptor.Unknown _ -> fallback.describeForSave();

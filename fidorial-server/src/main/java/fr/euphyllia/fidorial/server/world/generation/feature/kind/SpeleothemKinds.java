@@ -11,6 +11,9 @@ import fr.euphyllia.fidorial.server.world.generation.value.FloatSource;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Trig;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.type.Speleothem;
 
 import java.util.Map;
 import java.util.function.IntPredicate;
@@ -75,19 +78,19 @@ final class SpeleothemKinds {
             int py = y;
             for (int remaining = length; remaining > 0; remaining--) {
                 final boolean atBase = remaining == length;
-                final String thickness;
+                final Speleothem.Thickness thickness;
                 if (remaining == 2) {
-                    thickness = "frustum";
+                    thickness = Speleothem.Thickness.FRUSTUM;
                 } else if (remaining == 1) {
-                    thickness = mergedTip ? "tip_merge" : "tip";
+                    thickness = mergedTip ? Speleothem.Thickness.TIP_MERGE : Speleothem.Thickness.TIP;
                 } else if (atBase) {
-                    thickness = "base";
+                    thickness = Speleothem.Thickness.BASE;
                 } else {
-                    thickness = "middle";
+                    thickness = Speleothem.Thickness.MIDDLE;
                 }
-                char state = states.with(states.with(pointed, "vertical_direction", down ? "down" : "up"), "thickness", thickness);
+                char state = states.with(states.with(pointed, BlockProperties.VERTICAL_DIRECTION, down ? BlockFace.DOWN : BlockFace.UP), BlockProperties.THICKNESS, thickness);
                 if (atBase && attachBase) {
-                    state = states.withIfAllowed(state, "attached", "true");
+                    state = states.with(state, BlockProperties.ATTACHED, true);
                 }
                 state = BasicKinds.keepWater(region, state, x, py, z);
                 region.set(x, py, z, state);

@@ -1,10 +1,12 @@
 package fr.euphyllia.fidorial.server.world.structure.template;
 
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.structure.BlockValidator;
 import fr.euphyllia.fidorial.server.world.structure.Keys;
-import fr.euphyllia.fidorial.server.world.structure.StateParser;
 import fr.euphyllia.fidorial.server.world.structure.math.Direction;
+import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.property.Orientation;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.BinaryTagIO;
@@ -24,17 +26,16 @@ public final class TemplateParser {
     private TemplateParser() {
     }
 
-    public static StructureTemplateImpl parse(final Key key, final byte[] data, final BlockValidator validator,
-                                              final Set<String> unknownBlocks) throws IOException {
+    public static StructureTemplateImpl parse(final Key key, final byte[] data, final Set<String> unknownBlocks) throws IOException {
         final boolean gzip = data.length > 2 && (data[0] & 0xFF) == 0x1F && (data[1] & 0xFF) == 0x8B;
         final CompoundBinaryTag root = BinaryTagIO.unlimitedReader().read(
                 new ByteArrayInputStream(data),
                 gzip ? BinaryTagIO.Compression.GZIP : BinaryTagIO.Compression.NONE);
-        return parse(key, root, validator, unknownBlocks);
+        return parse(key, root, unknownBlocks);
     }
 
-    public static StructureTemplateImpl parse(final Key key, final CompoundBinaryTag root, final BlockValidator validator,
-                                              final Set<String> unknownBlocks) throws IOException {
+    public static StructureTemplateImpl parse(final Key key, final CompoundBinaryTag root, final Set<String> unknownBlocks)
+            throws IOException {
         final ListBinaryTag size = root.getList("size");
         if (size.size() < 3) {
             throw new IOException("Template " + key.asString() + " has no valid 'size'");
@@ -64,16 +65,14 @@ public final class TemplateParser {
                 if (!(raw.get(i) instanceof final CompoundBinaryTag entry)) {
                     continue;
                 }
-                final StateParser.Parsed parsed = StateParser.parseNbt(entry);
-                if (parsed == null || parsed.name().equals(Keys.STRUCTURE_VOID)) {
+                final BlockData data = BlockStateCodecs.fromNbt(entry);
+                if (data == null) {
+                    missing.add(entry.getString("Name"));
                     continue;
                 }
-                final BlockState state = validator.resolve(parsed.name(), parsed.properties());
-                if (state == null) {
-                    missing.add(parsed.name().key().asString());
-                    continue;
+                if (!data.key().equals(Keys.STRUCTURE_VOID)) {
+                    palette[i] = BlockState.of(data);
                 }
-                palette[i] = state;
             }
             palettes[p] = palette;
         }
@@ -141,7 +140,7 @@ public final class TemplateParser {
 
     private static @Nullable JigsawInfo readJigsaw(final int x, final int y, final int z, final BlockState state,
                                                    final @Nullable CompoundBinaryTag data) {
-        final String orientation = state.properties().getOrDefault("orientation", "north_up");
+        final String orientation = BlockProperties.ORIENTATION.nameOf(state.getOrDefault(BlockProperties.ORIENTATION, Orientation.NORTH_UP));
         final int split = orientation.indexOf('_');
         if (split <= 0) {
             return null;

@@ -14,6 +14,7 @@ import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.ParticleTypeKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
@@ -39,7 +40,6 @@ public final class BubbleColumnBlock implements RedstoneBehaviour {
     public static final TypedKey<BlockType> KEY = BlockTypeKeys.BUBBLE_COLUMN;
     public static final BubbleColumnBlock INSTANCE = new BubbleColumnBlock();
 
-    private static final String DRAG = "drag";
     /**
      * How long a column waits before following a change below or above it, in game ticks.
      */
@@ -163,7 +163,7 @@ public final class BubbleColumnBlock implements RedstoneBehaviour {
     private static @Nullable BlockData column(final boolean drag) {
         final BlockType type = Blocks.type(KEY);
         final BlockData data = type == null ? null : type.defaultData();
-        return data == null ? null : data.with(DRAG, Boolean.toString(drag));
+        return data == null ? null : data.with(BlockProperties.DRAG, drag);
     }
 
     /**
@@ -189,7 +189,7 @@ public final class BubbleColumnBlock implements RedstoneBehaviour {
                     if (state == null || !state.name().equals(KEY)) {
                         continue;
                     }
-                    final boolean drag = Boolean.parseBoolean(state.properties().get(DRAG));
+                    final boolean drag = state.get(BlockProperties.DRAG);
                     final BlockState above = BlockView.blockAt(world, x, y + 1, z);
                     if (above != null && BlockCollision.shape(above).isEmpty() && FluidBlockCodec.fromBlock(above).isEmpty()) {
                         speed = drag ? Math.max(TOP_MAX_SINK, speed - SINK) : Math.min(TOP_MAX_RISE, speed + TOP_RISE);
@@ -234,6 +234,6 @@ public final class BubbleColumnBlock implements RedstoneBehaviour {
      * @param state a bubble column
      */
     public static boolean dragsDown(final BlockData state) {
-        return Boolean.parseBoolean(state.get(DRAG));
+        return state.get(BlockProperties.DRAG);
     }
 }

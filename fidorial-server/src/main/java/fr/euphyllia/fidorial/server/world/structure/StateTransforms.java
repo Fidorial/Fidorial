@@ -1,18 +1,26 @@
 package fr.euphyllia.fidorial.server.world.structure;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.structure.math.Direction;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.data.Orientable;
+import fr.fidorial.world.block.property.Orientation;
+import fr.fidorial.world.block.property.RailTrack;
 import fr.fidorial.world.structure.StructureRotation;
-import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class StateTransforms {
+
+    private static final List<BlockFace> HORIZONTAL = List.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST);
 
     @SuppressWarnings("unchecked")
     private static final Map<BlockState, BlockState>[] CACHE = new Map[]{
@@ -23,111 +31,108 @@ public final class StateTransforms {
     }
 
     public static BlockState rotate(final BlockState state, final StructureRotation rotation) {
-        if (rotation == StructureRotation.NONE || state.properties().isEmpty()) {
+        if (rotation == StructureRotation.NONE || state.type().properties().isEmpty()) {
             return state;
         }
         return CACHE[rotation.quarterTurns()].computeIfAbsent(state, s -> compute(s, rotation));
     }
 
     private static BlockState compute(final BlockState state, final StructureRotation rotation) {
-        final Map<String, String> source = state.properties();
-        final Map<String, String> props = new HashMap<>(source);
+        final BlockData source = state.data();
+        BlockData data = source;
 
-        final String facing = source.get("facing");
-        if (facing != null) {
-            final Direction direction = Direction.byName(facing);
-            if (direction != null && direction.isHorizontal()) {
-                props.put("facing", direction.rotate(rotation).serializedName());
-            }
+        final BlockProperty<BlockFace> facing = state.matching(BlockProperties.FACING);
+        if (facing != null && HORIZONTAL.contains(source.get(facing))) {
+            data = data.with(facing, rotate(source.get(facing), rotation));
         }
 
-        final String axis = source.get("axis");
+        final BlockProperty<Orientable.Axis> axis = state.matching(BlockProperties.AXIS);
         if (axis != null && (rotation.quarterTurns() & 1) == 1) {
-            if (axis.equals("x")) {
-                props.put("axis", "z");
-            } else if (axis.equals("z")) {
-                props.put("axis", "x");
+            final Orientable.Axis current = source.get(axis);
+            if (current != Orientable.Axis.Y) {
+                data = data.with(axis, current == Orientable.Axis.X ? Orientable.Axis.Z : Orientable.Axis.X);
             }
         }
 
-        final String rot = source.get("rotation");
-        if (rot != null) {
-            try {
-                props.put("rotation", Integer.toString(rotation.rotate(Integer.parseInt(rot), 16)));
-            } catch (final NumberFormatException ignored) {
-                // not a 16-step rotation, leave it alone
+        final BlockProperty<Integer> steps = state.matching(BlockProperties.ROTATION);
+        if (steps != null) {
+            data = data.with(steps, rotation.rotate(source.get(steps), 16));
+        }
+
+        final Map<BlockFace, BlockProperty<?>> sides = new EnumMap<>(BlockFace.class);
+        for (final BlockFace side : HORIZONTAL) {
+            final BlockProperty<?> property = state.type().property(side.name().toLowerCase(Locale.ROOT));
+            if (property != null) {
+                sides.put(side, property);
+            }
+        }
+        for (final Map.Entry<BlockFace, BlockProperty<?>> side : sides.entrySet()) {
+            final BlockProperty<?> target = sides.get(rotate(side.getKey(), rotation));
+            if (target != null) {
+                data = copy(data, source, side.getValue(), target);
             }
         }
 
-        final EnumMap<Direction, String> sides = new EnumMap<>(Direction.class);
-        for (final Direction side : Direction.HORIZONTAL) {
-            final String value = source.get(side.serializedName());
-            if (value != null) {
-                sides.put(side, value);
-            }
-        }
-        if (!sides.isEmpty()) {
-            for (final Map.Entry<Direction, String> entry : sides.entrySet()) {
-                final Direction target = entry.getKey().rotate(rotation);
-                if (sides.containsKey(target)) {
-                    props.put(target.serializedName(), entry.getValue());
-                }
+        final BlockProperty<RailTrack> rail = state.matching(BlockProperties.RAIL_SHAPE);
+        if (rail != null && state.isTagged(BlockTypeTagKeys.RAILS)) {
+            final RailTrack rotated = rotate(source.get(rail), rotation);
+            if (rail.indexOf(rotated) >= 0) {
+                data = data.with(rail, rotated);
             }
         }
 
-        final String shape = source.get("shape");
-        if (shape != null && state.isTagged(BlockTypeTagKeys.RAILS)) {
-            final String rotated = rotateRailShape(shape, rotation);
-            if (rotated != null) {
-                props.put("shape", rotated);
-            }
-        }
-
-        final String orientation = source.get("orientation");
+        final BlockProperty<Orientation> orientation = state.matching(BlockProperties.ORIENTATION);
         if (orientation != null) {
-            final int split = orientation.indexOf('_');
-            if (split > 0) {
-                final Direction front = Direction.byName(orientation.substring(0, split));
-                final Direction top = Direction.byName(orientation.substring(split + 1));
-                if (front != null && top != null) {
-                    props.put("orientation", front.rotate(rotation).serializedName() + "_" + top.rotate(rotation).serializedName());
-                }
-            }
+            final String[] faces = source.get(orientation).name().split("_");
+            final BlockFace front = rotate(BlockFace.valueOf(faces[0]), rotation);
+            final BlockFace top = rotate(BlockFace.valueOf(faces[1]), rotation);
+            data = data.with(orientation, Orientation.valueOf(front.name() + "_" + top.name()));
         }
 
-        return props.equals(source) ? state : BlockState.withProperties(state.name(), props);
+        return data == source ? state : BlockState.of(data);
     }
 
-    private static @Nullable String rotateRailShape(final String shape, final StructureRotation rotation) {
-        if (shape.startsWith("ascending_")) {
-            final Direction direction = Direction.byName(shape.substring("ascending_".length()));
-            return direction == null ? null : "ascending_" + direction.rotate(rotation).serializedName();
-        }
-        final int split = shape.indexOf('_');
-        if (split < 0) {
-            return null;
-        }
-        final Direction a = Direction.byName(shape.substring(0, split));
-        final Direction b = Direction.byName(shape.substring(split + 1));
-        if (a == null || b == null) {
-            return null;
-        }
-        final Direction ra = a.rotate(rotation);
-        final Direction rb = b.rotate(rotation);
-        if (ra.opposite() == rb) {
-            return (ra == Direction.NORTH || ra == Direction.SOUTH) ? "north_south" : "east_west";
-        }
-        final Direction vertical = (ra == Direction.NORTH || ra == Direction.SOUTH) ? ra : rb;
-        final Direction horizontal = vertical == ra ? rb : ra;
-        return vertical.serializedName() + "_" + horizontal.serializedName();
+    @SuppressWarnings("unchecked")
+    private static BlockData copy(final BlockData data, final BlockData source, final BlockProperty<?> from, final BlockProperty<?> to) {
+        final Object value = source.get(from);
+        return ((BlockProperty<Object>) to).indexOf(value) >= 0 ? data.with((BlockProperty<Object>) to, value) : data;
     }
 
-    public static BlockState with(final BlockState state, final String property, final String value) {
-        if (value.equals(state.properties().get(property))) {
-            return state;
+    private static BlockFace rotate(final BlockFace face, final StructureRotation rotation) {
+        final int index = HORIZONTAL.indexOf(face);
+        return index < 0 ? face : HORIZONTAL.get((index + rotation.quarterTurns()) % 4);
+    }
+
+    private static RailTrack rotate(final RailTrack track, final StructureRotation rotation) {
+        return switch (track) {
+            case NORTH_SOUTH, EAST_WEST -> (rotation.quarterTurns() & 1) == 0 ? track
+                    : track == RailTrack.NORTH_SOUTH ? RailTrack.EAST_WEST : RailTrack.NORTH_SOUTH;
+            case ASCENDING_NORTH -> ascending(rotate(BlockFace.NORTH, rotation));
+            case ASCENDING_EAST -> ascending(rotate(BlockFace.EAST, rotation));
+            case ASCENDING_SOUTH -> ascending(rotate(BlockFace.SOUTH, rotation));
+            case ASCENDING_WEST -> ascending(rotate(BlockFace.WEST, rotation));
+            case NORTH_EAST -> corner(rotate(BlockFace.NORTH, rotation), rotate(BlockFace.EAST, rotation));
+            case NORTH_WEST -> corner(rotate(BlockFace.NORTH, rotation), rotate(BlockFace.WEST, rotation));
+            case SOUTH_EAST -> corner(rotate(BlockFace.SOUTH, rotation), rotate(BlockFace.EAST, rotation));
+            case SOUTH_WEST -> corner(rotate(BlockFace.SOUTH, rotation), rotate(BlockFace.WEST, rotation));
+        };
+    }
+
+    private static RailTrack ascending(final BlockFace face) {
+        return switch (face) {
+            case NORTH -> RailTrack.ASCENDING_NORTH;
+            case EAST -> RailTrack.ASCENDING_EAST;
+            case SOUTH -> RailTrack.ASCENDING_SOUTH;
+            default -> RailTrack.ASCENDING_WEST;
+        };
+    }
+
+    private static RailTrack corner(final BlockFace a, final BlockFace b) {
+        final boolean north = a == BlockFace.NORTH || b == BlockFace.NORTH;
+        final boolean east = a == BlockFace.EAST || b == BlockFace.EAST;
+        if (north) {
+            return east ? RailTrack.NORTH_EAST : RailTrack.NORTH_WEST;
         }
-        final Map<String, String> props = new HashMap<>(state.properties());
-        props.put(property, value);
-        return BlockState.withProperties(state.name(), props);
+        return east ? RailTrack.SOUTH_EAST : RailTrack.SOUTH_WEST;
     }
 }

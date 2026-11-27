@@ -7,7 +7,9 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.farming.FarmingBehaviour;
 import fr.fidorial.world.farming.FarmingWorld;
 
@@ -31,14 +33,12 @@ public final class PitcherCropBlock implements FarmingBehaviour {
      */
     private static final int TALL_AGE = 3;
 
-    private static final String HALF = "half";
-    private static final String UPPER = "upper";
 
     private PitcherCropBlock() {
     }
 
     private static boolean isUpper(final BlockData state) {
-        return UPPER.equals(state.get(HALF));
+        return state.get(BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.UPPER;
     }
 
     @Override
@@ -71,7 +71,7 @@ public final class PitcherCropBlock implements FarmingBehaviour {
         if (!world.grow(position, position, Farming.withAge(state, age), fertilized) || age < TALL_AGE) {
             return;
         }
-        world.setBlock(position.relative(BlockFace.UP), Farming.withAge(state, age).with(HALF, UPPER));
+        world.setBlock(position.relative(BlockFace.UP), Farming.withAge(state, age).with(BlockProperties.DOUBLE_BLOCK_HALF, Bisected.Half.UPPER));
     }
 
     @Override

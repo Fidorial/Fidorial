@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.entity.mob.monster.enderman;
 
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.combat.DamageSourceFactoryImpl;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.AbstractLivingEntity;
@@ -35,7 +36,6 @@ import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.block.BlockSurvival;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.fidorial.combat.DamageSource;
 import fr.fidorial.entity.Entity;
 import fr.fidorial.entity.EntityType;
@@ -59,20 +59,17 @@ import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.registry.keys.ItemTagKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.farming.FarmingWorld;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.StringBinaryTag;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -146,11 +143,8 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
      * The size of the entities that are neither mobs nor players, such as a dropped item.
      */
     private static final double SMALL_ENTITY_SIZE = 0.25;
-    private static final String SNOWY = "snowy";
 
     private static final String TAG_CARRIED_BLOCK = "carriedBlockState";
-    private static final String TAG_NAME = "Name";
-    private static final String TAG_PROPERTIES = "Properties";
 
     private static final Key RANDOM_SPAWN_BONUS = Key.key("random_spawn_bonus");
 
@@ -229,7 +223,7 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
     @Override
     public Optional<BlockData> carriedBlock() {
         final BlockState carried = carriedBlock;
-        return carried == null ? Optional.empty() : Optional.ofNullable(server().registries().blockStates().resolve(carried));
+        return carried == null ? Optional.empty() : Optional.of(carried.data());
     }
 
     @Override
@@ -400,13 +394,7 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
         MobAttribute.save(tag, followRangeAttribute);
         final BlockState carried = carriedBlock;
         if (carried != null) {
-            final CompoundBinaryTag.Builder block = CompoundBinaryTag.builder().putString(TAG_NAME, carried.name().key().asString());
-            if (!carried.properties().isEmpty()) {
-                final CompoundBinaryTag.Builder properties = CompoundBinaryTag.builder();
-                carried.properties().forEach(properties::putString);
-                block.put(TAG_PROPERTIES, properties.build());
-            }
-            tag.put(TAG_CARRIED_BLOCK, block.build());
+            tag.put(TAG_CARRIED_BLOCK, BlockStateCodecs.toNbt(carried.data()));
         }
         anger.save(tag);
     }
@@ -599,23 +587,8 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
     }
 
     private static @Nullable BlockState readBlockState(final CompoundBinaryTag tag) {
-        final String name = tag.getString(TAG_NAME);
-        if (name.isEmpty()) {
-            return null;
-        }
-        final TypedKey<BlockType> block = TypedKey.withRegistry(RegistryKey.BLOCK, name);
-        final CompoundBinaryTag properties = tag.getCompound(TAG_PROPERTIES);
-        if (properties.keySet().isEmpty()) {
-            return BlockState.withoutProperties(block);
-        }
-        final Map<String, String> values = new TreeMap<>();
-        for (final String key : properties.keySet()) {
-            final BinaryTag value = properties.get(key);
-            if (value instanceof final StringBinaryTag string) {
-                values.put(key, string.value());
-            }
-        }
-        return BlockState.withProperties(block, values);
+        final BlockData data = BlockStateCodecs.fromNbt(tag);
+        return data == null ? null : BlockState.of(data);
     }
 
     /**
@@ -823,7 +796,7 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
                     || !isReachable((int) Math.floor(at.x()), (int) Math.floor(at.z()), y, x, z)) {
                 return;
             }
-            if (MobBlockChanges.change(EndermanEntity.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+            if (MobBlockChanges.change(EndermanEntity.this, world, position, state, BlockState.defaultOf(BlockTypeKeys.AIR))) {
                 server().debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
                 setCarriedBlockState(defaultState(state.name()));
             }
@@ -934,7 +907,7 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
             final BlockState below = BlockView.blockAt(world, position.blockX(), position.blockY() - 1, position.blockZ());
             return there != null && there.isAir()
                     && below != null && !below.isAir() && !below.name().equals(BlockTypeKeys.BEDROCK)
-                    && BlockSupport.isCollisionShapeFullBlock(server().registries().blockStates().resolve(below))
+                    && BlockSupport.isCollisionShapeFullBlock(below.data())
                     && BlockSurvival.canSurvive(world, position, placed)
                     && isEmpty(world, position);
         }
@@ -977,21 +950,18 @@ public final class EndermanEntity extends AbstractMonster implements AngerableMo
      * mycelium are snowy under snow
      */
     private static BlockState withSnowAbove(final BlockState block, final ServerWorld world, final int x, final int y, final int z) {
-        if (!block.properties().containsKey(SNOWY)) {
+        if (!block.has(BlockProperties.SNOWY)) {
             return block;
         }
         final BlockState above = BlockView.blockAt(world, x, y + 1, z);
         final boolean snowy = above != null && BlockView.isTagged(BlockTypeTagKeys.SNOW, above);
-        final Map<String, String> properties = new TreeMap<>(block.properties());
-        properties.put(SNOWY, Boolean.toString(snowy));
-        return BlockState.withProperties(block.name(), properties);
+        return block.with(BlockProperties.SNOWY, snowy);
     }
 
     /**
      * {@return the default state of a block}
      */
     private static BlockState defaultState(final TypedKey<BlockType> block) {
-        final BlockState state = BlockStates.defaultStateOf(block);
-        return state != null ? state : BlockState.withoutProperties(block);
+        return BlockState.defaultOf(block);
     }
 }

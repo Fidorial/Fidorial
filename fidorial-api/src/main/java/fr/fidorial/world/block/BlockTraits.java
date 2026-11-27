@@ -21,10 +21,10 @@ final class BlockTraits {
     private BlockTraits() {
     }
 
-    static List<Class<? extends BlockData>> detect(final List<BlockProperty> properties) {
+    static List<Class<? extends BlockData>> detect(final List<BlockProperty<?>> properties) {
         final Map<String, List<String>> declared = new HashMap<>();
-        for (final BlockProperty property : properties) {
-            declared.put(property.name(), property.values());
+        for (final BlockProperty<?> property : properties) {
+            declared.put(property.name(), names(property));
         }
         final List<Class<? extends BlockData>> traits = new ArrayList<>();
         for (final Rule rule : RULES) {
@@ -33,6 +33,10 @@ final class BlockTraits {
             }
         }
         return traits;
+    }
+
+    private static <T> List<String> names(final BlockProperty<T> property) {
+        return property.values().stream().map(property::nameOf).toList();
     }
 
     /**

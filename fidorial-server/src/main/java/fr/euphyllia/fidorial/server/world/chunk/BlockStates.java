@@ -1,59 +1,73 @@
 package fr.euphyllia.fidorial.server.world.chunk;
 
 import com.google.common.base.Preconditions;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.fidorial.registry.TypedKey;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import fr.fidorial.world.block.Blocks;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class BlockStates {
 
-    private static final Object2ObjectOpenHashMap<TypedKey<BlockType>, BlockState[]> BY_KEY = new Object2ObjectOpenHashMap<>(BlockStateIds.BLOCK_COUNT);
-    private static final Object2ObjectOpenHashMap<TypedKey<BlockType>, BlockState> DEFAULT = new Object2ObjectOpenHashMap<>(BlockStateIds.BLOCK_COUNT);
+    private static final Map<TypedKey<BlockType>, BlockState[]> BY_KEY = new ConcurrentHashMap<>(BlockStateIds.BLOCK_COUNT);
 
     private BlockStates() {
         throw new UnsupportedOperationException("BlockStates cannot be instantiated.");
     }
 
     /**
-     * Computes and registers every block's state permutations from its registered
-     * property definitions.
+     * Creates the state of every registered block.
      *
      * @param registry the block registry, already populated by {@code BlockStateIds.registerAll}
      */
     public static void bootstrap(final BlockRegistry registry) {
         for (final BlockType type : registry.types()) {
-            registerBlock(type);
+            statesOf(type);
         }
     }
 
-    private static void registerBlock(final BlockType type) {
-
-        final TypedKey<BlockType> key = type.key();
-        final int stateCount = type.stateCount();
-
-        final BlockState[] states = new BlockState[stateCount];
-        for (int ordinal = 0; ordinal < stateCount; ordinal++) {
-            states[ordinal] = BlockState.withProperties(key, type.propertyValuesAt(ordinal), false); // safe here as this is during bootstrap so there isn't anything interned for us
-        }
-
-        BY_KEY.put(key, states);
-        DEFAULT.put(key, states[type.defaultOrdinal()]);
+    private static BlockState[] statesOf(final BlockType type) {
+        return BY_KEY.computeIfAbsent(type.key(), _ -> {
+            final BlockState[] states = new BlockState[type.stateCount()];
+            for (int ordinal = 0; ordinal < states.length; ordinal++) {
+                states[ordinal] = new BlockState(type.stateAt(ordinal));
+            }
+            return states;
+        });
     }
 
-    public static BlockState @Nullable [] statesOf(final TypedKey<BlockType> key) {
-        return BY_KEY.get(key);
+    static BlockState of(final BlockData data) {
+        return statesOf(data.type())[data.ordinal()];
+    }
+
+    static BlockState defaultOf(final TypedKey<BlockType> key) {
+        final BlockType type = Blocks.type(key);
+        Preconditions.checkArgument(type != null, "%s is not a registered block type", key.key().asString());
+        return of(type.defaultData());
+    }
+
+    static @Nullable BlockState parseLeniently(final TypedKey<BlockType> key, final Map<String, String> properties) {
+        final BlockType type = Blocks.type(key);
+        if (type == null) {
+            return null;
+        }
+        return of(BlockStateCodecs.withNames(type.defaultData(), properties));
     }
 
     public static BlockState stateAt(final TypedKey<BlockType> key, final int ordinal) {
-        final BlockState[] states = BY_KEY.get(key);
-        Preconditions.checkArgument(states != null, "%s is not a registered block type", key);
-        return states[ordinal];
+        final BlockType type = Blocks.type(key);
+        Preconditions.checkArgument(type != null, "%s is not a registered block type", key.key().asString());
+        return statesOf(type)[ordinal];
     }
 
     public static @Nullable BlockState defaultStateOf(final TypedKey<BlockType> key) {
-        return DEFAULT.get(key);
+        final BlockType type = Blocks.type(key);
+        return type == null ? null : of(type.defaultData());
     }
 }

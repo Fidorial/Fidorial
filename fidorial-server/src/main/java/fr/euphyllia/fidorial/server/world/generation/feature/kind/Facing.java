@@ -1,6 +1,10 @@
 package fr.euphyllia.fidorial.server.world.generation.feature.kind;
 
 import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
+import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.data.Orientable;
 
 /**
  * The six directions as small numbers, with their steps and names, and the shuffles the features draw.
@@ -20,6 +24,9 @@ final class Facing {
     static final int[] DY = {-1, 1, 0, 0, 0, 0};
     static final int[] DZ = {0, 0, -1, 1, 0, 0};
     static final String[] NAMES = {"down", "up", "north", "south", "west", "east"};
+    static final BlockFace[] FACES = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
+    static final BlockProperty.Flag[] FLAGS = {BlockProperties.DOWN, BlockProperties.UP, BlockProperties.NORTH, BlockProperties.SOUTH,
+            BlockProperties.WEST, BlockProperties.EAST};
     static final int[] OPPOSITE = {UP, DOWN, SOUTH, NORTH, EAST, WEST};
 
     /**
@@ -58,8 +65,17 @@ final class Facing {
     /**
      * {@return the axis a direction runs along: x, y or z}
      */
-    static String axis(final int direction) {
-        return direction <= UP ? "y" : direction <= SOUTH ? "z" : "x";
+    static Orientable.Axis axis(final int direction) {
+        return direction <= UP ? Orientable.Axis.Y : direction <= SOUTH ? Orientable.Axis.Z : Orientable.Axis.X;
+    }
+
+    static int of(final BlockFace face) {
+        for (int i = 0; i < FACES.length; i++) {
+            if (FACES[i] == face) {
+                return i;
+            }
+        }
+        throw new IllegalArgumentException("Unknown direction " + face);
     }
 
     static int byName(final String name) {

@@ -6,7 +6,6 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.entity.mob.Mob;
 import fr.fidorial.event.mob.MobChangeBlockEvent;
 import fr.fidorial.math.BlockPosition;
-import fr.fidorial.world.block.BlockData;
 
 /**
  * The blocks mobs change, each one once the plugins agreed through a {@link MobChangeBlockEvent}.
@@ -26,13 +25,7 @@ public final class MobBlockChanges {
      */
     public static boolean allowed(final Mob mob, final BlockPosition position, final BlockState from, final BlockState to) {
         final FidorialServer server = FidorialServer.getInstance();
-        final BlockData before = server.registries().blockStates().resolve(from);
-        final BlockData after = server.registries().blockStates().resolve(to);
-        if (before == null || after == null) {
-            // a block no plugin can see changes unseen
-            return true;
-        }
-        return !server.events().post(new MobChangeBlockEventImpl(mob, position, before, after)).isCancelled();
+        return !server.events().post(new MobChangeBlockEventImpl(mob, position, from.data(), to.data())).isCancelled();
     }
 
     /**

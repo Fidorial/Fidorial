@@ -314,7 +314,7 @@ public final class BatEntity extends AbstractFlyingMob implements Category.Ambie
      */
     private boolean isConductor(final int x, final int y, final int z) {
         final BlockState state = BlockView.blockAt(serverWorld(), x, y, z);
-        return state != null && BlockSupport.isConductor(server().registries().blockStates().resolve(state));
+        return state != null && BlockSupport.isConductor(state.data());
     }
 
     /**

@@ -55,7 +55,6 @@ public class SpeleothemBlock implements BlockBehaviour {
             return null;
         }
         final BlockData state = type().defaultData();
-        Preconditions.checkState(state != null, "The block type %s has no default state", key);
         return ((Speleothem) state)
                 .withVerticalDirection(tip)
                 .withThickness(Speleothem.Thickness.TIP)

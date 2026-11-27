@@ -8,10 +8,8 @@ import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
-import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
-import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -118,23 +116,10 @@ public final class BlockCollision {
         if (current.length == 0) {
             return CollisionShape.FULL_BLOCK; // not bootstrapped yet: not cached either
         }
-        final BlockData data = data(state);
-        final int id = data == null ? -1 : data.networkId();
+        final int id = state.data().networkId();
         final CollisionShape found = id >= 0 && id < current.length ? current[id] : null;
         final CollisionShape shape = found != null ? found : CollisionShape.FULL_BLOCK;
         state.setCollisionShape(shape);
         return shape;
-    }
-
-    private static @Nullable BlockData data(final BlockState state) {
-        final BlockData cached = state.data();
-        if (cached != null) {
-            return cached;
-        }
-        try {
-            return Blocks.registry().type(state.name()).map(type -> type.dataOrNull(state.properties())).orElse(null);
-        } catch (final IllegalStateException _) {
-            return null; // the registry is not bootstrapped yet
-        }
     }
 }

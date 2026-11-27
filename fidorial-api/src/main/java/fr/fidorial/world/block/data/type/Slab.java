@@ -1,6 +1,6 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Waterlogged;
 
@@ -9,7 +9,7 @@ import fr.fidorial.world.block.data.Waterlogged;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "type", allowed = {"top", "bottom", "double"}, exactly = true))
+@BlockTrait(values = @BlockTrait.Values(property = Names.TYPE, allowed = {"top", "bottom", "double"}, exactly = true))
 public interface Slab extends Waterlogged {
 
     @Override
@@ -23,9 +23,7 @@ public interface Slab extends Waterlogged {
      * @since 0.1.0
      */
     default Type getType() {
-        final String type = get("type");
-        Preconditions.checkState(type != null, "%s has no type property", key());
-        return Type.fromValue(type);
+        return get(type().choice(Names.TYPE, Type.class));
     }
 
     /**
@@ -35,7 +33,7 @@ public interface Slab extends Waterlogged {
      * @since 0.1.0
      */
     default Slab withType(final Type type) {
-        return (Slab) with("type", type.value());
+        return (Slab) with(type().choice(Names.TYPE, Type.class), type);
     }
 
     /**

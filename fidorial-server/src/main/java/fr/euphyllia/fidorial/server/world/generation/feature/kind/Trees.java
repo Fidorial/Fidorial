@@ -12,6 +12,8 @@ import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Orientable;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -267,8 +269,8 @@ final class Trees {
             return placeLog(x, y, z, IntUnaryOperator.identity());
         }
 
-        IntUnaryOperator axis(final String axis) {
-            return state -> states.withIfAllowed((char) state, "axis", axis);
+        IntUnaryOperator axis(final Orientable.Axis axis) {
+            return state -> states.with((char) state, BlockProperties.AXIS, axis);
         }
 
         /**
@@ -278,13 +280,11 @@ final class Trees {
          */
         boolean tryLeaf(final int x, final int y, final int z) {
             final char current = region.id(x, y, z);
-            if ("true".equals(states.property(current, "persistent")) || !validTreePos(x, y, z)) {
+            if (Boolean.TRUE.equals(states.get(current, BlockProperties.PERSISTENT)) || !validTreePos(x, y, z)) {
                 return false;
             }
             char state = tree.foliage().pickOrKeep(region, random, x, y, z);
-            if (states.property(state, "waterlogged") != null) {
-                state = states.with(state, "waterlogged", Boolean.toString(states.has(current, StateFlags.WATER_SOURCE)));
-            }
+            state = states.with(state, BlockProperties.WATERLOGGED, states.has(current, StateFlags.WATER_SOURCE));
             setLeaf(x, y, z, state);
             return true;
         }
@@ -356,7 +356,7 @@ final class Trees {
                     final char state = region.id(nx, ny, nz);
                     final int existing = keepsLeaves.test(state) ? 0 : distanceOf(state);
                     if (existing >= 0 && existing >= neighbourDistance) {
-                        region.set(nx, ny, nz, states.with(state, "distance", Integer.toString(neighbourDistance)));
+                        region.set(nx, ny, nz, states.with(state, BlockProperties.DISTANCE_1_7, neighbourDistance));
                         done.set(slot);
                         if (neighbourDistance + 1 < 7) {
                             next.add(new int[] {nx, ny, nz});
@@ -368,8 +368,8 @@ final class Trees {
         }
 
         private int distanceOf(final char state) {
-            final String value = states.property(state, "distance");
-            return value == null ? -1 : Integer.parseInt(value);
+            final Integer value = states.get(state, BlockProperties.DISTANCE_1_7);
+            return value == null ? -1 : value;
         }
     }
 
@@ -473,10 +473,7 @@ final class Trees {
         }
 
         private static char waterlogged(final Build build, final char state, final int x, final int y, final int z) {
-            if (build.states.property(state, "waterlogged") == null) {
-                return state;
-            }
-            return build.states.with(state, "waterlogged", Boolean.toString(build.region.has(x, y, z, StateFlags.WATER)));
+            return build.states.with(state, BlockProperties.WATERLOGGED, build.region.has(x, y, z, StateFlags.WATER));
         }
     }
 

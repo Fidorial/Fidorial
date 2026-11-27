@@ -17,13 +17,14 @@ import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
+import fr.fidorial.world.block.property.Orientation;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Locale;
 
 /**
  * The crafter: nine slots kept in its block entity, some of which a player may disable, and the
@@ -39,9 +40,6 @@ public final class CrafterBlock implements BlockBehaviour {
     public static final TypedKey<BlockType> KEY = BlockTypeKeys.CRAFTER;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(CrafterBlock.class);
-    private static final String ORIENTATION = "orientation";
-    private static final String TRIGGERED = "triggered";
-    private static final String CRAFTING = "crafting";
 
     private CrafterBlock() {
     }
@@ -60,18 +58,15 @@ public final class CrafterBlock implements BlockBehaviour {
     @Override
     public @Nullable BlockData placementState(final BlockPlaceContext context) {
         final BlockData defaults = type().defaultData();
-        if (defaults == null) {
-            return null;
-        }
         final BlockFace front = context.lookingDirection().opposite();
         final BlockFace top = switch (front) {
             case DOWN -> context.horizontalFacing().opposite();
             case UP -> context.horizontalFacing();
             default -> BlockFace.UP;
         };
-        return defaults.with(ORIENTATION, name(front) + "_" + name(top))
-                .with(TRIGGERED, "false")
-                .with(CRAFTING, "false");
+        return defaults.with(BlockProperties.ORIENTATION, Orientation.valueOf(front.name() + "_" + top.name()))
+                .with(BlockProperties.TRIGGERED, false)
+                .with(BlockProperties.CRAFTING, false);
     }
 
     @Override
@@ -136,9 +131,5 @@ public final class CrafterBlock implements BlockBehaviour {
                 return new CrafterContainer();
             }
         });
-    }
-
-    private static String name(final BlockFace face) {
-        return face.name().toLowerCase(Locale.ROOT);
     }
 }

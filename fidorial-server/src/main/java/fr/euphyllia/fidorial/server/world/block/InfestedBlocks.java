@@ -15,7 +15,9 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.EnchantmentTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.PropertyValue;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -67,7 +69,7 @@ public final class InfestedBlocks {
      */
     public static @Nullable BlockState infested(final BlockState host) {
         final TypedKey<BlockType> infested = INFESTED_BY_HOST.get(host.name());
-        return infested == null ? null : BlockState.withProperties(infested, host.properties());
+        return infested == null ? null : copy(host, infested);
     }
 
     /**
@@ -75,7 +77,7 @@ public final class InfestedBlocks {
      */
     public static @Nullable BlockState host(final BlockState infested) {
         final TypedKey<BlockType> host = HOST_BY_INFESTED.get(infested.name());
-        return host == null ? null : BlockState.withProperties(host, infested.properties());
+        return host == null ? null : copy(infested, host);
     }
 
     /**
@@ -111,5 +113,17 @@ public final class InfestedBlocks {
             }
         }
         return false;
+    }
+
+    private static BlockState copy(final BlockState source, final TypedKey<BlockType> target) {
+        BlockData data = BlockState.defaultOf(target).data();
+        for (final PropertyValue<?> value : source.data().values()) {
+            data = copy(data, value);
+        }
+        return BlockState.of(data);
+    }
+
+    private static <T> BlockData copy(final BlockData data, final PropertyValue<T> value) {
+        return data.has(value.property()) ? data.with(value.property(), value.value()) : data;
     }
 }
