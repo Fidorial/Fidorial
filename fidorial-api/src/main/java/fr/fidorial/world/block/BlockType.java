@@ -4,9 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.invoke.MethodHandle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -64,9 +62,14 @@ public final class BlockType {
             }
         }
         this.interfaces = faces.toArray(Class<?>[]::new);
+        final MethodHandle constructor = BlockDataFactory.constructor(faces);
         this.states = new BlockData[expected];
-        for (int ordinal = 0; ordinal < expected; ordinal++) {
-            states[ordinal] = (BlockData) Proxy.newProxyInstance(BlockType.class.getClassLoader(), interfaces, new DataHandler(this, ordinal));
+        try {
+            for (int ordinal = 0; ordinal < expected; ordinal++) {
+                states[ordinal] = (BlockData) constructor.invokeExact(this, ordinal);
+            }
+        } catch (final Throwable exception) {
+            throw new IllegalStateException("Cannot create the states of " + key.key().asString(), exception);
         }
     }
 
@@ -250,7 +253,7 @@ public final class BlockType {
         return defaultOrdinal;
     }
 
-    private int position(final BlockProperty<?> property) {
+    int position(final BlockProperty<?> property) {
         for (int index = 0; index < properties.size(); index++) {
             if (properties.get(index) == property) {
                 return index;
@@ -260,7 +263,7 @@ public final class BlockType {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T value(final int ordinal, final BlockProperty<T> property) {
+    <T> T value(final int ordinal, final BlockProperty<T> property) {
         final int position = position(property);
         Preconditions.checkArgument(position >= 0, "%s has no property %s", key.key().asString(), property);
         final int index = ordinal / radixes[position] % sizes[position];
@@ -268,7 +271,7 @@ public final class BlockType {
         return property instanceof final BlockProperty.Range range ? (T) Integer.valueOf(range.min() + index) : property.values().get(index);
     }
 
-    private <T> int withValue(final int ordinal, final BlockProperty<T> property, final T value) {
+    <T> int withValue(final int ordinal, final BlockProperty<T> property, final T value) {
         final int position = position(property);
         Preconditions.checkArgument(position >= 0, "%s has no property %s", key.key().asString(), property);
         final int index = property.indexOf(value);
@@ -277,7 +280,11 @@ public final class BlockType {
         return ordinal + (index - current) * radixes[position];
     }
 
-    private List<PropertyValue<?>> valuesOf(final int ordinal) {
+    int networkIdAt(final int ordinal) {
+        return stateIds[ordinal];
+    }
+
+    List<PropertyValue<?>> valuesOf(final int ordinal) {
         final List<PropertyValue<?>> values = new ArrayList<>(properties.size());
         for (final BlockProperty<?> property : properties) {
             values.add(valueOf(ordinal, property));
@@ -302,42 +309,6 @@ public final class BlockType {
     @Override
     public String toString() {
         return "BlockType[" + key.key().asString() + ", states=" + stateIds.length + "]";
-    }
-
-    private record DataHandler(BlockType type, int ordinal) implements InvocationHandler {
-        @Override
-        @SuppressWarnings("unchecked")
-        public @Nullable Object invoke(final Object proxy, final Method method, final @Nullable Object @Nullable [] args) throws Throwable {
-            if (method.isDefault()) {
-                return InvocationHandler.invokeDefault(proxy, method, args);
-            }
-            return switch (method.getName()) {
-                case "type" -> type;
-                case "networkId" -> type.stateIds[ordinal];
-                case "ordinal" -> ordinal;
-                case "get" -> type.value(ordinal, property(args));
-                case "has" -> type.position(property(args)) >= 0;
-                case "with" -> type.stateAt(type.withValue(ordinal, (BlockProperty<Object>) property(args), argument(args, 1)));
-                case "values" -> type.valuesOf(ordinal);
-                case "equals" -> args != null && proxy == args[0];
-                case "hashCode" -> type.hashCode() * 31 + ordinal;
-                case "toString" -> ((BlockData) proxy).asString();
-                default -> throw new UnsupportedOperationException(method.getName());
-            };
-        }
-
-        private static BlockProperty<?> property(final @Nullable Object @Nullable [] args) {
-            Preconditions.checkArgument(args != null && args.length > 0 && args[0] instanceof BlockProperty<?>,
-                    "The first argument of a block data call must be a block property");
-            return (BlockProperty<?>) args[0];
-        }
-
-        private static Object argument(final @Nullable Object @Nullable [] args, final int index) {
-            Preconditions.checkArgument(args != null && index < args.length && args[index] != null,
-                    "Argument %s of a block data call must not be null", index);
-            //noinspection DataFlowIssue - we already checked the nullability
-            return args[index];
-        }
     }
 
     /**
