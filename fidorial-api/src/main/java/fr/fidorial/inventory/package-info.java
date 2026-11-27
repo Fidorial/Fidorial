@@ -1,6 +1,6 @@
 /**
  * Containers: the inventories of players and of their ender chests, and the blocks of the worlds
- * keeping slots, the chests, alone or joined into large chests, and the barrels.
+ * keeping slots, the chests, alone or joined into large chests, the barrels and the hoppers.
  *
  * <p>Every type here is an interface the server implements: plugins read and change the
  * containers the server hands them.</p>

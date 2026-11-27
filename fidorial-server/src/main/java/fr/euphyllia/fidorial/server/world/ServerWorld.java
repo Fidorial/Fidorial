@@ -4,6 +4,7 @@ import ca.spottedleaf.concurrentutil.collection.iterator.BaseLongIterator;
 import ca.spottedleaf.concurrentutil.collection.iterator.BaseObjectIterator;
 import ca.spottedleaf.concurrentutil.list.COWArrayList;
 import ca.spottedleaf.concurrentutil.map.concurrent.longs.ConcurrentChainedLong2ReferenceHashTable;
+import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.configuration.WorldConfiguration;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
@@ -18,6 +19,7 @@ import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
 import fr.euphyllia.fidorial.server.world.block.BarrelBlock;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntity;
 import fr.euphyllia.fidorial.server.world.block.chest.ChestBlocks;
+import fr.euphyllia.fidorial.server.world.block.hopper.HopperBlock;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
@@ -46,6 +48,7 @@ import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.inventory.BarrelInventory;
 import fr.fidorial.inventory.ChestInventory;
+import fr.fidorial.inventory.HopperInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -109,6 +112,7 @@ public final class ServerWorld implements World {
     private final WorldLightManager lightManager;
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
     private volatile @Nullable ChunkLoadListener chunkLoadListener;
+    private volatile @Nullable BlockEntityListener blockEntityListener;
     private volatile @Nullable WorldScheduledTicks ticks;
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
@@ -628,6 +632,11 @@ public final class ServerWorld implements World {
         }
         column.setBlock(x & 15, y, z & 15, state, kept);
         markDirty(x >> 4, z >> 4);
+        final TypedKey<BlockEntityType> placed = state.blockEntityType();
+        final BlockEntityListener listener = blockEntityListener;
+        if (placed != null && listener != null && !previous.name().equals(state.name())) {
+            listener.blockEntityPlaced(this, Position.block(x, y, z), placed);
+        }
         return true;
     }
 
@@ -677,6 +686,11 @@ public final class ServerWorld implements World {
     @Override
     public Optional<BarrelInventory> barrelAt(final BlockPosition position) {
         return BarrelBlock.inventoryAt(this, position);
+    }
+
+    @Override
+    public Optional<HopperInventory> hopperAt(final BlockPosition position) {
+        return HopperBlock.inventoryAt(this, position);
     }
 
     /**
@@ -983,6 +997,24 @@ public final class ServerWorld implements World {
     }
 
     /**
+     * Sets who is told of the block entities placed, such as the one of a hopper, which ticks.
+     *
+     * @param listener told of every block entity a placed block brings, on the thread placing it
+     */
+    public void setBlockEntityListener(final BlockEntityListener listener) {
+        this.blockEntityListener = listener;
+    }
+
+    /**
+     * Told of a block entity a placed block brings: a block of another type took the place of the
+     * previous one. The block entities of a chunk just loaded go to the {@link ChunkLoadListener}.
+     */
+    @FunctionalInterface
+    public interface BlockEntityListener {
+        void blockEntityPlaced(ServerWorld world, BlockPosition position, TypedKey<BlockEntityType> type);
+    }
+
+    /**
      * Sets the scheduled ticks of every world, which this world schedules its ticks in and saves
      * with its chunks.
      *
@@ -1064,6 +1096,17 @@ public final class ServerWorld implements World {
 
     public WorldConfiguration configuration() {
         return configuration;
+    }
+
+    /**
+     * Changes the configuration of this world while it runs: what reads it next follows the new one,
+     * such as the next hopper to tick.
+     *
+     * @param configuration the configuration of this world from now on
+     */
+    public void setConfiguration(final WorldConfiguration configuration) {
+        Preconditions.checkArgument(configuration != null, "The world %s needs a configuration, not null", key().asString());
+        this.configuration = configuration;
     }
 
     /**

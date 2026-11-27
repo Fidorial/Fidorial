@@ -6,6 +6,7 @@ import fr.fidorial.entity.ItemEntity;
 import fr.fidorial.gamerule.WorldGameRules;
 import fr.fidorial.inventory.BarrelInventory;
 import fr.fidorial.inventory.ChestInventory;
+import fr.fidorial.inventory.HopperInventory;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
@@ -284,6 +285,18 @@ public interface World extends Keyed, ForwardingAudience {
      * @since 0.1.0
      */
     Optional<BarrelInventory> barrelAt(BlockPosition position);
+
+    /**
+     * Gets the hopper at a position.
+     *
+     * <p>The inventory reads and writes the block entity of the hopper. Use it on the thread of the
+     * region owning the position.</p>
+     *
+     * @param position the block position
+     * @return the slots of the hopper, empty when there is no hopper there or its chunk is not loaded
+     * @since 0.1.0
+     */
+    Optional<HopperInventory> hopperAt(BlockPosition position);
 
     /**
      * {@return the block light level at a position, between {@code 0} and {@code 15}}

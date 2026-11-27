@@ -44,7 +44,8 @@ public final class ChunkNetworkSerializer {
      * a barrel holds, and the loot table it has yet to roll, stay on the server.
      */
     private static final Set<TypedKey<BlockEntityType>> SERVER_SIDE_DATA =
-            Set.of(BlockEntityTypeKeys.CHEST, BlockEntityTypeKeys.TRAPPED_CHEST, BlockEntityTypeKeys.BARREL);
+            Set.of(BlockEntityTypeKeys.CHEST, BlockEntityTypeKeys.TRAPPED_CHEST, BlockEntityTypeKeys.BARREL,
+                    BlockEntityTypeKeys.HOPPER);
 
     public ChunkNetworkSerializer(final BlockStateRegistry blockRegistry, final ServerRegistry<BiomeDefinition> biomes, final ServerRegistry<BlockEntityType> blockEntityTypes) {
         this.blockEntityTypes = blockEntityTypes;

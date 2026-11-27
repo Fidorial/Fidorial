@@ -21,8 +21,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The slots of a block, read from and written to its block entity the way vanilla saves them:
@@ -53,6 +55,11 @@ public abstract class BlockEntityInventory implements BlockInventory {
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(BlockEntityInventory.class);
     private static final Object[] LOCKS = new Object[64];
+
+    /**
+     * The codecs of the {@code Items} of block entities, by number of slots kept.
+     */
+    private static final Map<Integer, Codec<SimpleContainer>> CODECS = new ConcurrentHashMap<>();
 
     static {
         for (int index = 0; index < LOCKS.length; index++) {
@@ -89,7 +96,7 @@ public abstract class BlockEntityInventory implements BlockInventory {
         this.position = position;
         this.block = block;
         this.size = size;
-        this.codec = ContainerCodecs.containerCodec(() -> new SimpleContainer(storedSize));
+        this.codec = CODECS.computeIfAbsent(storedSize, slots -> ContainerCodecs.containerCodec(() -> new SimpleContainer(slots)));
         this.lock = LOCKS[Math.floorMod(Objects.hash(world.key(), position), LOCKS.length)];
         this.slots = new ItemStack[storedSize];
         Arrays.fill(slots, ItemStack.EMPTY);

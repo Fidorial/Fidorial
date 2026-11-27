@@ -45,14 +45,37 @@ public record WorldConfiguration(Gameplay gameplay, Storage storage, Redstone re
                 .build();
     }
 
-    public record Blocks(Barrel barrel) {
+    public record Blocks(Barrel barrel, Hopper hopper) {
 
-        public static final Blocks DEFAULTS = new Blocks(Barrel.DEFAULTS);
+        public static final Blocks DEFAULTS = new Blocks(Barrel.DEFAULTS, Hopper.DEFAULTS);
 
         static Codec<Blocks> codec(final Blocks defaults, final boolean writeDefaults) {
             return configRecord(Blocks.class, defaults, writeDefaults)
                     .field("barrel", Blocks::barrel, commented(Barrel.codec(defaults.barrel(), writeDefaults),
                             "The size of the barrels"))
+                    .field("hopper", Blocks::hopper, commented(Hopper.codec(defaults.hopper(), writeDefaults),
+                            "How fast the hoppers move items"))
+                    .build();
+        }
+    }
+
+    /**
+     * @param transferCooldown the game ticks a hopper waits after moving items, 8 in vanilla
+     * @param itemsPerTransfer how many items of one slot a hopper moves at once, 1 in vanilla
+     */
+    public record Hopper(int transferCooldown, int itemsPerTransfer) {
+
+        public static final int MAX_TRANSFER_COOLDOWN = 1200;
+
+        public static final Hopper DEFAULTS = new Hopper(8, 1);
+
+        static Codec<Hopper> codec(final Hopper defaults, final boolean writeDefaults) {
+            return configRecord(Hopper.class, defaults, writeDefaults)
+                    .field("transfer-cooldown", Hopper::transferCooldown, commented(Codec.intRange(1, MAX_TRANSFER_COOLDOWN),
+                            "The game ticks a hopper waits after pushing or pulling items, from 1 to 1200; 8 in vanilla.\n"
+                                    + "Picking up the items lying above a hopper does not wait"))
+                    .field("items-per-transfer", Hopper::itemsPerTransfer, commented(Codec.intRange(1, 64),
+                            "How many items of one slot a hopper pushes or pulls at once, from 1 to 64; 1 in vanilla"))
                     .build();
         }
     }

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
- * What the blocks keeping slots in their block entity share, chests and barrels: how full a
+ * What the blocks keeping slots in their block entity share, chests, barrels and hoppers: how full a
  * comparator reads them, telling their comparators they changed, spilling them when they go, and
  * the name they take from a renamed item.
  */
@@ -52,12 +52,16 @@ public final class ContainerBlocks {
     }
 
     /**
-     * {@return the slots a block keeps at a position, a chest or a barrel; empty for any other block,
-     * or when its chunk is not loaded}
+     * {@return the slots a block keeps at a position, a chest, a barrel or a hopper; empty for any
+     * other block, or when its chunk is not loaded}
      */
     public static Optional<? extends BlockInventory> inventoryAt(final ServerWorld world, final BlockPosition position) {
         final Optional<? extends BlockInventory> chest = world.chestAt(position);
-        return chest.isPresent() ? chest : world.barrelAt(position);
+        if (chest.isPresent()) {
+            return chest;
+        }
+        final Optional<? extends BlockInventory> barrel = world.barrelAt(position);
+        return barrel.isPresent() ? barrel : world.hopperAt(position);
     }
 
     /**

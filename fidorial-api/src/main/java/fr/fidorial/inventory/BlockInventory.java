@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 /**
- * The slots a block keeps in its block entity: those of a chest or of a barrel.
+ * The slots a block keeps in its block entity: those of a chest, of a barrel or of a hopper.
  *
  * <p>What is read is what the block holds, what is written is saved with its chunk and shows at
  * once in the window of every player looking into it. Once the block is gone, the inventory reads
@@ -23,6 +23,7 @@ import java.util.Optional;
  *
  * @see ChestInventory
  * @see BarrelInventory
+ * @see HopperInventory
  * @since 0.1.0
  */
 public interface BlockInventory extends Container {

@@ -18,7 +18,9 @@ import fr.euphyllia.fidorial.server.schedulers.LightUpdateDispatcher;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.schedulers.WorkerModule;
 import fr.euphyllia.fidorial.server.schedulers.tick.ServerTickRates;
+import fr.euphyllia.fidorial.server.world.block.blockentity.TickingBlockEntities;
 import fr.euphyllia.fidorial.server.world.block.chest.TrappedChestBlock;
+import fr.euphyllia.fidorial.server.world.block.hopper.Hoppers;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.farming.FidorialFarmingEngine;
 import fr.euphyllia.fidorial.server.world.fluid.FluidEngine;
@@ -43,6 +45,7 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
+import fr.fidorial.registry.keys.BlockEntityTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -105,6 +108,7 @@ public final class WorldModule implements ServerModule, WorldManager {
     private final FidorialRedstoneEngine redstone;
     private final FidorialFarmingEngine farming;
     private final MovingPistons movingPistons;
+    private final TickingBlockEntities tickingBlockEntities;
     private final AtomicBoolean unloadingChunks = new AtomicBoolean(false);
 
     public WorldModule(
@@ -143,6 +147,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         this.redstone = new FidorialRedstoneEngine(
                 manager, regionizer, registries.blockStates(), registries.redstone(), blockEdits);
         this.movingPistons = new MovingPistons(manager, regionizer, registries.redstone(), world -> redstone().world(world));
+        this.tickingBlockEntities = new TickingBlockEntities(manager, regionizer);
+        tickingBlockEntities.register(BlockEntityTypeKeys.HOPPER, Hoppers.INSTANCE);
         this.farming = new FidorialFarmingEngine(
                 manager, regionizer, registries.blockStates(), registries.farming(), blockEdits,
                 registries.serverRegistries(), online::players);
@@ -155,7 +161,9 @@ public final class WorldModule implements ServerModule, WorldManager {
         manager.setChunkLoadListener((world, column) -> {
             movingPistons.resume(world, column);
             ticks.resume(world, column);
+            tickingBlockEntities.resume(world, column);
         });
+        manager.setBlockEntityListener(tickingBlockEntities::placed);
         manager.setTicks(ticks);
         ticks.setBlockRunner(this::runBlockTick);
         ticks.setFluidRunner(fluids::tick);
@@ -255,6 +263,8 @@ public final class WorldModule implements ServerModule, WorldManager {
         regionizer.registerTickHandler(redstone.tickHandler());
         // after the scheduled ticks and the block events, where vanilla ticks its block entities
         regionizer.registerTickHandler(movingPistons);
+        // then the block entities ticking on every game tick, such as hoppers
+        regionizer.registerTickHandler(tickingBlockEntities);
         // once every block settled for this game tick: plants grow on a world at rest
         regionizer.registerTickHandler(this::tickFarming);
     }
@@ -411,6 +421,13 @@ public final class WorldModule implements ServerModule, WorldManager {
      */
     public MovingPistons movingPistons() {
         return movingPistons;
+    }
+
+    /**
+     * {@return the block entities ticked on every game tick, such as hoppers}
+     */
+    public TickingBlockEntities tickingBlockEntities() {
+        return tickingBlockEntities;
     }
 
     /**
