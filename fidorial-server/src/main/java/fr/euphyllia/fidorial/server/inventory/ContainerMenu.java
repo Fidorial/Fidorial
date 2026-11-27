@@ -308,6 +308,11 @@ public abstract class ContainerMenu {
     }
 
     public final void click(final ServerboundContainerClickPacket packet) {
+        // a block is looked into from the regions around it, on as many threads
+        BlockEntityInventory.atomically(List.of(container()), () -> clickNow(packet));
+    }
+
+    private void clickNow(final ServerboundContainerClickPacket packet) {
         final int slot = packet.slot();
         final int button = packet.button();
 

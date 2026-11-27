@@ -7,6 +7,8 @@ import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.loot.ContainerLoot;
 import fr.fidorial.inventory.BlockInventory;
+import fr.fidorial.inventory.ChestInventory;
+import fr.fidorial.inventory.Container;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import io.papermc.adventurex.nbt.dfu.BinaryTagOps;
@@ -20,10 +22,13 @@ import org.jspecify.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -72,6 +77,7 @@ public abstract class BlockEntityInventory implements BlockInventory {
     private final String block;
     private final int size;
     private final Codec<SimpleContainer> codec;
+    private final int lockIndex;
     private final Object lock;
     private final ItemStack[] slots;
     private @Nullable CompoundBinaryTag readFrom;
@@ -97,7 +103,8 @@ public abstract class BlockEntityInventory implements BlockInventory {
         this.block = block;
         this.size = size;
         this.codec = CODECS.computeIfAbsent(storedSize, slots -> ContainerCodecs.containerCodec(() -> new SimpleContainer(slots)));
-        this.lock = LOCKS[Math.floorMod(Objects.hash(world.key(), position), LOCKS.length)];
+        this.lockIndex = Math.floorMod(Objects.hash(world.key(), position), LOCKS.length);
+        this.lock = LOCKS[lockIndex];
         this.slots = new ItemStack[storedSize];
         Arrays.fill(slots, ItemStack.EMPTY);
     }
@@ -230,6 +237,21 @@ public abstract class BlockEntityInventory implements BlockInventory {
     }
 
     /**
+     * Empties every slot the block entity keeps, the hidden ones included, and returns what they
+     * held, as one step: no other view over the block, on another thread, hands the same items out
+     * meanwhile.
+     *
+     * @return the stacks the slots held, the hidden ones after the shown ones
+     */
+    public final ItemStack[] takeStored() {
+        synchronized (lock) {
+            final ItemStack[] taken = storedContents();
+            clearStored();
+            return taken;
+        }
+    }
+
+    /**
      * Empties the slots the view does not show.
      *
      * @return the stacks taken out, in slot order, empty when the hidden slots held nothing
@@ -249,6 +271,52 @@ public abstract class BlockEntityInventory implements BlockInventory {
             }
             write(data);
             return List.copyOf(cleared);
+        }
+    }
+
+    /**
+     * Runs an action that reads then writes the slots of some blocks as one step: while it runs, no
+     * other view over these blocks, on any thread, reads or writes them. A player taking the stack
+     * they saw in a slot, or a hopper moving it, would otherwise hand out items another thread took
+     * the moment before: players look into a block from the regions around it, each on its own
+     * thread. Containers that are not the slots of a block are left as they are.
+     *
+     * <p>The action must neither wait for another thread nor run the code of plugins, since other
+     * threads may be waiting for these slots.</p>
+     *
+     * @param containers the containers the action reads and writes
+     * @param action     the action
+     */
+    public static void atomically(final Collection<? extends Container> containers, final Runnable action) {
+        final Set<Integer> locks = new TreeSet<>();
+        for (final Container container : containers) {
+            collectLocks(container, locks);
+        }
+        runLocked(locks.stream().mapToInt(Integer::intValue).toArray(), 0, action);
+    }
+
+    private static void collectLocks(final Container container, final Set<Integer> locks) {
+        if (container instanceof final BlockEntityInventory block) {
+            locks.add(block.lockIndex);
+        } else if (container instanceof LargeChestInventory(
+                final ChestInventory first, final ChestInventory second
+        )) {
+            collectLocks(first, locks);
+            collectLocks(second, locks);
+        }
+    }
+
+    /**
+     * Takes the locks in the order of their index, the same on every thread, so that two threads
+     * never wait for each other.
+     */
+    private static void runLocked(final int[] locks, final int from, final Runnable action) {
+        if (from == locks.length) {
+            action.run();
+            return;
+        }
+        synchronized (LOCKS[locks[from]]) {
+            runLocked(locks, from + 1, action);
         }
     }
 

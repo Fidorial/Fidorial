@@ -3,6 +3,7 @@ package fr.euphyllia.fidorial.server.tests;
 import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.BlockEntityInventory;
 import fr.euphyllia.fidorial.server.inventory.ChestMenu;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.network.protocol.packet.serverbound.play.ServerboundContainerClickPacket;
@@ -41,6 +42,9 @@ import net.kyori.adventure.text.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static fr.euphyllia.fidorial.server.tests.RedstoneTests.Y;
 import static fr.euphyllia.fidorial.server.tests.RedstoneTests.at;
@@ -549,5 +553,78 @@ public final class ChestTests {
                 .waitUntil(() -> helper.assertTrue(onTheGround(world, ItemKeys.APPLE) == 3,
                         "Breaking the chest should spill its 3 apples, found " + onTheGround(world, ItemKeys.APPLE)))
                 .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 60)
+    public static void windowOnABrokenChestHandsOutNothing(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition position = Position.block(2, AIR_Y, 4);
+        helper.sequence()
+                .execute(() -> {
+                    load(world, position);
+                    placeChest(world, position, BlockTypeKeys.CHEST);
+                    inventory(world, position).set(0, ItemStack.of(ItemKeys.DIAMOND, 64));
+                    final ServerPlayer viewer = player(helper, "broken_chest_viewer", position);
+                    helper.assertTrue(use(viewer, position) && viewer.containerMenu() instanceof ChestMenu, "The chest should open");
+                    final ContainerMenu window = viewer.containerMenu();
+                    set(world, position, defaults(BlockTypeKeys.AIR));
+                    // a click let through just before the chest broke
+                    click(window, 0);
+                    helper.assertTrue(window.carried().isEmpty(),
+                            "The window of a broken chest should hand out nothing, gave " + window.carried());
+                })
+                .waitUntil(() -> helper.assertTrue(onTheGround(world, ItemKeys.DIAMOND) == 64,
+                        "The broken chest should spill its 64 diamonds once, found " + onTheGround(world, ItemKeys.DIAMOND)))
+                .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 60)
+    public static void slotsOfAChestWaitForAnAtomicStepOnAnotherThread(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition position = Position.block(2, AIR_Y, 4);
+        helper.sequence()
+                .execute(() -> {
+                    load(world, position);
+                    placeChest(world, position, BlockTypeKeys.CHEST);
+                    final ChestInventory chest = inventory(world, position);
+                    chest.set(0, ItemStack.of(ItemKeys.DIAMOND, 64));
+                    final CountDownLatch inside = new CountDownLatch(1);
+                    final CountDownLatch release = new CountDownLatch(1);
+                    final CountDownLatch read = new CountDownLatch(1);
+                    final AtomicReference<ItemStack> seen = new AtomicReference<>();
+                    // a player of one region taking the stack, another reading it from the next region
+                    final Thread taker = new Thread(() -> BlockEntityInventory.atomically(List.of(chest), () -> {
+                        inside.countDown();
+                        awaitQuietly(release);
+                        chest.set(0, ItemStack.EMPTY);
+                    }), "chest-test-taker");
+                    final Thread reader = new Thread(() -> {
+                        awaitQuietly(inside);
+                        seen.set(chest.get(0));
+                        read.countDown();
+                    }, "chest-test-reader");
+                    taker.start();
+                    reader.start();
+                    helper.assertTrue(awaitQuietly(inside), "The step should start");
+                    final boolean readDuringTheStep = awaitQuietly(read, 200);
+                    release.countDown();
+                    helper.assertFalse(readDuringTheStep, "Another thread should not read the slots in the middle of the step");
+                    helper.assertTrue(awaitQuietly(read) && seen.get().isEmpty(),
+                            "Once the step is over, the other thread should read what it left, read " + seen.get());
+                })
+                .build();
+    }
+
+    private static boolean awaitQuietly(final CountDownLatch latch) {
+        return awaitQuietly(latch, 5_000);
+    }
+
+    private static boolean awaitQuietly(final CountDownLatch latch, final long millis) {
+        try {
+            return latch.await(millis, TimeUnit.MILLISECONDS);
+        } catch (final InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 }

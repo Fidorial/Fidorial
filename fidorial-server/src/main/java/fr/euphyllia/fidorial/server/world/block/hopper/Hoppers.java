@@ -167,9 +167,7 @@ public final class Hoppers implements TickingBlockEntities.Ticker {
                 return true;
             }
             final boolean fedEmptyHopper = destination.kind() == HopperContainers.Kind.HOPPER && into.isEmpty();
-            inventory.set(slot, HopperContainers.without(stack, fits));
-            final ItemStack left = HopperContainers.insert(into, moving);
-            HopperContainers.giveBack(inventory, slot, left);
+            final ItemStack left = HopperContainers.move(inventory, slot, stack, moving, into);
             if (left.count() < moving.count()) {
                 if (fedEmptyHopper) {
                     fed(world, target, currentTick, config.transferCooldown());
@@ -208,9 +206,7 @@ public final class Hoppers implements TickingBlockEntities.Ticker {
             if (refused(inventory, false, above, from, position, inventory, moving)) {
                 return true;
             }
-            from.set(slot, HopperContainers.without(stack, fits));
-            final ItemStack left = HopperContainers.insert(inventory, moving);
-            HopperContainers.giveBack(from, slot, left);
+            final ItemStack left = HopperContainers.move(from, slot, stack, moving, inventory);
             if (left.count() < moving.count()) {
                 return true;
             }

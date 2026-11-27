@@ -37,6 +37,8 @@ import net.kyori.adventure.text.Component;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
 
 import static fr.euphyllia.fidorial.server.tests.RedstoneTests.Y;
@@ -529,6 +531,37 @@ public final class HopperTests {
                 .waitUntil(() -> helper.assertTrue(count(chestInventory(world, chest), ItemKeys.DIAMOND) == 1
                                 && count(inventory(world, picker), ItemKeys.EMERALD) == 3,
                         "Without the listeners, the hoppers should move the items"))
+                .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 60)
+    public static void hopperMovesNothingOutOfASlotEmptiedMeanwhile(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition puller = Position.block(4, Y, 8);
+        final BlockPosition chest = Position.block(4, Y + 1, 8);
+        final AtomicReferenceArray<Subscription> subscription = new AtomicReferenceArray<>(new Subscription[1]);
+        final AtomicIntegerArray tries = new AtomicIntegerArray(new int[]{0});
+        helper.sequence()
+                .execute(() -> {
+                    hopper(world, 4, Y, 8);
+                    chest(world, 4, Y + 1, 8);
+                    chestInventory(world, chest).set(0, ItemStack.of(ItemKeys.DIAMOND, 64));
+                    // the stack is taken while the hopper is about to pull from it, as a player looking
+                    // into the chest from another region, on another thread, can
+                    subscription.set(0, listen(world, HopperMoveItemEvent.class, event -> {
+                        tries.getAndIncrement(0);
+                        event.source().set(0, ItemStack.EMPTY);
+                    }));
+                })
+                .waitUntil(() -> tries.get(0) > 0, "The hopper should try to pull the diamonds")
+                .execute(() -> {
+                    subscription.get(0).unsubscribe();
+                    final int inChest = count(chestInventory(world, chest), ItemKeys.DIAMOND);
+                    final int inHopper = count(inventory(world, puller), ItemKeys.DIAMOND);
+                    helper.assertTrue(inChest == 0 && inHopper == 0,
+                            "The hopper should not bring back what was taken from the slot meanwhile: the chest holds "
+                                    + inChest + " diamonds, the hopper " + inHopper);
+                })
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.block.hopper;
 
+import fr.euphyllia.fidorial.server.inventory.BlockEntityInventory;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BarrelBlock;
 import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
@@ -14,6 +15,7 @@ import fr.fidorial.world.block.data.type.Chest;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The containers a hopper moves items into and out of: a chest, the two halves of a large chest
@@ -136,7 +138,8 @@ final class HopperContainers {
     }
 
     /**
-     * Puts the items of a stack into a container.
+     * Puts the items of a stack into a container, as one step against the other threads looking
+     * into it.
      *
      * @return what did not fit, empty when every item did
      */
@@ -147,6 +150,12 @@ final class HopperContainers {
         if (container instanceof final CrafterSlots crafter) {
             return crafter.insert(stack);
         }
+        final ItemStack[] left = {stack};
+        BlockEntityInventory.atomically(List.of(container), () -> left[0] = insertNow(container, stack));
+        return left[0];
+    }
+
+    private static ItemStack insertNow(final Container container, final ItemStack stack) {
         int left = stack.count();
         final ItemStack[] contents = container.contents();
         for (int slot = 0; slot < contents.length && left > 0; slot++) {
@@ -176,6 +185,32 @@ final class HopperContainers {
             }
         }
         return true;
+    }
+
+    /**
+     * Moves part of the stack of a slot into another container, as one step against the other
+     * threads looking into them: a player of a neighbouring region may be taking from the same
+     * slots. Nothing moves when the slot no longer holds what the move was decided on.
+     *
+     * @param from   the container moved out of
+     * @param slot   the slot of {@code from}
+     * @param seen   what the slot held when the move was decided
+     * @param moving what to move, part of {@code seen}
+     * @param into   the container moved into
+     * @return what could not be put into {@code into}, all of {@code moving} when nothing moved
+     */
+    static ItemStack move(final Container from, final int slot, final ItemStack seen, final ItemStack moving,
+                          final Container into) {
+        final AtomicReference<ItemStack> left = new AtomicReference<>(moving);
+        BlockEntityInventory.atomically(List.of(from, into), () -> {
+            if (!from.get(slot).equals(seen)) {
+                return;
+            }
+            from.set(slot, without(seen, moving.count()));
+            left.set(insert(into, moving));
+            giveBack(from, slot, left.get());
+        });
+        return left.get();
     }
 
     /**
