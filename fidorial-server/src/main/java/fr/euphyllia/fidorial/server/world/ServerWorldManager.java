@@ -14,7 +14,6 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleOverrides;
 import fr.euphyllia.fidorial.server.world.generation.NoiseWorldGenerator;
-import fr.euphyllia.fidorial.server.world.generation.end.EndChunkGenerator;
 import fr.euphyllia.fidorial.server.world.storage.ChunkStorage;
 import fr.euphyllia.fidorial.server.world.storage.Dimension;
 import fr.euphyllia.fidorial.server.world.storage.EntityRegionStorage;
@@ -29,7 +28,6 @@ import fr.euphyllia.fidorial.server.world.weather.WeatherState;
 import fr.euphyllia.fidorial.server.world.weather.WorldWeather;
 import fr.fidorial.registry.keys.BiomeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
-import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.dimension.types.VanillaDimensionTypes;
 import fr.fidorial.world.entity.EntitySpawnBridge;
 import fr.fidorial.world.generation.WorldGenerator;
@@ -374,11 +372,10 @@ public final class ServerWorldManager implements AutoCloseable {
     /**
      * Registers the End of this save, generated from the same seed as the overworld.
      *
-     * @param dimensionType the dimension type of the End, as the registries define it: its height is the one
-     *                      the clients are told, so the chunks have to be made with it
+     * @param generator what generates its chunks
      */
-    public ServerWorld theEnd(final DimensionTypeDefinition dimensionType) {
-        return registerDimension(Dimension.THE_END, new EndChunkGenerator(dimensionType, levelData.seed));
+    public ServerWorld theEnd(final ChunkGenerator generator) {
+        return registerDimension(Dimension.THE_END, generator);
     }
 
     private @Nullable ServerWorld mostPopulatedWorld() {

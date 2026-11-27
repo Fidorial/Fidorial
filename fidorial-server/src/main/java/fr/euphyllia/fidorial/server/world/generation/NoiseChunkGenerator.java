@@ -18,9 +18,12 @@ import fr.euphyllia.fidorial.server.world.generation.carver.Carver;
 import fr.euphyllia.fidorial.server.world.generation.carver.CarvingMask;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeClimate;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeInfo;
+import fr.euphyllia.fidorial.server.world.generation.climate.BiomeSource;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeTable;
 import fr.euphyllia.fidorial.server.world.generation.climate.ClimateSampler;
 import fr.euphyllia.fidorial.server.world.generation.climate.ClimateTable;
+import fr.euphyllia.fidorial.server.world.generation.climate.EndBiomes;
+import fr.euphyllia.fidorial.server.world.generation.climate.MultiNoiseBiomes;
 import fr.euphyllia.fidorial.server.world.generation.data.HeightContext;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.generation.density.Density;
@@ -63,7 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * Generates a dimension from noise settings and a multi noise biome source: the terrain shaped by the density
+ * Generates a dimension from noise settings and a biome source: the terrain shaped by the density
  * functions, the aquifers, the material rules and the carvers, then the features of the biomes.
  *
  * <p>Everything follows from the seed and the data: the terrain of a chunk does not depend on the chunks generated
@@ -110,8 +113,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     private final PositionalRandom worldRandom;
     private final DensityProgram program;
     private final BiomeTable biomes;
-    private final ClimateSampler climate;
-    private final ClimateTable<Character> climateTable;
+    private final BiomeSource biomeSource;
     private final JitteredBiomeGrid zoom;
     private final BiomeClimate biomeClimate;
     private final StatePalette palette = new StatePalette();
@@ -128,7 +130,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
      */
     private final class Worker {
         final DensityContext density = program.newContext();
-        final ClimateTable.Cursor<Character> cursor = climateTable.cursor();
+        final BiomeSource.Sampler biomeSampler = biomeSource.newSampler();
         final TerrainBuilder builder;
 
         Worker() {
@@ -142,7 +144,8 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
      * @param environment   what the generator reads from the server
      * @param dimensionType the dimension the chunks are made for; its height has to hold the terrain
      * @param settingsKey   the noise settings, such as {@code minecraft:overworld}
-     * @param presetKey     the parameter list of the biome source, such as {@code minecraft:overworld}
+     * @param presetKey     the parameter list of the biome source, such as {@code minecraft:overworld}, or
+     *                      {@link EndBiomes#PRESET} for the biomes of the End
      * @param seed          the seed of the world
      */
     public NoiseChunkGenerator(final Environment environment, final DimensionTypeDefinition dimensionType,
@@ -163,21 +166,26 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
         // air comes first: it is the number read outside the chunks
         palette.id(blocks.air);
 
-        final JsonElement parameters = data.get(WorldgenData.Section.BIOME_PARAMETERS, presetKey.asString());
-        final Set<String> ordered = new LinkedHashSet<>();
-        for (final JsonElement entry : parameters.getAsJsonObject().getAsJsonArray("biomes")) {
-            ordered.add(WorldgenData.normalize(entry.getAsJsonObject().get("biome").getAsString()));
+        if (EndBiomes.PRESET.equals(presetKey)) {
+            final List<String> ids = EndBiomes.BIOMES.stream().map(biome -> biome.key().asString()).toList();
+            this.biomes = BiomeTable.of(ids, environment.biomeDefinitions(), data);
+            this.biomeSource = EndBiomes.of(program.compile(settings.routed("erosion")), biomes);
+        } else {
+            final JsonElement parameters = data.get(WorldgenData.Section.BIOME_PARAMETERS, presetKey.asString());
+            final Set<String> ordered = new LinkedHashSet<>();
+            for (final JsonElement entry : parameters.getAsJsonObject().getAsJsonArray("biomes")) {
+                ordered.add(WorldgenData.normalize(entry.getAsJsonObject().get("biome").getAsString()));
+            }
+            this.biomes = BiomeTable.of(new ArrayList<>(ordered), environment.biomeDefinitions(), data);
+            this.biomeSource = new MultiNoiseBiomes(new ClimateSampler(
+                    program.compile(settings.routed("temperature")),
+                    program.compile(settings.routed("vegetation")),
+                    program.compile(settings.routed("continents")),
+                    program.compile(settings.routed("erosion")),
+                    program.compile(settings.routed("depth")),
+                    program.compile(settings.routed("ridges")),
+                    ClimateTable.fromReport(parameters, id -> (char) biomes.find(id).index())));
         }
-        this.biomes = BiomeTable.of(new ArrayList<>(ordered), environment.biomeDefinitions(), data);
-        this.climateTable = ClimateTable.fromReport(parameters, id -> (char) biomes.find(id).index());
-        this.climate = new ClimateSampler(
-                program.compile(settings.routed("temperature")),
-                program.compile(settings.routed("vegetation")),
-                program.compile(settings.routed("continents")),
-                program.compile(settings.routed("erosion")),
-                program.compile(settings.routed("depth")),
-                program.compile(settings.routed("ridges")),
-                climateTable);
 
         final Density finalDensity = program.compile(settings.routed("final_density"));
         final AquiferSampler.Inputs aquifers = settings.aquifers() == null ? null : aquiferInputs(settings.aquifers());
@@ -271,7 +279,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
      */
     public char noiseBiome(final int quartX, final int quartY, final int quartZ) {
         final Worker worker = workers.get();
-        return climate.biomeAt(worker.density, worker.cursor, quartX, quartY, quartZ);
+        return worker.biomeSampler.biomeAt(worker.density, quartX, quartY, quartZ);
     }
 
     /**
@@ -322,7 +330,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
         final Worker worker = workers.get();
         worker.density.reset();
         final NoiseBiomeGrid grid = new NoiseBiomeGrid(chunkX, chunkZ, heights.minY(), heights.height(), zoom,
-                (qx, qy, qz) -> climate.biomeAt(worker.density, worker.cursor, qx, qy, qz));
+                (qx, qy, qz) -> worker.biomeSampler.biomeAt(worker.density, qx, qy, qz));
         final GenChunk chunk = new GenChunk(chunkX, chunkZ, heights.minY(), heights.height(), palette, environment.blocks().air, grid);
         final CarvingMask mask = carvingMask(chunkX, chunkZ);
         worker.builder.fill(chunk, worker.density, mask.isEmpty() ? null : mask);

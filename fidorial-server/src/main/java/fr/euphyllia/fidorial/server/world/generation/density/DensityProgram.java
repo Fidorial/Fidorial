@@ -274,6 +274,7 @@ public final class DensityProgram {
                     object.get("xz_scale").getAsDouble(), object.get("y_scale").getAsDouble(),
                     object.get("xz_factor").getAsDouble(), object.get("y_factor").getAsDouble(),
                     object.get("smear_scale_multiplier").getAsDouble()));
+            case "end_outer_islands" -> new OuterIslands(seed);
             case "cache", "cache_once", "flat_cache", "cache_2d", "cache_all_in_cell", "interpolated" -> {
                 final Density input = field(object, "input");
                 if ("interpolated".equals(type)) {

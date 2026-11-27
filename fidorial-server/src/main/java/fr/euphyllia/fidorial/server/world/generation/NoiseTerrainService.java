@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation;
 
 import fr.euphyllia.fidorial.server.world.ServerWorld;
+import fr.euphyllia.fidorial.server.world.generation.climate.EndBiomes;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.fidorial.registry.keys.DimensionTypeKeys;
 import fr.fidorial.world.World;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Builds the noise generators of the server, and the terrains plugins query.
@@ -35,7 +37,10 @@ public final class NoiseTerrainService implements NoiseTerrains {
      * The noise settings and biome preset of the nether.
      */
     public static final Key NETHER = Key.key("nether");
-    private static final Key END_SETTINGS = Key.key("end");
+    /**
+     * The noise settings of the End, whose biomes come from {@link EndBiomes#PRESET}.
+     */
+    public static final Key END = Key.key("end");
     private static final int KEPT_TERRAINS = 4;
 
     private final NoiseChunkGenerator.Environment environment;
@@ -64,7 +69,8 @@ public final class NoiseTerrainService implements NoiseTerrains {
         this.dimensionTypes = dimensionTypes;
         this.saveSeed = saveSeed;
         this.settings = keys(environment.data(), WorldgenData.Section.NOISE_SETTINGS);
-        this.presets = keys(environment.data(), WorldgenData.Section.BIOME_PARAMETERS);
+        final Set<Key> parameterLists = keys(environment.data(), WorldgenData.Section.BIOME_PARAMETERS);
+        this.presets = Stream.concat(parameterLists.stream(), Stream.of(EndBiomes.PRESET)).collect(Collectors.toUnmodifiableSet());
     }
 
     private static Set<Key> keys(final WorldgenData data, final WorldgenData.Section section) {
@@ -105,7 +111,7 @@ public final class NoiseTerrainService implements NoiseTerrains {
         if (settingsKey.equals(NETHER)) {
             return dimensionTypes.apply(DimensionTypeKeys.THE_NETHER.key());
         }
-        if (settingsKey.equals(END_SETTINGS)) {
+        if (settingsKey.equals(END)) {
             return dimensionTypes.apply(DimensionTypeKeys.THE_END.key());
         }
         return dimensionTypes.apply(DimensionTypeKeys.OVERWORLD.key());

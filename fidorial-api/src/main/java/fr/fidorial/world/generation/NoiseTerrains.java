@@ -27,7 +27,9 @@ public interface NoiseTerrains {
     Set<Key> settings();
 
     /**
-     * {@return the keys of the biome presets a terrain can be built from}
+     * {@return the keys of the biome presets a terrain can be built from: the parameter lists of the climates, such
+      * as {@code minecraft:overworld}, and {@code minecraft:the_end}, which picks the biomes of the End from its
+      * islands}
      *
      * @since 0.1.0
      */

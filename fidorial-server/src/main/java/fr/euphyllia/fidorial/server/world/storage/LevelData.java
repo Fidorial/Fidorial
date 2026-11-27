@@ -8,6 +8,7 @@ import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.entity.AnvilEntitySerializer;
 import fr.euphyllia.fidorial.server.world.gamerule.GameRuleValues;
+import fr.euphyllia.fidorial.server.world.generation.climate.EndBiomes;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.DataFixerType;
 import fr.euphyllia.fidorial.server.world.storage.datafixers.registry.DataFixersRegistry;
 import fr.euphyllia.fidorial.server.world.weather.WeatherState;
@@ -46,6 +47,8 @@ import static fr.euphyllia.fidorial.server.world.storage.util.BinaryTags.writeLi
 public final class LevelData {
 
     private static final String DIMENSIONS = "dimensions";
+    // the biome source of the End, which takes no parameter list
+    private static final Key END_BIOME_SOURCE = Key.key("the_end");
     private static final String WORLD_CLOCKS = "WorldClocks";
     private static final List<String> DIFFICULTIES = List.of("peaceful", "easy", "normal", "hard");
 
@@ -427,14 +430,17 @@ public final class LevelData {
 
     /**
      * {@return the biome preset saved for a dimension generated from noise, e.g. {@code minecraft:overworld}, or
-     * {@code null} when none is saved}
+     * {@link EndBiomes#PRESET} for the biome source of the End, or {@code null} when none is saved}
      */
     public @Nullable Key savedBiomePreset(final Key dimension) {
-        return savedKey(worldGenSettings.getCompound(DIMENSIONS)
+        final CompoundBinaryTag source = worldGenSettings.getCompound(DIMENSIONS)
                 .getCompound(dimension.asString())
                 .getCompound("generator")
-                .getCompound("biome_source")
-                .getString("preset"));
+                .getCompound("biome_source");
+        if (END_BIOME_SOURCE.equals(savedKey(source.getString("type")))) {
+            return EndBiomes.PRESET;
+        }
+        return savedKey(source.getString("preset"));
     }
 
     private static @Nullable Key savedKey(final String id) {
@@ -493,18 +499,7 @@ public final class LevelData {
             case ChunkGeneratorConfig.Noise(final Key settings, final Key biomeSourcePreset) -> CompoundBinaryTag.builder()
                     .putString("type", "minecraft:noise")
                     .putString("settings", settings.asString())
-                    .put("biome_source", CompoundBinaryTag.builder()
-                            .putString("type", "minecraft:multi_noise")
-                            .putString("preset", biomeSourcePreset.asString())
-                            .build())
-                    .build();
-
-            case ChunkGeneratorConfig.TheEnd _ -> CompoundBinaryTag.builder()
-                    .putString("type", "minecraft:noise")
-                    .putString("settings", "minecraft:end")
-                    .put("biome_source", CompoundBinaryTag.builder()
-                            .putString("type", "minecraft:the_end")
-                            .build())
+                    .put("biome_source", biomeSource(biomeSourcePreset))
                     .build();
         };
     }
@@ -512,6 +507,18 @@ public final class LevelData {
     private static int parseDifficulty(final String name) {
         final int id = DIFFICULTIES.indexOf(name);
         return id < 0 ? 2 : id;
+    }
+
+    private static CompoundBinaryTag biomeSource(final Key preset) {
+        if (EndBiomes.PRESET.equals(preset)) {
+            return CompoundBinaryTag.builder()
+                    .putString("type", END_BIOME_SOURCE.asString())
+                    .build();
+        }
+        return CompoundBinaryTag.builder()
+                .putString("type", "minecraft:multi_noise")
+                .putString("preset", preset.asString())
+                .build();
     }
 
     private static String difficultyName(final int id) {

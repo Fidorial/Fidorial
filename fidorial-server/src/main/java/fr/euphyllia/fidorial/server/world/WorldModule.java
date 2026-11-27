@@ -26,6 +26,7 @@ import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
 import fr.euphyllia.fidorial.server.world.generation.NoiseTerrainService;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
+import fr.euphyllia.fidorial.server.world.generation.climate.EndBiomes;
 import fr.euphyllia.fidorial.server.world.generation.data.WorldgenData;
 import fr.euphyllia.fidorial.server.world.redstone.FidorialRedstoneEngine;
 import fr.euphyllia.fidorial.server.world.redstone.MovingPistons;
@@ -42,7 +43,6 @@ import fr.fidorial.math.BlockPosition;
 import fr.fidorial.registry.RegistryKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.GameRule;
-import fr.fidorial.registry.keys.DimensionTypeKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.service.ServiceRegistry;
 import fr.fidorial.world.World;
@@ -194,19 +194,20 @@ public final class WorldModule implements ServerModule, WorldManager {
         if (FLAT_GENERATOR.equals(savedGeneratorType(overworld))) {
             return FlatChunkGenerator.cobblestone(VanillaDimensionTypes.OVERWORLD);
         }
-        return noiseGenerator(overworld, NoiseTerrainService.OVERWORLD);
+        return noiseGenerator(overworld, NoiseTerrainService.OVERWORLD, NoiseTerrainService.OVERWORLD);
     }
 
     /**
      * {@return the generator of a dimension made from noise}: the noise settings and biome preset saved for it when
      * this server knows them, the given ones otherwise
      *
-     * @param defaults the key of both the noise settings and the biome preset of a new save
+     * @param defaultSettings the noise settings of a new save
+     * @param defaultPreset   the biome preset of a new save
      */
-    private ChunkGenerator noiseGenerator(final Key dimension, final Key defaults) {
+    private ChunkGenerator noiseGenerator(final Key dimension, final Key defaultSettings, final Key defaultPreset) {
         final LevelData saved = manager.levelData();
-        Key settings = defaults;
-        Key preset = defaults;
+        Key settings = defaultSettings;
+        Key preset = defaultPreset;
         final Key savedSettings = saved.savedNoiseSettings(dimension);
         final Key savedPreset = saved.savedBiomePreset(dimension);
         if (NOISE_GENERATOR.equals(savedGeneratorType(dimension)) && savedSettings != null && savedPreset != null
@@ -244,8 +245,8 @@ public final class WorldModule implements ServerModule, WorldManager {
             tickRates.setFrozen(true);
         }
         overworld.spawnLocation();
-        manager.theNether(noiseGenerator(Dimension.THE_NETHER.id(), NoiseTerrainService.NETHER));
-        manager.theEnd(registries.registry(RegistryKey.DIMENSION_TYPE).get(DimensionTypeKeys.THE_END));
+        manager.theNether(noiseGenerator(Dimension.THE_NETHER.id(), NoiseTerrainService.NETHER, NoiseTerrainService.NETHER));
+        manager.theEnd(noiseGenerator(Dimension.THE_END.id(), NoiseTerrainService.END, EndBiomes.PRESET));
         weather.start();
         dayNight.start();
         bossBars.loadFromLevelData();
