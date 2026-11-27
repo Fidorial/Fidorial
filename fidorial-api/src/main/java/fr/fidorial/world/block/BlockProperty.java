@@ -146,11 +146,14 @@ public sealed interface BlockProperty<T> permits BlockProperty.Flag, BlockProper
         public Choice {
             checkName(name);
             Preconditions.checkArgument(type != null, "The enum of the property '%s' must not be null", name);
+            Preconditions.checkArgument(values != null, "The values of the property '%s' must not be null", name);
             values = List.copyOf(values);
             Preconditions.checkArgument(values.size() > 1, "The property '%s' needs at least two values", name);
             Preconditions.checkArgument(new HashSet<>(values).size() == values.size(),
                     "The property '%s' lists a value twice", name);
             for (final E value : values) {
+                Preconditions.checkArgument(type.isInstance(value),
+                        "The value %s of the property '%s' is not a %s", value, name, type.getName());
                 Preconditions.checkArgument(NAME.matcher(value.name().toLowerCase(Locale.ROOT)).matches(),
                         "The value %s of the property '%s' may only hold a-z, 0-9 and _ once lowercased", value, name);
             }
