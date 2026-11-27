@@ -73,6 +73,23 @@ public final class BlockStateCodecs {
         return NBT.parse(BinaryTagOps.binaryTagOps(), tag).result().orElse(null);
     }
 
+    /**
+     * {@return the state of a structure template palette, {@code null} if its block is unknown}
+     *
+     * <p>Templates are written as {@code {id, properties}} since 26.4 and as {@code {Name, Properties}} before.</p>
+     */
+    public static @Nullable BlockData fromTemplateNbt(final CompoundBinaryTag tag) {
+        final Codec<BlockData> codec = tag.keySet().contains("Name") ? NBT : STATE;
+        return codec.parse(BinaryTagOps.binaryTagOps(), tag).result().orElse(null);
+    }
+
+    /**
+     * {@return the block id of a structure template palette entry, whichever format wrote it}
+     */
+    public static String templateBlockId(final CompoundBinaryTag tag) {
+        return tag.keySet().contains("Name") ? tag.getString("Name") : tag.getString("id");
+    }
+
     public static Map<String, String> names(final BlockData data) {
         final Map<String, String> names = new LinkedHashMap<>();
         for (final PropertyValue<?> value : data.values()) {

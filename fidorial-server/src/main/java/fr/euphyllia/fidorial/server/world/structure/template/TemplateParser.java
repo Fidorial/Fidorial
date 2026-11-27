@@ -65,9 +65,9 @@ public final class TemplateParser {
                 if (!(raw.get(i) instanceof final CompoundBinaryTag entry)) {
                     continue;
                 }
-                final BlockData data = BlockStateCodecs.fromNbt(entry);
+                final BlockData data = BlockStateCodecs.fromTemplateNbt(entry);
                 if (data == null) {
-                    missing.add(entry.getString("Name"));
+                    missing.add(BlockStateCodecs.templateBlockId(entry));
                     continue;
                 }
                 if (!data.key().equals(Keys.STRUCTURE_VOID)) {
