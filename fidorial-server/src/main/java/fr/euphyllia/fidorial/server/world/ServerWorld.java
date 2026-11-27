@@ -622,15 +622,21 @@ public final class ServerWorld implements World {
             return false;
         }
         final BlockState previous = column.getBlock(x & 15, y, z & 15);
-        CompoundBinaryTag kept = null;
-        if (!previous.isAir() && !previous.name().equals(state.name())) {
-            final BlockPosition pos = Position.block(x, y, z);
-            kept = keptBlockEntity(column, pos, previous, state);
-            if (kept == null) {
-                beforeRemoved(pos, previous);
-            }
+        final BlockPosition pos = Position.block(x, y, z);
+        final boolean replaced = !previous.name().equals(state.name());
+        final boolean removed = replaced && !previous.isAir();
+        final boolean keeps = removed && keepsBlockEntity(column, pos, previous, state);
+        if (removed && !keeps) {
+            beforeRemoved(pos, previous);
         }
-        column.setBlock(x & 15, y, z & 15, state, kept);
+        if (replaced && column.blockEntity(x & 15, y, z & 15) != null) {
+            synchronized (BlockEntityLocks.of(this, pos)) {
+                final BlockEntity blockEntity = column.blockEntity(x & 15, y, z & 15);
+                column.setBlock(x & 15, y, z & 15, state, keeps && blockEntity != null ? blockEntity.dataOrEmpty() : null);
+            }
+        } else {
+            column.setBlock(x & 15, y, z & 15, state, null);
+        }
         markDirty(x >> 4, z >> 4);
         final TypedKey<BlockEntityType> placed = state.blockEntityType();
         final BlockEntityListener listener = blockEntityListener;
@@ -641,27 +647,27 @@ public final class ServerWorld implements World {
     }
 
     /**
-     * {@return the data of the block entity at {@code pos} when the behaviour of the block being
-     * replaced hands it over to its replacement, {@code null} when the block entity goes with it}
+     * {@return {@code true} if the behaviour of the block being replaced hands its block entity over
+     * to its replacement, {@code false} when the block entity goes with it}
      */
-    private @Nullable CompoundBinaryTag keptBlockEntity(final ChunkColumn column, final BlockPosition pos,
-                                                        final BlockState previous, final BlockState state) {
+    private boolean keepsBlockEntity(final ChunkColumn column, final BlockPosition pos,
+                                     final BlockState previous, final BlockState state) {
         final TypedKey<BlockEntityType> type = state.blockEntityType();
         final BlockEntity blockEntity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
         if (type == null || blockEntity == null || !blockEntity.type().equals(type)) {
-            return null;
+            return false;
         }
         final BlockData data = blockStates.resolve(previous);
         final BlockData replacement = blockStates.resolve(state);
         final BlockBehaviour behaviour = blockStates.registry().behaviour(previous.name()).orElse(null);
         if (data == null || replacement == null || behaviour == null) {
-            return null;
+            return false;
         }
         try {
-            return behaviour.keepsBlockEntity(data, replacement) ? blockEntity.dataOrEmpty() : null;
+            return behaviour.keepsBlockEntity(data, replacement);
         } catch (final RuntimeException exception) {
             LOGGER.error("The behaviour of {} failed while it was replaced at {}", previous.name(), pos, exception);
-            return null;
+            return false;
         }
     }
 
@@ -704,6 +710,23 @@ public final class ServerWorld implements World {
         }
         final BlockEntity blockEntity = column.blockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15);
         return blockEntity == null ? null : blockEntity.dataOrEmpty();
+    }
+
+    /**
+     * Removes the block entity at {@code pos} and leaves the block as it is, for a block about to be
+     * removed whose block entity must go first, such as a container whose slots were just taken out.
+     * Called on the thread owning the block.
+     *
+     * @return {@code true} if there was one
+     */
+    public boolean removeBlockEntity(final BlockPosition pos) {
+        ThreadContexts.checkOwnedByCurrentThread(this, pos, "removeBlockEntity");
+        final ChunkColumn column = loadedColumn(pos.blockX() >> 4, pos.blockZ() >> 4);
+        if (column == null || column.removeBlockEntity(pos.blockX() & 15, pos.blockY(), pos.blockZ() & 15) == null) {
+            return false;
+        }
+        markDirty(pos.blockX() >> 4, pos.blockZ() >> 4);
+        return true;
     }
 
     /**

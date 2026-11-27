@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import fr.euphyllia.fidorial.server.codecs.adventure.ComponentCodecs;
 import fr.euphyllia.fidorial.server.codecs.container.ContainerCodecs;
+import fr.euphyllia.fidorial.server.world.BlockEntityLocks;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.loot.ContainerLoot;
 import fr.fidorial.inventory.BlockInventory;
@@ -45,8 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * items of the rows beyond in its block entity. Writing a shown slot keeps the hidden ones as they
  * were.</p>
  *
- * <p>Views over the same block share a lock: players looking into a block from two regions click
- * on two threads.</p>
+ * <p>Views over the same block share its {@linkplain BlockEntityLocks lock}: players looking into a
+ * block from two regions click on two threads, while the thread owning the block may remove it.</p>
  */
 public abstract class BlockEntityInventory implements BlockInventory {
 
@@ -59,18 +60,11 @@ public abstract class BlockEntityInventory implements BlockInventory {
     private static final int MAX_STORED_SIZE = 256;
 
     private static final ComponentLogger LOGGER = ComponentLogger.logger(BlockEntityInventory.class);
-    private static final Object[] LOCKS = new Object[64];
 
     /**
      * The codecs of the {@code Items} of block entities, by number of slots kept.
      */
     private static final Map<Integer, Codec<SimpleContainer>> CODECS = new ConcurrentHashMap<>();
-
-    static {
-        for (int index = 0; index < LOCKS.length; index++) {
-            LOCKS[index] = new Object();
-        }
-    }
 
     private final ServerWorld world;
     private final BlockPosition position;
@@ -103,8 +97,8 @@ public abstract class BlockEntityInventory implements BlockInventory {
         this.block = block;
         this.size = size;
         this.codec = CODECS.computeIfAbsent(storedSize, slots -> ContainerCodecs.containerCodec(() -> new SimpleContainer(slots)));
-        this.lockIndex = Math.floorMod(Objects.hash(world.key(), position), LOCKS.length);
-        this.lock = LOCKS[lockIndex];
+        this.lockIndex = BlockEntityLocks.index(world.key(), position);
+        this.lock = BlockEntityLocks.lock(lockIndex);
         this.slots = new ItemStack[storedSize];
         Arrays.fill(slots, ItemStack.EMPTY);
     }
@@ -237,18 +231,54 @@ public abstract class BlockEntityInventory implements BlockInventory {
     }
 
     /**
-     * Empties every slot the block entity keeps, the hidden ones included, and returns what they
-     * held, as one step: no other view over the block, on another thread, hands the same items out
-     * meanwhile.
+     * Takes every item the block entity keeps, the hidden slots included, and removes the block
+     * entity, as one step, for a block being removed: a view over the block on another thread finds
+     * the items still there, or no block entity left to hand them out or to take more in, never
+     * the items gone with the block entity still there to take the ones it would put in, which would
+     * then be lost with it.
+     *
+     * <p>Called on the thread owning the block.</p>
      *
      * @return the stacks the slots held, the hidden ones after the shown ones
      */
-    public final ItemStack[] takeStored() {
+    public final ItemStack[] takeStoredAndRemove() {
         synchronized (lock) {
             final ItemStack[] taken = storedContents();
-            clearStored();
+            world.removeBlockEntity(position);
+            readFrom = null;
+            Arrays.fill(slots, ItemStack.EMPTY);
             return taken;
         }
+    }
+
+    /**
+     * {@return {@code true} while the block entity the view reads is still there}
+     *
+     * <p>Only an answer given under the lock of the block, within {@link #atomically}, still holds
+     * when acted upon.</p>
+     */
+    public final boolean isPresent() {
+        return world.blockEntityData(position) != null;
+    }
+
+    /**
+     * {@return {@code true} if every block entity a container shows the slots of is still there}:
+     * both halves of a large chest; always for a container that is not the slots of a block
+     *
+     * <p>Asked within {@link #atomically} over the container, the answer holds for the whole step:
+     * a block removed meanwhile on the thread owning it takes its block entity away under the same
+     * lock.</p>
+     *
+     * @param container the container
+     */
+    public static boolean present(final Container container) {
+        if (container instanceof final BlockEntityInventory block) {
+            return block.isPresent();
+        }
+        if (container instanceof LargeChestInventory(final ChestInventory first, final ChestInventory second)) {
+            return present(first) && present(second);
+        }
+        return true;
     }
 
     /**
@@ -315,7 +345,7 @@ public abstract class BlockEntityInventory implements BlockInventory {
             action.run();
             return;
         }
-        synchronized (LOCKS[locks[from]]) {
+        synchronized (BlockEntityLocks.lock(locks[from])) {
             runLocked(locks, from + 1, action);
         }
     }

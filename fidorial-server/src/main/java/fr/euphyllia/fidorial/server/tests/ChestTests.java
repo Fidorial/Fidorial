@@ -579,6 +579,31 @@ public final class ChestTests {
     }
 
     @ScenarioTest(timeoutTicks = 60)
+    public static void windowOnABrokenChestTakesNothingIn(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition position = Position.block(2, AIR_Y, 4);
+        // the first slot of the player inventory, just after the 27 of the chest
+        final int inventorySlot = 27;
+        helper.sequence()
+                .execute(() -> {
+                    load(world, position);
+                    placeChest(world, position, BlockTypeKeys.CHEST);
+                    final ServerPlayer viewer = player(helper, "broken_chest_depositor", position);
+                    viewer.inventory().set(PlayerInventory.MAIN_START, ItemStack.of(ItemKeys.DIAMOND, 64));
+                    helper.assertTrue(use(viewer, position) && viewer.containerMenu() instanceof ChestMenu, "The chest should open");
+                    final ContainerMenu window = viewer.containerMenu();
+                    click(window, inventorySlot);
+                    helper.assertTrue(window.carried().count() == 64, "The diamonds should be on the cursor, carried " + window.carried());
+                    set(world, position, defaults(BlockTypeKeys.AIR));
+                    // a click let through just before the chest broke, putting the diamonds down in it
+                    click(window, 0);
+                    helper.assertTrue(window.carried().count() == 64,
+                            "The window of a broken chest should take nothing in, left on the cursor " + window.carried());
+                })
+                .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 60)
     public static void slotsOfAChestWaitForAnAtomicStepOnAnotherThread(final ScenarioTestHelper helper) {
         final World world = helper.world();
         final BlockPosition position = Position.block(2, AIR_Y, 4);

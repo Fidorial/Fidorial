@@ -139,7 +139,7 @@ final class HopperContainers {
 
     /**
      * Puts the items of a stack into a container, as one step against the other threads looking
-     * into it.
+     * into it. Nothing goes into a block removed meanwhile.
      *
      * @return what did not fit, empty when every item did
      */
@@ -150,9 +150,13 @@ final class HopperContainers {
         if (container instanceof final CrafterSlots crafter) {
             return crafter.insert(stack);
         }
-        final ItemStack[] left = {stack};
-        BlockEntityInventory.atomically(List.of(container), () -> left[0] = insertNow(container, stack));
-        return left[0];
+        final AtomicReference<ItemStack> left = new AtomicReference<>(stack);
+        BlockEntityInventory.atomically(List.of(container), () -> {
+            if (BlockEntityInventory.present(container)) {
+                left.set(insertNow(container, stack));
+            }
+        });
+        return left.get();
     }
 
     private static ItemStack insertNow(final Container container, final ItemStack stack) {
@@ -190,7 +194,8 @@ final class HopperContainers {
     /**
      * Moves part of the stack of a slot into another container, as one step against the other
      * threads looking into them: a player of a neighbouring region may be taking from the same
-     * slots. Nothing moves when the slot no longer holds what the move was decided on.
+     * slots. Nothing moves when the slot no longer holds what the move was decided on, or when
+     * {@code into} was removed meanwhile.
      *
      * @param from   the container moved out of
      * @param slot   the slot of {@code from}
@@ -203,7 +208,7 @@ final class HopperContainers {
                           final Container into) {
         final AtomicReference<ItemStack> left = new AtomicReference<>(moving);
         BlockEntityInventory.atomically(List.of(from, into), () -> {
-            if (!from.get(slot).equals(seen)) {
+            if (!from.get(slot).equals(seen) || !BlockEntityInventory.present(into)) {
                 return;
             }
             from.set(slot, without(seen, moving.count()));

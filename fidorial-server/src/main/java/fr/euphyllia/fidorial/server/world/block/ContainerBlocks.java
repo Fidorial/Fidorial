@@ -115,9 +115,12 @@ public final class ContainerBlocks {
 
     /**
      * Spills on the ground, where the block stands, every item its block entity keeps, those of the
-     * slots it no longer shows included, its loot rolled first when it still had a table. The slots
-     * are emptied as they are read, in one step, so that the windows still open on the block, on
-     * whatever thread, do not hand the same items out a second time.
+     * slots it no longer shows included, its loot rolled first when it still had a table. The block
+     * entity is removed as its slots are read, in one step, so that the windows still open on the
+     * block and the hoppers beside it, on whatever thread, neither hand the same items out a second
+     * time nor put in items that would be lost with it.
+     *
+     * <p>Called on the thread owning the block, as it is removed.</p>
      *
      * @param inventory the slots of the block being removed
      */
@@ -126,7 +129,7 @@ public final class ContainerBlocks {
         if (!FidorialServer.isInitialized()) {
             return;
         }
-        final ItemStack[] contents = inventory.takeStored();
+        final ItemStack[] contents = inventory.takeStoredAndRemove();
         final FidorialServer server = FidorialServer.getInstance();
         final BlockPosition position = inventory.position();
         for (final ItemStack stack : contents) {

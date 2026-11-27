@@ -566,6 +566,36 @@ public final class HopperTests {
     }
 
     @ScenarioTest(timeoutTicks = 60)
+    public static void hopperKeepsWhatItWouldPushIntoAChestRemovedMeanwhile(final ScenarioTestHelper helper) {
+        final World world = helper.world();
+        final BlockPosition chest = Position.block(6, Y, 4);
+        final BlockPosition hopper = Position.block(6, Y + 1, 4);
+        final AtomicReferenceArray<Subscription> subscription = new AtomicReferenceArray<>(new Subscription[1]);
+        final AtomicIntegerArray tries = new AtomicIntegerArray(new int[]{0});
+        helper.sequence()
+                .execute(() -> {
+                    chest(world, 6, Y, 4);
+                    hopper(world, 6, Y + 1, 4);
+                    inventory(world, hopper).set(0, ItemStack.of(ItemKeys.DIAMOND, 3));
+                    // the chest goes while the hopper is about to push into it, as it can when the
+                    // region owning it breaks it on its own thread
+                    subscription.set(0, listen(world, HopperMoveItemEvent.class, event -> {
+                        if (tries.getAndIncrement(0) == 0) {
+                            set(world, chest, defaults(BlockTypeKeys.AIR));
+                        }
+                    }));
+                })
+                .waitUntil(() -> tries.get(0) > 0, "The hopper should try to push the diamonds")
+                .execute(() -> {
+                    subscription.get(0).unsubscribe();
+                    final int inHopper = count(inventory(world, hopper), ItemKeys.DIAMOND);
+                    helper.assertTrue(inHopper == 3,
+                            "The hopper should keep what it could not put into the chest removed meanwhile, holds " + inHopper);
+                })
+                .build();
+    }
+
+    @ScenarioTest(timeoutTicks = 60)
     public static void breakingAHopperSpillsItsItems(final ScenarioTestHelper helper) {
         final World world = helper.world();
         final BlockPosition position = Position.block(4, Y + 3, 4);
