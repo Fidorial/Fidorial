@@ -84,6 +84,7 @@ import fr.euphyllia.fidorial.server.world.ChunkGeneratorConfig;
 import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
+import fr.euphyllia.fidorial.server.world.block.BlockItems;
 import fr.euphyllia.fidorial.server.world.block.BlockMining;
 import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
@@ -711,19 +712,20 @@ public final class PlayPacketHandler implements PlayPacketListener {
                 connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
                 return;
             }
-            final BlockPosition target = clicked.relative(clickedFace);
             final ItemStack held = acting.inventory().get(slot);
             final FarmingRegistry farmingItems = server.registries().farming();
             final TypedKey<BlockType> plant = held.isEmpty() ? null : farmingItems.plant(held.id()).orElse(null);
             // a hoe or a fertilizer that found nothing to do is no block to place
             final boolean farmingTool = !held.isEmpty() && plant == null
                     && (farmingItems.isHoe(held.id()) || farmingItems.isFertilizer(held.id()));
-            final BlockState state = held.isEmpty() || farmingTool
+            final BlockPosition target = held.isEmpty() || farmingTool
+                    ? null : placementTarget(world, clicked, clickedFace, plant != null ? plant : BlockItems.block(held.id()));
+            final BlockState state = target == null
                     ? null : blockToPlace(held, plant, farming, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
 
             boolean placed = false;
-            if (state != null) {
+            if (target != null && state != null) {
                 final BlockPlaceEvent event = server.events()
                         .post(new BlockPlaceEvent(acting, target, server.registries().blockStates().networkId(state)));
                 if (!event.isCancelled()) {
@@ -734,13 +736,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     acting.sendToTrackers(new ClientboundSwingAnimationPacket(acting.entityId(), packet.hand() == 0, interactAnimation));
                     placed = true;
                 }
-            }
-            if (plant != null) {
-                // a seed is used up by what it plants; a seed that could not be planted is given back
-                if (placed && acting.gameMode() != GameMode.CREATIVE) {
-                    acting.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
-                }
-                acting.updateInventory();
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
@@ -777,6 +772,49 @@ public final class PlayPacketHandler implements PlayPacketListener {
         }
         final BlockData data = blockStates.resolve(placed);
         return data == null || farming.canSurvive(target, data) ? placed : null;
+    }
+
+    /**
+     * Works out where a block placed against a clicked face goes, like vanilla's {@code BlockPlaceContext}: into the
+     * clicked block itself when it can be replaced (grass, a single snow layer...), otherwise in front of the clicked
+     * face, but only when what stands there can be replaced too. A button or a hopper in front of the face is never
+     * overwritten: the click places nothing, as in vanilla.
+     *
+     * @param placing the block that would be placed
+     * @return the position to place at, {@code null} when there is none
+     */
+    private static @Nullable BlockPosition placementTarget(
+            final ServerWorld world, final BlockPosition clicked, final BlockFace clickedFace,
+            final TypedKey<BlockType> placing) {
+        if (canBeReplaced(blockAt(world, clicked), placing)) {
+            return clicked;
+        }
+        final BlockPosition inFront = clicked.relative(clickedFace);
+        return canBeReplaced(blockAt(world, inFront), placing) ? inFront : null;
+    }
+
+    /**
+     * {@return {@code true} if a block being placed may take the place of an existing one}
+     *
+     * @param existing the block standing there, {@code null} when its chunk is not loaded
+     * @param placing  the block that would be placed
+     */
+    private static boolean canBeReplaced(final @Nullable BlockState existing, final TypedKey<BlockType> placing) {
+        if (existing == null) {
+            return false;
+        }
+        if (existing.isAir()) {
+            return true;
+        }
+        if (!existing.isTagged(BlockTypeTagKeys.REPLACEABLE)) {
+            return false;
+        }
+        if (existing.name().equals(BlockTypeKeys.SNOW)) {
+            // like vanilla: only a single layer of snow gives way
+            return "1".equals(existing.properties().get("layers"));
+        }
+        // like vanilla: a replaceable block does not give way to its own kind (grass on grass goes in front)
+        return existing.isFluid() || !existing.name().equals(placing);
     }
 
     private boolean interactWithBlock(final BlockPosition pos) {
