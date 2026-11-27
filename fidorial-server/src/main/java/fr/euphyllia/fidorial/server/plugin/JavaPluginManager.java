@@ -297,6 +297,7 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
         SimplePluginContext context = null;
         Plugin plugin = null;
         try {
+            linkDependencies(candidate);
             final Class<?> mainClass = Class.forName(meta.main(), true, candidate.classLoader);
             if (!Plugin.class.isAssignableFrom(mainClass)) {
                 LOGGER.error("{} ignored: {} does not implement Plugin", meta.id(), meta.main());
@@ -331,6 +332,25 @@ public final class JavaPluginManager implements PluginManager, AutoCloseable {
             }
         }
         closeQuietly(candidate.classLoader);
+    }
+
+    /**
+     * Gives a plugin access to the classes of the plugins it depends on. They are instantiated before
+     * it, since {@link #sortByDependencies(List)} orders every plugin after its dependencies.
+     */
+    private void linkDependencies(final Candidate candidate) {
+        if (!(candidate.classLoader instanceof final PluginClassLoader loader)) {
+            return;
+        }
+        for (final String dependency : candidate.meta.depends()) {
+            final Loaded loaded = plugins.get(dependency);
+            if (loaded == null) {
+                LOGGER.warn("{} depends on '{}', which failed to load: its classes will not be visible",
+                        candidate.meta.id(), dependency);
+            } else if (loaded.classLoader instanceof final PluginClassLoader dependencyLoader) {
+                loader.addDependency(dependencyLoader);
+            }
+        }
     }
 
     private void teardown(final Plugin plugin, final String pluginId, final @Nullable SimplePluginContext context) {

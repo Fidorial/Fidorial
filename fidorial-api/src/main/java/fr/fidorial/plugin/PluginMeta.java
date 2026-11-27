@@ -18,7 +18,8 @@ import java.util.Map;
  * @param version      the version
  * @param main         the fully qualified name of the class implementing {@link Plugin}
  * @param authors      the authors
- * @param depends      the identifiers of the plugins that must be loaded before this one
+ * @param depends      the identifiers of the plugins that must be loaded before this one; their
+ *                     classes are visible to this plugin, after its own and the server's
  * @param permissions  the permissions declared by the plugin, keyed by node
  * @param repositories extra Maven repositories used to resolve the plugin libraries
  * @since 0.1.0

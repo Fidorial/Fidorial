@@ -8,9 +8,14 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * The class loader of one plugin.
+ */
 final class PluginClassLoader extends URLClassLoader {
 
     static {
@@ -20,6 +25,7 @@ final class PluginClassLoader extends URLClassLoader {
     private final ClassLoader serverLoader;
     private final Set<String> parentFirstPackages;
     private final String pluginId;
+    private final List<PluginClassLoader> dependencies = new CopyOnWriteArrayList<>();
 
     PluginClassLoader(
             final String pluginId,
@@ -35,6 +41,17 @@ final class PluginClassLoader extends URLClassLoader {
 
     String pluginId() {
         return pluginId;
+    }
+
+    /**
+     * Makes the classes of {@code dependency} visible to this plugin.
+     *
+     * @param dependency the class loader of a plugin listed in this plugin's {@code depends}
+     */
+    void addDependency(final PluginClassLoader dependency) {
+        if (dependency != this && !dependencies.contains(dependency)) {
+            dependencies.add(dependency);
+        }
     }
 
     @Override
@@ -53,6 +70,9 @@ final class PluginClassLoader extends URLClassLoader {
                 }
                 if (found == null && !parentFirst) {
                     found = tryParent(name);
+                }
+                if (found == null && !parentFirst) {
+                    found = tryDependencies(name, new HashSet<>());
                 }
                 if (found == null) {
                     throw new ClassNotFoundException(name + " (from plugin " + pluginId + ")");
@@ -94,6 +114,40 @@ final class PluginClassLoader extends URLClassLoader {
         } catch (final ClassNotFoundException e) {
             return null;
         }
+    }
+
+    /**
+     * Looks {@code name} up in the plugins this one depends on, then in theirs.
+     *
+     * <p>Locks are always taken from a plugin towards its dependencies, never the other way, and
+     * cyclic dependencies are rejected before any plugin is linked to its dependencies, so this cannot
+     * deadlock.</p>
+     */
+    private @Nullable Class<?> tryDependencies(final String name, final Set<PluginClassLoader> visited) {
+        for (final PluginClassLoader dependency : dependencies) {
+            if (!visited.add(dependency)) {
+                continue;
+            }
+            final Class<?> found = dependency.findOwnOrDependencies(name, visited);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    private @Nullable Class<?> findOwnOrDependencies(final String name, final Set<PluginClassLoader> visited) {
+        synchronized (getClassLoadingLock(name)) {
+            final Class<?> loaded = findLoadedClass(name);
+            if (loaded != null) {
+                return loaded;
+            }
+            final Class<?> own = tryHere(name);
+            if (own != null) {
+                return own;
+            }
+        }
+        return tryDependencies(name, visited);
     }
 
     @Override
