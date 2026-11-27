@@ -27,8 +27,9 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 
 /**
- * How hard each block is to mine and what it takes for it to drop anything, read from the
- * {@code block_mining.json} dataset written by the {@code generateBlockMining} task.
+ * How hard each block is to mine, how fast each tool mines it and what it takes for it to drop
+ * anything, read from the {@code block_mining.json} dataset written by the
+ * {@code generateBlockMining} task.
  */
 public final class BlockMining {
 
@@ -40,6 +41,12 @@ public final class BlockMining {
      * The hardness of a block the dataset does not know: it takes time to mine.
      */
     private static final float UNKNOWN_HARDNESS = 1.0f;
+
+    /**
+     * How fast an item mines a block no rule of its {@code minecraft:tool} component names, and a
+     * bare hand any block.
+     */
+    private static final float DEFAULT_SPEED = 1.0f;
 
     private static volatile Dataset dataset = Dataset.EMPTY;
 
@@ -100,7 +107,8 @@ public final class BlockMining {
 
     /**
      * Reads the rules of a {@code minecraft:tool} component that say whether the tool is correct
-     * for the drops of the blocks they name; the rules saying nothing about drops are left out.
+     * for the drops of the blocks they name, or how fast it mines them; the rules saying neither are
+     * left out.
      */
     private static List<ToolRule> rules(final JsonObject component) {
         final JsonElement rules = component.get("rules");
@@ -111,11 +119,13 @@ public final class BlockMining {
         for (final JsonElement element : rules.getAsJsonArray()) {
             final JsonObject rule = element.getAsJsonObject();
             final JsonElement correct = rule.get("correct_for_drops");
+            final JsonElement speed = rule.get("speed");
             final JsonElement blocks = rule.get("blocks");
-            if (correct == null || blocks == null) {
+            if (blocks == null || (correct == null && speed == null)) {
                 continue;
             }
-            read.add(ToolRule.of(blocks, correct.getAsBoolean()));
+            read.add(ToolRule.of(blocks, correct == null ? null : correct.getAsBoolean(),
+                    speed == null ? null : speed.getAsFloat()));
         }
         return List.copyOf(read);
     }
@@ -170,11 +180,35 @@ public final class BlockMining {
             return false;
         }
         for (final ToolRule rule : dataset.tools().getOrDefault(tool.id(), List.of())) {
-            if (rule.matches(block, blockTags)) {
-                return rule.correctForDrops();
+            final Boolean correct = rule.correctForDrops();
+            if (correct != null && rule.matches(block, blockTags)) {
+                return correct;
             }
         }
         return false;
+    }
+
+    /**
+     * {@return how fast an item mines a block, before what the player adds to it}: the speed of the
+     * first rule of the {@code minecraft:tool} component of the item that names the block and gives
+     * a speed; {@code 1} for an item without such a rule, an empty hand among them
+     *
+     * @param block     the block type being mined
+     * @param tool      what mines it, {@link ItemStack#EMPTY} for an empty hand
+     * @param blockTags whether a block type belongs to a tag
+     */
+    public static float toolSpeed(final TypedKey<BlockType> block, final ItemStack tool,
+                                  final BiPredicate<TypedKey<BlockType>, TagKey<BlockType>> blockTags) {
+        if (tool.isEmpty()) {
+            return DEFAULT_SPEED;
+        }
+        for (final ToolRule rule : dataset.tools().getOrDefault(tool.id(), List.of())) {
+            final Float speed = rule.speed();
+            if (speed != null && rule.matches(block, blockTags)) {
+                return speed;
+            }
+        }
+        return DEFAULT_SPEED;
     }
 
     /**
@@ -182,7 +216,8 @@ public final class BlockMining {
      *
      * @param hardness     the hardness of each block
      * @param requiresTool the blocks that only drop something when broken with the right tool
-     * @param tools        the rules of the tools that are, or are not, correct for some drops
+     * @param tools        the rules of the tools that are, or are not, correct for some drops, or
+     *                     that mine some blocks faster
      */
     record Dataset(Map<TypedKey<BlockType>, Float> hardness, Set<TypedKey<BlockType>> requiresTool,
                    Map<TypedKey<Item>, List<ToolRule>> tools) {
@@ -192,32 +227,38 @@ public final class BlockMining {
 
     /**
      * A rule of a {@code minecraft:tool} component that says whether the tool is correct for the
-     * drops of some blocks.
+     * drops of some blocks, how fast it mines them, or both.
      *
      * @param tag             the tag of the blocks the rule is about, {@code null} when it names
      *                        them one by one
      * @param blocks          the blocks the rule names one by one, empty when it names a tag
-     * @param correctForDrops whether the tool is correct for the drops of these blocks
+     * @param correctForDrops whether the tool is correct for the drops of these blocks,
+      *                        {@code null} when the rule does not say
+      * @param speed           how fast the tool mines these blocks, {@code null} when the rule does
+     *                        not say
      */
-    record ToolRule(@Nullable TagKey<BlockType> tag, Set<TypedKey<BlockType>> blocks, boolean correctForDrops) {
+    record ToolRule(@Nullable TagKey<BlockType> tag, Set<TypedKey<BlockType>> blocks,
+                    @Nullable Boolean correctForDrops, @Nullable Float speed) {
 
         /**
          * Reads the {@code blocks} of a rule: a tag ({@code #minecraft:mineable/pickaxe}), one
          * block, or a list of blocks.
          */
-        static ToolRule of(final JsonElement blocks, final boolean correctForDrops) {
+        static ToolRule of(final JsonElement blocks, final @Nullable Boolean correctForDrops,
+                           final @Nullable Float speed) {
             if (blocks.isJsonArray()) {
                 final Set<TypedKey<BlockType>> named = new HashSet<>();
                 for (final JsonElement block : blocks.getAsJsonArray()) {
                     named.add(TypedKey.withRegistry(RegistryKey.BLOCK, block.getAsString()));
                 }
-                return new ToolRule(null, Set.copyOf(named), correctForDrops);
+                return new ToolRule(null, Set.copyOf(named), correctForDrops, speed);
             }
             final String name = blocks.getAsString();
             if (name.startsWith("#")) {
-                return new ToolRule(TagKey.withRegistry(RegistryKey.BLOCK, name.substring(1)), Set.of(), correctForDrops);
+                return new ToolRule(TagKey.withRegistry(RegistryKey.BLOCK, name.substring(1)), Set.of(),
+                        correctForDrops, speed);
             }
-            return new ToolRule(null, Set.of(TypedKey.withRegistry(RegistryKey.BLOCK, name)), correctForDrops);
+            return new ToolRule(null, Set.of(TypedKey.withRegistry(RegistryKey.BLOCK, name)), correctForDrops, speed);
         }
 
         boolean matches(final TypedKey<BlockType> block,

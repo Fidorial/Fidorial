@@ -44,10 +44,11 @@ import java.util.function.Consumer;
  * {@code block_drops} game rule off; and what the listeners of the {@link BlockBreakEvent} make of
  * it.
  *
- * <p>The blocks are broken through the packet a client sends, so that the whole path a player
+ * <p>The blocks are broken through the packets a client sends, so that the whole path a player
  * takes is tested. They stand on the floor of the test world, in the middle of the chunk at its
- * origin, so that the thread running the test owns them; the player stands far enough away not to
- * pick up what drops.</p>
+ * origin, so that the thread running the test owns them; the player stands within reach of them,
+ * but far enough away not to pick up what drops, and mines fast, so that a bare hand does not take
+ * seconds to get through stone: how long mining takes is what {@link MiningTests} looks at.</p>
  */
 @SuppressWarnings("unused")
 public final class BlockDropTests {
@@ -71,6 +72,12 @@ public final class BlockDropTests {
      */
     static final int SETTLE_TICKS = 10;
 
+    /**
+     * The block break speed of the players of these tests, as a plugin may raise it: a bare hand
+     * gets through stone in half a second, a pickaxe at once.
+     */
+    private static final double FAST_BREAK_SPEED = 16.0;
+
     private BlockDropTests() {
     }
 
@@ -91,19 +98,22 @@ public final class BlockDropTests {
                                final ItemStack held) {
         helper.world().blockStateId(TARGET);
         final ServerPlayer player = (ServerPlayer) helper.summonPlayer(name,
-                Location.of(helper.world(), 8.5, Y, 2.5, 0f, 0f), gameMode);
+                Location.of(helper.world(), 8.5, Y, 4.5, 0f, 0f), gameMode);
         player.inventory().set(player.selectedSlot(), held);
         return player;
     }
 
     /**
-     * Breaks a block the way a client does: at once in creative mode, once mined in survival.
+     * Breaks a block the way a client does: at once in creative mode; in survival mode, by starting
+     * then finishing to mine it, the block breaking once the player has mined it.
      */
     private static void breakBlock(final ServerPlayer player, final BlockPosition position) {
-        final int action = player.gameMode() == GameMode.CREATIVE
-                ? ServerboundPlayerActionPacket.START_DESTROY_BLOCK
-                : ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
-        player.connection().mockReceive(new ServerboundPlayerActionPacket(action, position, FACE_UP, 0));
+        player.connection().mockReceive(new ServerboundPlayerActionPacket(
+                ServerboundPlayerActionPacket.START_DESTROY_BLOCK, position, FACE_UP, 0));
+        if (player.gameMode() != GameMode.CREATIVE) {
+            player.connection().mockReceive(new ServerboundPlayerActionPacket(
+                    ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK, position, FACE_UP, 0));
+        }
     }
 
     static int dropped(final World world, final TypedKey<Item> item) {

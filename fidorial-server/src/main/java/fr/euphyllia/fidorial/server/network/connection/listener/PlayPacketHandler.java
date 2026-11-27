@@ -87,9 +87,9 @@ import fr.euphyllia.fidorial.server.world.ChunkNetworkSerializer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.ServerWorldManager;
 import fr.euphyllia.fidorial.server.world.block.BlockItems;
-import fr.euphyllia.fidorial.server.world.block.BlockMining;
 import fr.euphyllia.fidorial.server.world.block.ContainerBlocks;
 import fr.euphyllia.fidorial.server.world.block.InfestedBlocks;
+import fr.euphyllia.fidorial.server.world.block.PlayerMining;
 import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
@@ -165,6 +165,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 
 public final class PlayPacketHandler implements PlayPacketListener {
@@ -186,6 +187,17 @@ public final class PlayPacketHandler implements PlayPacketListener {
      */
     private static final long TELEPORT_RESEND_NANOS = 1_000_000_000L;
 
+    /**
+     * How far beyond their block interaction range a player may mine a block, as in vanilla.
+     */
+    private static final double MINING_REACH_BUFFER = 1.0;
+    /**
+     * How much of a block a player must have mined, by the server's count, when their client says
+     * it is done for the block to break at once, as in vanilla: the rest is the slack between the
+     * moment the client started counting and the moment its packet came in.
+     */
+    private static final double FINISH_PROGRESS = 0.7;
+    private static final long TICK_NANOS = 50_000_000L;
     private final ClientConnection connection;
     private final FidorialServer server;
     private final ServerConfiguration config;
@@ -197,6 +209,15 @@ public final class PlayPacketHandler implements PlayPacketListener {
     private int creativeDropsLeft = CREATIVE_DROP_BURST;
     private long creativeDropsRefilledAt = System.nanoTime();
     private long teleportIgnoredSince;
+
+    /**
+     * The block the player is mining, from the moment the server read that they started.
+     */
+    private final AtomicReference<@Nullable Mining> mining = new AtomicReference<>();
+    /**
+     * The block the client said it had mined a little too soon, waiting for the player to have.
+     */
+    private final AtomicReference<@Nullable Mining> delayed = new AtomicReference<>();
 
     public PlayPacketHandler(final ClientConnection connection) {
         this.connection = connection;
@@ -961,49 +982,208 @@ public final class PlayPacketHandler implements PlayPacketListener {
             acting.execute(() -> dropHeldItem(acting, status == ServerboundPlayerActionPacket.DROP_ALL_ITEMS));
             return;
         }
-        final boolean breaking =
-                switch (acting.gameMode()) {
-                    case CREATIVE -> status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK;
-                    case SURVIVAL ->
-                            (status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK && instantMine(packet.position()))
-                                    || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK;
-                    case ADVENTURE, SPECTATOR -> false;
-                };
-        if (!breaking) {
-            connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+        if (status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK
+                || status == ServerboundPlayerActionPacket.ABORT_DESTROY_BLOCK
+                || status == ServerboundPlayerActionPacket.FINISH_DESTROY_BLOCK) {
+            handleMining(acting, packet);
             return;
         }
+        connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+    }
 
-        final ServerWorld world = serverWorld();
-        final ChunkPos chunkPos = packet.position().chunk();
-
-        world.scheduler().execute(world.key(), chunkPos, () -> {
-            final BlockPosition position = packet.position();
-            final BlockState broken = blockAt(world, position);
-            final BlockData block = broken != null ? server.registries().blockStates().resolve(broken) : null;
-            if (broken == null || block == null || block.isAir()) {
-                // nothing left to break: the block is already gone, or its chunk is not loaded
+    /**
+     * Mines a block, checking what the client says: a player only breaks a block within their
+     * reach; in creative mode as soon as they start, in survival mode once they have been at the
+     * very block long enough, with what they hold, to get through it.
+     *
+     * <p>The block a player starts mining is noted here, on the thread reading their packets, so
+     * that the start, the abort and the end of their mining are seen in the order the client sent
+     * them, wherever the blocks are. The block itself is then read and broken on the thread of the
+     * region owning it.</p>
+     *
+     * <p>A client and the server do not start counting at the same moment, so that a client may say
+     * it is done a little before the server would: like vanilla, the block breaks at once when the
+     * player has mined most of it, and otherwise once they have mined all of it, a little later.</p>
+     */
+    private void handleMining(final ServerPlayer acting, final ServerboundPlayerActionPacket packet) {
+        final int status = packet.status();
+        final BlockPosition position = packet.position();
+        final long now = System.nanoTime();
+        final Mining session;
+        if (status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK) {
+            session = new Mining(position, now);
+            mining.set(session);
+        } else if (status == ServerboundPlayerActionPacket.ABORT_DESTROY_BLOCK) {
+            mining.getAndUpdate(current -> current != null && current.position().equals(position) ? null : current);
+            connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+            return;
+        } else {
+            final Mining started = mining.getAndSet(null);
+            if (started == null || !started.position().equals(position)) {
+                LOGGER.debug("{} said they mined the block at {} without having started it", acting.name(), position);
                 connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
                 return;
             }
-            final boolean survival = acting.gameMode() != GameMode.CREATIVE;
-            final ItemStack tool = acting.heldItem();
-            final List<ItemStack> loot = survival ? Harvests.loot(world, block, tool) : List.of();
-            final BlockBreakEvent event = server.events().post(new BlockBreakEventImpl(acting, world, position, block, tool, loot));
-            if (!event.isCancelled()) {
-                // what the block gives is dropped while it still stands
-                if (survival) {
-                    Harvests.harvest(world, position, block, acting, tool);
-                }
-                Harvests.dropAll(world, position, event.drops());
-                server.worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
-                server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
-                if (survival) {
-                    InfestedBlocks.afterBreak(world, position, broken, tool);
-                }
+            session = started;
+        }
+
+        final ServerWorld world = serverWorld();
+        world.scheduler().execute(world.key(), position.chunk(), () -> {
+            if (status == ServerboundPlayerActionPacket.START_DESTROY_BLOCK) {
+                startMining(acting, world, session);
+            } else {
+                finishMining(acting, world, session, now);
             }
+            // the client takes back what it predicted, unless the block was broken meanwhile
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
+    }
+
+    /**
+     * Starts mining a block: breaks it at once in creative mode, and in survival mode when the
+     * player gets through it in a single tick.
+     */
+    private void startMining(final ServerPlayer acting, final ServerWorld world, final Mining session) {
+        final BlockPosition position = session.position();
+        if (!inMiningReach(acting, world, position)) {
+            LOGGER.debug("{} started mining the block at {}, out of their reach", acting.name(), position);
+            mining.compareAndSet(session, null);
+            return;
+        }
+        switch (acting.gameMode()) {
+            case CREATIVE -> {
+                mining.compareAndSet(session, null);
+                destroy(acting, world, position);
+            }
+            case SURVIVAL -> {
+                final BlockData block = blockDataAt(world, position);
+                if (block == null || block.isAir()) {
+                    mining.compareAndSet(session, null);
+                } else if (PlayerMining.progressPerTick(acting, block) >= 1.0f && mining.compareAndSet(session, null)) {
+                    destroy(acting, world, position);
+                }
+            }
+            case ADVENTURE, SPECTATOR -> mining.compareAndSet(session, null);
+        }
+    }
+
+    /**
+     * Ends mining a block in survival mode, as the client says it is done: breaks it now when the
+     * player has mined most of it since they started, and once they have mined all of it otherwise.
+     */
+    private void finishMining(final ServerPlayer acting, final ServerWorld world, final Mining session,
+                              final long finishedAt) {
+        final BlockPosition position = session.position();
+        if (acting.gameMode() != GameMode.SURVIVAL) {
+            return;
+        }
+        if (!inMiningReach(acting, world, position)) {
+            LOGGER.debug("{} finished mining the block at {}, out of their reach", acting.name(), position);
+            return;
+        }
+        final BlockData block = blockDataAt(world, position);
+        if (block == null || block.isAir()) {
+            return;
+        }
+        final float progress = PlayerMining.progressPerTick(acting, block);
+        final long ticks = ticksOfMining(session, finishedAt);
+        if ((double) progress * ticks >= FINISH_PROGRESS) {
+            destroy(acting, world, position);
+            return;
+        }
+        final long needed = PlayerMining.ticksToMine(progress);
+        if (needed == Long.MAX_VALUE) {
+            LOGGER.debug("{} said they mined the block at {}, which they cannot break", acting.name(), position);
+            return;
+        }
+        LOGGER.debug("{} said they mined the block at {} after {} ticks, it takes them {}: it breaks once they would have",
+                acting.name(), position, ticks, needed);
+        // like vanilla, one late block at a time: a later one takes its place
+        delayed.set(session);
+        world.scheduler().executeDelayed(world.key(), position.chunk(),
+                () -> finishMiningLater(acting, world, session), Math.max(1L, needed - ticks));
+    }
+
+    /**
+     * Breaks a block a client said it had mined a little too soon, once the player would have, when
+     * they are still within reach and no other block took its place since.
+     */
+    private void finishMiningLater(final ServerPlayer acting, final ServerWorld world, final Mining session) {
+        if (!delayed.compareAndSet(session, null) || acting.isRemoved() || acting.gameMode() != GameMode.SURVIVAL) {
+            return;
+        }
+        final BlockPosition position = session.position();
+        if (!inMiningReach(acting, world, position)) {
+            return;
+        }
+        final BlockData block = blockDataAt(world, position);
+        if (block == null || block.isAir()) {
+            return;
+        }
+        final float progress = PlayerMining.progressPerTick(acting, block);
+        if ((double) progress * ticksOfMining(session, System.nanoTime()) >= FINISH_PROGRESS) {
+            destroy(acting, world, position);
+        }
+    }
+
+    /**
+     * {@return {@code true} if a player is close enough to a block to mine it}: in its world, within
+     * their block interaction range and the margin vanilla gives
+     */
+    private static boolean inMiningReach(final ServerPlayer acting, final ServerWorld world, final BlockPosition position) {
+        return acting.world() == world && acting.isWithinBlockInteractionRange(position, MINING_REACH_BUFFER);
+    }
+
+    /**
+     * {@return how many ticks a player has been mining at {@code now}, the tick they started
+     * included}: counted on the clock rather than in the ticks of a region, which slow down when it
+     * lags, while the client keeps mining at its own pace
+     */
+    private static long ticksOfMining(final Mining session, final long now) {
+        return Math.max(0L, now - session.startedAt()) / TICK_NANOS + 1L;
+    }
+
+    private @Nullable BlockData blockDataAt(final ServerWorld world, final BlockPosition position) {
+        final BlockState state = blockAt(world, position);
+        return state == null ? null : server.registries().blockStates().resolve(state);
+    }
+
+    /**
+     * Breaks a block for a player allowed to: fires the {@link BlockBreakEvent} with what the block
+     * is about to drop, drops what the listeners left, then removes the block.
+     */
+    private void destroy(final ServerPlayer acting, final ServerWorld world, final BlockPosition position) {
+        final BlockState broken = blockAt(world, position);
+        final BlockData block = broken != null ? server.registries().blockStates().resolve(broken) : null;
+        if (broken == null || block == null || block.isAir()) {
+            // nothing left to break: the block is already gone, or its chunk is not loaded
+            return;
+        }
+        final boolean survival = acting.gameMode() != GameMode.CREATIVE;
+        final ItemStack tool = acting.heldItem();
+        final List<ItemStack> loot = survival ? Harvests.loot(world, block, tool) : List.of();
+        final BlockBreakEvent event = server.events().post(new BlockBreakEventImpl(acting, world, position, block, tool, loot));
+        if (!event.isCancelled()) {
+            // what the block gives is dropped while it still stands
+            if (survival) {
+                Harvests.harvest(world, position, block, acting, tool);
+            }
+            Harvests.dropAll(world, position, event.drops());
+            server.worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
+            server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
+            if (survival) {
+                InfestedBlocks.afterBreak(world, position, broken, tool);
+            }
+        }
+    }
+
+    /**
+     * A block a player mines in survival mode.
+     *
+     * @param position  where the block is, in the world of the player
+     * @param startedAt when the server read that they started, on {@link System#nanoTime()}
+     */
+    private record Mining(BlockPosition position, long startedAt) {
     }
 
     private void swapHands(final ServerPlayer acting) {
@@ -1062,14 +1242,6 @@ public final class PlayPacketHandler implements PlayPacketListener {
     public void handlePlayerAbilities(final ServerboundPlayerAbilitiesPacket packet) {
         final ServerPlayer player = playerOrThrow();
         player.execute(() -> player.setFlying(packet.flying()));
-    }
-
-    /**
-     * {@return {@code true} if the block at a position breaks as soon as a player starts mining it}
-     */
-    private boolean instantMine(final BlockPosition position) {
-        final BlockState state = blockAt(serverWorld(), position);
-        return state != null && !state.isAir() && BlockMining.breaksInstantly(state.name());
     }
 
     private static @Nullable BlockState blockAt(final ServerWorld world, final BlockPosition position) {
