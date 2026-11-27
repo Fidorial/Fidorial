@@ -47,8 +47,9 @@ import java.util.function.Consumer;
  * <p>The blocks are broken through the packets a client sends, so that the whole path a player
  * takes is tested. They stand on the floor of the test world, in the middle of the chunk at its
  * origin, so that the thread running the test owns them; the player stands within reach of them,
- * but far enough away not to pick up what drops, and mines fast, so that a bare hand does not take
- * seconds to get through stone: how long mining takes is what {@link MiningTests} looks at.</p>
+ * but far enough away not to pick up what drops. They mine at the speed of every player, so that a
+ * bare hand takes seven seconds and a half to get through stone: what the server checks of that
+ * time is what {@link MiningTests} looks at.</p>
  */
 @SuppressWarnings("unused")
 public final class BlockDropTests {
@@ -73,10 +74,10 @@ public final class BlockDropTests {
     static final int SETTLE_TICKS = 10;
 
     /**
-     * The block break speed of the players of these tests, as a plugin may raise it: a bare hand
-     * gets through stone in half a second, a pickaxe at once.
+     * The time given to the tests mining stone or ore without the tool that gets their drops: 150
+     * ticks of mining, then the wait for drops, with room left for a slow tick or two.
      */
-    private static final double FAST_BREAK_SPEED = 16.0;
+    private static final int SLOW_MINING_TIMEOUT_TICKS = 300;
 
     private BlockDropTests() {
     }
@@ -152,7 +153,7 @@ public final class BlockDropTests {
         });
     }
 
-    @ScenarioTest
+    @ScenarioTest(timeoutTicks = SLOW_MINING_TIMEOUT_TICKS)
     public static void toolRulesFollowTheDataset(final ScenarioTestHelper helper) {
         helper.sequence()
                 .execute(() -> {
@@ -187,7 +188,7 @@ public final class BlockDropTests {
                 .build();
     }
 
-    @ScenarioTest
+    @ScenarioTest(timeoutTicks = SLOW_MINING_TIMEOUT_TICKS)
     public static void pickaxeMinesCobblestoneOutOfStone(final ScenarioTestHelper helper) {
         final World world = helper.world();
         helper.sequence()

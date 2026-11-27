@@ -233,8 +233,8 @@ public final class BlockMining {
      *                        them one by one
      * @param blocks          the blocks the rule names one by one, empty when it names a tag
      * @param correctForDrops whether the tool is correct for the drops of these blocks,
-      *                        {@code null} when the rule does not say
-      * @param speed           how fast the tool mines these blocks, {@code null} when the rule does
+     *                        {@code null} when the rule does not say
+     * @param speed           how fast the tool mines these blocks, {@code null} when the rule does
      *                        not say
      */
     record ToolRule(@Nullable TagKey<BlockType> tag, Set<TypedKey<BlockType>> blocks,

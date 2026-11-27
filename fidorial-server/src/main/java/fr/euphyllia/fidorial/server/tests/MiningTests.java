@@ -6,7 +6,6 @@ import fr.fidorial.entity.GameMode;
 import fr.fidorial.item.ItemStack;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
-import fr.fidorial.registry.keys.AttributeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
@@ -28,7 +27,7 @@ import static fr.euphyllia.fidorial.server.tests.BlockDropTests.set;
  * with what they hold; a block no player in survival mode breaks never does.
  *
  * <p>The blocks are mined through the packets a client sends, where {@link BlockDropTests} breaks
- * its own, by its fast-mining players.</p>
+ * its own, by its players.</p>
  */
 @SuppressWarnings("unused")
 public final class MiningTests {
@@ -104,7 +103,7 @@ public final class MiningTests {
         helper.sequence()
                 .execute(() -> {
                     set(world, TARGET, "minecraft:stone");
-                    // fast as the player is, a wooden pickaxe takes them two ticks
+                    // a wooden pickaxe takes 23 ticks to get through stone
                     final ServerPlayer player = player(helper, "mining_quitter", GameMode.SURVIVAL, ItemStack.of(ItemKeys.WOODEN_PICKAXE));
                     start(player, TARGET);
                     send(player, ServerboundPlayerActionPacket.ABORT_DESTROY_BLOCK, TARGET);
@@ -123,8 +122,7 @@ public final class MiningTests {
                 .execute(() -> {
                     set(world, TARGET, "minecraft:stone");
                     final ServerPlayer player = player(helper, "mining_hasty", GameMode.SURVIVAL, ItemStack.of(ItemKeys.WOODEN_PICKAXE));
-                    // back to the speed of every player: a wooden pickaxe takes 23 ticks to get through stone
-                    player.setAttributeBase(AttributeKeys.BLOCK_BREAK_SPEED, 1.0);
+                    // a wooden pickaxe takes 23 ticks to get through stone
                     start(player, TARGET);
                     finish(player, TARGET);
                 })
@@ -137,14 +135,13 @@ public final class MiningTests {
 
     @ScenarioTest
     public static void blockMinedInOneTickBreaksAsSoonAsStarted(final ScenarioTestHelper helper) {
-        final World world = helper.world();
         helper.sequence()
                 .execute(() -> {
-                    set(world, TARGET, "minecraft:stone");
-                    start(player(helper, "mining_swift", GameMode.SURVIVAL, ItemStack.of(ItemKeys.DIAMOND_PICKAXE)), TARGET);
+                    // a diamond hoe gets through leaves in a single tick: the client only says it starts
+                    set(helper.world(), TARGET, "minecraft:oak_leaves[persistent=true]");
+                    start(player(helper, "mining_swift", GameMode.SURVIVAL, ItemStack.of(ItemKeys.DIAMOND_HOE)), TARGET);
                 })
                 .waitUntil(() -> helper.assertBlockAt(TARGET, BlockTypeKeys.AIR))
-                .waitUntil(() -> dropped(world, ItemKeys.COBBLESTONE) == 1, "The stone should drop its cobblestone")
                 .build();
     }
 
