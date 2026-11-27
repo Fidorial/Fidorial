@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.world.generation.random.BitRandom;
 import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Trig;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
+import fr.fidorial.world.block.data.Orientable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -357,14 +358,14 @@ final class TrunkShapes {
             return true;
         }
 
-        private static String logAxis(final int sx, final int sz, final int px, final int pz) {
+        private static Orientable.Axis logAxis(final int sx, final int sz, final int px, final int pz) {
             final int xDiff = Math.abs(px - sx);
             final int zDiff = Math.abs(pz - sz);
             final int most = Math.max(xDiff, zDiff);
             if (most > 0) {
-                return xDiff == most ? "x" : "z";
+                return xDiff == most ? Orientable.Axis.X : Orientable.Axis.Z;
             }
-            return "y";
+            return Orientable.Axis.Y;
         }
 
         private static boolean keepsBranch(final int height, final int localY) {
@@ -544,7 +545,7 @@ final class TrunkShapes {
                 attachments.add(Trees.Attachment.of(x, y + trunkHeight, z, 0, false));
             }
             final int direction = Facing.randomHorizontal(random);
-            final String axis = Facing.axis(direction);
+            final Orientable.Axis axis = Facing.axis(direction);
             attachments.add(branch(build, treeHeight, x, y, z, axis, direction, first, first < trunkHeight - 1));
             if (bothSides) {
                 attachments.add(branch(build, treeHeight, x, y, z, axis, Facing.OPPOSITE[direction], second, second < trunkHeight - 1));
@@ -553,7 +554,7 @@ final class TrunkShapes {
         }
 
         private Trees.Attachment branch(final Trees.Build build, final int treeHeight, final int x, final int y, final int z,
-                                        final String axis, final int direction, final int offset, final boolean middleContinues) {
+                                        final Orientable.Axis axis, final int direction, final int offset, final boolean middleContinues) {
             final BitRandom random = build.random;
             int px = x;
             int py = y + offset;

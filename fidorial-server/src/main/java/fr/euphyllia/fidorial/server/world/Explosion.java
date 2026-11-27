@@ -110,7 +110,7 @@ public final class Explosion {
     private static void destroyBlocks(final FidorialServer server, final ServerWorld world, final List<BlockPosition> toDestroy, final float power) {
         for (final BlockPosition pos : toDestroy) {
             final BlockState state = BlockView.blockAt(world, pos.blockX(), pos.blockY(), pos.blockZ());
-            if (server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true)) {
+            if (server.worlds().blockEdits().set(world, pos, BlockState.defaultOf(BlockTypeKeys.AIR), true)) {
                 if (state != null) {
                     // an infested block lets its silverfish out whatever happens to its drops
                     InfestedBlocks.afterBreak(world, pos, state, ItemStack.EMPTY);

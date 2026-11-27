@@ -292,7 +292,7 @@ public final class SilverfishEntity extends AbstractMonster implements Silverfis
 
         private void wake(final ServerWorld world, final BlockPosition position, final BlockState state) {
             if (mobGriefing()) {
-                if (MobBlockChanges.change(SilverfishEntity.this, world, position, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+                if (MobBlockChanges.change(SilverfishEntity.this, world, position, state, BlockState.defaultOf(BlockTypeKeys.AIR))) {
                     world.sendToChunkViewers(position.chunkX(), position.chunkZ(), new ClientboundLevelEventPacket(
                             ClientboundLevelEventPacket.BLOCK_BREAK, position,
                             server().registries().blockStates().networkId(state), false));

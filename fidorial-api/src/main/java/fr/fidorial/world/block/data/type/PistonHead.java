@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -9,7 +10,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "short")
+@BlockTrait(properties = Names.SHORT)
 public interface PistonHead extends TechnicalPiston {
 
     @Override
@@ -28,7 +29,7 @@ public interface PistonHead extends TechnicalPiston {
      * @since 0.1.0
      */
     default boolean isShort() {
-        return Boolean.parseBoolean(get("short"));
+        return get(type().flag(Names.SHORT));
     }
 
     /**
@@ -38,6 +39,6 @@ public interface PistonHead extends TechnicalPiston {
      * @since 0.1.0
      */
     default PistonHead withShort(final boolean shortArm) {
-        return (PistonHead) with("short", String.valueOf(shortArm));
+        return (PistonHead) with(type().flag(Names.SHORT), shortArm);
     }
 }

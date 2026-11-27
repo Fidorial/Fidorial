@@ -91,6 +91,11 @@ public abstract class FidorialRegistryGeneratorExtension {
     public abstract Property<Boolean> getGenerateBlockStates();
 
     /**
+     * Whether the {@code generateBlockProperties} task should be registered.
+     */
+    public abstract Property<Boolean> getGenerateBlockProperties();
+
+    /**
      * Where the {@code generateRecipes} task writes the vanilla recipe dataset. The task only
      * runs when this is set, and needs {@code "--server"} among the data generator arguments.
      */

@@ -853,7 +853,7 @@ public final class MapModule implements ServerModule, MapManager, MapHost {
      */
     private static final class WorldSource implements MapTerrain.Source {
 
-        private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
+        private static final BlockState AIR = BlockState.defaultOf(BlockTypeKeys.AIR);
 
         private final ServerWorld world;
         private final boolean ceiling;

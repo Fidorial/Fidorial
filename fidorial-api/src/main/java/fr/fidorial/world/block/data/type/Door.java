@@ -1,21 +1,19 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Openable;
 import fr.fidorial.world.block.data.Powerable;
 
-import java.util.Locale;
-
 /**
  * The block state of a door: its facing, half, hinge side, and whether it is open or powered.
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "hinge")
+@BlockTrait(properties = Names.HINGE)
 public interface Door extends Directional, Bisected, Openable, Powerable {
 
     @Override
@@ -44,9 +42,7 @@ public interface Door extends Directional, Bisected, Openable, Powerable {
      * @since 0.1.0
      */
     default Hinge getHinge() {
-        final String hinge = get("hinge");
-        Preconditions.checkState(hinge != null, "%s has no hinge property", key());
-        return Hinge.valueOf(hinge.toUpperCase(Locale.ROOT));
+        return get(type().choice(Names.HINGE, Hinge.class));
     }
 
     /**
@@ -56,7 +52,7 @@ public interface Door extends Directional, Bisected, Openable, Powerable {
      * @since 0.1.0
      */
     default Door withHinge(final Hinge hinge) {
-        return (Door) with("hinge", hinge.name().toLowerCase(Locale.ROOT));
+        return (Door) with(type().choice(Names.HINGE, Hinge.class), hinge);
     }
 
     /**

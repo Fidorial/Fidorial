@@ -1,8 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -10,7 +9,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "moisture")
+@BlockTrait(properties = Names.MOISTURE)
 public interface Farmland extends BlockData {
 
     /**
@@ -19,9 +18,7 @@ public interface Farmland extends BlockData {
      * @since 0.1.0
      */
     default int getMoisture() {
-        final String moisture = get("moisture");
-        Preconditions.checkState(moisture != null, "%s has no moisture property", key());
-        return Integer.parseInt(moisture);
+        return get(type().range(Names.MOISTURE));
     }
 
     /**
@@ -32,7 +29,7 @@ public interface Farmland extends BlockData {
      * @since 0.1.0
      */
     default Farmland withMoisture(final int moisture) {
-        return (Farmland) with("moisture", String.valueOf(moisture));
+        return (Farmland) with(type().range(Names.MOISTURE), moisture);
     }
 
     /**
@@ -42,11 +39,7 @@ public interface Farmland extends BlockData {
      * @since 0.1.0
      */
     default int getMaximumMoisture() {
-        final BlockProperty property = type().property("moisture");
-        if (property == null) {
-            throw new IllegalStateException("Cannot determine maximum moisture");
-        }
-        return Integer.parseInt(property.values().getLast());
+        return type().range(Names.MOISTURE).max();
     }
 
     /**

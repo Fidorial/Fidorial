@@ -29,7 +29,7 @@ public class BlockView {
 
     public static @Nullable BlockState blockAt(final ServerWorld world, final int x, final int y, final int z) {
         if (y < world.minY() || y >= world.minY() + world.height()) {
-            return BlockState.withoutProperties(BlockTypeKeys.AIR);
+            return BlockState.defaultOf(BlockTypeKeys.AIR);
         }
         final Optional<Chunk> optionalChunk = world.chunkIfLoaded(x >> 4, z >> 4);
         if (optionalChunk.isEmpty()) return null;

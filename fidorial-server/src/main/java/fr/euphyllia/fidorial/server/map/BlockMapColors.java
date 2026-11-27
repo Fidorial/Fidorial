@@ -1,12 +1,12 @@
 package fr.euphyllia.fidorial.server.map;
 
 import com.google.common.base.Splitter;
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockRegistry;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import net.kyori.adventure.key.Key;
@@ -99,7 +99,7 @@ public final class BlockMapColors {
         if (cached >= 0) {
             return MapColor.values()[cached];
         }
-        final MapColor color = state.isAir() ? MapColor.NONE : resolve(state.name(), state.properties());
+        final MapColor color = of(state.data());
         state.setMapColor(color.id());
         return color;
     }
@@ -114,27 +114,7 @@ public final class BlockMapColors {
             return MapColor.NONE;
         }
         final MapColor custom = custom(data);
-        return custom != null ? custom : vanilla(data.key(), data.propertyMap());
-    }
-
-    private MapColor resolve(final TypedKey<BlockType> name, final Map<String, String> properties) {
-        final BlockData data = data(name, properties);
-        if (data != null) {
-            final MapColor custom = custom(data);
-            if (custom != null) {
-                return custom;
-            }
-        }
-        return vanilla(name, properties);
-    }
-
-    private static @Nullable BlockData data(final TypedKey<BlockType> name, final Map<String, String> properties) {
-        try {
-            final BlockRegistry registry = Blocks.registry();
-            return registry.type(name).map(type -> type.dataOrNull(properties)).orElse(null);
-        } catch (final IllegalStateException _) {
-            return null; // registry not bootstrapped, tests
-        }
+        return custom != null ? custom : vanilla(data);
     }
 
     private static @Nullable MapColor custom(final BlockData data) {
@@ -146,13 +126,8 @@ public final class BlockMapColors {
         }
     }
 
-    /**
-     * {@return the vanilla color of a state}
-     *
-     * @param name       the block
-     * @param properties the properties of the state
-     */
-    public MapColor vanilla(final TypedKey<BlockType> name, final Map<String, String> properties) {
+    private MapColor vanilla(final BlockData data) {
+        final TypedKey<BlockType> name = data.key();
         final Entry entry = Key.MINECRAFT_NAMESPACE.equals(name.key().namespace()) ? vanilla.get(name.key().value()) : null;
         if (entry == null) {
             if (warned.add(name)) {
@@ -161,7 +136,7 @@ public final class BlockMapColors {
             return MapColor.STONE;
         }
         for (final Rule rule : entry.rules()) {
-            if (rule.value().equals(properties.get(rule.property()))) {
+            if (rule.value().equals(BlockStateCodecs.valueName(data, rule.property()))) {
                 return rule.color();
             }
         }

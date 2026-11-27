@@ -4,6 +4,9 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.map.MapColor;
 import fr.fidorial.map.MapShade;
 import fr.fidorial.map.MapView;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Bisected;
+import fr.fidorial.world.block.data.type.Slab;
 import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -254,9 +257,8 @@ final class MapTerrain {
         if (name.equals("water") || name.equals("lava")) {
             return own;
         }
-        final Map<String, String> properties = state.properties();
-        final boolean solidTop = "top".equals(properties.get("type")) || "double".equals(properties.get("type"))
-                || ("top".equals(properties.get("half")) && name.endsWith("_stairs"))
+        final boolean solidTop = state.getOrDefault(BlockProperties.SLAB_TYPE, Slab.Type.BOTTOM) != Slab.Type.BOTTOM
+                || (state.getOrDefault(BlockProperties.HALF, Bisected.Half.BOTTOM) == Bisected.Half.TOP && name.endsWith("_stairs"))
                 || name.endsWith("_grate");
         return solidTop ? own : MapColor.WATER;
     }

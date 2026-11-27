@@ -9,6 +9,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.data.type.NoteBlock;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
@@ -93,7 +94,7 @@ public final class PoweredNoteBlock implements RedstoneBehaviour {
      * @param note     its state
      */
     public void play(final RedstoneWorld world, final BlockPosition position, final NoteBlock note) {
-        final String instrument = note.getInstrument();
+        final String instrument = BlockProperties.INSTRUMENT.nameOf(note.getInstrument());
         final boolean mobHead = MOB_HEADS.contains(instrument);
         if (!mobHead) {
             final BlockData above = world.blockAt(position.relative(BlockFace.UP));

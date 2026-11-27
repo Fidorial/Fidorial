@@ -6,7 +6,6 @@ import fr.euphyllia.fidorial.server.entity.ai.BlockView;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.util.threading.ThreadContexts;
-import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.BlockSolidity;
@@ -22,7 +21,7 @@ import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.World;
-import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.environment.Attribute;
 import fr.fidorial.world.fluid.FluidManager;
@@ -101,28 +100,24 @@ public final class FluidEngine implements FluidManager {
     private static final Set<TypedKey<BlockType>> WATER_PLANTS = Set.of(
             BlockTypeKeys.KELP, BlockTypeKeys.KELP_PLANT, BlockTypeKeys.SEAGRASS, BlockTypeKeys.TALL_SEAGRASS);
 
-    private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
+    private static final BlockState AIR = BlockState.defaultOf(BlockTypeKeys.AIR);
     /**
      * What an unloaded block counts as: a wall fluid does not go through.
      */
-    private static final BlockState UNLOADED = BlockState.withoutProperties(BlockTypeKeys.BARRIER);
+    private static final BlockState UNLOADED = BlockState.defaultOf(BlockTypeKeys.BARRIER);
 
     private final ThreadedRegionRegionizer regionizer;
-    private final BlockStateRegistry blockStates;
     private final FluidCurrents currents;
     private final Function<ServerWorld, RedstoneWorld> updates;
     private volatile @Nullable DebugGameEvents debugEvents;
 
     /**
-     * @param regionizer  the regions the blocks belong to
-     * @param blockStates the block states
-     * @param updates     the block updates of a world, as the redstone engine in effect runs them
+     * @param regionizer the regions the blocks belong to
+     * @param updates    the block updates of a world, as the redstone engine in effect runs them
      */
-    public FluidEngine(final ThreadedRegionRegionizer regionizer, final BlockStateRegistry blockStates,
-                       final Function<ServerWorld, RedstoneWorld> updates) {
+    public FluidEngine(final ThreadedRegionRegionizer regionizer, final Function<ServerWorld, RedstoneWorld> updates) {
         this.regionizer = regionizer;
-        this.blockStates = blockStates;
-        this.currents = new FluidCurrents(blockStates);
+        this.currents = new FluidCurrents();
         this.updates = updates;
     }
 
@@ -445,7 +440,7 @@ public final class FluidEngine implements FluidManager {
             if (type == FluidType.LAVA && direction == BlockFace.DOWN && FluidBlockCodec.fromBlock(state).type() == FluidType.WATER) {
                 // lava falling into water hardens it
                 if (state.name().equals(BlockTypeKeys.WATER)) {
-                    setBlock(view, position, BlockState.withoutProperties(BlockTypeKeys.STONE));
+                    setBlock(view, position, BlockState.defaultOf(BlockTypeKeys.STONE));
                 }
                 hiss(world, position);
                 return;
@@ -622,13 +617,11 @@ public final class FluidEngine implements FluidManager {
     }
 
     static boolean isWaterloggable(final BlockState state) {
-        return state.properties().containsKey("waterlogged");
+        return state.has(BlockProperties.WATERLOGGED);
     }
 
     private static BlockState withWaterlogged(final BlockState state, final boolean waterlogged) {
-        final Map<String, String> properties = new HashMap<>(state.properties());
-        properties.put("waterlogged", Boolean.toString(waterlogged));
-        return BlockState.withProperties(state.name(), properties);
+        return state.with(BlockProperties.WATERLOGGED, waterlogged);
     }
 
     /**
@@ -651,8 +644,7 @@ public final class FluidEngine implements FluidManager {
     }
 
     private boolean setBlock(final RedstoneWorld view, final BlockPosition position, final BlockState state) {
-        final BlockData data = blockStates.resolve(state);
-        return data != null && view.setBlock(position, data, RedstoneWorld.Update.NEIGHBORS);
+        return view.setBlock(position, state.data(), RedstoneWorld.Update.NEIGHBORS);
     }
 
     /**

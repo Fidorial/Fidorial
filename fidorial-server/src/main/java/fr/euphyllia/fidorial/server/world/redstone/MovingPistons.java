@@ -1,5 +1,6 @@
 package fr.euphyllia.fidorial.server.world.redstone;
 
+import fr.euphyllia.fidorial.server.codecs.BlockStateCodecs;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.schedulers.ThreadedRegionRegionizer;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
@@ -11,8 +12,6 @@ import fr.fidorial.entity.player.Player;
 import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Location;
 import fr.fidorial.math.Position;
-import fr.fidorial.registry.RegistryKey;
-import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockEntityTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.scheduler.RegionTickHandler;
@@ -20,16 +19,12 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.World;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.Waterlogged;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
 import fr.fidorial.world.redstone.RedstoneWorld;
-import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.nbt.BinaryTag;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
-import net.kyori.adventure.nbt.StringBinaryTag;
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -71,8 +66,6 @@ public final class MovingPistons implements RegionTickHandler {
     private static final double PUSH_MARGIN = 0.01;
 
     private static final String TAG_BLOCK_STATE = "blockState";
-    private static final String TAG_NAME = "Name";
-    private static final String TAG_PROPERTIES = "Properties";
     private static final String TAG_FACING = "facing";
     private static final String TAG_PROGRESS = "progress";
     private static final String TAG_EXTENDING = "extending";
@@ -365,16 +358,8 @@ public final class MovingPistons implements RegionTickHandler {
      * format.
      */
     private static void save(final ServerWorld world, final MovingBlock block) {
-        final CompoundBinaryTag.Builder state = CompoundBinaryTag.builder()
-                .putString(TAG_NAME, block.moved.key().key().asString());
-        final Map<String, String> properties = block.moved.propertyMap();
-        if (!properties.isEmpty()) {
-            final CompoundBinaryTag.Builder values = CompoundBinaryTag.builder();
-            properties.forEach(values::putString);
-            state.put(TAG_PROPERTIES, values.build());
-        }
         world.setBlockEntityData(block.position, CompoundBinaryTag.builder()
-                .put(TAG_BLOCK_STATE, state.build())
+                .put(TAG_BLOCK_STATE, BlockStateCodecs.toNbt(block.moved))
                 .putInt(TAG_FACING, block.facing.ordinal())
                 .putFloat(TAG_PROGRESS, block.lastProgress)
                 .putBoolean(TAG_EXTENDING, block.extending)
@@ -392,26 +377,8 @@ public final class MovingPistons implements RegionTickHandler {
     }
 
     private static BlockData loadState(final CompoundBinaryTag tag) {
-        final String name = tag.getString(TAG_NAME);
-        if (name.isEmpty()) {
-            return air();
-        }
-        try {
-            final TypedKey<BlockType> key = TypedKey.withRegistry(RegistryKey.BLOCK, name);
-            final BlockType type = Blocks.type(key);
-            BlockData state = type == null ? null : type.defaultData();
-            if (state == null) {
-                return air();
-            }
-            for (final Map.Entry<String, ? extends BinaryTag> property : tag.getCompound(TAG_PROPERTIES)) {
-                if (property.getValue() instanceof final StringBinaryTag value) {
-                    state = state.with(property.getKey(), value.value());
-                }
-            }
-            return state;
-        } catch (final InvalidKeyException | IllegalArgumentException exception) {
-            return air(); // a block or a property this version does not know
-        }
+        final BlockData state = BlockStateCodecs.fromNbt(tag);
+        return state == null ? air() : state;
     }
 
     /**

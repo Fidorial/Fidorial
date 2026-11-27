@@ -140,7 +140,7 @@ public final class EatBlockGoal implements Goal {
      */
     private void replace(final ServerWorld world, final BlockPosition pos, final BlockState eaten,
                          final TypedKey<BlockType> replacement) {
-        final BlockState after = BlockState.withoutProperties(replacement);
+        final BlockState after = BlockState.defaultOf(replacement);
         if (!MobBlockChanges.allowed(mob, pos, eaten, after)) {
             return;
         }

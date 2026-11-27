@@ -1,7 +1,6 @@
 package fr.euphyllia.fidorial.server.world.fluid;
 
 import fr.euphyllia.fidorial.server.entity.ai.BlockView;
-import fr.euphyllia.fidorial.server.world.BlockStateRegistry;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -74,15 +73,6 @@ public final class FluidCurrents {
      * The ice blocks whose faces never count as walls for falling fluid.
      */
     private static final Set<TypedKey<BlockType>> ICE = Set.of(BlockTypeKeys.ICE, BlockTypeKeys.FROSTED_ICE, BlockTypeKeys.BRITTLE_ICE);
-
-    private final BlockStateRegistry blockStates;
-
-    /**
-     * @param blockStates the block states
-     */
-    public FluidCurrents(final BlockStateRegistry blockStates) {
-        this.blockStates = blockStates;
-    }
 
     /**
      * A push, in blocks per tick.
@@ -224,7 +214,7 @@ public final class FluidCurrents {
         if (state == null || FluidBlockCodec.fromBlock(state).type() == fluid.type() || ICE.contains(state.name())) {
             return false;
         }
-        return BlockSupport.isFaceSturdy(blockStates.resolve(state), direction, SupportType.FULL);
+        return BlockSupport.isFaceSturdy(state.data(), direction, SupportType.FULL);
     }
 
     private static boolean affectsFlow(final FluidStateImpl fluid, final FluidStateImpl neighbour) {

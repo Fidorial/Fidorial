@@ -1,11 +1,9 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
-
-import java.util.Locale;
 
 /**
  * A block state carrying the {@code facing} property: the side the block faces.
@@ -15,7 +13,7 @@ import java.util.Locale;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "facing", allowed = {"north", "south", "east", "west", "up", "down"}))
+@BlockTrait(values = @BlockTrait.Values(property = Names.FACING, allowed = {"north", "south", "east", "west", "up", "down"}))
 public interface Directional extends BlockData {
 
     /**
@@ -24,9 +22,7 @@ public interface Directional extends BlockData {
      * @since 0.1.0
      */
     default BlockFace getFacing() {
-        final String facing = get("facing");
-        Preconditions.checkState(facing != null, "%s has no facing property", key());
-        return BlockFace.valueOf(facing.toUpperCase(Locale.ROOT));
+        return get(type().choice(Names.FACING, BlockFace.class));
     }
 
     /**
@@ -36,6 +32,6 @@ public interface Directional extends BlockData {
      * @since 0.1.0
      */
     default Directional withFacing(final BlockFace facing) {
-        return (Directional) with("facing", facing.name().toLowerCase(Locale.ROOT));
+        return (Directional) with(type().choice(Names.FACING, BlockFace.class), facing);
     }
 }

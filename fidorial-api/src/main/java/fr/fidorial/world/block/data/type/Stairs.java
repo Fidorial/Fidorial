@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.block.data.Directional;
@@ -12,7 +12,7 @@ import fr.fidorial.world.block.data.Waterlogged;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "shape")
+@BlockTrait(properties = Names.SHAPE)
 public interface Stairs extends Directional, Bisected, Waterlogged {
 
     @Override
@@ -36,9 +36,7 @@ public interface Stairs extends Directional, Bisected, Waterlogged {
      * @since 0.1.0
      */
     default Shape getShape() {
-        final String shape = get("shape");
-        Preconditions.checkState(shape != null, "%s has no shape property", key());
-        return Shape.fromValue(shape);
+        return get(type().choice(Names.SHAPE, Shape.class));
     }
 
     /**
@@ -48,7 +46,7 @@ public interface Stairs extends Directional, Bisected, Waterlogged {
      * @since 0.1.0
      */
     default Stairs withShape(final Shape shape) {
-        return (Stairs) with("shape", shape.value());
+        return (Stairs) with(type().choice(Names.SHAPE, Shape.class), shape);
     }
 
     /**

@@ -5,7 +5,6 @@ import fr.euphyllia.fidorial.server.world.block.BlockSolidity;
 import fr.euphyllia.fidorial.server.world.block.BlockSupport;
 import fr.euphyllia.fidorial.server.world.block.CollisionShape;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
-import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.Heightmap;
 import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
 import fr.euphyllia.fidorial.server.world.fluid.FluidStateImpl;
@@ -19,14 +18,14 @@ import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.FluidKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockType;
-import fr.fidorial.world.block.Blocks;
 import fr.fidorial.world.block.data.Bisected;
 import fr.fidorial.world.redstone.SupportType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,7 +72,7 @@ public final class StateFlags {
     private static final int CENTER_FACES = 22;
     private static final long KNOWN = 1L << 62;
 
-    private static final Set<String> TWO_HALVES = Set.of(Bisected.Half.UPPER.value(), Bisected.Half.LOWER.value());
+    private static final Set<Bisected.Half> TWO_HALVES = Set.of(Bisected.Half.UPPER, Bisected.Half.LOWER);
     private static final BlockFace[] FACES = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
 
     private final StatePalette palette;
@@ -82,7 +81,7 @@ public final class StateFlags {
     private volatile long[] flags = new long[256];
     private final Map<Edit, Character> edits = new ConcurrentHashMap<>();
 
-    private record Edit(char id, String property, String value) {
+    private record Edit(char id, BlockProperty<?> property, Object value) {
     }
 
     public StateFlags(final StatePalette palette, final BlockLookup blocks) {
@@ -238,7 +237,7 @@ public final class StateFlags {
                 break;
             }
         }
-        final BlockData data = data(state);
+        final BlockData data = state.data();
         for (int face = 0; face < FACES.length; face++) {
             if (BlockSupport.isFaceSturdy(data, FACES[face], SupportType.FULL)) {
                 value |= 1L << (FULL_FACES + face);
@@ -255,87 +254,35 @@ public final class StateFlags {
      * for doors, which are no plants
      */
     private boolean isTwoBlocksTall(final BlockState state) {
-        if (!state.properties().containsKey("half") || blocks.is(state, BlockTypeTagKeys.DOORS)) {
+        final BlockProperty<Bisected.Half> half = state.matching(BlockProperties.DOUBLE_BLOCK_HALF);
+        if (half == null || blocks.is(state, BlockTypeTagKeys.DOORS)) {
             return false;
         }
-        final BlockState[] all = BlockStates.statesOf(state.name());
-        if (all == null) {
-            return false;
-        }
-        for (final BlockState candidate : all) {
-            if (!TWO_HALVES.contains(candidate.properties().get("half"))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static @Nullable BlockData data(final BlockState state) {
-        final BlockData cached = state.data();
-        if (cached != null) {
-            return cached;
-        }
-        try {
-            return Blocks.registry().type(state.name()).map(type -> type.dataOrNull(state.properties())).orElse(null);
-        } catch (final IllegalStateException _) {
-            return null;
-        }
+        return TWO_HALVES.containsAll(half.values());
     }
 
     /**
-     * {@return the number of a state with one property changed; the same state when it has no such property}
+     * {@return the number of a state with one property changed; the same state when it has no such property or does
+     * not accept the value}
      */
-    public char with(final char id, final String property, final String value) {
+    public <T> char with(final char id, final BlockProperty<T> property, final T value) {
         final Edit edit = new Edit(id, property, value);
         final Character known = edits.get(edit);
         if (known != null) {
             return known;
         }
         final BlockState state = palette.state(id);
-        final String current = state.properties().get(property);
-        final char result;
-        if (current == null || current.equals(value)) {
-            result = id;
-        } else {
-            final Map<String, String> values = new HashMap<>(state.properties());
-            values.put(property, value);
-            result = palette.id(BlockState.withProperties(state.name(), values));
-        }
+        final BlockState changed = state.withIfAllowed(property, value);
+        final char result = changed == state ? id : palette.id(changed);
         edits.put(edit, result);
         return result;
     }
 
     /**
-     * {@return the number of a state with one property changed, when the block has the property and allows the
-     * value; the same state otherwise}
-     */
-    public char withIfAllowed(final char id, final String property, final String value) {
-        final BlockState state = palette.state(id);
-        if (!state.properties().containsKey(property)) {
-            return id;
-        }
-        final Boolean allowed = allowedValues.computeIfAbsent(state.name().key().asString() + '|' + property + '=' + value, key -> {
-            final BlockState[] all = BlockStates.statesOf(state.name());
-            if (all == null) {
-                return false;
-            }
-            for (final BlockState candidate : all) {
-                if (value.equals(candidate.properties().get(property))) {
-                    return true;
-                }
-            }
-            return false;
-        });
-        return allowed ? with(id, property, value) : id;
-    }
-
-    private final Map<String, Boolean> allowedValues = new ConcurrentHashMap<>();
-
-    /**
      * {@return the value of a property of a state, {@code null} when it has none}
      */
-    public @Nullable String property(final char id, final String property) {
-        return palette.state(id).properties().get(property);
+    public <T> @Nullable T get(final char id, final BlockProperty<T> property) {
+        return palette.state(id).find(property);
     }
 
     /**

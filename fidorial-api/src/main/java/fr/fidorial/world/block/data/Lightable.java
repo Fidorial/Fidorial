@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -11,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "lit")
+@BlockTrait(properties = Names.LIT)
 public interface Lightable extends BlockData {
 
     /**
@@ -20,7 +21,7 @@ public interface Lightable extends BlockData {
      * @since 0.1.0
      */
     default boolean isLit() {
-        return Boolean.parseBoolean(get("lit"));
+        return get(type().flag(Names.LIT));
     }
 
     /**
@@ -30,6 +31,6 @@ public interface Lightable extends BlockData {
      * @since 0.1.0
      */
     default Lightable withLit(final boolean lit) {
-        return (Lightable) with("lit", String.valueOf(lit));
+        return (Lightable) with(type().flag(Names.LIT), lit);
     }
 }

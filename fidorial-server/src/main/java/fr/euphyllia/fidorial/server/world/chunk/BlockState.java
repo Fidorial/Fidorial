@@ -2,7 +2,6 @@ package fr.euphyllia.fidorial.server.world.chunk;
 
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.registry.ServerRegistry;
-import fr.euphyllia.fidorial.server.registry.data.BlockStateIds;
 import fr.euphyllia.fidorial.server.world.block.BlockCollision;
 import fr.euphyllia.fidorial.server.world.block.CollisionShape;
 import fr.euphyllia.fidorial.server.world.block.blockentity.BlockEntityTypes;
@@ -12,30 +11,25 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class BlockState {
-    private final TypedKey<BlockType> name;
-    private final Map<String, String> properties;
-    private final int hashCode;
+    private final BlockData data;
     private final boolean air;
     private final boolean waterlogged;
     private final boolean water;
     private final boolean fluid;
 
     private volatile @Nullable LightProperties lightProperties;
-    private volatile @Nullable BlockData data;
     private volatile int mapColor = -1;
     private volatile @Nullable CollisionShape collisionShape;
     private volatile @Nullable BlockEntityLookup blockEntityType;
-    private static final ConcurrentHashMap<BlockState, BlockState> INTERN = new ConcurrentHashMap<>(BlockStateIds.STATE_COUNT);
 
     /**
      * The blocks full of water without a {@code waterlogged} property to say so.
@@ -49,58 +43,79 @@ public final class BlockState {
             BlockTypeKeys.TALL_SEAGRASS
     );
 
-    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties) {
-        this.name = name;
-        this.properties = properties.isEmpty()
-                ? Collections.emptyMap()
-                : Collections.unmodifiableMap(new TreeMap<>(properties));
-        this.hashCode = 31 * name.hashCode() + this.properties.hashCode();
-        this.air = name.equals(BlockTypeKeys.AIR) || name.equals(BlockTypeKeys.CAVE_AIR) || name.equals(BlockTypeKeys.VOID_AIR);
-        this.waterlogged = "true".equals(this.properties.get("waterlogged"));
+    // only one instance per state is allowed to exist, so we fully delegate the creation to BlockStates.
+    BlockState(final BlockData data) {
+        this.data = data;
+        final TypedKey<BlockType> name = data.key();
+        this.air = data.isAir();
+        this.waterlogged = data.getOrDefault(BlockProperties.WATERLOGGED, false);
         this.water = WATER_BLOCKS.contains(name) || this.waterlogged;
         this.fluid = this.water || name.equals(BlockTypeKeys.LAVA);
     }
 
-    /**
-     * A key to look up the interned state: only its name, properties and hash code are read.
-     */
-    private BlockState(final TypedKey<BlockType> name, final Map<String, String> properties, final int hashCode) {
-        this.name = name;
-        this.properties = properties;
-        this.hashCode = hashCode;
-        this.air = false;
-        this.waterlogged = false;
-        this.water = false;
-        this.fluid = false;
+    public static BlockState of(final BlockData data) {
+        return BlockStates.of(data);
     }
 
-    public static BlockState withoutProperties(final TypedKey<BlockType> name) {
-        return withProperties(name, Collections.emptyMap(), true);
+    public static BlockState defaultOf(final TypedKey<BlockType> name) {
+        return BlockStates.defaultOf(name);
     }
 
-    public static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties) {
-        return withProperties(name, properties, true);
-    }
-
-    static BlockState withProperties(final TypedKey<BlockType> name, final Map<String, String> properties, final boolean checkIntern) {
-        if (checkIntern) {
-            final int hash = 31 * name.hashCode() + properties.hashCode();
-            final BlockState existing = INTERN.get(new BlockState(name, properties, hash));
-            if (existing != null) {
-                return existing;
-            }
-        }
-        final BlockState created = new BlockState(name, properties);
-        final BlockState previous = INTERN.putIfAbsent(created, created);
-        return previous != null ? previous : created;
+    public static @Nullable BlockState parseLeniently(final TypedKey<BlockType> name, final Map<String, String> properties) {
+        return BlockStates.parseLeniently(name, properties);
     }
 
     public TypedKey<BlockType> name() {
-        return name;
+        return data.key();
     }
 
-    public Map<String, String> properties() {
-        return properties;
+    public BlockType type() {
+        return data.type();
+    }
+
+    public BlockData data() {
+        return data;
+    }
+
+    public <T> T get(final BlockProperty<T> property) {
+        return data.get(property);
+    }
+
+    public boolean has(final BlockProperty<?> property) {
+        return data.has(property);
+    }
+
+    public <T> T getOrDefault(final BlockProperty<T> property, final T fallback) {
+        return data.getOrDefault(property, fallback);
+    }
+
+    public <T> BlockState with(final BlockProperty<T> property, final T value) {
+        return of(data.with(property, value));
+    }
+
+    /// {@return the property of this block with the name and kind of `like`, `null` if it has none}
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable BlockProperty<T> matching(final BlockProperty<T> like) {
+        final BlockProperty<?> own = type().property(like.name());
+        if (own == null || own.getClass() != like.getClass()) {
+            return null;
+        }
+        if (own instanceof final BlockProperty.Choice<?> choice && choice.type() != ((BlockProperty.Choice<?>) like).type()) {
+            return null;
+        }
+        return (BlockProperty<T>) own;
+    }
+
+    /// {@return the value of the property [#matching(BlockProperty)] `like`, `null` if it has none}
+    public <T> @Nullable T find(final BlockProperty<T> like) {
+        final BlockProperty<T> own = matching(like);
+        return own == null ? null : data.get(own);
+    }
+
+    /// {@return this state with the property [#matching(BlockProperty)] `like` set, unchanged if it has none or if it is not allowed}
+    public <T> BlockState withIfAllowed(final BlockProperty<T> like, final T value) {
+        final BlockProperty<T> own = matching(like);
+        return own == null || own.indexOf(value) < 0 ? this : with(own, value);
     }
 
     public boolean isAir() {
@@ -134,7 +149,7 @@ public final class BlockState {
     }
 
     public boolean isTagged(final TagKey<BlockType> tag) {
-        return Registries.BLOCKS.isTagged(this.name, tag);
+        return Registries.BLOCKS.isTagged(name(), tag);
     }
 
     public @Nullable LightProperties lightProperties() {
@@ -164,39 +179,19 @@ public final class BlockState {
         this.collisionShape = collisionShape;
     }
 
-    public @Nullable BlockData data() {
-        return data;
-    }
-
-    public void setData(final BlockData data) {
-        this.data = data;
-    }
-
     /// The block entity type of this state, `null` if it has none.
     public @Nullable TypedKey<BlockEntityType> blockEntityType() {
         BlockEntityLookup lookup = blockEntityType;
         if (lookup == null) {
-            lookup = new BlockEntityLookup(BlockEntityTypes.typeIdentifier(name));
+            lookup = new BlockEntityLookup(BlockEntityTypes.typeIdentifier(name()));
             blockEntityType = lookup;
         }
         return lookup.type();
     }
 
     @Override
-    public boolean equals(final @Nullable Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof final BlockState other)) return false;
-        return hashCode == other.hashCode && name.equals(other.name) && properties.equals(other.properties);
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    @Override
     public String toString() {
-        return "BlockState[name=" + name + ", properties=" + properties + "]";
+        return "BlockState[" + data.asString() + "]";
     }
 
     public record LightProperties(int opacity, int emission) {

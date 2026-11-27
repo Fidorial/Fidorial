@@ -122,7 +122,7 @@ public final class ServerWorldManager implements AutoCloseable {
                 dimension -> configurations.resolve(dimension).storage().regionCompression();
 
         final AnvilChunkSerializer serializer = new AnvilChunkSerializer();
-        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.withoutProperties(BlockTypeKeys.AIR), BiomeKeys.PLAINS, compression);
+        final ChunkStorage storage = new ChunkStorage(paths, serializer, BlockState.defaultOf(BlockTypeKeys.AIR), BiomeKeys.PLAINS, compression);
 
         final EntityRegionStorage entityStorage = new EntityRegionStorage(paths, compression);
         final AnvilEntitySerializer entitySerializer = new AnvilEntitySerializer();

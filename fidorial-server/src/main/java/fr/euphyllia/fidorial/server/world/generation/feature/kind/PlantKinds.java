@@ -14,6 +14,8 @@ import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.property.BambooFoliage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -123,8 +125,8 @@ final class PlantKinds {
             if (vegetation.place(region, random, spot.x(), spot.y() + outwards - 1, spot.z(), false)) {
                 final StateFlags states = region.states();
                 final char placed = region.id(spot.x(), spot.y(), spot.z());
-                if ("false".equals(states.property(placed, "waterlogged"))) {
-                    region.set(spot.x(), spot.y(), spot.z(), states.with(placed, "waterlogged", "true"));
+                if (Boolean.FALSE.equals(states.get(placed, BlockProperties.WATERLOGGED))) {
+                    region.set(spot.x(), spot.y(), spot.z(), states.with(placed, BlockProperties.WATERLOGGED, true));
                 }
             }
         }
@@ -325,16 +327,16 @@ final class PlantKinds {
                         }
                     }
                 }
-                final char trunk = states.with(states.with(states.with(plain, "age", "1"), "leaves", "none"), "stage", "0");
+                final char trunk = states.with(states.with(states.with(plain, BlockProperties.AGE_0_1, 1), BlockProperties.LEAVES, BambooFoliage.NONE), BlockProperties.STAGE, 0);
                 int py = y;
                 for (int i = 0; i < height && region.isAir(x, py, z); i++) {
                     region.set(x, py, z, trunk);
                     py++;
                 }
                 if (py - y >= 3) {
-                    region.set(x, py, z, states.with(states.with(trunk, "leaves", "large"), "stage", "1"));
-                    region.set(x, py - 1, z, states.with(trunk, "leaves", "large"));
-                    region.set(x, py - 2, z, states.with(trunk, "leaves", "small"));
+                    region.set(x, py, z, states.with(states.with(trunk, BlockProperties.LEAVES, BambooFoliage.LARGE), BlockProperties.STAGE, 1));
+                    region.set(x, py - 1, z, states.with(trunk, BlockProperties.LEAVES, BambooFoliage.LARGE));
+                    region.set(x, py - 2, z, states.with(trunk, BlockProperties.LEAVES, BambooFoliage.SMALL));
                 }
             }
             return true;
@@ -353,7 +355,7 @@ final class PlantKinds {
             final char neighbour = region.id(x + Facing.DX[direction], y + Facing.DY[direction], z + Facing.DZ[direction]);
             if (states.sturdy(neighbour, face(Facing.OPPOSITE[direction]))) {
                 final char vine = region.id(region.blocks().state(BlockTypeKeys.VINE));
-                region.set(x, y, z, states.with(vine, Facing.NAMES[direction], "true"));
+                region.set(x, y, z, states.with(vine, Facing.FLAGS[direction], true));
                 return true;
             }
         }
@@ -446,7 +448,7 @@ final class PlantKinds {
         }
 
         private boolean hasFace(final char state, final int direction) {
-            return isBlock(state) && "true".equals(states.property(state, Facing.NAMES[direction]));
+            return isBlock(state) && Boolean.TRUE.equals(states.get(state, Facing.FLAGS[direction]));
         }
 
         private boolean validForPlacement(final char existing, final int x, final int y, final int z, final int direction) {
@@ -468,11 +470,11 @@ final class PlantKinds {
             if (isBlock(existing)) {
                 state = existing;
             } else if (states.has(existing, StateFlags.WATER_SOURCE)) {
-                state = states.with(block, "waterlogged", "true");
+                state = states.with(block, BlockProperties.WATERLOGGED, true);
             } else {
                 state = block;
             }
-            return states.with(state, Facing.NAMES[direction], "true");
+            return states.with(state, Facing.FLAGS[direction], true);
         }
 
         boolean placeIfPossible(final StateFlags.Membership placedOn, final int x, final int y, final int z, final char existing,
@@ -502,7 +504,7 @@ final class PlantKinds {
         void spread(final char state, final int x, final int y, final int z, final int fromFace, final BitRandom random) {
             final int[] order = Facing.shuffled(Facing.ALL, random);
             for (final int direction : order) {
-                if (Facing.axis(direction).equals(Facing.axis(fromFace))) {
+                if (Facing.axis(direction) == Facing.axis(fromFace)) {
                     continue;
                 }
                 if (!hasFace(state, fromFace) || hasFace(state, direction)) {

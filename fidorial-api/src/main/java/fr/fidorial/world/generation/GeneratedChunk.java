@@ -4,6 +4,7 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.PropertyValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,7 +82,10 @@ public interface GeneratedChunk {
      * @since 0.1.0
      */
     default void setBlock(final int x, final int y, final int z, final BlockData data) {
-        final Map<String, String> properties = new HashMap<>(data.propertyMap());
+        final Map<String, String> properties = new HashMap<>();
+        for (final PropertyValue<?> value : data.values()) {
+            properties.put(value.property().name(), value.valueName());
+        }
         setBlock(x, y, z, data.key(), properties);
     }
 

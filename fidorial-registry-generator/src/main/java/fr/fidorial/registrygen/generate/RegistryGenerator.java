@@ -1,5 +1,6 @@
 package fr.fidorial.registrygen.generate;
 
+import fr.fidorial.registrygen.model.BlockPropertyCatalog;
 import fr.fidorial.registrygen.model.BlockReportDefinition;
 import fr.fidorial.registrygen.model.PacketCatalogs;
 import fr.fidorial.registrygen.model.PrismarineBlockEntityDefinition;
@@ -351,6 +352,19 @@ public final class RegistryGenerator {
                 : Map.of();
 
         blockStateGenerator.generate(blocks, lighting, blockPackage, registryDataPackage, blockTypeKeysPackage, outputDirectory);
+    }
+
+    /**
+     * Generates {@code BlockProperties} from Mojang's {@code blocks.json} report.
+     *
+     * @param blocksJson      path to Mojang's {@code blocks.json}
+     * @param outputDirectory generated Java source root
+     * @param blockPackage    package of {@code BlockProperty}, where the class is written
+     * @throws IOException if parsing or source generation fails
+     */
+    public void generateBlockProperties(final Path blocksJson, final Path outputDirectory, final String blockPackage) throws IOException {
+        final List<BlockReportDefinition> blocks = blockReportParser.parse(blocksJson);
+        new BlockPropertiesGenerator().generate(BlockPropertyCatalog.of(blocks), blockPackage, outputDirectory);
     }
 
     /**

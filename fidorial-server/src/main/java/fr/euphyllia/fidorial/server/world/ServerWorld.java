@@ -657,10 +657,10 @@ public final class ServerWorld implements World {
         if (type == null || blockEntity == null || !blockEntity.type().equals(type)) {
             return false;
         }
-        final BlockData data = blockStates.resolve(previous);
-        final BlockData replacement = blockStates.resolve(state);
+        final BlockData data = previous.data();
+        final BlockData replacement = state.data();
         final BlockBehaviour behaviour = blockStates.registry().behaviour(previous.name()).orElse(null);
-        if (data == null || replacement == null || behaviour == null) {
+        if (behaviour == null) {
             return false;
         }
         try {
@@ -672,9 +672,9 @@ public final class ServerWorld implements World {
     }
 
     private void beforeRemoved(final BlockPosition pos, final BlockState previous) {
-        final BlockData data = blockStates.resolve(previous);
+        final BlockData data = previous.data();
         final BlockBehaviour behaviour = blockStates.registry().behaviour(previous.name()).orElse(null);
-        if (data == null || behaviour == null) {
+        if (behaviour == null) {
             return;
         }
         try {
@@ -751,7 +751,7 @@ public final class ServerWorld implements World {
     public BlockState getBlock(final int x, final int y, final int z) throws IOException {
         final ChunkColumn column = getChunk(x >> 4, z >> 4);
         if (y < column.minY() || y >= column.minY() + column.height()) {
-            return BlockState.withoutProperties(BlockTypeKeys.AIR);
+            return BlockState.defaultOf(BlockTypeKeys.AIR);
         }
         return column.getBlock(x & 15, y, z & 15);
     }
@@ -1197,10 +1197,10 @@ public final class ServerWorld implements World {
         @Override
         public BlockState blockAt(final int x, final int y, final int z) {
             if (y < minY || y >= minY + height) {
-                return BlockState.withoutProperties(BlockTypeKeys.AIR);
+                return BlockState.defaultOf(BlockTypeKeys.AIR);
             }
             final ChunkColumn column = loadedColumn(x >> 4, z >> 4);
-            return column == null ? BlockState.withoutProperties(BlockTypeKeys.AIR) : column.getBlock(x & 15, y, z & 15);
+            return column == null ? BlockState.defaultOf(BlockTypeKeys.AIR) : column.getBlock(x & 15, y, z & 15);
         }
 
         @Override
@@ -1221,7 +1221,7 @@ public final class ServerWorld implements World {
             if (column == null) return null;
             return (localX, worldY, localZ) ->
                     (worldY < minY || worldY >= minY + height)
-                            ? BlockState.withoutProperties(BlockTypeKeys.AIR)
+                            ? BlockState.defaultOf(BlockTypeKeys.AIR)
                             : column.getBlock(localX, worldY, localZ);
         }
 
@@ -1259,7 +1259,7 @@ public final class ServerWorld implements World {
             }
             final BlockColumnAccess columnAccess = (localX, worldY, localZ) ->
                     (worldY < minY || worldY >= minY + height)
-                            ? BlockState.withoutProperties(BlockTypeKeys.AIR)
+                            ? BlockState.defaultOf(BlockTypeKeys.AIR)
                             : column.getBlock(localX, worldY, localZ);
             return new ColumnSnapshot(column.lightData(), columnAccess, column.topNonEmptySectionY(), column.lightPopulated());
         }

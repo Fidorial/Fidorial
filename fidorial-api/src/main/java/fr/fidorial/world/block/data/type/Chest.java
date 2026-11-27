@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
 import fr.fidorial.world.block.data.Waterlogged;
@@ -18,7 +18,7 @@ import java.util.Optional;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "type", allowed = {"single", "left", "right"}, exactly = true))
+@BlockTrait(values = @BlockTrait.Values(property = Names.TYPE, allowed = {"single", "left", "right"}, exactly = true))
 public interface Chest extends Directional, Waterlogged {
 
     @Override
@@ -37,9 +37,7 @@ public interface Chest extends Directional, Waterlogged {
      * @since 0.1.0
      */
     default Type getType() {
-        final String type = get("type");
-        Preconditions.checkState(type != null, "%s has no type property", key());
-        return Type.fromValue(type);
+        return get(type().choice(Names.TYPE, Type.class));
     }
 
     /**
@@ -51,7 +49,7 @@ public interface Chest extends Directional, Waterlogged {
      * @since 0.1.0
      */
     default Chest withType(final Type type) {
-        return (Chest) with("type", type.value());
+        return (Chest) with(type().choice(Names.TYPE, Type.class), type);
     }
 
     /**

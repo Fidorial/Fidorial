@@ -114,7 +114,7 @@ public final class RegistryModule implements ServerModule, GameRegistries {
         farming.hoeTag(itemRegistry::isTagged, ItemTagKeys.HOES);
         BuiltinFarming.attach(farming);
         final int tillages = BuiltinFarming.declareTillage(
-                farming, registries.registry(RegistryKey.BLOCK_TRANSFORMER).data(BlockTransformerKeys.HOE), blocks);
+                farming, registries.registry(RegistryKey.BLOCK_TRANSFORMER).data(BlockTransformerKeys.HOE));
         LOGGER.debug("{} blocks take part in farming, hoes follow {} rules", farming.blocks().size(), tillages);
     }
 

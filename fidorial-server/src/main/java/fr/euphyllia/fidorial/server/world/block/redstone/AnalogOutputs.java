@@ -7,12 +7,13 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.redstone.RedstoneBehaviour;
 import fr.fidorial.world.redstone.SignalGetter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.ToIntFunction;
 
@@ -25,8 +26,6 @@ import java.util.function.ToIntFunction;
  * read yet.</p>
  */
 public final class AnalogOutputs {
-
-    private static final List<String> STATUE_POSES = List.of("standing", "sitting", "running", "star");
 
     private AnalogOutputs() {
         throw new UnsupportedOperationException("AnalogOutputs cannot be instantiated.");
@@ -54,7 +53,7 @@ public final class AnalogOutputs {
         outputs.put(BlockTypeKeys.LAVA_CAULDRON, new StateOutput(_ -> 3));
         outputs.put(BlockTypeKeys.CAULDRON, new StateOutput(_ -> 0));
 
-        outputs.put(BlockTypeKeys.END_PORTAL_FRAME, new StateOutput(state -> "true".equals(state.get("eye")) ? 15 : 0));
+        outputs.put(BlockTypeKeys.END_PORTAL_FRAME, new StateOutput(state -> state.get(BlockProperties.EYE) ? 15 : 0));
         // vanilla scales the four charges to 0, 3, 7, 11 and 15
         outputs.put(BlockTypeKeys.RESPAWN_ANCHOR, new StateOutput(state -> (int) Math.floor(number(state, "charges") / 4.0f * 15)));
 
@@ -63,7 +62,7 @@ public final class AnalogOutputs {
         outputs.put(BlockTypeKeys.BEE_NEST, honey);
 
         // 1 standing, 2 sitting, 3 running, 4 star
-        final StateOutput pose = new StateOutput(state -> STATUE_POSES.indexOf(state.get("copper_golem_pose")) + 1);
+        final StateOutput pose = new StateOutput(state -> state.get(BlockProperties.COPPER_GOLEM_POSE).ordinal() + 1);
         for (final TypedKey<BlockType> statue : blocks.tag(BlockTypeTagKeys.COPPER_GOLEM_STATUES)) {
             outputs.put(statue, pose);
         }
@@ -71,8 +70,7 @@ public final class AnalogOutputs {
     }
 
     private static int number(final BlockData state, final String property) {
-        final String value = state.get(property);
-        return value == null ? 0 : Integer.parseInt(value);
+        return state.type().property(property) instanceof final BlockProperty.Range range ? state.get(range) : 0;
     }
 
     /**

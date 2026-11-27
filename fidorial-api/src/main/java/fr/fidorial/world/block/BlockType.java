@@ -1,5 +1,6 @@
 package fr.fidorial.world.block;
 
+import com.google.common.base.Preconditions;
 import fr.fidorial.registry.TypedKey;
 import org.jspecify.annotations.Nullable;
 
@@ -24,27 +25,34 @@ import java.util.Map;
 public final class BlockType {
 
     private final TypedKey<BlockType> key;
-    private final List<BlockProperty> properties;
+    private final List<BlockProperty<?>> properties;
+    private final int[] sizes;
+    private final int[] radixes;
     private final int[] stateIds;
     private final int defaultOrdinal;
     private final Class<?>[] interfaces;
-    private final @Nullable BlockData defaultData;
+    private final BlockData[] states;
 
-    private BlockType(final TypedKey<BlockType> key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal,
+    private BlockType(final TypedKey<BlockType> key, final List<BlockProperty<?>> properties, final int[] stateIds, final int defaultOrdinal,
                       final List<Class<? extends BlockData>> traits) {
         this.key = key;
         this.properties = List.copyOf(properties);
+        final int count = this.properties.size();
+        this.sizes = new int[count];
+        this.radixes = new int[count];
         int expected = 1;
-        for (final BlockProperty property : this.properties) {
-            expected *= property.values().size();
+        for (int index = count - 1; index >= 0; index--) {
+            final BlockProperty<?> property = this.properties.get(index);
+            Preconditions.checkArgument(this.properties.stream().filter(other -> other.name().equals(property.name())).count() == 1,
+                    "Block '%s' declares the property '%s' twice", key.key().asString(), property.name());
+            sizes[index] = property.values().size();
+            radixes[index] = expected;
+            expected *= sizes[index];
         }
-        if (stateIds.length != expected) {
-            throw new IllegalArgumentException("Block '" + key.key().asString() + "' expects " + expected
-                    + " states but got " + stateIds.length);
-        }
-        if (defaultOrdinal < 0 || defaultOrdinal >= expected) {
-            throw new IllegalArgumentException("Default ordinal out of range for '" + key.key().asString() + "'");
-        }
+        Preconditions.checkArgument(stateIds.length == expected,
+                "Block '%s' expects %s states but got %s", key.key().asString(), expected, stateIds.length);
+        Preconditions.checkArgument(defaultOrdinal >= 0 && defaultOrdinal < expected,
+                "Default ordinal out of range for '%s'", key.key().asString());
         this.stateIds = stateIds.clone();
         this.defaultOrdinal = defaultOrdinal;
 
@@ -56,7 +64,10 @@ public final class BlockType {
             }
         }
         this.interfaces = faces.toArray(Class<?>[]::new);
-        this.defaultData = createData(defaultOrdinal);
+        this.states = new BlockData[expected];
+        for (int ordinal = 0; ordinal < expected; ordinal++) {
+            states[ordinal] = (BlockData) Proxy.newProxyInstance(BlockType.class.getClassLoader(), interfaces, new DataHandler(this, ordinal));
+        }
     }
 
     /**
@@ -70,8 +81,37 @@ public final class BlockType {
      * @throws IllegalArgumentException if the identifiers do not match the property combinations
      * @since 0.1.0
      */
-    public static BlockType of(final TypedKey<BlockType> key, final List<BlockProperty> properties, final int[] stateIds, final int defaultOrdinal) {
+    public static BlockType of(final TypedKey<BlockType> key, final List<BlockProperty<?>> properties, final int[] stateIds, final int defaultOrdinal) {
         return new BlockType(key, properties, stateIds, defaultOrdinal, BlockTraits.detect(properties));
+    }
+
+    /// Creates a block type whose states are numbered consecutively from a first network identifier.
+    ///
+    /// @param key            the block key
+    /// @param properties     the properties, in declaration order
+    /// @param firstStateId   the network identifier of the state of ordinal `0`
+    /// @param defaultOrdinal the ordinal of the default state
+    /// @return the block type
+    /// @since 0.1.0
+    public static BlockType of(final TypedKey<BlockType> key, final List<BlockProperty<?>> properties, final int firstStateId,
+                               final int defaultOrdinal) {
+        return of(key, properties, consecutive(firstStateId, stateCount(properties)), defaultOrdinal);
+    }
+
+    private static int stateCount(final List<BlockProperty<?>> properties) {
+        int count = 1;
+        for (final BlockProperty<?> property : properties) {
+            count *= property.values().size();
+        }
+        return count;
+    }
+
+    private static int[] consecutive(final int first, final int count) {
+        final int[] ids = new int[count];
+        for (int ordinal = 0; ordinal < count; ordinal++) {
+            ids[ordinal] = first + ordinal;
+        }
+        return ids;
     }
 
     /**
@@ -98,7 +138,7 @@ public final class BlockType {
      *
      * @since 0.1.0
      */
-    public List<BlockProperty> properties() {
+    public List<BlockProperty<?>> properties() {
         return properties;
     }
 
@@ -108,13 +148,50 @@ public final class BlockType {
      * @param name the property name
      * @since 0.1.0
      */
-    public @Nullable BlockProperty property(final String name) {
-        for (final BlockProperty property : properties) {
+    public @Nullable BlockProperty<?> property(final String name) {
+        for (final BlockProperty<?> property : properties) {
             if (property.name().equals(name)) {
                 return property;
             }
         }
         return null;
+    }
+
+    /// {@return the flag property with the given name}
+    ///
+    /// @param name the property name
+    /// @throws IllegalStateException if this block has no such flag
+    /// @since 0.1.0
+    public BlockProperty.Flag flag(final String name) {
+        final BlockProperty<?> property = property(name);
+        Preconditions.checkState(property instanceof BlockProperty.Flag, "%s has no flag property '%s'", key.key().asString(), name);
+        return (BlockProperty.Flag) property;
+    }
+
+    /// {@return the range property with the given name}
+    ///
+    /// @param name the property name
+    /// @throws IllegalStateException if this block has no such range
+    /// @since 0.1.0
+    public BlockProperty.Range range(final String name) {
+        final BlockProperty<?> property = property(name);
+        Preconditions.checkState(property instanceof BlockProperty.Range, "%s has no range property '%s'", key.key().asString(), name);
+        return (BlockProperty.Range) property;
+    }
+
+    /// {@return the choice property with the given name, over the given enum}
+    ///
+    /// @param name the property name
+    /// @param type the enum of its values
+    /// @param <E>  the enum
+    /// @throws IllegalStateException if this block has no such choice
+    /// @since 0.1.0
+    @SuppressWarnings("unchecked")
+    public <E extends Enum<E>> BlockProperty.Choice<E> choice(final String name, final Class<E> type) {
+        final BlockProperty<?> property = property(name);
+        Preconditions.checkState(property instanceof final BlockProperty.Choice<?> choice && choice.type() == type,
+                "%s has no property '%s' of %s", key.key().asString(), name, type.getSimpleName());
+        return (BlockProperty.Choice<E>) property;
     }
 
     /**
@@ -150,8 +227,8 @@ public final class BlockType {
      *
      * @since 0.1.0
      */
-    public @Nullable BlockData defaultData() {
-        return defaultData;
+    public BlockData defaultData() {
+        return states[defaultOrdinal];
     }
 
     /**
@@ -161,92 +238,7 @@ public final class BlockType {
      * @since 0.1.0
      */
     public BlockData stateAt(final int ordinal) {
-        if (ordinal == defaultOrdinal && defaultData != null) {
-            return defaultData;
-        }
-        return createData(ordinal);
-    }
-
-    /**
-     * Gets the state matching the given property values, starting from the default state.
-     *
-     * @param values property name to value; {@code null} or empty for the default state
-     * @return the matching state
-     * @throws IllegalArgumentException if a property or value is unknown to this block
-     * @since 0.1.0
-     */
-    public @Nullable BlockData data(@Nullable final Map<String, String> values) {
-        if (values == null || values.isEmpty()) {
-            return defaultData;
-        }
-        int ordinal = defaultOrdinal;
-        for (final Map.Entry<String, String> entry : values.entrySet()) {
-            ordinal = withValue(ordinal, entry.getKey(), entry.getValue());
-        }
-        return stateAt(ordinal);
-    }
-
-    /**
-     * Gets the state matching the given property values, starting from the default state.
-     *
-     * @param values property name to value
-     * @return the matching state, or {@code null} if a property or value is unknown to this block
-     * @since 0.1.0
-     */
-    public @Nullable BlockData dataOrNull(final Map<String, String> values) {
-        try {
-            return data(values);
-        } catch (final IllegalArgumentException exception) {
-            return null;
-        }
-    }
-
-    private BlockData createData(final int ordinal) {
-        return (BlockData) Proxy.newProxyInstance(
-                BlockType.class.getClassLoader(), interfaces, new DataHandler(this, ordinal));
-    }
-
-    private @Nullable String value(final int ordinal, final String propertyName) {
-        int radix = 1;
-        for (int i = properties.size() - 1; i >= 0; i--) {
-            final BlockProperty property = properties.get(i);
-            final int size = property.values().size();
-            if (property.name().equals(propertyName)) {
-                return property.values().get((ordinal / radix) % size);
-            }
-            radix *= size;
-        }
-        return null;
-    }
-
-    private int withValue(final int ordinal, final String propertyName, final String value) {
-        int radix = 1;
-        for (int i = properties.size() - 1; i >= 0; i--) {
-            final BlockProperty property = properties.get(i);
-            final int size = property.values().size();
-            if (property.name().equals(propertyName)) {
-                final int index = property.indexOf(value);
-                if (index < 0) {
-                    throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                            + propertyName + "' of block '" + key.key().asString() + "'");
-                }
-                final int current = (ordinal / radix) % size;
-                return ordinal + (index - current) * radix;
-            }
-            radix *= size;
-        }
-        throw new IllegalArgumentException("Unknown property '" + propertyName + "' for block '" + key.key().asString() + "'");
-    }
-
-    private Map<String, String> valuesOf(final int ordinal) {
-        final Map<String, String> map = new LinkedHashMap<>();
-        for (final BlockProperty property : properties) {
-            final String value = value(ordinal, property.name());
-            if (value != null) {
-                map.put(property.name(), value);
-            }
-        }
-        return map;
+        return states[ordinal];
     }
 
     /**
@@ -258,14 +250,43 @@ public final class BlockType {
         return defaultOrdinal;
     }
 
-    /**
-     * {@return the property values of the state with the given ordinal, in declaration order}
-     *
-     * @param ordinal the ordinal of the state
-     * @since 0.1.0
-     */
-    public Map<String, String> propertyValuesAt(final int ordinal) {
-        return valuesOf(ordinal);
+    private int position(final BlockProperty<?> property) {
+        for (int index = 0; index < properties.size(); index++) {
+            if (properties.get(index) == property) {
+                return index;
+            }
+        }
+        return properties.indexOf(property);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T value(final int ordinal, final BlockProperty<T> property) {
+        final int position = position(property);
+        Preconditions.checkArgument(position >= 0, "%s has no property %s", key.key().asString(), property);
+        final int index = ordinal / radixes[position] % sizes[position];
+        // a range builds its value list on each call
+        return property instanceof final BlockProperty.Range range ? (T) Integer.valueOf(range.min() + index) : property.values().get(index);
+    }
+
+    private <T> int withValue(final int ordinal, final BlockProperty<T> property, final T value) {
+        final int position = position(property);
+        Preconditions.checkArgument(position >= 0, "%s has no property %s", key.key().asString(), property);
+        final int index = property.indexOf(value);
+        Preconditions.checkArgument(index >= 0, "%s is not a value of the property '%s' of %s", value, property.name(), key.key().asString());
+        final int current = ordinal / radixes[position] % sizes[position];
+        return ordinal + (index - current) * radixes[position];
+    }
+
+    private List<PropertyValue<?>> valuesOf(final int ordinal) {
+        final List<PropertyValue<?>> values = new ArrayList<>(properties.size());
+        for (final BlockProperty<?> property : properties) {
+            values.add(valueOf(ordinal, property));
+        }
+        return List.copyOf(values);
+    }
+
+    private <T> PropertyValue<T> valueOf(final int ordinal, final BlockProperty<T> property) {
+        return new PropertyValue<>(property, value(ordinal, property));
     }
 
     @Override
@@ -285,6 +306,7 @@ public final class BlockType {
 
     private record DataHandler(BlockType type, int ordinal) implements InvocationHandler {
         @Override
+        @SuppressWarnings("unchecked")
         public @Nullable Object invoke(final Object proxy, final Method method, final @Nullable Object @Nullable [] args) throws Throwable {
             if (method.isDefault()) {
                 return InvocationHandler.invokeDefault(proxy, method, args);
@@ -292,46 +314,30 @@ public final class BlockType {
             return switch (method.getName()) {
                 case "type" -> type;
                 case "networkId" -> type.stateIds[ordinal];
-                case "get" -> type.value(ordinal, stringArgument(args, 0));
-                case "with" -> type.stateAt(type.withValue(ordinal, stringArgument(args, 0), stringArgument(args, 1)));
-                case "propertyMap" -> type.valuesOf(ordinal);
-                case "equals" -> args != null && equalsData(args[0]);
+                case "ordinal" -> ordinal;
+                case "get" -> type.value(ordinal, property(args));
+                case "has" -> type.position(property(args)) >= 0;
+                case "with" -> type.stateAt(type.withValue(ordinal, (BlockProperty<Object>) property(args), argument(args, 1)));
+                case "values" -> type.valuesOf(ordinal);
+                case "equals" -> args != null && proxy == args[0];
                 case "hashCode" -> type.hashCode() * 31 + ordinal;
                 case "toString" -> ((BlockData) proxy).asString();
                 default -> throw new UnsupportedOperationException(method.getName());
             };
         }
 
-        private static String stringArgument(final @Nullable Object @Nullable [] args, final int index) {
-            if (args != null && index < args.length && args[index] instanceof final String value) {
-                return value;
-            }
-            throw new IllegalArgumentException("Argument " + index + " of a block data call must be a string");
+        private static BlockProperty<?> property(final @Nullable Object @Nullable [] args) {
+            Preconditions.checkArgument(args != null && args.length > 0 && args[0] instanceof BlockProperty<?>,
+                    "The first argument of a block data call must be a block property");
+            return (BlockProperty<?>) args[0];
         }
 
-        private boolean equalsData(@Nullable final Object other) {
-            if (other == null) return false;
-            return Proxy.isProxyClass(other.getClass())
-                    && Proxy.getInvocationHandler(other) instanceof DataHandler(
-                    final BlockType type1, final int ordinal1
-            )
-                    && type1.equals(type)
-                    && ordinal1 == ordinal;
+        private static Object argument(final @Nullable Object @Nullable [] args, final int index) {
+            Preconditions.checkArgument(args != null && index < args.length && args[index] != null,
+                    "Argument %s of a block data call must not be null", index);
+            //noinspection DataFlowIssue - we already checked the nullability
+            return args[index];
         }
-    }
-
-    private static int ordinalOf(final TypedKey<BlockType> key, final List<BlockProperty> properties, final Map<String, String> values) {
-        int ordinal = 0;
-        for (final BlockProperty property : properties) {
-            final String value = values.get(property.name());
-            final int index = value == null ? 0 : property.indexOf(value);
-            if (index < 0) {
-                throw new IllegalArgumentException("Invalid value '" + value + "' for property '"
-                        + property.name() + "' of block '" + key.key().asString() + "'");
-            }
-            ordinal = ordinal * property.values().size() + index;
-        }
-        return ordinal;
     }
 
     /**
@@ -345,12 +351,12 @@ public final class BlockType {
     public static final class Builder {
 
         private final TypedKey<BlockType> key;
-        private final List<BlockProperty> properties = new ArrayList<>();
+        private final List<BlockProperty<?>> properties = new ArrayList<>();
         private final List<Class<? extends BlockData>> extraTraits = new ArrayList<>();
+        private final Map<BlockProperty<?>, Object> defaultValues = new LinkedHashMap<>();
         private int @Nullable [] stateIds;
         private int firstStateId = -1;
         private int fixedStateId = -1;
-        private Map<String, String> defaultValues = Map.of();
 
         private Builder(final TypedKey<BlockType> key) {
             this.key = key;
@@ -364,39 +370,14 @@ public final class BlockType {
          * @throws IllegalArgumentException if a property with the same name is already declared
          * @since 0.1.0
          */
-        public Builder property(final BlockProperty property) {
-            for (final BlockProperty declared : properties) {
-                if (declared.name().equals(property.name())) {
-                    throw new IllegalArgumentException("Property '" + property.name()
-                            + "' declared twice on block '" + key.key().asString() + "'");
-                }
+        public Builder property(final BlockProperty<?> property) {
+            Preconditions.checkArgument(property != null, "The property of a block type builder must not be null");
+            for (final BlockProperty<?> declared : properties) {
+                Preconditions.checkArgument(!declared.name().equals(property.name()),
+                        "Property '%s' declared twice on block '%s'", property.name(), key.key().asString());
             }
             properties.add(property);
             return this;
-        }
-
-        /**
-         * Declares a property.
-         *
-         * @param name   the property name
-         * @param values the accepted values, the first one being the default
-         * @return this builder
-         * @since 0.1.0
-         */
-        public Builder property(final String name, final List<String> values) {
-            return property(new BlockProperty(name, values));
-        }
-
-        /**
-         * Declares a property.
-         *
-         * @param name   the property name
-         * @param values the accepted values, the first one being the default
-         * @return this builder
-         * @since 0.1.0
-         */
-        public Builder property(final String name, final String... values) {
-            return property(name, Arrays.asList(values));
         }
 
         /**
@@ -438,27 +419,18 @@ public final class BlockType {
         /**
          * Sets the value a property takes in the default state.
          *
-         * @param property the property name
-         * @param value    the value
+         * @param property the property, declared on this builder
+         * @param value    one of its values
+         * @param <T>      the type of the values
          * @return this builder
          * @since 0.1.0
          */
-        public Builder defaultValue(final String property, final String value) {
-            final Map<String, String> merged = new LinkedHashMap<>(defaultValues);
-            merged.put(property, value);
-            this.defaultValues = Map.copyOf(merged);
-            return this;
-        }
-
-        /**
-         * Sets the values the properties take in the default state, replacing earlier ones.
-         *
-         * @param values property name to value
-         * @return this builder
-         * @since 0.1.0
-         */
-        public Builder defaultValues(final Map<String, String> values) {
-            this.defaultValues = Map.copyOf(values);
+        public <T> Builder defaultValue(final BlockProperty<T> property, final T value) {
+            Preconditions.checkArgument(properties.contains(property),
+                    "Property %s is not declared on block '%s'", property, key.key().asString());
+            Preconditions.checkArgument(property.indexOf(value) >= 0,
+                    "%s is not a value of the property '%s'", value, property.name());
+            defaultValues.put(property, value);
             return this;
         }
 
@@ -481,32 +453,32 @@ public final class BlockType {
          * @since 0.1.0
          */
         public BlockType build() {
-            int count = 1;
-            for (final BlockProperty property : properties) {
-                count *= property.values().size();
-            }
+            final int count = stateCount(properties);
             final int[] ids;
-            if (stateIds == null) {
-                ids = new int[count];
-                if (firstStateId >= 0) {
-                    for (int ordinal = 0; ordinal < count; ordinal++) {
-                        ids[ordinal] = firstStateId + ordinal;
-                    }
-                } else if (fixedStateId >= 0) {
-                    Arrays.fill(ids, fixedStateId);
-                } else {
-                    throw new IllegalStateException(
-                            "firstStateId(...), stateIds(...) or appearance(...) must be set for '"
-                                    + key.key().asString() + "'");
-                }
-            } else {
+            if (stateIds != null) {
                 ids = stateIds;
+            } else if (firstStateId >= 0) {
+                ids = consecutive(firstStateId, count);
+            } else {
+                Preconditions.checkState(fixedStateId >= 0,
+                        "firstStateId(...), stateIds(...) or appearance(...) must be set for '%s'", key.key().asString());
+                ids = new int[count];
+                Arrays.fill(ids, fixedStateId);
             }
             final List<Class<? extends BlockData>> traits = new ArrayList<>(BlockTraits.detect(properties));
             traits.addAll(extraTraits);
+            return new BlockType(key, properties, ids, defaultOrdinal(), traits);
+        }
 
-            return new BlockType(key, properties, ids, ordinalOf(key, properties, defaultValues), traits);
+        @SuppressWarnings("unchecked")
+        private int defaultOrdinal() {
+            int ordinal = 0;
+            for (final BlockProperty<?> property : properties) {
+                final Object value = defaultValues.get(property);
+                final int index = value == null ? 0 : ((BlockProperty<Object>) property).indexOf(value);
+                ordinal = ordinal * property.values().size() + index;
+            }
+            return ordinal;
         }
     }
-
 }

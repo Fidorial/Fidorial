@@ -47,7 +47,6 @@ public final class EnderChestBlock implements BlockBehaviour {
     public BlockData placementState(final BlockPlaceContext context) {
         final BlockFace facing = context.horizontalFacing().opposite();
         BlockData state = type().defaultData();
-        Preconditions.checkState(state != null, "The block type %s has no default state", KEY);
         state = ((Directional) state).withFacing(facing);
         state = ((Waterlogged) state).withWaterlogged(context.intoWater());
         return state;

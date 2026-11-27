@@ -53,7 +53,6 @@ public final class ClusterBlock implements BlockBehaviour {
             return null;
         }
         BlockData state = type().defaultData();
-        Preconditions.checkState(state != null, "The block type %s has no default state", key);
         state = ((Directional) state).withFacing(facing);
         state = ((Waterlogged) state).withWaterlogged(context.intoWater());
         return state;

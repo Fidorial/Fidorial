@@ -15,6 +15,7 @@ import fr.fidorial.registry.TagKey;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
 import net.kyori.adventure.key.Key;
 import org.jspecify.annotations.Nullable;
@@ -544,7 +545,7 @@ final class NetherKinds {
             for (int placed = 0; placed <= length; placed++) {
                 if (region.isAir(x, py, z)) {
                     if (placed == length || !region.isAir(x, py - 1, z)) {
-                        region.set(x, py, z, states.with(tip, "age", Integer.toString(random.nextIntInRange(MIN_VINE_AGE, MAX_VINE_AGE))));
+                        region.set(x, py, z, states.with(tip, BlockProperties.AGE_0_25, random.nextIntInRange(MIN_VINE_AGE, MAX_VINE_AGE)));
                         break;
                     }
                     region.set(x, py, z, body);

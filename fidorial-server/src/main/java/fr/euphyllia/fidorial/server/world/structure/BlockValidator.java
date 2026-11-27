@@ -13,6 +13,6 @@ public interface BlockValidator {
     @Nullable BlockState resolve(TypedKey<BlockType> name, Map<String, String> properties);
 
     static BlockValidator permissive() {
-        return BlockState::withProperties;
+        return BlockState::parseLeniently;
     }
 }

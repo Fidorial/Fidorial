@@ -5,9 +5,13 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockBehaviour;
 import fr.fidorial.world.block.BlockData;
 import fr.fidorial.world.block.BlockPlaceContext;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.BlockType;
 import fr.fidorial.world.block.Blocks;
+import fr.fidorial.world.block.data.Bisected;
+import fr.fidorial.world.block.data.Orientable;
+import fr.fidorial.world.block.property.RailTrack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -65,16 +69,14 @@ public final class SimpleBlock implements BlockBehaviour {
      *
      * @param type    the block to place
      * @param context where and how the player places it
-     * @return the state to place, {@code null} for a block type without states
+     * @return the state to place
      */
-    public static @Nullable BlockData placementState(final BlockType type, final BlockPlaceContext context) {
+    public static BlockData placementState(final BlockType type, final BlockPlaceContext context) {
         BlockData data = type.defaultData();
-        if (data == null) {
-            return null;
-        }
 
-        if (type.hasProperty("facing")) {
-            final int faceCount = Objects.requireNonNull(type.property("facing")).values().size();
+        final BlockProperty.Choice<BlockFace> facingProperty = choice(type, Names.FACING, BlockFace.class);
+        if (facingProperty != null) {
+            final int faceCount = facingProperty.values().size();
             final BlockFace facing;
             if (faceCount >= 6) {
                 facing = context.lookingDirection().opposite();
@@ -83,58 +85,63 @@ public final class SimpleBlock implements BlockBehaviour {
             } else {
                 facing = context.horizontalFacing();
             }
-            data = data.with("facing", faceName(facing));
+            data = data.with(facingProperty, facing);
         }
 
-        if (type.hasProperty("axis")) {
-            data = data.with("axis", axisOf(context.clickedFace()));
+        final BlockProperty.Choice<Orientable.Axis> axis = choice(type, Names.AXIS, Orientable.Axis.class);
+        if (axis != null) {
+            data = data.with(axis, axisOf(context.clickedFace()));
         }
 
-        if (type.hasProperty("shape") && isPlainRailShape(type.property("shape"))) {
+        final BlockProperty.Choice<RailTrack> shape = choice(type, Names.SHAPE, RailTrack.class);
+        if (shape != null && isPlainRailShape(shape)) {
             final boolean northSouth = switch (context.horizontalFacing()) {
                 case NORTH, SOUTH -> true;
                 default -> false;
             };
-            data = data.with("shape", northSouth ? "north_south" : "east_west");
+            data = data.with(shape, northSouth ? RailTrack.NORTH_SOUTH : RailTrack.EAST_WEST);
         }
 
-        if (type.hasProperty("waterlogged") && context.intoWater()) {
-            data = data.with("waterlogged", "true");
+        if (type.hasProperty(Names.WATERLOGGED) && context.intoWater()) {
+            data = data.with(type.flag(Names.WATERLOGGED), true);
         }
 
-        if (type.hasProperty("half") && isTopBottomHalf(type)) {
-            data = data.with("half", context.upperHalf() ? "top" : "bottom");
+        final BlockProperty.Choice<Bisected.Half> half = choice(type, Names.HALF, Bisected.Half.class);
+        if (half != null && isTopBottomHalf(half)) {
+            data = data.with(half, context.upperHalf() ? Bisected.Half.TOP : Bisected.Half.BOTTOM);
         }
 
         return data;
     }
 
     private static boolean facesPlayerDirection(final BlockType type) {
-        final boolean stairsLikeShape = type.hasProperty("half")
-                && isTopBottomHalf(type)
-                && type.hasProperty("shape")
-                && !isPlainRailShape(type.property("shape"));
+        final BlockProperty.Choice<Bisected.Half> half = choice(type, Names.HALF, Bisected.Half.class);
+        final BlockProperty.Choice<RailTrack> rail = choice(type, Names.SHAPE, RailTrack.class);
+        final boolean stairsLikeShape = half != null
+                && isTopBottomHalf(half)
+                && type.hasProperty(Names.SHAPE)
+                && (rail == null || !isPlainRailShape(rail));
         return !stairsLikeShape;
     }
 
-    private static boolean isPlainRailShape(final @Nullable BlockProperty shape) {
-        return shape != null && shape.isValid("north_south") && shape.isValid("east_west");
+    @SuppressWarnings("unchecked")
+    private static <E extends Enum<E>> BlockProperty.@Nullable Choice<E> choice(final BlockType type, final String name, final Class<E> values) {
+        return type.property(name) instanceof final BlockProperty.Choice<?> choice && choice.type() == values ? (BlockProperty.Choice<E>) choice : null;
     }
 
-    private static boolean isTopBottomHalf(final BlockType type) {
-        final var half = type.property("half");
-        return half != null && half.isValid("top") && half.isValid("bottom");
+    private static boolean isPlainRailShape(final BlockProperty.Choice<RailTrack> shape) {
+        return shape.values().contains(RailTrack.NORTH_SOUTH) && shape.values().contains(RailTrack.EAST_WEST);
     }
 
-    private static String faceName(final BlockFace face) {
-        return face.name().toLowerCase(java.util.Locale.ROOT);
+    private static boolean isTopBottomHalf(final BlockProperty.Choice<Bisected.Half> half) {
+        return half.values().contains(Bisected.Half.TOP) && half.values().contains(Bisected.Half.BOTTOM);
     }
 
-    private static String axisOf(final BlockFace face) {
+    private static Orientable.Axis axisOf(final BlockFace face) {
         return switch (face) {
-            case UP, DOWN -> "y";
-            case NORTH, SOUTH -> "z";
-            case EAST, WEST -> "x";
+            case UP, DOWN -> Orientable.Axis.Y;
+            case NORTH, SOUTH -> Orientable.Axis.Z;
+            case EAST, WEST -> Orientable.Axis.X;
         };
     }
 }

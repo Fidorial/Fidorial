@@ -1,8 +1,7 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
-import fr.fidorial.world.block.BlockProperty;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -13,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "level")
+@BlockTrait(properties = Names.LEVEL)
 public interface Levelled extends BlockData {
 
     /**
@@ -22,9 +21,7 @@ public interface Levelled extends BlockData {
      * @since 0.1.0
      */
     default int getLevel() {
-        final String level = get("level");
-        Preconditions.checkState(level != null, "%s has no level property", key());
-        return Integer.parseInt(level);
+        return get(type().range(Names.LEVEL));
     }
 
     /**
@@ -34,7 +31,7 @@ public interface Levelled extends BlockData {
      * @since 0.1.0
      */
     default Levelled withLevel(final int level) {
-        return (Levelled) with("level", String.valueOf(level));
+        return (Levelled) with(type().range(Names.LEVEL), level);
     }
 
     /**
@@ -44,10 +41,6 @@ public interface Levelled extends BlockData {
      * @since 0.1.0
      */
     default int getMaximumLevel() {
-        final BlockProperty property = type().property("level");
-        if (property == null) {
-            throw new IllegalStateException("Cannot determine maximum level");
-        }
-        return Integer.parseInt(property.values().getLast());
+        return type().range(Names.LEVEL).max();
     }
 }

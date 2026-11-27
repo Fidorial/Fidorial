@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -12,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "half", allowed = {"top", "bottom", "upper", "lower"}))
+@BlockTrait(values = @BlockTrait.Values(property = Names.HALF, allowed = {"top", "bottom", "upper", "lower"}))
 public interface Bisected extends BlockData {
 
     /**
@@ -21,9 +21,7 @@ public interface Bisected extends BlockData {
      * @since 0.1.0
      */
     default Half getHalf() {
-        final String half = get("half");
-        Preconditions.checkState(half != null, "%s has no half property", key());
-        return Half.fromValue(half);
+        return get(type().choice(Names.HALF, Half.class));
     }
 
     /**
@@ -33,7 +31,7 @@ public interface Bisected extends BlockData {
      * @since 0.1.0
      */
     default Bisected withHalf(final Half half) {
-        return (Bisected) with("half", half.value());
+        return (Bisected) with(type().choice(Names.HALF, Half.class), half);
     }
 
     /**

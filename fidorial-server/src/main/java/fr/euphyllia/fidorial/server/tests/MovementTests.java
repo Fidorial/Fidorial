@@ -20,9 +20,10 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.testing.ScenarioTestHelper;
 import fr.fidorial.testing.annotation.ScenarioTest;
 import fr.fidorial.world.World;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.data.type.Slab;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -45,20 +46,26 @@ public final class MovementTests {
     }
 
     private static int id(final TypedKey<BlockType> block) {
-        return server().registries().blockStates().networkId(BlockState.withoutProperties(block));
+        return server().registries().blockStates().networkId(BlockState.defaultOf(block));
     }
 
-    private static int id(final TypedKey<BlockType> block, final Map<String, String> properties) {
-        return server().registries().blockStates().networkId(BlockState.withProperties(block, properties));
+    private static BlockState slab(final Slab.Type type, final boolean waterlogged) {
+        return BlockState.defaultOf(BlockTypeKeys.OAK_SLAB).with(BlockProperties.SLAB_TYPE, type).with(BlockProperties.WATERLOGGED, waterlogged);
+    }
+
+    private static BlockState fenceState() {
+        return BlockState.defaultOf(BlockTypeKeys.OAK_FENCE)
+                .with(BlockProperties.EAST, false).with(BlockProperties.NORTH, false)
+                .with(BlockProperties.SOUTH, false).with(BlockProperties.WEST, false)
+                .with(BlockProperties.WATERLOGGED, false);
     }
 
     private static int bottomSlab() {
-        return id(BlockTypeKeys.OAK_SLAB, Map.of("type", "bottom", "waterlogged", "false"));
+        return slab(Slab.Type.BOTTOM, false).data().networkId();
     }
 
     private static int fence() {
-        return id(BlockTypeKeys.OAK_FENCE,
-                Map.of("east", "false", "north", "false", "south", "false", "west", "false", "waterlogged", "false"));
+        return fenceState().data().networkId();
     }
 
     private static void set(final World world, final int x, final int y, final int z, final int state) {
@@ -89,25 +96,24 @@ public final class MovementTests {
 
     @ScenarioTest(timeoutTicks = 20)
     public static void collisionShapesComeFromTheDataset(final ScenarioTestHelper helper) {
-        helper.assertTrue(BlockCollision.shape(BlockState.withoutProperties(BlockTypeKeys.STONE)).isFullBlock(),
+        helper.assertTrue(BlockCollision.shape(BlockState.defaultOf(BlockTypeKeys.STONE)).isFullBlock(),
                 "Stone should be a full block");
-        helper.assertTrue(BlockCollision.shape(BlockState.withoutProperties(BlockTypeKeys.SHORT_GRASS)).isEmpty(),
+        helper.assertTrue(BlockCollision.shape(BlockState.defaultOf(BlockTypeKeys.SHORT_GRASS)).isEmpty(),
                 "Short grass should have nothing to bump into");
-        helper.assertTrue(BlockCollision.shape(BlockState.withoutProperties(BlockTypeKeys.POPPY)).isEmpty(),
+        helper.assertTrue(BlockCollision.shape(BlockState.defaultOf(BlockTypeKeys.POPPY)).isEmpty(),
                 "Flowers should have nothing to bump into");
-        helper.assertTrue(BlockCollision.shape(BlockState.withoutProperties(BlockTypeKeys.WATER)).isEmpty(),
+        helper.assertTrue(BlockCollision.shape(BlockState.defaultOf(BlockTypeKeys.WATER)).isEmpty(),
                 "Water should have nothing to bump into");
 
         final CollisionShape slab = BlockCollision.shape(
-                BlockState.withProperties(BlockTypeKeys.OAK_SLAB, Map.of("type", "bottom", "waterlogged", "false")));
+                slab(Slab.Type.BOTTOM, false));
         helper.assertTrue(slab.top() == 0.5, "A bottom slab should be half a block high, got " + slab);
         final CollisionShape topSlab = BlockCollision.shape(
-                BlockState.withProperties(BlockTypeKeys.OAK_SLAB, Map.of("type", "top", "waterlogged", "true")));
+                slab(Slab.Type.TOP, true));
         helper.assertTrue(topSlab.minY(0) == 0.5 && topSlab.top() == 1.0, "A top slab should fill the upper half, got " + topSlab);
-        final CollisionShape fence = BlockCollision.shape(BlockState.withProperties(BlockTypeKeys.OAK_FENCE,
-                Map.of("east", "false", "north", "false", "south", "false", "west", "false", "waterlogged", "false")));
+        final CollisionShape fence = BlockCollision.shape(fenceState());
         helper.assertTrue(fence.top() == 1.5, "A fence should be one and a half blocks high, got " + fence);
-        final CollisionShape snow = BlockCollision.shape(BlockState.withProperties(BlockTypeKeys.SNOW, Map.of("layers", "1")));
+        final CollisionShape snow = BlockCollision.shape(BlockState.defaultOf(BlockTypeKeys.SNOW).with(BlockProperties.LAYERS, 1));
         helper.assertTrue(snow.isEmpty(), "A single layer of snow should have nothing to bump into, got " + snow);
     }
 

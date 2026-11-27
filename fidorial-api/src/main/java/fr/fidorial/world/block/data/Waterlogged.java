@@ -1,6 +1,7 @@
 package fr.fidorial.world.block.data;
 
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -11,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = "waterlogged")
+@BlockTrait(properties = Names.WATERLOGGED)
 public interface Waterlogged extends BlockData {
 
     /**
@@ -20,7 +21,7 @@ public interface Waterlogged extends BlockData {
      * @since 0.1.0
      */
     default boolean isWaterlogged() {
-        return Boolean.parseBoolean(get("waterlogged"));
+        return get(type().flag(Names.WATERLOGGED));
     }
 
     /**
@@ -30,6 +31,6 @@ public interface Waterlogged extends BlockData {
      * @since 0.1.0
      */
     default Waterlogged withWaterlogged(final boolean waterlogged) {
-        return (Waterlogged) with("waterlogged", String.valueOf(waterlogged));
+        return (Waterlogged) with(type().flag(Names.WATERLOGGED), waterlogged);
     }
 }

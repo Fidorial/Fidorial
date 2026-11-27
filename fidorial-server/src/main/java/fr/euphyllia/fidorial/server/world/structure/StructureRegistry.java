@@ -433,7 +433,7 @@ public final class StructureRegistry implements TemplateSource {
         }
         try {
             final Set<String> unknown = new TreeSet<>();
-            final StructureTemplateImpl template = TemplateParser.parse(key, data, validator, unknown);
+            final StructureTemplateImpl template = TemplateParser.parse(key, data, unknown);
             if (!unknown.isEmpty()) {
                 problems.warn("Template " + key.asString() + " uses blocks this server does not know, they are left out: "
                         + String.join(", ", unknown));

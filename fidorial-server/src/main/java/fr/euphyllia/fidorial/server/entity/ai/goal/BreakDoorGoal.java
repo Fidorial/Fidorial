@@ -18,6 +18,8 @@ import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.sound.SoundEvents;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Bisected;
 import net.kyori.adventure.sound.Sound;
 import org.jspecify.annotations.Nullable;
 
@@ -74,11 +76,11 @@ public final class BreakDoorGoal implements Goal {
     }
 
     private static boolean isClosed(final BlockState state) {
-        return !"true".equals(state.properties().get("open"));
+        return !state.getOrDefault(BlockProperties.OPEN, false);
     }
 
     private static boolean isUpperHalf(final BlockState state) {
-        return "upper".equals(state.properties().get("half"));
+        return state.getOrDefault(BlockProperties.DOUBLE_BLOCK_HALF, Bisected.Half.LOWER) == Bisected.Half.UPPER;
     }
 
     @Override
@@ -168,7 +170,7 @@ public final class BreakDoorGoal implements Goal {
         }
 
         clearDestroyStage();
-        if (!MobBlockChanges.allowed(mob, pos, state, BlockState.withoutProperties(BlockTypeKeys.AIR))) {
+        if (!MobBlockChanges.allowed(mob, pos, state, BlockState.defaultOf(BlockTypeKeys.AIR))) {
             // the door holds: the mob starts over
             progress = 0;
             return;
@@ -176,8 +178,8 @@ public final class BreakDoorGoal implements Goal {
         final BlockData data = state.data();
 
         final BlockPosition other = isUpperHalf(state) ? pos.offset(0, -1, 0) : pos.offset(0, 1, 0);
-        server.worlds().blockEdits().set(world, pos, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
-        server.worlds().blockEdits().set(world, other, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
+        server.worlds().blockEdits().set(world, pos, BlockState.defaultOf(BlockTypeKeys.AIR), true);
+        server.worlds().blockEdits().set(world, other, BlockState.defaultOf(BlockTypeKeys.AIR), true);
 
         server.players().broadcastNear(world, pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5,
                 new ClientboundLevelEventPacket(ClientboundLevelEventPacket.BLOCK_BREAK, pos,

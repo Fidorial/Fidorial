@@ -1,15 +1,16 @@
 package fr.fidorial.world.block.data.type;
 
-import com.google.common.base.Preconditions;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Powerable;
+import fr.fidorial.world.block.property.NoteInstrument;
 
 /**
  * The block state of a note block: its instrument, pitch, and whether it is powered.
  *
  * @since 0.1.0
  */
-@BlockTrait(properties = {"instrument", "note"})
+@BlockTrait(properties = {Names.INSTRUMENT, Names.NOTE})
 public interface NoteBlock extends Powerable {
 
     @Override
@@ -18,24 +19,22 @@ public interface NoteBlock extends Powerable {
     }
 
     /**
-     * {@return the instrument played, for instance {@code harp}}
+     * {@return the instrument played}
      *
      * @since 0.1.0
      */
-    default String getInstrument() {
-        final String instrument = get("instrument");
-        Preconditions.checkState(instrument != null, "%s has no instrument property", key());
-        return instrument;
+    default NoteInstrument getInstrument() {
+        return get(type().choice(Names.INSTRUMENT, NoteInstrument.class));
     }
 
     /**
      * {@return the same note block playing another instrument}
      *
-     * @param instrument the serialized instrument name, for instance {@code harp}
+     * @param instrument the instrument to play
      * @since 0.1.0
      */
-    default NoteBlock withInstrument(final String instrument) {
-        return (NoteBlock) with("instrument", instrument);
+    default NoteBlock withInstrument(final NoteInstrument instrument) {
+        return (NoteBlock) with(type().choice(Names.INSTRUMENT, NoteInstrument.class), instrument);
     }
 
     /**
@@ -44,9 +43,7 @@ public interface NoteBlock extends Powerable {
      * @since 0.1.0
      */
     default int getNote() {
-        final String note = get("note");
-        Preconditions.checkState(note != null, "%s has no note property", key());
-        return Integer.parseInt(note);
+        return get(type().range(Names.NOTE));
     }
 
     /**
@@ -56,6 +53,6 @@ public interface NoteBlock extends Powerable {
      * @since 0.1.0
      */
     default NoteBlock withNote(final int note) {
-        return (NoteBlock) with("note", String.valueOf(note));
+        return (NoteBlock) with(type().range(Names.NOTE), note);
     }
 }

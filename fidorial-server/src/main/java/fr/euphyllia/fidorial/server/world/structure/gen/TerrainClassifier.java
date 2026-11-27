@@ -52,7 +52,7 @@ public final class TerrainClassifier {
             return IGNORED;
         }
         if (BlockStateLightProperties.opacity(state.name()) < 15) {
-            return "true".equals(state.properties().get("waterlogged")) ? FLUID : IGNORED;
+            return state.isWaterlogged() ? FLUID : IGNORED;
         }
         return GROUND;
     }

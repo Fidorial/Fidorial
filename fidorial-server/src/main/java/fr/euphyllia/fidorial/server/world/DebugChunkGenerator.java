@@ -21,8 +21,8 @@ public final class DebugChunkGenerator implements ChunkGenerator {
     private static final int BARRIER_Y = 60;
     private static final int DISPLAY_Y = 70;
 
-    private static final BlockState AIR = BlockState.withoutProperties(BlockTypeKeys.AIR);
-    private static final BlockState BARRIER = BlockState.withoutProperties(BlockTypeKeys.BARRIER);
+    private static final BlockState AIR = BlockState.defaultOf(BlockTypeKeys.AIR);
+    private static final BlockState BARRIER = BlockState.defaultOf(BlockTypeKeys.BARRIER);
 
     private final DimensionTypeDefinition dimensionType;
     private final BlockState[] states;

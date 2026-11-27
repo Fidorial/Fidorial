@@ -1,8 +1,10 @@
 package fr.fidorial.world.block.data.type;
 
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.Directional;
+import fr.fidorial.world.block.property.PistonKind;
 
 /**
  * The block state of the parts of a piston that no item places: its {@linkplain PistonHead head},
@@ -11,7 +13,7 @@ import fr.fidorial.world.block.data.Directional;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "type", allowed = {"normal", "sticky"}))
+@BlockTrait(values = @BlockTrait.Values(property = Names.TYPE, allowed = {"normal", "sticky"}))
 public interface TechnicalPiston extends Directional {
 
     @Override
@@ -25,7 +27,7 @@ public interface TechnicalPiston extends Directional {
      * @since 0.1.0
      */
     default boolean isSticky() {
-        return "sticky".equals(get("type"));
+        return get(type().choice(Names.TYPE, PistonKind.class)) == PistonKind.STICKY;
     }
 
     /**
@@ -35,6 +37,6 @@ public interface TechnicalPiston extends Directional {
      * @since 0.1.0
      */
     default TechnicalPiston withSticky(final boolean sticky) {
-        return (TechnicalPiston) with("type", sticky ? "sticky" : "normal");
+        return (TechnicalPiston) with(type().choice(Names.TYPE, PistonKind.class), sticky ? PistonKind.STICKY : PistonKind.NORMAL);
     }
 }

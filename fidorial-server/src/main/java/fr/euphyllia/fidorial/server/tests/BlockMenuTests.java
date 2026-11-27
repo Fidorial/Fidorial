@@ -40,7 +40,7 @@ public final class BlockMenuTests {
     }
 
     private static int stateId(final TypedKey<BlockType> block) {
-        return FidorialServer.getInstance().registries().blockStates().networkId(BlockState.withoutProperties(block));
+        return FidorialServer.getInstance().registries().blockStates().networkId(BlockState.defaultOf(block));
     }
 
     /**

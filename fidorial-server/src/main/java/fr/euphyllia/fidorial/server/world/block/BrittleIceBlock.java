@@ -14,6 +14,7 @@ import fr.fidorial.registry.keys.GameRuleKeys;
 import fr.fidorial.registry.keys.SoundEventKeys;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.redstone.RedstoneWorld;
 
 /**
@@ -33,7 +34,6 @@ public final class BrittleIceBlock {
     public static final int TICK_DELAY = 24;
 
     private static final int MAX_AGE = 3;
-    private static final String AGE = "age";
 
     /**
      * The level event of brittle ice starting to crack: its particles, the data being the state of
@@ -105,7 +105,7 @@ public final class BrittleIceBlock {
             view.destroyBlock(position);
             return true;
         }
-        view.setBlock(position, state.with(AGE, Integer.toString(age + 1)), RedstoneWorld.Update.SHAPES);
+        view.setBlock(position, state.with(BlockProperties.AGE_0_3, age + 1), RedstoneWorld.Update.SHAPES);
         FarmingEffects.playSound(world, position, SoundEventKeys.BLOCK_BRITTLE_ICE_CRACK, 1.0f, 1.0f, null);
         if (age == 0) {
             FarmingEffects.levelEvent(world, FIRST_CRACK, position, state.networkId());
@@ -115,14 +115,6 @@ public final class BrittleIceBlock {
     }
 
     private static int age(final BlockData state) {
-        final String raw = state.get(AGE);
-        if (raw == null) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(raw);
-        } catch (final NumberFormatException _) {
-            return 0;
-        }
+        return state.getOrDefault(BlockProperties.AGE_0_3, 0);
     }
 }

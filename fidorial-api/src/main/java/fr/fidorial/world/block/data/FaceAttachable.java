@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -15,7 +15,7 @@ import fr.fidorial.world.block.BlockTrait;
  * @since 0.1.0
  */
 @BlockTrait(values =
-    @BlockTrait.Values(property = "face", allowed = {"floor", "wall", "ceiling"}, exactly = true)
+    @BlockTrait.Values(property = Names.FACE, allowed = {"floor", "wall", "ceiling"}, exactly = true)
 )
 public interface FaceAttachable extends Directional {
 
@@ -30,9 +30,7 @@ public interface FaceAttachable extends Directional {
      * @since 0.1.0
      */
     default AttachedFace getAttachedFace() {
-        final String face = get("face");
-        Preconditions.checkState(face != null, "%s has no face property", key());
-        return AttachedFace.fromValue(face);
+        return get(type().choice(Names.FACE, AttachedFace.class));
     }
 
     /**
@@ -42,7 +40,7 @@ public interface FaceAttachable extends Directional {
      * @since 0.1.0
      */
     default FaceAttachable withAttachedFace(final AttachedFace face) {
-        return (FaceAttachable) with("face", face.value());
+        return (FaceAttachable) with(type().choice(Names.FACE, AttachedFace.class), face);
     }
 
     /**

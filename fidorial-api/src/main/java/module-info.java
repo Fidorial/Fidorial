@@ -80,6 +80,7 @@ module fr.fidorial {
     exports fr.fidorial.world.block.data.type;
     exports fr.fidorial.world.block.data;
     exports fr.fidorial.world.block;
+    exports fr.fidorial.world.block.property;
     exports fr.fidorial.world.fluid;
     exports fr.fidorial.world.generation;
     exports fr.fidorial.world.redstone;

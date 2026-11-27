@@ -6,12 +6,13 @@ import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockType;
+import fr.fidorial.world.block.data.Bisected;
 import net.kyori.adventure.key.Key;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -145,7 +146,7 @@ public final class Survival {
         if (states.has(id, StateFlags.TWO_BLOCKS_TALL) && !name.equals(BlockTypeKeys.SMALL_DRIPLEAF)
                 && !name.equals(BlockTypeKeys.TALL_SEAGRASS)) {
             final Rule lower = rule;
-            rule = (region, state, x, y, z) -> "upper".equals(states.property(state, "half"))
+            rule = (region, state, x, y, z) -> states.get(state, BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.UPPER
                     ? upperHalf(region, state, x, y, z)
                     : lower.test(region, state, x, y, z);
         }
@@ -160,7 +161,7 @@ public final class Survival {
     private boolean upperHalf(final DecorationRegion region, final char id, final int x, final int y, final int z) {
         final char below = region.id(x, y - 1, z);
         return states.palette().state(below).name().equals(states.palette().state(id).name())
-                && "lower".equals(states.property(below, "half"));
+                && states.get(below, BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.LOWER;
     }
 
     private boolean seagrassGround(final char below) {
@@ -168,14 +169,14 @@ public final class Survival {
     }
 
     private boolean tallSeagrass(final DecorationRegion region, final char id, final int x, final int y, final int z) {
-        if ("upper".equals(states.property(id, "half"))) {
+        if (states.get(id, BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.UPPER) {
             return upperHalf(region, id, x, y, z);
         }
         return seagrassGround(region.id(x, y - 1, z)) && states.has(region.id(x, y, z), StateFlags.WATER_SOURCE);
     }
 
     private boolean smallDripleaf(final DecorationRegion region, final char id, final int x, final int y, final int z) {
-        if ("upper".equals(states.property(id, "half"))) {
+        if (states.get(id, BlockProperties.DOUBLE_BLOCK_HALF) == Bisected.Half.UPPER) {
             return upperHalf(region, id, x, y, z);
         }
         final char below = region.id(x, y - 1, z);
@@ -187,10 +188,10 @@ public final class Survival {
 
     private boolean paleMossCarpet(final DecorationRegion region, final char id, final int x, final int y, final int z) {
         final char below = region.id(x, y - 1, z);
-        if ("true".equals(states.property(id, "bottom"))) {
+        if (Boolean.TRUE.equals(states.get(id, BlockProperties.BOTTOM))) {
             return !states.isAir(below);
         }
-        return states.is(below, BlockTypeKeys.PALE_MOSS_CARPET) && "true".equals(states.property(below, "bottom"));
+        return states.is(below, BlockTypeKeys.PALE_MOSS_CARPET) && Boolean.TRUE.equals(states.get(below, BlockProperties.BOTTOM));
     }
 
     private boolean snowLayer(final DecorationRegion region, final char id, final int x, final int y, final int z) {
@@ -202,7 +203,7 @@ public final class Survival {
             return true;
         }
         return states.sturdy(below, BlockFace.UP)
-                || states.is(below, BlockTypeKeys.SNOW) && "8".equals(states.property(below, "layers"));
+                || states.is(below, BlockTypeKeys.SNOW) && Integer.valueOf(8).equals(states.get(below, BlockProperties.LAYERS));
     }
 
     private boolean cactus(final DecorationRegion region, final char id, final int x, final int y, final int z) {
@@ -244,7 +245,7 @@ public final class Survival {
     }
 
     private boolean propagule(final DecorationRegion region, final char id, final int x, final int y, final int z) {
-        if ("true".equals(states.property(id, "hanging"))) {
+        if (Boolean.TRUE.equals(states.get(id, BlockProperties.HANGING))) {
             return states.isTagged(region.id(x, y + 1, z), BlockTypeTagKeys.SUPPORTS_HANGING_MANGROVE_PROPAGULE);
         }
         return states.isTagged(region.id(x, y - 1, z), BlockTypeTagKeys.SUPPORTS_MANGROVE_PROPAGULE);
@@ -252,11 +253,10 @@ public final class Survival {
 
     private static boolean crystal(final DecorationRegion region, final char id, final int x, final int y, final int z) {
         final StateFlags states = region.states();
-        final String facing = states.property(id, "facing");
-        if (facing == null) {
+        final BlockFace face = states.get(id, BlockProperties.FACING);
+        if (face == null) {
             return true;
         }
-        final BlockFace face = BlockFace.valueOf(facing.toUpperCase(Locale.ROOT));
         return states.sturdy(region.id(x - face.dx(), y - face.dy(), z - face.dz()), face);
     }
 }

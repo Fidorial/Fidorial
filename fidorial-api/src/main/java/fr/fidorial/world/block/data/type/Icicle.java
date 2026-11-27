@@ -1,5 +1,7 @@
 package fr.fidorial.world.block.data.type;
 
+import fr.fidorial.world.block.BlockProperties.Names;
+
 /**
  * The block state of a piece of icicle, the speleothem of the ice caves.
  *
@@ -13,7 +15,7 @@ public interface Icicle extends Speleothem {
      * @since 0.1.0
      */
     default boolean isAttached() {
-        return Boolean.parseBoolean(get("attached"));
+        return get(type().flag(Names.ATTACHED));
     }
 
     /**
@@ -23,6 +25,6 @@ public interface Icicle extends Speleothem {
      * @since 0.1.0
      */
     default Icicle withAttached(final boolean attached) {
-        return (Icicle) with("attached", String.valueOf(attached));
+        return (Icicle) with(type().flag(Names.ATTACHED), attached);
     }
 }

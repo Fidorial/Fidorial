@@ -6,6 +6,7 @@ import fr.fidorial.registrygen.task.GenerateBlockEntityTypeBlocksTask;
 import fr.fidorial.registrygen.task.DownloadServerJarTask;
 import fr.fidorial.registrygen.task.GenerateBlockItemsTask;
 import fr.fidorial.registrygen.task.GenerateBlockMiningTask;
+import fr.fidorial.registrygen.task.GenerateBlockPropertiesTask;
 import fr.fidorial.registrygen.task.GenerateItemCombatTask;
 import fr.fidorial.registrygen.task.GenerateBlockStatesTask;
 import fr.fidorial.registrygen.task.GenerateBlockSupportTask;
@@ -53,6 +54,7 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
     public static final String REGISTRIES_TASK_NAME = "generateRegistries";
     public static final String PACKET_CATALOGS_TASK_NAME = "generatePacketCatalogs";
     public static final String BLOCK_STATES_TASK_NAME = "generateBlockStates";
+    public static final String BLOCK_PROPERTIES_TASK_NAME = "generateBlockProperties";
     public static final String ITEM_PROPERTIES_TASK_NAME = "generateItemProperties";
     public static final String ENTITY_TYPES_TASK_NAME = "generateEntityTypes";
     public static final String ENTITY_PROPERTIES_TASK_NAME = "generateEntityProperties";
@@ -112,6 +114,27 @@ public final class FidorialRegistryGeneratorPlugin implements Plugin<Project> {
                 entityTypesTask, entityPropertiesTask, frozenRegistriesTask, recipesTask, lootTablesTask,
                 blockMiningTask, registryValuesTask, blockSupportTask, blockCollisionTask, blockItemsTask,
                 blockEntityTypeBlocksTask, itemCombatTask, worldgenTask);
+
+        final TaskProvider<GenerateBlockPropertiesTask> blockPropertiesTask = registerBlockPropertiesTask(project, extension, reportsTask);
+        project.getTasks().named("generateAll").configure(task -> task.dependsOn(blockPropertiesTask));
+    }
+
+    private static TaskProvider<GenerateBlockPropertiesTask> registerBlockPropertiesTask(final Project project,
+                                                                                         final FidorialRegistryGeneratorExtension extension,
+                                                                                         final TaskProvider<GenerateReportsTask> reportsTask) {
+
+        return project.getTasks().register(BLOCK_PROPERTIES_TASK_NAME, GenerateBlockPropertiesTask.class, task -> {
+            task.setGroup("fidorial registry generation");
+            task.setDescription("Generates the BlockProperties constants from Mojang's blocks report.");
+            task.dependsOn(reportsTask);
+
+            task.onlyIf(_ -> extension.getGenerateBlockProperties().getOrElse(false));
+
+            task.getBlocksReport().set(reportsTask.flatMap(GenerateReportsTask::getDataDirectory)
+                    .map(dir -> dir.file("generated/reports/blocks.json")));
+            task.getBlockPackage().convention("fr.fidorial.world.block");
+            task.getGeneratedSourcesDirectory().set(extension.getGeneratedSourcesDirectory());
+        });
     }
 
     private static void configureDefaults(final Project project, final FidorialRegistryGeneratorExtension extension) {

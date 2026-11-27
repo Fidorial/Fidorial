@@ -22,6 +22,7 @@ import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainAdaptation;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
+import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.structure.StructureRotation;
 import org.jspecify.annotations.Nullable;
 
@@ -44,7 +45,7 @@ public final class PiecePlacer {
         this.registry = registry;
         this.terrain = terrain;
         final BlockState resolvedAir = registry.validator().resolve(Keys.AIR, Map.of());
-        this.air = resolvedAir == null ? BlockState.withoutProperties(Keys.AIR) : resolvedAir;
+        this.air = resolvedAir == null ? BlockState.defaultOf(Keys.AIR) : resolvedAir;
         this.dirt = registry.validator().resolve(BlockTypeKeys.DIRT, Map.of());
         this.netherrack = registry.validator().resolve(BlockTypeKeys.NETHERRACK, Map.of());
         this.jigsawReplacement = Processors.jigsawReplacement(registry.validator());
@@ -146,10 +147,10 @@ public final class PiecePlacer {
                 continue;
             }
             BlockState state = StateTransforms.rotate(block.state(), rotation);
-            if (waterlog && state.properties().containsKey("waterlogged") && !"true".equals(state.properties().get("waterlogged"))) {
+            if (waterlog && state.has(BlockProperties.WATERLOGGED) && !state.isWaterlogged()) {
                 final BlockState existing = target.get(block.x(), block.y(), block.z());
-                if (existing.name().equals(Keys.WATER) || "true".equals(existing.properties().get("waterlogged"))) {
-                    state = StateTransforms.with(state, "waterlogged", "true");
+                if (existing.name().equals(Keys.WATER) || existing.isWaterlogged()) {
+                    state = state.with(BlockProperties.WATERLOGGED, true);
                 }
             }
             target.set(block.x(), block.y(), block.z(), state, block.nbt());

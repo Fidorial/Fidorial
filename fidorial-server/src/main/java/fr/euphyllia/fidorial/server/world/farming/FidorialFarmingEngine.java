@@ -320,10 +320,7 @@ public final class FidorialFarmingEngine implements FarmingEngine {
 
     private void randomTick(final ServerFarmingWorld view, final FarmingBehaviour behaviour, final BlockPosition position,
                             final BlockState state) {
-        final BlockData data = blockStates.resolve(state);
-        if (data == null) {
-            return;
-        }
+        final BlockData data = state.data();
         try {
             if (behaviour.ticksRandomly(data)) {
                 behaviour.randomTick(view, position, data);

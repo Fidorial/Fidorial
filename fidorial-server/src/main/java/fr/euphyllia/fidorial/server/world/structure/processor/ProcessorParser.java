@@ -91,7 +91,7 @@ public final class ProcessorParser {
         }
         for (final JsonElement element : array) {
             final JsonObject rule = element.getAsJsonObject();
-            final BlockState output = StateParser.resolve(StateParser.parseJson(rule.get("output_state")), validator);
+            final BlockState output = StateParser.parseJson(rule.get("output_state"));
             if (output == null) {
                 problems.warn("A rule of " + origin + " has an unknown output_state, the rule is skipped");
                 continue;
@@ -117,7 +117,7 @@ public final class ProcessorParser {
             case "random_block_match" -> RuleTest.randomBlock(
                     block(string(object, "block", "air")), object.get("probability").getAsFloat());
             case "blockstate_match", "random_blockstate_match" -> {
-                final BlockState state = StateParser.resolve(StateParser.parseJson(object.get("block_state")), validator);
+                final BlockState state = StateParser.parseJson(object.get("block_state"));
                 if (state == null) {
                     yield (s, r) -> false;
                 }
@@ -169,9 +169,9 @@ public final class ProcessorParser {
             return names;
         }
         for (final JsonElement element : array) {
-            final StateParser.Parsed parsed = StateParser.parseJson(element);
-            if (parsed != null) {
-                names.add(parsed.name());
+            final BlockState state = StateParser.parseJson(element);
+            if (state != null) {
+                names.add(state.name());
             }
         }
         return names;

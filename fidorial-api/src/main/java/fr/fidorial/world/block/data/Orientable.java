@@ -1,7 +1,7 @@
 package fr.fidorial.world.block.data;
 
-import com.google.common.base.Preconditions;
 import fr.fidorial.world.block.BlockData;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 
 /**
@@ -12,7 +12,7 @@ import fr.fidorial.world.block.BlockTrait;
  *
  * @since 0.1.0
  */
-@BlockTrait(values = @BlockTrait.Values(property = "axis", allowed = {"x", "y", "z"}))
+@BlockTrait(values = @BlockTrait.Values(property = Names.AXIS, allowed = {"x", "y", "z"}))
 public interface Orientable extends BlockData {
 
     /**
@@ -21,9 +21,7 @@ public interface Orientable extends BlockData {
      * @since 0.1.0
      */
     default Axis getAxis() {
-        final String axis = get("axis");
-        Preconditions.checkState(axis != null, "%s has no axis property", key());
-        return Axis.valueOf(axis.toUpperCase(java.util.Locale.ROOT));
+        return get(type().choice(Names.AXIS, Axis.class));
     }
 
     /**
@@ -33,7 +31,7 @@ public interface Orientable extends BlockData {
      * @since 0.1.0
      */
     default Orientable withAxis(final Axis axis) {
-        return (Orientable) with("axis", axis.name().toLowerCase(java.util.Locale.ROOT));
+        return (Orientable) with(type().choice(Names.AXIS, Axis.class), axis);
     }
 
     /**

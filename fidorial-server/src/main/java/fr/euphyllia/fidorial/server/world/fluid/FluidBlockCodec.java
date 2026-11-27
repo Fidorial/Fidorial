@@ -2,16 +2,15 @@ package fr.euphyllia.fidorial.server.world.fluid;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.fidorial.registry.keys.BlockTypeKeys;
+import fr.fidorial.world.block.BlockProperties;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Map;
 
 /**
  * The fluid a block holds, and the fluid block holding a fluid.
  */
 public final class FluidBlockCodec {
 
-    private static final String LEVEL = "level";
 
     private FluidBlockCodec() {
         throw new UnsupportedOperationException("FluidBlockCodec cannot be instantiated.");
@@ -38,15 +37,7 @@ public final class FluidBlockCodec {
      * {@return the level of a fluid block}, {@code 0}, a source, when it cannot be read
      */
     private static int level(final BlockState block) {
-        final String raw = block.properties().get(LEVEL);
-        if (raw == null) {
-            return 0;
-        }
-        try {
-            return Integer.parseInt(raw);
-        } catch (final NumberFormatException _) {
-            return 0;
-        }
+        return block.getOrDefault(BlockProperties.LEVEL_0_15, 0);
     }
 
     /**
@@ -57,8 +48,8 @@ public final class FluidBlockCodec {
     public static BlockState toBlock(final FluidStateImpl state) {
         final FluidType type = state.type();
         if (type == null) {
-            return BlockState.withoutProperties(BlockTypeKeys.AIR);
+            return BlockState.defaultOf(BlockTypeKeys.AIR);
         }
-        return BlockState.withProperties(type.blockKey(), Map.of(LEVEL, Integer.toString(state.blockLevel())));
+        return BlockState.defaultOf(type.blockKey()).with(BlockProperties.LEVEL_0_15, state.blockLevel());
     }
 }

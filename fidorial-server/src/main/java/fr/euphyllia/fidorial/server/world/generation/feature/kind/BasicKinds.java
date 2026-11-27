@@ -16,6 +16,8 @@ import fr.euphyllia.fidorial.server.world.generation.value.IntSource;
 import fr.euphyllia.fidorial.server.world.generation.value.Values;
 import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties;
+import fr.fidorial.world.block.data.Bisected;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,19 +159,15 @@ final class BasicKinds {
      */
     static void placeDoublePlant(final DecorationRegion region, final char state, final int x, final int y, final int z) {
         final StateFlags states = region.states();
-        region.set(x, y, z, keepWater(region, states.with(state, "half", "lower"), x, y, z));
-        region.set(x, y + 1, z, keepWater(region, states.with(state, "half", "upper"), x, y + 1, z));
+        region.set(x, y, z, keepWater(region, states.with(state, BlockProperties.DOUBLE_BLOCK_HALF, Bisected.Half.LOWER), x, y, z));
+        region.set(x, y + 1, z, keepWater(region, states.with(state, BlockProperties.DOUBLE_BLOCK_HALF, Bisected.Half.UPPER), x, y + 1, z));
     }
 
     /**
      * {@return a state that holds water when its block holds some now, for the blocks that can}
      */
     static char keepWater(final DecorationRegion region, final char state, final int x, final int y, final int z) {
-        final StateFlags states = region.states();
-        if (states.property(state, "waterlogged") == null) {
-            return state;
-        }
-        return states.with(state, "waterlogged", Boolean.toString(region.has(x, y, z, StateFlags.WATER)));
+        return region.states().with(state, BlockProperties.WATERLOGGED, region.has(x, y, z, StateFlags.WATER));
     }
 
     private static Feature blockColumn(final FeatureLibrary library, final JsonObject data) {

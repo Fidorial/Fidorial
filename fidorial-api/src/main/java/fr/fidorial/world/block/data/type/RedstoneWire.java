@@ -2,6 +2,7 @@ package fr.fidorial.world.block.data.type;
 
 import com.google.common.base.Preconditions;
 import fr.fidorial.world.BlockFace;
+import fr.fidorial.world.block.BlockProperties.Names;
 import fr.fidorial.world.block.BlockTrait;
 import fr.fidorial.world.block.data.AnaloguePowerable;
 
@@ -14,10 +15,10 @@ import java.util.Locale;
  * @since 0.1.0
  */
 @BlockTrait(values = {
-        @BlockTrait.Values(property = "north", allowed = {"up", "side", "none"}, exactly = true),
-        @BlockTrait.Values(property = "east", allowed = {"up", "side", "none"}, exactly = true),
-        @BlockTrait.Values(property = "south", allowed = {"up", "side", "none"}, exactly = true),
-        @BlockTrait.Values(property = "west", allowed = {"up", "side", "none"}, exactly = true)
+        @BlockTrait.Values(property = Names.NORTH, allowed = {"up", "side", "none"}, exactly = true),
+        @BlockTrait.Values(property = Names.EAST, allowed = {"up", "side", "none"}, exactly = true),
+        @BlockTrait.Values(property = Names.SOUTH, allowed = {"up", "side", "none"}, exactly = true),
+        @BlockTrait.Values(property = Names.WEST, allowed = {"up", "side", "none"}, exactly = true)
 })
 public interface RedstoneWire extends AnaloguePowerable {
 
@@ -34,10 +35,7 @@ public interface RedstoneWire extends AnaloguePowerable {
      * @since 0.1.0
      */
     default Connection getConnection(final BlockFace side) {
-        final String name = sideName(side);
-        final String connection = get(name);
-        Preconditions.checkState(connection != null, "%s has no %s property", key(), name);
-        return Connection.fromValue(connection);
+        return get(type().choice(sideName(side), Connection.class));
     }
 
     /**
@@ -49,13 +47,11 @@ public interface RedstoneWire extends AnaloguePowerable {
      * @since 0.1.0
      */
     default RedstoneWire withConnection(final BlockFace side, final Connection connection) {
-        return (RedstoneWire) with(sideName(side), connection.value());
+        return (RedstoneWire) with(type().choice(sideName(side), Connection.class), connection);
     }
 
     private static String sideName(final BlockFace side) {
-        if (side == BlockFace.UP || side == BlockFace.DOWN) {
-            throw new IllegalArgumentException("Redstone dust only connects horizontally, not " + side);
-        }
+        Preconditions.checkArgument(side != BlockFace.UP && side != BlockFace.DOWN, "Redstone dust only connects horizontally, not %s", side);
         return side.name().toLowerCase(Locale.ROOT);
     }
 

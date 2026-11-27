@@ -69,7 +69,7 @@ public final class NoiseWorldGenerator implements WorldGenerator {
                 for (int x = 0; x < 16; x++) {
                     final BlockState state = column.getBlock(x, y, z);
                     if (!state.isAir()) {
-                        chunk.setBlock(x, y, z, state.name(), state.properties());
+                        chunk.setBlock(x, y, z, state.data());
                     }
                 }
             }

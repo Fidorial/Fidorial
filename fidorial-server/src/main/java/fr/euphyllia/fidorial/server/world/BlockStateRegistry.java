@@ -17,10 +17,8 @@ import fr.fidorial.world.block.BlockType;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Map;
 
 public final class BlockStateRegistry {
-    private static final int AIR_NETWORK_ID = 0;
 
     private final BlockRegistry registry;
     private final @Nullable BlockState[] stateByNetworkId;
@@ -37,18 +35,10 @@ public final class BlockStateRegistry {
 
     private void indexGeneratedStates() {
         for (final BlockType type : registry.types()) {
-            final TypedKey<BlockType> key = type.key();
-            final BlockState[] chunkStates = BlockStates.statesOf(key);
-            if (chunkStates == null) {
-                continue;
-            }
-            final int count = Math.min(chunkStates.length, type.stateCount());
-            for (int ordinal = 0; ordinal < count; ordinal++) {
+            for (int ordinal = 0; ordinal < type.stateCount(); ordinal++) {
                 final BlockData data = type.stateAt(ordinal);
-                final BlockState state = chunkStates[ordinal];
-                state.setData(data);
                 if (data.networkId() < stateByNetworkId.length) {
-                    stateByNetworkId[data.networkId()] = state;
+                    stateByNetworkId[data.networkId()] = BlockState.of(data);
                 }
             }
         }
@@ -60,8 +50,7 @@ public final class BlockStateRegistry {
     }
 
     public int networkId(final BlockState state) {
-        final BlockData data = resolve(state);
-        return data == null ? AIR_NETWORK_ID : data.networkId();
+        return state.data().networkId();
     }
 
     public BlockState byId(final int networkId) {
@@ -72,18 +61,11 @@ public final class BlockStateRegistry {
             }
         }
         final BlockData data = registry.fromNetworkId(networkId);
-        if (data == null) {
-            return BlockState.withoutProperties(BlockTypeKeys.AIR);
-        }
-        return BlockState.withProperties(data.key(), data.propertyMap());
-    }
-
-    public boolean contains(final BlockState state) {
-        return resolve(state) != null;
+        return data == null ? BlockState.defaultOf(BlockTypeKeys.AIR) : BlockState.of(data);
     }
 
     public BlockState toBlockState(final BlockData data) {
-        return BlockState.withProperties(data.key(), data.propertyMap());
+        return BlockState.of(data);
     }
 
     public @Nullable BlockState placementState(final BlockState state, final BlockPlaceContext context) {
@@ -98,24 +80,11 @@ public final class BlockStateRegistry {
     public BlockGetter view(final ServerWorld world) {
         return pos -> {
             try {
-                return resolve(world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ()));
+                return world.getBlock(pos.blockX(), pos.blockY(), pos.blockZ()).data();
             } catch (final IOException exception) {
                 return null;
             }
         };
-    }
-
-    public @Nullable BlockData resolve(final BlockState state) {
-        final BlockData cached = state.data();
-        return cached != null ? cached : resolveDynamic(state);
-    }
-
-    private @Nullable BlockData resolveDynamic(final BlockState state) {
-        final BlockType type = registry.type(state.name()).orElse(null);
-        if (type == null) {
-            return null;
-        }
-        return type.dataOrNull(state.properties());
     }
 
     /**
@@ -130,10 +99,10 @@ public final class BlockStateRegistry {
         }
 
         if (itemId.equals(ItemKeys.WATER_BUCKET)) {
-            return BlockState.withProperties(BlockTypeKeys.WATER, Map.of("level", "0"));
+            return BlockState.defaultOf(BlockTypeKeys.WATER);
         }
         if (itemId.equals(ItemKeys.LAVA_BUCKET)) {
-            return BlockState.withProperties(BlockTypeKeys.LAVA, Map.of("level", "0"));
+            return BlockState.defaultOf(BlockTypeKeys.LAVA);
         }
 
         return BlockItems.placesBlock(itemId) ? BlockStates.defaultStateOf(BlockItems.block(itemId)) : null;

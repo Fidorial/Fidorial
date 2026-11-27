@@ -63,7 +63,7 @@ public final class ItemEntityTests {
     }
 
     private static void buildFloor(final World world, final int center) {
-        final int stone = server().registries().blockStates().networkId(BlockState.withoutProperties(BlockTypeKeys.STONE));
+        final int stone = server().registries().blockStates().networkId(BlockState.defaultOf(BlockTypeKeys.STONE));
         for (int x = center - FLOOR_RADIUS; x <= center + FLOOR_RADIUS; x++) {
             for (int z = center - FLOOR_RADIUS; z <= center + FLOOR_RADIUS; z++) {
                 world.setBlockStateId(Position.block(x, (int) FLOOR_TOP - 1, z), stone);
