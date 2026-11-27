@@ -15,8 +15,10 @@ import fr.euphyllia.fidorial.server.debug.DebugChannels;
 import fr.euphyllia.fidorial.server.entity.AbstractEntity;
 import fr.euphyllia.fidorial.server.entity.mob.AbstractMob;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.events.block.BlockBreakEventImpl;
 import fr.euphyllia.fidorial.server.inventory.ContainerMenu;
 import fr.euphyllia.fidorial.server.inventory.CrafterMenu;
+import fr.euphyllia.fidorial.server.inventory.PlayerInventories;
 import fr.euphyllia.fidorial.server.inventory.ServerEnderChestInventory;
 import fr.euphyllia.fidorial.server.inventory.ServerPlayerInventory;
 import fr.euphyllia.fidorial.server.network.connection.ClientConnection;
@@ -92,6 +94,7 @@ import fr.euphyllia.fidorial.server.world.block.ServerBlockPlaceContext;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.BlockStates;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.farming.Harvests;
 import fr.euphyllia.fidorial.server.world.gamerule.FidorialGameRules;
 import fr.fidorial.dialog.DialogResponse;
 import fr.fidorial.entity.GameMode;
@@ -134,6 +137,7 @@ import fr.fidorial.registry.keys.BlockTypeKeys;
 import fr.fidorial.registry.keys.BlockTypeTagKeys;
 import fr.fidorial.registry.keys.GameEventKeys;
 import fr.fidorial.registry.keys.GameRuleKeys;
+import fr.fidorial.registry.keys.ItemKeys;
 import fr.fidorial.storage.player.PlayerDataStorage;
 import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.ChunkPos;
@@ -723,6 +727,10 @@ public final class PlayPacketHandler implements PlayPacketListener {
             final BlockState state = target == null
                     ? null : blockToPlace(held, plant, farming, target, clickedFace, packet.cursorY());
             final SwingAnimation interactAnimation = held.getOrDefault(DataComponentTypes.INTERACT_ANIMATION, SwingAnimation.DEFAULT);
+            final boolean survival = acting.gameMode() != GameMode.CREATIVE;
+            // the client takes the item out of the stack as soon as it expects a block to be placed
+            final boolean expectsPlacement = !held.isEmpty() && !farmingTool
+                    && (plant != null || server.registries().blockStates().blockForItem(held.id()) != null);
 
             boolean placed = false;
             if (target != null && state != null) {
@@ -737,8 +745,31 @@ public final class PlayPacketHandler implements PlayPacketListener {
                     placed = true;
                 }
             }
+            if (placed && survival) {
+                useUpPlaced(acting, slot, held);
+            } else if (!placed && survival && expectsPlacement) {
+                // gives the client back what it took out of the stack for nothing
+                acting.updateInventory();
+            }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
         });
+    }
+
+    /**
+     * Takes out of the stack a block was placed from what placing it used up: one item, or the
+     * fluid of a bucket, which leaves the bucket empty.
+     *
+     * @param slot the slot of the hand the block was placed with
+     * @param held what that hand held
+     */
+    private static void useUpPlaced(final ServerPlayer player, final int slot, final ItemStack held) {
+        if (held.id().equals(ItemKeys.WATER_BUCKET) || held.id().equals(ItemKeys.LAVA_BUCKET)) {
+            player.inventory().set(slot, ItemStack.of(ItemKeys.BUCKET));
+            // the client does not empty the bucket by itself
+            player.updateInventory();
+            return;
+        }
+        PlayerInventories.takeOne(player.inventory(), slot);
     }
 
     /**
@@ -947,18 +978,28 @@ public final class PlayPacketHandler implements PlayPacketListener {
         final ChunkPos chunkPos = packet.position().chunk();
 
         world.scheduler().execute(world.key(), chunkPos, () -> {
-            final BlockBreakEvent event = server.events().post(new BlockBreakEvent(acting, packet.position()));
+            final BlockPosition position = packet.position();
+            final BlockState broken = blockAt(world, position);
+            final BlockData block = broken != null ? server.registries().blockStates().resolve(broken) : null;
+            if (broken == null || block == null || block.isAir()) {
+                // nothing left to break: the block is already gone, or its chunk is not loaded
+                connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));
+                return;
+            }
+            final boolean survival = acting.gameMode() != GameMode.CREATIVE;
+            final ItemStack tool = acting.heldItem();
+            final List<ItemStack> loot = survival ? Harvests.loot(world, block, tool) : List.of();
+            final BlockBreakEvent event = server.events().post(new BlockBreakEventImpl(acting, world, position, block, tool, loot));
             if (!event.isCancelled()) {
-                final boolean survival = acting.gameMode() != GameMode.CREATIVE;
-                final BlockState broken = blockAt(world, packet.position());
+                // what the block gives is dropped while it still stands
                 if (survival) {
-                    // what farming gives is dropped while the block still stands
-                    server.worlds().farming().world(world).harvest(packet.position(), acting, acting.heldItem());
+                    Harvests.harvest(world, position, block, acting, tool);
                 }
-                server.worlds().blockEdits().set(world, packet.position(), BlockState.withoutProperties(BlockTypeKeys.AIR), true);
-                server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, packet.position());
-                if (survival && broken != null) {
-                    InfestedBlocks.afterBreak(world, packet.position(), broken, acting.heldItem());
+                Harvests.dropAll(world, position, event.drops());
+                server.worlds().blockEdits().set(world, position, BlockState.withoutProperties(BlockTypeKeys.AIR), true);
+                server.debug().gameEvents().emit(world, GameEventKeys.BLOCK_DESTROY, position);
+                if (survival) {
+                    InfestedBlocks.afterBreak(world, position, broken, tool);
                 }
             }
             connection.send(new ClientboundBlockChangedAckPacket(packet.sequence()));

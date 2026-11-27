@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import fr.euphyllia.fidorial.server.FidorialServer;
 import fr.euphyllia.fidorial.server.combat.ItemWear;
 import fr.euphyllia.fidorial.server.entity.player.ServerPlayer;
+import fr.euphyllia.fidorial.server.inventory.PlayerInventories;
 import fr.euphyllia.fidorial.server.network.protocol.packet.clientbound.play.ClientboundLevelEventPacket;
 import fr.euphyllia.fidorial.server.world.ServerWorld;
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
@@ -430,7 +431,7 @@ public final class ServerFarmingWorld implements FarmingWorld {
                 return true;
             }
             if (player.gameMode() != GameMode.CREATIVE) {
-                player.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
+                PlayerInventories.takeOne(player.inventory(), slot);
             }
             behaviour.fertilize(this, position, state);
         } catch (final RuntimeException exception) {

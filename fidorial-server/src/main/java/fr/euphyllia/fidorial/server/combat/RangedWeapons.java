@@ -7,6 +7,7 @@ import fr.euphyllia.fidorial.server.entity.projectile.ArrowProjectileEntity;
 import fr.euphyllia.fidorial.server.entity.projectile.SpectralArrowEntity;
 import fr.euphyllia.fidorial.server.entity.projectile.TridentEntity;
 import fr.euphyllia.fidorial.server.events.entity.EntityShootProjectileEventImpl;
+import fr.euphyllia.fidorial.server.inventory.PlayerInventories;
 import fr.euphyllia.fidorial.server.item.enchantment.EnchantmentEngine;
 import fr.fidorial.entity.GameMode;
 import fr.fidorial.inventory.EquipmentSlot;
@@ -338,9 +339,7 @@ public final class RangedWeapons {
             if (free || slot < 0) {
                 return;
             }
-            final PlayerInventory inventory = player.inventory();
-            final ItemStack current = inventory.get(slot);
-            inventory.set(slot, current.count() <= 1 ? ItemStack.EMPTY : current.withCount(current.count() - 1));
+            PlayerInventories.takeOne(player.inventory(), slot);
         }
     }
 

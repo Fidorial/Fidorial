@@ -91,6 +91,17 @@ public final class BlockItems {
     }
 
     /**
+     * {@return {@code true} if an item places a block}: one the dataset lists, and every item when
+     * the dataset was not read, each then placing the block of the same name
+     *
+     * @param item the item
+     */
+    public static boolean placesBlock(final TypedKey<Item> item) {
+        final Map<Key, TypedKey<BlockType>> known = blocks;
+        return known.isEmpty() || known.containsKey(item.key());
+    }
+
+    /**
      * {@return the block an item places, the block of the same name when the dataset does not say}
      *
      * @param item the item

@@ -118,8 +118,13 @@ public final class BlockStateRegistry {
         return type.dataOrNull(state.properties());
     }
 
+    /**
+     * {@return the block an item places, in its default state, {@code null} for an item placing
+     * none}: a block item places its block, a water or lava bucket its fluid
+     *
+     * @param itemId the item, {@code null} for none
+     */
     public @Nullable BlockState blockForItem(final @Nullable TypedKey<Item> itemId) {
-        // Todo : Match the item to the block it is actually supposed to relate to. This method is just for testing purposes and will need to be removed!
         if (itemId == null) {
             return null;
         }
@@ -131,7 +136,6 @@ public final class BlockStateRegistry {
             return BlockState.withProperties(BlockTypeKeys.LAVA, Map.of("level", "0"));
         }
 
-        final BlockState defaultState = BlockStates.defaultStateOf(BlockItems.block(itemId));
-        return defaultState != null ? defaultState : BlockStates.defaultStateOf(BlockTypeKeys.COBBLESTONE);
+        return BlockItems.placesBlock(itemId) ? BlockStates.defaultStateOf(BlockItems.block(itemId)) : null;
     }
 }

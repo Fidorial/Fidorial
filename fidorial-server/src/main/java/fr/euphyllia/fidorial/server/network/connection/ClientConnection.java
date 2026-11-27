@@ -684,6 +684,15 @@ public final class ClientConnection extends SimpleChannelInboundHandler<ByteBuf>
         listener.onDisconnect();
     }
 
+    /**
+     * Hands a packet to the listener as if the client had sent it; used by scenario tests
+     * @param packet the packet the client would send
+     */
+    public void mockReceive(final ServerboundPacket packet) {
+        Preconditions.checkState(state == ConnectionState.MOCK_PLAY, "Only a mock connection receives packets this way");
+        packet.handle(listener);
+    }
+
     public CompletableFuture<Boolean> teleport(final Location location) {
         if (listener instanceof final PlayPacketHandler play) {
             return play.teleport(location);

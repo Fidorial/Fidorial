@@ -15,6 +15,17 @@ public final class PlayerInventories {
     }
 
     /**
+     * Takes one item out of the stack in a slot, leaving the slot empty when it held the last one.
+     *
+     * @param inventory the inventory
+     * @param slot      the slot
+     */
+    public static void takeOne(final PlayerInventory inventory, final int slot) {
+        final ItemStack stack = inventory.get(slot);
+        inventory.set(slot, stack.count() <= 1 ? ItemStack.EMPTY : stack.withCount(stack.count() - 1));
+    }
+
+    /**
      * {@return how many of {@code stack} the inventory still has room for, at most its count}
      *
      * @param inventory the inventory

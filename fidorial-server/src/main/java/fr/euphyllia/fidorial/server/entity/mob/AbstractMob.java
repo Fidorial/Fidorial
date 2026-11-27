@@ -470,8 +470,7 @@ public abstract class AbstractMob extends AbstractLivingEntity {
         if (player.gameMode() == GameMode.CREATIVE) {
             return;
         }
-        final ItemStack held = player.inventory().get(slot);
-        player.inventory().set(slot, held.count() <= 1 ? ItemStack.EMPTY : held.withCount(held.count() - 1));
+        PlayerInventories.takeOne(player.inventory(), slot);
     }
 
     /**
