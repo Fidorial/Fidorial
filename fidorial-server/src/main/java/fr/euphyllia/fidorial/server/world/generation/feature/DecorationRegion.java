@@ -222,6 +222,28 @@ public final class DecorationRegion {
     }
 
     /**
+     * Has a block looked at again once its chunk is done: if it holds a fluid then, the fluid starts flowing.
+     */
+    public void markUpdate(final int x, final int y, final int z) {
+        if (canWrite(x, y, z)) {
+            chunkAt(x, z).blocks().markFluidUpdate(x & 15, y, z & 15);
+        }
+    }
+
+    /**
+     * Has the blocks resting on a block just changed looked at again, as {@link #markUpdate} does: the two above
+     * it, or fewer when air comes first.
+     */
+    public void markAbove(final int x, final int y, final int z) {
+        for (int above = 1; above <= 2; above++) {
+            if (isAir(x, y + above, z)) {
+                return;
+            }
+            markUpdate(x, y + above, z);
+        }
+    }
+
+    /**
      * Lets a fluid set at a block start flowing once its chunk is loaded.
      */
     public void scheduleFluid(final int x, final int y, final int z) {

@@ -108,7 +108,7 @@ public final class ServerWorld implements World {
     private final int height;
     private final WorldLightManager lightManager;
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
-    private volatile @Nullable ChunkReadListener chunkReadListener;
+    private volatile @Nullable ChunkLoadListener chunkLoadListener;
     private volatile @Nullable WorldScheduledTicks ticks;
     private final FloodFillLightEngine fallbackEngine;
     private final ThreadedRegionRegionizer scheduler;
@@ -426,9 +426,9 @@ public final class ServerWorld implements World {
         loaded.put(key, column);
         ensureEntitiesLoaded(chunkX, chunkZ);
         ensureLight(column, chunkX, chunkZ);
-        final ChunkReadListener listener = chunkReadListener;
-        if (fromDisk != null && listener != null) {
-            listener.chunkRead(this, column);
+        final ChunkLoadListener listener = chunkLoadListener;
+        if (listener != null) {
+            listener.chunkLoaded(this, column);
         }
         return column;
     }
@@ -964,21 +964,22 @@ public final class ServerWorld implements World {
     }
 
     /**
-     * Sets who is told of the chunks read from disk: what was saved mid-way, such as a block a
-     * piston was moving, moves on from there.
+     * Sets who is told of the chunks loaded, read from disk or just generated: what a chunk holds
+     * mid-way, such as a block a piston was moving or a tick still due, moves on from there.
      *
-     * @param listener told of every chunk of this world read from disk, on the thread that read it
+     * @param listener listener told of every chunk of this world once loaded, on the thread that read or
+     *                 generated it
      */
-    public void setChunkReadListener(final ChunkReadListener listener) {
-        this.chunkReadListener = listener;
+    public void setChunkLoadListener(final ChunkLoadListener listener) {
+        this.chunkLoadListener = listener;
     }
 
     /**
-     * Told of a chunk that was just read from disk, rather than generated.
+     * Told of a chunk that was just loaded, read from disk or generated.
      */
     @FunctionalInterface
-    public interface ChunkReadListener {
-        void chunkRead(ServerWorld world, ChunkColumn column);
+    public interface ChunkLoadListener {
+        void chunkLoaded(ServerWorld world, ChunkColumn column);
     }
 
     /**

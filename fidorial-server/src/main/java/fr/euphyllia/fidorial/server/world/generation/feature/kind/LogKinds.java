@@ -49,6 +49,7 @@ final class LogKinds {
         return (region, random, x, y, z) -> {
             final StateFlags states = region.states();
             region.set(x, y, z, trunk.pickOrKeep(region, random, x, y, z));
+            region.markAbove(x, y, z);
             decorate(region, random, Set.of(new PlantKinds.Spot(x, y, z)), stumpDecorations);
             final int direction = Facing.randomHorizontal(random);
             final int logLength = length.sample(random) - 2;
@@ -83,6 +84,7 @@ final class LogKinds {
                 final int px = sx + Facing.DX[direction] * i;
                 final int pz = sz + Facing.DZ[direction] * i;
                 region.set(px, sy, pz, states.withIfAllowed(trunk.pickOrKeep(region, random, px, sy, pz), "axis", axis));
+                region.markAbove(px, sy, pz);
                 logs.add(new PlantKinds.Spot(px, sy, pz));
             }
             decorate(region, random, logs, logDecorations);

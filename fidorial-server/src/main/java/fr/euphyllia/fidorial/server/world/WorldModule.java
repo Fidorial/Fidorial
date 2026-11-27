@@ -152,7 +152,7 @@ public final class WorldModule implements ServerModule, WorldManager {
         manager.setStructureService(structures);
         manager.setChunkLoader(scheduler.chunkWorker());
         manager.setLightDispatcher(light);
-        manager.setChunkReadListener((world, column) -> {
+        manager.setChunkLoadListener((world, column) -> {
             movingPistons.resume(world, column);
             ticks.resume(world, column);
         });

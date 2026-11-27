@@ -521,6 +521,7 @@ final class PlantKinds {
                     if (replaceable && validForPlacement(existing, candidate[0], candidate[1], candidate[2], candidate[3])) {
                         final char placed = withFace(existing, candidate[0], candidate[1], candidate[2], candidate[3]);
                         if (placed != StateSource.NONE && region.set(candidate[0], candidate[1], candidate[2], placed)) {
+                            region.markUpdate(candidate[0], candidate[1], candidate[2]);
                             return;
                         }
                         break;

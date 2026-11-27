@@ -4,11 +4,12 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.generation.block.StatePalette;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.function.Predicate;
 
 /**
  * A chunk while it is being generated: one {@code char} per block, numbered by the {@link StatePalette} of the
- * generator, and the noise biomes around it.
+ * generator, the noise biomes around it, and the blocks whose fluid has to start flowing once the chunk is done.
  *
  * <p>A section that holds a single state keeps no array. Coordinates are local along x and z, absolute along y.
  * Not thread-safe while it is being written; read-only once handed to the decoration step.</p>
@@ -25,6 +26,7 @@ public final class GenChunk {
     private final char[][] sections;
     private final char[] uniform;
     private final NoiseBiomeGrid biomes;
+    private final BitSet fluidUpdates;
 
     /**
      * @param fill the state every block starts as
@@ -40,6 +42,7 @@ public final class GenChunk {
         this.uniform = new char[height >> 4];
         Arrays.fill(uniform, palette.id(fill));
         this.biomes = biomes;
+        this.fluidUpdates = new BitSet();
     }
 
     private GenChunk(final GenChunk source) {
@@ -54,13 +57,51 @@ public final class GenChunk {
         }
         this.uniform = source.uniform.clone();
         this.biomes = source.biomes;
+        this.fluidUpdates = (BitSet) source.fluidUpdates.clone();
     }
 
     /**
-     * {@return a copy whose blocks can be changed without touching this chunk; the biomes are shared}
+     * {@return a copy whose blocks and fluid updates can be changed without touching this chunk; the biomes are
+     * shared}
      */
     public GenChunk copy() {
         return new GenChunk(this);
+    }
+
+    /**
+     * Asks for the fluid of a block to start flowing once the chunk is done, if the block still holds one then.
+     *
+     * @param x the block, local to the chunk
+     * @param y the same, absolute
+     * @param z the same, local to the chunk
+     */
+    public void markFluidUpdate(final int x, final int y, final int z) {
+        fluidUpdates.set(((y - minY) << 8) | (z << 4) | x);
+    }
+
+    /**
+     * Visits the blocks asked to start flowing, from the bottom of the chunk up.
+     *
+     * @param action what to do with each one, given in the coordinates of {@link #markFluidUpdate}
+     */
+    public void forEachFluidUpdate(final BlockAction action) {
+        for (int index = fluidUpdates.nextSetBit(0); index >= 0; index = fluidUpdates.nextSetBit(index + 1)) {
+            action.accept(index & 15, minY + (index >> 8), (index >> 4) & 15);
+        }
+    }
+
+    /**
+     * Something done to one block of the chunk.
+     */
+    @FunctionalInterface
+    public interface BlockAction {
+
+        /**
+         * @param x the block, local to the chunk
+         * @param y the same, absolute
+         * @param z the same, local to the chunk
+         */
+        void accept(int x, int y, int z);
     }
 
     public int chunkX() {

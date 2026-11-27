@@ -59,13 +59,21 @@ final class TerrainKinds {
                     if (dx * dx + dz * dz > r * r) {
                         continue;
                     }
+                    // only the highest block of each run of replaced blocks has the blocks above it looked at
+                    boolean placedAbove = false;
                     for (int py = top; py > bottom; py--) {
                         if (target.test(region, px, py, pz)) {
                             final char state = source.pick(region, random, px, py, pz);
                             if (state != StateSource.NONE) {
                                 region.set(px, py, pz, state);
+                                if (!placedAbove) {
+                                    region.markAbove(px, py, pz);
+                                }
                                 placedAny = true;
+                                placedAbove = true;
                             }
+                        } else {
+                            placedAbove = false;
                         }
                     }
                 }
@@ -136,6 +144,9 @@ final class TerrainKinds {
                     for (int yy = 0; yy < 8; yy++) {
                         if (grid[(xx * 16 + zz) * 8 + yy] && canEmpty.test(region, x0 + xx, y0 + yy, z0 + zz)) {
                             region.set(x0 + xx, y0 + yy, z0 + zz, yy >= 4 ? caveAir : fluid);
+                            if (yy >= 4) {
+                                region.markAbove(x0 + xx, y0 + yy, z0 + zz);
+                            }
                         }
                     }
                 }
@@ -151,6 +162,7 @@ final class TerrainKinds {
                                 final int pz = z0 + zz;
                                 if (region.has(px, py, pz, StateFlags.SOLID) && canWall.test(region, px, py, pz)) {
                                     region.set(px, py, pz, barrier);
+                                    region.markAbove(px, py, pz);
                                 }
                             }
                         }

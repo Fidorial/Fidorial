@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation.terrain;
 
 import fr.euphyllia.fidorial.server.world.chunk.BlockState;
+import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
 import fr.euphyllia.fidorial.server.world.generation.carver.CarvingMask;
 import fr.euphyllia.fidorial.server.world.generation.climate.BiomeClimate;
@@ -23,7 +24,8 @@ import java.util.Arrays;
 /**
  * Fills a chunk from its densities: solid where the final density is positive, the aquifers decide the rest; then
  * the material rules turn each solid block into stone, soil, sand or ore, and the carvers hollow out their
- * tunnels.
+ * tunnels. The water and lava left against a body of another level, or against air, are marked to start flowing
+ * once the chunk is done, as are the fluids the material rules give.
  *
  * <p>One builder per thread: it reuses its buffers from chunk to chunk.</p>
  */
@@ -67,6 +69,9 @@ public final class TerrainBuilder {
     private final int[] columnTops = new int[256];
     private @Nullable BlockState[] column = new BlockState[0];
     private boolean[] flowing = new boolean[0];
+    // the last block of the material rules looked at, and whether it holds a fluid
+    private @Nullable BlockState lastRuleBlock;
+    private boolean lastRuleFluid;
 
     /**
      * @param materials the material context the rule reads
@@ -266,6 +271,9 @@ public final class TerrainBuilder {
                     fluidHeight = y + 1;
                 }
                 chunk.set(x, y, z, noise);
+                if (flowing[index]) {
+                    chunk.markFluidUpdate(x, y, z);
+                }
                 carvedTop &= carved;
                 continue;
             }
@@ -286,6 +294,9 @@ public final class TerrainBuilder {
                 if (hollow != null) {
                     carvedTop |= solidAbove == 1;
                     chunk.set(x, y, z, hollow);
+                    if (aquifer != null && aquifer.scheduleFlow()) {
+                        chunk.markFluidUpdate(x, y, z);
+                    }
                     continue;
                 }
             }
@@ -298,8 +309,19 @@ public final class TerrainBuilder {
             }
             if (block != null) {
                 chunk.set(x, y, z, block);
+                if (holdsFluid(block)) {
+                    chunk.markFluidUpdate(x, y, z);
+                }
             }
         }
+    }
+
+    private boolean holdsFluid(final BlockState block) {
+        if (block != lastRuleBlock) {
+            lastRuleBlock = block;
+            lastRuleFluid = !FluidBlockCodec.fromBlock(block).isEmpty();
+        }
+        return lastRuleFluid;
     }
 
     /**

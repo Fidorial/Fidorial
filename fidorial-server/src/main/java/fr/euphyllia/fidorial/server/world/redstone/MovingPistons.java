@@ -229,7 +229,7 @@ public final class MovingPistons implements RegionTickHandler {
      * Moves on the blocks a chunk was saved with while they were moving.
      *
      * @param world  the world of the chunk
-     * @param column a chunk that was just read from disk
+     * @param column a chunk that was just loaded
      */
     public void resume(final ServerWorld world, final ChunkColumn column) {
         if (column.blockEntityCount() == 0) {

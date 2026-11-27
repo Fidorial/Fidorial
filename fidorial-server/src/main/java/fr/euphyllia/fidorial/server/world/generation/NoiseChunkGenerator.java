@@ -10,6 +10,8 @@ import fr.euphyllia.fidorial.server.world.chunk.BlockState;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkSection;
 import fr.euphyllia.fidorial.server.world.chunk.PalettedContainer;
+import fr.euphyllia.fidorial.server.world.fluid.FluidBlockCodec;
+import fr.euphyllia.fidorial.server.world.fluid.FluidStateImpl;
 import fr.euphyllia.fidorial.server.world.fluid.FluidType;
 import fr.euphyllia.fidorial.server.world.generation.biome.JitteredBiomeGrid;
 import fr.euphyllia.fidorial.server.world.generation.block.BlockLookup;
@@ -43,6 +45,7 @@ import fr.euphyllia.fidorial.server.world.structure.FutureCache;
 import fr.euphyllia.fidorial.server.world.structure.template.StructureTemplateImpl;
 import fr.euphyllia.fidorial.server.world.tick.ChunkTicks;
 import fr.euphyllia.fidorial.server.world.tick.PendingTick;
+import fr.fidorial.math.BlockPosition;
 import fr.fidorial.math.Position;
 import fr.fidorial.registry.TypedKey;
 import fr.fidorial.registry.data.BlockEntityType;
@@ -58,6 +61,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -361,14 +365,28 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     public ChunkColumn generate(final int chunkX, final int chunkZ) {
         final Decorator.Result decorated = decorator.decorate(chunkX, chunkZ);
         final ChunkColumn column = toColumn(decorated.chunk(), decorated.blockEntities());
-        if (!decorated.fluidTicks().isEmpty()) {
-            final List<PendingTick<FluidType>> fluids = new ArrayList<>(decorated.fluidTicks().size());
-            for (final int[] tick : decorated.fluidTicks()) {
-                if (tick[0] >> 4 == chunkX && tick[2] >> 4 == chunkZ) {
-                    fluids.add(new PendingTick<>(Position.block(tick[0], tick[1], tick[2]),
-                            tick[3] == 1 ? FluidType.LAVA : FluidType.WATER, 0, TickPriority.NORMAL));
+        final List<PendingTick<FluidType>> fluids = new ArrayList<>();
+        final Set<BlockPosition> started = new HashSet<>();
+        for (final int[] tick : decorated.fluidTicks()) {
+            if (tick[0] >> 4 == chunkX && tick[2] >> 4 == chunkZ) {
+                final BlockPosition position = Position.block(tick[0], tick[1], tick[2]);
+                if (started.add(position)) {
+                    fluids.add(new PendingTick<>(position, tick[3] == 1 ? FluidType.LAVA : FluidType.WATER, 0, TickPriority.NORMAL));
                 }
             }
+        }
+        // the fluids the terrain asked to start, if the decorations left one there
+        final GenChunk chunk = decorated.chunk();
+        final int baseX = chunkX << 4;
+        final int baseZ = chunkZ << 4;
+        chunk.forEachFluidUpdate((x, y, z) -> {
+            final FluidStateImpl fluid = FluidBlockCodec.fromBlock(chunk.get(x, y, z));
+            final BlockPosition position = Position.block(baseX + x, y, baseZ + z);
+            if (!fluid.isEmpty() && started.add(position)) {
+                fluids.add(new PendingTick<>(position, fluid.type(), 0, TickPriority.NORMAL));
+            }
+        });
+        if (!fluids.isEmpty()) {
             column.setPendingTicks(new ChunkTicks(List.of(), fluids));
         }
         return column;

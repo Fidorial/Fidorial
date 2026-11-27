@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>On every game tick of a region, its block ticks due run, then its fluid ticks due. The ticks of
  * a chunk are saved with it and scheduled again once it is loaded: {@link #pendingIn} gives them to
- * the threads saving chunks, {@link #resume} takes back those a chunk was read with.</p>
+ * the threads saving chunks, {@link #resume} takes back those a chunk was read or generated with.</p>
  */
 public final class ScheduledTickEngine implements RegionTickHandler {
 
@@ -157,11 +157,12 @@ public final class ScheduledTickEngine implements RegionTickHandler {
     }
 
     /**
-     * Schedules again, on the thread of its region, the ticks a chunk was read with: they are due as
-     * many game ticks after it was loaded as they were still due in when it was saved.
+     * Schedules, on the thread of its region, the ticks a chunk was loaded with: those it was saved
+     * with, due as many game ticks after it was loaded as they were still due in when it was saved,
+     * or those its generation gave it.
      *
      * @param world  the world of the chunk
-     * @param column the chunk just read from disk
+     * @param column the chunk just loaded
      */
     public void resume(final ServerWorld world, final ChunkColumn column) {
         if (column.pendingTicks().isEmpty()) {

@@ -64,7 +64,7 @@ public final class ServerWorldManager implements AutoCloseable {
     private final ThreadedRegionRegionizer scheduler;
     private final Map<Key, ServerWorld> worlds = new ConcurrentHashMap<>();
     private volatile @Nullable LightUpdateDispatcher lightDispatcher;
-    private volatile ServerWorld.@Nullable ChunkReadListener chunkReadListener;
+    private volatile ServerWorld.@Nullable ChunkLoadListener chunkLoadListener;
     private volatile @Nullable ScheduledTickEngine ticks;
     private final BlockStateRegistry blockStates;
     private volatile @Nullable ChunkGenerator defaultGenerator;
@@ -166,8 +166,8 @@ public final class ServerWorldManager implements AutoCloseable {
         if (lightDispatcher != null) {
             world.setLightDispatcher(lightDispatcher);
         }
-        if (chunkReadListener != null) {
-            world.setChunkReadListener(chunkReadListener);
+        if (chunkLoadListener != null) {
+            world.setChunkLoadListener(chunkLoadListener);
         }
         if (ticks != null) {
             world.setTicks(ticks);
@@ -322,10 +322,10 @@ public final class ServerWorldManager implements AutoCloseable {
         }
     }
 
-    public void setChunkReadListener(final ServerWorld.ChunkReadListener listener) {
-        this.chunkReadListener = listener;
+    public void setChunkLoadListener(final ServerWorld.ChunkLoadListener listener) {
+        this.chunkLoadListener = listener;
         for (final ServerWorld world : worlds.values()) {
-            world.setChunkReadListener(listener);
+            world.setChunkLoadListener(listener);
         }
     }
 
