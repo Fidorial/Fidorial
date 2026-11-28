@@ -506,7 +506,7 @@ horn_coral_fan 18
 horn_coral_wall_fan 18
 ice 5
 ice_crystal 5
-icicle 17
+icicle 5
 infested_chiseled_stone_bricks 9
 infested_cobblestone 9
 infested_cracked_stone_bricks 9

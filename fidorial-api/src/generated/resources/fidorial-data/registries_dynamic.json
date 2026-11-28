@@ -14340,7 +14340,9 @@
       {
         "id": "minecraft:straw_bed",
         "data": {
-          "break_sound": "minecraft:block.straw_bed.break",
+          "break_sound": {
+            "sound_id": "minecraft:block.straw_bed.break_leave"
+          },
           "fall_sound": "minecraft:block.straw_bed.fall",
           "hit_sound": "minecraft:block.straw_bed.hit",
           "place_sound": "minecraft:block.straw_bed.place",
@@ -24329,7 +24331,7 @@
           ],
           "sound_settings": {
             "hit_sound": "minecraft:entity.sulfur_cube.fast_sliding.hit",
-            "push_sound": "minecraft:entity.sulfur_cube.fast_sliding.hit",
+            "push_sound": "minecraft:entity.sulfur_cube.fast_sliding.push",
             "push_sound_cooldown": 1.0,
             "push_sound_impulse_threshold": 0.05
           }

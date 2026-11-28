@@ -1485,6 +1485,11 @@ public final class BlockTypeTagKeys {
     public static final TagKey<BlockType> WALL_POST_OVERRIDE = create("wall_post_override");
 
     /**
+     * Tag {@code #minecraft:wall_side_shape_override}.
+     */
+    public static final TagKey<BlockType> WALL_SIDE_SHAPE_OVERRIDE = create("wall_side_shape_override");
+
+    /**
      * Tag {@code #minecraft:wall_signs}.
      */
     public static final TagKey<BlockType> WALL_SIGNS = create("wall_signs");

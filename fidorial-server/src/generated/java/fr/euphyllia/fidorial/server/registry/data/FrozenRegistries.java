@@ -7911,6 +7911,7 @@ public final class FrozenRegistries {
     }
 
     private static void blockTags32(final Map<Key, List<Key>> tags) {
+        tags.put(Key.key("wall_side_shape_override"), List.of(Key.key("honey_block")));
         tags.put(Key.key("wall_signs"), List.of(Key.key("acacia_wall_sign"),
                 Key.key("bamboo_wall_sign"), Key.key("birch_wall_sign"),
                 Key.key("cherry_wall_sign"), Key.key("crimson_wall_sign"),
@@ -8131,7 +8132,7 @@ public final class FrozenRegistries {
      * @return the tags of {@code minecraft:block}, keyed by tag identifier
      */
     private static Map<Key, List<Key>> blockTags() {
-        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(317);
+        final Map<Key, List<Key>> tags = LinkedHashMap.newLinkedHashMap(318);
         blockTags0(tags);
         blockTags1(tags);
         blockTags2(tags);

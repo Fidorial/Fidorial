@@ -12,16 +12,19 @@ import fr.fidorial.world.BlockFace;
 import fr.fidorial.world.block.BlockProperties;
 import fr.fidorial.world.block.BlockProperty;
 import fr.fidorial.world.block.data.Orientable;
+import net.kyori.adventure.text.logger.slf4j.ComponentLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Reads the state sources written in the data.
  */
 final class StateSources {
 
+    private static final ComponentLogger LOGGER = ComponentLogger.logger(StateSources.class);
     private static final String[] DIRECTIONS = {"down", "up", "north", "south", "west", "east"};
     private static final BlockFace[] FACES = {BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
 
@@ -57,10 +60,20 @@ final class StateSources {
                 final StateSource source = library.source(object.get("source"));
                 final String property = object.get("property").getAsString();
                 final IntSource values = IntSource.parse(object.get("values"));
+                final AtomicBoolean reported = new AtomicBoolean();
                 yield (region, random, x, y, z) -> {
                     final char base = source.pickOrKeep(region, random, x, y, z);
-                    return flags.palette().state(base).type().property(property) instanceof final BlockProperty.Range range
-                            ? flags.with(base, range, values.sample(random)) : base;
+                    if (!(flags.palette().state(base).type().property(property) instanceof final BlockProperty.Range range)) {
+                        return base;
+                    }
+                    if (values.min() < range.min() || values.max() > range.max()) {
+                        if (reported.compareAndSet(false, true)) {
+                            LOGGER.error("Tried to randomize int for property {} that does not support every value in"
+                                    + " randomized range [{}, {}]", property, values.min(), values.max());
+                        }
+                        return base;
+                    }
+                    return flags.with(base, range, values.sample(random));
                 };
             }
             case "rotated" -> {
