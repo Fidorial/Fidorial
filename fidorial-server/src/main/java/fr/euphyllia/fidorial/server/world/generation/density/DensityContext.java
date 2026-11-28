@@ -17,6 +17,7 @@ public final class DensityContext {
     private float[] values;
     private int[] stamps;
     private Long2FloatOpenHashMap[] grids;
+    private UpscaleDensity.CellCorners[] corners = new UpscaleDensity.CellCorners[0];
     private int stamp = 1;
 
     DensityContext(final int cacheSlots, final int gridSlots) {
@@ -84,6 +85,20 @@ public final class DensityContext {
             growGrids(slot + 4);
         }
         return grids[slot];
+    }
+
+    /**
+     * {@return the corners an upscaled function read last, kept for the next block of the same cell}
+     */
+    UpscaleDensity.CellCorners corners(final int slot) {
+        if (slot >= corners.length) {
+            final int old = corners.length;
+            corners = Arrays.copyOf(corners, slot + 4);
+            for (int i = old; i < corners.length; i++) {
+                corners[i] = new UpscaleDensity.CellCorners();
+            }
+        }
+        return corners[slot];
     }
 
     /**

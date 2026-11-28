@@ -2,6 +2,8 @@ package fr.euphyllia.fidorial.server.world.generation.density;
 
 import it.unimi.dsi.fastutil.longs.Long2FloatOpenHashMap;
 
+import java.util.Arrays;
+
 /**
  * Samples a function on a coarse grid and fills the blocks in between. Each axis has its own cell size and its
  * own way of filling: copy the nearest sample, blend the two samples around linearly or along a cosine, or follow
@@ -97,6 +99,20 @@ final class UpscaleDensity extends Density {
         }
     }
 
+    /**
+     * The eight grid samples around the cell an upscaled function blended last, NaN for those not read yet: the
+     * blocks of a column go through a cell one after the other, and all read the same corners. The samples depend
+     * on the position only, so they stay right from one chunk to the next. Belongs to a {@link DensityContext}.
+     */
+    static final class CellCorners {
+        boolean valid;
+        int cellX;
+        int cellY;
+        int cellZ;
+        // by corner: 1 for the far side along x, 2 along y, 4 along z
+        final float[] values = new float[8];
+    }
+
     private final Density input;
     private final int slot;
     private final Axis x;
@@ -107,6 +123,10 @@ final class UpscaleDensity extends Density {
     private final float[][] weightsY;
     private final float inverseCellY;
     private final boolean linearOrNearest;
+    // the cell size minus one when it is a power of two, the position in the cell then being a mask away; -1 otherwise
+    private final int maskX;
+    private final int maskY;
+    private final int maskZ;
 
     UpscaleDensity(final Density input, final int slot, final Axis x, final Axis y, final Axis z) {
         super(widen(input, x, y, z)[0], widen(input, x, y, z)[1]);
@@ -120,6 +140,20 @@ final class UpscaleDensity extends Density {
         this.weightsZ = z.table();
         this.inverseCellY = 1.0F / y.cellSize();
         this.linearOrNearest = simple(x.mode()) && simple(y.mode()) && simple(z.mode());
+        this.maskX = maskOf(x.cellSize());
+        this.maskY = maskOf(y.cellSize());
+        this.maskZ = maskOf(z.cellSize());
+    }
+
+    private static int maskOf(final int size) {
+        return Integer.bitCount(size) == 1 ? size - 1 : -1;
+    }
+
+    /**
+     * {@return {@code Math.floorMod(block, size)}, without a division when the size is a power of two}
+     */
+    private static int inCell(final int block, final int size, final int mask) {
+        return mask >= 0 ? block & mask : Math.floorMod(block, size);
     }
 
     private static final float[] ONE = {1.0F};
@@ -157,9 +191,9 @@ final class UpscaleDensity extends Density {
         final int sizeX = x.cellSize();
         final int sizeY = y.cellSize();
         final int sizeZ = z.cellSize();
-        final int inX = Math.floorMod(bx, sizeX);
-        final int inY = Math.floorMod(by, sizeY);
-        final int inZ = Math.floorMod(bz, sizeZ);
+        final int inX = inCell(bx, sizeX, maskX);
+        final int inY = inCell(by, sizeY, maskY);
+        final int inZ = inCell(bz, sizeZ, maskZ);
         // on a grid line an exact mode needs the sample of that line only
         final boolean onX = inX == 0 && x.mode().exactOnGrid;
         final boolean onY = inY == 0 && y.mode().exactOnGrid;
@@ -180,6 +214,14 @@ final class UpscaleDensity extends Density {
                             final int inX, final int inY, final int inZ,
                             final boolean onX, final boolean onY, final boolean onZ) {
         final Long2FloatOpenHashMap grid = context.grid(slot);
+        final CellCorners corners = context.corners(slot);
+        if (!corners.valid || corners.cellX != cellX || corners.cellY != cellY || corners.cellZ != cellZ) {
+            corners.valid = true;
+            corners.cellX = cellX;
+            corners.cellY = cellY;
+            corners.cellZ = cellZ;
+            Arrays.fill(corners.values, Float.NaN);
+        }
         final boolean singleX = onX || x.mode() == Mode.NEAREST_NEIGHBOR;
         final boolean singleY = onY || y.mode() == Mode.NEAREST_NEIGHBOR;
         final boolean singleZ = onZ || z.mode() == Mode.NEAREST_NEIGHBOR;
@@ -189,11 +231,11 @@ final class UpscaleDensity extends Density {
         final float[] wx = weightsX[inX];
         final float[] wz = weightsZ[inZ];
 
-        final float low = plane(context, grid, cellX, nextX, cellY, cellZ, nextZ, singleX, singleZ, wx, wz);
+        final float low = plane(context, grid, corners, 0, cellX, nextX, cellY, cellZ, nextZ, singleX, singleZ, wx, wz);
         if (singleY) {
             return low;
         }
-        final float high = plane(context, grid, cellX, nextX, nextY, cellZ, nextZ, singleX, singleZ, wx, wz);
+        final float high = plane(context, grid, corners, 2, cellX, nextX, nextY, cellZ, nextZ, singleX, singleZ, wx, wz);
         if (y.mode() == Mode.INTERPOLATE_LINEAR) {
             return low + (high - low) * inverseCellY * inY;
         }
@@ -201,24 +243,44 @@ final class UpscaleDensity extends Density {
         return wy[0] * low + wy[1] * high;
     }
 
-    private float plane(final DensityContext context, final Long2FloatOpenHashMap grid, final int cellX, final int nextX,
-                        final int sampleY, final int cellZ, final int nextZ, final boolean singleX, final boolean singleZ,
-                        final float[] wx, final float[] wz) {
-        final float near = line(context, grid, cellX, nextX, sampleY, cellZ, singleX, wx);
+    /**
+     * @param corner the corner bit of {@code sampleY}: 0 for the near side, 2 for the far side
+     */
+    private float plane(final DensityContext context, final Long2FloatOpenHashMap grid, final CellCorners corners,
+                        final int corner, final int cellX, final int nextX, final int sampleY, final int cellZ,
+                        final int nextZ, final boolean singleX, final boolean singleZ, final float[] wx, final float[] wz) {
+        final float near = line(context, grid, corners, corner, cellX, nextX, sampleY, cellZ, singleX, wx);
         if (singleZ) {
             return near;
         }
-        final float far = line(context, grid, cellX, nextX, sampleY, nextZ, singleX, wx);
+        final float far = line(context, grid, corners, corner | 4, cellX, nextX, sampleY, nextZ, singleX, wx);
         return wz[0] * near + wz[1] * far;
     }
 
-    private float line(final DensityContext context, final Long2FloatOpenHashMap grid, final int cellX, final int nextX,
-                       final int sampleY, final int sampleZ, final boolean singleX, final float[] wx) {
-        final float first = sampleAt(context, grid, cellX, sampleY, sampleZ);
+    private float line(final DensityContext context, final Long2FloatOpenHashMap grid, final CellCorners corners,
+                       final int corner, final int cellX, final int nextX, final int sampleY, final int sampleZ,
+                       final boolean singleX, final float[] wx) {
+        final float first = corner(context, grid, corners, corner, cellX, sampleY, sampleZ);
         if (singleX) {
             return first;
         }
-        return wx[0] * first + wx[1] * sampleAt(context, grid, nextX, sampleY, sampleZ);
+        return wx[0] * first + wx[1] * corner(context, grid, corners, corner | 1, nextX, sampleY, sampleZ);
+    }
+
+    /**
+     * {@return a corner of the cell, read from the grid the first time only}
+     */
+    private float corner(final DensityContext context, final Long2FloatOpenHashMap grid, final CellCorners corners,
+                         final int corner, final int bx, final int by, final int bz) {
+        final float known = corners.values[corner];
+        return Float.isNaN(known) ? readCorner(context, grid, corners, corner, bx, by, bz) : known;
+    }
+
+    private float readCorner(final DensityContext context, final Long2FloatOpenHashMap grid, final CellCorners corners,
+                             final int corner, final int bx, final int by, final int bz) {
+        final float value = sampleAt(context, grid, bx, by, bz);
+        corners.values[corner] = value;
+        return value;
     }
 
     /**

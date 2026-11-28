@@ -84,6 +84,7 @@ public final class Decorator {
      * {@return a chunk with its decorations and those of the chunks around it}
      */
     public Result decorate(final int chunkX, final int chunkZ) {
+        prefetchTerrains(chunkX, chunkZ);
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 ensureDecorated(chunkX + dx, chunkZ + dz);
@@ -103,6 +104,52 @@ public final class Decorator {
             }
         }
         return decorateAlone(chunkX, chunkZ);
+    }
+
+    /**
+     * Builds the terrains the decoration of a chunk is about to wait for, those no other thread has started.
+     *
+     * <p>The decorations of neighbouring chunks need the same terrains, and ask for them in the same order: without
+     * this, the thread building the first one has every other thread waiting behind it, then the second one, and
+     * so on. Here each thread takes the terrains nobody is on, and only waits, later, for those another thread was
+     * already building. A terrain is only built if a decoration still to run will read it.</p>
+     */
+    private void prefetchTerrains(final int chunkX, final int chunkZ) {
+        // which of the nine decorations around the chunk are still to run
+        final boolean[] pending = new boolean[9];
+        boolean any = false;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                final boolean todo = !isDecorated(key(chunkX + dx, chunkZ + dz));
+                pending[(dx + 1) * 3 + dz + 1] = todo;
+                any |= todo;
+            }
+        }
+        if (!any) {
+            return;
+        }
+        for (int tx = -2; tx <= 2; tx++) {
+            for (int tz = -2; tz <= 2; tz++) {
+                if (!readBy(pending, tx, tz) || waiting.containsKey(key(chunkX + tx, chunkZ + tz))) {
+                    continue;
+                }
+                generator.prefetchTerrain(chunkX + tx, chunkZ + tz);
+            }
+        }
+    }
+
+    /**
+     * {@return whether a pending decoration around the chunk reads the terrain at an offset from it}
+     */
+    private static boolean readBy(final boolean[] pending, final int tx, final int tz) {
+        for (int dx = Math.max(-1, tx - 1); dx <= Math.min(1, tx + 1); dx++) {
+            for (int dz = Math.max(-1, tz - 1); dz <= Math.min(1, tz + 1); dz++) {
+                if (pending[(dx + 1) * 3 + dz + 1]) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private DecorationChunk waitingChunk(final int chunkX, final int chunkZ) {

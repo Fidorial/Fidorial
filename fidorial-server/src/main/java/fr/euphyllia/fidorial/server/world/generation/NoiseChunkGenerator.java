@@ -55,6 +55,8 @@ import fr.fidorial.world.ChunkPos;
 import fr.fidorial.world.biome.BiomeDefinition;
 import fr.fidorial.world.dimension.DimensionTypeDefinition;
 import fr.fidorial.world.redstone.TickPriority;
+import it.unimi.dsi.fastutil.HashCommon;
+import it.unimi.dsi.fastutil.chars.Char2IntOpenHashMap;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import org.jspecify.annotations.Nullable;
@@ -82,6 +84,7 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
 
     private static final int TERRAIN_CACHE = 1024;
     private static final int CARVER_BIOME_CACHE = 1 << 16;
+    private static final int BIOME_CELL_CACHE = 4096;
     private static final int PROTECTED_TOP = 7;
 
     private static final Key AQUIFER_RANDOM = Key.key( "aquifer");
@@ -126,6 +129,9 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     private final Map<String, Carver> carvers = new ConcurrentHashMap<>();
     private final FutureCache<Long, GenChunk> terrainCache = new FutureCache<>(TERRAIN_CACHE);
     private final Map<Long, Character> carverBiomes = new ConcurrentHashMap<>();
+    // the biome cells of chunks, by mixed chunk key: a chunk reads the cells of its neighbours at its borders
+    private final Map<Long, char[]> biomeCells = new ConcurrentHashMap<>();
+    private final Map<String, Carver> carversById = new ConcurrentHashMap<>();
     private final ThreadLocal<Worker> workers;
     private final Decorator decorator;
 
@@ -306,7 +312,8 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     }
 
     private BiomeInfo carverBiome(final int chunkX, final int chunkZ) {
-        final long key = ChunkPos.chunkKey(chunkX, chunkZ);
+        // mixed: the chunk key hashes to x ^ z, so the chunks of a diagonal would share a bin
+        final long key = HashCommon.mix(ChunkPos.chunkKey(chunkX, chunkZ));
         Character known = carverBiomes.get(key);
         if (known == null) {
             if (carverBiomes.size() > CARVER_BIOME_CACHE) {
@@ -319,8 +326,76 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
     }
 
     private Carver carver(final String id) {
-        return carvers.computeIfAbsent(WorldgenData.normalize(id),
+        // by the identifier as the biome writes it, so that the hundreds of lookups of a chunk skip normalizing it
+        final Carver known = carversById.get(id);
+        if (known != null) {
+            return known;
+        }
+        final Carver carver = carvers.computeIfAbsent(WorldgenData.normalize(id),
                 key -> Carver.parse(environment.data().get(WorldgenData.Section.CARVER, key)));
+        carversById.putIfAbsent(id, carver);
+        return carver;
+    }
+
+    /**
+     * The biome cells of a chunk for its {@link NoiseBiomeGrid}, read from the cells of the chunk and of the eight
+     * around it. Each chunk samples the climate of its own 4 by 4 columns of cells once, and its neighbours reuse
+     * them for their margins, instead of every grid sampling its 6 by 6 columns. One per terrain being built.
+     */
+    private final class SharedCells implements NoiseBiomeGrid.CellBiome {
+        private final Worker worker;
+        private final int minQuartY;
+        private final int sizeY;
+        private int lastChunkX = Integer.MIN_VALUE;
+        private int lastChunkZ = Integer.MIN_VALUE;
+        private char @Nullable [] last;
+
+        SharedCells(final Worker worker) {
+            this.worker = worker;
+            this.minQuartY = (heights.minY() >> 2) - 1;
+            this.sizeY = (heights.height() >> 2) + 2;
+        }
+
+        @Override
+        public char biomeAt(final int quartX, final int quartY, final int quartZ) {
+            final int quartY0 = quartY - minQuartY;
+            if (quartY0 < 0 || quartY0 >= sizeY) {
+                return worker.biomeSampler.biomeAt(worker.density, quartX, quartY, quartZ);
+            }
+            final int chunkX = quartX >> 2;
+            final int chunkZ = quartZ >> 2;
+            char[] cells = last;
+            if (cells == null || chunkX != lastChunkX || chunkZ != lastChunkZ) {
+                cells = cellsOf(chunkX, chunkZ);
+                last = cells;
+                lastChunkX = chunkX;
+                lastChunkZ = chunkZ;
+            }
+            return cells[((quartX & 3) * 4 + (quartZ & 3)) * sizeY + quartY0];
+        }
+
+        private char[] cellsOf(final int chunkX, final int chunkZ) {
+            final long key = HashCommon.mix(ChunkPos.chunkKey(chunkX, chunkZ));
+            final char[] known = biomeCells.get(key);
+            if (known != null) {
+                return known;
+            }
+            final char[] cells = new char[16 * sizeY];
+            for (int x = 0; x < 4; x++) {
+                for (int z = 0; z < 4; z++) {
+                    final int column = (x * 4 + z) * sizeY;
+                    for (int y = 0; y < sizeY; y++) {
+                        cells[column + y] = worker.biomeSampler.biomeAt(worker.density,
+                                (chunkX << 2) + x, minQuartY + y, (chunkZ << 2) + z);
+                    }
+                }
+            }
+            if (biomeCells.size() > BIOME_CELL_CACHE) {
+                biomeCells.clear();
+            }
+            biomeCells.put(key, cells);
+            return cells;
+        }
     }
 
     /**
@@ -330,11 +405,21 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
         return terrainCache.get(ChunkPos.chunkKey(chunkX, chunkZ), key -> buildTerrain(chunkX, chunkZ));
     }
 
+    /**
+     * Builds the terrain of a chunk on the calling thread if no thread has started it, without waiting for the
+     * thread that has.
+     *
+     * @return whether this thread built it
+     */
+    public boolean prefetchTerrain(final int chunkX, final int chunkZ) {
+        return terrainCache.prefetch(ChunkPos.chunkKey(chunkX, chunkZ), key -> buildTerrain(chunkX, chunkZ));
+    }
+
     private GenChunk buildTerrain(final int chunkX, final int chunkZ) {
         final Worker worker = workers.get();
         worker.density.reset();
         final NoiseBiomeGrid grid = new NoiseBiomeGrid(chunkX, chunkZ, heights.minY(), heights.height(), zoom,
-                (qx, qy, qz) -> worker.biomeSampler.biomeAt(worker.density, qx, qy, qz));
+                new SharedCells(worker));
         final GenChunk chunk = new GenChunk(chunkX, chunkZ, heights.minY(), heights.height(), palette, environment.blocks().air, grid);
         final CarvingMask mask = carvingMask(chunkX, chunkZ);
         worker.builder.fill(chunk, worker.density, mask.isEmpty() ? null : mask);
@@ -428,17 +513,25 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
         if (data == null) {
             return new PalettedContainer<>(ChunkSection.BLOCK_COUNT, 4, palette.state(chunk.uniformId(section)));
         }
-        final Map<Character, Integer> local = new HashMap<>();
+        final Char2IntOpenHashMap local = new Char2IntOpenHashMap();
+        local.defaultReturnValue(-1);
         final List<BlockState> states = new ArrayList<>();
+        char lastId = data[0];
+        int lastIndex = -1;
         for (int i = 0; i < data.length; i++) {
             final char id = data[i];
-            Integer index = local.get(id);
-            if (index == null) {
-                index = states.size();
-                local.put(id, index);
-                states.add(palette.state(id));
+            // runs of the same state are the rule: skip the map for them
+            if (id != lastId || lastIndex < 0) {
+                int index = local.get(id);
+                if (index < 0) {
+                    index = states.size();
+                    local.put(id, index);
+                    states.add(palette.state(id));
+                }
+                lastId = id;
+                lastIndex = index;
             }
-            indices[i] = index;
+            indices[i] = lastIndex;
         }
         if (states.size() == 1) {
             return new PalettedContainer<>(ChunkSection.BLOCK_COUNT, 4, states.getFirst());
@@ -454,14 +547,15 @@ public final class NoiseChunkGenerator implements ChunkGenerator {
             return new PalettedContainer<>(ChunkSection.BIOME_COUNT, 1, biomes.get(grid.sectionBiome(section)).key());
         }
         final int baseY = chunk.minY() + (section << 4);
-        final Map<Character, Integer> local = new HashMap<>();
+        final Char2IntOpenHashMap local = new Char2IntOpenHashMap();
+        local.defaultReturnValue(-1);
         final List<TypedKey<BiomeDefinition>> keys = new ArrayList<>();
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     final char biome = grid.biome(baseX + x, baseY + y, baseZ + z);
-                    Integer index = local.get(biome);
-                    if (index == null) {
+                    int index = local.get(biome);
+                    if (index < 0) {
                         index = keys.size();
                         local.put(biome, index);
                         keys.add(biomes.get(biome).key());

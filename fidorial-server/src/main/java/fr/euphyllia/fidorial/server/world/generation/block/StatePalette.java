@@ -19,12 +19,21 @@ public final class StatePalette {
 
     /**
      * {@return the number of a state, given one if it has none yet}
+     *
+     * <p>Lock-free once the state has a number: only the first use of a state takes the lock. Every chunk worker
+     * comes through here for each block it places, so a lock on this path makes them all queue behind each
+     * other.</p>
      */
-    public synchronized char id(final BlockState state) {
+    public char id(final BlockState state) {
         final Character known = ids.get(state);
         if (known != null) {
             return known;
         }
+        return assign(state);
+    }
+
+    private synchronized char assign(final BlockState state) {
+        // another thread may have numbered it while this one was waiting for the lock
         final Character again = ids.get(state);
         if (again != null) {
             return again;

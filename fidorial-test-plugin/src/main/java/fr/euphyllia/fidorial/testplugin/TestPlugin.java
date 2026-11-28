@@ -237,11 +237,11 @@ public final class TestPlugin implements Plugin {
             if (resourcePackRequest != null) {
                 player.sendResourcePacks(resourcePackRequest);
             }
-            final int totalExp = player.totalExperience();
-            player.giveExperience(totalExp + 1);
-            final Location at = player.location();
-            final World world = at.world();
-            world.scheduler().executeDelayed(world.key(), at.chunk(), () -> world.dropExperience(at, totalExp), 20*10);
+//            final int totalExp = player.totalExperience();
+//            player.giveExperience(totalExp + 1);
+//            final Location at = player.location();
+//            final World world = at.world();
+//            world.scheduler().executeDelayed(world.key(), at.chunk(), () -> world.dropExperience(at, totalExp), 20*10);
         });
 
         events.subscribe(PlayerQuitEvent.class, e -> {

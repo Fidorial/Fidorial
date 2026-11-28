@@ -1,6 +1,7 @@
 package fr.euphyllia.fidorial.server.world.generation.terrain;
 
 import fr.euphyllia.fidorial.server.world.generation.biome.JitteredBiomeGrid;
+import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
 
@@ -24,6 +25,7 @@ public final class NoiseBiomeGrid {
     private final char[] cells;
     private final JitteredBiomeGrid zoom;
     private final boolean uniform;
+    private volatile int @Nullable [] jitterSteps;
 
     /**
      * The biome of a cell.
@@ -68,6 +70,20 @@ public final class NoiseBiomeGrid {
     }
 
     /**
+     * {@return the jitter of every grid point of the grid, laid out like the cells}: drawn once, when a block first
+     * needs it, instead of eight times for every block near a border. Two threads may both draw it; they draw the
+     * same values, and the field publishes a complete array.
+     */
+    private int[] jitterSteps() {
+        int[] steps = jitterSteps;
+        if (steps == null) {
+            steps = zoom.jitterSteps(minQuartX, minQuartY, minQuartZ, SIDE, sizeY, SIDE);
+            jitterSteps = steps;
+        }
+        return steps;
+    }
+
+    /**
      * {@return the biome of a cell; heights past the grid read the nearest cell}
      */
     public char cell(final int quartX, final int quartY, final int quartZ) {
@@ -93,6 +109,26 @@ public final class NoiseBiomeGrid {
             return cells[0];
         }
         final int y = Math.clamp(blockY, minY, maxY);
+        final int gridX = JitteredBiomeGrid.cellOf(blockX) - minQuartX;
+        final int gridY = JitteredBiomeGrid.cellOf(y) - minQuartY;
+        final int gridZ = JitteredBiomeGrid.cellOf(blockZ) - minQuartZ;
+        if (gridX >= 0 && gridX + 1 < SIDE && gridZ >= 0 && gridZ + 1 < SIDE && gridY >= 0 && gridY + 1 < sizeY) {
+            // the eight corners the block may take its biome from: away from a border they agree, and which one
+            // is nearest does not matter
+            final int base = index(gridX, gridY, gridZ);
+            final int strideX = SIDE * sizeY;
+            final char first = cells[base];
+            if (cells[base + 1] == first
+                    && cells[base + sizeY] == first && cells[base + sizeY + 1] == first
+                    && cells[base + strideX] == first && cells[base + strideX + 1] == first
+                    && cells[base + strideX + sizeY] == first && cells[base + strideX + sizeY + 1] == first) {
+                return first;
+            }
+            final int corner = zoom.nearestCorner(blockX, y, blockZ, jitterSteps(), base, strideX, sizeY);
+            return cells[base + ((corner & JitteredBiomeGrid.FAR_X) != 0 ? strideX : 0)
+                    + ((corner & JitteredBiomeGrid.FAR_Y) != 0 ? 1 : 0)
+                    + ((corner & JitteredBiomeGrid.FAR_Z) != 0 ? sizeY : 0)];
+        }
         final int corner = zoom.nearestCorner(blockX, y, blockZ);
         final int cellX = JitteredBiomeGrid.cellOf(blockX) + ((corner & JitteredBiomeGrid.FAR_X) != 0 ? 1 : 0);
         final int cellY = JitteredBiomeGrid.cellOf(y) + ((corner & JitteredBiomeGrid.FAR_Y) != 0 ? 1 : 0);

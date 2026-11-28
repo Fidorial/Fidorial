@@ -2,6 +2,7 @@ package fr.euphyllia.fidorial.server.world.structure.gen;
 
 import fr.euphyllia.fidorial.server.world.ChunkGenerator;
 import fr.euphyllia.fidorial.server.world.chunk.ChunkColumn;
+import fr.euphyllia.fidorial.server.world.generation.NoiseChunkGenerator;
 import fr.euphyllia.fidorial.server.world.structure.FutureCache;
 import fr.euphyllia.fidorial.server.world.structure.worldgen.TerrainView;
 import fr.fidorial.registry.TypedKey;
@@ -38,6 +39,10 @@ public final class TerrainProbe implements TerrainView {
 
     public ChunkSummary summary(final int chunkX, final int chunkZ) {
         return summaries.get(ChunkPos.chunkKey(chunkX, chunkZ), key -> {
+            final ChunkSummary terrain = terrainSummary(chunkX, chunkZ);
+            if (terrain != null) {
+                return terrain;
+            }
             final ChunkColumn column = base.generate(chunkX, chunkZ);
             final ChunkSummary summary = ChunkSummary.of(column);
             synchronized (protoChunks) {
@@ -48,7 +53,29 @@ public final class TerrainProbe implements TerrainView {
     }
 
 
+    /**
+     * {@return the summary of the terrain the noise generator shapes for a chunk, before its features; {@code null}
+     * when the chunks do not come from the noise generator}
+     *
+     * <p>A structure only needs the height of the ground and the biomes. Generating the chunk for them would also
+     * decorate it, and a decoration needs the terrain of the 25 chunks around: probing one column would cost 25
+     * terrains instead of one. The terrain is the one the generator keeps for the decorations, so the work is not
+     * lost when the chunk is generated later.</p>
+     */
+    private @Nullable ChunkSummary terrainSummary(final int chunkX, final int chunkZ) {
+        final NoiseChunkGenerator noise = base.noise();
+        if (noise == null) {
+            return null;
+        }
+        return ChunkSummary.of(noise.terrain(chunkX, chunkZ), noise.biomes(), minY, height);
+    }
+
     public void offer(final int chunkX, final int chunkZ, final ChunkColumn column) {
+        if (base.noise() != null) {
+            // a noise chunk is summed up from its terrain, and only if a structure asks: the decorated column
+            // would give other heights than the terrain summary does
+            return;
+        }
         summaries.get(ChunkPos.chunkKey(chunkX, chunkZ), key -> ChunkSummary.of(column));
     }
 

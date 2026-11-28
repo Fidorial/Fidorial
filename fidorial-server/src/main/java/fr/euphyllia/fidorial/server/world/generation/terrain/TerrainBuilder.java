@@ -72,6 +72,10 @@ public final class TerrainBuilder {
     // the last block of the material rules looked at, and whether it holds a fluid
     private @Nullable BlockState lastRuleBlock;
     private boolean lastRuleFluid;
+    // the last state placed and its number in the palette of the generator: a column is mostly long runs of the
+    // same state, so most blocks skip the palette lookup
+    private @Nullable BlockState lastPlaced;
+    private char lastPlacedId;
 
     /**
      * @param materials the material context the rule reads
@@ -270,7 +274,7 @@ public final class TerrainBuilder {
                 if (fluidHeight == Integer.MIN_VALUE) {
                     fluidHeight = y + 1;
                 }
-                chunk.set(x, y, z, noise);
+                place(chunk, x, y, z, noise);
                 if (flowing[index]) {
                     chunk.markFluidUpdate(x, y, z);
                 }
@@ -293,7 +297,7 @@ public final class TerrainBuilder {
                 }
                 if (hollow != null) {
                     carvedTop |= solidAbove == 1;
-                    chunk.set(x, y, z, hollow);
+                    place(chunk, x, y, z, hollow);
                     if (aquifer != null && aquifer.scheduleFlow()) {
                         chunk.markFluidUpdate(x, y, z);
                     }
@@ -308,12 +312,25 @@ public final class TerrainBuilder {
                 carvedTop = false;
             }
             if (block != null) {
-                chunk.set(x, y, z, block);
+                place(chunk, x, y, z, block);
                 if (holdsFluid(block)) {
                     chunk.markFluidUpdate(x, y, z);
                 }
             }
         }
+    }
+
+    /**
+     * Places a block, reusing the palette number of the previous one when it is the same state. The palette of a
+     * generator never renumbers a state, and a builder serves one generator, so the number stays valid from chunk
+     * to chunk.
+     */
+    private void place(final GenChunk chunk, final int x, final int y, final int z, final BlockState state) {
+        if (state != lastPlaced) {
+            lastPlacedId = chunk.palette().id(state);
+            lastPlaced = state;
+        }
+        chunk.setId(x, y, z, lastPlacedId);
     }
 
     private boolean holdsFluid(final BlockState block) {
@@ -368,7 +385,7 @@ public final class TerrainBuilder {
                 }
                 // carved blocks stay hollow, but they count as placed
                 if (chunk.contains(y) && (mask == null || !mask.isCarved(x, y, z))) {
-                    chunk.set(x, y, z, placed);
+                    place(chunk, x, y, z, placed);
                 }
             }
         }
